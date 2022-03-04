@@ -1,0 +1,3118 @@
+{
+    "fullUrl": "http://hl7.org/fhir/us/ecr/Library/rctc",
+    "resource": {
+        "resourceType": "Library",
+        "id": "rctc",
+        "meta": {
+            "profile": [
+                "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library"
+            ]
+        },
+        "url": "http://hl7.org/fhir/us/ecr/Library/rctc",
+        "version": "2022-01-12",
+        "name": "Reportable_Condition_Trigger_Codes",
+        "title": "OID",
+        "status": "active",
+        "experimental": false,
+        "type": {
+            "coding": [
+                {
+                    "system": "http://terminology.hl7.org/CodeSystem/library-type",
+                    "code": "asset-collection"
+                }
+            ]
+        },
+        "publisher": "eCR",
+        "description": "Release Description: This release includes code updates for the existing 99 conditions and adds codes for 9 new conditions: Work-related Asthma (WRA), Cancer, Colorado tick fever, Creutzfeldt-Jakob Disease (CJD) and Variant Creutzfeldt-Jakob Disease (vCJD), Hepatitis E, Japanese encephalitis virus disease, Monkeypox, Ricin Poisoning, Seafood Poisoning",
+        "purpose": "Triggers for initiating decision support for electronic case reports",
+        "effectivePeriod": {
+            "start": "2022-01-12"
+        },
+        "relatedArtifact": [
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.121"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.363"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.123"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.365"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.124"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.366"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.126"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.127"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.248"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.249"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.129"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.590"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.592"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.230"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.112"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.113"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.234"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.235"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.115"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.116"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.117"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.359"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1407"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1406"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1403"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1402"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1405"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1404"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.460"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.461"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.221"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.224"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.105"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.226"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.106"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.227"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1089"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.229"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1090"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.451"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.210"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.211"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.458"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.217"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.218"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1309"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1303"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.201"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.322"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.202"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.204"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1301"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.205"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.326"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.207"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.208"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1318"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.792"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.793"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1310"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.315"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1207"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.783"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.784"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.422"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1203"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.304"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1337"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1336"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1339"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1338"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.410"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1332"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.411"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1331"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1347"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.86"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.87"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.88"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.80"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.640"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.641"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.642"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.404"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1342"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.405"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.78"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.639"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.79"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.193"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.195"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.196"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.198"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1357"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.632"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1356"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.633"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.634"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.876"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.635"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.877"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.507"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1008"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.190"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.192"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.182"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.184"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.185"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.187"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.188"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1124"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1245"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1123"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1244"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.620"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.621"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.984"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1362"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1243"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1242"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1363"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.505"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1259"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.98"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.99"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.92"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.94"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.95"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.181"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.172"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.293"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1371"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.173"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1370"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.175"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.176"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.178"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.179"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1016"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1258"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1379"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.610"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1015"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1136"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.853"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.733"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.734"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1012"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1011"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.47"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.48"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.609"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.43"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.44"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.40"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.291"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1380"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.161"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1140"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1382"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1260"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1381"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.164"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.288"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1388"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.289"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1387"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1269"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.963"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1384"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1264"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1385"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.725"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.836"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.35"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.36"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.280"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.150"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.271"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.392"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1393"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.151"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.393"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.273"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.153"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.395"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.154"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.396"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.156"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.279"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1159"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1274"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.832"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1394"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.39"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.833"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1397"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.834"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1275"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1396"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.835"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1160"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.260"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1162"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1283"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.140"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1161"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.141"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.264"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.265"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.145"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1047"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.146"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1167"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1049"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.940"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1048"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1164"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1163"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1284"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.701"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.822"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1166"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1287"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.823"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1165"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.52"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.53"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.819"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.51"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1050"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1291"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1051"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.130"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.251"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.131"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.252"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.133"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.135"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.256"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.136"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.257"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.137"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.259"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1054"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.139"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.482"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.882"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1346"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1358"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1193"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1192"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.591"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1194"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.473"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1191"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.870"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1190"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.356"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.477"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.631"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.599"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.875"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.999"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.516"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1077"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.905"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.580"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.340"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.341"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.100"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.463"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.586"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1247"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.346"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.467"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1246"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.348"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.502"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.979"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.96"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.292"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.573"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1014"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.333"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.850"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1013"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.334"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.851"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1137"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.852"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1372"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1308"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.606"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1029"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.170"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1261"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.287"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.169"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.444"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.565"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1302"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.568"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1141"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1386"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.845"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1143"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.838"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.839"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1272"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.275"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1036"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.795"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1156"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1398"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.312"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.554"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.796"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.435"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1155"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1276"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.559"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.318"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.439"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1209"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1208"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.828"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.382"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1282"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.386"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.661"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.300"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.542"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1288"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.389"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.269"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1043"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1042"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.306"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.549"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.945"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.370"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.371"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.494"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.495"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.375"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1212"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.378"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1211"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1214"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1213"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.534"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1210"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.883"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.764"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.522"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.523"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.369"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.524"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.920"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.645"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.525"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.646"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.889"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.527"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.759"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.519"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1195"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.594"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.595"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.596"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1113"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.597"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.598"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1112"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.478"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.512"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.479"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1076"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.513"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1196"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.515"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1111"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1409"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1127"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.581"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.582"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.220"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.980"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.584"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.981"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.585"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.982"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1002"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.345"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1126"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.588"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.589"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1001"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.10"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.570"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.571"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.296"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.572"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.297"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.298"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.299"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1410"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.697"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.215"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1411"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.216"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.613"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.614"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.960"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.840"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.600"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1142"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.569"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.966"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1144"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1270"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1151"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1157"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.830"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.313"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.314"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1158"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1153"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1152"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.316"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1154"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.829"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.262"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.782"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.266"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.268"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.785"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.820"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.821"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.944"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.58"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.816"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.817"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.818"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1333"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.897"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1334"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.899"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.416"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1183"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.240"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.483"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.484"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1180"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.485"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.244"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.486"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.245"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.487"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1189"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.367"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.488"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.368"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.489"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1186"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1185"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.921"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1188"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.801"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1187"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.802"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.470"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.471"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.472"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.474"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.475"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.476"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.238"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.239"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.25"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1408"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.342"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.343"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.464"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.344"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.465"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.466"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1401"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1400"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.347"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.468"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1087"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.469"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.349"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1088"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.693"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.575"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.576"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.335"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.577"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.336"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.578"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.337"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.579"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.338"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1304"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1305"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.560"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.440"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.561"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.441"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.562"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.442"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.563"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1300"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.443"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.564"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.324"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.445"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.566"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.325"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.446"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.567"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.447"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.449"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.550"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.552"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1311"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.553"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.433"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1313"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.555"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.797"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1312"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.556"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.798"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.436"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.557"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.799"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.437"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.558"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.317"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.438"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.308"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.309"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.540"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.541"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.301"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.302"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.544"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.786"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.303"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.545"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.787"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.425"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.546"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.788"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.426"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.547"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.427"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.548"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.307"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.428"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.539"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1219"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1216"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1215"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.770"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.771"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.530"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.772"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.531"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.773"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.532"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.413"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.414"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.535"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.415"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.536"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.537"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.417"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.538"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.407"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.529"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1106"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1344"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1343"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.400"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.401"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.885"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1345"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.402"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1340"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.403"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.887"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.526"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1220"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1341"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.769"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1359"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.70"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.71"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.873"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.874"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.998"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.878"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1128"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1249"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1248"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1129"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1360"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1365"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.500"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.742"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1368"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.501"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.743"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.744"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1361"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.745"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.746"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1000"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.989"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.858"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1018"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1139"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1017"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1138"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1019"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1250"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1377"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1376"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.730"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.731"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1378"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1131"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1252"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1373"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.854"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1130"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1251"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.855"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1375"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.856"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1132"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1253"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1374"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.857"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.726"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.847"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.848"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.728"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.729"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1028"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.282"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.283"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.284"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.286"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1148"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.841"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1147"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1263"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1020"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1262"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1383"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.602"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.846"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.391"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.276"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.398"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1278"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1399"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.278"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.399"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1277"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1279"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1273"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.946"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.705"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.706"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.948"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.707"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.949"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.708"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.390"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1281"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.380"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1280"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.384"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.385"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.387"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1168"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1289"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.267"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.388"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1169"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1285"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1045"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1044"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1286"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.815"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1171"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.490"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1170"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.491"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1173"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.492"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1172"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.372"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.493"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.373"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.374"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1290"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.496"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.376"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.497"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1179"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.498"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1178"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.499"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.379"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1175"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1174"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1177"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1055"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1176"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1052"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.990"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1081"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.321"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.992"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.741"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.961"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.983"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.732"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.843"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1053"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.943"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1078"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.339"
+            },
+            {
+                "type": "composed-of",
+                "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.747"
+            }
+        ]
+    }
+}
