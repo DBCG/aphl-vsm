@@ -5,7 +5,11 @@ const Input = styled.input`
   padding: 4px 6px;
 `
 
-const SearchInput = ({ placeholder }) => {
+interface Props {
+  placeholder?: string
+}
+
+const SearchInput = ({ placeholder }: Props) => {
   return (
     <Input
       placeholder={placeholder}

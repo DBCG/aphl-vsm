@@ -7,6 +7,7 @@ const ScaffoldWrapper = styled.div`
   flex: 1;
   justify-content: space-between;
   padding: 24px 36px;
+  font-family: sans-serif;
 `
 
 const StyledMain = styled.main`
@@ -25,9 +26,6 @@ const Scaffold = ({ children }: Props) => {
         <title>ValueSet Manager (VSM)</title>
         <meta name="description" content="A tool to edit ValueSet groupings" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@600&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet"></link>
       </Head>
       <StyledMain>
         { children }

@@ -6,8 +6,8 @@ import { Button } from '../components/Button'
 
 const Row = styled.div`
   display: flex;
-  flex-direction: row;
   flex: 1;
+  flex-direction: row;
   justify-content: space-between;
 `
 
@@ -24,7 +24,7 @@ const Programs: NextPage = () => {
       <PageTitle>Programs</PageTitle>
       <Row>
         <SearchInput placeholder='Search by ID, Name, Title' />
-        <Button text='Add New Program'/>
+        <Button text='Add New Program' />
       </Row>
     </Col>
   )

@@ -3,7 +3,11 @@ import styled from 'styled-components'
 const StyledButton = styled.button`
 `
 
-const Button = ({ text }) => {
+interface Props {
+  text: string
+}
+
+const Button = ({ text }: Props) => {
   return (
     <StyledButton>{ text }</StyledButton>
   )
