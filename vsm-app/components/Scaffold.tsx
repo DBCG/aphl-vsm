@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import Head from 'next/head'
+import { NavBar } from './NavBar'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;
@@ -11,6 +12,13 @@ const ScaffoldWrapper = styled.div`
 `
 
 const StyledMain = styled.main`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px;
+`
+
+const Row = styled.div`
   display: flex;
   width: 100%;
 `
@@ -28,6 +36,9 @@ const Scaffold = ({ children }: Props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <StyledMain>
+        <Row>
+          <NavBar></NavBar>
+        </Row>
         { children }
       </StyledMain>
       <footer>

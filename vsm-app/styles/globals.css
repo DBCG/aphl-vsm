@@ -357,9 +357,13 @@ template {
 html,
 body {
   --theme-color: #00808d;
+  --theme-color-transparent: rgba(0, 128, 141, 0.05);
+  --white: #FFF;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  height: 100%;
+  background-color: var(--theme-color-transparent);
   font-family: sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important;
 }

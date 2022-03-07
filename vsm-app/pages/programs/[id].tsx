@@ -1,8 +1,8 @@
 import type { NextPage } from 'next'
 import styled from 'styled-components'
-import { PageTitle } from '../components/Typography'
-import { SearchInput } from '../components/SearchInput'
-import { Button } from '../components/Button'
+import { PageTitle } from '../../components/Typography'
+import { SearchInput } from '../../components/SearchInput'
+import { Button } from '../../components/Button'
 
 const Row = styled.div`
   display: flex;
@@ -18,10 +18,10 @@ const Col = styled.div`
   height: fit-content;
 `
 
-const Programs: NextPage = () => {
+const ProgramDetails: NextPage = () => {
   return (
     <Col>
-      <PageTitle>Programs</PageTitle>
+      <PageTitle>Program Detail Page</PageTitle>
       <Row>
         <SearchInput placeholder='Search by ID, Name, Title' />
         <Button text='Add New Program' />
@@ -30,4 +30,4 @@ const Programs: NextPage = () => {
   )
 }
 
-export default Programs
+export default ProgramDetails
