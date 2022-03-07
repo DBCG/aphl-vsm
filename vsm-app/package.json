@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/fhir": "^0.0.34",
+    "@types/styled-components": "^5.1.24",
     "next": "12.1.0",
     "react": "17.0.2",
     "react-dom": "17.0.2",
