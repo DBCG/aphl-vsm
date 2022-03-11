@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { PageTitle } from '../../components/Typography'
 import { SearchInput } from '../../components/SearchInput'
 import { Button } from '../../components/Button'
+import { useGetPrograms } from '../../hooks/useGetPrograms'
 
 const Row = styled.div`
   display: flex;
@@ -19,6 +20,7 @@ const Col = styled.div`
 `
 
 const Programs: NextPage = () => {
+  const programs = useGetPrograms()
   return (
     <Col>
       <PageTitle>Programs</PageTitle>
