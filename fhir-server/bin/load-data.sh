@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# this program is used by the post-demo-data.sh program
 
 # $1 (aka, the first arg) is a required argument -- you must provide a file to upload
 # this could be one or more files
