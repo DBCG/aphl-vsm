@@ -7,20 +7,21 @@ const ScaffoldWrapper = styled.div`
   display: flex;
   flex: 1;
   justify-content: space-between;
-  padding: 24px 36px;
-  font-family: sans-serif;
 `
-
-const StyledMain = styled.main`
+  
+  const StyledMain = styled.main`
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 1200px;
 `
 
 const Row = styled.div`
   display: flex;
   width: 100%;
+`
+
+const Content = styled.div`
+  padding: 24px 36px;
 `
 
 interface Props {
@@ -34,12 +35,15 @@ const Scaffold = ({ children }: Props) => {
         <title>ValueSet Manager (VSM)</title>
         <meta name="description" content="A tool to edit ValueSet groupings" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <StyledMain>
         <Row>
-          <NavBar></NavBar>
+          <NavBar/>
         </Row>
-        { children }
+        <Content>
+          { children }
+        </Content>
       </StyledMain>
       <footer>
       </footer>

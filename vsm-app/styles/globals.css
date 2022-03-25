@@ -352,7 +352,28 @@ template {
   display: none;
 }
 
-/**NORMALIZE ENDS HERE**/
+/** NORMALIZE ENDS HERE **/
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-Regular.ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-Italic.ttf');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-SemiBold.ttf');
+  font-weight: 600;
+  font-style: normal;
+}
 
 html,
 body {
@@ -365,7 +386,7 @@ body {
   height: 100%;
   background-image: url('/images/background.svg');
   background-size: cover;
-  font-family: sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+  font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important;
 }
 
