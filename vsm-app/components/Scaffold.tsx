@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import Head from 'next/head'
 import { NavBar } from './NavBar'
+import { FileContainer } from './FileContainer'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;
@@ -29,6 +30,7 @@ interface Props {
 }
 
 const Scaffold = ({ children }: Props) => {
+
   return (
     <ScaffoldWrapper>
       <Head>
@@ -42,7 +44,9 @@ const Scaffold = ({ children }: Props) => {
           <NavBar/>
         </Row>
         <Content>
-          { children }
+          <FileContainer>
+            { children }
+          </FileContainer>
         </Content>
       </StyledMain>
       <footer>
