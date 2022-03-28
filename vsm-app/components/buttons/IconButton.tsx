@@ -1,0 +1,34 @@
+import styled from 'styled-components'
+import Image from 'next/image'
+
+const StyledButton = styled.button`
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  background-color: var(--theme-color);
+  cursor: pointer;
+  box-shadow: none;
+  border: none;
+  padding-top: 4px;
+`
+
+const IconButton = ({ type, onClick }) => {
+  let image = 'missing'
+
+  switch (type) {
+    case 'edit':
+      image = 'edit'
+  }
+
+  return (
+      <StyledButton onClick={e => onClick(e)}>
+        <Image
+          src={`/images/${image}.svg`}
+          width={24}
+          height={24}
+        />
+      </StyledButton>
+  )
+}
+
+export { IconButton }
