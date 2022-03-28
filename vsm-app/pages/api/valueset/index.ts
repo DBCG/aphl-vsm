@@ -16,7 +16,7 @@ export default async function handler(
     if (!baseUrl) { console.error('Please provide a Terminology Server URL')}
 
     try {
-      const response = await fetch(`${baseUrl}/ValueSet?_count=25`, fetchOptions)
+      const response = await fetch(`${baseUrl}/ValueSet?_count=15`, fetchOptions)
 
       res.status(200).send(await response.json())
     } catch (e) {

@@ -25,7 +25,7 @@ const Col = styled.div`
 
 interface ValueSetsAndFilters {
   valueSets: Bundle['entry']
-  filters: CodeSystemFilters[]
+  filters: CodeSystemFilters[] // currently unused. These are the codesystem filters derived from a Terminology Server Capability Statement
 }
 
 const ValueSets = () => {
@@ -35,7 +35,7 @@ const ValueSets = () => {
   })
 
   useEffect(() => {
-    async function getValueSetsAndFilters(): Promise<void> {
+    async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
       const responses = await Promise.all([
         fetch(`api/valueset?baseUrl=${defaultBaseUrl}`),
         fetch(`api/codesystem/filters?baseUrl=${defaultBaseUrl}`)
@@ -50,26 +50,27 @@ const ValueSets = () => {
     void getValueSetsAndFilters()
   }, [])
 
-  const submitSearch = async (event: SyntheticEvent) => {
+  /**
+   *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
+   */
+  const submitSearch = async (event: SyntheticEvent) => { 
     event.preventDefault()
     const response = await fetch(`api/valueset/search?baseUrl=${defaultBaseUrl}&search=${event.target.search.value}`)
     const { entry } = await response.json() as Bundle
+    console.info({...valueSetsAndFilters, valueSets: entry})
     setValueSetsAndFilters({...valueSetsAndFilters, valueSets: entry})
   }
 
   const { valueSets } = valueSetsAndFilters
 
+  // Currently using simple HTML form tags until styled components created
   return (
     <Col>
       <PageTitle>ValueSet Search</PageTitle>
       <Row>
-        <SearchInput placeholder={`Default Terminology Server: ${defaultBaseUrl}`} />
-        <Button text='Change Server' />
-      </Row>
-      <Row>
         <form onSubmit={submitSearch}>
-          <input name="search" type="text" placeholder='Search by ID, Name, Title' required/>
-          <button type="submit">Register</button>
+          <input name="search" type="text" placeholder='Search by Name, OID, Steward' required/>
+          <button type="submit">Search</button>
         </form>
       </Row>
       <SearchTable valueSets={valueSets} />

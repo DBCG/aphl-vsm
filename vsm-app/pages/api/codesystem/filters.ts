@@ -12,6 +12,7 @@ export interface CodeSystemFilters {
   valueString: string
 }
 
+// Takes a capability statement, extracts the `extension` field that contains the data for filtering ValueSets by CodeSystem
 const parseCapabilityStatement = (capabilityStatement: CapabilityStatement): CodeSystemFilters[]|undefined => {
   const filters = capabilityStatement.extension?.map(({ extension }) => {
     return {
