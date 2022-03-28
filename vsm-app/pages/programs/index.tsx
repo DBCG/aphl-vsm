@@ -14,6 +14,8 @@ const Row = styled.div`
   flex: 1;
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 `
 
 const Col = styled.div`
@@ -23,7 +25,26 @@ const Col = styled.div`
   height: fit-content;
 `
 
+const StyledDT = styled(DT)`
+
+`
+
+const customStyles = {
+  cells: {
+    style: {
+      paddingTop: '12px',
+      paddingBottom: '12px'
+    }
+  }
+}
+
 createTheme('aphl', {
+  cells: {
+    style: {
+      paddingTop: '24px',
+      paddingBottom: '24px'
+    }
+  }
   // text: {
   //   primary: '#268bd2',
   //   secondary: '#2aa198',
@@ -67,13 +88,15 @@ const Programs: NextPage = () => {
       name: 'Title',
       selector: row => row.title,
       sortable: true,
-      maxWidth: '300px',
+      maxWidth: '200px',
       wrap: true
     },
     {
       name: 'Description',
       selector: row => row.description,
       sortable: false,
+      maxWidth: '300px',
+      minWidth: '300px',
       wrap: true
     },
     {
@@ -99,13 +122,14 @@ const Programs: NextPage = () => {
         <SearchInput placeholder='Search by ID, Name, Title' />
         <Button text='Add New Program' />
       </Row>
-      <Row>
-        <DT
+        <StyledDT
           data={programs}
           columns={columns}
           theme='aphl'
+          pagination
+          fixedHeader
+          customStyles={customStyles}
         />
-      </Row>
     </Col>
   )
 }
