@@ -7,7 +7,7 @@ const headers = new Headers();
 headers.set('Authorization', `Basic ${Buffer.from(authString).toString('base64')}`)
 const fetchOptions = { method: 'GET', headers }
 
-interface CodeSystemFilters {
+export interface CodeSystemFilters {
   valueUri: string
   valueString: string
 }

@@ -35,6 +35,8 @@ const SearchTable = ({ valueSets }:{ valueSets: BundleEntry[] }) => {
       columns={columns}
       data={tableData}
       selectableRows
+      pagination
+      paginationPerPage={10}
     />
   )
 }
