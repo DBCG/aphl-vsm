@@ -10,12 +10,22 @@ const StyledButton = styled.button`
 `
 
 interface Props {
-  text: string
+  text: string,
+  onClick: Function
 }
 
-const Button = ({ text }: Props) => {
+const Button = ({
+  text,
+  style,
+  onClick
+}: Props) => {
   return (
-    <StyledButton>{ text }</StyledButton>
+    <StyledButton
+      style={style}
+      onClick={(e) => onClick(e)}
+    >
+      { text }
+    </StyledButton>
   )
 }
 

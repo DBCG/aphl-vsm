@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import Image from 'next/image'
 
 const Input = styled.input`
-  min-width: 400px;
+  min-width: ${props => props.minWidth || 0}px;
   padding: 4px 6px;
   background-color: white;
   border: 2px solid transparent;
@@ -10,8 +10,9 @@ const Input = styled.input`
 `
 
 const StyledLabel = styled.label`
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-size: 14px;
+  color: var(--theme-500);
 `
 
 const Container = styled.div`
@@ -21,16 +22,35 @@ const Container = styled.div`
 
 interface Props {
   placeholder?: string,
-  onChange?: Function
+  onChange?: Function,
+  label?: string,
+  id?: string,
+  minWidth?: number
 }
 
-const SearchInput = ({ placeholder, onChange, label, id }: Props) => {
+interface LabelProps {
+  for: string
+}
+
+const SearchInput = ({
+  placeholder,
+  onChange,
+  label,
+  id,
+  minWidth
+}: Props) => {
   return (
     <Container>
-      {label && <StyledLabel for={id}>{label}</StyledLabel>}
+      {
+        label &&
+        <StyledLabel for={id}>
+          {label}
+        </StyledLabel>
+      }
       <Input
         placeholder={placeholder}
         onChange={onChange}
+        minWidth={minWidth}
       />
     </Container>
   )

@@ -105,6 +105,10 @@ const Programs: NextPage = () => {
     }
   ], [])
 
+  const onClick = () => {
+    router.push('/programs/new')
+  }
+
   return (
     <Col>
       <Row>
@@ -113,8 +117,11 @@ const Programs: NextPage = () => {
           id='program-search'
           label='Search by ID, Name, Title, Description'
           hasIcon={true}
+          minWidth={400}
         />
-        <Button text='Add New Program' />
+        <Button text='Add New Program'
+          onClick={onClick}
+        />
       </Row>
         <StyledDT
           data={filterPrograms(programs, searchTerm)}

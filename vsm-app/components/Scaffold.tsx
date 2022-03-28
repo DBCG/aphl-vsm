@@ -2,6 +2,7 @@ import styled from 'styled-components'
 import Head from 'next/head'
 import { FileContainer } from './FileContainer'
 import { NavBar } from './NavBar'
+import { useRouter } from 'next/router'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;
@@ -30,7 +31,7 @@ interface Props {
 }
 
 const Scaffold = ({ children }: Props) => {
-
+  const router = useRouter()
   return (
     <ScaffoldWrapper>
       <Head>
@@ -44,9 +45,14 @@ const Scaffold = ({ children }: Props) => {
           <NavBar/>
         </Row>
         <Content>
-          <FileContainer>
-            { children }
-          </FileContainer>
+          { router.pathname.includes('login') ?
+            children :
+            (
+              <FileContainer>
+                { children }
+              </FileContainer>
+            )
+          }
         </Content>
       </StyledMain>
       <footer>
