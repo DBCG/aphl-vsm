@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import Head from 'next/head'
-import { NavBar } from './NavBar'
 import { FileContainer } from './FileContainer'
+import { NavBar } from './NavBar'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;

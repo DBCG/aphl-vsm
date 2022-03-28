@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import styled from 'styled-components'
 import { PageTitle } from '../../components/Typography'
 import { SearchInput } from '../../components/SearchInput'
-import { Button } from '../../components/Button'
+import { Button } from '../../components/buttons/Button'
 
 const Row = styled.div`
   display: flex;

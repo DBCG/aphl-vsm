@@ -10,4 +10,3 @@ const DataTable = ({ programs, columns }) =>  {
 }
 
 export { DataTable }
-
