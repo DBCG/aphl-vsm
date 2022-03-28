@@ -6,13 +6,15 @@ const Input = styled.input`
 `
 
 interface Props {
-  placeholder?: string
+  placeholder?: string,
+  onChange?: Function
 }
 
-const SearchInput = ({ placeholder }: Props) => {
+const SearchInput = ({ placeholder, onChange }: Props) => {
   return (
     <Input
       placeholder={placeholder}
+      onChange={onChange}
     />
   )
 }

@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { useMemo } from 'react'
+import { useMemo, useState, ChangeEvent } from 'react'
 import { createTheme } from 'react-data-table-component'
 import styled from 'styled-components'
 import { PageTitle } from '../../components/Typography'
@@ -66,9 +66,21 @@ createTheme('aphl', {
   // },
 }, 'light')
 
+const filterPrograms = (programs, query): boolean => {
+  if (query === '') return programs
+  return programs.filter(p => {
+    return (
+    p?.id?.toLowerCase().includes(query?.toLowerCase()) ||
+    p?.name?.toLowerCase().includes(query?.toLowerCase()) ||
+    p?.title?.toLowerCase().includes(query?.toLowerCase())
+  )})
+}
+
 const Programs: NextPage = () => {
   const programs = useGetPrograms()
-  console.log('PROG', programs)
+  const [searchTerm, setSearchTerm] = useState('')
+  console.log('searchTerm: ', searchTerm)
+
   const columns = useMemo(() => [
     {
       name: 'ID',
@@ -113,17 +125,15 @@ const Programs: NextPage = () => {
     }
   ], [])
 
-  console.log('columns: ', columns)
-
   return (
     <Col>
       <PageTitle>Programs</PageTitle>
       <Row>
-        <SearchInput placeholder='Search by ID, Name, Title' />
+        <SearchInput onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} placeholder='Search by ID, Name, Title' />
         <Button text='Add New Program' />
       </Row>
         <StyledDT
-          data={programs}
+          data={filterPrograms(programs, searchTerm)}
           columns={columns}
           theme='aphl'
           pagination
