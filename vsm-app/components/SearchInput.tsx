@@ -6,7 +6,7 @@ const Input = styled.input`
   padding: 4px 6px;
   background-color: white;
   border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-color);
+  border-bottom: 2px solid var(--theme-300);
 `
 
 const StyledLabel = styled.label`
