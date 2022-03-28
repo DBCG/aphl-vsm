@@ -94,7 +94,7 @@ const Programs: NextPage = () => {
     {
       name: 'Edit',
       selector: row => row.name,
-      sortable: true,
+      sortable: false,
       wrap: true,
       cell: row => (
         <IconButton
