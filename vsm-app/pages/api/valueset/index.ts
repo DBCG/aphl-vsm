@@ -1,5 +1,4 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { Bundle } from 'fhir/r4';
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 const { VSAC_USERNAME, VSAC_API_KEY } = process.env
@@ -18,9 +17,8 @@ export default async function handler(
 
     try {
       const response = await fetch(`${baseUrl}/ValueSet?_count=25`, fetchOptions)
-      const { entry } = await response.json() as Bundle
 
-      res.status(200).send(JSON.stringify(entry))
+      res.status(200).send(await response.json())
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Loading ValueSets failed' })
