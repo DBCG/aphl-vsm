@@ -15,9 +15,10 @@ export default async function handler(
         }
       })
 
-      const json = JSON.stringify(data)
-
+      const libs = data?.entry?.map(e => e?.resource)
+      const json = JSON.stringify(libs)
       res.status(200).send(json)
+
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for program failed.' })
