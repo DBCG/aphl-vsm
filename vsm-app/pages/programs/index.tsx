@@ -46,6 +46,7 @@ const filterPrograms = (programs, query): boolean => {
     return (
     p?.id?.toLowerCase().includes(query?.toLowerCase()) ||
     p?.name?.toLowerCase().includes(query?.toLowerCase()) ||
+    p?.description?.toLowerCase().includes(query?.toLowerCase()) ||
     p?.title?.toLowerCase().includes(query?.toLowerCase())
   )})
 }
@@ -110,7 +111,7 @@ const Programs: NextPage = () => {
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           id='program-search'
-          label='Search by ID, Name, Title'
+          label='Search by ID, Name, Title, Description'
           hasIcon={true}
         />
         <Button text='Add New Program' />
