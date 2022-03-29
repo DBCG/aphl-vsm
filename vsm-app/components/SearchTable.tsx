@@ -14,7 +14,8 @@ interface TableData {
 }
 
 const parseValueSet = (valueSets: BundleEntry[]): TableData[] => {
-  if (valueSets.length < 1) { return [] }
+  if (!valueSets || valueSets.length < 1) { return [] }
+
   const data =  valueSets.map(({ resource }) => {
     const { id, name, publisher } = resource as ValueSet
     return {
