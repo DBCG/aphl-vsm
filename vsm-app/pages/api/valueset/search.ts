@@ -11,13 +11,25 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   if (req.method === 'GET') {
-    const { baseUrl, search } = req.query
-    if (!baseUrl) { console.error('Please provide a Terminology Server URL')}
+    const { baseUrl, search, searchType } = req.query
+    if (!baseUrl) { console.error('Please provide a Terminology Server URL') }
 
     try {
-      const response = await fetch(`${baseUrl}/ValueSet?name:contains=${search}`, fetchOptions)
+      let response;
+      switch(searchType) {
+        case 'name':
+          response =  await fetch(`${baseUrl}/ValueSet?name:contains=${search}`, fetchOptions)
+          break;
+        case 'steward':
+          response =  await fetch(`${baseUrl}/ValueSet?publisher:contains=${search}`, fetchOptions)
+          break;
+        case 'oid':
+          response =  await fetch(`${baseUrl}/ValueSet/${search}`, fetchOptions)
+      }
 
-      res.status(200).send(await response.json())
+      const json = await response?.json()
+
+      res.status(200).send(json)
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Loading ValueSets failed' })
