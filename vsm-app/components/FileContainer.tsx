@@ -49,6 +49,7 @@ const Span = styled.span`
   font-size: 18px;
   font-weight: regular;
   text-transform: capitalize;
+  color: var(--theme-500);
 `
 
 const tabs = ['programs', 'value sets']
