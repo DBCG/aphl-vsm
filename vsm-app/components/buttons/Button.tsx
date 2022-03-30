@@ -10,8 +10,9 @@ const StyledButton = styled.button`
 `
 
 interface Props {
-  text: string,
-  onClick: Function
+  text: string;
+  onClick: Function;
+  style?: React.CSSProperties
 }
 
 const Button = ({

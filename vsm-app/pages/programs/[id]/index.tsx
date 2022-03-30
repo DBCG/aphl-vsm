@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { PageTitle } from '../../../components/Typography'
 import { SearchInput } from '../../../components/SearchInput'
 import { Button } from '../../../components/buttons/Button'
+import React from 'react'
 
 const Row = styled.div`
   display: flex;
@@ -24,7 +25,7 @@ const ProgramDetails: NextPage = () => {
       <PageTitle>Program Detail Page</PageTitle>
       <Row>
         <SearchInput placeholder='Search by ID, Name, Title' />
-        <Button text='Add New Program' />
+        <Button onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
       </Row>
     </Col>
   )

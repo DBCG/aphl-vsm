@@ -1,9 +1,8 @@
 import styled from 'styled-components'
 import { useState } from 'react'
-import { useLogIn } from '../../hooks/useLogIn'
 import { SearchInput } from '../../components/SearchInput'
 import { Button } from '../../components/buttons/Button'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 
 const Container = styled.div`
   background-color: rgba(255, 255, 255, 0.6);

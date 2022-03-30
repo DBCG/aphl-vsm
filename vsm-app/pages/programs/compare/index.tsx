@@ -24,7 +24,7 @@ const ProgramCompare: NextPage = () => {
       <PageTitle>Program Compare</PageTitle>
       <Row>
         <SearchInput placeholder='Search by ID, Name, Title' />
-        <Button text='Add New Program' />
+        <Button onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
       </Row>
     </Col>
   )

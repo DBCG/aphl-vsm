@@ -1,3 +1,4 @@
+import React from 'react';
 import styled from 'styled-components'
 import Image from 'next/image'
 
@@ -12,7 +13,12 @@ const StyledButton = styled.button`
   padding-top: 4px;
 `
 
-const IconButton = ({ type, onClick }) => {
+interface IButtonProps {
+  type: string;
+  onClick: React.EventHandler<React.MouseEvent>
+}
+
+const IconButton = ({ type, onClick }: IButtonProps) => {
   let image = 'missing'
 
   switch (type) {
