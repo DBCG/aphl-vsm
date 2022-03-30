@@ -11,11 +11,12 @@ export default async function handler(
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
-          _profile: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library'
+          _profile: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library',
+          _sort: ['-version']
         }
       })
 
-      const libs = data?.entry?.map(e => e?.resource)
+      const libs = data?.entry?.map((e: any) => e?.resource)
       const json = JSON.stringify(libs)
       res.status(200).send(json)
 

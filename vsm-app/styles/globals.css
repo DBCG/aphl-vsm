@@ -386,12 +386,11 @@ body {
 	--neutral-300: rgba(147,144,137,1);
 	--neutral-200: rgba(241,245,248,1);
 	--neutral-100: rgba(179,172,166,1);
-  --white: #FFF;
   --theme-color-transparent: rgba(0, 128, 141, 0.05);
+  --white: #FFF;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  border: 1px solid red;
   background-image: url('/images/background.svg');
   background-size: cover;
   font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,

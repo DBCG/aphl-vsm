@@ -1,15 +1,12 @@
 import type { NextPage } from 'next'
-import { useMemo, useState, ChangeEvent } from 'react'
-import { createTheme } from 'react-data-table-component'
 import styled from 'styled-components'
-import { PageTitle } from '../../components/Typography'
+import { useMemo, useState, ChangeEvent } from 'react'
+import { useRouter } from 'next/router'
+import DT, { TableColumn } from 'react-data-table-component'
 import { SearchInput } from '../../components/SearchInput'
 import { Button } from '../../components/buttons/Button'
 import { useGetPrograms } from '../../hooks/useGetPrograms'
-import DT from 'react-data-table-component'
-import { DataTable } from '../../components/tables/DataTable'
 import { IconButton } from '../../components/buttons/IconButton'
-import { useRouter } from 'next/router'
 
 const Row = styled.div`
   display: flex;
@@ -27,8 +24,12 @@ const Col = styled.div`
   height: fit-content;
 `
 
-const StyledDT = styled(DT)`
+interface DTProps {
+  data: fhir4.Library[];
+  columns: TableColumn<fhir4.Library[]>[];
+}
 
+const StyledDT = styled(DT)<DTProps>`
 `
 
 const customStyles = {
@@ -40,46 +41,47 @@ const customStyles = {
   }
 }
 
-const filterPrograms = (programs, query): boolean => {
-  if (query === '') return programs
-  return programs.filter(p => {
-    return (
-    p?.id?.toLowerCase().includes(query?.toLowerCase()) ||
-    p?.name?.toLowerCase().includes(query?.toLowerCase()) ||
-    p?.description?.toLowerCase().includes(query?.toLowerCase()) ||
-    p?.title?.toLowerCase().includes(query?.toLowerCase())
-  )})
-}
-
 const Programs: NextPage = () => {
   const programs = useGetPrograms()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredPrograms = (): fhir4.Library[] => {
+    if (searchTerm === '') return programs
+    return programs.filter(p => {
+      return (
+      p?.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      p?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      p?.description?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+      p?.title?.toLowerCase().includes(searchTerm?.toLowerCase())
+    )})
+  }
+
   const columns = useMemo(() => [
     {
       name: 'ID',
-      selector: row => row.id,
+      selector: (row: fhir4.Library) => row.id,
       sortable: true,
       maxWidth: '150px',
       wrap: true
     },
     {
       name: 'Name',
-      selector: row => row.name,
+      selector: (row: fhir4.Library) => row.name,
       sortable: true,
       maxWidth: '300px',
       wrap: true
     },
     {
       name: 'Title',
-      selector: row => row.title,
+      selector: (row: fhir4.Library) => row.title,
       sortable: true,
       maxWidth: '200px',
       wrap: true
     },
     {
       name: 'Description',
-      selector: row => row.description,
+      selector: (row: fhir4.Library) => row.description,
       sortable: false,
       maxWidth: '300px',
       minWidth: '300px',
@@ -87,16 +89,16 @@ const Programs: NextPage = () => {
     },
     {
       name: 'Version',
-      selector: row => row.version,
+      selector: (row: fhir4.Library) => row.version,
       sortable: true,
       wrap: true
     },
     {
       name: 'Edit',
-      selector: row => row.name,
+      selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
-      cell: row => (
+      cell: (row: fhir4.Library) => (
         <IconButton
           onClick={() => router.push(`/programs/${row.id}`)}
           type='edit'
@@ -124,7 +126,7 @@ const Programs: NextPage = () => {
         />
       </Row>
         <StyledDT
-          data={filterPrograms(programs, searchTerm)}
+          data={filteredPrograms()}
           columns={columns}
           theme='aphl'
           pagination

@@ -1,7 +1,11 @@
 import styled from 'styled-components'
-import Image from 'next/image'
 
-const Input = styled.input`
+interface InputProps {
+  minWidth?: number;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+}
+
+const Input = styled.input<InputProps>`
   min-width: ${props => props.minWidth || 0}px;
   padding: 4px 6px;
   background-color: white;
@@ -9,7 +13,12 @@ const Input = styled.input`
   border-bottom: 2px solid var(--theme-300);
 `
 
-const StyledLabel = styled.label`
+interface LabelProps {
+  for: string;
+  children: string;
+}
+
+const StyledLabel = styled.label<LabelProps>`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);
@@ -25,7 +34,8 @@ interface Props {
   onChange?: Function,
   label?: string,
   id?: string,
-  minWidth?: number
+  minWidth?: number,
+  hasIcon?: boolean
 }
 
 interface LabelProps {
@@ -42,7 +52,7 @@ const SearchInput = ({
   return (
     <Container>
       {
-        label &&
+        (label !== undefined && id  !== undefined) &&
         <StyledLabel for={id}>
           {label}
         </StyledLabel>
