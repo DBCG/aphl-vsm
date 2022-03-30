@@ -12,7 +12,7 @@ export default async function handler(
         resourceType: 'Library',
         searchParams: {
           _profile: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library',
-          _sort: ['-version']
+          _sort: ['-date']
         }
       })
 
