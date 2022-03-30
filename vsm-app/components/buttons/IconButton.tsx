@@ -26,6 +26,7 @@ const IconButton = ({ type, onClick }) => {
           src={`/images/${image}.svg`}
           width={24}
           height={24}
+          alt=''
         />
       </StyledButton>
   )
