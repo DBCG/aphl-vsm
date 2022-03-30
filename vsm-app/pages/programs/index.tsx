@@ -112,7 +112,7 @@ const Programs: NextPage = () => {
         />
       )
     }
-  ], [])
+  ], [router])
 
   const onClick = () => {
     router.push('/programs/new')
