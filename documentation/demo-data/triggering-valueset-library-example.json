@@ -17,7 +17,25 @@
                     ]
                 },
                 "url": "http://hl7.org/fhir/us/ecr/Library/rctc",
-                "version": "2018-01-01",
+                "useContext": [
+                    {
+                      "code": {
+                        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                        "code": "focus"
+                      },
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://www.example.com/fhir/library-type",
+                            "code": "triggering-valueset-library",
+                            "display": "Triggering ValueSet Library"
+                          }
+                        ]
+                      }
+                    }
+                ],
+                "version": "v2018-01-01",
+                "date": "2018-01-01",
                 "name": "Reportable_Condition_Trigger_Codes",
                 "title": "OID",
                 "status": "active",
@@ -75,7 +93,25 @@
                     ]
                 },
                 "url": "http://hl7.org/fhir/us/ecr/Library/rctc",
-                "version": "2018-06-01",
+                "useContext": [
+                    {
+                      "code": {
+                        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                        "code": "focus"
+                      },
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://www.example.com/fhir/library-type",
+                            "code": "triggering-valueset-library",
+                            "display": "Triggering ValueSet Library"
+                          }
+                        ]
+                      }
+                    }
+                ],
+                "version": "v2018-06-01",
+                "date": "2018-06-01",
                 "name": "Reportable_Condition_Trigger_Codes_2",
                 "title": "OID 2",
                 "status": "active",
@@ -132,7 +168,25 @@
                     ]
                 },
                 "url": "http://hl7.org/fhir/us/ecr/Library/rctc3",
-                "version": "2019-01-01",
+                "useContext": [
+                    {
+                      "code": {
+                        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                        "code": "focus"
+                      },
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://www.example.com/fhir/library-type",
+                            "code": "triggering-valueset-library",
+                            "display": "Triggering ValueSet Library"
+                          }
+                        ]
+                      }
+                    }
+                ],
+                "version": "v2019-01-01",
+                "date": "2019-01-01",
                 "name": "Reportable_Condition_Trigger_Codes",
                 "title": "OID_3",
                 "status": "active",
@@ -189,7 +243,25 @@
                     ]
                 },
                 "url": "http://hl7.org/fhir/us/ecr/Library/rctc4",
-                "version": "2019-06-01",
+                "useContext": [
+                    {
+                      "code": {
+                        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                        "code": "focus"
+                      },
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://www.example.com/fhir/library-type",
+                            "code": "triggering-valueset-library",
+                            "display": "Triggering ValueSet Library"
+                          }
+                        ]
+                      }
+                    }
+                ],
+                "version": "v2019-06-01",
+                "date": "2019-06-01",
                 "name": "Reportable_Condition_Trigger_Codes",
                 "title": "OID_4",
                 "status": "active",
@@ -246,7 +318,25 @@
                     ]
                 },
                 "url": "http://hl7.org/fhir/us/ecr/Library/rctc5",
-                "version": "2020-01-01",
+                "useContext": [
+                    {
+                      "code": {
+                        "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+                        "code": "focus"
+                      },
+                      "valueCodeableConcept": {
+                        "coding": [
+                          {
+                            "system": "http://www.example.com/fhir/library-type",
+                            "code": "triggering-valueset-library",
+                            "display": "Triggering ValueSet Library"
+                          }
+                        ]
+                      }
+                    }
+                ],
+                "version": "v2020-01-01",
+                "date": "2020-01-01",
                 "name": "Reportable_Condition_Trigger_Codes",
                 "title": "OID_5",
                 "status": "active",
