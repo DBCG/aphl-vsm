@@ -59,6 +59,13 @@ const Programs: NextPage = () => {
 
   const columns = useMemo(() => [
     {
+      name: 'Updated',
+      selector: (row: fhir4.Library) => row.date,
+      sortable: true,
+      maxWidth: '150px',
+      wrap: true
+    },
+    {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
       sortable: true,
