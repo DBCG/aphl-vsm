@@ -11,13 +11,15 @@ export default async function handler(
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
-          _profile: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library'
+          context: 'triggering-valueset-library',
+          _sort: ['-date']
         }
       })
 
-      const json = JSON.stringify(data)
-
+      const libs = data?.entry?.map((e: any) => e?.resource)
+      const json = JSON.stringify(libs)
       res.status(200).send(json)
+
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for program failed.' })

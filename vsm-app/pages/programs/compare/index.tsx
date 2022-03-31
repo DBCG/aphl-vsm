@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import styled from 'styled-components'
 import { PageTitle } from '../../../components/Typography'
 import { SearchInput } from '../../../components/SearchInput'
-import { Button } from '../../../components/Button'
+import { Button } from '../../../components/buttons/Button'
 
 const Row = styled.div`
   display: flex;
@@ -24,7 +24,7 @@ const ProgramCompare: NextPage = () => {
       <PageTitle>Program Compare</PageTitle>
       <Row>
         <SearchInput placeholder='Search by ID, Name, Title' />
-        <Button text='Add New Program' />
+        <Button onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
       </Row>
     </Col>
   )

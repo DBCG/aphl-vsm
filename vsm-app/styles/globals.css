@@ -24,6 +24,7 @@ html {
 
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 /**
@@ -352,19 +353,48 @@ template {
   display: none;
 }
 
-/**NORMALIZE ENDS HERE**/
+/** NORMALIZE ENDS HERE **/
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-Regular.ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-Italic.ttf');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'OpenSans';
+  src: url('/fonts/OpenSans/OpenSans-SemiBold.ttf');
+  font-weight: 600;
+  font-style: normal;
+}
 
 html,
 body {
-  --theme-color: #00808d;
+  --theme-500: rgba(0,91,99,1);
+	--theme-400: rgba(5,117,128,1);
+	--theme-300: rgba(1,161,175,1);
+	--theme-200: rgba(81,189,201,1);
+	--theme-100: rgba(237,248,249,1);
+	--accent: rgba(181,45,52,1);
+	--neutral-300: rgba(147,144,137,1);
+	--neutral-200: rgba(241,245,248,1);
+	--neutral-100: rgba(179,172,166,1);
   --theme-color-transparent: rgba(0, 128, 141, 0.05);
   --white: #FFF;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  height: 100%;
-  background-color: var(--theme-color-transparent);
-  font-family: sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+  background-image: url('/images/background.svg');
+  background-size: cover;
+  font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
     Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important;
 }
 

@@ -1,21 +1,20 @@
 import styled from 'styled-components'
 import Head from 'next/head'
+import { FileContainer } from './FileContainer'
 import { NavBar } from './NavBar'
+import { useRouter } from 'next/router'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;
   display: flex;
   flex: 1;
   justify-content: space-between;
-  padding: 24px 36px;
-  font-family: sans-serif;
 `
-
-const StyledMain = styled.main`
+  
+  const StyledMain = styled.main`
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 1200px;
 `
 
 const Row = styled.div`
@@ -23,23 +22,38 @@ const Row = styled.div`
   width: 100%;
 `
 
+const Content = styled.div`
+  padding: 24px 36px;
+`
+
 interface Props {
   children: React.ReactNode
 }
 
 const Scaffold = ({ children }: Props) => {
+  const router = useRouter()
   return (
     <ScaffoldWrapper>
       <Head>
         <title>ValueSet Manager (VSM)</title>
         <meta name="description" content="A tool to edit ValueSet groupings" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
       <StyledMain>
         <Row>
-          <NavBar></NavBar>
+          <NavBar/>
         </Row>
-        { children }
+        <Content>
+          { router.pathname.includes('login') ?
+            children :
+            (
+              <FileContainer>
+                { children }
+              </FileContainer>
+            )
+          }
+        </Content>
       </StyledMain>
       <footer>
       </footer>
