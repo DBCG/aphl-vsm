@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 interface InputProps {
   minWidth?: number;
-  onChange: React.ChangeEventHandler;
+  onChange: React.ChangeEventHandler | undefined;
 }
 
 const Input = styled.input<InputProps>`
@@ -31,7 +31,7 @@ const Container = styled.div`
 
 interface Props {
   placeholder?: string,
-  onChange?: Function,
+  onChange?: React.ChangeEventHandler,
   label?: string,
   id?: string,
   minWidth?: number,
