@@ -7,9 +7,6 @@ import { Button } from '../../components/Button'
 import { SearchTable } from '../../components/SearchTable'
 import { CodeSystemFilters } from '../api/codesystem/filters'
 
-const defaultBaseUrl = 'https://cts.nlm.nih.gov/fhir'
-const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-
 const Row = styled.div`
   display: flex;
   flex: 1;
@@ -44,8 +41,8 @@ const ValueSets = () => {
   useEffect(() => {
     async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
       const responses = await Promise.all([
-        fetch(`api/valueset?baseUrl=${defaultBaseUrl}`),
-        fetch(`api/codesystem/filters?baseUrl=${defaultBaseUrl}`)
+        fetch(`api/valueset`),
+        fetch(`api/codesystem/filters`)
       ])
 
       const { entry } = await responses[0].json()
@@ -62,11 +59,13 @@ const ValueSets = () => {
    */
   const submitSearch = async (event: SyntheticEvent) => { 
     event.preventDefault()
+    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
     let type: SearchType = 'name';
     const { search: { value } } = event.target as SearchEvent
+    
     if (oidRegex.test(value)) { type = 'oid'}
 
-    const response = await fetch(`api/valueset/search?baseUrl=${defaultBaseUrl}&search=${value}&searchType=${type}`)
+    const response = await fetch(`api/valueset/search?}&search=${value}&searchType=${type}`)
 
     if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
       const valueSetResponse = await response.json() as ValueSet

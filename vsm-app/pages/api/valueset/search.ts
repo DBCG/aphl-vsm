@@ -1,35 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-
-const { VSAC_USERNAME, VSAC_API_KEY } = process.env
-const authString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
-const headers = new Headers();
-headers.set('Authorization', `Basic ${Buffer.from(authString).toString('base64')}`)
-const fetchOptions = { method: 'GET', headers }
+import { vsacFhirClient } from '../../../fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
   if (req.method === 'GET') {
-    const { baseUrl, search, searchType } = req.query
-    if (!baseUrl) { console.error('Please provide a Terminology Server URL') }
+    const { search, searchType } = req.query
 
     try {
       let response;
       switch(searchType) {
         case 'name':
-          response =  await fetch(`${baseUrl}/ValueSet?name:contains=${search}`, fetchOptions)
+          response =  await vsacFhirClient.search({ resourceType: 'ValueSet', searchParams: { 'name:contains': search }})
           break;
         case 'steward':
-          response =  await fetch(`${baseUrl}/ValueSet?publisher:contains=${search}`, fetchOptions)
+          response =  await vsacFhirClient.search({ resourceType: 'ValueSet', searchParams: { 'publisher:contains': search }})
           break;
         case 'oid':
-          response =  await fetch(`${baseUrl}/ValueSet/${search}`, fetchOptions)
+          response =  await vsacFhirClient.read({ resourceType: 'ValueSet', id: search as string })
       }
 
-      const json = await response?.json()
-
-      res.status(200).send(json)
+      res.status(200).send(response)
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Loading ValueSets failed' })

@@ -1,11 +1,6 @@
 import { CapabilityStatement } from 'fhir/r4';
 import type { NextApiRequest, NextApiResponse } from 'next'
-
-const { VSAC_USERNAME, VSAC_API_KEY } = process.env
-const authString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
-const headers = new Headers();
-headers.set('Authorization', `Basic ${Buffer.from(authString).toString('base64')}`)
-const fetchOptions = { method: 'GET', headers }
+import { vsacFhirClient } from '../../../fhirClients';
 
 export interface CodeSystemFilters {
   valueUri: string
@@ -29,12 +24,10 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   if (req.method === 'GET') {
-    const { baseUrl } = req.query
-    if (!baseUrl) { console.error('Please provide a Terminology Server URL')}
-
     try {
-      const response = await fetch(`${baseUrl}/metadata`, fetchOptions)
-      const codeSystemFilters = parseCapabilityStatement(await response.json())
+      const response =  await vsacFhirClient.capabilityStatement()
+      console.info(response)
+      const codeSystemFilters = parseCapabilityStatement(response as CapabilityStatement)
 
       res.status(200).send(JSON.stringify(codeSystemFilters))
     } catch (e) {
