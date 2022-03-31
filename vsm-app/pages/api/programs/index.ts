@@ -11,7 +11,7 @@ export default async function handler(
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
-          _profile: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library',
+          context: 'triggering-valueset-library',
           _sort: ['-date']
         }
       })
