@@ -27,14 +27,14 @@ const IconButton = ({ type, onClick }: IButtonProps) => {
   }
 
   return (
-      <StyledButton onClick={e => onClick(e)}>
-        <Image
-          src={`/images/${image}.svg`}
-          width={24}
-          height={24}
-          alt=''
-        />
-      </StyledButton>
+    <StyledButton onClick={e => onClick(e)}>
+      <Image
+        src={`/images/${image}.svg`}
+        width={24}
+        height={24}
+        alt=''
+      />
+    </StyledButton>
   )
 }
 
