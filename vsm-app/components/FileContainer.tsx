@@ -77,11 +77,11 @@ const GeneratedTabs = () => {
   )
 }
 
-interface FileContainerP  {
+interface FileContainerProps  {
   children: React.ReactNode
 }
 
-const FileContainer = ({ children }: FileContainerP) => {
+const FileContainer = ({ children }: FileContainerProps) => {
 
   return (
     <Container>
