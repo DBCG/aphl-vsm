@@ -86,8 +86,8 @@ const ValueSets = () => {
       <Row>
         <form onSubmit={submitSearch}>
           {
-            allowInput ? <input name="search" type="text" placeholder='Search by Name, OID, Steward' required/> :
-              <input name="search" type="text" placeholder='Search by Name, OID, Steward' disabled required/>
+            allowInput ? <input name="search" type="text" placeholder='Search by Name, OID' required/> :
+              <input name="search" type="text" placeholder='Search by Name, OID' disabled required/>
           }
           <button type="submit">Search</button>
         </form>
