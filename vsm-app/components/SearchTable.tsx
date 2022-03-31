@@ -28,7 +28,7 @@ const parseValueSet = (valueSets: BundleEntry[]): TableData[] => {
   return data
 }
 
-const SearchTable = ({ valueSets }:{ valueSets: BundleEntry[] }) => {
+const SearchTable = ({ valueSets = [] }:{ valueSets: BundleEntry[] | undefined }) => {
   const tableData = parseValueSet(valueSets)
 
   return (

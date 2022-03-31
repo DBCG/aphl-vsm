@@ -65,7 +65,7 @@ const ValueSets = () => {
     let type: SearchType = 'name';
     const { search: { value } } = event.target as SearchEvent
     if (oidRegex.test(value)) { type = 'oid'}
-    console.info(type, value)
+
     const response = await fetch(`api/valueset/search?baseUrl=${defaultBaseUrl}&search=${value}&searchType=${type}`)
 
     if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
