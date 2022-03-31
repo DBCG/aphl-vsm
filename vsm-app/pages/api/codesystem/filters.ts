@@ -26,7 +26,6 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       const response =  await vsacFhirClient.capabilityStatement()
-      console.info(response)
       const codeSystemFilters = parseCapabilityStatement(response as CapabilityStatement)
 
       res.status(200).send(JSON.stringify(codeSystemFilters))

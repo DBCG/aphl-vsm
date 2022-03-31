@@ -72,12 +72,12 @@ const ValueSets = () => {
       setValueSetsAndFilters({...valueSetsAndFilters, valueSets: [{ resource: valueSetResponse }]})
     } else {
       const { entry } = await response.json() as Bundle
-      console.info(entry)
       setValueSetsAndFilters({...valueSetsAndFilters, valueSets: entry})
     }
   }
 
   const { valueSets } = valueSetsAndFilters
+  const allowInput = (valueSets && valueSets.length > 0)
 
   // Currently using simple HTML form tags until styled components created
   return (
@@ -85,7 +85,10 @@ const ValueSets = () => {
       <PageTitle>ValueSet Search</PageTitle>
       <Row>
         <form onSubmit={submitSearch}>
-          <input name="search" type="text" placeholder='Search by Name, OID, Steward' required/>
+          {
+            allowInput ? <input name="search" type="text" placeholder='Search by Name, OID, Steward' required/> :
+              <input name="search" type="text" placeholder='Search by Name, OID, Steward' disabled required/>
+          }
           <button type="submit">Search</button>
         </form>
       </Row>
