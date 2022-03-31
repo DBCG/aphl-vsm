@@ -2,9 +2,9 @@ import { BundleEntry, ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 
 const columns = [
-  { name: 'Name', selector: row => row.name },
-  { name: 'Steward', selector: row => row.steward },
-  { name: 'OID', selector: row => row.oid }
+  { name: 'Name', selector: (row: TableData) => row.name! },
+  { name: 'Steward', selector: (row: TableData) => row.steward! },
+  { name: 'OID', selector: (row: TableData) => row.oid! }
 ]
 
 interface TableData {
