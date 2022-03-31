@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 interface InputProps {
   minWidth?: number;
-  onChange: React.ChangeEventHandler<React.ChangeEvent>;
+  onChange: React.ChangeEventHandler;
 }
 
 const Input = styled.input<InputProps>`
