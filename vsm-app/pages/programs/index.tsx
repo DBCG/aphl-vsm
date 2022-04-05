@@ -43,11 +43,10 @@ const customStyles = {
 
 const Programs: NextPage = () => {
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
-  const [searchTermDescription, setSearchTermDescription] = useState('')
+const [searchTermDescription, setSearchTermDescription] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -127,17 +126,18 @@ const Programs: NextPage = () => {
   const onClick = () => {
     router.push('/programs/new')
   }
-
+  // commenting out the ID search input
+  // because cannot partial-string-search on field
   return (
     <Col>
       <Row>
-        <SearchInput
+        {/* <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
           id='program-search-id'
           label='Search by ID'
           hasIcon={true}
           minWidth={400}
-        />
+        /> */}
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
           id='program-search-name'

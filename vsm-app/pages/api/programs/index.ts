@@ -3,7 +3,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from '../../../fhirClients'
 
 interface Query {
-  [key: string]: string
+  '_id:contains'?: string,
+  'name:contains'?: string,
+  'description:contains'?: string,
+  'title:contains'?: string,
 }
 
 export default async function handler(
@@ -16,13 +19,13 @@ export default async function handler(
       let queries: Query = {}
       // partial match doesn't work on ID, maybe because isn't a string
       if (req.query['id']) {
-        queries['_id:contains'] = req.query['id']
+        queries['_id:contains'] = req.query['id'] as string
       } if (req.query['name']) {
-        queries['name:contains'] = req.query['name']
+        queries['name:contains'] = req.query['name'] as string
       } if (req.query['description']) {
-         queries['description:contains'] = req.query['description']
+         queries['description:contains'] = req.query['description'] as string
       } if (req.query['title']) {
-        queries['title:contains'] = req.query['title']
+        queries['title:contains'] = req.query['title'] as string
       }
 
       const data = await fhirCdrClient.search({
@@ -38,8 +41,8 @@ export default async function handler(
       const json = JSON.stringify(libs)
       res.status(200).send(json)
 
-    } catch (e) {
-      console.error('error:  ', e.response.data.text)
+    } catch (e: any) {
+      console.error('error:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Search for program failed.' })
     }
   }
