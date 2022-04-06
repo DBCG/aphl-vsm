@@ -54,17 +54,6 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
     title: searchTermTitle,
     description: searchTermDescription
   })
-  
-  const filteredPrograms = (): fhir4.Library[] => {
-    if (searchTerm === '') return programs
-    return programs.filter(p => {
-      return (
-      p?.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.description?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.title?.toLowerCase().includes(searchTerm?.toLowerCase())
-    )})
-  }
 
   const columns = useMemo(() => [
     {
@@ -166,7 +155,7 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
         />
       </Row>
         <StyledDT
-          data={filteredPrograms()}
+          data={programs}
           columns={columns}
           theme='aphl'
           pagination

@@ -14,7 +14,6 @@ const Input = styled.input<InputProps>`
 `
 
 interface LabelProps {
-  // htmlFor: string;
   children: string;
 }
 
