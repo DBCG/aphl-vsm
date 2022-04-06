@@ -84,7 +84,10 @@ const ValueSets = () => {
       <Row>
         { valueSets? <>
             <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                e.preventDefault()
+                setSearchTerm(e.target.value)
+              }}
               id='program-search'
               label='Search by Name, OID'
               hasIcon={true}
@@ -94,7 +97,7 @@ const ValueSets = () => {
               text='Submit Search'
               onClick={submitSearch}
             />
-          </>: <LoadingIndicator /> }
+          </> : <LoadingIndicator /> }
       </Row>
       <SearchTable valueSets={valueSets} />
     </Col>
