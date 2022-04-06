@@ -14,7 +14,6 @@ const Input = styled.input<InputProps>`
 `
 
 interface LabelProps {
-  for: string;
   children: string;
 }
 
@@ -52,8 +51,8 @@ const SearchInput = ({
   return (
     <Container>
       {
-        (label !== undefined && id  !== undefined) &&
-        <StyledLabel for={id}>
+        (label !== undefined && id !== undefined) &&
+        <StyledLabel htmlFor={id}>
           {label}
         </StyledLabel>
       }

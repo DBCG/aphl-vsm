@@ -42,20 +42,18 @@ const customStyles = {
 }
 
 const Programs: NextPage = () => {
-  const programs = useGetPrograms()
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTermID, setSearchTermID] = useState('')
+  const [searchTermName, setSearchTermName] = useState('')
+  const [searchTermTitle, setSearchTermTitle] = useState('')
+const [searchTermDescription, setSearchTermDescription] = useState('')
 
-  const filteredPrograms = (): fhir4.Library[] => {
-    if (searchTerm === '') return programs
-    return programs.filter(p => {
-      return (
-      p?.id?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.description?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
-      p?.title?.toLowerCase().includes(searchTerm?.toLowerCase())
-    )})
-  }
+  const programs = useGetPrograms({
+    id: searchTermID,
+    name: searchTermName,
+    title: searchTermTitle,
+    description: searchTermDescription
+  })
 
   const columns = useMemo(() => [
     {
@@ -117,23 +115,47 @@ const Programs: NextPage = () => {
   const onClick = () => {
     router.push('/programs/new')
   }
-
+  // commenting out the ID search input
+  // because cannot partial-string-search on field
   return (
     <Col>
       <Row>
+        {/* <SearchInput
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
+          id='program-search-id'
+          label='Search by ID'
+          hasIcon={true}
+          minWidth={400}
+        /> */}
         <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          id='program-search'
-          label='Search by ID, Name, Title, Description'
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
+          id='program-search-name'
+          label='Search by Name'
           hasIcon={true}
           minWidth={400}
         />
-        <Button text='Add New Program'
+        <SearchInput
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
+          id='program-search-title'
+          label='Search by Title'
+          hasIcon={true}
+          minWidth={400}
+        />
+        <SearchInput
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            setSearchTermDescription(e.target.value)
+          }}
+          id='program-search-description'
+          label='Search by Description'
+          hasIcon={true}
+          minWidth={400}
+        />
+        <Button style={{ marginTop: '12px' }} text='Add New Program'
           onClick={onClick}
         />
       </Row>
         <StyledDT
-          data={filteredPrograms()}
+          data={programs}
           columns={columns}
           theme='aphl'
           pagination
