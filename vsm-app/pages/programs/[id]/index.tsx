@@ -24,7 +24,11 @@ const ProgramDetails: NextPage = () => {
     <Col>
       <PageTitle>Program Detail Page</PageTitle>
       <Row>
-        <SearchInput placeholder='Search by ID, Name, Title' />
+        <SearchInput placeholder='ID' />
+        <SearchInput placeholder='Name' />
+        <SearchInput placeholder='Version' />
+        <SearchInput placeholder='Title' />
+        <SearchInput placeholder='Description' />
         <Button onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
       </Row>
     </Col>
