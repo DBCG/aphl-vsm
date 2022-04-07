@@ -62,7 +62,7 @@ const GeneratedTabs = () => {
       <FileTab
         key={tabName}
         className={router.pathname.includes(tabName)? 'active' : ''} num={index}
-        onClick={() => router.push(tabName)}
+        onClick={() => router.push(`/${tabName}`)}
       >
         <Span>
           {t}
