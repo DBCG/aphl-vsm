@@ -12,7 +12,7 @@ pipeline{
 
 			steps {
 				sh "cd vsm-app"
-				sh "docker build -t contentgroup/valueset-manager:latest ."
+				sh "docker build -t contentgroup/valueset-manager:latest . --no-cache"
 			}
 		}
 
