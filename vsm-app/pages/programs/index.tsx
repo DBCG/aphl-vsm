@@ -43,7 +43,7 @@ const Programs: NextPage = () => {
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
-const [searchTermDescription, setSearchTermDescription] = useState('')
+  const [searchTermDescription, setSearchTermDescription] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,

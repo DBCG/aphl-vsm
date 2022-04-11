@@ -14,7 +14,6 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   if (req.method === 'GET') {
-    console.log('req.query: ', req.query)
     try {
       let queries: Query = {}
       // partial match doesn't work on ID, maybe because isn't a string

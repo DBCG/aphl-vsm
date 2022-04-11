@@ -7,36 +7,23 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   if (req.method === 'GET') {
-    console.log('req.params: ', req)
     try {
-      let queries: Query = {}
-      // partial match doesn't work on ID, maybe because isn't a string
-      if (req.query['id']) {
-        queries['_id:contains'] = req.query['id'] as string
-      } if (req.query['name']) {
-        queries['name:contains'] = req.query['name'] as string
-      } if (req.query['description']) {
-         queries['description:contains'] = req.query['description'] as string
-      } if (req.query['title']) {
-        queries['title:contains'] = req.query['title'] as string
-      }
 
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
           context: 'triggering-valueset-library',
-          _sort: ['-date'],
-          ...queries
+          id: req.query.id
         }
       })
 
-      const libs = data?.entry?.map((e: any) => e?.resource)
-      const json = JSON.stringify(libs)
+      const lib = data?.entry?.map((e: any) => e?.resource)
+      const json = JSON.stringify(lib)
       res.status(200).send(json)
 
     } catch (e: any) {
       console.error('error:  ', e?.response?.data?.text)
-      res.status(400).json({ error: 'Search for program failed.' })
+      res.status(400).json({ error: 'Search for program by id failed.' })
     }
   }
 }

@@ -6,6 +6,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
+  // get ValueSets by id
   if (req.method === 'GET') {
     try {
       const response =  await vsacFhirClient.search({ resourceType: 'ValueSet' })
