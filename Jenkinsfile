@@ -11,7 +11,7 @@ pipeline{
 		stage('Docker Build') {
 
 			steps {
-				sh "docker build . -t contentgroup/valueset-manager:latest -f vsm-app/Dockerfile"
+				sh "cd vsm-app & docker build -t contentgroup/valueset-manager:latest ."
 			}
 		}
 
