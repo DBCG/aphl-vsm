@@ -13,11 +13,7 @@ const Input = styled.input<InputProps>`
   border-bottom: 2px solid var(--theme-300);
 `
 
-interface LabelProps {
-  children: string;
-}
-
-const StyledLabel = styled.label<LabelProps>`
+const StyledLabel = styled.label`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);
@@ -37,10 +33,6 @@ interface Props {
   hasIcon?: boolean
 }
 
-interface LabelProps {
-  for: string
-}
-
 const SearchInput = ({
   placeholder,
   onChange,
@@ -52,7 +44,7 @@ const SearchInput = ({
     <Container>
       {
         (label !== undefined && id !== undefined) &&
-        <StyledLabel htmlFor={id}>
+        <StyledLabel>
           {label}
         </StyledLabel>
       }
