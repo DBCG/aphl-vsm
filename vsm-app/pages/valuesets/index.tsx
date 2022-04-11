@@ -22,12 +22,17 @@ const Col = styled.div`
   height: fit-content;
 `
 
-type SearchType = 'name' | 'oid' | 'steward'
+type SearchType = 'name' | 'oid' | 'steward' | ''
+
+interface SearchState {
+  value: string
+  type: SearchType
+}
 
 const ValueSets = () => {
   const [valueSets, setValueSets] = useState<Bundle['entry']>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState<SearchState>({ value: '', type: ''})
 
   useEffect(() => {
     async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
@@ -51,12 +56,9 @@ const ValueSets = () => {
    */
   const submitSearch = async (event: SyntheticEvent) => { 
     event.preventDefault()
-    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-    let type: SearchType = 'name';
     
-    if (oidRegex.test(searchTerm)) { type = 'oid'}
-
-    const response = await fetch(`api/valueset/search?}&search=${searchTerm}&searchType=${type}`)
+    const { value, type } = searchTerm
+    const response = await fetch(`api/valueset/search?}&search=${value}&searchType=${type}`)
 
     if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
       const valueSetResponse = await response.json() as ValueSet
@@ -65,6 +67,18 @@ const ValueSets = () => {
       const { entry } = await response.json() as Bundle
       setValueSets(entry)
     }
+  }
+
+  const disableInputType = (type: SearchType): boolean => {
+    if (!searchTerm.type) { return false }
+    return searchTerm.type !== type
+  } 
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement> , type: SearchType = ''): void => {
+    e.preventDefault()
+    const { target: { value }} = e
+    const searchType = value ? type : '' 
+    setSearchTerm({ value, type: searchType })
   }
 
   if (isLoading) {
@@ -76,24 +90,20 @@ const ValueSets = () => {
       <PageTitle>ValueSet Search</PageTitle>
       <Row>
         <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            e.preventDefault()
-            setSearchTerm(e.target.value)
-          }}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
           id='vs-name-search'
           label='Search by Name'
           hasIcon={true}
           minWidth={400}
+          disabled={disableInputType('name')}
         />
         <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            e.preventDefault()
-            setSearchTerm(e.target.value)
-          }}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
           id='vs-oid-search'
           label='Search by OID'
           hasIcon={true}
           minWidth={400}
+          disabled={disableInputType('oid')}
         />
         <Button
           text='Submit Search'
