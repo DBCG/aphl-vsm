@@ -1,12 +1,11 @@
 import { Bundle, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { PageTitle } from '../../components/Typography'
 import { SearchInput } from '../../components/SearchInput'
 import { SearchTable } from '../../components/SearchTable'
-import { CodeSystemFilters } from '../api/codesystem/filters'
-import { Button } from '../../components/buttons/Button'
 import LoadingIndicator from '../../components/LoadingIndicator'
+import { Button } from '../../components/buttons/Button'
+import { PageTitle } from '../../components/Typography'
 
 const Row = styled.div`
   display: flex;
@@ -23,37 +22,28 @@ const Col = styled.div`
   height: fit-content;
 `
 
-interface ValueSetsAndFilters {
-  valueSets: Bundle['entry']
-  filters: CodeSystemFilters[] // currently unused. These are the codesystem filters derived from a Terminology Server Capability Statement
-}
-
 type SearchType = 'name' | 'oid' | 'steward'
 
 const ValueSets = () => {
-  const [valueSetsAndFilters, setValueSetsAndFilters] = useState<ValueSetsAndFilters>({
-    valueSets: undefined,
-    filters: []
-  })
+  const [valueSets, setValueSets] = useState<Bundle['entry']>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
-      const responses = await Promise.all([
-        fetch(`api/valueset`),
-        fetch(`api/codesystem/filters`)
-      ])
-      if(responses[0].ok) {
-        const { entry } = await responses[0].json()
-        setValueSetsAndFilters({
-          valueSets: entry,
-          filters: await responses[1].json()
-        })
+      const response = await fetch(`api/valueset`)
+      if(response.ok) {
+        const { entry } = await response.json()
+        setValueSets(entry)
+        setIsLoading(false)
       } else {
-        setValueSetsAndFilters({ ...valueSetsAndFilters, valueSets: []});
+        setValueSets([])
+        setIsLoading(false)
       }
     }
-    void getValueSetsAndFilters()
+    if (isLoading) {
+      void getValueSetsAndFilters()
+    }
   })
 
   /**
@@ -70,34 +60,45 @@ const ValueSets = () => {
 
     if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
       const valueSetResponse = await response.json() as ValueSet
-      setValueSetsAndFilters({...valueSetsAndFilters, valueSets: [{ resource: valueSetResponse }]})
+      setValueSets([{ resource: valueSetResponse }])
     } else {
       const { entry } = await response.json() as Bundle
-      setValueSetsAndFilters({...valueSetsAndFilters, valueSets: entry})
+      setValueSets(entry)
     }
   }
 
-  const { valueSets } = valueSetsAndFilters
+  if (isLoading) {
+    return <LoadingIndicator/>
+  }
+
   return (
     <Col>
       <PageTitle>ValueSet Search</PageTitle>
       <Row>
-        { valueSets? <>
-            <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                e.preventDefault()
-                setSearchTerm(e.target.value)
-              }}
-              id='program-search'
-              label='Search by Name, OID'
-              hasIcon={true}
-              minWidth={400}
-            />
-            <Button
-              text='Submit Search'
-              onClick={submitSearch}
-            />
-          </> : <LoadingIndicator /> }
+        <SearchInput
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            e.preventDefault()
+            setSearchTerm(e.target.value)
+          }}
+          id='vs-name-search'
+          label='Search by Name'
+          hasIcon={true}
+          minWidth={400}
+        />
+        <SearchInput
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            e.preventDefault()
+            setSearchTerm(e.target.value)
+          }}
+          id='vs-oid-search'
+          label='Search by OID'
+          hasIcon={true}
+          minWidth={400}
+        />
+        <Button
+          text='Submit Search'
+          onClick={submitSearch}
+        />
       </Row>
       <SearchTable valueSets={valueSets} />
     </Col>
