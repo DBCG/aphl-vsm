@@ -7,12 +7,12 @@ export interface SearchFilters {
   description?: string,
 }
 
-const buildQuery = (args: SearchFilters): string => {
+const buildQuery = (args: any): string => {
   if(!args) return ''
   let query = []
   const strMatch = /id|name|title|description/
   for (const arg in args) {
-    if (arg.match(strMatch) && args[arg] !== '') {
+    if (arg.match(strMatch) && `${args[arg]}` !== '') {
       query.push(`${arg}=${encodeURIComponent(args[arg])}`)
     }
   }

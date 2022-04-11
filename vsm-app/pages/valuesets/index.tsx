@@ -3,7 +3,6 @@ import { SyntheticEvent, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { PageTitle } from '../../components/Typography'
 import { SearchInput } from '../../components/SearchInput'
-import { Button } from '../../components/Button'
 import { SearchTable } from '../../components/SearchTable'
 import { CodeSystemFilters } from '../api/codesystem/filters'
 

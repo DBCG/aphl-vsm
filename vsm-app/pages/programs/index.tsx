@@ -29,9 +29,6 @@ interface DTProps {
   columns: TableColumn<fhir4.Library[]>[];
 }
 
-const StyledDT = styled(DT)<DTProps>`
-`
-
 const customStyles = {
   cells: {
     style: {
@@ -154,14 +151,15 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
           onClick={onClick}
         />
       </Row>
-        <StyledDT
-          data={programs}
-          columns={columns}
-          theme='aphl'
-          pagination
-          fixedHeader
-          customStyles={customStyles}
-        />
+      <DT
+        data={programs}
+        // @ts-expect-error
+        columns={columns}
+        theme='aphl'
+        pagination
+        fixedHeader
+        customStyles={customStyles}
+      />
     </Col>
   )
 }
