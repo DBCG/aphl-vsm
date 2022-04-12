@@ -11,7 +11,7 @@ pipeline{
 		stage('Docker Build') {
 
 			steps {
-				sh "docker build -t contentgroup/valueset-manager:latest . --no-cache"
+				sh "docker build -t contentgroup/valueset-manager:latest /vsm-app --no-cache"
 			}
 		}
 
