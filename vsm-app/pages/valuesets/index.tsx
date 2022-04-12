@@ -88,28 +88,31 @@ const ValueSets = () => {
   return (
     <Col>
       <PageTitle>ValueSet Search</PageTitle>
-      <Row>
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
-          id='vs-name-search'
-          label='Search by Name'
-          hasIcon={true}
-          minWidth={400}
-          disabled={disableInputType('name')}
-        />
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
-          id='vs-oid-search'
-          label='Search by OID'
-          hasIcon={true}
-          minWidth={400}
-          disabled={disableInputType('oid')}
-        />
-        <Button
-          text='Submit Search'
-          onClick={submitSearch}
-        />
-      </Row>
+      <form>
+        <Row>
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
+            id='vs-name-search'
+            label='Search by Name'
+            hasIcon={true}
+            minWidth={400}
+            disabled={disableInputType('name')}
+          />
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
+            id='vs-oid-search'
+            label='Search by OID'
+            hasIcon={true}
+            minWidth={400}
+            disabled={disableInputType('oid')}
+          />
+          <Button
+            type='submit'
+            text='Submit Search'
+            onClick={submitSearch}
+          />
+        </Row>
+      </form>
       <SearchTable valueSets={valueSets} />
     </Col>
   )
