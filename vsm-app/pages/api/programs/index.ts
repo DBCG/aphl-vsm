@@ -28,17 +28,18 @@ export default async function handler(
         queries['title:contains'] = req.query['title'] as string
       }
 
-      const data = await fhirCdrClient.search({
+      const searchResult = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
-          context: 'triggering-valueset-library',
+          context: 'program',
           _sort: ['-date'],
           ...queries
         }
       })
-
-      const libs = data?.entry?.map((e: any) => e?.resource)
-      const json = JSON.stringify(libs)
+      
+      
+      const programs = searchResult?.entry?.map((e: any) => e?.resource)
+      const json = JSON.stringify(programs)
       res.status(200).send(json)
 
     } catch (e: any) {
