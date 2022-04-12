@@ -1,7 +1,7 @@
 {
   "resourceType": "Bundle",
   "id": "ersdv1bundle2",
-  "type": "transaction",
+  "type": "batch",
   "entry": [ {
     "resource": {
       "resourceType": "ValueSet",
