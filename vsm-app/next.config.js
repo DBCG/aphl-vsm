@@ -4,6 +4,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true
   },
+  basePath: '/aphl/vsmanager',
   async redirects() {
     return [{
       source: '/',
