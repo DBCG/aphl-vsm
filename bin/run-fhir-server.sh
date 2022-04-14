@@ -2,8 +2,13 @@
 # exit when any command fails
 set -e
 
+currentRunningHapiServer=$(docker ps -q --filter ancestor=hapiproject/hapi:v5.6.0)
+
 # stop container by the full image name
-docker stop $(docker ps -q --filter ancestor=hapiproject/hapi:v5.6.0)
+if [[ -n $currentRunningHapiServer ]]
+then
+  docker stop $(docker ps -q --filter ancestor=hapiproject/hapi:v5.6.0)
+fi
 # delete the volume, or else you get stale data
 docker volume rm -f hapi-dev-vsm-app
 # create a new volume
