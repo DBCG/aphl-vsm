@@ -22,67 +22,57 @@ const Col = styled.div`
   height: fit-content;
 `
 
-type SearchType = 'name' | 'oid' | 'steward' | ''
-
-interface SearchState {
-  value: string
-  type: SearchType
-}
+type SearchType = 'name' | 'oid' | 'steward'
 
 const ValueSets = () => {
   const [valueSets, setValueSets] = useState<Bundle['entry']>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [searchTerm, setSearchTerm] = useState<SearchState>({ value: '', type: ''})
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  const handleFetchResponse = async (response: Response, type?: SearchType) => {
+    if(response.ok && type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
+        const valueSetResponse = await response.json() as ValueSet
+        setValueSets([{ resource: valueSetResponse }])
+        setIsLoading(false)
+    } else if (response.ok) {
+        const { entry } = await response.json() as Bundle
+        setValueSets(entry)
+        setIsLoading(false)
+    } else {
+      setValueSets([])
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
       const response = await fetch(`api/valueset`)
-      if(response.ok) {
-        const { entry } = await response.json()
-        setValueSets(entry)
-        setIsLoading(false)
-      } else {
-        setValueSets([])
-        setIsLoading(false)
-      }
+      await handleFetchResponse(response)
     }
+
     if (isLoading) {
       void getValueSetsAndFilters()
     }
-  })
+  },[])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitSearch = async (event: SyntheticEvent) => { 
     event.preventDefault()
-    
-    const { value, type } = searchTerm
-    const response = await fetch(`api/valueset/search?}&search=${value}&searchType=${type}`)
+    setIsLoading(true)
+    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+    let type: SearchType = 'name';
+    if (oidRegex.test(searchTerm)) { type = 'oid'}
 
-    if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
-      const valueSetResponse = await response.json() as ValueSet
-      setValueSets([{ resource: valueSetResponse }])
-    } else {
-      const { entry } = await response.json() as Bundle
-      setValueSets(entry)
-    }
+    const response = await fetch(`api/valueset/search?}&search=${searchTerm}&searchType=${type}`)
+    await handleFetchResponse(response, type)
   }
 
-  const disableInputType = (type: SearchType): boolean => {
-    if (!searchTerm.type) { return false }
-    return searchTerm.type !== type
-  } 
-
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement> , type: SearchType = ''): void => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     e.preventDefault()
     const { target: { value }} = e
-    const searchType = value ? type : '' 
-    setSearchTerm({ value, type: searchType })
-  }
-
-  if (isLoading) {
-    return <LoadingIndicator/>
+    setSearchTerm(value)
   }
 
   return (
@@ -91,20 +81,18 @@ const ValueSets = () => {
       <form>
         <Row>
           <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e) }
             id='vs-name-search'
             label='Search by Name'
             hasIcon={true}
             minWidth={400}
-            disabled={disableInputType('name')}
           />
           <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
             id='vs-oid-search'
             label='Search by OID'
             hasIcon={true}
             minWidth={400}
-            disabled={disableInputType('oid')}
           />
           <Button
             type='submit'
@@ -113,7 +101,9 @@ const ValueSets = () => {
           />
         </Row>
       </form>
-      <SearchTable valueSets={valueSets} />
+      {
+        isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} />
+      }
     </Col>
   )
 }
