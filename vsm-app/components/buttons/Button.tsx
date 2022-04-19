@@ -9,17 +9,16 @@ const StyledButton = styled.button`
   cursor: pointer;
 `
 
-interface Props {
-  text: string;
-  onClick: Function;
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  text: string
   style?: React.CSSProperties
 }
 
 const Button = ({
   text,
   style,
-  onClick
-}: Props) => {
+  onClick=() => {},
+}: ButtonProps) => {
   return (
     <StyledButton
       style={style}

@@ -1,16 +1,18 @@
 import { Bundle, ValueSet } from 'fhir/r4'
-import { SyntheticEvent, useEffect, useState } from 'react'
+import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { PageTitle } from '../../components/Typography'
 import { SearchInput } from '../../components/SearchInput'
 import { SearchTable } from '../../components/SearchTable'
-import { CodeSystemFilters } from '../api/codesystem/filters'
+import LoadingIndicator from '../../components/LoadingIndicator'
+import { Button } from '../../components/buttons/Button'
+import { PageTitle } from '../../components/Typography'
 
 const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 1rem;
 `
 
 const Col = styled.div`
@@ -20,78 +22,88 @@ const Col = styled.div`
   height: fit-content;
 `
 
-interface ValueSetsAndFilters {
-  valueSets: Bundle['entry']
-  filters: CodeSystemFilters[] // currently unused. These are the codesystem filters derived from a Terminology Server Capability Statement
-}
-
 type SearchType = 'name' | 'oid' | 'steward'
 
-type SearchEvent = EventTarget & {
-  search: Record<string, string>
-}
-
 const ValueSets = () => {
-  const [valueSetsAndFilters, setValueSetsAndFilters] = useState<ValueSetsAndFilters>({
-    valueSets: [],
-    filters: []
-  })
+  const [valueSets, setValueSets] = useState<Bundle['entry']>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+
+  const handleFetchResponse = async (response: Response, type?: SearchType) => {
+    if(response.ok && type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
+        const valueSetResponse = await response.json() as ValueSet
+        setValueSets([{ resource: valueSetResponse }])
+        setIsLoading(false)
+    } else if (response.ok) {
+        const { entry } = await response.json() as Bundle
+        setValueSets(entry)
+        setIsLoading(false)
+    } else {
+      setValueSets([])
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
     async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
-      const responses = await Promise.all([
-        fetch(`api/valueset`),
-        fetch(`api/codesystem/filters`)
-      ])
-
-      const { entry } = await responses[0].json()
-      setValueSetsAndFilters({
-        valueSets: entry,
-        filters: await responses[1].json()
-      })
+      const response = await fetch(`api/valueset`)
+      await handleFetchResponse(response)
     }
-    void getValueSetsAndFilters()
-  }, [])
+
+    if (isLoading) {
+      void getValueSetsAndFilters()
+    }
+  },[])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitSearch = async (event: SyntheticEvent) => { 
     event.preventDefault()
+    setIsLoading(true)
     const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
     let type: SearchType = 'name';
-    const { search: { value } } = event.target as SearchEvent
-    
-    if (oidRegex.test(value)) { type = 'oid'}
+    if (oidRegex.test(searchTerm)) { type = 'oid'}
 
-    const response = await fetch(`api/valueset/search?}&search=${value}&searchType=${type}`)
-
-    if (type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
-      const valueSetResponse = await response.json() as ValueSet
-      setValueSetsAndFilters({...valueSetsAndFilters, valueSets: [{ resource: valueSetResponse }]})
-    } else {
-      const { entry } = await response.json() as Bundle
-      setValueSetsAndFilters({...valueSetsAndFilters, valueSets: entry})
-    }
+    const response = await fetch(`api/valueset/search?}&search=${searchTerm}&searchType=${type}`)
+    await handleFetchResponse(response, type)
   }
 
-  const { valueSets } = valueSetsAndFilters
-  const allowInput = (valueSets && valueSets.length > 0)
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    e.preventDefault()
+    const { target: { value }} = e
+    setSearchTerm(value)
+  }
 
-  // Currently using simple HTML form tags until styled components created
   return (
     <Col>
       <PageTitle>ValueSet Search</PageTitle>
-      <Row>
-        <form onSubmit={submitSearch}>
-          {
-            allowInput ? <input name="search" type="text" placeholder='Search by Name, OID' required/> :
-              <input name="search" type="text" placeholder='Search by Name, OID' disabled required/>
-          }
-          <button type="submit">Search</button>
-        </form>
-      </Row>
-      <SearchTable valueSets={valueSets} />
+      <form>
+        <Row>
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e) }
+            id='vs-name-search'
+            label='Search by Name'
+            hasIcon={true}
+            minWidth={400}
+          />
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+            id='vs-oid-search'
+            label='Search by OID'
+            hasIcon={true}
+            minWidth={400}
+          />
+          <Button
+            type='submit'
+            text='Submit Search'
+            onClick={submitSearch}
+          />
+        </Row>
+      </form>
+      {
+        isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} />
+      }
     </Col>
   )
 }
