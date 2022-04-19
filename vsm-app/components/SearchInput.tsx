@@ -31,6 +31,7 @@ interface Props {
   id?: string,
   minWidth?: number,
   hasIcon?: boolean
+  disabled?: boolean
 }
 
 const SearchInput = ({
@@ -38,7 +39,8 @@ const SearchInput = ({
   onChange,
   label,
   id,
-  minWidth
+  minWidth,
+  disabled = false
 }: Props) => {
   return (
     <Container>
@@ -52,6 +54,7 @@ const SearchInput = ({
         placeholder={placeholder}
         onChange={onChange}
         minWidth={minWidth}
+        disabled={disabled}
       />
     </Container>
   )
