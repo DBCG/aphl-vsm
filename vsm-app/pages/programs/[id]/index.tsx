@@ -7,6 +7,7 @@ import { SearchInput } from '../../../components/SearchInput'
 import { TextArea } from '../../../components/TextArea'
 import { Button } from '../../../components/buttons/Button'
 import { useGetProgramById } from '../../../hooks/useGetProgramById'
+import { ProgramDetailTable } from '../../../components/ProgramDetailTable'
 
 const Row = styled.div`
   display: flex;
@@ -32,12 +33,10 @@ const ProgramDetails: NextPage = () => {
   const program = useGetProgramById(identifier)
   if(!program.length) return null
   
-  console.log('program: ', program)
   const {
     id='', name='', version='', title='', description=''
   } = program[0]
 
-  console.log('program: ', program)
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -51,6 +50,7 @@ const ProgramDetails: NextPage = () => {
         <SearchInput id='prog-title' label='Title' placeholder={title} />
         <TextArea id='prog-desc' label='Description' minWidth={500} placeholder={description} />
       </Row>
+      {/* <ProgramDetailTable valueSets={program}/> */}
     </Col>
   )
 }

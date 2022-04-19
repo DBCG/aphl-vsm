@@ -4,24 +4,17 @@ const useGetProgramById = (id: string): [] | fhir4.Library[] => {
   const [program, setProgram] = useState([])
 
   useEffect(() => {
-    async function getProgramWithValueSets(): Promise<void> {
-      let endpoint = `/api/programs?id=${id}`
+    async function getProgram(): Promise<void> {
+      const programEndpoint = `/api/programs?id=${id}`
 
       try {
-        const response: Response = await fetch(endpoint)
+        const response: Response = await fetch(programEndpoint)
         const programJson = await response.json()
+       
+        // Identify the valueset library within the program
+        const grouperLibrary = programJson?.[0]?.relatedArtifact?.filter(a => a?.type === 'composed-of' && a?.resource?.includes('/Library/'))?.[0]
+        const grouperEndpoint = `/api/valueset/groupers`
         
-        const valueSetList = programJson?.[0]?.relatedArtifact?.filter(a => a?.type === 'composed-of')
-        console.log('vs lisst: ', valueSetList)
-        const vSets = await Promise.all(
-          valueSetList.map(async({ resource }) => {
-            const res = await fetch(`/api/valueset/${encodeURIComponent(resource)}`)
-            const valueSetJson = await res.json()
-            return valueSetJson
-          })
-
-          )
-          console.log('vsets', vSets)
 
         if (!programJson) {
           setProgram([])
@@ -33,7 +26,7 @@ const useGetProgramById = (id: string): [] | fhir4.Library[] => {
         console.log('Error in useGetPrograms: ', e)
       }
     }
-    void getProgramWithValueSets()
+    void getProgram()
     // disabled b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
