@@ -8,7 +8,7 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     try {
-
+      // e.g. rctc
       const grouperLibrary = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
@@ -16,16 +16,37 @@ export default async function handler(
         }
       })
 
-      const grouperJson = JSON.stringify(grouperLibrary)
+      const grouperUrls = grouperLibrary?.entry?.[0]?.resource?.relatedArtifact?.map(i => i?.resource)
 
-      const grouperUrls = grouperJson?.entry
+      let grouperValueSets = []
 
+      for (const url of grouperUrls) {
 
-      res.status(200).send(json)
+        const grouperVS = await fhirCdrClient.search({
+          resourceType: 'ValueSet',
+          searchParams: {
+            url: url
+          }
+        })
+        const resource = grouperVS?.entry?.[0]?.resource
+        if (resource) {
+          grouperValueSets.push(resource)
+        }
+      }
+
+      const formattedValueSets = grouperValueSets.map(vs => ({
+        id: vs.id,
+        name: vs.name,
+        title: vs.title,
+        url: vs.url
+      }))
+
+      res.status(200).send(formattedValueSets)
+
 
     } catch (e: any) {
-      console.error('error:  ', e?.response?.data?.text)
-      res.status(400).json({ error: 'Search for program by id failed.' })
+      console.error('error:  ', e)
+      res.status(400).json({ error: 'Search for grouper libraries failed.' })
     }
   }
 }
