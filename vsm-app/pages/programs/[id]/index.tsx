@@ -6,7 +6,7 @@ import { PageTitle } from '../../../components/Typography'
 import { SearchInput } from '../../../components/SearchInput'
 import { TextArea } from '../../../components/TextArea'
 import { Button } from '../../../components/buttons/Button'
-import { useGetProgramById } from '../../../hooks/useGetProgramById'
+import { useGetProgramDetails } from '../../../hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '../../../components/ProgramDetailTable'
 
 const Row = styled.div`
@@ -30,12 +30,21 @@ const Col = styled.div`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id
-  const program = useGetProgramById(identifier)
-  if(!program.length) return null
+  const programAndGrouperInfo = useGetProgramDetails(identifier)
+  console.log(programAndGrouperInfo)
+  
+  let programId = programAndGrouperInfo?.program?.[0]?.id
+  // early return if no data, id must exist if there's data
+  if (!programId) {
+    return null
+  }  
+  
+  console.log('DATA: ', programAndGrouperInfo);
+  
   
   const {
     id='', name='', version='', title='', description=''
-  } = program[0]
+  } = programAndGrouperInfo?.program?.[0]
 
   return (
     <Col>
@@ -50,7 +59,7 @@ const ProgramDetails: NextPage = () => {
         <SearchInput id='prog-title' label='Title' placeholder={title} />
         <TextArea id='prog-desc' label='Description' minWidth={500} placeholder={description} />
       </Row>
-      {/* <ProgramDetailTable valueSets={program}/> */}
+      <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
     </Col>
   )
 }

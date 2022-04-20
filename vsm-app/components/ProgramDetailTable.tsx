@@ -2,40 +2,23 @@ import { BundleEntry, ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 
 const columns = [
-  { name: 'ID', selector: (row: TableData) => row.id! },
+  { name: 'Name', selector: (row: TableData) => row.name! },
   { name: 'Title', selector: (row: TableData) => row.title! },
-  { name: 'Canonical', selector: (row: TableData) => row.canonical! },
-  { name: 'Actions', selector: (row: TableData) => row.oid! }
+  { name: 'URL', selector: (row: TableData) => row.url! }
 ]
 
 interface TableData {
   name: ValueSet['name']
-  steward: ValueSet['publisher']
-  oid: ValueSet['id']
+  title: ValueSet['title']
+  url: ValueSet['url']
 }
 
-const parseValueSets = (valueSets: BundleEntry[]): TableData[] => {
-  if (!valueSets || valueSets.length < 1) { return [] }
-
-  const data =  valueSets.map(({ resource }) => {
-    const { id, name, publisher } = resource as ValueSet
-    return {
-      name,
-      steward: publisher,
-      oid: id
-    }
-  })
-
-  return data
-}
-
-const ProgramDetailTable = ({ valueSets = [] }:{ valueSets: BundleEntry[] | undefined }) => {
-  const tableData = parseValueSets(valueSets)
+const ProgramDetailTable = ({ data = [] }:{ valueSets: BundleEntry[] | undefined }) => {
 
   return (
     <DataTable
       columns={columns}
-      data={tableData}
+      data={data}
       selectableRows
       pagination
       paginationPerPage={10}

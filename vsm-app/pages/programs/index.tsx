@@ -45,12 +45,14 @@ const Programs: NextPage = () => {
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
 
+  console.log('searchTermName: ', searchTermName)
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription
   })
+  
 
   const columns = useMemo(() => [
     {
