@@ -51,7 +51,6 @@ const ProgramDetails: NextPage = () => {
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
       <PageTitle>Program Detail Page</PageTitle>
-        <Button style={{ marginBottom: '24px' }} onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
       </Row>
       <Row className='inputs'>
         <SearchInput id='prog-id' label='ID' placeholder={id} />
