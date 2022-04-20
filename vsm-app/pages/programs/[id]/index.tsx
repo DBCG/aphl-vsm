@@ -17,6 +17,7 @@ const Row = styled.div`
   justify-content: space-between;
   &.inputs {
     gap: 24px;
+    margin-bottom: 16px;
   }
 `
 
