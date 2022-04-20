@@ -19,7 +19,6 @@ const ProgramDetailTable = ({ data = [] }:{ valueSets: BundleEntry[] | undefined
     <DataTable
       columns={columns}
       data={data}
-      selectableRows
       pagination
       paginationPerPage={10}
     />
