@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from '../../../../fhirClients'
+import { fhirCdrClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
@@ -8,7 +8,6 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     try {
-
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {

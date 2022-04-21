@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from '../../../fhirClients'
+import { fhirCdrClient } from 'fhirClients'
 
 interface Query {
   '_id:contains'?: string,
@@ -22,7 +22,7 @@ export default async function handler(
       } if (req.query['name']) {
         queries['name:contains'] = req.query['name'] as string
       } if (req.query['description']) {
-         queries['description:contains'] = req.query['description'] as string
+        queries['description:contains'] = req.query['description'] as string
       } if (req.query['title']) {
         queries['title:contains'] = req.query['title'] as string
       }
@@ -35,8 +35,8 @@ export default async function handler(
           ...queries
         }
       })
-      
-      
+
+
       const programs = searchResult?.entry?.map((e: any) => e?.resource)
       const json = JSON.stringify(programs)
       res.status(200).send(json)

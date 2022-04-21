@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from '../../../../fhirClients'
+import { vsacFhirClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
