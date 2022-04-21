@@ -2,12 +2,12 @@ import React from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Button } from '../../../components/buttons/Button'
-import { PageTitle } from '../../../components/Typography'
-import { SearchInput } from '../../../components/SearchInput'
-import { TextArea } from '../../../components/TextArea'
-import { useGetProgramDetails } from '../../../hooks/useGetProgramDetails'
-import { ProgramDetailTable } from '../../../components/ProgramDetailTable'
+import { Button } from '../../../../components/buttons/Button'
+import { PageTitle } from '../../../../components/Typography'
+import { SearchInput } from '../../../../components/SearchInput'
+import { TextArea } from '../../../../components/TextArea'
+import { useGetProgramDetails } from '../../../../hooks/useGetProgramDetails'
+import { ProgramDetailTable } from '../../../../components/ProgramDetailTable'
 
 const Row = styled.div`
   display: flex;
@@ -28,12 +28,13 @@ const Col = styled.div`
   height: fit-content;
 `
 
-const ProgramDetails: NextPage = () => {
+const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier)
   
   let programId = programAndGrouperInfo?.program?.[0]?.id
+
   // early return if no data, id must exist if there's data
   if (!programId) {
     return null
@@ -50,8 +51,10 @@ const ProgramDetails: NextPage = () => {
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
-      <PageTitle>Program Detail Page</PageTitle>
+        <PageTitle>Program ValueSet Details</PageTitle>
       </Row>
+        <p>Program ID: { programId }</p>
+        <p>Program Name: { }</p>
       <Row className='inputs'>
         <SearchInput id='prog-id' label='ID' placeholder={id} />
         <SearchInput id='prog-name' label='Name' minWidth={400} placeholder={name} />
@@ -60,7 +63,7 @@ const ProgramDetails: NextPage = () => {
         <TextArea id='prog-desc' label='Description' minWidth={500} placeholder={description} />
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-        <span>Groups</span>
+        <span>All ValueSets</span>
         <Button text='Edit ValueSets'
           onClick={onClick}
         />
@@ -70,4 +73,4 @@ const ProgramDetails: NextPage = () => {
   )
 }
 
-export default ProgramDetails
+export default ProgramValueSetDetails

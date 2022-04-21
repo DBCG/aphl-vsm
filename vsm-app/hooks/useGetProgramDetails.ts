@@ -7,7 +7,7 @@ interface GrouperItem {
   url: string
 }
 
-interface Result {
+export interface Result {
   program: fhir4.Library | {}
   grouperData: GrouperItem[] | []
 }
