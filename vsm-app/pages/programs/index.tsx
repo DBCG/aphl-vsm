@@ -3,10 +3,10 @@ import styled from 'styled-components'
 import { useMemo, useState, ChangeEvent } from 'react'
 import { useRouter } from 'next/router'
 import DT, { TableColumn } from 'react-data-table-component'
-import { SearchInput } from '../../components/SearchInput'
-import { Button } from '../../components/buttons/Button'
-import { useGetPrograms } from '../../hooks/useGetPrograms'
-import { IconButton } from '../../components/buttons/IconButton'
+import { SearchInput } from '@/components/SearchInput'
+import { Button } from '@/components/buttons/Button'
+import { useGetPrograms } from '@/hooks/useGetPrograms'
+import { IconButton } from '@/components/buttons/IconButton'
 
 const Row = styled.div`
   display: flex;

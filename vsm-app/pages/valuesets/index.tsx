@@ -1,11 +1,11 @@
 import { Bundle, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { SearchInput } from '../../components/SearchInput'
-import { SearchTable } from '../../components/SearchTable'
-import LoadingIndicator from '../../components/LoadingIndicator'
-import { Button } from '../../components/buttons/Button'
-import { PageTitle } from '../../components/Typography'
+import { SearchInput } from '@/components/SearchInput'
+import { SearchTable } from '@/components/SearchTable'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import { Button } from '@/components/buttons/Button'
+import { PageTitle } from '@/components/Typography'
 
 const Row = styled.div`
   display: flex;

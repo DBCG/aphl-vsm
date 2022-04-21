@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { useState } from 'react'
-import { SearchInput } from '../../components/SearchInput'
-import { Button } from '../../components/buttons/Button'
+import { SearchInput } from '@/components/SearchInput'
+import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
 
 const Container = styled.div`

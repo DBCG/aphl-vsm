@@ -1,5 +1,3 @@
-import styled from 'styled-components'
-
 const NewProgram = (): JSX.Element => {
   return (
     <p>New program</p>

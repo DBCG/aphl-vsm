@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import Head from 'next/head'
-import { FileContainer } from './FileContainer'
-import { NavBar } from './NavBar'
+import { FileContainer } from '@/components/FileContainer'
+import { NavBar } from '@/components/NavBar'
 import { useRouter } from 'next/router'
 
 const ScaffoldWrapper = styled.div`

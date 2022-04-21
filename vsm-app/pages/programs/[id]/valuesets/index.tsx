@@ -2,12 +2,12 @@ import React from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { Button } from '../../../../components/buttons/Button'
-import { PageTitle } from '../../../../components/Typography'
-import { SearchInput } from '../../../../components/SearchInput'
-import { TextArea } from '../../../../components/TextArea'
-import { useGetProgramDetails } from '../../../../hooks/useGetProgramDetails'
-import { ProgramDetailTable } from '../../../../components/ProgramDetailTable'
+import { Button } from '@/components/buttons/Button'
+import { PageTitle } from '@/components/Typography'
+import { SearchInput } from '@/components/SearchInput'
+import { TextArea } from '@/components/TextArea'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 
 const Row = styled.div`
   display: flex;
