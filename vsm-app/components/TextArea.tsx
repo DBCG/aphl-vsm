@@ -55,11 +55,12 @@ const TextArea = ({
     <Container>
       {
         (label !== undefined && id !== undefined) &&
-        <StyledLabel htmlFor={id}>
+        <StyledLabel for={id}>
           {label}
         </StyledLabel>
       }
       <Input
+        name={id}
         placeholder={placeholder}
         onChange={onChange}
         minWidth={minWidth}

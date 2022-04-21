@@ -16,7 +16,7 @@ export default async function handler(
         }
       })
 
-      const grouperUrls = grouperLibrary?.entry?.[0]?.resource?.relatedArtifact?.map(i => i?.resource)
+      const grouperUrls = grouperLibrary?.entry?.[0]?.resource?.relatedArtifact?.map((i: any) => i?.resource)
 
       let grouperValueSets = []
 

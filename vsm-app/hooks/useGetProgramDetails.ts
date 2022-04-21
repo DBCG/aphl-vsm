@@ -41,7 +41,7 @@ const useGetProgramDetails = (id: string): Result => {
         const grouperData = await groupers.json()
         // if the data is found, override default empty objects
         if (programJson) {
-          result.program = programJson
+          result.program = programJson[0]
         }
         if (grouperData) {
           result.grouperData = grouperData

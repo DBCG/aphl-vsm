@@ -1,4 +1,4 @@
-import { BundleEntry, ValueSet } from 'fhir/r4'
+import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 
 const columns = [
@@ -13,7 +13,7 @@ interface TableData {
   url: ValueSet['url']
 }
 
-const ProgramDetailTable = ({ data = [] }:{ valueSets: BundleEntry[] | undefined }) => {
+const ProgramDetailTable = ({ data }: any) => {
 
   return (
     <DataTable

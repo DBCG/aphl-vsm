@@ -8,6 +8,7 @@ import { SearchInput } from '../../../components/SearchInput'
 import { TextArea } from '../../../components/TextArea'
 import { useGetProgramDetails } from '../../../hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '../../../components/ProgramDetailTable'
+import { is } from '../../../helpers/is'
 
 const Row = styled.div`
   display: flex;
@@ -33,19 +34,18 @@ const ProgramDetails: NextPage = () => {
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier)
   
-  let programId = programAndGrouperInfo?.program?.[0]?.id
   // early return if no data, id must exist if there's data
-  if (!programId) {
+  if (!is.library(programAndGrouperInfo.program)) {
     return null
-  }
-
-  const onClick = () => {
-    router.push(`/programs/${programId}/valuesets`)
   }
 
   const {
     id='', name='', version='', title='', description=''
-  } = programAndGrouperInfo?.program?.[0]
+  } = programAndGrouperInfo?.program
+
+  const onClick = () => {
+    router.push(`/programs/${id}/valuesets`)
+  }
 
   return (
     <Col>

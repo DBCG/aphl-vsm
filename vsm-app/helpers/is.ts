@@ -1,4 +1,4 @@
-export const is = {
+const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | fhir4.Resource): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
@@ -61,3 +61,5 @@ export const is = {
     return resource?.resourceType === 'ValueSet'
   }
 }
+
+export { is }
