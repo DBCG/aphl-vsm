@@ -5,6 +5,7 @@
   "entry": [ {
     "resource": {
       "resourceType": "Library",
+      "date": "2022-01-13",
       "id": "SpecificationLibrary",
       "meta": {
         "versionId": "1.0.0",
@@ -22,8 +23,23 @@
           "code": "asset-collection"
         } ]
       },
+      "date": "2022-04-11",
       "publisher": "eCR",
       "description": "Defines the asset-collection library containing the US Public Health specification assets.",
+      "useContext": [{
+          "code": {
+              "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+              "code": "specification-type"
+          },
+          "valueCodeableConcept": {
+              "coding": [
+                  {
+                      "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                      "code": "program"
+                  }
+              ]
+          }
+      }],
       "relatedArtifact": [ {
         "type": "composed-of",
         "resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-skeleton"
@@ -567,7 +583,13 @@
       "purpose": "Diagnoses or problems documented in a clinical record.",
       "compose": {
         "include": [ {
-          "valueSet": [ "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.121", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.363", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.123", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.365", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.124", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.366", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.126", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.127", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.248", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.249", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.129", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.590", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.592", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.230", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.112", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.113", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.234", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.235", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.115", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.116", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.117", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.359", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1407", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1406", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1403", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1402", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1405", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1404", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.460", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.461", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.221", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.224", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.105", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.226", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.106", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.227", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1089", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.229", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1090", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.451", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.210", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.211", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.458", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.217", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.218", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1309", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1303", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.201", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.322", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.202", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.204", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1301", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.205", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.326", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.207", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.208", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1318", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.792", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.793", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1310", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.315", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1207", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.783", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.784", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.422", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1203", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.304", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1337", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1336", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1339", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1338", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.410", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1332", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.411", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1331", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1347", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.86", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.87", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.88", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.80", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.640", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.641", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.642", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.404", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1342", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.405", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.78", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.639", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.79", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.193", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.195", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.196", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.198", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1357", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.632", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1356", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.633", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.634", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.876", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.635", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.877", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.507", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1008", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.190", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.192", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.182", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.184", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.185", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.187", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.188", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1124", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1245", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1123", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1244", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.620", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.621", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.984", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1362", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1243", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1242", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1363", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.505", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1259", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.98", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.99", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.92", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.94", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.95", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.181", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.172", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.293", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1371", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.173", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1370", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.175", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.176", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.178", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.179", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1016", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1258", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1379", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.610", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1015", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1136", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.853", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.733", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.734", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1012", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1011", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.47", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.48", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.609", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.43", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.44", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.40", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.291", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1380", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.161", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1140", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1382", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1260", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1381", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.164", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.288", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1388", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.289", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1387", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1269", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.963", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1384", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1264", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1385", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.725", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.836", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.35", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.36", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.280", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.150", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.271", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.392", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1393", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.151", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.393", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.273", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.153", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.395", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.154", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.396", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.156", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.279", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1159", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1274", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.832", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1394", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.39", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.833", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1397", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.834", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1275", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1396", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.835", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1160", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.260", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1162", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1283", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.140", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1161", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.141", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.264", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.265", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.145", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1047", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.146", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1167", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1049", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.940", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1048", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1164", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1163", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1284", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.701", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.822", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1166", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1287", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.823", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1165", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.52", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.53", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.819", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.51", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1050", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1291", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1051", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.130", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.251", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.131", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.252", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.133", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.135", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.256", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.136", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.257", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.137", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.259", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1054", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.139" ]
+          "valueSet": [
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362"
+          ]
         } ]
       },
       "expansion": {
@@ -47936,7 +47958,13 @@
       "purpose": "Prescription drugs names used in observations documented in a clinical record.",
       "compose": {
         "include": [ {
-          "valueSet": [ "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1052", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.990", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1081", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.321", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.992", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.741", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.961", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.983", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.732", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.843", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1053", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.943", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1078", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.339", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.747" ]
+          "valueSet": [
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1052",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.990",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1081",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.321"
+          ]
         } ]
       },
       "expansion": {
@@ -48609,7 +48637,13 @@
       "purpose": "Laboratory test names used in observations documented in a clinical record.",
       "compose": {
         "include": [ {
-          "valueSet": [ "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1183", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.240", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.483", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.484", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1180", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.485", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.244", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.486", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.245", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.487", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1189", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.367", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.488", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.368", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.489", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1186", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1185", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.921", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1188", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.801", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1187", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.802", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.470", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.471", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.472", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.594", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.474", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.595", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.475", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.596", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.476", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.597", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.598", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.478", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.479", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1076", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.238", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1196", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.239", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.25", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1409", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1408", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.581", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.582", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.220", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.342", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.584", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.343", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.464", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.585", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.344", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.465", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.345", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.466", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1401", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.588", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1400", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.347", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.468", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.589", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1087", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.469", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.349", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1088", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.10", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.570", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.571", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.572", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.693", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.575", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.576", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.697", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.335", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.577", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.215", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.336", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.578", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1411", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.216", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.337", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.579", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.338", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1304", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1305", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.560", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.440", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.561", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.441", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.562", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.442", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.563", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1300", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.443", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.564", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.324", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.445", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.566", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.325", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.446", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.567", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.447", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.569", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.449", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.550", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.552", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1311", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.553", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.433", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1313", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.313", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.555", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.797", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1312", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.314", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.556", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.798", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.436", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.557", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.799", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.316", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.437", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.558", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.317", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.438", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.308", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.309", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.540", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.541", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.301", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.785", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.302", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.544", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.786", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.303", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.545", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.787", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.425", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.546", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.788", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.426", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.547", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.427", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.548", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.307", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.428", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.539", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1219", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1216", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1215", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.770", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.771", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.530", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.772", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.531", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.773", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.532", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1334", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.413", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.414", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.535", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.415", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.536", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.899", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.416", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.537", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.417", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.538", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.407", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.529", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1106", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1344", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.883", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1343", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.400", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.401", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.764", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.885", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1345", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.402", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.523", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1340", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.403", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.524", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.887", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.525", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.526", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.889", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1220", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1341", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.527", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.769", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.519", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1359", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.70", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.71", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1113", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.873", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.874", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.512", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.513", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.998", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.515", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.878", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1128", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1249", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1127", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1248", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1129", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1360", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.980", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.981", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1002", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1365", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1126", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.500", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.742", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1368", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.501", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.743", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.744", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1361", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.745", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.746", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1000", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.989", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.858", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1018", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1139", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1017", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1138", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1019", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1250", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.296", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.297", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.298", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.299", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1377", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1376", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.730", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.731", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1378", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1131", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1252", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1373", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.854", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1130", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1251", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.855", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1375", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.614", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.856", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1132", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1253", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1374", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.857", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.726", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.847", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.848", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.728", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.729", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1028", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.282", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.283", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.284", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.286", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.960", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.840", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1148", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.841", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1147", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.600", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1142", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1263", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1020", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1262", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1383", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.602", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.846", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.391", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1151", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.276", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.277", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.398", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1157", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1278", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1399", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.278", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.399", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1277", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.830", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1158", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1279", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1153", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1152", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1273", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.946", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.705", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.706", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.948", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.707", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.949", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.708", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.829", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.390", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1281", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.380", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1280", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.262", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.384", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.385", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.266", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.387", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1168", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1289", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.267", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.388", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.268", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1169", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.820", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1285", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.821", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1045", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.944", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1044", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1286", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.815", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.58", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.816", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.818", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1171", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.490", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1170", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.491", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1173", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.492", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1172", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.372", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.493", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.373", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.374", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1290", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.496", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.376", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.497", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1179", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.498", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1178", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.499", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.379", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1175", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1174", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1177", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1055", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1176" ]
+          "valueSet": [
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+          ]
         } ]
       },
       "expansion": {
@@ -68262,7 +68296,13 @@
       "purpose": "Laboratory test names used in orders documented in a clinical record.",
       "compose": {
         "include": [ {
-          "valueSet": [ "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.883", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.764", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.522", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.523", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.369", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.524", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.920", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.645", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.525", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.646", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.889", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.527", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.759", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.519", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1195", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.594", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.595", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.596", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1113", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.597", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.598", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1112", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.478", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.512", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.479", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1076", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.513", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1196", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.515", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1111", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1409", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1127", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.581", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.582", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.220", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.980", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.584", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.981", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.585", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.982", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1002", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.345", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1126", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.588", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.589", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1001", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.10", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.570", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.571", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.296", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.572", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.297", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.298", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.299", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1410", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.697", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.215", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1411", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.216", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.613", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.614", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.960", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.840", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.600", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1142", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.569", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.966", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1144", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1270", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1151", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1157", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.830", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.313", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.314", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1158", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1153", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1152", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.316", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1154", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.829", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.262", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.782", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.266", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.268", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.785", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.820", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.821", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.944", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.58", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.816", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.817", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.818", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1333", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.897", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1334", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.899", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.416" ]
+          "valueSet": [
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.883",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
+          ]
         } ]
       },
       "expansion": {
@@ -74131,7 +74171,13 @@
       "purpose": "Nominal laboratory result values documented in a clinical record.",
       "compose": {
         "include": [ {
-          "valueSet": [ "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.482", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.882", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1346", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1358", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1193", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1192", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.591", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1194", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.473", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1191", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.870", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1190", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.356", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.477", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.631", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.599", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.875", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.999", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.516", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1077", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.905", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.580", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.340", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.341", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.100", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.463", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.586", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1247", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.346", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.467", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1246", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.348", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.502", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.979", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.96", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.292", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.573", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1014", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.333", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.850", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1013", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.334", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.851", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1137", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.852", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1372", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1308", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.606", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1029", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.170", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1261", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.287", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.169", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.444", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.565", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1302", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.568", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1141", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1386", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.845", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1143", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.838", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.839", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1272", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.275", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1036", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.795", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1156", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1398", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.312", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.554", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.796", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.435", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1155", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1276", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.559", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.318", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.439", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1209", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1208", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.828", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.382", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1282", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.386", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.661", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.300", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.542", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1288", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.389", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.269", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1043", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1042", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.306", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.549", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.945", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.370", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.371", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.494", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.495", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.375", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1212", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.378", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1211", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1214", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1213", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.534", "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1210" ]
+          "valueSet": [
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.482",
+            "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.882"
+          ]
         } ]
       },
       "expansion": {
@@ -102115,6 +102161,1287 @@
     "request": {
       "method": "PUT",
       "url": "ValueSet/2.16.840.1.113762.1.4.1146.482"
+    }
+  }, {
+    "resource": {
+      "resourceType": "ValueSet",
+      "id": "2.16.840.1.113762.1.4.1146.1063",
+      "meta": {
+        "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
+      },
+      "extension": [ {
+        "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+        "valueContactDetail": {
+          "name": "CSTE Author"
+        }
+      }, {
+        "url": "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+        "valueContactDetail": {
+          "name": "CSTE Steward"
+        }
+      } ],
+      "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063",
+      "identifier": [ {
+        "system": "urn:ietf:rfc:3986",
+        "value": "urn:oid:2.16.840.1.113762.1.4.1146.1063"
+      } ],
+      "version": "1.0.0",
+      "name": "OpioidOverdoseandPoisoningDisordersSNOMED",
+      "title": "Opioid Overdose and Poisoning (Disorders) (SNOMED)",
+      "status": "active",
+      "experimental": true,
+      "publisher": "eCR",
+      "description": "Opioid Overdose and Poisoning (Disorders) (SNOMED)",
+      "useContext": [ {
+        "code": {
+          "system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+          "code": "focus"
+        },
+        "valueCodeableConcept": {
+          "coding": [ {
+            "system": "http://snomed.info/sct",
+            "code": "242253008"
+          } ],
+          "text": "Overdose of opiate (disorder)"
+        }
+      }, {
+        "code": {
+          "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+          "code": "reporting"
+        },
+        "valueCodeableConcept": {
+          "coding": [ {
+            "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+            "code": "triggering"
+          } ]
+        }
+      } ],
+      "compose": {
+        "include": [ {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "concept": [ {
+            "code": "11196001",
+            "display": "Poisoning caused by opiate AND/OR related narcotic (disorder)"
+          }, {
+            "code": "12898000",
+            "display": "Poisoning caused by pentazocine (disorder)"
+          }, {
+            "code": "13187008",
+            "display": "Poisoning caused by heroin (disorder)"
+          }, {
+            "code": "18052008",
+            "display": "Poisoning caused by meperidine (disorder)"
+          }, {
+            "code": "216463005",
+            "display": "Accidental poisoning caused by heroin (disorder)"
+          }, {
+            "code": "216464004",
+            "display": "Accidental poisoning caused by methadone (disorder)"
+          }, {
+            "code": "216466002",
+            "display": "Accidental poisoning caused by codeine (disorder)"
+          }, {
+            "code": "216467006",
+            "display": "Accidental poisoning caused by pethidine (disorder)"
+          }, {
+            "code": "216468001",
+            "display": "Accidental poisoning caused by morphine (disorder)"
+          }, {
+            "code": "216494005",
+            "display": "Accidental poisoning caused by pentazocine (disorder)"
+          }, {
+            "code": "241749009",
+            "display": "Poisoning caused by opiate analgesic drug (disorder)"
+          }, {
+            "code": "241750009",
+            "display": "Poisoning caused by dihydrocodeine (disorder)"
+          }, {
+            "code": "242253008",
+            "display": "Overdose of opiate (disorder)"
+          }, {
+            "code": "242828004",
+            "display": "Intentional opiate analgesic overdose (disorder)"
+          }, {
+            "code": "242829007",
+            "display": "Intentional diamorphine overdose (disorder)"
+          }, {
+            "code": "242830002",
+            "display": "Intentional dihydrocodeine overdose (disorder)"
+          }, {
+            "code": "242831003",
+            "display": "Intentional methadone overdose (disorder)"
+          }, {
+            "code": "290137009",
+            "display": "Acetaminophen and dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290138004",
+            "display": "Accidental acetaminophen and dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290139007",
+            "display": "Intentional acetaminophen and dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290140009",
+            "display": "Acetaminophen and dextropropoxyphene poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290151009",
+            "display": "Intentional pentazocine poisoning (disorder)"
+          }, {
+            "code": "290152002",
+            "display": "Pentazocine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290153007",
+            "display": "Phenazocine poisoning (disorder)"
+          }, {
+            "code": "290154001",
+            "display": "Accidental phenazocine poisoning (disorder)"
+          }, {
+            "code": "290155000",
+            "display": "Intentional phenazocine poisoning (disorder)"
+          }, {
+            "code": "290156004",
+            "display": "Phenazocine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290157008",
+            "display": "Methadone analog poisoning (disorder)"
+          }, {
+            "code": "290158003",
+            "display": "Dextromoramide poisoning (disorder)"
+          }, {
+            "code": "290159006",
+            "display": "Accidental dextromoramide poisoning (disorder)"
+          }, {
+            "code": "290160001",
+            "display": "Intentional dextromoramide poisoning (disorder)"
+          }, {
+            "code": "290161002",
+            "display": "Dextromoramide poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290162009",
+            "display": "Dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290163004",
+            "display": "Accidental dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290164005",
+            "display": "Intentional dextropropoxyphene poisoning (disorder)"
+          }, {
+            "code": "290165006",
+            "display": "Dextropropoxyphene poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290166007",
+            "display": "Dipipanone poisoning (disorder)"
+          }, {
+            "code": "290167003",
+            "display": "Accidental dipipanone poisoning (disorder)"
+          }, {
+            "code": "290168008",
+            "display": "Intentional dipipanone poisoning (disorder)"
+          }, {
+            "code": "290169000",
+            "display": "Dipipanone poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290171000",
+            "display": "Intentional methadone poisoning (disorder)"
+          }, {
+            "code": "290172007",
+            "display": "Methadone poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290173002",
+            "display": "Morphinan opioid poisoning (disorder)"
+          }, {
+            "code": "290174008",
+            "display": "Buprenorphine poisoning (disorder)"
+          }, {
+            "code": "290175009",
+            "display": "Accidental buprenorphine poisoning (disorder)"
+          }, {
+            "code": "290176005",
+            "display": "Intentional buprenorphine poisoning (disorder)"
+          }, {
+            "code": "290177001",
+            "display": "Buprenorphine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290179003",
+            "display": "Intentional poisoning caused by codeine (disorder)"
+          }, {
+            "code": "290180000",
+            "display": "Poisoning caused by codeine of undetermined intent (disorder)"
+          }, {
+            "code": "290182008",
+            "display": "Intentional heroin poisoning (disorder)"
+          }, {
+            "code": "290183003",
+            "display": "Heroin poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290184009",
+            "display": "Accidental poisoning caused by dihydrocodeine (disorder)"
+          }, {
+            "code": "290185005",
+            "display": "Intentional poisoning caused by dihydrocodeine (disorder)"
+          }, {
+            "code": "290186006",
+            "display": "Poisoning caused by dihydrocodeine of undetermined intent (disorder)"
+          }, {
+            "code": "290188007",
+            "display": "Nalbuphine poisoning (disorder)"
+          }, {
+            "code": "290189004",
+            "display": "Accidental nalbuphine poisoning (disorder)"
+          }, {
+            "code": "290190008",
+            "display": "Intentional nalbuphine poisoning (disorder)"
+          }, {
+            "code": "290191007",
+            "display": "Nalbuphine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290193005",
+            "display": "Intentional morphine poisoning (disorder)"
+          }, {
+            "code": "290194004",
+            "display": "Morphine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290196002",
+            "display": "Pethidine analog poisoning (disorder)"
+          }, {
+            "code": "290197006",
+            "display": "Alfentanil poisoning (disorder)"
+          }, {
+            "code": "290198001",
+            "display": "Accidental alfentanil poisoning (disorder)"
+          }, {
+            "code": "290199009",
+            "display": "Intentional alfentanil poisoning (disorder)"
+          }, {
+            "code": "290200007",
+            "display": "Alfentanil poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290201006",
+            "display": "Fentanyl poisoning (disorder)"
+          }, {
+            "code": "290202004",
+            "display": "Accidental fentanyl poisoning (disorder)"
+          }, {
+            "code": "290203009",
+            "display": "Intentional fentanyl poisoning (disorder)"
+          }, {
+            "code": "290204003",
+            "display": "Fentanyl poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290206001",
+            "display": "Intentional pethidine poisoning (disorder)"
+          }, {
+            "code": "290207005",
+            "display": "Pethidine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290208000",
+            "display": "Phenoperidine poisoning (disorder)"
+          }, {
+            "code": "290209008",
+            "display": "Accidental phenoperidine poisoning (disorder)"
+          }, {
+            "code": "290210003",
+            "display": "Intentional phenoperidine poisoning (disorder)"
+          }, {
+            "code": "290211004",
+            "display": "Phenoperidine poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290212006",
+            "display": "Meptazinol poisoning (disorder)"
+          }, {
+            "code": "290213001",
+            "display": "Accidental meptazinol poisoning (disorder)"
+          }, {
+            "code": "290214007",
+            "display": "Intentional meptazinol poisoning (disorder)"
+          }, {
+            "code": "290215008",
+            "display": "Meptazinol poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290216009",
+            "display": "Levorphanol poisoning (disorder)"
+          }, {
+            "code": "290217000",
+            "display": "Accidental levorphanol poisoning (disorder)"
+          }, {
+            "code": "290218005",
+            "display": "Intentional levorphanol poisoning (disorder)"
+          }, {
+            "code": "290219002",
+            "display": "Levorphanol poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "290220008",
+            "display": "Accidental narcotic poisoning (disorder)"
+          }, {
+            "code": "290221007",
+            "display": "Intentional narcotic poisoning (disorder)"
+          }, {
+            "code": "290222000",
+            "display": "Narcotic poisoning of undetermined intent (disorder)"
+          }, {
+            "code": "295127002",
+            "display": "Paracetamol and dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295128007",
+            "display": "Accidental paracetamol and dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295129004",
+            "display": "Intentional paracetamol and dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295130009",
+            "display": "Paracetamol and dextropropoxyphene overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295140007",
+            "display": "Pentazocine overdose (disorder)"
+          }, {
+            "code": "295141006",
+            "display": "Accidental pentazocine overdose (disorder)"
+          }, {
+            "code": "295142004",
+            "display": "Intentional pentazocine overdose (disorder)"
+          }, {
+            "code": "295143009",
+            "display": "Pentazocine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295144003",
+            "display": "Phenazocine overdose (disorder)"
+          }, {
+            "code": "295145002",
+            "display": "Accidental phenazocine overdose (disorder)"
+          }, {
+            "code": "295146001",
+            "display": "Intentional phenazocine overdose (disorder)"
+          }, {
+            "code": "295147005",
+            "display": "Phenazocine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295148000",
+            "display": "Methadone analog overdose (disorder)"
+          }, {
+            "code": "295149008",
+            "display": "Dextromoramide overdose (disorder)"
+          }, {
+            "code": "295150008",
+            "display": "Accidental dextromoramide overdose (disorder)"
+          }, {
+            "code": "295151007",
+            "display": "Intentional dextromoramide overdose (disorder)"
+          }, {
+            "code": "295152000",
+            "display": "Dextromoramide overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295153005",
+            "display": "Dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295154004",
+            "display": "Accidental dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295155003",
+            "display": "Intentional dextropropoxyphene overdose (disorder)"
+          }, {
+            "code": "295156002",
+            "display": "Dextropropoxyphene overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295157006",
+            "display": "Dipipanone overdose (disorder)"
+          }, {
+            "code": "295158001",
+            "display": "Accidental dipipanone overdose (disorder)"
+          }, {
+            "code": "295159009",
+            "display": "Intentional dipipanone overdose (disorder)"
+          }, {
+            "code": "295160004",
+            "display": "Dipipanone overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295161000",
+            "display": "Methadone overdose (disorder)"
+          }, {
+            "code": "295163002",
+            "display": "Accidental methadone overdose (disorder)"
+          }, {
+            "code": "295164008",
+            "display": "Methadone overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295165009",
+            "display": "Morphinan opioid overdose (disorder)"
+          }, {
+            "code": "295166005",
+            "display": "Buprenorphine overdose (disorder)"
+          }, {
+            "code": "295167001",
+            "display": "Accidental buprenorphine overdose (disorder)"
+          }, {
+            "code": "295168006",
+            "display": "Intentional buprenorphine overdose (disorder)"
+          }, {
+            "code": "295169003",
+            "display": "Buprenorphine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295170002",
+            "display": "Overdose of codeine (disorder)"
+          }, {
+            "code": "295171003",
+            "display": "Accidental overdose by codeine (disorder)"
+          }, {
+            "code": "295172005",
+            "display": "Intentional overdose by codeine (disorder)"
+          }, {
+            "code": "295173000",
+            "display": "Overdose of codeine of undetermined intent (disorder)"
+          }, {
+            "code": "295174006",
+            "display": "Heroin overdose (disorder)"
+          }, {
+            "code": "295175007",
+            "display": "Accidental heroin overdose (disorder)"
+          }, {
+            "code": "295176008",
+            "display": "Heroin overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295177004",
+            "display": "Overdose of dihydrocodeine (disorder)"
+          }, {
+            "code": "295178009",
+            "display": "Accidental overdose by dihydrocodeine (disorder)"
+          }, {
+            "code": "295179001",
+            "display": "Overdose of dihydrocodeine of undetermined intent (disorder)"
+          }, {
+            "code": "295180003",
+            "display": "Nalbuphine overdose (disorder)"
+          }, {
+            "code": "295181004",
+            "display": "Accidental nalbuphine overdose (disorder)"
+          }, {
+            "code": "295182006",
+            "display": "Intentional nalbuphine overdose (disorder)"
+          }, {
+            "code": "295183001",
+            "display": "Nalbuphine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295184007",
+            "display": "Morphine overdose (disorder)"
+          }, {
+            "code": "295185008",
+            "display": "Accidental morphine overdose (disorder)"
+          }, {
+            "code": "295186009",
+            "display": "Intentional morphine overdose (disorder)"
+          }, {
+            "code": "295187000",
+            "display": "Morphine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295188005",
+            "display": "Pethidine analog overdose (disorder)"
+          }, {
+            "code": "295189002",
+            "display": "Alfentanil overdose (disorder)"
+          }, {
+            "code": "295190006",
+            "display": "Accidental alfentanil overdose (disorder)"
+          }, {
+            "code": "295191005",
+            "display": "Intentional alfentanil overdose (disorder)"
+          }, {
+            "code": "295192003",
+            "display": "Alfentanil overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295193008",
+            "display": "Fentanyl overdose (disorder)"
+          }, {
+            "code": "295194002",
+            "display": "Accidental fentanyl overdose (disorder)"
+          }, {
+            "code": "295195001",
+            "display": "Intentional fentanyl overdose (disorder)"
+          }, {
+            "code": "295196000",
+            "display": "Fentanyl overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295197009",
+            "display": "Pethidine overdose (disorder)"
+          }, {
+            "code": "295198004",
+            "display": "Accidental pethidine overdose (disorder)"
+          }, {
+            "code": "295199007",
+            "display": "Intentional pethidine overdose (disorder)"
+          }, {
+            "code": "295200005",
+            "display": "Pethidine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295201009",
+            "display": "Phenoperidine overdose (disorder)"
+          }, {
+            "code": "295202002",
+            "display": "Accidental phenoperidine overdose (disorder)"
+          }, {
+            "code": "295203007",
+            "display": "Intentional phenoperidine overdose (disorder)"
+          }, {
+            "code": "295204001",
+            "display": "Phenoperidine overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295205000",
+            "display": "Meptazinol overdose (disorder)"
+          }, {
+            "code": "295206004",
+            "display": "Accidental meptazinol overdose (disorder)"
+          }, {
+            "code": "295207008",
+            "display": "Intentional meptazinol overdose (disorder)"
+          }, {
+            "code": "295208003",
+            "display": "Meptazinol overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295209006",
+            "display": "Levorphanol overdose (disorder)"
+          }, {
+            "code": "295210001",
+            "display": "Accidental levorphanol overdose (disorder)"
+          }, {
+            "code": "295211002",
+            "display": "Intentional levorphanol overdose (disorder)"
+          }, {
+            "code": "295212009",
+            "display": "Levorphanol overdose of undetermined intent (disorder)"
+          }, {
+            "code": "295213004",
+            "display": "Overdose of opiate analgesic of undetermined intent (disorder)"
+          }, {
+            "code": "296515004",
+            "display": "Opiate antagonist overdose (disorder)"
+          }, {
+            "code": "297199006",
+            "display": "Accidental overdose of opiate (disorder)"
+          }, {
+            "code": "432353006",
+            "display": "Accidental poisoning caused by opiate agonist (disorder)"
+          }, {
+            "code": "461001000124107",
+            "display": "Suicide attempt by heroin overdose (event)"
+          }, {
+            "code": "461011000124105",
+            "display": "Suicide attempt by fentanyl overdose (event)"
+          }, {
+            "code": "461041000124109",
+            "display": "Suicide attempt by methadone overdose (event)"
+          }, {
+            "code": "47836003",
+            "display": "Poisoning caused by morphine (disorder)"
+          }, {
+            "code": "60199004",
+            "display": "Poisoning caused by methadone (disorder)"
+          }, {
+            "code": "68099003",
+            "display": "Poisoning caused by codeine (disorder)"
+          }, {
+            "code": "74264003",
+            "display": "Poisoning caused by opium alkaloid (disorder)"
+          } ]
+        } ]
+      },
+      "expansion": {
+        "timestamp": "2022-01-13T16:10:32-05:00",
+        "contains": [ {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "11196001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "12898000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "13187008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "18052008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216463005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216464004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216466002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216467006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216468001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "216494005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "241749009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "241750009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "242253008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "242828004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "242829007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "242830002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "242831003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290137009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290138004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290139007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290140009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290151009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290152002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290153007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290154001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290155000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290156004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290157008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290158003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290159006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290160001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290161002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290162009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290163004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290164005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290165006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290166007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290167003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290168008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290169000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290171000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290172007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290173002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290174008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290175009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290176005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290177001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290179003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290180000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290182008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290183003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290184009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290185005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290186006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290188007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290189004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290190008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290191007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290193005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290194004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290196002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290197006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290198001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290199009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290200007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290201006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290202004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290203009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290204003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290206001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290207005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290208000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290209008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290210003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290211004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290212006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290213001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290214007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290215008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290216009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290217000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290218005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290219002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290220008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290221007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "290222000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295127002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295128007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295129004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295130009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295140007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295141006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295142004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295143009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295144003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295145002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295146001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295147005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295148000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295149008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295150008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295151007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295152000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295153005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295154004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295155003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295156002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295157006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295158001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295159009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295160004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295161000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295163002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295164008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295165009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295166005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295167001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295168006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295169003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295170002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295171003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295172005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295173000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295174006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295175007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295176008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295177004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295178009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295179001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295180003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295181004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295182006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295183001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295184007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295185008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295186009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295187000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295188005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295189002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295190006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295191005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295192003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295193008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295194002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295195001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295196000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295197009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295198004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295199007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295200005"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295201009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295202002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295203007"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295204001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295205000"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295206004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295207008"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295208003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295209006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295210001"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295211002"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295212009"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "295213004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "296515004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "297199006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "432353006"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "461001000124107"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "461011000124105"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "461041000124109"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "47836003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "60199004"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "68099003"
+        }, {
+          "system": "http://snomed.info/sct",
+          "version": "Provisional_2021-04-23",
+          "code": "74264003"
+        } ]
+      }
+    },
+    "request": {
+      "method": "PUT",
+      "url": "ValueSet/2.16.840.1.113762.1.4.1146.1063"
     }
   } ]
 }
