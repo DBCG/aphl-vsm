@@ -6,7 +6,7 @@ import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 
@@ -32,9 +32,10 @@ const Col = styled.div`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(identifier)
+  const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
   
   // early return if no data, id must exist if there's data
+  // @ts-expect-error
   if (!is.library(programAndGrouperInfo.program)) {
     return null
   }

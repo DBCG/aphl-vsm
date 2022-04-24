@@ -32,7 +32,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier)
-  
+  // @ts-expect-error
   let programId = programAndGrouperInfo?.program?.[0]?.id
 
   // early return if no data, id must exist if there's data
@@ -46,6 +46,7 @@ const ProgramValueSetDetails: NextPage = () => {
 
   const {
     id='', name='', version='', title='', description=''
+    //@ts-expect-error
   } = programAndGrouperInfo?.program?.[0]
 
   return (
