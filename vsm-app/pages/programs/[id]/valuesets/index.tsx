@@ -55,7 +55,14 @@ const ProgramValueSetDetails: NextPage = () => {
       selector: (row: fhir4.Library) => row.conditions,
       sortable: true,
       maxWidth: '300px',
-      wrap: true
+      wrap: true,
+      cell: (row: fhir4.Library) => (
+        <Row>
+          <Ul>
+            {row?.conditions?.map(c => <li>{c?.display}</li>)}
+          </Ul>
+        </Row>
+      )
     },
     {
       name: 'Groups',

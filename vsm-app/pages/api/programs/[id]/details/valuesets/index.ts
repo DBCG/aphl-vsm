@@ -6,7 +6,7 @@ import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 
 // FAKE mode
-const fakeMode = false
+const fakeMode = true
 import * as fixture from './fixture.json'
 // FAKE mode
 
@@ -143,38 +143,45 @@ export default async function handler(
 
       const response: ValueSetTableEntry[] = leafValueSets.map(valueSet => {
         // condition VS is static, in our CDR
-        const conceptCodesFromConditionVS = conditionsVS?.compose?.include?.[0]
+        // only snomed for now, but is an array of code sets by system
+        // START: NEED TO TEST
+        const conceptCodesFromConditionVS = conditionsVS?.compose?.include
         // leaf valuesets come from VSAC
-        const conceptsFromLeaf = valueSet.compose?.include[0].concept
-        console.log('valueset: %j', valueSet, null, 2)
-        // if the leaf valueset
-        console.log('concepts from vs!!!: ', conceptCodes)
-        console.log('leaf VS!!!: ', valueSet)
-        console.log('Concepts from leaf!!!: ', conceptsFromLeaf)
-        const leafFocusContext = valueSet
-          ?.useContext
-          ?.filter(
-            ctx => ctx?.code?.system?.endsWith('usage-context-type')
-              && ctx?.code?.code === 'focus'
-              && ctx?.valueCodeableConcept?.coding?.[0]?.system === "http://snomed.info/sct"
-          )
+        const conceptsFromLeaf = valueSet.compose?.include
 
-        console.log('LEAF: ', leafFocusContext)
-
-        let conditionsFromLeaf
-
-        if (leafFocusContext) {
-          conditionsFromLeaf = leafFocusContext?.map(i => ({
-            text: i?.valueCodeableConcept?.text || '',
-            code: i?.valueCodeableConcept?.coding?.[0]?.code
-          }))
+        interface CodeData {
+          system: string,
+          code: string,
+          display: string
         }
+
+        let sharedCodes: CodeData[] = []
+        // loop through all of the concept code sets from the valueSet
+        // if the systems match and the code is in the RCCKMS valueset, push to the shared arr
+
+        conceptsFromLeaf.forEach(codeSet => {
+          const currentLeafCodeSystem = codeSet.system
+          const matchingSystemBlock = conceptCodesFromConditionVS.find(set => set.system === currentLeafCodeSystem)
+          if (matchingSystemBlock) {
+            codeSet?.concept?.forEach(concept => {
+              const codeToSearch = concept?.code
+              const foundCodeInRCKMS = matchingSystemBlock?.concept?.find(obj => obj.code === codeToSearch)
+              if (foundCodeInRCKMS) {
+                sharedCodes.push(foundCodeInRCKMS)
+              }
+            })
+          }
+        })
+        console.log('shared codes: ', sharedCodes)
+
+        // END NEED TO TEST
+
 
         return {
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
-          conditions: conditionsFromLeaf || [],
+          conditions: sharedCodes || [],
           groups: groupsByValueSetCanonical[valueSet.url || 'Undefined']
         }
       })

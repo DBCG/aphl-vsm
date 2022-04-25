@@ -15,6 +15,7 @@ const useGetProgramValueSetDetails = (id: string) => {
       try {
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
+        console.log('program json: ', programJson)
         setData(programJson)
       } catch (e) {
         console.log('error: ', e)

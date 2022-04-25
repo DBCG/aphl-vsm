@@ -8,6 +8,13 @@
         "id": "dxtc",
         "title": "Diagnosis_Problem Triggers for Public Health Reporting"
       }
+    ],
+    "conditions": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "242253008",
+        "display": "Infection caused by Corynebacterium diphtheriae (disorder)"
+      }
     ]
   },
   {
@@ -25,7 +32,6 @@
     "title": "Anthrax (Tests for Bacillis anthracis Antigen)",
     "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
     "version": "20180620",
-
     "groups": [
       {
         "id": "lotc",
