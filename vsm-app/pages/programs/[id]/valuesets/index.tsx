@@ -40,7 +40,7 @@ const ProgramValueSetDetails: NextPage = () => {
       name: 'Name',
       selector: (row: fhir4.Library) => row.title,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '350px',
       wrap: true
     },
     {
@@ -88,7 +88,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <IconButton
           onClick={() => router.push(`/programs/${row.id}`)}
-          type='edit'
+          type='delete'
         />
       )
     }
