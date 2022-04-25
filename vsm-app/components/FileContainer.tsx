@@ -84,7 +84,7 @@ const FileContainer = ({ children }: FileContainerProps) => {
 
   return (
     <Container>
-      <GeneratedTabs/>
+      {/* <GeneratedTabs/> */}
       <FileBody>
         { children }
       </FileBody>

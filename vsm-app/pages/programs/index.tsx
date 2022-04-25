@@ -7,6 +7,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
+import { PageTitle } from '@/components/Typography'
 
 const Row = styled.div`
   display: flex;
@@ -64,7 +65,7 @@ const Programs: NextPage = () => {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '250px',
       wrap: true
     },
     {
@@ -116,6 +117,9 @@ const Programs: NextPage = () => {
   // because cannot partial-string-search on field
   return (
     <Col>
+      <PageTitle>
+        Programs
+      </PageTitle>
       <Row>
         {/* <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
@@ -127,14 +131,14 @@ const Programs: NextPage = () => {
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
           id='program-search-name'
-          label='Search by Name'
+          label='Name'
           hasIcon={true}
           minWidth={400}
         />
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
           id='program-search-title'
-          label='Search by Title'
+          label='Title'
           hasIcon={true}
           minWidth={400}
         />
@@ -143,7 +147,7 @@ const Programs: NextPage = () => {
             setSearchTermDescription(e.target.value)
           }}
           id='program-search-description'
-          label='Search by Description'
+          label='Description'
           hasIcon={true}
           minWidth={400}
         />

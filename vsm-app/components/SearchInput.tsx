@@ -29,8 +29,10 @@ interface Props {
   onChange?: React.ChangeEventHandler,
   label?: string,
   id?: string,
+  value?: string,
+  def?: string,
   minWidth?: number,
-  hasIcon?: boolean
+  hasIcon?: boolean,
   disabled?: boolean
 }
 
@@ -38,7 +40,10 @@ const SearchInput = ({
   placeholder,
   onChange,
   label,
+  value,
+  def,
   id,
+  style,
   minWidth,
   disabled = false
 }: Props) => {
@@ -55,6 +60,9 @@ const SearchInput = ({
         onChange={onChange}
         minWidth={minWidth}
         disabled={disabled}
+        value={value}
+        defaultValue={def}
+        style={style}
       />
     </Container>
   )

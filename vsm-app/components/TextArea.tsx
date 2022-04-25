@@ -34,6 +34,7 @@ interface Props {
   onChange?: React.ChangeEventHandler,
   label?: string,
   id?: string,
+  def?: string,
   minWidth?: number,
   minHeight?: number,
   hasIcon?: boolean
@@ -48,6 +49,7 @@ const TextArea = ({
   onChange,
   label,
   id,
+  def,
   minWidth,
   minHeight
 }: Props) => {
@@ -65,6 +67,7 @@ const TextArea = ({
         onChange={onChange}
         minWidth={minWidth}
         minHeight={minHeight}
+        defaultValue={def}
       />
     </Container>
   )

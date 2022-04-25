@@ -178,6 +178,8 @@ export default async function handler(
 
 
         return {
+          programName: program?.name || 'Undefined',
+          programId: program?.id || 'Undefined',
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',

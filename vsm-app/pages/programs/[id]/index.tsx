@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -20,6 +20,13 @@ const Row = styled.div`
     gap: 24px;
     margin-bottom: 16px;
   }
+  &.readonly-inputs {
+    justify-content: flex-start;
+    column-gap: 8px;
+    row-gap: 14px;
+    margin-bottom: 12px;
+
+  }
 `
 
 const Col = styled.div`
@@ -29,10 +36,30 @@ const Col = styled.div`
   height: fit-content;
 `
 
+export const ItemWrapper = styled.div`
+  color: var(--theme-500);
+  min-width: 300px;
+`
+
+export const FieldTitle = styled.div`
+  background-color: white;
+  display: inline-block;
+  max-width: 120px;
+  padding: 4px 8px;
+  margin-right: 8px;
+  border-radius: 4px;
+`
+
+const StyledSpan = styled.span`
+  color: var(--theme-500);
+  margin-top: 12px;
+`
+export const FieldValue = styled.span``
+
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
+  const [editMode, setEditMode] = useState(false)
   const identifier = router.query.id as string
-  console.log('identifier: ', identifier)
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
   
   // early return if no data, id must exist if there's data
@@ -45,28 +72,71 @@ const ProgramDetails: NextPage = () => {
     id='', name='', version='', title='', description=''
   } = programAndGrouperInfo?.program
 
+  const tableData = { id, name, version, title, description }
   const onClick = () => {
     router.push(`/programs/${id}/valuesets`)
+  }
+
+  const handleEditButton = () => {
+    setEditMode(!editMode)
   }
 
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
-      <PageTitle>Program Detail Page</PageTitle>
-      </Row>
-      <Row className='inputs'>
-        <SearchInput id='prog-id' label='ID' placeholder={id} />
-        <SearchInput id='prog-name' label='Name' minWidth={400} placeholder={name} />
-        <SearchInput id='prog-version' label='Version' placeholder={version} />
-        <SearchInput id='prog-title' label='Title' placeholder={title} />
-        <TextArea id='prog-desc' label='Description' minWidth={500} placeholder={description} />
-      </Row>
-      <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-        <span>Groups</span>
-        <Button text='Edit ValueSets'
-          onClick={onClick}
+        <PageTitle style={{ marginRight: '12px'}}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
+        <Button style={{ marginBottom: '12px', width: '150px', backgroundColor: editMode ? 'orange' : '' }} text={ editMode ? 'Save Changes' : 'Edit Program'}
+          onClick={handleEditButton}
         />
       </Row>
+      {editMode ? (
+        <div>
+          <Row className='inputs'>
+            <SearchInput id='prog-id' label='ID' def={id} />
+            <SearchInput id='prog-name' label='Name' minWidth={400} def={name} />
+            <SearchInput id='prog-version' label='Version' def={version} />
+            <SearchInput id='prog-title' label='Title' def={title} />
+            <TextArea id='prog-desc' label='Description' minWidth={500} def={description} />
+          </Row>
+          <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+            <StyledSpan>Included ValueSet Groups</StyledSpan>
+            <Button text='Edit ValueSets'
+              onClick={onClick}
+            />
+          </Row>
+        </div>
+      ) : (
+          <div>
+            <Row className='readonly-inputs'>
+              <ItemWrapper>
+                <FieldTitle>ID </FieldTitle>
+                <FieldValue>{ id }</FieldValue>
+              </ItemWrapper>
+              <ItemWrapper>
+                <FieldTitle>Title </FieldTitle>
+                <FieldValue>{ title }</FieldValue>
+              </ItemWrapper>
+              <ItemWrapper>
+                <FieldTitle>Name </FieldTitle>
+                <FieldValue>{ name }</FieldValue>
+              </ItemWrapper>
+              <ItemWrapper>
+                <FieldTitle>Version </FieldTitle>
+                <FieldValue>{ version }</FieldValue>
+              </ItemWrapper>
+              <ItemWrapper>
+                <FieldTitle>Description </FieldTitle>
+                <FieldValue>{ description }</FieldValue>
+              </ItemWrapper>
+          </Row>
+          <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+            <StyledSpan>Included ValueSet Groups</StyledSpan>
+            <Button text='View ValueSets'
+              onClick={onClick}
+            />
+          </Row>
+          </div>
+      )}
       <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
     </Col>
   )

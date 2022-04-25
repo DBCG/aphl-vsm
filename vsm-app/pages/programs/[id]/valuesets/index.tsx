@@ -11,6 +11,7 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { IconButton } from '@/components/buttons/IconButton'
+import { FieldTitle, FieldValue, ItemWrapper } from '..'
 
 const customStyles = {
   cells: {
@@ -28,6 +29,23 @@ const Row = styled.div`
 
 const Ul = styled.ul`
   padding-left: 16px;
+`
+
+const SearchOptions = styled.div`
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  margin-top: 30px;
+`
+
+const StyledSelect = styled.select`
+  // display: inline-block;
+  height: 30px;
+  min-width: 100px;
+  margin-left: 8px;
+  transform: translateY(4px);
+  border-radius: none;
+  border: none;
 `
 
 const ProgramValueSetDetails: NextPage = () => {
@@ -95,14 +113,34 @@ const ProgramValueSetDetails: NextPage = () => {
   ], [router])
 
   return (
-    <DT
-      data={progValueSetDets}
-      columns={columns}
-      theme='aphl'
-      pagination
-      fixedHeader
-      customStyles={customStyles}
-    />
+    <>
+      <PageTitle>Program ValueSet Details</PageTitle>
+      <ItemWrapper style={{ marginBottom: '12px'}}>
+        <FieldTitle>ID</FieldTitle>
+        <FieldValue>{ identifier }</FieldValue>
+      </ItemWrapper>
+      <SearchOptions>
+        <SearchInput
+          style={{ marginBottom: '12px', display: 'inline-block'}}
+          label='Search ValueSets by Name'
+          id='VSearch'
+        />
+        <StyledSelect id='groups'>
+          <option>Groups</option>
+        </StyledSelect>
+        <StyledSelect id='conditions'>
+          <option>Conditions</option>
+        </StyledSelect>
+      </SearchOptions>
+      <DT
+        data={progValueSetDets}
+        columns={columns}
+        theme='aphl'
+        pagination
+        fixedHeader
+        customStyles={customStyles}
+      />
+    </>
   )
 }
 
