@@ -1,76 +1,101 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import DT from 'react-data-table-component'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { IconButton } from '@/components/buttons/IconButton'
+
+const customStyles = {
+  cells: {
+    style: {
+      paddingTop: '12px',
+      paddingBottom: '12px'
+    }
+  }
+}
 
 const Row = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  flex: 1;
-  flex-direction: row;
-  justify-content: space-between;
-  &.inputs {
-    gap: 24px;
-    margin-bottom: 16px;
-  }
+  flex-direction: column;
 `
 
-const Col = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  height: fit-content;
+const Ul = styled.ul`
+  padding-left: 16px;
 `
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(identifier)
-  // @ts-expect-error
-  let programId = programAndGrouperInfo?.program?.[0]?.id
+  const progValueSetDets = useGetProgramValueSetDetails(identifier)
 
-  // early return if no data, id must exist if there's data
-  if (!programId) {
-    return null
-  }
-
-  const onClick = () => {
-    router.push(`/programs/${programId}/valuesets`)
-  }
-
-  const {
-    id='', name='', version='', title='', description=''
-    //@ts-expect-error
-  } = programAndGrouperInfo?.program?.[0]
+    const columns = useMemo(() => [
+    {
+      name: 'Name',
+      selector: (row: fhir4.Library) => row.title,
+      sortable: true,
+      maxWidth: '150px',
+      wrap: true
+    },
+    {
+      name: 'Version',
+      selector: (row: fhir4.Library) => row.version,
+      sortable: true,
+      maxWidth: '150px',
+      wrap: true
+    },
+    {
+      name: 'Conditions',
+      selector: (row: fhir4.Library) => row.conditions,
+      sortable: true,
+      maxWidth: '300px',
+      wrap: true
+    },
+    {
+      name: 'Groups',
+      selector: (row: fhir4.Library) => row.groups,
+      sortable: true,
+      maxWidth: '250px',
+      wrap: true,
+      cell: (row: fhir4.Library) => (
+        <Row>
+          <Ul>
+            {row.groups.map(g => <li>{g.title}</li>)}
+          </Ul>
+        </Row>
+      )
+      
+    },
+    {
+      name: 'Remove',
+      selector: (row: fhir4.Library) => row.name,
+      sortable: false,
+      wrap: true,
+      maxWidth: '100px',
+      cell: (row: fhir4.Library) => (
+        <IconButton
+          onClick={() => router.push(`/programs/${row.id}`)}
+          type='edit'
+        />
+      )
+    }
+  ], [router])
 
   return (
-    <Col>
-      <Row style={{ justifyContent: 'space-between' }}>
-        <PageTitle>Program ValueSet Details</PageTitle>
-      </Row>
-        <p>Program ID: { programId }</p>
-        <p>Program Name: { }</p>
-      <Row className='inputs'>
-        <SearchInput id='prog-id' label='ID' placeholder={id} />
-        <SearchInput id='prog-name' label='Name' minWidth={400} placeholder={name} />
-        <SearchInput id='prog-version' label='Version' placeholder={version} />
-        <SearchInput id='prog-title' label='Title' placeholder={title} />
-        <TextArea id='prog-desc' label='Description' minWidth={500} placeholder={description} />
-      </Row>
-      <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-        <span>All ValueSets</span>
-        <Button text='Edit ValueSets'
-          onClick={onClick}
-        />
-      </Row>
-      <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
-    </Col>
+    <DT
+      data={progValueSetDets}
+      columns={columns}
+      theme='aphl'
+      pagination
+      fixedHeader
+      customStyles={customStyles}
+    />
   )
 }
 

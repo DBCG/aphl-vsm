@@ -2,7 +2,7 @@ const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | fhir4.Resource): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
-  bundle: (resource: fhir4.Bundle | fhir4.OperationOutcome | fhir4.Resource): resource is fhir4.Bundle => {
+  bundle: (resource: any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
   bodyStructure: (resource: fhir4.BodyStructure | fhir4.Resource): resource is fhir4.BodyStructure => {
@@ -30,7 +30,7 @@ const is = {
   episodeOfCare: (resource: fhir4.EpisodeOfCare | fhir4.Resource): resource is fhir4.EpisodeOfCare => {
     return resource?.resourceType === 'EpisodeOfCare'
   },
-  library: (resource: fhir4.Library | fhir4.Resource): resource is fhir4.Library => {
+  library: (resource: any): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
   },
   observation: (resource: fhir4.Observation | fhir4.Resource): resource is fhir4.Observation => {
@@ -57,7 +57,7 @@ const is = {
   substance: (resource: fhir4.Substance | fhir4.Resource): resource is fhir4.Substance => {
     return resource?.resourceType === 'Substance'
   },
-  valueSet: (resource: fhir4.ValueSet | fhir4.Resource): resource is fhir4.ValueSet => {
+  valueSet: (resource: any): resource is fhir4.ValueSet => {
     return resource?.resourceType === 'ValueSet'
   }
 }

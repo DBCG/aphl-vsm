@@ -17,11 +17,12 @@ export interface Result {
 // 1. program metadata
 // 2. group metadata (name, canonical, title)
 const useGetProgramDetails = (id: string): Result => {
+  // this is undefined
   const [programAndGrouperData, setProgramAndGrouperData] = useState({ program: {}, grouperData: [] })
 
   useEffect(() => {
     async function getProgram(): Promise<void> {
-      const programEndpoint = `/api/programs?id=${id}`
+      const programEndpoint = `/api/programs/?id=${id}`
 
       let result = {
         program: {},
@@ -35,7 +36,7 @@ const useGetProgramDetails = (id: string): Result => {
         // Identify the valueset library within the program
         // the program, by design, only has 2 relatedArtifacts, one of which is this library
         const grouperLibrary = programJson?.[0]?.relatedArtifact?.filter((a: any) => a?.type === 'composed-of' && a?.resource?.includes('/Library/'))?.[0]
-        const grouperEndpoint = `/api/valueset/groupers?url=${grouperLibrary.resource}`
+        const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibrary.resource}`
 
         const groupers = await fetch(grouperEndpoint)
         const grouperData = await groupers.json()

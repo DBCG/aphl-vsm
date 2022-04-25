@@ -24,6 +24,8 @@ const IconButton = ({ type, onClick }: IButtonProps) => {
   switch (type) {
     case 'edit':
       image = 'edit'
+    case 'delete':
+      image = 'delete'
   }
 
   return (

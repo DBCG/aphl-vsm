@@ -1,0 +1,61 @@
+[
+  {
+    "title": "Diphtheria (Disorders) (SNOMED)",
+    "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+    "version": "20210526",
+    "groups": [
+      {
+        "id": "dxtc",
+        "title": "Diagnosis_Problem Triggers for Public Health Reporting"
+      }
+    ]
+  },
+  {
+    "title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
+    "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
+    "version": "20200516",
+    "groups": [
+      {
+        "id": "ostc",
+        "title": "Organism_Substance Release Triggers for Public Health Reporting"
+      }
+    ]
+  },
+  {
+    "title": "Anthrax (Tests for Bacillis anthracis Antigen)",
+    "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
+    "version": "20180620",
+    "groups": [
+      {
+        "id": "lotc",
+        "title": "Lab Order Test Triggers for Public Health Reporting"
+      },
+      {
+        "id": "lrtc",
+        "title": "Lab Obs Test Triggers for Public Health Reporting"
+      }
+    ]
+  },
+  {
+    "title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
+    "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
+    "version": "Draft",
+    "groups": [
+      {
+        "id": "lrtc",
+        "title": "Lab Obs Test Triggers for Public Health Reporting"
+      }
+    ]
+  },
+  {
+    "title": "Anthrax Vaccine (RXNORM)",
+    "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
+    "version": "20200513",
+    "groups": [
+      {
+        "id": "mrtc",
+        "title": "Medications Triggers for Public Health Reporting"
+      }
+    ]
+  }
+]

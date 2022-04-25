@@ -32,6 +32,7 @@ const Col = styled.div`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
+  console.log('identifier: ', identifier)
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
   
   // early return if no data, id must exist if there's data

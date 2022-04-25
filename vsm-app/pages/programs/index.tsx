@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
-import styled from 'styled-components'
-import { useMemo, useState, ChangeEvent } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo, useState, ChangeEvent } from 'react'
+import styled from 'styled-components'
 import DT, { TableColumn } from 'react-data-table-component'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
@@ -45,14 +45,12 @@ const Programs: NextPage = () => {
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
 
-  console.log('searchTermName: ', searchTermName)
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription
   })
-  
 
   const columns = useMemo(() => [
     {

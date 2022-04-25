@@ -1,180 +1,250 @@
 {
-  "resourceType": "ValueSet",
-  "id": "rckms-condition-codes",
-  "url": "http://hl7.org/fhir/us/ecr/ValueSet/rckms-condition-codes",
-  "version": "20210609",
-  "name": "RCKMSContentCodes",
-  "title": "RCKMS Content Codes",
-  "status": "active",
-  "publisher": "RCKMS",
-  "description": "The Reportable Condition Knowledge Management System (RCKMS) associates a standardized code with each condition available for authoring. This ValueSet contains condition codes included in the June 2021 content release. Please note that while there may be overlap with concepts referenced in RCKMS reporting logic, this value set is not intended to serve as a 'trigger' for case reporting.  When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-  "compose": {
-    "include": [ {
-      "system": "http://snomed.info/sct",
-      "version": "2021-03",
-      "concept": [ {
-        "code": "363346000",
-        "display": "Malignant neoplastic disease (disorder) "
-      }, {
-        "code": "792004",
-        "display": "Colorado tick fever (disorder)"
-      }, {
-        "code": "52947006",
-        "display": "Jakob-Creutzfeldt disease (disorder)"
-      }, {
-        "code": "409617000",
-        "display": "Viral hepatitis type E (disorder)"
-      }, {
-        "code": "57607007",
-        "display": "Japanese encephalitis virus disease (disorder)"
-      }, {
-        "code": "897031002",
-        "display": "Monkeypox (disorder) "
-      }, {
-        "code": "409498004",
-        "display": "Ricin poisoning (disorder) "
-      }, {
-        "code": "21061004",
-        "display": "Seafood causing toxic effect (disorder)"
-      }, {
-        "code": "69996000",
-        "display": "Occupational asthma (disorder)"
-      }, {
-        "code": "75702008",
-        "display": "Infection caused by Acanthamoeba (disorder) "
-      }, {
-        "code": "86500004",
-        "display": "Acute flaccid myelitis (disorder)"
-      }, {
-        "code": "734351004",
-        "display": "Anaplasmosis (disorder)"
-      }, {
-        "code": "266143009",
-        "display": "Anthrax (disorder)"
-      }, {
-        "code": "240589008",
-        "display": "Arbovirus infection (disorder)"
-      }, {
-        "code": "60826002",
-        "display": "Babesiosis (disorder)"
-      }, {
-        "code": "35742006",
-        "display": "Balamuthia mandrillaris (organism) "
-      }, {
-        "code": "240370009",
-        "display": "Blastomycosis (disorder)"
-      }, {
-        "code": "38362002",
-        "display": "Infection caused by Clostridium botulinum (disorder)"
-      }, {
-        "code": "416925005",
-        "display": "Brucellosis (disorder)"
-      }, {
-        "code": "407152001",
-        "display": "Disease caused by California serogroup virus (disorder)"
-      }, {
-        "code": "58265007",
-        "display": "Campylobacteriosis (disorder)"
-      }, {
-        "code": "81004002",
-        "display": "Candida auris (organism)"
-      }, {
-        "code": "111407006",
-        "display": "Carbapenemase-producing Enterobacteriaceae (organism)"
-      }, {
-        "code": "66071002",
-        "display": "Toxic effect of carbon monoxide (disorder)"
-      }, {
-        "code": "50711007",
-        "display": "Chancroid (disorder)"
-      }, {
-        "code": "76981000119106",
-        "display": "Chikungunya fever (disorder)"
-      }, {
-        "code": "6142004",
-        "display": "Chlamydia trachomatis infection (disorder)"
-      }, {
-        "code": "406617004",
-        "display": "Cholera (disorder)"
-      }, {
-        "code": "26726000",
-        "display": "Coccidioidomycosis (disorder)"
-      }, {
-        "code": "4241002",
-        "display": "Congenital rubella syndrome (disorder)"
-      }, {
-        "code": "61462000",
-        "display": "Congenital syphilis (disorder)"
-      }, {
-        "code": "428111003",
-        "display": "Disease caused by severe acute respiratory syndrome coronavirus 2 (disorder)"
-      }, {
-        "code": "651000146102",
-        "display": "Cryptosporidiosis (disorder)"
-      }, {
-        "code": "428175000",
-        "display": "Cyclosporiasis (disorder)"
-      }, {
-        "code": "18504008",
-        "display": "Dengue (disorder)"
-      }, {
-        "code": "242253008",
-        "display": "Infection caused by Corynebacterium diphtheriae (disorder)"
-      }, {
-        "code": "27836007",
-        "display": "Eastern equine encephalitis virus infection (disorder)"
-      }, {
-        "code": "58750007",
-        "display": "Human ehrlichiosis (disorder)"
-      }, {
-        "code": "416707008",
-        "display": "Increased blood lead level (finding)"
-      }, {
-        "code": "186788009",
-        "display": "Mycobacterial infection (excluding tuberculosis AND leprosy) (disorder)  "
-      }, {
-        "code": "55735004",
-        "display": "Giardiasis (disorder)"
-      }, {
-        "code": "85904008",
-        "display": "Gonorrhea (disorder)"
-      }, {
-        "code": "302231008",
-        "display": "Leprosy (disorder)"
-      }, {
-        "code": "36188001",
-        "display": "Disease caused by Hantavirus (disorder)"
-      }, {
-        "code": "67924001",
-        "display": "Hemolytic uremic syndrome (disorder)"
-      }, {
-        "code": "416129000",
-        "display": "Viral hepatitis, type A (disorder)"
-      }, {
-        "code": "240451000",
-        "display": "Viral hepatitis type B (disorder)"
-      }, {
-        "code": "76902006",
-        "display": "Congenital viral hepatitis B infection (disorder)"
-      }, {
-        "code": "709018004",
-        "display": "Viral hepatitis type C (disorder)"
-      }, {
-        "code": "19265001",
-        "display": "Histoplasmosis (disorder)"
-      }, {
-        "code": "404681006",
-        "display": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
-      }, {
-        "code": "398557001",
-        "display": "Influenza caused by seasonal influenza virus (disorder)"
-      }, {
-        "code": "417093003",
-        "display": "Influenza (disorder)"
-      }, {
-        "code": "16541001",
-        "display": "Invasive Haemophilus influenzae disease (disorder)"
-      } ]
-    } ]
-  }
+  "resourceType": "Bundle",
+  "id": "conditionsBundle1",
+  "type": "batch",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "ValueSet",
+        "id": "rckms-condition-codes",
+        "url": "http://hl7.org/fhir/us/ecr/ValueSet/rckms-condition-codes",
+        "version": "20210609",
+        "name": "RCKMSContentCodes",
+        "title": "RCKMS Content Codes",
+        "status": "active",
+        "publisher": "RCKMS",
+        "description": "The Reportable Condition Knowledge Management System (RCKMS) associates a standardized code with each condition available for authoring. This ValueSet contains condition codes included in the June 2021 content release. Please note that while there may be overlap with concepts referenced in RCKMS reporting logic, this value set is not intended to serve as a 'trigger' for case reporting.  When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
+        "compose": {
+          "include": [
+            {
+              "system": "http://snomed.info/sct",
+              "version": "2021-03",
+              "concept": [
+                {
+                  "code": "363346000",
+                  "display": "Malignant neoplastic disease (disorder) "
+                },
+                {
+                  "code": "792004",
+                  "display": "Colorado tick fever (disorder)"
+                },
+                {
+                  "code": "52947006",
+                  "display": "Jakob-Creutzfeldt disease (disorder)"
+                },
+                {
+                  "code": "409617000",
+                  "display": "Viral hepatitis type E (disorder)"
+                },
+                {
+                  "code": "57607007",
+                  "display": "Japanese encephalitis virus disease (disorder)"
+                },
+                {
+                  "code": "897031002",
+                  "display": "Monkeypox (disorder) "
+                },
+                {
+                  "code": "409498004",
+                  "display": "Ricin poisoning (disorder) "
+                },
+                {
+                  "code": "21061004",
+                  "display": "Seafood causing toxic effect (disorder)"
+                },
+                {
+                  "code": "69996000",
+                  "display": "Occupational asthma (disorder)"
+                },
+                {
+                  "code": "75702008",
+                  "display": "Infection caused by Acanthamoeba (disorder) "
+                },
+                {
+                  "code": "86500004",
+                  "display": "Acute flaccid myelitis (disorder)"
+                },
+                {
+                  "code": "734351004",
+                  "display": "Anaplasmosis (disorder)"
+                },
+                {
+                  "code": "266143009",
+                  "display": "Anthrax (disorder)"
+                },
+                {
+                  "code": "240589008",
+                  "display": "Arbovirus infection (disorder)"
+                },
+                {
+                  "code": "60826002",
+                  "display": "Babesiosis (disorder)"
+                },
+                {
+                  "code": "35742006",
+                  "display": "Balamuthia mandrillaris (organism) "
+                },
+                {
+                  "code": "240370009",
+                  "display": "Blastomycosis (disorder)"
+                },
+                {
+                  "code": "38362002",
+                  "display": "Infection caused by Clostridium botulinum (disorder)"
+                },
+                {
+                  "code": "416925005",
+                  "display": "Brucellosis (disorder)"
+                },
+                {
+                  "code": "407152001",
+                  "display": "Disease caused by California serogroup virus (disorder)"
+                },
+                {
+                  "code": "58265007",
+                  "display": "Campylobacteriosis (disorder)"
+                },
+                {
+                  "code": "81004002",
+                  "display": "Candida auris (organism)"
+                },
+                {
+                  "code": "111407006",
+                  "display": "Carbapenemase-producing Enterobacteriaceae (organism)"
+                },
+                {
+                  "code": "66071002",
+                  "display": "Toxic effect of carbon monoxide (disorder)"
+                },
+                {
+                  "code": "50711007",
+                  "display": "Chancroid (disorder)"
+                },
+                {
+                  "code": "76981000119106",
+                  "display": "Chikungunya fever (disorder)"
+                },
+                {
+                  "code": "6142004",
+                  "display": "Chlamydia trachomatis infection (disorder)"
+                },
+                {
+                  "code": "406617004",
+                  "display": "Cholera (disorder)"
+                },
+                {
+                  "code": "26726000",
+                  "display": "Coccidioidomycosis (disorder)"
+                },
+                {
+                  "code": "4241002",
+                  "display": "Congenital rubella syndrome (disorder)"
+                },
+                {
+                  "code": "61462000",
+                  "display": "Congenital syphilis (disorder)"
+                },
+                {
+                  "code": "428111003",
+                  "display": "Disease caused by severe acute respiratory syndrome coronavirus 2 (disorder)"
+                },
+                {
+                  "code": "651000146102",
+                  "display": "Cryptosporidiosis (disorder)"
+                },
+                {
+                  "code": "428175000",
+                  "display": "Cyclosporiasis (disorder)"
+                },
+                {
+                  "code": "18504008",
+                  "display": "Dengue (disorder)"
+                },
+                {
+                  "code": "242253008",
+                  "display": "Infection caused by Corynebacterium diphtheriae (disorder)"
+                },
+                {
+                  "code": "27836007",
+                  "display": "Eastern equine encephalitis virus infection (disorder)"
+                },
+                {
+                  "code": "58750007",
+                  "display": "Human ehrlichiosis (disorder)"
+                },
+                {
+                  "code": "416707008",
+                  "display": "Increased blood lead level (finding)"
+                },
+                {
+                  "code": "186788009",
+                  "display": "Mycobacterial infection (excluding tuberculosis AND leprosy) (disorder)  "
+                },
+                {
+                  "code": "55735004",
+                  "display": "Giardiasis (disorder)"
+                },
+                {
+                  "code": "85904008",
+                  "display": "Gonorrhea (disorder)"
+                },
+                {
+                  "code": "302231008",
+                  "display": "Leprosy (disorder)"
+                },
+                {
+                  "code": "36188001",
+                  "display": "Disease caused by Hantavirus (disorder)"
+                },
+                {
+                  "code": "67924001",
+                  "display": "Hemolytic uremic syndrome (disorder)"
+                },
+                {
+                  "code": "416129000",
+                  "display": "Viral hepatitis, type A (disorder)"
+                },
+                {
+                  "code": "240451000",
+                  "display": "Viral hepatitis type B (disorder)"
+                },
+                {
+                  "code": "76902006",
+                  "display": "Congenital viral hepatitis B infection (disorder)"
+                },
+                {
+                  "code": "709018004",
+                  "display": "Viral hepatitis type C (disorder)"
+                },
+                {
+                  "code": "19265001",
+                  "display": "Histoplasmosis (disorder)"
+                },
+                {
+                  "code": "404681006",
+                  "display": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
+                },
+                {
+                  "code": "398557001",
+                  "display": "Influenza caused by seasonal influenza virus (disorder)"
+                },
+                {
+                  "code": "417093003",
+                  "display": "Influenza (disorder)"
+                },
+                {
+                  "code": "16541001",
+                  "display": "Invasive Haemophilus influenzae disease (disorder)"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "request": {
+        "method": "PUT",
+        "url": "ValueSet/rckms-condition-codes"
+      }
+    }
+  ]
 }
