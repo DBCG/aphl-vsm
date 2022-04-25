@@ -32,6 +32,11 @@ const fetchProgram = (id: string) => {
   return fhirCdrClient.read({ resourceType: 'Library', id })
 }
 
+const fetchConditionsVS = (canonical: string) => {
+  const id = canonical.split('/').slice(-1)
+  return fhirCdrClient.read({ resourceType: 'ValueSet', id })
+}
+
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
   const cachedCopy = cache.get(canonical)
   if (cachedCopy) { return cachedCopy }
@@ -81,6 +86,9 @@ export default async function handler(
 
     try {
       const program = await fetchProgram(req.query.id as string)
+      const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL)
+
+      console.log('CONDITIONS: ', conditionsVS)
 
       if (is.library(program)) {
         // get the grouper canonial
@@ -134,7 +142,15 @@ export default async function handler(
       }
 
       const response: ValueSetTableEntry[] = leafValueSets.map(valueSet => {
-        console.log('VS!!!: ', valueSet)
+        // condition VS is static, in our CDR
+        const conceptCodesFromConditionVS = conditionsVS?.compose?.include?.[0]
+        // leaf valuesets come from VSAC
+        const conceptsFromLeaf = valueSet.compose?.include[0].concept
+        console.log('valueset: %j', valueSet, null, 2)
+        // if the leaf valueset
+        console.log('concepts from vs!!!: ', conceptCodes)
+        console.log('leaf VS!!!: ', valueSet)
+        console.log('Concepts from leaf!!!: ', conceptsFromLeaf)
         const leafFocusContext = valueSet
           ?.useContext
           ?.filter(
