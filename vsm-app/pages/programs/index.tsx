@@ -25,6 +25,11 @@ const Col = styled.div`
   height: fit-content;
 `
 
+const ButtonWrapper = styled.div`
+margin-left: 6px;
+  // margin: 0 auto;
+`
+
 interface DTProps {
   data: fhir4.Library[];
   columns: TableColumn<fhir4.Library[]>[];
@@ -97,15 +102,17 @@ const Programs: NextPage = () => {
       wrap: true
     },
     {
-      name: 'Edit',
+      name: 'Details',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       cell: (row: fhir4.Library) => (
-        <IconButton
-          onClick={() => router.push(`/programs/${row.id}`)}
-          type='edit'
-        />
+        <ButtonWrapper>
+          <IconButton
+            onClick={() => router.push(`/programs/${row.id}`)}
+            type='edit'
+          />
+        </ButtonWrapper>
       )
     }
   ], [router])
