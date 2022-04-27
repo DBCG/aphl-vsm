@@ -11,7 +11,7 @@ const useIsEditing = (input: EditingStatus) => {
 
   useEffect(() => {
     setEditingStatus(input)
-  }, [input])
+  }, [input.editing])
 
   return [editingStatus, setEditingStatus]
 }
