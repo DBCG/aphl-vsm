@@ -22,9 +22,14 @@ const customStyles = {
   }
 }
 
-const Row = styled.div`
+const Col = styled.div`
   display: flex;
   flex-direction: column;
+`
+
+const Row = styled.div`
+  display: flex;
+  justify-content: space-between;
 `
 
 const Ul = styled.ul`
@@ -52,7 +57,9 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const progValueSetDets = useGetProgramValueSetDetails(identifier)
-
+  const onClick = () => {
+    router.push('/valuesets')
+  }
     const columns = useMemo(() => [
     {
       name: 'Name',
@@ -75,11 +82,11 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '300px',
       wrap: true,
       cell: (row: fhir4.Library) => (
-        <Row>
+        <Col>
           <Ul>
             {row?.conditions?.map(c => <li>{c?.display}</li>)}
           </Ul>
-        </Row>
+        </Col>
       )
     },
     {
@@ -89,11 +96,11 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '250px',
       wrap: true,
       cell: (row: fhir4.Library) => (
-        <Row>
+        <Col>
           <Ul>
             {row.groups.map(g => <li>{g.title}</li>)}
           </Ul>
-        </Row>
+        </Col>
       )
       
     },
@@ -114,7 +121,12 @@ const ProgramValueSetDetails: NextPage = () => {
 
   return (
     <>
-      <PageTitle>Program ValueSet Details</PageTitle>
+      <Row>
+        <PageTitle>Program ValueSet Details</PageTitle>
+        <Button style={{ marginTop: '12px' }} text='Add New ValueSet'
+          onClick={onClick}
+        />
+      </Row>
       <ItemWrapper style={{ marginBottom: '12px'}}>
         <FieldTitle>ID</FieldTitle>
         <FieldValue>{ identifier }</FieldValue>
