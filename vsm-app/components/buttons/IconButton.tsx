@@ -18,7 +18,7 @@ interface IButtonProps {
   onClick: React.EventHandler<React.MouseEvent>
 }
 
-const IconButton = ({ type, onClick }: IButtonProps) => {
+const IconButton = ({ type, onClick, style }: IButtonProps) => {
   let image = 'missing'
 
   switch (type) {
@@ -28,10 +28,13 @@ const IconButton = ({ type, onClick }: IButtonProps) => {
     case 'delete':
       image = 'delete'
       break
+    case 'search':
+      image = 'search'
+      break
   }
 
   return (
-    <StyledButton onClick={e => onClick(e)}>
+    <StyledButton style={ style } onClick={e => onClick(e)}>
       <Image
         src={`/images/${image}.svg`}
         width={24}
