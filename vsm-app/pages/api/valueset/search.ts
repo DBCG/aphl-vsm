@@ -12,13 +12,19 @@ export default async function handler(
       let response;
       switch(searchType) {
         case 'name':
-          response =  await vsacFhirClient.search({ resourceType: 'ValueSet', searchParams: { 'name:contains': search }})
+          response = await vsacFhirClient.search({
+            resourceType: 'ValueSet', searchParams: { 'name:contains': search }
+          })
           break;
         case 'steward':
-          response =  await vsacFhirClient.search({ resourceType: 'ValueSet', searchParams: { 'publisher:contains': search }})
+          response = await vsacFhirClient.search({
+            resourceType: 'ValueSet', searchParams: { 'publisher:contains': search }
+          })
           break;
         case 'oid':
-          response =  await vsacFhirClient.read({ resourceType: 'ValueSet', id: search as string })
+          response =  await vsacFhirClient.read({
+            resourceType: 'ValueSet', id: search as string
+          })
       }
 
       res.status(200).send(response)

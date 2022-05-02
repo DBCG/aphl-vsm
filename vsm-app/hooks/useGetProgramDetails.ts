@@ -50,7 +50,7 @@ const useGetProgramDetails = (id: string): Result => {
         setProgramAndGrouperData(result)
       } catch (e) {
         setProgramAndGrouperData(result)
-        console.log('Error in useGetPrograms: ', e)
+        console.error('Error in useGetPrograms: ', e)
       }
     }
     void getProgram()

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, ChangeEvent } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -39,12 +39,19 @@ const Ul = styled.ul`
 const SearchOptions = styled.div`
   max-width: 500px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   margin-top: 30px;
+  // border: 2px solid var(--theme-500);
+  // border-bottom: none;
+  padding: 8px 12px;
+`
+
+const TextInputContainer = styled.div`
+  max-width: 250px;
+  display: inline-block;
 `
 
 const StyledSelect = styled.select`
-  // display: inline-block;
   height: 30px;
   min-width: 100px;
   margin-left: 8px;
@@ -56,7 +63,9 @@ const StyledSelect = styled.select`
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
-  const progValueSetDets = useGetProgramValueSetDetails(identifier)
+  const [findInVsName, setFindInVsName] = useState('')
+  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName)
+
   const onClick = () => {
     router.push('/valuesets')
   }
@@ -84,7 +93,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <Col>
           <Ul>
-            {row?.conditions?.map(c => <li>{c?.display}</li>)}
+            {row?.conditions?.map(c => <li key={c?.display}>{c?.display}</li>)}
           </Ul>
         </Col>
       )
@@ -98,22 +107,23 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <Col>
           <Ul>
-            {row.groups.map(g => <li>{g.title}</li>)}
+            {row?.groups?.map(g => <li key={g?.title}>{g?.title}</li>)}
           </Ul>
         </Col>
       )
       
     },
     {
-      name: 'Remove',
+      name: 'Remove ValueSet',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
-      maxWidth: '100px',
+      maxWidth: '150px',
       cell: (row: fhir4.Library) => (
         <IconButton
           onClick={() => router.push(`/programs/${row.id}`)}
           type='delete'
+          style={{ backgroundColor: 'darkRed' }}
         />
       )
     }
@@ -132,17 +142,27 @@ const ProgramValueSetDetails: NextPage = () => {
         <FieldValue>{ identifier }</FieldValue>
       </ItemWrapper>
       <SearchOptions>
-        <SearchInput
-          style={{ marginBottom: '12px', display: 'inline-block'}}
-          label='Search ValueSets by Name'
-          id='VSearch'
-        />
-        <StyledSelect id='groups'>
-          <option>Groups</option>
-        </StyledSelect>
-        <StyledSelect id='conditions'>
-          <option>Conditions</option>
-        </StyledSelect>
+        <p>Filters</p>
+        <div>
+          <TextInputContainer>
+            <SearchInput
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFindInVsName(e.target.value)}
+              label='ValueSet Name'
+              id='VSearch'
+              style={{
+                marginBottom: '12px',
+                display: 'inline-block'
+              }}
+            />
+          </TextInputContainer>
+          <StyledSelect id='groups'>
+            <option>Groups</option>
+          </StyledSelect>
+          <StyledSelect id='conditions'>
+            <option>Conditions</option>
+          </StyledSelect>
+
+        </div>
       </SearchOptions>
       <DT
         data={progValueSetDets}

@@ -2,11 +2,13 @@ import React, { useState } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
+import { useIsEditing } from '@/hooks/useIsEditing'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 
@@ -58,12 +60,11 @@ export const FieldValue = styled.span``
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
-  const [editMode, setEditMode] = useState(false)
+  const [ isEditing, setIsEditing ] = useIsEditing()
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
-  
+
   // early return if no data, id must exist if there's data
-  // @ts-expect-error
   if (!is.library(programAndGrouperInfo.program)) {
     return null
   }
@@ -77,19 +78,39 @@ const ProgramDetails: NextPage = () => {
     router.push(`/programs/${id}/valuesets`)
   }
 
-  const handleEditButton = () => {
-    setEditMode(!editMode)
+  // when editing is live, work happens in the modal
+  const handleEditButton = (e) => {
+    e.preventDefault()
+    console.log('pressed')
+    setIsEditing()
   }
+
+  Modal.setAppElement('#__next');
 
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
         <PageTitle style={{ marginRight: '12px'}}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
-        <Button style={{ marginBottom: '12px', width: '150px', backgroundColor: editMode ? 'orange' : '' }} text={ editMode ? 'Save Changes' : 'Edit Program'}
+        <Button
+          style={{ marginBottom: '12px', width: '150px' }}
+          text='Edit Program'
           onClick={handleEditButton}
         />
       </Row>
-      {editMode ? (
+      <Modal
+        isOpen={isEditing}
+        // onAfterOpen={afterOpenModal}
+        // onRequestClose={setIsEditing({ editing: false })}
+        // style={customStyles}
+        contentLabel="Example Modal"
+      >
+        {/* EDITING WILL BE IN HERE */}
+        <button onClick={() => setIsEditing()}>close</button>
+        <form>
+          <p>edit program will be in here</p>
+        </form>
+      </Modal>
+      {false ? (
         <div>
           <Row className='inputs'>
             <SearchInput id='prog-id' label='ID' def={id} />

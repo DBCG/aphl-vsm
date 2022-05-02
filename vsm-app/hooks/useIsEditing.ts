@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
 interface EditingStatus {
   editing: boolean,
@@ -6,14 +6,12 @@ interface EditingStatus {
 }
 
 // gets data necessary to build the program valueset details page
-const useIsEditing = (input: EditingStatus) => {
-  const [editingStatus, setEditingStatus] = useState({ editing: false })
+const useIsEditing = (initialState: boolean = false): [boolean, any] => {
+  const [editingStatus, setEditingStatus] = useState(initialState)
 
-  useEffect(() => {
-    setEditingStatus(input)
-  }, [input.editing])
+  const toggle = useCallback((): void => setEditingStatus(state => !state), []);
 
-  return [editingStatus, setEditingStatus]
+  return [editingStatus, toggle]
 }
 
 export { useIsEditing }

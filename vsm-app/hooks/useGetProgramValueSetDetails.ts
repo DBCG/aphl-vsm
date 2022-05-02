@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 // gets data necessary to build the program valueset details page
-const useGetProgramValueSetDetails = (id: string) => {
+const useGetProgramValueSetDetails = (id: string, findInVsName: string) => {
   const [data, setData] = useState([])
 
   useEffect(() => {
@@ -10,21 +10,27 @@ const useGetProgramValueSetDetails = (id: string) => {
         setData([])
         return
       }
-      const endpoint = `/api/programs/${id}/details/valuesets`
+      let endpoint = `/api/programs/${id}/details/valuesets`
+      if (findInVsName.length) {
+        endpoint = endpoint.concat(`?findInVsName=${encodeURIComponent(findInVsName)}`)
+      }
 
       try {
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
-        console.log('program json: ', programJson)
-        setData(programJson)
+        if (!programJson.error) {
+          setData(programJson)
+        } else {
+          console.error(programJson.error)
+        }
       } catch (e) {
-        console.log('error: ', e)
+        console.error('error: ', e)
       }
     }
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id, findInVsName])
   return data
 }
 

@@ -6,7 +6,7 @@ import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 
 // FAKE mode
-const fakeMode = true
+const fakeMode = false
 import * as fixture from './fixture.json'
 // FAKE mode
 
@@ -59,10 +59,19 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
 }
 
 // These are from VSAC (array of FHIR Bundle resources)
-const fetchlLeafValueSets = (canonicals: string[]) => {
+const fetchLeafValueSets = async (canonicals: string[], nameStr: string) => {
   // TODO: This only uses the first one so we don't overwhelm VSAC
   const tempCanonicals = [canonicals[0]]
-  return Promise.all(tempCanonicals.map(canonical => vsacFhirClient.request(canonical)))
+  const result = await Promise.all(tempCanonicals.map(canonical =>
+  (vsacFhirClient.search({
+    resourceType: 'ValueSet',
+    searchParams: {
+      url: canonical,
+      'name:contains': nameStr
+    }
+  }))
+  ))
+  return result?.[0]?.entry?.map(e => e?.resource)
 }
 
 const isDefinedString = (item: any): item is string => {
@@ -88,7 +97,8 @@ export default async function handler(
       const program = await fetchProgram(req.query.id as string)
       const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL)
 
-      console.log('CONDITIONS: ', conditionsVS)
+      // below is only populated if a user attempts to filter leaf VS by name
+      const searchInName = req.query.findInVsName
 
       if (is.library(program)) {
         // get the grouper canonial
@@ -109,11 +119,13 @@ export default async function handler(
 
             if (grouperValueSetCanonicals) {
               const grouperValueSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
-                .filter(is.bundle).flatMap(bundle => bundle.entry?.map(e => e.resource)).filter(is.valueSet)
+                .filter(is.bundle)
+                .flatMap(bundle => bundle.entry?.map(e => e.resource))
+                .filter(is.valueSet)
 
               const leafValueSetResult = await Promise.all(grouperValueSets.map(valueset => {
-                const groupTitle = valueset.title || ''
-                const leafUrls = valueset.compose?.include?.[0]?.valueSet
+                const groupTitle = valueset?.title || ''
+                const leafUrls = valueset?.compose?.include?.[0]?.valueSet
 
                 leafUrls?.forEach(url => {
                   if (groupsByValueSetCanonical[url]) {
@@ -132,7 +144,7 @@ export default async function handler(
                 })
 
                 if (leafUrls) {
-                  return fetchlLeafValueSets(leafUrls)
+                  return fetchLeafValueSets(leafUrls, req.query.findInVsName)
                 }
               }))
               leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
@@ -147,7 +159,7 @@ export default async function handler(
         // START: NEED TO TEST
         const conceptCodesFromConditionVS = conditionsVS?.compose?.include
         // leaf valuesets come from VSAC
-        const conceptsFromLeaf = valueSet.compose?.include
+        const conceptsFromLeaf = valueSet?.compose?.include
 
         interface CodeData {
           system: string,
@@ -159,21 +171,19 @@ export default async function handler(
         // loop through all of the concept code sets from the valueSet
         // if the systems match and the code is in the RCCKMS valueset, push to the shared arr
 
-        conceptsFromLeaf.forEach(codeSet => {
-          const currentLeafCodeSystem = codeSet.system
-          const matchingSystemBlock = conceptCodesFromConditionVS.find(set => set.system === currentLeafCodeSystem)
+        conceptsFromLeaf?.forEach(codeSet => {
+          const currentLeafCodeSystem = codeSet?.system
+          const matchingSystemBlock = conceptCodesFromConditionVS?.find(set => set?.system === currentLeafCodeSystem)
           if (matchingSystemBlock) {
             codeSet?.concept?.forEach(concept => {
               const codeToSearch = concept?.code
-              const foundCodeInRCKMS = matchingSystemBlock?.concept?.find(obj => obj.code === codeToSearch)
+              const foundCodeInRCKMS = matchingSystemBlock?.concept?.find(obj => obj?.code === codeToSearch)
               if (foundCodeInRCKMS) {
-                sharedCodes.push(foundCodeInRCKMS)
+                sharedCodes?.push(foundCodeInRCKMS)
               }
             })
           }
         })
-        console.log('shared codes: ', sharedCodes)
-
         // END NEED TO TEST
 
 
@@ -188,14 +198,13 @@ export default async function handler(
         }
       })
 
-      console.log("response", JSON.stringify(response, null, 2))
 
 
       res.status(200).send(response)
 
     } catch (e: any) {
       console.error('error:  ', e)
-      res.status(400).json({ error: 'Search for grouper libraries failed.' })
+      res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
   }
 }

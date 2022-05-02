@@ -112,7 +112,7 @@ const ValueSets = () => {
             />
           </Col>
           <Button text='Add Selected To Program'
-            style={{ maxHeight: '100px'}}
+            style={{ maxHeight: '10px'}}
             onClick={onClick}
           />
         </Row>
