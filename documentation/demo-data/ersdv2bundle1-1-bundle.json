@@ -5,16 +5,15 @@
   "entry": [ {
     "resource": {
       "resourceType": "Library",
-      "date": "2022-01-13",
-      "id": "SpecificationLibrary",
+      "id": "ersd20211229",
       "meta": {
-        "versionId": "1.0.0",
+        "versionId": "2021-12-29",
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library" ]
       },
-      "url": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary",
-      "version": "1.0.0",
-      "name": "SpecificationLibrary",
-      "title": "Specification Library",
+      "url": "http://hl7.org/fhir/us/ecr/Library/ElectronicReportingAndSurveillanceDistribution",
+      "version": "2021-12-29",
+      "name": "ElectronicReportingAndSurveillanceDistribution",
+      "title": "Electronic Reporting & Surveillance Distribusion (eRSD)",
       "status": "active",
       "experimental": true,
       "type": {
@@ -23,7 +22,7 @@
           "code": "asset-collection"
         } ]
       },
-      "date": "2022-04-11",
+      "date": "2021-12-29",
       "publisher": "eCR",
       "description": "Defines the asset-collection library containing the US Public Health specification assets.",
       "useContext": [{
@@ -42,20 +41,20 @@
       }],
       "relatedArtifact": [ {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-skeleton"
+        "resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/PlanDefinitioneRSDSkeletonInstance|0.1"
       }, {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/Library/rctc"
+        "resource": "http://hl7.org/fhir/us/ecr/Library/ReportableConditionTriggerCodes|2021-12-29"
       } ]
     },
     "request": {
       "method": "PUT",
-      "url": "Library/SpecificationLibrary/_history/1.0.0"
+      "url": "Library/ersd20211229/_history/1"
     }
   }, {
     "resource": {
       "resourceType": "PlanDefinition",
-      "id": "plandefinition-ersd-skeleton",
+      "id": "plandefinition-ersd-skeleton1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition", "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition" ]
       },
@@ -63,9 +62,9 @@
         "status": "generated",
         "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource &quot;plandefinition-ersd-instance-example&quot; Version &quot;6&quot; Updated &quot;2021-11-17T04:21:04.738Z&quot; </p><p style=\"margin-bottom: 0px\">Information Source: #DYpZHR1G1x5B4mFC!</p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-ersd-plandefinition.html\">eRSD PlanDefinition</a></p></div><p><b>url</b>: <code>http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example</code></p><p><b>version</b>: 2.0.0</p><p><b>name</b>: PlanDefinition_eRSD_Instance_Example</p><p><b>title</b>: eRSD PlanDefinition Instance Example</p><p><b>type</b>: Workflow Definition <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/3.0.0/CodeSystem-plan-definition-type.html\">PlanDefinitionType</a>#workflow-definition)</span></p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>date</b>: 2020-07-31T12:32:29.858-05:00</p><p><b>publisher</b>: HL7 Public Health Work Group (http://www.hl7.org/Special/committees/pher/index.cfm)</p><p><b>contact</b>: HL7 International - Public Health: <a href=\"http://www.hl7.org/Special/committees/pher\">http://www.hl7.org/Special/committees/pher</a></p><p><b>description</b>: An example ersd PlanDefinition</p><p><b>jurisdiction</b>: United States of America <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (unknown#US)</span></p><p><b>effectivePeriod</b>: 2020-12-01 --&gt; (ongoing)</p><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the start of the reporting workflow in response to the encounter-start event</p><p><b>textEquivalent</b>: Start the reporting workflow in response to an encounter-start event</p><p><b>code</b>: Initiate a reporting workflow <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#initiate-reporting-workflow)</span></p><h3>RelatedActions</h3><table class=\"grid\"><tr><td>-</td><td><b>ActionId</b></td><td><b>Relationship</b></td><td><b>Offset[x]</b></td></tr><tr><td>*</td><td>check-reportable</td><td>before-start</td><td>60 s<span style=\"background: LightGoldenRodYellow\"> (Details: UCUM code s = 's')</span></td></tr></table></blockquote><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the check for suspected reportability of the eICR.</p><p><b>textEquivalent</b>: Check Reportability and setup jobs for future reportability checks.</p><p><b>code</b>: Execute a series of actions to accomplish reporting <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#execute-reporting-workflow)</span></p><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the check for reportability to create the patients eICR.</p><p><b>textEquivalent</b>: Check Trigger Codes based on RCTC Value sets.</p><p><b>code</b>: Evaluate candidate patient's data against trigger codes to determine reportability <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#check-trigger-codes)</span></p></blockquote><blockquote><p><b>action</b></p><p><b>code</b>: Evaluate condition to determine reportability <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#evaluate-condition)</span></p></blockquote><blockquote><p><b>action</b></p><p><b>code</b>: Evaluate condition to determine reportability <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#evaluate-condition)</span></p></blockquote></blockquote><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the creation, validation and submission of the eICR.</p><p><b>textEquivalent</b>: Create, Validate and Report eICR set of actions</p><p><b>code</b>: Execute a series of actions to accomplish reporting <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#execute-reporting-workflow)</span></p><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the creation of the eICR.</p><p><b>textEquivalent</b>: Create eICR</p><p><b>code</b>: Create a Report containing Patient's data for patients who passed the check-reportability test <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#create-report)</span></p></blockquote><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the validation of the eICR.</p><p><b>textEquivalent</b>: Validate eICR</p><p><b>code</b>: Validate Report against specified profiles and terminologies. <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#validate-report)</span></p></blockquote><blockquote><p><b>action</b></p><p><b>description</b>: This action represents the routing and sending of the eICR.</p><p><b>textEquivalent</b>: Route and send eICR</p><p><b>code</b>: Submit the report to specified endpoint <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"CodeSystem-us-ph-plandefinition-actions.html\">US Public Health PlanDefinition Action Codes</a>#submit-report)</span></p></blockquote></blockquote></div>"
       },
-      "url": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-skeleton",
+      "url": "http://hl7.org/fhir/us/ecr/PlanDefinition/PlanDefinitioneRSDSkeletonInstance",
       "version": "0.1",
-      "name": "PlanDefinition_eRSD_Skeleton_Instance",
+      "name": "PlanDefinitioneRSDSkeletonInstance",
       "title": "eRSD PlanDefinition Skeleton Instance",
       "type": {
         "coding": [ {
@@ -100,7 +99,7 @@
       "relatedArtifact": [ {
         "type": "depends-on",
         "label": "RCTC Value Set Library of Trigger Codes",
-        "resource": "http://hl7.org/fhir/us/ecr/Library/rctc"
+        "resource": "http://hl7.org/fhir/us/ecr/Library/ReportableConditionTriggerCodes|2021-12-29"
       } ],
       "action": [ {
         "id": "start-workflow",
@@ -176,56 +175,56 @@
             "id": "conditions",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "Condition?code:in=http://hl7.org/fhir/us/ecr/ValueSet/dxtc&patient=Patient/{{context.patientId}}"
+              "valueString": "Condition?code:in=http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "Condition",
             "codeFilter": [ {
               "path": "code",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "encounters",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "Encounter?reason-code:in=http://hl7.org/fhir/us/ecr/ValueSet/dxtc&patient=Patient/{{context.patientId}}"
+              "valueString": "Encounter?reason-code:in=http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "Encounter",
             "codeFilter": [ {
               "path": "reasonCode",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "immunizations",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "Immunization?vaccine-code:in=http://hl7.org/fhir/us/ecr/ValueSet/mrtc&patient=Patient/{{context.patientId}}"
+              "valueString": "Immunization?vaccine-code:in=http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "Immunization",
             "codeFilter": [ {
               "path": "vaccineCode",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "labOrders",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "ServiceRequest?code:in=http://hl7.org/fhir/us/ecr/ValueSet/lotc&patient=Patient/{{context.patientId}}"
+              "valueString": "ServiceRequest?code:in=http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "ServiceRequest",
             "codeFilter": [ {
               "path": "code",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "labTests",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "Observation?code:in=http://hl7.org/fhir/us/ecr/ValueSet/lotc&patient=Patient/{{context.patientId}}"
+              "valueString": "Observation?code:in=http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "Observation",
             "codeFilter": [ {
               "path": "code",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "procedureOrders",
@@ -253,45 +252,45 @@
             "id": "medicationOrders",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "MedicationRequest?code:in=http://hl7.org/fhir/us/ecr/ValueSet/mrtc&patient=Patient/{{context.patientId}}"
+              "valueString": "MedicationRequest?code:in=http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "MedicationRequest",
             "codeFilter": [ {
               "path": "medication",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "medicationDispenses",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "MedicationDispense?code:in=http://hl7.org/fhir/us/ecr/ValueSet/mrtc&patient=Patient/{{context.patientId}}"
+              "valueString": "MedicationDispense?code:in=http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "MedicationDispense",
             "codeFilter": [ {
               "path": "medication",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "medicationAdministrations",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "MedicationAdministration?code:in=http://hl7.org/fhir/us/ecr/ValueSet/mrtc&patient=Patient/{{context.patientId}}"
+              "valueString": "MedicationAdministration?code:in=http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "MedicationAdministration",
             "codeFilter": [ {
               "path": "medication",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0"
             } ]
           }, {
             "id": "labResults",
             "extension": [ {
               "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-fhirquerypattern-extension",
-              "valueString": "Observation?value-concept:in=http://hl7.org/fhir/us/ecr/ValueSet/ostc&patient=Patient/{{context.patientId}}"
+              "valueString": "Observation?value-concept:in=http://hl7.org/fhir/us/ecr/ValueSet/Organism_SubstanceReleaseTriggersforPublicHealthReporting|1.0.0&patient=Patient/{{context.patientId}}"
             } ],
             "type": "Observation",
             "codeFilter": [ {
               "path": "value",
-              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
+              "valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/Organism_SubstanceReleaseTriggersforPublicHealthReporting|1.0.0"
             } ]
           } ],
           "relatedAction": [ {
@@ -482,18 +481,18 @@
     },
     "request": {
       "method": "PUT",
-      "url": "PlanDefinition/plandefinition-ersd-skeleton"
+      "url": "PlanDefinition/plandefinition-ersd-skeleton1"
     }
   }, {
     "resource": {
       "resourceType": "Library",
-      "id": "rctc",
+      "id": "rctc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library" ]
       },
-      "url": "http://hl7.org/fhir/us/ecr/Library/rctc",
-      "version": "2022-01-12",
-      "name": "Reportable_Condition_Trigger_Codes",
+      "url": "http://hl7.org/fhir/us/ecr/Library/ReportableConditionTriggerCodes",
+      "version": "2021-12-29",
+      "name": "ReportableConditionTriggerCodes",
       "title": "Reportable Condition Trigger Codes",
       "status": "active",
       "experimental": false,
@@ -511,29 +510,29 @@
       },
       "relatedArtifact": [ {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
+        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting|1.0.0"
       }, {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
+        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/Organism_SubstanceReleaseTriggersforPublicHealthReporting|1.0.0"
       }, {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
+        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting|1.0.0"
       }, {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc"
+        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/LabObsTestTriggersforPublicHealthReporting|1.0.0"
       }, {
         "type": "composed-of",
-        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
+        "resource": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting|1.0.0"
       } ]
     },
     "request": {
       "method": "PUT",
-      "url": "Library/rctc"
+      "url": "Library/rctc1"
     }
   }, {
     "resource": {
       "resourceType": "ValueSet",
-      "id": "dxtc",
+      "id": "dxtc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
       },
@@ -548,7 +547,7 @@
           "name": "CSTE Steward"
         }
       } ],
-      "url": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
+      "url": "http://hl7.org/fhir/us/ecr/ValueSet/Diagnosis_ProblemTriggersforPublicHealthReporting",
       "identifier": [ {
         "system": "urn:ietf:rfc:3986",
         "value": "urn:oid:2.16.840.1.113762.1.4.1146.627"
@@ -47903,12 +47902,12 @@
     },
     "request": {
       "method": "PUT",
-      "url": "ValueSet/dxtc"
+      "url": "ValueSet/dxtc1"
     }
   }, {
     "resource": {
       "resourceType": "ValueSet",
-      "id": "mrtc",
+      "id": "mrtc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
       },
@@ -47923,7 +47922,7 @@
           "name": "CSTE Steward"
         }
       } ],
-      "url": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc",
+      "url": "http://hl7.org/fhir/us/ecr/ValueSet/MedicationsTriggersforPublicHealthReporting",
       "identifier": [ {
         "system": "urn:ietf:rfc:3986",
         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1060"
@@ -48582,12 +48581,12 @@
     },
     "request": {
       "method": "PUT",
-      "url": "ValueSet/mrtc"
+      "url": "ValueSet/mrtc1"
     }
   }, {
     "resource": {
       "resourceType": "ValueSet",
-      "id": "lrtc",
+      "id": "lrtc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
       },
@@ -48602,7 +48601,7 @@
           "name": "CSTE Steward"
         }
       } ],
-      "url": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc",
+      "url": "http://hl7.org/fhir/us/ecr/ValueSet/LabObsTestTriggersforPublicHealthReporting",
       "identifier": [ {
         "system": "urn:ietf:rfc:3986",
         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1057"
@@ -68241,12 +68240,12 @@
     },
     "request": {
       "method": "PUT",
-      "url": "ValueSet/lrtc"
+      "url": "ValueSet/lrtc1"
     }
   }, {
     "resource": {
       "resourceType": "ValueSet",
-      "id": "lotc",
+      "id": "lotc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
       },
@@ -68261,7 +68260,7 @@
           "name": "CSTE Steward"
         }
       } ],
-      "url": "http://hl7.org/fhir/us/ecr/ValueSet/lotc",
+      "url": "http://hl7.org/fhir/us/ecr/ValueSet/LabOrderTestTriggersforPublicHealthReporting",
       "identifier": [ {
         "system": "urn:ietf:rfc:3986",
         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1056"
@@ -74116,12 +74115,12 @@
     },
     "request": {
       "method": "PUT",
-      "url": "ValueSet/lotc"
+      "url": "ValueSet/lotc1"
     }
   }, {
     "resource": {
       "resourceType": "ValueSet",
-      "id": "ostc",
+      "id": "ostc1",
       "meta": {
         "profile": [ "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset" ]
       },
@@ -74136,7 +74135,7 @@
           "name": "CSTE Steward"
         }
       } ],
-      "url": "http://hl7.org/fhir/us/ecr/ValueSet/ostc",
+      "url": "http://hl7.org/fhir/us/ecr/ValueSet/Organism_SubstanceReleaseTriggersforPublicHealthReporting",
       "identifier": [ {
         "system": "urn:ietf:rfc:3986",
         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1059"
@@ -97971,7 +97970,7 @@
     },
     "request": {
       "method": "PUT",
-      "url": "ValueSet/ostc"
+      "url": "ValueSet/ostc1"
     }
   }, {
     "resource": {
