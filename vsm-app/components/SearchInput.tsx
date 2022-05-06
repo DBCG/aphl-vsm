@@ -13,7 +13,7 @@ const Input = styled.input<InputProps>`
   border-bottom: 2px solid var(--theme-300);
 `
 
-const StyledLabel = styled.label`
+export const StyledLabel = styled.label`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);

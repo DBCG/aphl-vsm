@@ -1,17 +1,16 @@
 import React, { useMemo, useState, ChangeEvent } from 'react'
 import type { NextPage } from 'next'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import Select from 'react-select'
 import DT from 'react-data-table-component'
-import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { SearchInput } from '@/components/SearchInput'
-import { TextArea } from '@/components/TextArea'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
-import { ProgramDetailTable } from '@/components/ProgramDetailTable'
+import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle, FieldValue, ItemWrapper } from '..'
+import { useGetConditions } from '@/hooks/useGetConditions'
 
 const customStyles = {
   cells: {
@@ -32,18 +31,37 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const Ul = styled.ul`
-  padding-left: 16px;
+const Li = styled.li`
+  list-style-type: none;
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  border-radius: 8px;
+  background-color: var(--theme-100);
+  &:nth-of-type(2) {
+    background-color: #D0ECEF;
+  }
 `
 
-const SearchOptions = styled.div`
-  max-width: 500px;
+const Ul = styled.ul`
+  padding-left: 0px;
+  &:nth-child(even)  {
+    background-color: red;
+  }
+`
+
+const SearchOptions = styled.form`
   display: flex;
   flex-direction: column;
-  margin-top: 30px;
-  // border: 2px solid var(--theme-500);
-  // border-bottom: none;
   padding: 8px 12px;
+  padding-left: 0;
+
+  .groups__control, .conditions__control {
+    min-width: 300px;
+  }
+
+  .groups__menu, .conditions__menu {
+    z-index: 100000;
+  }
 `
 
 const TextInputContainer = styled.div`
@@ -51,20 +69,64 @@ const TextInputContainer = styled.div`
   display: inline-block;
 `
 
-const StyledSelect = styled.select`
-  height: 30px;
-  min-width: 100px;
-  margin-left: 8px;
-  transform: translateY(4px);
-  border-radius: none;
-  border: none;
+const SelectContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  align-items: center;
 `
+
+const SelectGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+const ButtonContainer = styled.div`
+  width: 36px;
+  height: 36px;
+  margin-top: 16px;
+`
+
+const Id = styled(PageTitle).attrs({
+  as: 'span'
+})`
+  font-size: 20px;
+`
+
+const formatConditions = (conditionsList) => {
+  const list = conditionsList?.map(c => (
+    c?.concept?.map(item => ({
+      system: c.system,
+      version: c.version,
+      code: item.code,
+      display: item.display
+    }))
+  ))
+  // sort by display
+  return list?.flat()?.sort((firstItem, secondItem) => firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase()))
+}
+
+const buildConditionOptions = (conditions) => {
+  return conditions.map(c => ({ value: c.code, label: c.display }))
+}
+
+const buildGroupOptions = (groupVsets) => {
+  console.log(groupVsets)
+  return groupVsets.map(g => ({ value: g.url, label: g.title }))
+}
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const [findInVsName, setFindInVsName] = useState('')
   const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName)
+  const conditions = useGetConditions()
+  
+  const formattedConditions = formatConditions(conditions)
+  const { groupsInProgram } = progValueSetDets
+
+  console.log(groupsInProgram)
+  
 
   const onClick = () => {
     router.push('/valuesets')
@@ -93,7 +155,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <Col>
           <Ul>
-            {row?.conditions?.map(c => <li key={c?.display}>{c?.display}</li>)}
+            {row?.conditions?.map(c => <Li key={c?.display}>{c?.display}</Li>)}
           </Ul>
         </Col>
       )
@@ -107,7 +169,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <Col>
           <Ul>
-            {row?.groups?.map(g => <li key={g?.title}>{g?.title}</li>)}
+            {row?.groups?.map(g => <Li key={g?.title}>{g?.title}</Li>)}
           </Ul>
         </Col>
       )
@@ -132,40 +194,53 @@ const ProgramValueSetDetails: NextPage = () => {
   return (
     <>
       <Row>
-        <PageTitle>Program ValueSet Details</PageTitle>
-        <Button style={{ marginTop: '12px' }} text='Add New ValueSet'
-          onClick={onClick}
-        />
+        <PageTitle>Program ValueSet Details
+          <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
+          <Id><FieldTitle>ID</FieldTitle>{identifier}</Id>
+        </PageTitle>
       </Row>
-      <ItemWrapper style={{ marginBottom: '12px'}}>
-        <FieldTitle>ID</FieldTitle>
-        <FieldValue>{ identifier }</FieldValue>
-      </ItemWrapper>
       <SearchOptions>
-        <p>Filters</p>
+        <p style={{ color: 'var(--theme-500)', fontWeight: 'bold', display: 'inline-block' }}>Filter Valuesets</p>
         <div>
-          <TextInputContainer>
-            <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setFindInVsName(e.target.value)}
-              label='ValueSet Name'
-              id='VSearch'
-              style={{
-                marginBottom: '12px',
-                display: 'inline-block'
-              }}
-            />
-          </TextInputContainer>
-          <StyledSelect id='groups'>
-            <option>Groups</option>
-          </StyledSelect>
-          <StyledSelect id='conditions'>
-            <option>Conditions</option>
-          </StyledSelect>
-
+          <SelectContainer>
+            <TextInputContainer>
+              <SearchInput
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setFindInVsName(e.target.value)}
+                label='ValueSet Name'
+                id='VSearch'
+                style={{
+                  display: 'inline-block',
+                  height: '36px'
+                }}
+              />
+            </TextInputContainer>
+            {groupsInProgram && (
+              <SelectGroup>
+                <StyledLabel id="aria-label" htmlFor="groups-selector">
+                  Groups
+                </StyledLabel>
+                <Select classNamePrefix='groups' inputId='groups-selector' isMulti options={buildGroupOptions(groupsInProgram)}/>
+              </SelectGroup>
+            )}
+            {formattedConditions && (
+              <SelectGroup>
+                <StyledLabel id="aria-label" htmlFor="input-selector">
+                  Conditions
+                </StyledLabel>
+                <Select classNamePrefix='conditions' inputId='input-selector' isMulti options={buildConditionOptions(formattedConditions)}/>
+              </SelectGroup>
+            )}
+            <ButtonContainer>
+              <IconButton
+                type='search'
+                onClick={(e) => handleFilterResults(e)}
+              />
+            </ButtonContainer>
+          </SelectContainer>
         </div>
       </SearchOptions>
       <DT
-        data={progValueSetDets}
+        data={progValueSetDets?.data}
         columns={columns}
         theme='aphl'
         pagination

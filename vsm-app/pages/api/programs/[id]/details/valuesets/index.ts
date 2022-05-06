@@ -96,9 +96,7 @@ export default async function handler(
     try {
       const program = await fetchProgram(req.query.id as string)
       const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL)
-
-      // below is only populated if a user attempts to filter leaf VS by name
-      const searchInName = req.query.findInVsName
+      let grouperVSets = []
 
       if (is.library(program)) {
         // get the grouper canonial
@@ -112,6 +110,7 @@ export default async function handler(
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
+
             const grouperValueSetCanonicals = grouper.relatedArtifact
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
@@ -122,6 +121,8 @@ export default async function handler(
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
+
+              grouperVSets = grouperValueSets
 
               const leafValueSetResult = await Promise.all(grouperValueSets.map(valueset => {
                 const groupTitle = valueset?.title || ''
@@ -158,7 +159,8 @@ export default async function handler(
         // only snomed for now, but is an array of code sets by system
         // START: NEED TO TEST
         const conceptCodesFromConditionVS = conditionsVS?.compose?.include
-        // leaf valuesets come from VSAC
+
+        // leaf valuesets come from VSAC currently, will come from cache
         const conceptsFromLeaf = valueSet?.compose?.include
 
         interface CodeData {
@@ -168,9 +170,9 @@ export default async function handler(
         }
 
         let sharedCodes: CodeData[] = []
+
         // loop through all of the concept code sets from the valueSet
         // if the systems match and the code is in the RCCKMS valueset, push to the shared arr
-
         conceptsFromLeaf?.forEach(codeSet => {
           const currentLeafCodeSystem = codeSet?.system
           const matchingSystemBlock = conceptCodesFromConditionVS?.find(set => set?.system === currentLeafCodeSystem)
@@ -186,6 +188,7 @@ export default async function handler(
         })
         // END NEED TO TEST
 
+        const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id))
 
         return {
           programName: program?.name || 'Undefined',
@@ -194,13 +197,16 @@ export default async function handler(
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
           conditions: sharedCodes || [],
-          groups: groupsByValueSetCanonical[valueSet.url || 'Undefined']
+          groups: groupsByValueSetCanonical[matchingGroup || 'Undefined']
         }
       })
 
+      const composedResponse = {
+        data: response,
+        groupsInProgram: grouperVSets
+      }
 
-
-      res.status(200).send(response)
+      res.status(200).send(composedResponse)
 
     } catch (e: any) {
       console.error('error:  ', e)
