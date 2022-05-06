@@ -125,7 +125,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const formattedConditions = formatConditions(conditions)
   const { groupsInProgram } = progValueSetDets
 
-  console.log(groupsInProgram)
+  const alphabetizedGroups = groupsInProgram?.sort((firstItem, secondItem) => firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase()))
   
 
   const onClick = () => {
@@ -214,12 +214,12 @@ const ProgramValueSetDetails: NextPage = () => {
                 }}
               />
             </TextInputContainer>
-            {groupsInProgram && (
+            {alphabetizedGroups && (
               <SelectGroup>
                 <StyledLabel id="aria-label" htmlFor="groups-selector">
                   Groups
                 </StyledLabel>
-                <Select classNamePrefix='groups' inputId='groups-selector' isMulti options={buildGroupOptions(groupsInProgram)}/>
+                <Select classNamePrefix='groups' inputId='groups-selector' isMulti options={buildGroupOptions(alphabetizedGroups)}/>
               </SelectGroup>
             )}
             {formattedConditions && (
