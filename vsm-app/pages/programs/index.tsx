@@ -110,7 +110,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             onClick={() => router.push(`/programs/${row.id}`)}
-            type='edit'
+            buttonContext='edit'
           />
         </ButtonWrapper>
       )

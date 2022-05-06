@@ -13,15 +13,15 @@ const StyledButton = styled.button`
   padding-top: 4px;
 `
 
-interface IButtonProps {
-  type: string;
+interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  buttonContext: string;
   onClick: React.EventHandler<React.MouseEvent>
 }
 
-const IconButton = ({ type, onClick, style }: IButtonProps) => {
+const IconButton = ({ type, buttonContext, onClick, style }: IButtonProps) => {
   let image = 'missing'
 
-  switch (type) {
+  switch (buttonContext) {
     case 'edit':
       image = 'edit'
       break
@@ -34,7 +34,7 @@ const IconButton = ({ type, onClick, style }: IButtonProps) => {
   }
 
   return (
-    <StyledButton style={ style } onClick={e => onClick(e)}>
+    <StyledButton type={type} style={ style } onClick={e => onClick(e)}>
       <Image
         src={`/images/${image}.svg`}
         width={24}

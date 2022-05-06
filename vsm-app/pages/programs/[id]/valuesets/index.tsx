@@ -119,11 +119,13 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const [findInVsName, setFindInVsName] = useState('')
-  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName)
+  const [activeGroups, setActiveGroups] = useState([])
+  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, activeGroups)
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
   const { groupsInProgram } = progValueSetDets
+  console.log('ACTIVE: ', activeGroups)
 
   const alphabetizedGroups = groupsInProgram?.sort((firstItem, secondItem) => firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase()))
   
@@ -131,7 +133,8 @@ const ProgramValueSetDetails: NextPage = () => {
   const onClick = () => {
     router.push('/valuesets')
   }
-    const columns = useMemo(() => [
+
+  const columns = useMemo(() => [
     {
       name: 'Name',
       selector: (row: fhir4.Library) => row.title,
@@ -184,7 +187,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <IconButton
           onClick={() => router.push(`/programs/${row.id}`)}
-          type='delete'
+          buttonContext='delete'
           style={{ backgroundColor: 'darkRed' }}
         />
       )
@@ -219,7 +222,13 @@ const ProgramValueSetDetails: NextPage = () => {
                 <StyledLabel id="aria-label" htmlFor="groups-selector">
                   Groups
                 </StyledLabel>
-                <Select classNamePrefix='groups' inputId='groups-selector' isMulti options={buildGroupOptions(alphabetizedGroups)}/>
+                <Select
+                  classNamePrefix='groups'
+                  inputId='groups-selector'
+                  isMulti
+                  options={buildGroupOptions(alphabetizedGroups)}
+                  onChange={(e) => {setActiveGroups(e)}}
+                />
               </SelectGroup>
             )}
             {formattedConditions && (
@@ -227,12 +236,18 @@ const ProgramValueSetDetails: NextPage = () => {
                 <StyledLabel id="aria-label" htmlFor="input-selector">
                   Conditions
                 </StyledLabel>
-                <Select classNamePrefix='conditions' inputId='input-selector' isMulti options={buildConditionOptions(formattedConditions)}/>
+                <Select
+                  classNamePrefix='conditions'
+                  inputId='input-selector'
+                  isMulti
+                  options={buildConditionOptions(formattedConditions)}
+                />
               </SelectGroup>
             )}
             <ButtonContainer>
               <IconButton
-                type='search'
+                type='submit'
+                buttonContext='search'
                 onClick={(e) => handleFilterResults(e)}
               />
             </ButtonContainer>

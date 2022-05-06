@@ -107,7 +107,7 @@ const ValueSets = () => {
             />
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
-              type='search'
+              buttonContext='search'
               onClick={submitSearch}
             />
           </Col>

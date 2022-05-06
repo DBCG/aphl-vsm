@@ -98,6 +98,14 @@ export default async function handler(
       const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL)
       let grouperVSets = []
 
+      const allowedGrouper = (canonicalToSearch: string): boolean => {
+        const splitGroups = req?.query?.groups?.split(',')
+        if (!splitGroups) {
+          return true
+        }
+        return splitGroups?.includes(canonicalToSearch)
+      }
+
       if (is.library(program)) {
         // get the grouper canonial
         const grouperCanonical = program.relatedArtifact
@@ -123,8 +131,9 @@ export default async function handler(
                 .filter(is.valueSet)
 
               grouperVSets = grouperValueSets
+              const filteredValueSets = grouperValueSets?.filter(vs => allowedGrouper(vs?.url))
 
-              const leafValueSetResult = await Promise.all(grouperValueSets.map(valueset => {
+              const leafValueSetResult = await Promise.all(filteredValueSets.map(valueset => {
                 const groupTitle = valueset?.title || ''
                 const leafUrls = valueset?.compose?.include?.[0]?.valueSet
 
@@ -157,7 +166,6 @@ export default async function handler(
       const response: ValueSetTableEntry[] = leafValueSets.map(valueSet => {
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of code sets by system
-        // START: NEED TO TEST
         const conceptCodesFromConditionVS = conditionsVS?.compose?.include
 
         // leaf valuesets come from VSAC currently, will come from cache
@@ -186,7 +194,6 @@ export default async function handler(
             })
           }
         })
-        // END NEED TO TEST
 
         const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id))
 
