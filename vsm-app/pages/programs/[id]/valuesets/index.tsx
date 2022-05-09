@@ -132,6 +132,8 @@ const ProgramValueSetDetails: NextPage = () => {
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
+  
+  // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
   
   const alphabetizedGroups = groupsInProgram?.sort(
@@ -192,7 +194,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: DataItem) => (
         <Col>
           <Ul>
-            {row?.groups?.map(g => <Li key={g?.title}>{g?.title}</Li>)}
+            {row?.groups?.map((g: any) => <Li key={g?.title}>{g?.title}</Li>)}
           </Ul>
         </Col>
       )
@@ -281,6 +283,7 @@ const ProgramValueSetDetails: NextPage = () => {
         </div>
       </SearchOptions>
       <DT
+        // @ts-expect-error
         data={progValueSetDets?.data}
         // @ts-expect-error
         columns={columns}
