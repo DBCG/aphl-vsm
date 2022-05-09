@@ -132,7 +132,6 @@ const ProgramValueSetDetails: NextPage = () => {
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
-  // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
   
   const alphabetizedGroups = groupsInProgram?.sort(
@@ -282,7 +281,6 @@ const ProgramValueSetDetails: NextPage = () => {
         </div>
       </SearchOptions>
       <DT
-        // @ts-expect-error
         data={progValueSetDets?.data}
         // @ts-expect-error
         columns={columns}

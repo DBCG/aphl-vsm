@@ -133,6 +133,8 @@ export default async function handler(
                 .filter(is.valueSet)
 
               grouperVSets = grouperValueSets
+
+              // if a user has constrained by filtering groupers, show only those indicated
               const filteredValueSets = grouperValueSets?.filter(vs => allowedGrouper(vs?.url as string))
 
               const leafValueSetResult = await Promise.all(filteredValueSets.map(valueset => {
@@ -157,6 +159,9 @@ export default async function handler(
 
                 if (leafUrls) {
                   const stringToFind = req.query.findInVsName as string | undefined
+                  // we do not have version info stored re: leaf valuesets
+                  // a search for a particular url yields many versions
+                  // because we cannot constrain by version
                   return fetchLeafValueSets(leafUrls, stringToFind)
                 }
               }))
@@ -183,7 +188,7 @@ export default async function handler(
         let sharedCodes: fhir4.ValueSetComposeIncludeConcept[] = []
 
         // loop through all of the concept code sets from the valueSet
-        // if the systems match and the code is in the RCCKMS valueset, push to the shared arr
+        // if the systems match and the code is in the RCKMS valueset, push to the shared arr
         conceptsFromLeaf?.forEach(codeSet => {
           const currentLeafCodeSystem = codeSet?.system
           let matchingSystemBlock: fhir4.ValueSetComposeInclude | undefined
