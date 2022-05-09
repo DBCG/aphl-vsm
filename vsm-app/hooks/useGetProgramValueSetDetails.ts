@@ -48,7 +48,7 @@ const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGr
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName])
+  }, [id, findInVsName, activeGroups])
   return data
 }
 

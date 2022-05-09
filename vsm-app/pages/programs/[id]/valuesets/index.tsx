@@ -125,13 +125,17 @@ const ProgramValueSetDetails: NextPage = () => {
   
   const formattedConditions = formatConditions(conditions)
   const { groupsInProgram } = progValueSetDets
-  console.log('ACTIVE: ', activeGroups)
 
   const alphabetizedGroups = groupsInProgram?.sort((firstItem, secondItem) => firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase()))
   
 
   const onClick = () => {
     router.push('/valuesets')
+  }
+  
+  const handleFilterResults = (e) => {
+    e.preventDefault()
+    console.log('test')
   }
 
   const columns = useMemo(() => [
