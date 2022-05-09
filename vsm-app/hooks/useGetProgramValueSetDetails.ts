@@ -6,9 +6,28 @@ interface Group {
   value: string
 }
 
+interface GroupItem {
+  id: string,
+  title: string
+}
+
+export interface DataItem {
+  programName: string,
+  programId: string,
+  conditions: [],
+  groups: GroupItem[],
+  title: string,
+  version: string
+}
+
+interface Result {
+  data: DataItem,
+  groupsInProgram: fhir4.ValueSet[]
+}
+
 // gets data necessary to build the program valueset details page
-const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGroups: [] | Group[]) => {
-  const [data, setData] = useState([])
+const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGroups: [] | Group[]): Result | {} => {
+  const [data, setData] = useState({})
 
   useEffect(() => {
     async function getData(): Promise<void> {
@@ -49,6 +68,7 @@ const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGr
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, findInVsName, activeGroups])
+
   return data
 }
 

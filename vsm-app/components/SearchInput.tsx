@@ -33,7 +33,8 @@ interface Props {
   def?: string,
   minWidth?: number,
   hasIcon?: boolean,
-  disabled?: boolean
+  disabled?: boolean,
+  style?: React.CSSProperties
 }
 
 const SearchInput = ({

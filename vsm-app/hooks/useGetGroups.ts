@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const useGetGroups = (programId): [] | fhir4.Library[] => {
+const useGetGroups = (programId: string): [] | fhir4.Library[] => {
   const [groups, setGroups] = useState([])
 
   useEffect(() => {

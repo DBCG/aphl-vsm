@@ -9,11 +9,10 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     try {
-      console.log(process.env.CONDITIONS_CANONICAL)
       const data = await fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: process.env.CONDITIONS_CANONICAL
+          url: process.env.CONDITIONS_CANONICAL as string
         }
       })
 

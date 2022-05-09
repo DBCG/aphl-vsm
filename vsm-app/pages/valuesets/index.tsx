@@ -78,6 +78,7 @@ const ValueSets = () => {
     setSearchTerm(value)
   }
 
+  // @ts-expect-error
   const onClick = (e) => {
     e.preventDefault()
     router.push('/programs')

@@ -54,6 +54,9 @@ const is = {
   serviceRequest: (resource: fhir4.ServiceRequest | fhir4.Resource): resource is fhir4.ServiceRequest => {
     return resource?.resourceType === 'ServiceRequest'
   },
+  string: (value: string | any): value is string => {
+    return typeof value === 'string'
+  },
   substance: (resource: fhir4.Substance | fhir4.Resource): resource is fhir4.Substance => {
     return resource?.resourceType === 'Substance'
   },

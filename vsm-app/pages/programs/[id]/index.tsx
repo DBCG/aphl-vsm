@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -79,7 +79,7 @@ const ProgramDetails: NextPage = () => {
   }
 
   // when editing is live, work happens in the modal
-  const handleEditButton = (e) => {
+  const handleEditButton = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     console.log('pressed')
     setIsEditing()

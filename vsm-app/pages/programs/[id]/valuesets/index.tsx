@@ -7,9 +7,9 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
-import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { IconButton } from '@/components/buttons/IconButton'
-import { FieldTitle, FieldValue, ItemWrapper } from '..'
+import { FieldTitle } from '..'
 import { useGetConditions } from '@/hooks/useGetConditions'
 
 const customStyles = {
@@ -92,26 +92,34 @@ const Id = styled(PageTitle).attrs({
 })`
   font-size: 20px;
 `
+interface ConditionItem {
+  system: string,
+  version: string,
+  code: string,
+  display: string
+}
 
-const formatConditions = (conditionsList) => {
-  const list = conditionsList?.map(c => (
-    c?.concept?.map(item => ({
+// fix types when actually using conditions
+const formatConditions = (conditionsList: any) => {
+  const list = conditionsList?.map((c: any) => (
+    c?.concept?.map((item: any) => ({
       system: c.system,
       version: c.version,
       code: item.code,
       display: item.display
     }))
-  ))
+  )).flat()
   // sort by display
-  return list?.flat()?.sort((firstItem, secondItem) => firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase()))
+  return list?.sort((firstItem: ConditionItem, secondItem: ConditionItem) => (
+    firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase()))
+  )
 }
 
-const buildConditionOptions = (conditions) => {
+const buildConditionOptions = (conditions: ConditionItem[]) => {
   return conditions.map(c => ({ value: c.code, label: c.display }))
 }
 
-const buildGroupOptions = (groupVsets) => {
-  console.log(groupVsets)
+const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets.map(g => ({ value: g.url, label: g.title }))
 }
 
@@ -124,44 +132,53 @@ const ProgramValueSetDetails: NextPage = () => {
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
-  const { groupsInProgram } = progValueSetDets
-
-  const alphabetizedGroups = groupsInProgram?.sort((firstItem, secondItem) => firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase()))
+  // @ts-expect-error
+  let groupsInProgram = progValueSetDets?.groupsInProgram
+  
+  const alphabetizedGroups = groupsInProgram?.sort(
+    (firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
+      if (typeof firstItem.title === 'string' && typeof secondItem.title === 'string') {
+        return firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase())
+      }
+      // if not enough information to order, just keep as they are
+      return 0
+    }
+  )
   
 
   const onClick = () => {
     router.push('/valuesets')
   }
   
-  const handleFilterResults = (e) => {
+  const handleFilterResults = (e: React.MouseEvent<Element, MouseEvent>) => {
     e.preventDefault()
-    console.log('test')
   }
 
   const columns = useMemo(() => [
     {
       name: 'Name',
-      selector: (row: fhir4.Library) => row.title,
+      selector: (row: DataItem) => row.title,
       sortable: true,
       maxWidth: '350px',
       wrap: true
     },
     {
       name: 'Version',
-      selector: (row: fhir4.Library) => row.version,
+      selector: (row: DataItem) => row.version,
       sortable: true,
       maxWidth: '150px',
       wrap: true
     },
     {
       name: 'Conditions',
-      selector: (row: fhir4.Library) => row.conditions,
+      selector: (row: DataItem) => row.conditions,
       sortable: true,
       maxWidth: '300px',
       wrap: true,
-      cell: (row: fhir4.Library) => (
+      cell: (row: DataItem) => (
         <Col>
           <Ul>
+            {/* @ts-ignore-error */}
             {row?.conditions?.map(c => <Li key={c?.display}>{c?.display}</Li>)}
           </Ul>
         </Col>
@@ -169,11 +186,11 @@ const ProgramValueSetDetails: NextPage = () => {
     },
     {
       name: 'Groups',
-      selector: (row: fhir4.Library) => row.groups,
+      selector: (row: DataItem) => row.groups,
       sortable: true,
       maxWidth: '250px',
       wrap: true,
-      cell: (row: fhir4.Library) => (
+      cell: (row: DataItem) => (
         <Col>
           <Ul>
             {row?.groups?.map(g => <Li key={g?.title}>{g?.title}</Li>)}
@@ -231,6 +248,7 @@ const ProgramValueSetDetails: NextPage = () => {
                   inputId='groups-selector'
                   isMulti
                   options={buildGroupOptions(alphabetizedGroups)}
+                  // @ts-expect-error
                   onChange={(e) => {setActiveGroups(e)}}
                 />
               </SelectGroup>
@@ -259,7 +277,9 @@ const ProgramValueSetDetails: NextPage = () => {
         </div>
       </SearchOptions>
       <DT
+        // @ts-expect-error
         data={progValueSetDets?.data}
+        // @ts-expect-error
         columns={columns}
         theme='aphl'
         pagination

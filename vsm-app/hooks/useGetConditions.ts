@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const useGetConditions = (): [] | fhir4.Library[] => {
+const useGetConditions = (): [] | fhir4.ValueSetComposeInclude => {
   const [conditions, setConditions] = useState([])
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const useGetConditions = (): [] | fhir4.Library[] => {
     }
     void getConditions()
   }, [])
-
+  // @ts-expect-error
   return conditions
 }
 
