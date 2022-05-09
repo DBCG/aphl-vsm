@@ -2,6 +2,7 @@ import React, { useMemo, useState, ChangeEvent } from 'react'
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
+import debounce from 'lodash.debounce'
 import styled from 'styled-components'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
@@ -214,6 +215,10 @@ const ProgramValueSetDetails: NextPage = () => {
       )
     }
   ], [router])
+  
+  const handleNameSearch = (e) => {
+    setFindInVsName(e.target.value)
+  }
 
   return (
     <>
@@ -229,7 +234,7 @@ const ProgramValueSetDetails: NextPage = () => {
           <SelectContainer>
             <TextInputContainer>
               <SearchInput
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setFindInVsName(e.target.value)}
+                onChange={(e) => handleNameSearch(e)}
                 label='ValueSet Name'
                 id='VSearch'
                 style={{

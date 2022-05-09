@@ -18,6 +18,7 @@ const Row = styled.div`
   flex: 1;
   flex-direction: row;
   justify-content: space-between;
+  text-align: left;
   &.inputs {
     gap: 24px;
     margin-bottom: 16px;
@@ -27,7 +28,6 @@ const Row = styled.div`
     column-gap: 8px;
     row-gap: 14px;
     margin-bottom: 12px;
-
   }
 `
 
@@ -56,11 +56,54 @@ const StyledSpan = styled.span`
   color: var(--theme-500);
   margin-top: 12px;
 `
+
+const ModalForm = styled.form`
+  margin: 0 auto;
+`
+
+const ButtonContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`
+
+const customStyles = {
+  content: {
+    border: 'none',
+    backgroundColor: '#C4E8EC',
+    textAlign: 'right'
+  }
+}
+
+const buttonStyles = {
+  marginBottom: '12px',
+  width: '150px',
+  backgroundColor: 'darkOrange',
+  marginTop: '20px',
+  alignSelf: 'center'
+}
+
 export const FieldValue = styled.span``
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
-  const [ isEditing, setIsEditing ] = useIsEditing()
+  const [isEditing, setIsEditing] = useIsEditing()
+  const [formTouched, setFormTouched] = useState(false)
+  // to edit draft program
+  const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
+
+  const submitChanges = async (e: React.SyntheticEvent) => {
+    const response = await fetch(`/api/programs/${id}`,{
+      method: 'PUT',
+      body: JSON.stringify(editedProgram)
+    })
+    
+    // If there is an error in the PUT request to update the library, reset the program to default
+    if (!response.ok) { setEditedProgram(programAndGrouperInfo.program as fhir4.Library) }
+    handleEditButton(e)
+    e.preventDefault()
+  }
+
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
 
@@ -69,19 +112,35 @@ const ProgramDetails: NextPage = () => {
     return null
   }
 
-  const {
-    id='', name='', version='', title='', description=''
-  } = programAndGrouperInfo?.program
+  const setProgram = (): fhir4.Library => {
+    if (!editedProgram) {
+      // @ts-expect-error
+      return programAndGrouperInfo.program
+    }
+    return editedProgram
+  }
 
-  const tableData = { id, name, version, title, description }
+  const program = setProgram()
+  const { id='', name='', version='', title='', description='', status } = program
+  const viewEditButton: boolean = status === 'draft'
+
   const onClick = () => {
     router.push(`/programs/${id}/valuesets`)
+  }
+
+  const handleFieldChange = (e: ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    e.preventDefault()
+    setFormTouched(true)
+    const newProgram = { 
+      ...program,
+      [fieldName]: e.target.value
+    }
+    setEditedProgram(newProgram)
   }
 
   // when editing is live, work happens in the modal
   const handleEditButton = (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    console.log('pressed')
     setIsEditing()
   }
 
@@ -90,7 +149,7 @@ const ProgramDetails: NextPage = () => {
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
-        <PageTitle style={{ marginRight: '12px'}}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
+        <PageTitle style={{ marginRight: '12px' }}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
         <Button
           style={{ marginBottom: '12px', width: '150px' }}
           text='Edit Program'
@@ -99,33 +158,39 @@ const ProgramDetails: NextPage = () => {
       </Row>
       <Modal
         isOpen={isEditing}
-        // onAfterOpen={afterOpenModal}
-        // onRequestClose={setIsEditing({ editing: false })}
-        // style={customStyles}
-        contentLabel="Example Modal"
+        style={customStyles}
+        contentLabel='Edit Program Details'
       >
-        {/* EDITING WILL BE IN HERE */}
         <button onClick={() => setIsEditing()}>close</button>
-        <form>
-          <p>edit program will be in here</p>
-        </form>
-      </Modal>
-      {false ? (
         <div>
           <Row className='inputs'>
-            <SearchInput id='prog-id' label='ID' def={id} />
-            <SearchInput id='prog-name' label='Name' minWidth={400} def={name} />
-            <SearchInput id='prog-version' label='Version' def={version} />
-            <SearchInput id='prog-title' label='Title' def={title} />
-            <TextArea id='prog-desc' label='Description' minWidth={500} def={description} />
+            <ModalForm>
+            <PageTitle>Edit Program Details</PageTitle> 
+              <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
+              <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
+              <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
+              <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
+              <TextArea id='prog-desc' label='Description' minWidth={500} def={description} onChange={(event) => handleFieldChange(event, 'description')} />
+              {formTouched && (
+                <ButtonContainer>
+                  <Button
+                    style={buttonStyles}
+                    text={'Save Changes'}
+                    type='submit'
+                    onClick={(e) => submitChanges(e)}
+                  />
+                </ButtonContainer>
+              )}
+            </ModalForm>
           </Row>
-          <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+          {/* <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
             <StyledSpan>Included ValueSet Groups</StyledSpan>
-            <Button text='Edit ValueSets'
-              onClick={onClick}
-            />
-          </Row>
+            <Button text='Edit ValueSets' onClick={onClick}/>
+          </Row> */}
         </div>
+      </Modal>
+      {false ? (
+        null
       ) : (
           <div>
             <Row className='readonly-inputs'>
@@ -149,13 +214,18 @@ const ProgramDetails: NextPage = () => {
                 <FieldTitle>Description </FieldTitle>
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
-          </Row>
-          <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-            <StyledSpan>Included ValueSet Groups</StyledSpan>
-            <Button text='View ValueSets'
-              onClick={onClick}
-            />
-          </Row>
+            </Row>
+            { viewEditButton ? <Button text={'Edit Program'} 
+                style={{ marginBottom: '12px', width: '150px', backgroundColor: '' }} 
+                onClick={handleEditButton}
+              /> : null
+            }
+            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+              <StyledSpan>Included ValueSet Groups</StyledSpan>
+              <Button text='View ValueSets'
+                onClick={onClick}
+              />
+            </Row>
           </div>
       )}
       <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
