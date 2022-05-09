@@ -216,8 +216,9 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   ], [router])
   
-  const handleNameSearch = (e) => {
-    setFindInVsName(e.target.value)
+  const handleNameSearch = (e: React.ChangeEvent<Element>) => {
+    const target = e.target as HTMLInputElement;
+    setFindInVsName(target.value)
   }
 
   return (

@@ -67,14 +67,6 @@ const ButtonContainer = styled.div`
   justify-content: center;
 `
 
-const customStyles = {
-  content: {
-    border: 'none',
-    backgroundColor: '#C4E8EC',
-    textAlign: 'right'
-  }
-}
-
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
@@ -128,12 +120,13 @@ const ProgramDetails: NextPage = () => {
     router.push(`/programs/${id}/valuesets`)
   }
 
-  const handleFieldChange = (e: ChangeEvent<HTMLInputElement>, fieldName: string) => {
+  const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
     e.preventDefault()
+    const target = e.target as HTMLInputElement;
     setFormTouched(true)
     const newProgram = { 
       ...program,
-      [fieldName]: e.target.value
+      [fieldName]: target.value
     }
     setEditedProgram(newProgram)
   }
@@ -158,7 +151,13 @@ const ProgramDetails: NextPage = () => {
       </Row>
       <Modal
         isOpen={isEditing}
-        style={customStyles}
+        style={{
+          content: {
+            border: 'none',
+            backgroundColor: '#C4E8EC',
+            textAlign: 'right'
+          }
+        }}
         contentLabel='Edit Program Details'
       >
         <button onClick={() => setIsEditing()}>close</button>
