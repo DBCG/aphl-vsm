@@ -182,10 +182,6 @@ const ProgramDetails: NextPage = () => {
               )}
             </ModalForm>
           </Row>
-          {/* <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-            <StyledSpan>Included ValueSet Groups</StyledSpan>
-            <Button text='Edit ValueSets' onClick={onClick}/>
-          </Row> */}
         </div>
       </Modal>
       {false ? (

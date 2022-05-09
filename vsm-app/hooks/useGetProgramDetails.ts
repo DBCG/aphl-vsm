@@ -40,6 +40,7 @@ const useGetProgramDetails = (id: string): Result => {
 
         const groupers = await fetch(grouperEndpoint)
         const grouperData = await groupers.json()
+        console.log('grorupers: ', grouperData)
         // if the data is found, override default empty objects
         if (programJson) {
           result.program = programJson[0]

@@ -106,7 +106,7 @@ const formatConditions = (conditionsList: any) => {
       system: c.system,
       version: c.version,
       code: item.code,
-      display: item.display
+      display: item?.designation?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')?.value || c?.display || ''
     }))
   )).flat()
   // sort by display
