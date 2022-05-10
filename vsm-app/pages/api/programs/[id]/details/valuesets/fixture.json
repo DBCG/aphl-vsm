@@ -4,7 +4,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Diphtheria (Disorders) (SNOMED)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
       "version": "20210526",
       "conditions": [],
       "groups": [
@@ -18,7 +18,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Diphtheria (Disorders) (SNOMED)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
       "version": "20190609",
       "conditions": [],
       "groups": [
@@ -32,7 +32,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Diphtheria (Disorders) (SNOMED)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
       "version": "20181031",
       "conditions": [],
       "groups": [
@@ -46,7 +46,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
       "version": "20200516",
       "conditions": [],
       "groups": [
@@ -60,7 +60,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
       "version": "20181031",
       "conditions": [],
       "groups": [
@@ -74,7 +74,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Anthrax (Tests for Bacillis anthracis Antigen)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
       "version": "20180620",
       "conditions": [],
       "groups": [
@@ -92,7 +92,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
       "version": "Draft",
       "conditions": [],
       "groups": [
@@ -106,7 +106,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
       "version": "20210527",
       "conditions": [],
       "groups": [
@@ -120,7 +120,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
       "version": "20200515",
       "conditions": [],
       "groups": [
@@ -134,7 +134,7 @@
       "programName": "SpecificationLibrary2",
       "programId": "SpecificationLibrary2",
       "title": "Anthrax Vaccine (RXNORM)",
-      "canonical": "Undefined",
+      "canonical": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
       "version": "20200513",
       "conditions": [],
       "groups": [
