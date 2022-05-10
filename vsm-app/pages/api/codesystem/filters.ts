@@ -1,6 +1,6 @@
 import { CapabilityStatement } from 'fhir/r4';
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from '../../../fhirClients';
+import { vsacFhirClient } from 'fhirClients';
 
 export interface CodeSystemFilters {
   valueUri: string
@@ -8,7 +8,7 @@ export interface CodeSystemFilters {
 }
 
 // Takes a capability statement, extracts the `extension` field that contains the data for filtering ValueSets by CodeSystem
-const parseCapabilityStatement = (capabilityStatement: CapabilityStatement): CodeSystemFilters[]|undefined => {
+const parseCapabilityStatement = (capabilityStatement: CapabilityStatement): CodeSystemFilters[] | undefined => {
   const filters = capabilityStatement.extension?.map(({ extension }) => {
     return {
       valueUri: extension?.find(({ url }) => url === 'system')?.valueUri,
@@ -25,7 +25,7 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     try {
-      const response =  await vsacFhirClient.capabilityStatement()
+      const response = await vsacFhirClient.capabilityStatement()
       const codeSystemFilters = parseCapabilityStatement(response as CapabilityStatement)
 
       res.status(200).send(JSON.stringify(codeSystemFilters))

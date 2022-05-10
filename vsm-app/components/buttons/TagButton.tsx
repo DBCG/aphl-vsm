@@ -1,12 +1,13 @@
 import styled from 'styled-components'
 
 const StyledButton = styled.button`
-  background-color: ${props => props.disabled ? 'gray !important' : 'var(--theme-300)'};
+  background-color: var(--theme-300);
   color: var(--white);
   font-weight: 600;
   border: none;
   padding: 8px 8px;
   cursor: pointer;
+  border-radius: 8px;
 `
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,21 +15,19 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   style?: React.CSSProperties
 }
 
-const Button = ({
+const TagButton = ({
   text,
   style,
-  disabled,
   onClick=() => {},
 }: ButtonProps) => {
   return (
     <StyledButton
       style={style}
       onClick={(e) => onClick(e)}
-      disabled={disabled}
     >
       { text }
     </StyledButton>
   )
 }
 
-export { Button }
+export { TagButton }

@@ -2,10 +2,11 @@ import styled from 'styled-components'
 
 interface InputProps {
   minWidth?: number;
+  minHeight?: number;
   onChange: React.ChangeEventHandler | undefined;
 }
 
-const Input = styled.input<InputProps>`
+const Input = styled.textarea<InputProps>`
   min-width: ${props => props.minWidth || 0}px;
   padding: 4px 6px;
   background-color: white;
@@ -13,7 +14,11 @@ const Input = styled.input<InputProps>`
   border-bottom: 2px solid var(--theme-300);
 `
 
-export const StyledLabel = styled.label`
+interface LabelProps {
+  children: string;
+}
+
+const StyledLabel = styled.label<LabelProps>`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);
@@ -29,44 +34,43 @@ interface Props {
   onChange?: React.ChangeEventHandler,
   label?: string,
   id?: string,
-  value?: string,
   def?: string,
   minWidth?: number,
-  hasIcon?: boolean,
-  disabled?: boolean,
-  style?: React.CSSProperties
+  minHeight?: number,
+  hasIcon?: boolean
 }
 
-const SearchInput = ({
+interface LabelProps {
+  for: string
+}
+
+const TextArea = ({
   placeholder,
   onChange,
   label,
-  value,
-  def,
   id,
-  style,
+  def,
   minWidth,
-  disabled = false
+  minHeight
 }: Props) => {
   return (
     <Container>
       {
         (label !== undefined && id !== undefined) &&
-        <StyledLabel>
+        <StyledLabel for={id}>
           {label}
         </StyledLabel>
       }
       <Input
+        name={id}
         placeholder={placeholder}
         onChange={onChange}
         minWidth={minWidth}
-        disabled={disabled}
-        value={value}
+        minHeight={minHeight}
         defaultValue={def}
-        style={style}
       />
     </Container>
   )
 }
 
-export { SearchInput }
+export { TextArea }

@@ -13,27 +13,40 @@ const StyledButton = styled.button`
   padding-top: 4px;
 `
 
-interface IButtonProps {
-  type: string;
+const ImageContainer = styled.div`
+  padding-top: 3px;
+`
+
+interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  buttonContext: string;
   onClick: React.EventHandler<React.MouseEvent>
 }
 
-const IconButton = ({ type, onClick }: IButtonProps) => {
+const IconButton = ({ type, buttonContext, onClick, style }: IButtonProps) => {
   let image = 'missing'
 
-  switch (type) {
+  switch (buttonContext) {
     case 'edit':
       image = 'edit'
+      break
+    case 'delete':
+      image = 'delete'
+      break
+    case 'search':
+      image = 'search'
+      break
   }
 
   return (
-    <StyledButton onClick={e => onClick(e)}>
-      <Image
-        src={`/images/${image}.svg`}
-        width={24}
-        height={24}
-        alt=''
-      />
+    <StyledButton type={type} style={style} onClick={e => onClick(e)}>
+      <ImageContainer>
+        <Image
+          src={`/images/${image}.svg`}
+          width={24}
+          height={24}
+          alt=''
+        />
+      </ImageContainer>
     </StyledButton>
   )
 }

@@ -1,11 +1,13 @@
 import { Bundle, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { SearchInput } from '../../components/SearchInput'
-import { SearchTable } from '../../components/SearchTable'
-import LoadingIndicator from '../../components/LoadingIndicator'
-import { Button } from '../../components/buttons/Button'
-import { PageTitle } from '../../components/Typography'
+import { SearchInput } from '@/components/SearchInput'
+import { SearchTable } from '@/components/SearchTable'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import { Button } from '@/components/buttons/Button'
+import { PageTitle } from '@/components/Typography'
+import { IconButton } from '@/components/buttons/IconButton'
 
 const Row = styled.div`
   display: flex;
@@ -25,6 +27,7 @@ const Col = styled.div`
 type SearchType = 'name' | 'oid' | 'steward'
 
 const ValueSets = () => {
+  const router = useRouter()
   const [valueSets, setValueSets] = useState<Bundle['entry']>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -75,29 +78,43 @@ const ValueSets = () => {
     setSearchTerm(value)
   }
 
+  // @ts-expect-error
+  const onClick = (e) => {
+    e.preventDefault()
+    router.push('/programs')
+  }
+
   return (
     <Col>
       <PageTitle>ValueSet Search</PageTitle>
       <form>
         <Row>
-          <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e) }
-            id='vs-name-search'
-            label='Search by Name'
-            hasIcon={true}
-            minWidth={400}
-          />
-          <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
-            id='vs-oid-search'
-            label='Search by OID'
-            hasIcon={true}
-            minWidth={400}
-          />
-          <Button
-            type='submit'
-            text='Submit Search'
-            onClick={submitSearch}
+          <Col style={{ maxWidth: '400px' }}>
+            <SearchInput
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e) }
+              id='vs-name-search'
+              label='Search by Name'
+              hasIcon={true}
+              minWidth={400}
+              style={{ marginBottom: '12px'}}
+            />
+            <SearchInput
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+              id='vs-oid-search'
+              label='Search by OID'
+              hasIcon={true}
+              minWidth={400}
+          
+            />
+            <IconButton
+              style={{ alignSelf: 'flex-end', marginTop: '12px' }}
+              buttonContext='search'
+              onClick={submitSearch}
+            />
+          </Col>
+          <Button text='Add Selected To Program'
+            style={{ maxHeight: '10px'}}
+            onClick={onClick}
           />
         </Row>
       </form>

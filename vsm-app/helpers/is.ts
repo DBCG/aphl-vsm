@@ -1,0 +1,68 @@
+const is = {
+  activityDefinition: (resource: fhir4.ActivityDefinition | fhir4.Resource): resource is fhir4.ActivityDefinition => {
+    return resource?.resourceType === 'ActivityDefinition'
+  },
+  bundle: (resource: any): resource is fhir4.Bundle => {
+    return resource?.resourceType === 'Bundle'
+  },
+  bodyStructure: (resource: fhir4.BodyStructure | fhir4.Resource): resource is fhir4.BodyStructure => {
+    return resource?.resourceType === 'BodyStructure'
+  },
+  codeableConcept: (resource: fhir4.CodeableConcept | any): resource is fhir4.CodeableConcept => {
+    const codeableConceptKeys = ['coding', 'text']
+    const subsetOfSpec = Object.keys(resource).every(k => codeableConceptKeys.includes(k))
+    if (resource.coding) {
+      return subsetOfSpec && is.coding(resource.coding)
+    } else {
+      return subsetOfSpec
+    }
+  },
+  coding: (resource: fhir4.Coding | any): resource is fhir4.Coding => {
+    const codingKeys = ['system', 'version', 'code', 'display', 'userSelected']
+    return Object.keys(resource).every(k => codingKeys.includes(k))
+  },
+  condition: (resource: fhir4.Condition | fhir4.Resource): resource is fhir4.Condition => {
+    return resource?.resourceType === 'Condition'
+  },
+  deviceDefinition: (resource: fhir4.DeviceDefinition | fhir4.Resource): resource is fhir4.DeviceDefinition => {
+    return resource?.resourceType === 'DeviceDefinition'
+  },
+  episodeOfCare: (resource: fhir4.EpisodeOfCare | fhir4.Resource): resource is fhir4.EpisodeOfCare => {
+    return resource?.resourceType === 'EpisodeOfCare'
+  },
+  library: (resource: any): resource is fhir4.Library => {
+    return resource?.resourceType === 'Library'
+  },
+  observation: (resource: fhir4.Observation | fhir4.Resource): resource is fhir4.Observation => {
+    return resource?.resourceType === 'Observation'
+  },
+  organization: (resource: fhir4.Organization | fhir4.Resource): resource is fhir4.Organization => {
+    return resource?.resourceType === 'Organization'
+  },
+  patient: (resource: fhir4.Patient | fhir4.Resource): resource is fhir4.Patient => {
+    return resource?.resourceType === 'Patient'
+  },
+  practitioner: (resource: fhir4.Practitioner | fhir4.Resource): resource is fhir4.Practitioner => {
+    return resource?.resourceType === 'Practitioner'
+  },
+  questionnaire: (resource: fhir4.Questionnaire | fhir4.OperationOutcome | fhir4.Resource): resource is fhir4.Questionnaire => {
+    return resource?.resourceType === 'Questionnaire'
+  },
+  searchBundle: (resource: fhir4.Bundle | fhir4.OperationOutcome | fhir4.Resource): resource is fhir4.Bundle => {
+    return is.bundle(resource) && resource?.type === 'searchset'
+  },
+  serviceRequest: (resource: fhir4.ServiceRequest | fhir4.Resource): resource is fhir4.ServiceRequest => {
+    return resource?.resourceType === 'ServiceRequest'
+  },
+  string: (value: string | any): value is string => {
+    return typeof value === 'string'
+  },
+  substance: (resource: fhir4.Substance | fhir4.Resource): resource is fhir4.Substance => {
+    return resource?.resourceType === 'Substance'
+  },
+  valueSet: (resource: any): resource is fhir4.ValueSet => {
+    return resource?.resourceType === 'ValueSet'
+  }
+}
+
+export { is }

@@ -1,5 +1,5 @@
 import type { AppProps } from 'next/app'
-import { Scaffold } from '../components/Scaffold'
+import { Scaffold } from '@/components/Scaffold'
 import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }: AppProps) {

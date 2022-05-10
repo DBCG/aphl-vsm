@@ -8,7 +8,7 @@ export interface SearchFilters {
 }
 
 const buildQuery = (args: any): string => {
-  if(!args) return ''
+  if (!args) return ''
   let query = []
   const strMatch = /id|name|title|description/
   for (const arg in args) {
@@ -21,6 +21,7 @@ const buildQuery = (args: any): string => {
 
 const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
   const [libraries, setLibraries] = useState([])
+
   const { id, name, title, description } = fields
   useEffect(() => {
     async function getPrograms(): Promise<void> {
@@ -37,7 +38,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
         } else {
           setLibraries(json)
         }
-      } catch(e) {
+      } catch (e) {
         setLibraries([])
         console.log('Error in useGetPrograms: ', e)
       }

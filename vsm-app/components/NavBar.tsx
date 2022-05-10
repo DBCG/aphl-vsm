@@ -1,6 +1,4 @@
 import styled from 'styled-components'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
 
 const BarWrapper = styled.nav`
   margin-bottom: 24px;

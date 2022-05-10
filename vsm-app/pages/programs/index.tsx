@@ -1,12 +1,13 @@
 import type { NextPage } from 'next'
-import styled from 'styled-components'
-import { useMemo, useState, ChangeEvent } from 'react'
 import { useRouter } from 'next/router'
+import { useMemo, useState, ChangeEvent } from 'react'
+import styled from 'styled-components'
 import DT, { TableColumn } from 'react-data-table-component'
-import { SearchInput } from '../../components/SearchInput'
-import { Button } from '../../components/buttons/Button'
-import { useGetPrograms } from '../../hooks/useGetPrograms'
-import { IconButton } from '../../components/buttons/IconButton'
+import { SearchInput } from '@/components/SearchInput'
+import { Button } from '@/components/buttons/Button'
+import { useGetPrograms } from '@/hooks/useGetPrograms'
+import { IconButton } from '@/components/buttons/IconButton'
+import { PageTitle } from '@/components/Typography'
 
 const Row = styled.div`
   display: flex;
@@ -22,6 +23,11 @@ const Col = styled.div`
   width: 100%;
   flex-direction: column;
   height: fit-content;
+`
+
+const ButtonWrapper = styled.div`
+margin-left: 6px;
+  // margin: 0 auto;
 `
 
 interface DTProps {
@@ -43,7 +49,7 @@ const Programs: NextPage = () => {
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
-const [searchTermDescription, setSearchTermDescription] = useState('')
+  const [searchTermDescription, setSearchTermDescription] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -64,7 +70,7 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '250px',
       wrap: true
     },
     {
@@ -96,15 +102,17 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
       wrap: true
     },
     {
-      name: 'Edit',
+      name: 'Details',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       cell: (row: fhir4.Library) => (
-        <IconButton
-          onClick={() => router.push(`/programs/${row.id}`)}
-          type='edit'
-        />
+        <ButtonWrapper>
+          <IconButton
+            onClick={() => router.push(`/programs/${row.id}`)}
+            buttonContext='edit'
+          />
+        </ButtonWrapper>
       )
     }
   ], [router])
@@ -116,6 +124,9 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
   // because cannot partial-string-search on field
   return (
     <Col>
+      <PageTitle>
+        Programs
+      </PageTitle>
       <Row>
         {/* <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
@@ -127,14 +138,14 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
           id='program-search-name'
-          label='Search by Name'
+          label='Name'
           hasIcon={true}
           minWidth={400}
         />
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
           id='program-search-title'
-          label='Search by Title'
+          label='Title'
           hasIcon={true}
           minWidth={400}
         />
@@ -143,7 +154,7 @@ const [searchTermDescription, setSearchTermDescription] = useState('')
             setSearchTermDescription(e.target.value)
           }}
           id='program-search-description'
-          label='Search by Description'
+          label='Description'
           hasIcon={true}
           minWidth={400}
         />

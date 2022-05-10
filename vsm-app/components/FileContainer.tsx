@@ -1,6 +1,5 @@
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import React from 'react'
 
 const Container = styled.div`
@@ -62,7 +61,7 @@ const GeneratedTabs = () => {
       <FileTab
         key={tabName}
         className={router.pathname.includes(tabName)? 'active' : ''} num={index}
-        onClick={() => router.push(tabName)}
+        onClick={() => router.push(`/${tabName}`)}
       >
         <Span>
           {t}
@@ -85,7 +84,7 @@ const FileContainer = ({ children }: FileContainerProps) => {
 
   return (
     <Container>
-      <GeneratedTabs/>
+      {/* <GeneratedTabs/> */}
       <FileBody>
         { children }
       </FileBody>
