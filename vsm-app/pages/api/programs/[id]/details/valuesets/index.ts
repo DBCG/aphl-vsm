@@ -73,7 +73,18 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
     }
   }))
   ))
-  return result?.[0]?.entry?.map((e: fhir4.BundleEntry) => e?.resource)
+
+  // add canonical url to the valueset
+  return result?.[0]?.entry?.map((e: fhir4.BundleEntry) => {
+    const fullUrl = e?.fullUrl
+    const resource = e?.resource
+    if (fullUrl && resource) {
+      return ({
+        url: fullUrl,
+        ...resource
+      })
+    }
+  })
 }
 
 const isDefinedString = (item: any): item is string => {
@@ -158,6 +169,7 @@ export default async function handler(
                 })
 
                 if (leafUrls) {
+
                   const stringToFind = req.query.findInVsName as string | undefined
                   // we do not have version info stored re: leaf valuesets
                   // a search for a particular url yields many versions
@@ -178,12 +190,6 @@ export default async function handler(
 
         // leaf valuesets come from VSAC currently, will come from cache
         const conceptsFromLeaf = valueSet?.compose?.include
-
-        interface CodeData {
-          system: string,
-          code: string,
-          display: string
-        }
 
         let sharedCodes: fhir4.ValueSetComposeIncludeConcept[] = []
 
@@ -207,7 +213,6 @@ export default async function handler(
         })
 
         const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
-
         return {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
