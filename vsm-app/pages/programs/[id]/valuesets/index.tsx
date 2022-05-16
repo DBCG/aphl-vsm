@@ -21,32 +21,9 @@ const customStyles = {
   }
 }
 
-const Col = styled.div`
-  display: flex;
-  flex-direction: column;
-`
-
 const Row = styled.div`
   display: flex;
   justify-content: space-between;
-`
-
-const Li = styled.li`
-  list-style-type: none;
-  padding: 4px 6px;
-  margin-bottom: 2px;
-  border-radius: 8px;
-  background-color: var(--theme-100);
-  &:nth-of-type(2) {
-    background-color: #D0ECEF;
-  }
-`
-
-const Ul = styled.ul`
-  padding-left: 0px;
-  &:nth-child(even)  {
-    background-color: red;
-  }
 `
 
 const SearchOptions = styled.form`
@@ -119,19 +96,31 @@ const buildConditionOptions = (conditions: ConditionItem[]) => {
   return conditions.map(c => ({ value: c.code, label: c.display }))
 }
 
+const buildGroupFilterOptions = (groupVsets: fhir4.ValueSet[]) => {
+  return groupVsets?.map(g => ({ value: g.url, label: g.title }))
+}
+
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets.map(g => ({ value: g.url, label: g.title }))
+  const result = groupVsets?.map(g => (
+    { value: g?.id, label: g?.title }
+  ))
+
+  return result
 }
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const identifier = router.query.id as string
   const [findInVsName, setFindInVsName] = useState('')
-  const [activeGroups, setActiveGroups] = useState([])
-  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, activeGroups)
+  const [filteredGroups, setFilteredGroups] = useState([])
+  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, filteredGroups)
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
+
+  const updateConditions = () => {
+    
+  }
   
   // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
@@ -174,30 +163,36 @@ const ProgramValueSetDetails: NextPage = () => {
       name: 'Conditions',
       selector: (row: DataItem) => row.conditions,
       sortable: true,
-      maxWidth: '300px',
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {/* @ts-ignore-error */}
-            {row?.conditions?.map(c => <Li key={c?.display}>{c?.display}</Li>)}
-          </Ul>
-        </Col>
-      )
+      cell: (row: DataItem) => {
+        return (
+          <Select
+            isMulti={true}
+            options={buildConditionOptions(formattedConditions)}
+          />
+        )
+      }
     },
     {
       name: 'Groups',
       selector: (row: DataItem) => row.groups,
       sortable: true,
-      maxWidth: '250px',
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {row?.groups?.map((g: any) => <Li key={g?.title}>{g?.title}</Li>)}
-          </Ul>
-        </Col>
-      )
+      cell: (row: DataItem) => {
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
+        console.log('selectedOptions: ', selectedOptions)
+        return (
+          <Select
+            classNamePrefix='groups'
+            inputId='groups-selector'
+            isMulti
+            options={buildGroupOptions(groupsInProgram)}
+            value={selectedOptions}
+            // @ts-expect-error
+            // onChange={(e) => {setActiveGroups(e)}}
+          />
+        )
+      }
       
     },
     {
@@ -246,16 +241,16 @@ const ProgramValueSetDetails: NextPage = () => {
             </TextInputContainer>
             {alphabetizedGroups && (
               <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="groups-selector">
+                <StyledLabel id="aria-label" htmlFor="groups-filter-selector">
                   Groups
                 </StyledLabel>
                 <Select
                   classNamePrefix='groups'
-                  inputId='groups-selector'
+                  inputId='groups-filter-selector'
                   isMulti
-                  options={buildGroupOptions(alphabetizedGroups)}
+                  options={buildGroupFilterOptions(alphabetizedGroups)}
                   // @ts-expect-error
-                  onChange={(e) => {setActiveGroups(e)}}
+                  onChange={(e) => {setFilteredGroups(e)}}
                 />
               </SelectGroup>
             )}

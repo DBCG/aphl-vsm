@@ -39,8 +39,8 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
           setLibraries(json)
         }
       } catch (e) {
-        setLibraries([])
         console.log('Error in useGetPrograms: ', e)
+        setLibraries([])
       }
     }
     void getPrograms()
