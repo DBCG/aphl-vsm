@@ -67,6 +67,12 @@ const ButtonContainer = styled.div`
   justify-content: center;
 `
 
+const IdInfo = styled.p`
+  margin-top: 4px;
+  margin-bottom: 24px;
+  color: var(--theme-500);
+`
+
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
@@ -151,11 +157,19 @@ const ProgramDetails: NextPage = () => {
       </Row>
       <Modal
         isOpen={isEditing}
+        shouldCloseOnEsc={true}
+        shouldCloseOnOverlayClick={true}
+        onRequestClose={() => setIsEditing()}
         style={{
           content: {
+            margin: '0 auto',
             border: 'none',
             backgroundColor: '#C4E8EC',
-            textAlign: 'right'
+            textAlign: 'right',
+            maxWidth: '800px'
+          },
+          overlay: {
+            backgroundColor: 'rgba(255, 255, 255, 0.85)'
           }
         }}
         contentLabel='Edit Program Details'
@@ -164,8 +178,9 @@ const ProgramDetails: NextPage = () => {
         <div>
           <Row className='inputs'>
             <ModalForm>
-            <PageTitle>Edit Program Details</PageTitle> 
-              <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
+              <PageTitle style={{ marginBottom: '8px' }}>Edit Program Details</PageTitle>
+              <IdInfo>ID: { id }</IdInfo>
+              {/* <SearchInput id='prog-id' label='ID' def={id} disabled={true}/> */}
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
               <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
