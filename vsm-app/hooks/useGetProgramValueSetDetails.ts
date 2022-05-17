@@ -20,13 +20,29 @@ export interface DataItem {
   version: string
 }
 
+interface ConditionItem {
+  system: string,
+  version: string,
+  value: string
+}
+
+interface FilteredCondition {
+  label: string,
+  value: ConditionItem[]
+}
+
 interface Result {
   data: DataItem,
   groupsInProgram: fhir4.ValueSet[]
 }
 
 // gets data necessary to build the program valueset details page
-const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGroups: [] | Group[]): Result | {} => {
+const useGetProgramValueSetDetails = (
+  id: string,
+  findInVsName: string,
+  activeGroups: [] | Group[],
+  activeConditions: FilteredCondition[]
+): Result | {} => {
   const [data, setData] = useState({})
 
   useEffect(() => {
@@ -50,6 +66,18 @@ const useGetProgramValueSetDetails = (id: string, findInVsName: string, activeGr
         const canonicals = activeGroups.map(g => g.value)
         const result = canonicals.join(',')
         endpoint = endpoint.concat(`groups=${encodeURIComponent(result)}`)
+      }
+
+      if (activeConditions.length) {
+        // create query string
+        if (findInVsName.length || activeGroups?.length) {
+          // add an & only if there are already query parameters to chain to
+          endpoint = endpoint.concat('&')
+        } else {
+          endpoint = endpoint.concat('?')
+        }
+        const activeConditionJson = JSON.stringify(activeConditions)
+        endpoint = endpoint.concat(`conditions=${encodeURIComponent(activeConditionJson)}`)
       }
 
       try {

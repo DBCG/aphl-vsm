@@ -1,16 +1,18 @@
-import React, { useMemo, useState, ChangeEvent } from 'react'
+import React, { useMemo, useState, ChangeEvent, useEffect } from 'react'
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import Modal from 'react-modal'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
+import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetConditions } from '@/hooks/useGetConditions'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
-import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle } from '..'
-import { useGetConditions } from '@/hooks/useGetConditions'
+import { useUpdateVSConditions } from '@/hooks/useUpdateVSConditions'
 
 const customStyles = {
   cells: {
@@ -69,6 +71,11 @@ const Id = styled(PageTitle).attrs({
 })`
   font-size: 20px;
 `
+
+const SelectInputContainer = styled.div`
+  min-width: 300px;
+`
+
 interface ConditionItem {
   system: string,
   version: string,
@@ -93,7 +100,9 @@ const formatConditions = (conditionsList: any) => {
 }
 
 const buildConditionOptions = (conditions: ConditionItem[]) => {
-  return conditions.map(c => ({ value: c.code, label: c.display }))
+  console.log('conditions: ', conditions)
+  const result = conditions.map(c => ({ value: { system: c.system, version: c.version, code: c.code }, label: c.display }))
+  return result
 }
 
 const buildGroupFilterOptions = (groupVsets: fhir4.ValueSet[]) => {
@@ -113,15 +122,17 @@ const ProgramValueSetDetails: NextPage = () => {
   const identifier = router.query.id as string
   const [findInVsName, setFindInVsName] = useState('')
   const [filteredGroups, setFilteredGroups] = useState([])
-  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, filteredGroups)
+  const [filteredConditions, setFilteredConditions] = useState([])
+  const [updateVSConditions, setUpdateVSConditions] = useState({ canonical: '', version: '', conditionInfo: []})
+  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, filteredGroups, filteredConditions)
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
+  console.log('filtered conditions: ', filteredConditions)
 
-  const updateConditions = () => {
-    
-  }
-  
+  const { canonical, version, conditionInfo } = updateVSConditions
+  useUpdateVSConditions(canonical, version, conditionInfo)
+
   // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
   
@@ -135,11 +146,6 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   )
   
-
-  const onClick = () => {
-    router.push('/valuesets')
-  }
-  
   const handleFilterResults = (e: React.MouseEvent<Element, MouseEvent>) => {
     e.preventDefault()
   }
@@ -148,49 +154,61 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: 'Name',
       selector: (row: DataItem) => row.title,
-      sortable: true,
+      sortable: false,
       maxWidth: '350px',
       wrap: true
     },
     {
       name: 'Version',
       selector: (row: DataItem) => row.version,
-      sortable: true,
+      sortable: false,
       maxWidth: '150px',
       wrap: true
     },
     {
       name: 'Conditions',
       selector: (row: DataItem) => row.conditions,
-      sortable: true,
+      sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
+        console.log('row: ', row)
+        console.log('testing 1: ', buildConditionOptions(formattedConditions))
+        console.log('testing 2: ', formattedConditions)
+        const selectedOptions = row?.conditions?.map(i => (
+          { label: i?.feLabel, value: i?.code }
+        ))
         return (
-          <Select
-            isMulti={true}
-            options={buildConditionOptions(formattedConditions)}
-          />
+          <SelectInputContainer>
+            <Select
+              isMulti={true}
+              options={buildConditionOptions(formattedConditions)}
+              value={selectedOptions}
+              onChange={(conditionInfo) => conditionInfo && setUpdateVSConditions({ canonical: row.canonical, version: row.version, conditionInfo })}
+            />
+          </SelectInputContainer>
         )
       }
     },
     {
       name: 'Groups',
       selector: (row: DataItem) => row.groups,
-      sortable: true,
+      sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
         console.log('selectedOptions: ', selectedOptions)
         return (
-          <Select
-            classNamePrefix='groups'
-            inputId='groups-selector'
-            isMulti
-            options={buildGroupOptions(groupsInProgram)}
-            value={selectedOptions}
-            // @ts-expect-error
-            // onChange={(e) => {setActiveGroups(e)}}
-          />
+          <SelectInputContainer>
+            <Select
+              classNamePrefix='groups'
+              inputId='groups-selector'
+              isMulti={true}
+              options={buildGroupOptions(groupsInProgram)}
+              value={selectedOptions}
+              // @ts-expect-error
+              // onChange={(e) => {setActiveGroups(e)}}
+            />
+          </SelectInputContainer>
         )
       }
       
@@ -209,7 +227,7 @@ const ProgramValueSetDetails: NextPage = () => {
         />
       )
     }
-  ], [router])
+  ], [router, formattedConditions, groupsInProgram, progValueSetDets.data])
   
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
     const target = e.target as HTMLInputElement;
@@ -239,6 +257,21 @@ const ProgramValueSetDetails: NextPage = () => {
                 }}
               />
             </TextInputContainer>
+            {formattedConditions && (
+              <SelectGroup>
+                <StyledLabel id="aria-label" htmlFor="input-selector">
+                  Conditions
+                </StyledLabel>
+                <Select
+                  classNamePrefix='conditions'
+                  inputId='input-selector'
+                  isMulti
+                  options={buildConditionOptions(formattedConditions)}
+                  // @ts-expect-error
+                  onChange={(e) => {setFilteredConditions(e)}}
+                />
+              </SelectGroup>
+            )}
             {alphabetizedGroups && (
               <SelectGroup>
                 <StyledLabel id="aria-label" htmlFor="groups-filter-selector">
@@ -251,19 +284,6 @@ const ProgramValueSetDetails: NextPage = () => {
                   options={buildGroupFilterOptions(alphabetizedGroups)}
                   // @ts-expect-error
                   onChange={(e) => {setFilteredGroups(e)}}
-                />
-              </SelectGroup>
-            )}
-            {formattedConditions && (
-              <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="input-selector">
-                  Conditions
-                </StyledLabel>
-                <Select
-                  classNamePrefix='conditions'
-                  inputId='input-selector'
-                  isMulti
-                  options={buildConditionOptions(formattedConditions)}
                 />
               </SelectGroup>
             )}

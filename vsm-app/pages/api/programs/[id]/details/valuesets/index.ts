@@ -58,13 +58,13 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
   return Promise.all(canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical)))
 }
 
-// These are from VSAC (array of FHIR Bundle resources)
+// These are from FHIR client (array of FHIR Bundle resources)
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
-  // TODO: This only uses the first one so we don't overwhelm VSAC
-  const tempCanonicals = [canonicals[0]]
+  // TODO: This only uses the first one so we don't overwhelm
+  const tempCanonicals = canonicals
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
   const result = await Promise.all(tempCanonicals.map(canonical =>
-  (vsacFhirClient.search({
+  (fhirCdrClient.search({
     resourceType: 'ValueSet',
     // @ts-expect-error
     searchParams: {
@@ -119,6 +119,19 @@ export default async function handler(
         return true
       }
 
+      // TODO
+      const allowedCondition = (valueSet: fhir4.ValueSet): boolean => {
+        if (typeof req.query.conditions === 'string' && req.query.groups !== '') {
+          // convert string from query back to an object
+          const conditions = JSON.parse(decodeURIComponent(req.query.conditions))
+          conditions?.forEach(condition => {
+            // if the valueset does not contain the conditions in useContext at all, return false
+            // if it contains them all, return true
+          })
+        }
+        return true
+      }
+
       if (is.library(program)) {
         // get the grouper canonial
         const grouperCanonical = program.relatedArtifact
@@ -146,7 +159,10 @@ export default async function handler(
               grouperVSets = grouperValueSets
 
               // if a user has constrained by filtering groupers, show only those indicated
-              const filteredValueSets = grouperValueSets?.filter(vs => allowedGrouper(vs?.url as string))
+              const filteredValueSets = grouperValueSets
+                ?.filter(vs => allowedGrouper(vs?.url as string))
+
+              console.log('filtered123: ', filteredValueSets)
 
               const leafValueSetResult = await Promise.all(filteredValueSets.map(valueset => {
                 const groupTitle = valueset?.title || ''
@@ -182,36 +198,42 @@ export default async function handler(
           }
         }
       }
+      const conceptCodesFromConditionVS: fhir4.ValueSetComposeInclude | undefined = conditionsVS?.compose?.include
+
+      const flattenedConditions = conditionsVS?.compose?.include?.map(i => {
+        return i?.concept?.map(c => ({
+          system: i?.system,
+          version: i?.version,
+          code: c?.code,
+          display: c?.display,
+          feLabel: c?.designation?.find(d => d?.use?.system === 'http://snomed.info/sct' && d?.use?.code === 'synonym')?.value || c?.display || 'Missing Value'
+        }))
+      })?.flat()
 
       const response: ValueSetTableEntry[] = leafValueSets.map(valueSet => {
+        let leafConditions = []
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of code sets by system
-        const conceptCodesFromConditionVS: fhir4.ValueSetComposeInclude | undefined = conditionsVS?.compose?.include
-
-        // leaf valuesets come from VSAC currently, will come from cache
-        const conceptsFromLeaf = valueSet?.compose?.include
-
-        let sharedCodes: fhir4.ValueSetComposeIncludeConcept[] = []
+        // leaf valuesets will come from cache
+        const conditionsFromLeaf = valueSet?.useContext
+          ?.filter(ctx => ctx?.code?.system?.endsWith('usage-context-type') && ctx?.code?.code === 'focus')
+          ?.map(usageContext => usageContext?.valueCodeableConcept?.coding)
+          ?.flat(2)
 
         // loop through all of the concept code sets from the valueSet
         // if the systems match and the code is in the RCKMS valueset, push to the shared arr
-        conceptsFromLeaf?.forEach(codeSet => {
-          const currentLeafCodeSystem = codeSet?.system
+        conditionsFromLeaf?.forEach(condition => {
+          const currentLeafCodeSystem = condition?.system
+          const currentLeafCode = condition?.code
           let matchingSystemBlock: fhir4.ValueSetComposeInclude | undefined
-          if (Array.isArray(conceptCodesFromConditionVS)) {
-            matchingSystemBlock = conceptCodesFromConditionVS?.find(set => set?.system === currentLeafCodeSystem)
+          if (Array.isArray(flattenedConditions)) {
+            matchingSystemBlock = flattenedConditions?.find(s => s?.system === currentLeafCodeSystem && s?.code === currentLeafCode)
           }
           if (matchingSystemBlock) {
-            codeSet?.concept?.forEach(concept => {
-              const codeToSearch = concept?.code
-              const foundCodeInRCKMS: fhir4.ValueSetComposeIncludeConcept | undefined = matchingSystemBlock?.concept?.find(obj => obj?.code === codeToSearch)
-              if (foundCodeInRCKMS) {
-                sharedCodes?.push(foundCodeInRCKMS)
-              }
-            })
+            leafConditions.push(matchingSystemBlock)
           }
         })
-
+        console.log('leaf conditions server: ', leafConditions)
         const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
         return {
           programName: program?.name || 'Undefined',
@@ -219,7 +241,7 @@ export default async function handler(
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
-          conditions: sharedCodes || [],
+          conditions: leafConditions || [],
           groups: groupsByValueSetCanonical[matchingGroup || 'Undefined']
         }
       })

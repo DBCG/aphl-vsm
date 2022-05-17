@@ -23,51 +23,28 @@ const buildConditionItem = (condition: Condition) => {
     }
   } as UsageContextItem
 
-  // if human-readable text field exists, add it
+  // if optional human-readable text field exists, add it
   if (condition.text) conditionItem.valueCodeableConcept.text = condition.text
   return conditionItem
 }
 
-const addCondition = (grouperVS: fhir4.ValueSet, condition: Condition) => {
-  let grouper = grouperVS
-  if (grouper.useContext) {
-    grouper.useContext.push(buildConditionItem(condition))
-  } else {
-    grouper.useContext = [buildConditionItem(condition)]
+// there should be no useContext if it is an empty array
+const updateConditions = (valueSet: fhir4.ValueSet, conditions: Condition[]) => {
+  let vs = valueSet
+  if (vs?.useContext) {
+    const nonConditionContexts = vs?.useContext?.filter(ctx => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus'))
+    const conditionContexts = conditions?.map(c => buildConditionItem(c))
+    if (nonConditionContexts?.length || conditionContexts?.length) {
+      vs.useContext = [
+        ...nonConditionContexts,
+        ...conditionContexts
+      ]
+    }
+  } else if (!vs?.useContext && conditions?.length) {
+    vs.useContext = conditions?.map(c => buildConditionItem(c))
   }
-  return grouper
+  console.log('vs: ', vs)
+  return vs
 }
 
-const removeCondition = (grouperVS: fhir4.ValueSet, condition: Condition) => {
-  let grouper = grouperVS
-
-  if (grouper.useContext && grouperVS.useContext) {
-    grouper.useContext = grouperVS.useContext.filter(ctx => (
-      ctx?.code?.system?.endsWith('usage-context-type') &&
-      ctx?.code?.code == 'focus' &&
-      !ctx?.valueCodeableConcept?.coding?.some(
-        c => c?.system == condition.system && c?.code == condition.code
-      )
-    ))
-  } else {
-    console.error(`Condition ${condition?.code} of system ${condition.system} not found.`)
-  }
-  return grouper
-}
-
-const conditionHandler = (
-  grouperVS: fhir4.ValueSet,
-  operation: 'add' | 'remove',
-  condition: Condition
-) => {
-  if (operation == 'add') {
-    return addCondition(grouperVS, condition)
-  } if (operation == 'remove') {
-    return removeCondition(grouperVS, condition)
-  } else {
-    console.error(`Operation ${operation} not found.`)
-    return grouperVS
-  }
-}
-
-export { conditionHandler }
+export { updateConditions }
