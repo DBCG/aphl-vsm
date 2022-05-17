@@ -1,9 +1,8 @@
-import React, { useMemo, useState, ChangeEvent, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import Modal from 'react-modal'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
@@ -73,7 +72,7 @@ const Id = styled(PageTitle).attrs({
 `
 
 const SelectInputContainer = styled.div`
-  min-width: 300px;
+  width: 400px;
 `
 
 interface ConditionItem {
@@ -101,7 +100,11 @@ const formatConditions = (conditionsList: any) => {
 
 const buildConditionOptions = (conditions: ConditionItem[]) => {
   console.log('conditions: ', conditions)
-  const result = conditions.map(c => ({ value: { system: c.system, version: c.version, code: c.code }, label: c.display }))
+  const result = conditions.map(c => (
+    {
+      value: { system: c.system, version: c.version, code: c.code },
+      label: c.display
+    }))
   return result
 }
 
@@ -119,12 +122,16 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
-  const identifier = router.query.id as string
+  const programId = router.query.id as string
+  // Filters by name, conditions, groups 
   const [findInVsName, setFindInVsName] = useState('')
-  const [filteredGroups, setFilteredGroups] = useState([])
   const [filteredConditions, setFilteredConditions] = useState([])
-  const [updateVSConditions, setUpdateVSConditions] = useState({ canonical: '', version: '', conditionInfo: []})
-  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, filteredGroups, filteredConditions)
+  const [filteredGroups, setFilteredGroups] = useState([])
+
+  const [updateVSConditions, setUpdateVSConditions] = useState({ canonical: '', version: '', conditionInfo: [] })
+  // TODO: use filteredConditions in here, possibly dispatch condition and group updates too...
+  const progValueSetDets = useGetProgramValueSetDetails(programId, findInVsName, filteredGroups, filteredConditions)
+  // GET conditions valueSet results
   const conditions = useGetConditions()
   
   const formattedConditions = formatConditions(conditions)
@@ -171,9 +178,6 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        console.log('row: ', row)
-        console.log('testing 1: ', buildConditionOptions(formattedConditions))
-        console.log('testing 2: ', formattedConditions)
         const selectedOptions = row?.conditions?.map(i => (
           { label: i?.feLabel, value: i?.code }
         ))
@@ -183,7 +187,9 @@ const ProgramValueSetDetails: NextPage = () => {
               isMulti={true}
               options={buildConditionOptions(formattedConditions)}
               value={selectedOptions}
-              onChange={(conditionInfo) => conditionInfo && setUpdateVSConditions({ canonical: row.canonical, version: row.version, conditionInfo })}
+              onChange={(conditionInfo) => conditionInfo && setUpdateVSConditions({
+                canonical: row.canonical, version: row.version, conditionInfo
+              })}
             />
           </SelectInputContainer>
         )
@@ -239,7 +245,7 @@ const ProgramValueSetDetails: NextPage = () => {
       <Row>
         <PageTitle>Program ValueSet Details
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
-          <Id><FieldTitle>ID</FieldTitle>{identifier}</Id>
+          <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
         </PageTitle>
       </Row>
       <SearchOptions>

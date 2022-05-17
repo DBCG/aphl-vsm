@@ -68,6 +68,7 @@ const ButtonContainer = styled.div`
 `
 
 const IdInfo = styled.p`
+  font-size: 120%;
   margin-top: 4px;
   margin-bottom: 24px;
   color: var(--theme-500);
@@ -80,6 +81,8 @@ const buttonStyles = {
   marginTop: '20px',
   alignSelf: 'center'
 }
+
+const marginBottom = '12px'
 
 export const FieldValue = styled.span``
 
@@ -180,10 +183,9 @@ const ProgramDetails: NextPage = () => {
             <ModalForm>
               <PageTitle style={{ marginBottom: '8px' }}>Edit Program Details</PageTitle>
               <IdInfo>ID: { id }</IdInfo>
-              {/* <SearchInput id='prog-id' label='ID' def={id} disabled={true}/> */}
-              <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
-              <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
-              <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
+              <SearchInput style={{ marginBottom }} id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
+              <SearchInput  style={{ marginBottom }} id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
+              <SearchInput  style={{ marginBottom }} id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
               <TextArea id='prog-desc' label='Description' minWidth={500} def={description} onChange={(event) => handleFieldChange(event, 'description')} />
               {formTouched && (
                 <ButtonContainer>
