@@ -5,12 +5,6 @@ import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 
-// FAKE mode
-const fakeMode = false
-import * as fixture from './fixture.json'
-// FAKE mode
-
-
 // Items in the table
 interface Group {
   id: string
@@ -95,11 +89,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-
-  if (fakeMode) {
-    res.status(200).send((fixture as any).default)
-    return
-  }
 
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
 
