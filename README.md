@@ -9,7 +9,7 @@ ValueSet Manager Application
 ```bin/run-fhir-server.sh```
 The `baseURL` for the server in development is: `http://localhost:8080/fhir`
 
-3. Load data to FHIR server
+3. Load data to FHIR server (wait 30 sec/1min before doing this for the server to be ready)
 ```bin/post-demo-data.sh```
 
 4. If you don't have it already, copy .env.local.example to .env.local within `/vsm-app`
