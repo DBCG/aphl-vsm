@@ -110,13 +110,13 @@ export default async function handler(
 
       if (is.library(program)) {
         // get the grouper canonial
+        // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
         const grouperCanonical = program.relatedArtifact
           ?.find(related => related.resource?.includes('/Library/'))
           ?.resource
 
         if (grouperCanonical) {
           const grouperSearchResult = await fetchGrouperLibrary(grouperCanonical)
-
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
