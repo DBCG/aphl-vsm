@@ -2,17 +2,19 @@
 # exit when any command fails
 set -e
 
-currentRunningHapiServer=$(docker ps -q --filter ancestor=hapiproject/hapi:v5.6.0)
+currentRunningCqfServer=$(docker ps -q --filter ancestor=alphora/cqf-ruler:latest)
 
 # stop container by the full image name
-if [[ -n $currentRunningHapiServer ]]
+if [[ -n $currentRunningCqfServer ]]
 then
-  docker stop $(docker ps -q --filter ancestor=hapiproject/hapi:v5.6.0)
+  docker stop $(docker ps -q --filter ancestor=alphora/cqf-ruler:latest)
 fi
+# pull the docker image
+docker pull alphora/cqf-ruler
 # delete the volume, or else you get stale data
-docker volume rm -f hapi-dev-vsm-app
+docker volume rm -f cqf-server-vsm-app
 # create a new volume
-docker volume create hapi-dev-vsm-app 2>/dev/null
+docker volume create cqf-server-vsm-app 2>/dev/null
 
 # run hapi server with attached volume
-docker run -d --rm -p 8080:8080 --mount source=hapi-dev-vsm-app,target=/usr/local/tomcat/target/database hapiproject/hapi:v5.6.0
+docker run -d --rm -p 8080:8080 --mount source=cqf-server-vsm-app,target=/usr/local/tomcat/target/database alphora/cqf-ruler:latest
