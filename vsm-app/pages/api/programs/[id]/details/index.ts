@@ -11,11 +11,20 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       // e.g. rctc
+      const [url, version] = splitCanonical(req.query.url as string)
+
+      let searchParams = {
+        url,
+      } as SearchParams
+
+      // tag on version if it exists in the url
+      if (version) {
+        searchParams.version = version
+      }
+
       const grouperLibrary = await fhirCdrClient.search({
         resourceType: 'Library',
-        searchParams: {
-          url: req.query.url
-        }
+        searchParams
       })
 
       const grouperUrls = grouperLibrary

@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import FhirKitClient from 'fhir-kit-client'
-import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
+import { fhirCdrClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 
@@ -54,10 +54,8 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
 
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
-  // TODO: This only uses the first one
-  const tempCanonicals = [canonicals[0]]
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
-  const result = await Promise.all(tempCanonicals.map(canonical =>
+  const result = await Promise.all(canonicals.map(canonical =>
   (fhirCdrClient.search({
     resourceType: 'ValueSet',
     // @ts-expect-error
@@ -202,7 +200,7 @@ export default async function handler(
         })
 
         const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
-        return {
+        let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
           title: valueSet.name || 'Undefined',
@@ -211,7 +209,9 @@ export default async function handler(
           conditions: sharedCodes || [],
           groups: groupsByValueSetCanonical[matchingGroup || 'Undefined']
         }
+        return result
       })
+
 
       const composedResponse = {
         data: response,
