@@ -5,7 +5,7 @@ ValueSet Manager Application
 
 1. Make sure that Docker desktop is running.
 
-2. Run the HAPI FHIR Server as detatched process
+2. Run the HAPI FHIR Server as detached process
 ```bin/run-fhir-server.sh```
 The `baseURL` for the server in development is: `http://localhost:8080/fhir`
 
