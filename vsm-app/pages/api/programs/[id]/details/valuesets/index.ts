@@ -212,7 +212,6 @@ export default async function handler(
         return result
       })
 
-
       const composedResponse = {
         data: response,
         groupsInProgram: grouperVSets
