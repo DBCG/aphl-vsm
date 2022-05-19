@@ -52,13 +52,13 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
   return Promise.all(canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical)))
 }
 
-// These are from VSAC (array of FHIR Bundle resources)
+// The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
-  // TODO: This only uses the first one so we don't overwhelm VSAC
+  // TODO: This only uses the first one
   const tempCanonicals = [canonicals[0]]
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
   const result = await Promise.all(tempCanonicals.map(canonical =>
-  (vsacFhirClient.search({
+  (fhirCdrClient.search({
     resourceType: 'ValueSet',
     // @ts-expect-error
     searchParams: {
