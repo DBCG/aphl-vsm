@@ -40,7 +40,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
         }
       } catch (e) {
         setLibraries([])
-        console.log('Error in useGetPrograms: ', e)
+        console.error('Error in useGetPrograms: ', e)
       }
     }
     void getPrograms()

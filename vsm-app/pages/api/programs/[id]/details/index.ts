@@ -1,6 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
+import { splitCanonical } from '@/helpers/splitCanonical'
+import { SearchParams } from 'fhir-kit-client'
 
 export default async function handler(
   req: NextApiRequest,
@@ -9,11 +11,20 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       // e.g. rctc
+      const [url, version] = splitCanonical(req.query.url as string)
+
+      let searchParams = {
+        url,
+      } as SearchParams
+
+      // tag on version if it exists in the url
+      if (version) {
+        searchParams.version = version
+      }
+
       const grouperLibrary = await fhirCdrClient.search({
         resourceType: 'Library',
-        searchParams: {
-          url: req.query.url
-        }
+        searchParams
       })
 
       const grouperUrls = grouperLibrary
@@ -24,13 +35,21 @@ export default async function handler(
 
       let grouperValueSets = []
 
-      for (const url of grouperUrls) {
+      for (const canonical of grouperUrls) {
+        const [url, version] = splitCanonical(canonical)
+
+        let searchParams = {
+          url
+        } as SearchParams
+
+        // tag on version if exists in the grouper
+        if (version) {
+          searchParams.version = version
+        }
 
         const grouperVS = await fhirCdrClient.search({
           resourceType: 'ValueSet',
-          searchParams: {
-            url: url
-          }
+          searchParams
         })
         const resource = grouperVS?.entry?.[0]?.resource
         if (resource) {

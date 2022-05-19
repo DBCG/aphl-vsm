@@ -27,6 +27,7 @@ export default async function handler(
       res.status(400).json({ error: 'Search for program by id failed.' })
     }
   } else if (req.method === 'PUT') {
+    // update the program by id
     const response = await fhirCdrClient.update({
       resourceType: 'Library',
       id: req.query['id'] as string,

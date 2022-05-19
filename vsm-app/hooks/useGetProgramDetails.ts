@@ -34,7 +34,7 @@ const useGetProgramDetails = (id: string): Result => {
         const programJson = await response.json()
 
         // Identify the valueset library within the program
-        // the program, by design, only has 2 relatedArtifacts, one of which is this library
+        // the program, by design, only has 2 relatedArtifacts, one of which is this library, other is a planDefinition
         const grouperLibrary = programJson?.[0]?.relatedArtifact?.filter((a: any) => a?.type === 'composed-of' && a?.resource?.includes('/Library/'))?.[0]
         const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibrary.resource}`
 
@@ -45,13 +45,17 @@ const useGetProgramDetails = (id: string): Result => {
         if (programJson) {
           result.program = programJson[0]
         }
-        if (grouperData) {
+
+        result.grouperData = []
+
+        if (grouperData && !grouperData.error) {
           result.grouperData = grouperData
         }
+
         setProgramAndGrouperData(result)
       } catch (e) {
+        console.error('Error in useGetPrograms: ', e)
         setProgramAndGrouperData(result)
-        // console.error('Error in useGetPrograms: ', e)
       }
     }
     void getProgram()
