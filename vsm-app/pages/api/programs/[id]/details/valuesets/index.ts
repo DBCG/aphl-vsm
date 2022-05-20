@@ -8,7 +8,8 @@ import { is } from '@/helpers/is'
 // Items in the table
 interface Group {
   id: string
-  title: string
+  title: string,
+  url: string
 }
 
 interface ValueSetTableEntry {
@@ -92,29 +93,21 @@ export default async function handler(
 
   if (req.method === 'GET') {
     let leafValueSets: fhir4.ValueSet[] = []
+    let allGrouperVSets: fhir4.ValueSet[] | [] = []
 
     try {
       const program = await fetchProgram(req.query.id as string)
       const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL as string)
-      let grouperVSets: fhir4.ValueSet[] | [] = []
-
-      const allowedGrouper = (canonicalToSearch: string): boolean => {
-        if (typeof req.query.groups === 'string' && req.query.groups !== '') {
-          const splitGroups = req?.query?.groups?.split(',')
-          return splitGroups?.includes(canonicalToSearch)
-        }
-        return true
-      }
 
       if (is.library(program)) {
         // get the grouper canonial
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
-        const grouperCanonical = program.relatedArtifact
+        const grouperLibraryCanonical = program.relatedArtifact
           ?.find(related => related.resource?.includes('/Library/'))
           ?.resource
 
-        if (grouperCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(grouperCanonical)
+        if (grouperLibraryCanonical) {
+          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical)
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
@@ -123,44 +116,33 @@ export default async function handler(
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
               .filter(isDefinedString)
-
             if (grouperValueSetCanonicals) {
-              const grouperValueSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
+              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
+              console.log('all are: ', allGrouperVSets)
 
-              grouperVSets = grouperValueSets
+              const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
+                const groupTitle = grouperVs?.title || ''
+                const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
 
-              // if a user has constrained by filtering groupers, show only those indicated
-              const filteredValueSets = grouperValueSets?.filter(vs => allowedGrouper(vs?.url as string))
-
-              const leafValueSetResult = await Promise.all(filteredValueSets.map(valueset => {
-                const groupTitle = valueset?.title || ''
-                const leafUrls = valueset?.compose?.include?.[0]?.valueSet
-
+                // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
+                  const groupToAdd = {
+                    id: grouperVs.id || 'Undefined',
+                    url: grouperVs.url || 'Undefined',
+                    title: groupTitle
+                  }
                   if (groupsByValueSetCanonical[url]) {
-                    groupsByValueSetCanonical[url].push({
-                      id: valueset.id || 'Undefined',
-                      title: groupTitle
-                    })
+                    groupsByValueSetCanonical[url].push(groupToAdd)
                   } else {
-                    groupsByValueSetCanonical[url] = [
-                      {
-                        id: valueset.id || 'Undefined',
-                        title: groupTitle
-                      }
-                    ]
+                    groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
 
                 if (leafUrls) {
-
                   const stringToFind = req.query.findInVsName as string | undefined
-                  // we do not have version info stored re: leaf valuesets
-                  // a search for a particular url yields many versions
-                  // because we cannot constrain by version
                   return fetchLeafValueSets(leafUrls, stringToFind)
                 }
               }))
@@ -199,7 +181,10 @@ export default async function handler(
           }
         })
 
-        const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+        const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+
+        const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
@@ -207,15 +192,34 @@ export default async function handler(
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
           conditions: sharedCodes || [],
-          groups: groupsByValueSetCanonical[matchingGroup || 'Undefined']
+          groups: groupsVsBelongsTo
         }
-        return result
-      })
+
+        const groupCanonicalsToFilterBy = req?.query?.groups?.split(',')
+
+        const valueSetInAllowedGroup = () => {
+          // if no group filters active, valueset is allowed
+          if (!groupCanonicalsToFilterBy) return true
+          // if only one filter selected, it must match
+          if (groupCanonicalsToFilterBy?.length === 1) {
+            // do the vs groups include the filtered group
+            return !!groupsVsBelongsTo?.find(g => groupCanonicalsToFilterBy.includes(g?.url))
+          }
+          // if there are more than 1 group, the valuesets must match ALL active group filters
+          return groupCanonicalsToFilterBy?.every((canonical: string) => groupsVsBelongsTo?.find(g => g?.url === canonical))
+        }
+
+        if (valueSetInAllowedGroup()) {
+          return result
+        }
+      }).filter(x => x)
 
       const composedResponse = {
         data: response,
-        groupsInProgram: grouperVSets
+        groupsInProgram: allGrouperVSets
       }
+
+      console.log('composedResponse: ', composedResponse)
 
       res.status(200).send(composedResponse)
 
