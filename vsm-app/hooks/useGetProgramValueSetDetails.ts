@@ -62,9 +62,9 @@ const useGetProgramValueSetDetails = (
 
       queries.forEach((queryItem, idx) => {
         if (idx == 0) {
-          endpoint.concat(`?${queryItem}`)
+          endpoint = endpoint.concat(`?${queryItem}`)
         } else {
-          endpoint.concat(`&${queryItem}`)
+          endpoint = endpoint.concat(`&${queryItem}`)
         }
       })
 
