@@ -1,4 +1,4 @@
-import React, { useMemo, useState, ChangeEvent } from 'react'
+import React, { useMemo, useState } from 'react'
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -7,9 +7,9 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
-import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle } from '..'
+import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 
 const customStyles = {
@@ -81,12 +81,6 @@ const SelectGroup = styled.div`
   flex-direction: column;
 `
 
-const ButtonContainer = styled.div`
-  width: 36px;
-  height: 36px;
-  margin-top: 16px;
-`
-
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
@@ -99,8 +93,7 @@ interface ConditionItem {
   display: string
 }
 
-// fix types when actually using conditions
-const formatConditions = (conditionsList: any) => {
+export const formatConditionsValueSet = (conditionsList: any) => {
   const list = conditionsList?.map((c: any) => (
     c?.concept?.map((item: any) => ({
       system: c.system,
@@ -125,14 +118,18 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
-  const identifier = router.query.id as string
+  const programId = router.query.id as string
   const [findInVsName, setFindInVsName] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
-  const progValueSetDets = useGetProgramValueSetDetails(identifier, findInVsName, activeGroups)
+  const [activeConditions, setActiveConditions] = useState([])
+  const progValueSetDets = useGetProgramValueSetDetails(
+    programId,
+    findInVsName,
+    activeGroups,
+    activeConditions
+  )
   const conditions = useGetConditions()
-  
-  const formattedConditions = formatConditions(conditions)
-  
+  const allConditions = formatConditionsValueSet(conditions)
   // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
   
@@ -145,15 +142,6 @@ const ProgramValueSetDetails: NextPage = () => {
       return 0
     }
   )
-  
-
-  const onClick = () => {
-    router.push('/valuesets')
-  }
-  
-  const handleFilterResults = (e: React.MouseEvent<Element, MouseEvent>) => {
-    e.preventDefault()
-  }
 
   const columns = useMemo(() => [
     {
@@ -215,7 +203,7 @@ const ProgramValueSetDetails: NextPage = () => {
       )
     }
   ], [router])
-  
+
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
     const target = e.target as HTMLInputElement;
     setFindInVsName(target.value)
@@ -226,7 +214,7 @@ const ProgramValueSetDetails: NextPage = () => {
       <Row>
         <PageTitle>Program ValueSet Details
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
-          <Id><FieldTitle>ID</FieldTitle>{identifier}</Id>
+          <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
         </PageTitle>
       </Row>
       <SearchOptions>
@@ -259,26 +247,21 @@ const ProgramValueSetDetails: NextPage = () => {
                 />
               </SelectGroup>
             )}
-            {formattedConditions && (
+            {allConditions && (
               <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="input-selector">
+                <StyledLabel id="aria-label" htmlFor="conditions-selector">
                   Conditions
                 </StyledLabel>
                 <Select
                   classNamePrefix='conditions'
-                  inputId='input-selector'
+                  inputId='conditions-selector'
                   isMulti
-                  options={buildConditionOptions(formattedConditions)}
+                  options={buildConditionOptions(allConditions)}
+                  // @ts-expect-error
+                  onChange={(e) => {setActiveConditions(e)}}
                 />
               </SelectGroup>
             )}
-            <ButtonContainer>
-              <IconButton
-                type='submit'
-                buttonContext='search'
-                onClick={(e) => handleFilterResults(e)}
-              />
-            </ButtonContainer>
           </SelectContainer>
         </div>
       </SearchOptions>

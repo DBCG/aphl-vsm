@@ -4,17 +4,30 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
+import { formatConditionsValueSet } from 'pages/programs/[id]/valuesets'
 
 // Items in the table
 interface Group {
   id: string
   title: string
+  url: string
 }
 
+interface FormattedVSItem {
+  system: string
+  version: string
+  code: string
+  display?: string
+}
+
+
 interface ValueSetTableEntry {
+  programName: string
+  programId: string
   title: string
   canonical: string
   version: string
+  conditions: FormattedVSItem[]
   groups: Group[]
 }
 
@@ -87,34 +100,25 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
 
   if (req.method === 'GET') {
     let leafValueSets: fhir4.ValueSet[] = []
+    let allGrouperVSets: fhir4.ValueSet[] | [] = []
 
     try {
       const program = await fetchProgram(req.query.id as string)
       const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL as string)
-      let grouperVSets: fhir4.ValueSet[] | [] = []
-
-      const allowedGrouper = (canonicalToSearch: string): boolean => {
-        if (typeof req.query.groups === 'string' && req.query.groups !== '') {
-          const splitGroups = req?.query?.groups?.split(',')
-          return splitGroups?.includes(canonicalToSearch)
-        }
-        return true
-      }
 
       if (is.library(program)) {
-        // get the grouper canonial
+        // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
-        const grouperCanonical = program.relatedArtifact
+        const grouperLibraryCanonical = program.relatedArtifact
           ?.find(related => related.resource?.includes('/Library/'))
           ?.resource
 
-        if (grouperCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(grouperCanonical)
+        if (grouperLibraryCanonical) {
+          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical)
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
@@ -123,44 +127,32 @@ export default async function handler(
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
               .filter(isDefinedString)
-
             if (grouperValueSetCanonicals) {
-              const grouperValueSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
+              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
 
-              grouperVSets = grouperValueSets
+              const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
+                const groupTitle = grouperVs?.title || ''
+                const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
 
-              // if a user has constrained by filtering groupers, show only those indicated
-              const filteredValueSets = grouperValueSets?.filter(vs => allowedGrouper(vs?.url as string))
-
-              const leafValueSetResult = await Promise.all(filteredValueSets.map(valueset => {
-                const groupTitle = valueset?.title || ''
-                const leafUrls = valueset?.compose?.include?.[0]?.valueSet
-
+                // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
+                  const groupToAdd = {
+                    id: grouperVs.id || 'Undefined',
+                    url: grouperVs.url || 'Undefined',
+                    title: groupTitle
+                  }
                   if (groupsByValueSetCanonical[url]) {
-                    groupsByValueSetCanonical[url].push({
-                      id: valueset.id || 'Undefined',
-                      title: groupTitle
-                    })
+                    groupsByValueSetCanonical[url].push(groupToAdd)
                   } else {
-                    groupsByValueSetCanonical[url] = [
-                      {
-                        id: valueset.id || 'Undefined',
-                        title: groupTitle
-                      }
-                    ]
+                    groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
 
                 if (leafUrls) {
-
                   const stringToFind = req.query.findInVsName as string | undefined
-                  // we do not have version info stored re: leaf valuesets
-                  // a search for a particular url yields many versions
-                  // because we cannot constrain by version
                   return fetchLeafValueSets(leafUrls, stringToFind)
                 }
               }))
@@ -170,51 +162,74 @@ export default async function handler(
         }
       }
 
-      const response: ValueSetTableEntry[] = leafValueSets.map(valueSet => {
+      const response = leafValueSets?.map(valueSet => {
         // condition VS is static, in our CDR
-        // only snomed for now, but is an array of code sets by system
-        const conceptCodesFromConditionVS: fhir4.ValueSetComposeInclude | undefined = conditionsVS?.compose?.include
+        // only snomed for now, but is an array of codesets grouped by system
+        const formattedConditionsVs: FormattedVSItem[] | undefined = formatConditionsValueSet(conditionsVS?.compose?.include)
+        const formattedConditionsFromLeaf: FormattedVSItem[] | undefined = formatConditionsValueSet(valueSet?.compose?.include)
 
-        // leaf valuesets come from VSAC currently, will come from cache
-        const conceptsFromLeaf = valueSet?.compose?.include
-
-        let sharedCodes: fhir4.ValueSetComposeIncludeConcept[] = []
-
+        let conditionCodesInValueSet: fhir4.ValueSetComposeIncludeConcept[] = []
         // loop through all of the concept code sets from the valueSet
-        // if the systems match and the code is in the RCKMS valueset, push to the shared arr
-        conceptsFromLeaf?.forEach(codeSet => {
-          const currentLeafCodeSystem = codeSet?.system
-          let matchingSystemBlock: fhir4.ValueSetComposeInclude | undefined
-          if (Array.isArray(conceptCodesFromConditionVS)) {
-            matchingSystemBlock = conceptCodesFromConditionVS?.find(set => set?.system === currentLeafCodeSystem)
-          }
-          if (matchingSystemBlock) {
-            codeSet?.concept?.forEach(concept => {
-              const codeToSearch = concept?.code
-              const foundCodeInRCKMS: fhir4.ValueSetComposeIncludeConcept | undefined = matchingSystemBlock?.concept?.find(obj => obj?.code === codeToSearch)
-              if (foundCodeInRCKMS) {
-                sharedCodes?.push(foundCodeInRCKMS)
-              }
-            })
+        formattedConditionsFromLeaf?.forEach(leafConditionItem => {
+          let itemMatchingRCKMS = formattedConditionsVs?.find(vsConditionItem => (
+            leafConditionItem?.system == vsConditionItem?.system &&
+            leafConditionItem?.code == vsConditionItem?.code
+          ))
+          if (itemMatchingRCKMS) {
+            conditionCodesInValueSet?.push(itemMatchingRCKMS)
           }
         })
 
-        const matchingGroup = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+        const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+
+        const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
-          conditions: sharedCodes || [],
-          groups: groupsByValueSetCanonical[matchingGroup || 'Undefined']
+          conditions: conditionCodesInValueSet || [],
+          groups: groupsVsBelongsTo
         }
-        return result
-      })
+
+        const filterGroups = req?.query?.groups as string | undefined
+        const filterConditions = req?.query?.conditions as string | undefined
+        const groupCanonicalsToFilterBy = filterGroups?.split(',')
+        const conditionCodesToFilterBy = filterConditions?.split(',')
+
+        const valueSetInAllowedGroup = () => {
+          // if no group filters active, valueset is allowed by default
+          if (!groupCanonicalsToFilterBy) return true
+          // if only one filter selected
+          if (groupCanonicalsToFilterBy?.length === 1) {
+            // do the vs groups include the filtered group
+            return !!groupsVsBelongsTo?.find(g => groupCanonicalsToFilterBy.includes(g?.url))
+          }
+          // if there's more than 1 group, the valuesets must match ALL active group filters
+          return groupCanonicalsToFilterBy?.every((canonical: string) => groupsVsBelongsTo?.find(g => g?.url === canonical))
+        }
+
+        const valueSetContainsRequiredCondition = () => {
+          // if no filters active, the result is allowed by default
+          if (!conditionCodesToFilterBy) return true
+          // if only one filter selected
+          if (conditionCodesToFilterBy.length == 1) {
+            return conditionCodesInValueSet?.find(item => conditionCodesToFilterBy.includes(item?.code))
+          }
+          // if more than 1 condition, valuesets must match all condition filters
+          return conditionCodesToFilterBy?.every((code: string) => conditionCodesInValueSet?.find(c => c?.code === code))
+        }
+
+        if (valueSetInAllowedGroup() && valueSetContainsRequiredCondition()) {
+          return result
+        }
+      }).filter(x => x) as ValueSetTableEntry[] // filter out any undefined items
 
       const composedResponse = {
         data: response,
-        groupsInProgram: grouperVSets
+        groupsInProgram: allGrouperVSets
       }
 
       res.status(200).send(composedResponse)
