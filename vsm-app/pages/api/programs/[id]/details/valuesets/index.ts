@@ -27,7 +27,7 @@ interface ValueSetTableEntry {
   title: string
   canonical: string
   version: string
-  conditions: string
+  conditions: FormattedVSItem[]
   groups: Group[]
 }
 
@@ -162,7 +162,7 @@ export default async function handler(
         }
       }
 
-      const response: ValueSetTableEntry[] = leafValueSets?.map(valueSet => {
+      const response = leafValueSets?.map(valueSet => {
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
         const formattedConditionsVs: FormattedVSItem[] | undefined = formatConditionsValueSet(conditionsVS?.compose?.include)
@@ -225,7 +225,7 @@ export default async function handler(
         if (valueSetInAllowedGroup() && valueSetContainsRequiredCondition()) {
           return result
         }
-      }).filter(x => x)
+      }).filter(x => x) as ValueSetTableEntry[] // filter out any undefined items
 
       const composedResponse = {
         data: response,
