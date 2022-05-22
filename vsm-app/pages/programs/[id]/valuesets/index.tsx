@@ -81,6 +81,10 @@ const SelectGroup = styled.div`
   flex-direction: column;
 `
 
+const SelectInputContainer = styled.div`
+  width: 400px;
+`
+
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
@@ -108,12 +112,18 @@ export const formatConditionsValueSet = (conditionsList: any) => {
   )
 }
 
-const buildConditionOptions = (conditions: ConditionItem[]) => {
-  return conditions.map(c => ({ value: c.code, label: c.display }))
+const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
+  return groupVsets?.map(g => ({ value: g.url, label: g.title }))
 }
 
-const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets.map(g => ({ value: g.url, label: g.title }))
+const buildConditionOptions = (conditions: ConditionItem[]) => {
+  const flattenedConditions = conditions?.flat(2)
+  const result = flattenedConditions?.map(c => (
+    {
+      value: { system: c.system, version: c.version, code: c.code },
+      label: c.display
+    }))
+  return result
 }
 
 const ProgramValueSetDetails: NextPage = () => {
@@ -161,32 +171,47 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: 'Conditions',
       selector: (row: DataItem) => row.conditions,
-      sortable: true,
-      maxWidth: '300px',
+      sortable: false,
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {/* @ts-ignore-error */}
-            {row?.conditions?.map(c => <Li key={c?.display}>{c?.display}</Li>)}
-          </Ul>
-        </Col>
-      )
+      cell: (row: DataItem) => {
+        const selectedOptions = row?.conditions?.map(i => (
+          { label: i?.display, value: i?.code }
+        ))
+        return (
+          <SelectInputContainer>
+            <Select
+              isMulti={true}
+              options={buildConditionOptions(allConditions)}
+              value={selectedOptions}
+              // onChange={(conditionInfo) => conditionInfo && setUpdateVSConditions({
+              //   canonical: row.canonical, version: row.version, conditionInfo
+              // })}
+            />
+          </SelectInputContainer>
+        )
+      }
     },
     {
       name: 'Groups',
       selector: (row: DataItem) => row.groups,
-      sortable: true,
-      maxWidth: '250px',
+      sortable: false,
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {row?.groups?.map((g: any) => <Li key={g?.title}>{g?.title}</Li>)}
-          </Ul>
-        </Col>
-      )
-      
+      cell: (row: DataItem) => {
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
+        return (
+          <SelectInputContainer>
+            <Select
+              classNamePrefix='groups'
+              inputId='groups-selector'
+              isMulti={true}
+              options={buildGroupOptions(groupsInProgram)}
+              value={selectedOptions}
+              // @ts-expect-error
+              // onChange={(e) => {setActiveGroups(e)}}
+            />
+          </SelectInputContainer>
+        )
+      }
     },
     {
       name: 'Remove ValueSet',
@@ -202,7 +227,7 @@ const ProgramValueSetDetails: NextPage = () => {
         />
       )
     }
-  ], [router])
+  ], [router, groupsInProgram])
 
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
     const target = e.target as HTMLInputElement;
