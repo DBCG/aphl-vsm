@@ -56,7 +56,6 @@ const useGetProgramValueSetDetails = (
       }
 
       if (activeConditions.length) {
-        console.log('active Condtiions: ', activeConditions)
         const codes = activeConditions.map(g => g.value.code)
         const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
