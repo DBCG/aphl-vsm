@@ -20,6 +20,15 @@ export interface DataItem {
   version: string
 }
 
+interface ConditionUpdateItem {
+  label: string,
+  value: {
+    code: string,
+    system: string,
+    version: string
+  }
+}
+
 interface Result {
   data: DataItem,
   groupsInProgram: fhir4.ValueSet[]
@@ -30,7 +39,8 @@ const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
   activeGroups: [] | Group[],
-  activeConditions: [] | Group[]
+  activeConditions: [] | Group[],
+  updatedValueSet: fhir4.ValueSet | undefined
 ): Result | {} => {
   const [data, setData] = useState({})
 
@@ -72,6 +82,7 @@ const useGetProgramValueSetDetails = (
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
         if (!programJson.error) {
+          console.log('JSON here: ', programJson)
           setData(programJson)
         } else {
           console.error(programJson.error)
@@ -80,10 +91,11 @@ const useGetProgramValueSetDetails = (
         console.error('error: ', e)
       }
     }
+
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions])
+  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet])
 
   return data
 }

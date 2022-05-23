@@ -5,6 +5,7 @@ import { fhirCdrClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 import { formatConditionsValueSet } from 'pages/programs/[id]/valuesets'
+import { updateConditions } from '@/helpers/conditionHelpers'
 
 // Items in the table
 interface Group {
@@ -27,6 +28,7 @@ interface ValueSetTableEntry {
   title: string
   canonical: string
   version: string
+  valueSet?: fhir4.ValueSet | undefined
   conditions: FormattedVSItem[]
   groups: Group[]
 }
@@ -157,15 +159,17 @@ export default async function handler(
                 }
               }))
               leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
+              console.log('LeafVS', JSON.stringify(leafValueSets, null, 2))
             }
           }
         }
       }
 
+      const formattedConditionsVs: FormattedVSItem[] | undefined = formatConditionsValueSet(conditionsVS?.compose?.include)
+
       const response = leafValueSets?.map(valueSet => {
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
-        const formattedConditionsVs: FormattedVSItem[] | undefined = formatConditionsValueSet(conditionsVS?.compose?.include)
         const formattedConditionsFromLeaf: FormattedVSItem[] | undefined = formatConditionsValueSet(valueSet?.compose?.include)
 
         let conditionCodesInValueSet: fhir4.ValueSetComposeIncludeConcept[] = []
@@ -190,6 +194,7 @@ export default async function handler(
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
+          valueSet: valueSet,
           conditions: conditionCodesInValueSet || [],
           groups: groupsVsBelongsTo
         }
@@ -231,12 +236,28 @@ export default async function handler(
         data: response,
         groupsInProgram: allGrouperVSets
       }
-
       res.status(200).send(composedResponse)
 
     } catch (e: any) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
+  } if (req.method === 'PUT') {
+    const body = JSON.parse(req.body)
+    const valuesetId = body?.canonical?.split('/ValueSet/')?.[1]
+    // need to identify by version, too... can do w/ read?
+    const valueSetToUpdate = await fhirCdrClient.read({ resourceType: 'ValueSet', id: valuesetId }) as fhir4.ValueSet
+
+    const updatedValueSet = updateConditions(valueSetToUpdate, body.conditionInfo)
+
+    const updated = await fhirCdrClient.update({
+      resourceType: 'ValueSet',
+      id: valuesetId,
+      body: updatedValueSet
+    })
+
+    console.log('updated: ', updated)
+
+    res.status(200).send(updated)
   }
 }
