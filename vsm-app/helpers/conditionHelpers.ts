@@ -1,7 +1,11 @@
 interface Condition {
-  system: string,
-  code: string,
-  text?: string
+  label: string,
+  value: {
+    system: string,
+    version: string,
+    code: string,
+    text?: string
+  }
 }
 
 interface UsageContextItem {
@@ -17,14 +21,14 @@ const buildConditionItem = (condition: Condition) => {
     },
     valueCodeableConcept: {
       coding: [{
-        system: condition.system,
-        code: condition.code
+        system: condition.value.system,
+        code: condition.value.code
       }],
     }
   } as UsageContextItem
 
   // if optional human-readable text field exists, add it
-  if (condition.text) conditionItem.valueCodeableConcept.text = condition.text
+  if (condition.label) conditionItem.valueCodeableConcept.text = condition.label
   return conditionItem
 }
 
@@ -43,7 +47,6 @@ const updateConditions = (valueSet: fhir4.ValueSet, conditions: Condition[]) => 
   } else if (!vs?.useContext && conditions?.length) {
     vs.useContext = conditions?.map(c => buildConditionItem(c))
   }
-
   return vs
 }
 
