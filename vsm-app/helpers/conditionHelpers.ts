@@ -39,6 +39,7 @@ const updateConditions = (valueSet: fhir4.ValueSet, conditions: Condition[]) => 
     const nonConditionContexts = vs?.useContext?.filter(ctx => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus'))
     const conditionContexts = conditions?.map(c => buildConditionItem(c))
     if (nonConditionContexts?.length || conditionContexts?.length) {
+
       vs.useContext = [
         ...nonConditionContexts,
         ...conditionContexts

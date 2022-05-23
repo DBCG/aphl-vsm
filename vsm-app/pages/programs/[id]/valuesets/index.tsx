@@ -11,7 +11,6 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle } from '..'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { fhirCdrClient } from 'fhirClients'
 
 const customStyles = {
   cells: {
@@ -107,17 +106,21 @@ const buildConditionOptions = (conditions: ConditionItem[]) => {
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
+  // filter updates
   const [findInVsName, setFindInVsName] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
+  // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState([])
+  const [updateGroup, setUpdateGroup] = useState({})
 
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+  const [updatedGrouper, setUpdatedGrouper] = useState<fhir4.Library>()
 
   console.log('updated valuesets in FE: ', updatedValueSet)
 
   useEffect(() => {
-    let endpoint = `/api/programs/${programId}/details/valuesets`
+    let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
       let updatedVs = fetch(endpoint, {
         method: 'PUT',
@@ -132,6 +135,23 @@ const ProgramValueSetDetails: NextPage = () => {
     postUpdate()
 
   }, [conditionToUpdate, programId])
+
+  useEffect(() => {
+    let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+
+    const updateValuesetsInGroupers = async () => {
+      let updatedGrouper = fetch(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify(updateGroup)
+      }).then(res => res.json())
+
+      let json = await updatedGrouper
+      setUpdatedGrouper(json)
+    }
+
+    updateValuesetsInGroupers()
+
+  }, [updateGroup, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
@@ -181,33 +201,25 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        console.log('row: ', row)
         const selectedOptions = row?.valueSet?.useContext?.map(i => {
-          console.log('i: ', i)
           if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
             return ({
               label: i?.valueCodeableConcept?.text,
               value: {
                 system: i?.valueCodeableConcept?.coding?.[0]?.system,
-                // version: i?.valueCodeableConcept?.text,
                 code: i?.valueCodeableConcept?.coding?.[0]?.code,
-                text: i?.text
+                text: i?.valueCodeableConcept?.text
               }
             })
             }
-          
-        })
-  
-        // })
+        }).filter(x => x)
         return (
           <SelectInputContainer>
             <Select
               isMulti={true}
-              // @ts-expect-error
               options={buildConditionOptions(allConditions)}
               value={selectedOptions}
-              // onChange={(e) => console.log(e)}
-              // should block add if already exists
+              // TODO should block add if already exists
               onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
                 canonical: row.canonical, version: row.version, conditionInfo
               })}
@@ -222,7 +234,7 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
         return (
           <SelectInputContainer>
             <Select
@@ -232,6 +244,7 @@ const ProgramValueSetDetails: NextPage = () => {
               // @ts-expect-error
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
+              onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
               // @ts-expect-error
               // onChange={(e) => {setActiveGroups(e)}}
             />
@@ -294,7 +307,10 @@ const ProgramValueSetDetails: NextPage = () => {
                   isMulti
                   options={buildGroupOptions(alphabetizedGroups)}
                   // @ts-expect-error
-                  onChange={(e) => {setActiveGroups(e)}}
+                  onChange={(e) => {
+                    console.log('active groups ', e)
+                    setActiveGroups(e)
+                  }}
                 />
               </SelectGroup>
             )}

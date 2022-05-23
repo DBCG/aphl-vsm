@@ -175,6 +175,7 @@ export default async function handler(
         let conditionCodesInValueSet: fhir4.ValueSetComposeIncludeConcept[] = []
         // loop through all of the concept code sets from the valueSet
         formattedConditionsFromLeaf?.forEach(leafConditionItem => {
+          console.log('leaf VS: ', leafConditionItem)
           let itemMatchingRCKMS = formattedConditionsVs?.find(vsConditionItem => (
             leafConditionItem?.system == vsConditionItem?.system &&
             leafConditionItem?.code == vsConditionItem?.code
@@ -195,7 +196,6 @@ export default async function handler(
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
           valueSet: valueSet,
-          conditions: conditionCodesInValueSet || [],
           groups: groupsVsBelongsTo
         }
 
@@ -217,6 +217,8 @@ export default async function handler(
         }
 
         const valueSetContainsRequiredCondition = () => {
+          console.log('condition codes to filter by: ', conditionCodesToFilterBy)
+          console.log('condition codes in vs: ', conditionCodesInValueSet)
           // if no filters active, the result is allowed by default
           if (!conditionCodesToFilterBy) return true
           // if only one filter selected
@@ -242,22 +244,5 @@ export default async function handler(
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
-  } if (req.method === 'PUT') {
-    const body = JSON.parse(req.body)
-    const valuesetId = body?.canonical?.split('/ValueSet/')?.[1]
-    // need to identify by version, too... can do w/ read?
-    const valueSetToUpdate = await fhirCdrClient.read({ resourceType: 'ValueSet', id: valuesetId }) as fhir4.ValueSet
-
-    const updatedValueSet = updateConditions(valueSetToUpdate, body.conditionInfo)
-
-    const updated = await fhirCdrClient.update({
-      resourceType: 'ValueSet',
-      id: valuesetId,
-      body: updatedValueSet
-    })
-
-    console.log('updated: ', updated)
-
-    res.status(200).send(updated)
   }
 }

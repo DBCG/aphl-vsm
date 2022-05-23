@@ -14,19 +14,10 @@ interface GroupItem {
 export interface DataItem {
   programName: string,
   programId: string,
-  conditions: [],
   groups: GroupItem[],
   title: string,
-  version: string
-}
-
-interface ConditionUpdateItem {
-  label: string,
-  value: {
-    code: string,
-    system: string,
-    version: string
-  }
+  version: string,
+  valueSet: fhir4.ValueSet
 }
 
 interface Result {
@@ -65,8 +56,9 @@ const useGetProgramValueSetDetails = (
       }
 
       if (activeConditions.length) {
-        const canonicals = activeConditions.map(g => g.value)
-        const result = canonicals.join(',')
+        console.log('active Condtiions: ', activeConditions)
+        const codes = activeConditions.map(g => g.value.code)
+        const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
