@@ -1,31 +1,8 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
+import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 
-// value is the canonical for the grouper to update
-interface GroupInfoItem {
-  label: string,
-  value: string,
-}
-
-const addValueSetToGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet || []
-  if (!leafVSetsInGroup.length) {
-    // need to make a new array
-  } else {
-    if (!leafVSetsInGroup.includes(valueSetCanonical)) {
-      leafVSetsInGroup.push(valueSetCanonical)
-      vs.compose.include.[0].valueSet = leafVSetsInGroup
-    }
-  }
-  return vs
-}
-
-const removeValueSetFromGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fhir4.ValueSet => {
-  const leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet?.filter(leafCanonical => leafCanonical !== valueSetCanonical)
-  vs.compose.include.[0].valueSet = leafVSetsInGroup
-  return vs
-}
 
 export default async function handler(
   req: NextApiRequest,
