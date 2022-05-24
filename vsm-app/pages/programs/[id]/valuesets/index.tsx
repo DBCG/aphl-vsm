@@ -107,7 +107,7 @@ export const formatConditionsValueSet = (conditionsList: any) => {
 }
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets?.map(g => ({ value: g.url, label: g.title }))
+  return groupVsets?.map(g => ({ value: g.id, label: g.title }))
 }
 
 const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
@@ -126,8 +126,6 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
   return result
 }
 
-
-
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
@@ -137,7 +135,9 @@ const ProgramValueSetDetails: NextPage = () => {
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
+  const [updateVsGroups, setUpdateVsGroups] = useState({})
 
+  const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
 
   useEffect(() => {
@@ -153,17 +153,32 @@ const ProgramValueSetDetails: NextPage = () => {
         setUpdatedValueSet(json)
       }
     }
-
     postUpdate()
-
   }, [conditionToUpdate, programId])
+
+    useEffect(() => {
+      let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+    const postUpdate = async () => {
+      if (updateVsGroups?.groupInfo) {
+        let updatedVs = fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(updateVsGroups)
+        }).then(res => res.json())
+  
+        let json = await updatedVs
+        setUpdatedGrouperValueSets(json)
+      }
+    }
+    postUpdate()
+  }, [updateVsGroups, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
     activeGroups,
     activeConditions,
-    updatedValueSet
+    updatedValueSet,
+    updatedGrouperValuesets
   )
   
   useEffect(() => {
@@ -239,7 +254,7 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
         return (
           <SelectInputContainer>
             <Select
@@ -249,8 +264,10 @@ const ProgramValueSetDetails: NextPage = () => {
               // @ts-expect-error
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
-              // onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
-              // onChange={(e) => {setActiveGroups(e)}}
+              onChange={e => {
+                setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
+              }
+              }
             />
           </SelectInputContainer>
         )

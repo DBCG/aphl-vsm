@@ -4,8 +4,6 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
-import { formatConditionsValueSet } from 'pages/programs/[id]/valuesets'
-import { updateConditions } from '@/helpers/conditionHelpers'
 
 // Items in the table
 interface Group {
@@ -41,11 +39,6 @@ const fetchProgram = (id: string) => {
   return fhirCdrClient.read({ resourceType: 'Library', id })
 }
 
-const fetchConditionsVS = (canonical: string) => {
-  const id = canonical?.split('/')?.slice(-1)?.[0]
-  return fhirCdrClient.read({ resourceType: 'ValueSet', id })
-}
-
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
   const cachedCopy = cache.get(canonical)
   if (cachedCopy) { return cachedCopy }
@@ -64,7 +57,9 @@ const fetchGrouperLibrary = (canonical: string) => {
 }
 
 const fetchGrouperValueSets = (canonicals: string[]) => {
-  return Promise.all(canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical)))
+  return Promise.all(
+    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical))
+  )
 }
 
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
@@ -110,7 +105,6 @@ export default async function handler(
 
     try {
       const program = await fetchProgram(req.query.id as string)
-      const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL as string)
 
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
@@ -121,6 +115,7 @@ export default async function handler(
 
         if (grouperLibraryCanonical) {
           const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical)
+
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library

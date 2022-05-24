@@ -43,7 +43,8 @@ const useGetProgramValueSetDetails = (
   findInVsName: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
-  updatedValueSet: fhir4.ValueSet | undefined
+  updatedValueSet: fhir4.ValueSet | undefined,
+  updatedGrouperValueSets
 ): Result | {} => {
   const [data, setData] = useState({})
 
@@ -97,7 +98,7 @@ const useGetProgramValueSetDetails = (
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet])
+  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet, updatedGrouperValueSets])
 
   return data
 }
