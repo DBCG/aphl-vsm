@@ -159,7 +159,6 @@ export default async function handler(
                 }
               }))
               leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
-              console.log('LeafVS', JSON.stringify(leafValueSets, null, 2))
             }
           }
         }
@@ -207,7 +206,7 @@ export default async function handler(
           if (!conditionCodesToFilterBy) return true
           // if only one filter selected
           if (conditionCodesToFilterBy.length == 1) {
-            return useContextConditions?.find(item => conditionCodesToFilterBy.includes(item?.valueCodeableConcept?.coding?.[0]?.code))
+            return useContextConditions?.find(item => conditionCodesToFilterBy?.includes(item?.valueCodeableConcept?.coding?.[0]?.code as string))
           }
           // if more than 1 condition, valuesets must match all condition filters
           return conditionCodesToFilterBy?.every((code: string) => useContextConditions?.find(c => c?.valueCodeableConcept?.coding?.[0]?.code === code))

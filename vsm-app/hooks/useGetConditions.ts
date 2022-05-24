@@ -18,7 +18,7 @@ const useGetConditions = (): [] | fhir4.ValueSetComposeInclude => {
         }
       } catch (e) {
         setConditions([])
-        console.log('Error in useGetConditions: ', e)
+        console.error('Error in useGetConditions: ', e)
       }
     }
     void getConditions()

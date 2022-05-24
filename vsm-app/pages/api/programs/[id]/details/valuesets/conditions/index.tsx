@@ -21,8 +21,6 @@ export default async function handler(
       body: updatedValueSet
     })
 
-    console.log('updated: ', updated)
-
     res.status(200).send(updated)
   }
 }

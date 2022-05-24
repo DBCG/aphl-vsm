@@ -7,11 +7,23 @@ interface Group {
 }
 
 interface GroupItem {
+  url: string,
   id: string,
   title: string
 }
 
+interface ConditionItem {
+  label: string,
+  value: {
+    system: string,
+    code: string,
+    text: string,
+    version: string
+  }
+}
+
 export interface DataItem {
+  canonical: string,
   programName: string,
   programId: string,
   groups: GroupItem[],
@@ -30,7 +42,7 @@ const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
   activeGroups: [] | Group[],
-  activeConditions: [] | Group[],
+  activeConditions: [] | ConditionItem[],
   updatedValueSet: fhir4.ValueSet | undefined
 ): Result | {} => {
   const [data, setData] = useState({})
@@ -56,6 +68,7 @@ const useGetProgramValueSetDetails = (
       }
 
       if (activeConditions.length) {
+        console.log('activeConditions: ', activeConditions)
         const codes = activeConditions.map(g => g.value.code)
         const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
@@ -73,7 +86,6 @@ const useGetProgramValueSetDetails = (
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
         if (!programJson.error) {
-          console.log('JSON here: ', programJson)
           setData(programJson)
         } else {
           console.error(programJson.error)

@@ -80,7 +80,9 @@ export const formatConditionsValueSet = (conditionsList: any) => {
       system: c.system,
       version: c.version,
       code: item.code,
-      display: item?.designation?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')?.value || c?.display || ''
+      display: item?.designation
+        ?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')
+        ?.value || c?.display || ''
     }))
   )).flat()
   // sort by display
@@ -97,7 +99,12 @@ const buildConditionOptions = (conditions: ConditionItem[]) => {
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions?.map(c => (
     {
-      value: { system: c.system, version: c.version, code: c.code, text: c.display },
+      value: {
+        system: c.system,
+        version: c.version,
+        code: c.code,
+        text: c.display
+      },
       label: c.display
     }))
   return result
@@ -111,13 +118,11 @@ const ProgramValueSetDetails: NextPage = () => {
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState([])
+  const [conditionToUpdate, setConditionToUpdate] = useState({})
   const [updateGroup, setUpdateGroup] = useState({})
 
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   const [updatedGrouper, setUpdatedGrouper] = useState<fhir4.Library>()
-
-  console.log('updated valuesets in FE: ', updatedValueSet)
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
@@ -128,7 +133,6 @@ const ProgramValueSetDetails: NextPage = () => {
       }).then(res => res.json())
 
       let json = await updatedVs
-      console.log('updatedVs: ', updatedVs)
       setUpdatedValueSet(json)
     }
 
@@ -162,7 +166,6 @@ const ProgramValueSetDetails: NextPage = () => {
   )
   
   useEffect(() => {
-    console.log('dets: ', progValueSetDets)
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
@@ -213,6 +216,7 @@ const ProgramValueSetDetails: NextPage = () => {
             })
             }
         }).filter(x => x)
+        console.log('row is: ', row)
         return (
           <SelectInputContainer>
             <Select
@@ -234,6 +238,7 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
+        console.log('row.groups: ', row.groups)
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
         return (
           <SelectInputContainer>
@@ -245,7 +250,6 @@ const ProgramValueSetDetails: NextPage = () => {
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
               onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
-              // @ts-expect-error
               // onChange={(e) => {setActiveGroups(e)}}
             />
           </SelectInputContainer>
@@ -306,9 +310,8 @@ const ProgramValueSetDetails: NextPage = () => {
                   inputId='groups-selector'
                   isMulti
                   options={buildGroupOptions(alphabetizedGroups)}
-                  // @ts-expect-error
                   onChange={(e) => {
-                    console.log('active groups ', e)
+                    // @ts-expect-error
                     setActiveGroups(e)
                   }}
                 />
