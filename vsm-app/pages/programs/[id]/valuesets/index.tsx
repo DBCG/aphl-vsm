@@ -136,7 +136,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({})
-
+  // returned data from PUT operations
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
 
@@ -153,11 +153,13 @@ const ProgramValueSetDetails: NextPage = () => {
         setUpdatedValueSet(json)
       }
     }
+    setUpdatedGrouperValueSets([])
     postUpdate()
   }, [conditionToUpdate, programId])
 
     useEffect(() => {
       let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+      console.log('updateVsGroups: ', updateVsGroups)
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         let updatedVs = fetch(endpoint, {
@@ -170,7 +172,7 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     }
     postUpdate()
-  }, [updateVsGroups, programId])
+  }, [updateVsGroups.groupInfo, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
@@ -265,6 +267,7 @@ const ProgramValueSetDetails: NextPage = () => {
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
               onChange={e => {
+                console.log('selected groups e: ', e)
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
               }
               }

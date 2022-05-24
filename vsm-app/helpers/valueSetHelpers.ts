@@ -1,7 +1,12 @@
+import set from 'lodash.set'
+
 const addValueSetToGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fhir4.ValueSet => {
   let leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet || []
   if (!leafVSetsInGroup.length) {
-    // need to make a new array
+    // need to make a new path
+    const path = 'compose.include[0].valueSet'
+    const valueToAdd = [valueSetCanonical]
+    set(vs, path, valueToAdd)
   } else {
     if (!leafVSetsInGroup.includes(valueSetCanonical)) {
       leafVSetsInGroup.push(valueSetCanonical)
@@ -12,9 +17,15 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fh
 }
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fhir4.ValueSet => {
-  const leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet
-    ?.filter(leafCanonical => leafCanonical !== valueSetCanonical)
-  vs.compose.include.[0].valueSet = leafVSetsInGroup
+  let leafVsInGroup = vs.compose.include.[0].valueSet
+  console.log('leafVsInGroup: ', leafVsInGroup)
+  if (leafVsInGroup) {
+    const updatedLeafVsInGroup = vs?.compose?.include?.[0]?.valueSet
+      ?.filter(leafCanonical => leafCanonical !== valueSetCanonical)
+    vs.compose.include.[0].valueSet = updatedLeafVsInGroup
+  } else {
+    console.error('no leaf valuesets exist in this group')
+  }
   return vs
 }
 

@@ -74,6 +74,11 @@ const useGetProgramValueSetDetails = (
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
+      if (updatedGrouperValueSets.length) {
+        console.log('updatedGrouperValueSets ', updatedGrouperValueSets)
+        queries.push('useCache=false')
+      }
+
       queries.forEach((queryItem, idx) => {
         if (idx == 0) {
           endpoint = endpoint.concat(`?${queryItem}`)

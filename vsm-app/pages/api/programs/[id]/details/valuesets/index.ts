@@ -39,9 +39,9 @@ const fetchProgram = (id: string) => {
   return fhirCdrClient.read({ resourceType: 'Library', id })
 }
 
-const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
+const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, useCache = true) => {
   const cachedCopy = cache.get(canonical)
-  if (cachedCopy) { return cachedCopy }
+  if (cachedCopy && useCache) { return cachedCopy }
 
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
@@ -52,13 +52,13 @@ const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical
   return result
 }
 
-const fetchGrouperLibrary = (canonical: string) => {
-  return fetchByCanonical(fhirCdrClient, 'Library', canonical)
+const fetchGrouperLibrary = (canonical: string, useCache = true) => {
+  return fetchByCanonical(fhirCdrClient, 'Library', canonical, useCache)
 }
 
-const fetchGrouperValueSets = (canonicals: string[]) => {
+const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
   return Promise.all(
-    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical))
+    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, useCache))
   )
 }
 
@@ -102,10 +102,10 @@ export default async function handler(
   if (req.method === 'GET') {
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
-
     try {
       const program = await fetchProgram(req.query.id as string)
-
+      const useCache = Boolean(req.query.useCache)
+      console.log('uses cache? ', useCache)
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
@@ -114,7 +114,7 @@ export default async function handler(
           ?.resource
 
         if (grouperLibraryCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical)
+          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical, useCache)
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
@@ -125,7 +125,7 @@ export default async function handler(
               .map(res => res.resource)
               .filter(isDefinedString)
             if (grouperValueSetCanonicals) {
-              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
+              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals, useCache))
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
@@ -212,10 +212,12 @@ export default async function handler(
         }
       }).filter(x => x) as ValueSetTableEntry[] // filter out any undefined items
 
+      console.log('groups by vs cannonical: ', groupsByValueSetCanonical)
       const composedResponse = {
         data: response,
         groupsInProgram: allGrouperVSets
       }
+
       res.status(200).send(composedResponse)
 
     } catch (e: any) {
