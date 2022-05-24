@@ -74,6 +74,21 @@ interface ConditionItem {
   display: string
 }
 
+interface ConditionInfo {
+  label: string,
+  value: {
+    code: string,
+    system: string,
+    text: string
+  }
+}
+
+interface ConditionToUpdate {
+  canonical: string,
+  version: string,
+  conditionInfo: ConditionInfo[]
+}
+
 export const formatConditionsValueSet = (conditionsList: any) => {
   const list = conditionsList?.map((c: any) => (
     c?.concept?.map((item: any) => ({
@@ -95,7 +110,8 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map(g => ({ value: g.url, label: g.title }))
 }
 
-const buildConditionOptions = (conditions: ConditionItem[]) => {
+const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
+  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions?.map(c => (
     {
@@ -106,9 +122,11 @@ const buildConditionOptions = (conditions: ConditionItem[]) => {
         text: c.display
       },
       label: c.display
-    }))
+    }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
   return result
 }
+
+
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
@@ -118,44 +136,27 @@ const ProgramValueSetDetails: NextPage = () => {
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState({})
-  const [updateGroup, setUpdateGroup] = useState({})
+  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
 
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
-  const [updatedGrouper, setUpdatedGrouper] = useState<fhir4.Library>()
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
-      let updatedVs = fetch(endpoint, {
-        method: 'PUT',
-        body: JSON.stringify(conditionToUpdate)
-      }).then(res => res.json())
-
-      let json = await updatedVs
-      setUpdatedValueSet(json)
+      if (conditionToUpdate?.conditionInfo) {
+        let updatedVs = fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(conditionToUpdate)
+        }).then(res => res.json())
+  
+        let json = await updatedVs
+        setUpdatedValueSet(json)
+      }
     }
 
     postUpdate()
 
   }, [conditionToUpdate, programId])
-
-  useEffect(() => {
-    let endpoint = `/api/programs/${programId}/details/valuesets/groups`
-
-    const updateValuesetsInGroupers = async () => {
-      let updatedGrouper = fetch(endpoint, {
-        method: 'PUT',
-        body: JSON.stringify(updateGroup)
-      }).then(res => res.json())
-
-      let json = await updatedGrouper
-      setUpdatedGrouper(json)
-    }
-
-    updateValuesetsInGroupers()
-
-  }, [updateGroup, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
@@ -215,16 +216,16 @@ const ProgramValueSetDetails: NextPage = () => {
               }
             })
             }
-        }).filter(x => x)
-        console.log('row is: ', row)
+        }).filter(x => x) as ConditionInfo[]
         return (
           <SelectInputContainer>
             <Select
               isMulti={true}
-              options={buildConditionOptions(allConditions)}
+              options={buildConditionOptions(allConditions, selectedOptions)}
               value={selectedOptions}
               // TODO should block add if already exists
               onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
+                // @ts-expect-error
                 canonical: row.canonical, version: row.version, conditionInfo
               })}
             />
@@ -238,7 +239,6 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        console.log('row.groups: ', row.groups)
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
         return (
           <SelectInputContainer>
@@ -249,7 +249,7 @@ const ProgramValueSetDetails: NextPage = () => {
               // @ts-expect-error
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
-              onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
+              // onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
               // onChange={(e) => {setActiveGroups(e)}}
             />
           </SelectInputContainer>
