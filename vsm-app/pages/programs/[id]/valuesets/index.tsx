@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import type { NextPage } from 'next'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -21,32 +21,9 @@ const customStyles = {
   }
 }
 
-const Col = styled.div`
-  display: flex;
-  flex-direction: column;
-`
-
 const Row = styled.div`
   display: flex;
   justify-content: space-between;
-`
-
-const Li = styled.li`
-  list-style-type: none;
-  padding: 4px 6px;
-  margin-bottom: 2px;
-  border-radius: 8px;
-  background-color: var(--theme-100);
-  &:nth-of-type(2) {
-    background-color: #D0ECEF;
-  }
-`
-
-const Ul = styled.ul`
-  padding-left: 0px;
-  &:nth-child(even)  {
-    background-color: red;
-  }
 `
 
 const SearchOptions = styled.form`
@@ -81,6 +58,10 @@ const SelectGroup = styled.div`
   flex-direction: column;
 `
 
+const SelectInputContainer = styled.div`
+  width: 400px;
+`
+
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
@@ -93,13 +74,30 @@ interface ConditionItem {
   display: string
 }
 
+interface ConditionInfo {
+  label: string,
+  value: {
+    code: string,
+    system: string,
+    text: string
+  }
+}
+
+interface ConditionToUpdate {
+  canonical: string,
+  version: string,
+  conditionInfo: ConditionInfo[]
+}
+
 export const formatConditionsValueSet = (conditionsList: any) => {
   const list = conditionsList?.map((c: any) => (
     c?.concept?.map((item: any) => ({
       system: c.system,
       version: c.version,
       code: item.code,
-      display: item?.designation?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')?.value || c?.display || ''
+      display: item?.designation
+        ?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')
+        ?.value || c?.display || ''
     }))
   )).flat()
   // sort by display
@@ -108,26 +106,69 @@ export const formatConditionsValueSet = (conditionsList: any) => {
   )
 }
 
-const buildConditionOptions = (conditions: ConditionItem[]) => {
-  return conditions.map(c => ({ value: c.code, label: c.display }))
+const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
+  return groupVsets?.map(g => ({ value: g.url, label: g.title }))
 }
 
-const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets.map(g => ({ value: g.url, label: g.title }))
+const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
+  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
+  const flattenedConditions = conditions?.flat(2)
+  const result = flattenedConditions?.map(c => (
+    {
+      value: {
+        system: c.system,
+        version: c.version,
+        code: c.code,
+        text: c.display
+      },
+      label: c.display
+    }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
+  return result
 }
+
+
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
+  // filter updates
   const [findInVsName, setFindInVsName] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
+  // updates that happen via multiselects within table
+  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
+
+  const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+
+  useEffect(() => {
+    let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
+    const postUpdate = async () => {
+      if (conditionToUpdate?.conditionInfo) {
+        let updatedVs = fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(conditionToUpdate)
+        }).then(res => res.json())
+  
+        let json = await updatedVs
+        setUpdatedValueSet(json)
+      }
+    }
+
+    postUpdate()
+
+  }, [conditionToUpdate, programId])
+
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
     activeGroups,
-    activeConditions
+    activeConditions,
+    updatedValueSet
   )
+  
+  useEffect(() => {
+  }, [progValueSetDets])
+
   const conditions = useGetConditions()
   const allConditions = formatConditionsValueSet(conditions)
   // @ts-expect-error
@@ -155,38 +196,65 @@ const ProgramValueSetDetails: NextPage = () => {
       name: 'Version',
       selector: (row: DataItem) => row.version,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '80px',
       wrap: true
     },
     {
       name: 'Conditions',
-      selector: (row: DataItem) => row.conditions,
-      sortable: true,
-      maxWidth: '300px',
+      selector: (row: DataItem) => row.valueSet,
+      sortable: false,
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {/* @ts-ignore-error */}
-            {row?.conditions?.map(c => <Li key={c?.display}>{c?.display}</Li>)}
-          </Ul>
-        </Col>
-      )
+      cell: (row: DataItem) => {
+        const selectedOptions = row?.valueSet?.useContext?.map(i => {
+          if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
+            return ({
+              label: i?.valueCodeableConcept?.text,
+              value: {
+                system: i?.valueCodeableConcept?.coding?.[0]?.system,
+                code: i?.valueCodeableConcept?.coding?.[0]?.code,
+                text: i?.valueCodeableConcept?.text
+              }
+            })
+            }
+        }).filter(x => x) as ConditionInfo[]
+        return (
+          <SelectInputContainer>
+            <Select
+              isMulti={true}
+              options={buildConditionOptions(allConditions, selectedOptions)}
+              value={selectedOptions}
+              // TODO should block add if already exists
+              onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
+                // @ts-expect-error
+                canonical: row.canonical, version: row.version, conditionInfo
+              })}
+            />
+          </SelectInputContainer>
+        )
+      }
     },
     {
       name: 'Groups',
       selector: (row: DataItem) => row.groups,
-      sortable: true,
-      maxWidth: '250px',
+      sortable: false,
       wrap: true,
-      cell: (row: DataItem) => (
-        <Col>
-          <Ul>
-            {row?.groups?.map((g: any) => <Li key={g?.title}>{g?.title}</Li>)}
-          </Ul>
-        </Col>
-      )
-      
+      cell: (row: DataItem) => {
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
+        return (
+          <SelectInputContainer>
+            <Select
+              classNamePrefix='groups'
+              inputId='groups-selector'
+              isMulti={true}
+              // @ts-expect-error
+              options={buildGroupOptions(groupsInProgram)}
+              value={selectedOptions}
+              // onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
+              // onChange={(e) => {setActiveGroups(e)}}
+            />
+          </SelectInputContainer>
+        )
+      }
     },
     {
       name: 'Remove ValueSet',
@@ -202,7 +270,7 @@ const ProgramValueSetDetails: NextPage = () => {
         />
       )
     }
-  ], [router])
+  ], [router, groupsInProgram, allConditions])
 
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
     const target = e.target as HTMLInputElement;
@@ -242,8 +310,10 @@ const ProgramValueSetDetails: NextPage = () => {
                   inputId='groups-selector'
                   isMulti
                   options={buildGroupOptions(alphabetizedGroups)}
-                  // @ts-expect-error
-                  onChange={(e) => {setActiveGroups(e)}}
+                  onChange={(e) => {
+                    // @ts-expect-error
+                    setActiveGroups(e)
+                  }}
                 />
               </SelectGroup>
             )}

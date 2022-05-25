@@ -7,17 +7,29 @@ interface Group {
 }
 
 interface GroupItem {
+  url: string,
   id: string,
   title: string
 }
 
+interface ConditionItem {
+  label: string,
+  value: {
+    system: string,
+    code: string,
+    text: string,
+    version: string
+  }
+}
+
 export interface DataItem {
+  canonical: string,
   programName: string,
   programId: string,
-  conditions: [],
   groups: GroupItem[],
   title: string,
-  version: string
+  version: string,
+  valueSet: fhir4.ValueSet
 }
 
 interface Result {
@@ -30,7 +42,8 @@ const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
   activeGroups: [] | Group[],
-  activeConditions: [] | Group[]
+  activeConditions: [] | ConditionItem[],
+  updatedValueSet: fhir4.ValueSet | undefined
 ): Result | {} => {
   const [data, setData] = useState({})
 
@@ -55,8 +68,8 @@ const useGetProgramValueSetDetails = (
       }
 
       if (activeConditions.length) {
-        const canonicals = activeConditions.map(g => g.value)
-        const result = canonicals.join(',')
+        const codes = activeConditions.map(g => g.value.code)
+        const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
@@ -80,10 +93,11 @@ const useGetProgramValueSetDetails = (
         console.error('error: ', e)
       }
     }
+
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions])
+  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet])
 
   return data
 }

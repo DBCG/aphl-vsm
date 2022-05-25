@@ -5,6 +5,7 @@ import { fhirCdrClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 import { formatConditionsValueSet } from 'pages/programs/[id]/valuesets'
+import { updateConditions } from '@/helpers/conditionHelpers'
 
 // Items in the table
 interface Group {
@@ -27,6 +28,7 @@ interface ValueSetTableEntry {
   title: string
   canonical: string
   version: string
+  valueSet?: fhir4.ValueSet | undefined
   conditions: FormattedVSItem[]
   groups: Group[]
 }
@@ -165,21 +167,6 @@ export default async function handler(
       const response = leafValueSets?.map(valueSet => {
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
-        const formattedConditionsVs: FormattedVSItem[] | undefined = formatConditionsValueSet(conditionsVS?.compose?.include)
-        const formattedConditionsFromLeaf: FormattedVSItem[] | undefined = formatConditionsValueSet(valueSet?.compose?.include)
-
-        let conditionCodesInValueSet: fhir4.ValueSetComposeIncludeConcept[] = []
-        // loop through all of the concept code sets from the valueSet
-        formattedConditionsFromLeaf?.forEach(leafConditionItem => {
-          let itemMatchingRCKMS = formattedConditionsVs?.find(vsConditionItem => (
-            leafConditionItem?.system == vsConditionItem?.system &&
-            leafConditionItem?.code == vsConditionItem?.code
-          ))
-          if (itemMatchingRCKMS) {
-            conditionCodesInValueSet?.push(itemMatchingRCKMS)
-          }
-        })
-
         const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
 
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
@@ -190,7 +177,7 @@ export default async function handler(
           title: valueSet.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
-          conditions: conditionCodesInValueSet || [],
+          valueSet: valueSet,
           groups: groupsVsBelongsTo
         }
 
@@ -212,14 +199,17 @@ export default async function handler(
         }
 
         const valueSetContainsRequiredCondition = () => {
+          const useContextConditions = valueSet?.useContext
+            ?.filter(i => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type'))
+
           // if no filters active, the result is allowed by default
           if (!conditionCodesToFilterBy) return true
           // if only one filter selected
           if (conditionCodesToFilterBy.length == 1) {
-            return conditionCodesInValueSet?.find(item => conditionCodesToFilterBy.includes(item?.code))
+            return useContextConditions?.find(item => conditionCodesToFilterBy?.includes(item?.valueCodeableConcept?.coding?.[0]?.code as string))
           }
           // if more than 1 condition, valuesets must match all condition filters
-          return conditionCodesToFilterBy?.every((code: string) => conditionCodesInValueSet?.find(c => c?.code === code))
+          return conditionCodesToFilterBy?.every((code: string) => useContextConditions?.find(c => c?.valueCodeableConcept?.coding?.[0]?.code === code))
         }
 
         if (valueSetInAllowedGroup() && valueSetContainsRequiredCondition()) {
@@ -231,7 +221,6 @@ export default async function handler(
         data: response,
         groupsInProgram: allGrouperVSets
       }
-
       res.status(200).send(composedResponse)
 
     } catch (e: any) {
