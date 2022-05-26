@@ -97,15 +97,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const groupsByValueSetCanonical: Record<string, Group[]> = {}
 
+  const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
     try {
       const program = await fetchProgram(req.query.id as string)
-      const useCache = Boolean(req.query.useCache)
-      console.log('uses cache? ', useCache)
+      // disabling proto-cache because it causes problems with updating groupers
+      const useCache = false
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
@@ -124,6 +124,7 @@ export default async function handler(
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
               .filter(isDefinedString)
+
             if (grouperValueSetCanonicals) {
               allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals, useCache))
                 .filter(is.bundle)
@@ -133,7 +134,6 @@ export default async function handler(
               const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
                 const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
-
                 // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
                   const groupToAdd = {
@@ -147,7 +147,6 @@ export default async function handler(
                     groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
-
                 if (leafUrls) {
                   const stringToFind = req.query.findInVsName as string | undefined
                   return fetchLeafValueSets(leafUrls, stringToFind)
@@ -178,19 +177,19 @@ export default async function handler(
 
         const filterGroups = req?.query?.groups as string | undefined
         const filterConditions = req?.query?.conditions as string | undefined
-        const groupCanonicalsToFilterBy = filterGroups?.split(',')
+        const groupIdsToFilterBy = filterGroups?.split(',')
         const conditionCodesToFilterBy = filterConditions?.split(',')
 
         const valueSetInAllowedGroup = () => {
           // if no group filters active, valueset is allowed by default
-          if (!groupCanonicalsToFilterBy) return true
+          if (!groupIdsToFilterBy) return true
           // if only one filter selected
-          if (groupCanonicalsToFilterBy?.length === 1) {
+          if (groupIdsToFilterBy?.length === 1) {
             // do the vs groups include the filtered group
-            return !!groupsVsBelongsTo?.find(g => groupCanonicalsToFilterBy.includes(g?.url))
+            return !!groupsVsBelongsTo?.find(g => groupIdsToFilterBy.includes(g?.id))
           }
           // if there's more than 1 group, the valuesets must match ALL active group filters
-          return groupCanonicalsToFilterBy?.every((canonical: string) => groupsVsBelongsTo?.find(g => g?.url === canonical))
+          return groupIdsToFilterBy?.every((id: string) => groupsVsBelongsTo?.find(g => g?.id === id))
         }
 
         const valueSetContainsRequiredCondition = () => {
@@ -212,7 +211,6 @@ export default async function handler(
         }
       }).filter(x => x) as ValueSetTableEntry[] // filter out any undefined items
 
-      console.log('groups by vs cannonical: ', groupsByValueSetCanonical)
       const composedResponse = {
         data: response,
         groupsInProgram: allGrouperVSets

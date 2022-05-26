@@ -159,20 +159,19 @@ const ProgramValueSetDetails: NextPage = () => {
 
     useEffect(() => {
       let endpoint = `/api/programs/${programId}/details/valuesets/groups`
-      console.log('updateVsGroups: ', updateVsGroups)
-    const postUpdate = async () => {
-      if (updateVsGroups?.groupInfo) {
-        let updatedVs = fetch(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(updateVsGroups)
-        }).then(res => res.json())
-  
-        let json = await updatedVs
-        setUpdatedGrouperValueSets(json)
+      const postUpdate = async () => {
+        if (updateVsGroups?.groupInfo) {
+          let updatedVs = fetch(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(updateVsGroups)
+          }).then(res => res.json())
+
+          let json = await updatedVs
+          setUpdatedGrouperValueSets(json)
+        }
       }
-    }
-    postUpdate()
-  }, [updateVsGroups.groupInfo, programId])
+      postUpdate()
+    }, [updateVsGroups.groupInfo, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
@@ -260,6 +259,7 @@ const ProgramValueSetDetails: NextPage = () => {
         return (
           <SelectInputContainer>
             <Select
+              isClearable={false}
               classNamePrefix='groups'
               inputId='groups-selector'
               isMulti={true}
@@ -267,7 +267,6 @@ const ProgramValueSetDetails: NextPage = () => {
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
               onChange={e => {
-                console.log('selected groups e: ', e)
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
               }
               }

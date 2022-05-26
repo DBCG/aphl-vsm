@@ -47,7 +47,6 @@ const useGetProgramValueSetDetails = (
   updatedGrouperValueSets
 ): Result | {} => {
   const [data, setData] = useState({})
-
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {
@@ -75,7 +74,6 @@ const useGetProgramValueSetDetails = (
       }
 
       if (updatedGrouperValueSets.length) {
-        console.log('updatedGrouperValueSets ', updatedGrouperValueSets)
         queries.push('useCache=false')
       }
 
