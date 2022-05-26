@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
+import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { IconButton } from '@/components/buttons/IconButton'
@@ -139,6 +140,8 @@ const ProgramValueSetDetails: NextPage = () => {
   // returned data from PUT operations
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+  // loading states
+  const [grouperLoading, setGrouperLoading] = useState([])
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
@@ -256,8 +259,10 @@ const ProgramValueSetDetails: NextPage = () => {
       wrap: true,
       cell: (row: DataItem) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
+        console.log('row: ', row)
         return (
           <SelectInputContainer>
+            <Toaster/>
             <Select
               isClearable={false}
               classNamePrefix='groups'
@@ -267,6 +272,16 @@ const ProgramValueSetDetails: NextPage = () => {
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
               onChange={e => {
+                if (e.length === 0) {
+                  toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {
+                    id: `${row.canonical}`,
+                    position: 'top-right',
+                    style: {
+                      borderRadius: 0
+                    }
+                  })
+                  return
+                }
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
               }
               }
