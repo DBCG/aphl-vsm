@@ -159,11 +159,13 @@ const ProgramValueSetDetails: NextPage = () => {
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   // loading states
   const [grouperLoading, setGrouperLoading] = useState(false)
-
+  const [conditionLoading, setConditionLoading] = useState(false)
+  console.log('conditionToUpdate: ', conditionToUpdate)
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
+        setConditionLoading(true)
         let updatedVs = fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(conditionToUpdate)
@@ -171,6 +173,7 @@ const ProgramValueSetDetails: NextPage = () => {
   
         let json = await updatedVs
         setUpdatedValueSet(json)
+        setConditionLoading(false)
       }
     }
     setUpdatedGrouperValueSets([])
@@ -261,6 +264,7 @@ const ProgramValueSetDetails: NextPage = () => {
               isMulti={true}
               options={buildConditionOptions(allConditions, selectedOptions)}
               value={selectedOptions}
+              isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
               // TODO should block add if already exists
               onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
                 // @ts-expect-error
