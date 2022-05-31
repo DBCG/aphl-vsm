@@ -7,7 +7,6 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
-import LoadingIndicator from '@/components/LoadingIndicator'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle } from '..'
@@ -287,6 +286,7 @@ const ProgramValueSetDetails: NextPage = () => {
               classNamePrefix='groups'
               inputId='groups-selector'
               isMulti={true}
+              isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
               // @ts-expect-error
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
@@ -305,7 +305,6 @@ const ProgramValueSetDetails: NextPage = () => {
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
               }}
             />
-            {grouperLoading && <LoadingIndicator />}
           </SelectInputContainer>
         )
       }
