@@ -7,6 +7,7 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
+import LoadingIndicator from '@/components/LoadingIndicator'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { FieldTitle } from '..'
@@ -108,7 +109,11 @@ export const formatConditionsValueSet = (conditionsList: any) => {
 }
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets?.map(g => ({ value: g.id, label: g.title }))
+  return groupVsets?.map(g => ({
+    value: g.id,
+    label: g.title,
+    dataId: `${g.id}${g.title}`
+  }))
 }
 
 const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
@@ -122,7 +127,8 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
         code: c.code,
         text: c.display
       },
-      label: c.display
+      label: c.display,
+      dataId: `${c.system}${c.code}${c.display}`
     }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
   return result
 }
@@ -141,7 +147,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   // loading states
-  const [grouperLoading, setGrouperLoading] = useState([])
+  const [grouperLoading, setGrouperLoading] = useState(false)
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
@@ -164,12 +170,14 @@ const ProgramValueSetDetails: NextPage = () => {
       let endpoint = `/api/programs/${programId}/details/valuesets/groups`
       const postUpdate = async () => {
         if (updateVsGroups?.groupInfo) {
+          setGrouperLoading(true)
           let updatedVs = fetch(endpoint, {
             method: 'PUT',
             body: JSON.stringify(updateVsGroups)
           }).then(res => res.json())
 
           let json = await updatedVs
+          setGrouperLoading(false)
           setUpdatedGrouperValueSets(json)
         }
       }
@@ -283,9 +291,9 @@ const ProgramValueSetDetails: NextPage = () => {
                   return
                 }
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
-              }
-              }
+              }}
             />
+            {grouperLoading && <LoadingIndicator />}
           </SelectInputContainer>
         )
       }
@@ -378,6 +386,7 @@ const ProgramValueSetDetails: NextPage = () => {
         pagination
         fixedHeader
         customStyles={customStyles}
+        // keyField='dataId'
       />
     </>
   )

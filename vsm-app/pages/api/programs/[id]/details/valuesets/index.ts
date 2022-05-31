@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import FhirKitClient from 'fhir-kit-client'
-import { fhirCdrClient } from 'fhirClients'
+import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 
@@ -65,8 +65,9 @@ const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
+  console.log('caanonicals: ', canonicals)
   const result = await Promise.all(canonicals.map(canonical =>
-  (fhirCdrClient.search({
+  (vsacFhirClient.search({
     resourceType: 'ValueSet',
     // @ts-expect-error
     searchParams: {
@@ -124,7 +125,7 @@ export default async function handler(
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
               .filter(isDefinedString)
-
+            console.log('grouper caanonicals: ', grouperValueSetCanonicals)
             if (grouperValueSetCanonicals) {
               allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals, useCache))
                 .filter(is.bundle)
@@ -152,6 +153,7 @@ export default async function handler(
                   return fetchLeafValueSets(leafUrls, stringToFind)
                 }
               }))
+              console.log('leaf result: ', leafValueSetResult)
               leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
             }
           }
