@@ -26,7 +26,6 @@ export default async function handler(
       } if (req.query['title']) {
         queries['title:contains'] = req.query['title'] as string
       }
-
       const searchResult = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
@@ -42,7 +41,7 @@ export default async function handler(
       res.status(200).send(json)
 
     } catch (e: any) {
-      console.error('error:  ', e?.response?.data?.text)
+      console.error('error programs:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Search for program failed.' })
     }
   }

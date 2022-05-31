@@ -1,11 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import FhirKitClient from 'fhir-kit-client'
-import { fhirCdrClient } from 'fhirClients'
+import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
-import { formatConditionsValueSet } from 'pages/programs/[id]/valuesets'
-import { updateConditions } from '@/helpers/conditionHelpers'
+import { version } from 'os'
 
 // Items in the table
 interface Group {
@@ -41,14 +40,9 @@ const fetchProgram = (id: string) => {
   return fhirCdrClient.read({ resourceType: 'Library', id })
 }
 
-const fetchConditionsVS = (canonical: string) => {
-  const id = canonical?.split('/')?.slice(-1)?.[0]
-  return fhirCdrClient.read({ resourceType: 'ValueSet', id })
-}
-
-const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
+const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, useCache = true) => {
   const cachedCopy = cache.get(canonical)
-  if (cachedCopy) { return cachedCopy }
+  if (cachedCopy && useCache) { return cachedCopy }
 
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
@@ -59,12 +53,14 @@ const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical
   return result
 }
 
-const fetchGrouperLibrary = (canonical: string) => {
-  return fetchByCanonical(fhirCdrClient, 'Library', canonical)
+const fetchGrouperLibrary = (canonical: string, useCache = true) => {
+  return fetchByCanonical(fhirCdrClient, 'Library', canonical, useCache)
 }
 
-const fetchGrouperValueSets = (canonicals: string[]) => {
-  return Promise.all(canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical)))
+const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
+  return Promise.all(
+    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, useCache))
+  )
 }
 
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
@@ -76,15 +72,16 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
     // @ts-expect-error
     searchParams: {
       url: canonical,
+      status: 'active',
       ...searchParams
     }
   }))
   ))
 
   // add canonical url to the valueset
-  return result?.[0]?.entry?.map((e: fhir4.BundleEntry) => {
-    const fullUrl = e?.fullUrl
-    const resource = e?.resource
+  const valueSets = result?.map((e) => {
+    const fullUrl = e?.entry?.[0]?.fullUrl
+    const resource = e?.entry?.[0]?.resource as fhir4.ValueSet
     if (fullUrl && resource) {
       return ({
         url: fullUrl,
@@ -92,7 +89,14 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
       })
     }
   })
+    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+    ?.filter((value, index, self) => (
+      // @ts-ignore-next-line filter out multiple ids
+      self.findIndex(v2 => v2.id === value.id) === index
+    ))
+  return valueSets
 }
+
 
 const isDefinedString = (item: any): item is string => {
   return !!item
@@ -102,16 +106,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const groupsByValueSetCanonical: Record<string, Group[]> = {}
 
+  const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
-
     try {
       const program = await fetchProgram(req.query.id as string)
-      const conditionsVS = await fetchConditionsVS(process.env.CONDITIONS_CANONICAL as string)
-
+      // disabling proto-cache because it causes problems with updating groupers
+      const useCache = false
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
@@ -120,7 +123,8 @@ export default async function handler(
           ?.resource
 
         if (grouperLibraryCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical)
+          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical, useCache)
+
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
@@ -129,18 +133,19 @@ export default async function handler(
               ?.filter(a => a.type == 'composed-of')
               .map(res => res.resource)
               .filter(isDefinedString)
+
             if (grouperValueSetCanonicals) {
-              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
+              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals, useCache))
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
-
+              let leafValueSetCanonicals: string[] = []
               const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
                 const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
-
                 // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
+                  leafValueSetCanonicals.push(url)
                   const groupToAdd = {
                     id: grouperVs.id || 'Undefined',
                     url: grouperVs.url || 'Undefined',
@@ -152,13 +157,13 @@ export default async function handler(
                     groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
-
-                if (leafUrls) {
-                  const stringToFind = req.query.findInVsName as string | undefined
-                  return fetchLeafValueSets(leafUrls, stringToFind)
-                }
               }))
-              leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
+
+              if (leafValueSetCanonicals.length) {
+                const stringToFind = req.query.findInVsName as string | undefined
+                // @ts-ignore-next-line
+                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind)
+              }
             }
           }
         }
@@ -183,19 +188,19 @@ export default async function handler(
 
         const filterGroups = req?.query?.groups as string | undefined
         const filterConditions = req?.query?.conditions as string | undefined
-        const groupCanonicalsToFilterBy = filterGroups?.split(',')
+        const groupIdsToFilterBy = filterGroups?.split(',')
         const conditionCodesToFilterBy = filterConditions?.split(',')
 
         const valueSetInAllowedGroup = () => {
           // if no group filters active, valueset is allowed by default
-          if (!groupCanonicalsToFilterBy) return true
+          if (!groupIdsToFilterBy) return true
           // if only one filter selected
-          if (groupCanonicalsToFilterBy?.length === 1) {
+          if (groupIdsToFilterBy?.length === 1) {
             // do the vs groups include the filtered group
-            return !!groupsVsBelongsTo?.find(g => groupCanonicalsToFilterBy.includes(g?.url))
+            return !!groupsVsBelongsTo?.find(g => groupIdsToFilterBy.includes(g?.id))
           }
           // if there's more than 1 group, the valuesets must match ALL active group filters
-          return groupCanonicalsToFilterBy?.every((canonical: string) => groupsVsBelongsTo?.find(g => g?.url === canonical))
+          return groupIdsToFilterBy?.every((id: string) => groupsVsBelongsTo?.find(g => g?.id === id))
         }
 
         const valueSetContainsRequiredCondition = () => {
@@ -221,6 +226,7 @@ export default async function handler(
         data: response,
         groupsInProgram: allGrouperVSets
       }
+
       res.status(200).send(composedResponse)
 
     } catch (e: any) {

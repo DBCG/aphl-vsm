@@ -43,10 +43,10 @@ const useGetProgramValueSetDetails = (
   findInVsName: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
-  updatedValueSet: fhir4.ValueSet | undefined
+  updatedValueSet: fhir4.ValueSet | undefined,
+  updatedGrouperValueSets: [] | fhir4.ValueSet[]
 ): Result | {} => {
   const [data, setData] = useState({})
-
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {
@@ -73,6 +73,10 @@ const useGetProgramValueSetDetails = (
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
+      if (updatedGrouperValueSets.length) {
+        queries.push('useCache=false')
+      }
+
       queries.forEach((queryItem, idx) => {
         if (idx == 0) {
           endpoint = endpoint.concat(`?${queryItem}`)
@@ -97,7 +101,7 @@ const useGetProgramValueSetDetails = (
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet])
+  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet, updatedGrouperValueSets])
 
   return data
 }

@@ -43,6 +43,7 @@ export default async function handler(
         } as SearchParams
 
         // tag on version if exists in the grouper
+        // TODO: probably should not change this
         if (version) {
           searchParams.version = version
         }

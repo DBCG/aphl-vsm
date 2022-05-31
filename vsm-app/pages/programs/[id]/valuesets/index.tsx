@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
+import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { IconButton } from '@/components/buttons/IconButton'
@@ -89,6 +90,18 @@ interface ConditionToUpdate {
   conditionInfo: ConditionInfo[]
 }
 
+interface GroupInfoItem {
+  label: string,
+  value: string
+}
+
+interface GroupUpdateItem {
+  canonical?: string,
+  groupInfo?: GroupInfoItem[]
+}
+
+
+
 export const formatConditionsValueSet = (conditionsList: any) => {
   const list = conditionsList?.map((c: any) => (
     c?.concept?.map((item: any) => ({
@@ -107,7 +120,11 @@ export const formatConditionsValueSet = (conditionsList: any) => {
 }
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets?.map(g => ({ value: g.url, label: g.title }))
+  return groupVsets?.map(g => ({
+    value: g.id,
+    label: g.title,
+    dataId: `${g.id}${g.title}`
+  }))
 }
 
 const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
@@ -121,12 +138,11 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
         code: c.code,
         text: c.display
       },
-      label: c.display
+      label: c.display,
+      dataId: `${c.system}${c.code}${c.display}`
     }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
   return result
 }
-
-
 
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
@@ -137,13 +153,19 @@ const ProgramValueSetDetails: NextPage = () => {
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
-
+  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
+  // returned data from PUT operations
+  const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+  // loading states
+  const [grouperLoading, setGrouperLoading] = useState(false)
+  const [conditionLoading, setConditionLoading] = useState(false)
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
+        setConditionLoading(true)
         let updatedVs = fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(conditionToUpdate)
@@ -151,19 +173,38 @@ const ProgramValueSetDetails: NextPage = () => {
   
         let json = await updatedVs
         setUpdatedValueSet(json)
+        setConditionLoading(false)
       }
     }
-
+    setUpdatedGrouperValueSets([])
     postUpdate()
-
   }, [conditionToUpdate, programId])
+
+    useEffect(() => {
+      let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+      const postUpdate = async () => {
+        if (updateVsGroups?.groupInfo) {
+          setGrouperLoading(true)
+          let updatedVs = fetch(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(updateVsGroups)
+          }).then(res => res.json())
+
+          let json = await updatedVs
+          setUpdatedGrouperValueSets(json)
+          setGrouperLoading(false)
+        }
+      }
+      postUpdate()
+    }, [updateVsGroups.groupInfo, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
     activeGroups,
     activeConditions,
-    updatedValueSet
+    updatedValueSet,
+    updatedGrouperValuesets
   )
   
   useEffect(() => {
@@ -223,6 +264,7 @@ const ProgramValueSetDetails: NextPage = () => {
               isMulti={true}
               options={buildConditionOptions(allConditions, selectedOptions)}
               value={selectedOptions}
+              isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
               // TODO should block add if already exists
               onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
                 // @ts-expect-error
@@ -239,18 +281,33 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.url }))
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
         return (
           <SelectInputContainer>
+            <Toaster/>
             <Select
+              isClearable={false}
               classNamePrefix='groups'
               inputId='groups-selector'
               isMulti={true}
+              isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
               // @ts-expect-error
               options={buildGroupOptions(groupsInProgram)}
               value={selectedOptions}
-              // onChange={e => setUpdateGroup({ canonical: row?.canonical, data: e })}
-              // onChange={(e) => {setActiveGroups(e)}}
+              onChange={e => {
+                if (e.length === 0) {
+                  toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {
+                    id: `${row.canonical}`,
+                    position: 'top-right',
+                    style: {
+                      borderRadius: 0
+                    }
+                  })
+                  return
+                }
+                // @ts-expect-error
+                setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
+              }}
             />
           </SelectInputContainer>
         )
@@ -344,6 +401,7 @@ const ProgramValueSetDetails: NextPage = () => {
         pagination
         fixedHeader
         customStyles={customStyles}
+        // keyField='dataId'
       />
     </>
   )

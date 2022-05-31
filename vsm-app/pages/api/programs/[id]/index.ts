@@ -9,7 +9,6 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     try {
-      // NEVER CALLED
       const data = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams: {
