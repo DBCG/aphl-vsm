@@ -10,7 +10,9 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fh
   } else {
     if (!leafVSetsInGroup.includes(valueSetCanonical)) {
       leafVSetsInGroup.push(valueSetCanonical)
-      vs.compose.include.[0].valueSet = leafVSetsInGroup
+      if (vs?.compose?.include?.[0]?.valueSet !== undefined) {
+        vs.compose.include[0].valueSet = leafVSetsInGroup
+      }
     }
   }
   return vs
@@ -18,12 +20,12 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fh
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, valueSetCanonical: string): fhir4.ValueSet => {
   let leafVsInGroup = vs.compose?.include?.[0]?.valueSet
-  console.log('leafVsInGroup: ', leafVsInGroup)
   if (leafVsInGroup) {
     const updatedLeafVsInGroup = vs?.compose?.include?.[0]?.valueSet
       ?.filter(leafCanonical => leafCanonical !== valueSetCanonical)
-    vs.compose.include.[0].valueSet = updatedLeafVsInGroup
-    console.log('updated: ', updatedLeafVsInGroup)
+    if (vs?.compose?.include?.[0]?.valueSet !== undefined) {
+      vs.compose.include[0].valueSet = updatedLeafVsInGroup
+    }
   } else {
     console.error('no leaf valuesets exist in this group')
   }

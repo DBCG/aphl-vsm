@@ -3,6 +3,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 
+interface GroupInfoItem {
+  label: string,
+  value: string
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -29,7 +33,8 @@ export default async function handler(
         const leafExistsInGrouper = leafVSetsInGroup?.find(canonical => {
           return canonical?.endsWith(leafValuesetId)
         })
-        const leafShouldExistInGrouper = groupInfo?.find(i => i?.value === grouperValueSet?.id)
+
+        const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => i?.value === grouperValueSet?.id)
 
         if (!leafExistsInGrouper && leafShouldExistInGrouper) {
           // add the grouper

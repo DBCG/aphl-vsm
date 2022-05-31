@@ -91,6 +91,18 @@ interface ConditionToUpdate {
   conditionInfo: ConditionInfo[]
 }
 
+interface GroupInfoItem {
+  label: string,
+  value: string
+}
+
+interface GroupUpdateItem {
+  canonical?: string,
+  groupInfo?: GroupInfoItem[]
+}
+
+
+
 export const formatConditionsValueSet = (conditionsList: any) => {
   const list = conditionsList?.map((c: any) => (
     c?.concept?.map((item: any) => ({
@@ -142,7 +154,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
-  const [updateVsGroups, setUpdateVsGroups] = useState({})
+  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   // returned data from PUT operations
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
@@ -289,6 +301,7 @@ const ProgramValueSetDetails: NextPage = () => {
                   })
                   return
                 }
+                // @ts-expect-error
                 setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
               }}
             />

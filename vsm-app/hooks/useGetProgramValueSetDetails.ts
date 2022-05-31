@@ -44,7 +44,7 @@ const useGetProgramValueSetDetails = (
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
   updatedValueSet: fhir4.ValueSet | undefined,
-  updatedGrouperValueSets
+  updatedGrouperValueSets: [] | fhir4.ValueSet[]
 ): Result | {} => {
   const [data, setData] = useState({})
   useEffect(() => {

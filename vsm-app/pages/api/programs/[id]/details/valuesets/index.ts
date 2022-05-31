@@ -66,7 +66,6 @@ const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
-  console.log('canonicals: ', canonicals)
   const result = await Promise.all(canonicals.map(canonical =>
   (fhirCdrClient.search({
     resourceType: 'ValueSet',
@@ -74,17 +73,15 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
     searchParams: {
       url: canonical,
       status: 'active',
-      // _sort: 'version',
-      // _count: 1,
       ...searchParams
     }
   }))
   ))
 
   // add canonical url to the valueset
-  const valueSet = result?.map((e: fhir4.BundleEntry) => {
+  const valueSets = result?.map((e) => {
     const fullUrl = e?.entry?.[0]?.fullUrl
-    const resource = e?.entry?.[0]?.resource
+    const resource = e?.entry?.[0]?.resource as fhir4.ValueSet
     if (fullUrl && resource) {
       return ({
         url: fullUrl,
@@ -92,7 +89,12 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
       })
     }
   })
-  return valueSet
+    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+    ?.filter((value, index, self) => (
+      // @ts-ignore-next-line filter out multiple ids
+      self.findIndex(v2 => v2.id === value.id) === index
+    ))
+  return valueSets
 }
 
 
@@ -137,11 +139,10 @@ export default async function handler(
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
-              let leafValueSetCanonicals = []
+              let leafValueSetCanonicals: string[] = []
               const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
                 const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
-                // console.log('leafurls: ', leafUrls)
                 // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
                   leafValueSetCanonicals.push(url)
@@ -159,14 +160,10 @@ export default async function handler(
               }))
 
               if (leafValueSetCanonicals.length) {
-                console.log('leaf vs canonicals: ', leafValueSetCanonicals)
                 const stringToFind = req.query.findInVsName as string | undefined
+                // @ts-ignore-next-line
                 leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind)
               }
-
-              console.log('leafValueSets: ', leafValueSets)
-              // leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
-              // console.log('leafs.length: ', leafValueSets.length)
             }
           }
         }
