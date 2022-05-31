@@ -160,7 +160,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // loading states
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
-  console.log('conditionToUpdate: ', conditionToUpdate)
+
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
