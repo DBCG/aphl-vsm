@@ -188,8 +188,8 @@ const ProgramValueSetDetails: NextPage = () => {
           }).then(res => res.json())
 
           let json = await updatedVs
-          setGrouperLoading(false)
           setUpdatedGrouperValueSets(json)
+          setGrouperLoading(false)
         }
       }
       postUpdate()
