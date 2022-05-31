@@ -66,6 +66,7 @@ const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
+  console.log('canonicals: ', canonicals)
   const result = await Promise.all(canonicals.map(canonical =>
   (fhirCdrClient.search({
     resourceType: 'ValueSet',
@@ -81,9 +82,9 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
   ))
 
   // add canonical url to the valueset
-  return result?.[0]?.entry?.map((e: fhir4.BundleEntry) => {
-    const fullUrl = e?.fullUrl
-    const resource = e?.resource
+  const valueSet = result?.map((e: fhir4.BundleEntry) => {
+    const fullUrl = e?.entry?.[0]?.fullUrl
+    const resource = e?.entry?.[0]?.resource
     if (fullUrl && resource) {
       return ({
         url: fullUrl,
@@ -91,6 +92,7 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
       })
     }
   })
+  return valueSet
 }
 
 
@@ -135,12 +137,14 @@ export default async function handler(
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
-
+              let leafValueSetCanonicals = []
               const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
                 const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
+                // console.log('leafurls: ', leafUrls)
                 // add groups to the leaf URLs
                 leafUrls?.forEach(url => {
+                  leafValueSetCanonicals.push(url)
                   const groupToAdd = {
                     id: grouperVs.id || 'Undefined',
                     url: grouperVs.url || 'Undefined',
@@ -152,12 +156,17 @@ export default async function handler(
                     groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
-                if (leafUrls) {
-                  const stringToFind = req.query.findInVsName as string | undefined
-                  return fetchLeafValueSets(leafUrls, stringToFind)
-                }
               }))
-              leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
+
+              if (leafValueSetCanonicals.length) {
+                console.log('leaf vs canonicals: ', leafValueSetCanonicals)
+                const stringToFind = req.query.findInVsName as string | undefined
+                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind)
+              }
+
+              console.log('leafValueSets: ', leafValueSets)
+              // leafValueSets = leafValueSetResult.flat(2).filter(is.valueSet)
+              // console.log('leafs.length: ', leafValueSets.length)
             }
           }
         }
