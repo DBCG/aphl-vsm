@@ -267,7 +267,6 @@ const ProgramValueSetDetails: NextPage = () => {
       wrap: true,
       cell: (row: DataItem) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
-        console.log('row: ', row)
         return (
           <SelectInputContainer>
             <Toaster/>
