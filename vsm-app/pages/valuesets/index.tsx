@@ -25,7 +25,17 @@ const Col = styled.div`
   height: fit-content;
 `
 
+const ErrorText = styled.span`
+  color: darkRed;
+  font-size: 90%;
+`
+
 type SearchType = 'name' | 'oid' | 'steward'
+
+interface Error {
+  type: 'search-overload' | 'oid-not-found'
+  message: string
+}
 
 const ValueSets = () => {
   const router = useRouter()
@@ -35,7 +45,29 @@ const ValueSets = () => {
   const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
   const [oidSearchTerm, setOidSearchTerm] = useState<string>('')
   // error info
-  const [error, setError] = useState()
+  const [error, setError] = useState<Error | null>(null)
+
+  let activeSearchType = null
+
+  if (oidSearchTerm?.trim()?.length && nameSearchTerm?.trim()?.length) {
+    activeSearchType = 'error'
+  } else if (oidSearchTerm) {
+    activeSearchType = 'oid'
+  } else if (nameSearchTerm) {
+    activeSearchType = 'name'
+  }
+
+  useEffect(() => {
+    if (nameSearchTerm && oidSearchTerm) {
+      setError({
+        message: 'Cannot search by both OID and name',
+        type: 'search-overload'
+      })
+    } else {
+      setError(null)
+    }
+
+  }, [nameSearchTerm, oidSearchTerm])
 
   const handleFetchResponse = async (response: Response, type?: SearchType) => {
     if (response?.ok && type === 'oid') {
@@ -56,11 +88,9 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitSearch = async (e: SyntheticEvent) => {
-    console.log('got here')
     e.preventDefault()
     let response
-    if (oidSearchTerm && nameSearchTerm) {
-      setError({ error: 'Please search only one field, cannot be combined' })
+    if (error) {
       return
     }
     setIsLoading(true)
@@ -86,8 +116,8 @@ const ValueSets = () => {
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
     e.preventDefault()
-    console.log('e: ', e)
     const { target: { value } } = e
+
     if (type === 'name') {
       setNameSearchTerm(value)
     } else if (type === 'oid') {
@@ -110,7 +140,7 @@ const ValueSets = () => {
             <SearchInput
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
               id='vs-name-search'
-              label='Search by Name'
+              label='Name'
               hasIcon={true}
               minWidth={400}
               style={{ marginBottom: '12px'}}
@@ -118,11 +148,11 @@ const ValueSets = () => {
             <SearchInput
               onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
               id='vs-oid-search'
-              label='Search by OID'
+              label='OID'
               hasIcon={true}
               minWidth={400}
-          
             />
+            {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
               buttonContext='search'
@@ -130,13 +160,13 @@ const ValueSets = () => {
             />
           </Col>
           <Button text='Add Selected To Program'
-            style={{ maxHeight: '10px'}}
+            style={{ maxHeight: '60px'}}
             onClick={onClick}
           />
         </Row>
       </form>
       {
-        isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} />
+        isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} activeSearchType={activeSearchType} />
       }
     </Col>
   )

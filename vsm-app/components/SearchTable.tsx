@@ -13,24 +13,38 @@ interface TableData {
   oid: ValueSet['id']
 }
 
-const parseValueSet = (valueSets: ValueSet[]): TableData[] => {
+interface BundleEntryItem {
+  fullUrl: string
+  resource: fhir4.ValueSet
+}
+
+const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[], activeSearchType: string | null): TableData[] => {
+  if (!valueSets?.length) {
+    return []
+  }
+
   if (!valueSets || valueSets.length < 1) { return [] }
 
   const data = valueSets.map((vs) => {
-    const { id, name, publisher, url } = vs as ValueSet
+    let valueSetResource = vs.resource || vs
+
+    const { id, name, publisher, url } = valueSetResource as ValueSet
     return {
       name,
       steward: publisher,
       oid: id,
-      url: url
+      url: activeSearchType === 'oid' ? url : vs.fullUrl
     }
   })
 
   return data
 }
 
-const SearchTable = ({ valueSets = [] }:{ valueSets: ValueSet[] | undefined }) => {
-  const tableData = parseValueSet(valueSets)
+const SearchTable = ({
+  valueSets = [],
+  activeSearchType
+}: { valueSets: ValueSet[] | undefined }) => {
+  const tableData = parseValueSets(valueSets, activeSearchType)
 
   return (
     <DataTable
