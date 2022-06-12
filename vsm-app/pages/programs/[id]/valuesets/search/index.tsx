@@ -1,9 +1,9 @@
-import { Bundle, ValueSet } from 'fhir/r4'
+import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { SearchInput } from '@/components/SearchInput'
-import { SearchTable } from '@/components/SearchTable'
+import { BundleEntryItem, SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
@@ -32,6 +32,8 @@ const ErrorText = styled.span`
 
 type SearchType = 'name' | 'oid' | 'steward'
 
+type ActiveSearchType = 'error' | 'oid' | 'name' | null
+
 interface Error {
   type: 'search-overload' | 'oid-not-found'
   message: string
@@ -39,7 +41,7 @@ interface Error {
 
 const ValueSets = () => {
   const router = useRouter()
-  const [valueSets, setValueSets] = useState<fhir4.ValueSet[]>([])
+  const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   // set search terms from inputs
   const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
@@ -69,13 +71,13 @@ const ValueSets = () => {
 
   }, [nameSearchTerm, oidSearchTerm])
 
-  const handleFetchResponse = async (response: Response, type?: SearchType) => {
+  const handleFetchResponse = async (response: Response | undefined, type?: SearchType) => {
     if (response?.ok && type === 'oid') {
       const valueSetResponse = await response.json() as ValueSet[]
       setValueSets(valueSetResponse)
       setIsLoading(false)
-    } else if (response.ok) {
-      const { entry } = await response.json() as Bundle
+    } else if (response?.ok) {
+      const { entry } = await response.json()
       setValueSets(entry)
       setIsLoading(false)
     } else {
@@ -97,7 +99,7 @@ const ValueSets = () => {
 
     let searchType: SearchType = 'name'
     if (nameSearchTerm) {
-      response = await fetch(`api/valueset/search?search=${nameSearchTerm}&searchType=${searchType}`)
+      response = await fetch(`/api/valueset/search?search=${nameSearchTerm}&searchType=${searchType}`)
     } else if (oidSearchTerm) {
       searchType = 'oid'
       const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
@@ -107,7 +109,7 @@ const ValueSets = () => {
       const allTermsAreOid = Boolean(trimmedSearch.filter(oid => !oidRegex.test(oid)))
 
       if (allTermsAreOid) {
-        response = await fetch(`api/valueset/search?search=${trimmedSearch.join(',')}&searchType=${searchType}`) 
+        response = await fetch(`/api/valueset/search?search=${trimmedSearch.join(',')}&searchType=${searchType}`) 
       }
     }
 
@@ -166,6 +168,7 @@ const ValueSets = () => {
         </Row>
       </form>
       {
+        // @ts-ignore-next-line
         isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} activeSearchType={activeSearchType} />
       }
     </Col>

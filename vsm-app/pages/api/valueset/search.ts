@@ -17,6 +17,7 @@ export default async function handler(
           })
           break
         case 'oid':
+          // @ts-ignore-next-line
           const oidList = search?.split(',')
           response = await Promise.all(oidList.map((oid: string) => (
             vsacFhirClient.read({
