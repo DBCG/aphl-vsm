@@ -29,7 +29,7 @@ type SearchType = 'name' | 'oid' | 'steward'
 const ValueSets = () => {
   const router = useRouter()
   const [valueSets, setValueSets] = useState<Bundle['entry']>([])
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('')
 
   const handleFetchResponse = async (response: Response, type?: SearchType) => {
@@ -47,17 +47,6 @@ const ValueSets = () => {
     }
   }
 
-  useEffect(() => {
-    async function getValueSetsAndFilters(): Promise<void> { // this gets the initial chart items for the page
-      const response = await fetch(`api/valueset`)
-      await handleFetchResponse(response)
-    }
-
-    if (isLoading) {
-      void getValueSetsAndFilters()
-    }
-  },[])
-
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
@@ -68,7 +57,7 @@ const ValueSets = () => {
     let type: SearchType = 'name';
     if (oidRegex.test(searchTerm)) { type = 'oid'}
 
-    const response = await fetch(`api/valueset/search?}&search=${searchTerm}&searchType=${type}`)
+    const response = await fetch(`api/valueset/search?search=${searchTerm}&searchType=${type}`)
     await handleFetchResponse(response, type)
   }
 
