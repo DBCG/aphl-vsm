@@ -28,19 +28,23 @@ type SearchType = 'name' | 'oid' | 'steward'
 
 const ValueSets = () => {
   const router = useRouter()
-  const [valueSets, setValueSets] = useState<Bundle['entry']>([])
+  const [valueSets, setValueSets] = useState<fhir4.ValueSet[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [searchTerm, setSearchTerm] = useState<string>('')
+  // set search terms from inputs
+  const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
+  const [oidSearchTerm, setOidSearchTerm] = useState<string>('')
+  // error info
+  const [error, setError] = useState()
 
   const handleFetchResponse = async (response: Response, type?: SearchType) => {
-    if(response.ok && type === 'oid') { // an OID search returns a single ValueSet that needs to be handled uniquely for the SearchTable component
-        const valueSetResponse = await response.json() as ValueSet
-        setValueSets([{ resource: valueSetResponse }])
-        setIsLoading(false)
+    if (response.ok && type === 'oid') {
+      const valueSetResponse = await response.json() as ValueSet[]
+      setValueSets(valueSetResponse)
+      setIsLoading(false)
     } else if (response.ok) {
-        const { entry } = await response.json() as Bundle
-        setValueSets(entry)
-        setIsLoading(false)
+      const { entry } = await response.json() as Bundle
+      setValueSets(entry)
+      setIsLoading(false)
     } else {
       setValueSets([])
       setIsLoading(false)
@@ -50,21 +54,47 @@ const ValueSets = () => {
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
-  const submitSearch = async (event: SyntheticEvent) => { 
-    event.preventDefault()
+  const submitSearch = async (e: SyntheticEvent) => {
+    console.log('got here')
+    e.preventDefault()
+    let response
+    if (oidSearchTerm && nameSearchTerm) {
+      setError({ error: 'Please search only one field, cannot be combined' })
+      return
+    }
     setIsLoading(true)
-    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-    let type: SearchType = 'name';
-    if (oidRegex.test(searchTerm)) { type = 'oid'}
 
-    const response = await fetch(`api/valueset/search?search=${searchTerm}&searchType=${type}`)
-    await handleFetchResponse(response, type)
+    let searchType: SearchType = 'name'
+    if (nameSearchTerm) {
+      response = await fetch(`api/valueset/search?search=${nameSearchTerm}&searchType=${searchType}`)
+    } else if (oidSearchTerm) {
+      searchType = 'oid'
+      const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+      // trim whitespace from entire search term and internal oids
+      const trimmedSearch: string[] = oidSearchTerm?.trim()?.split(',')?.map(item => item?.trim())
+      const allTermsAreOid = Boolean(trimmedSearch.filter(oid => !oidRegex.test(oid)))
+
+      if (allTermsAreOid) {
+        response = await fetch(`api/valueset/search?search=${trimmedSearch.join(',')}&searchType=${searchType}`) 
+      }
+    }
+
+    await handleFetchResponse(response, searchType)
   }
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  useEffect(() => {
+    console.log('name, oid: ', nameSearchTerm + ' ' + oidSearchTerm)
+  }, [nameSearchTerm, oidSearchTerm])
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
     e.preventDefault()
-    const { target: { value }} = e
-    setSearchTerm(value)
+    console.log('e: ', e)
+    const { target: { value } } = e
+    if (type === 'name') {
+      setNameSearchTerm(value)
+    } else if (type === 'oid') {
+      setOidSearchTerm(value)
+    }
   }
 
   // @ts-expect-error
@@ -80,7 +110,7 @@ const ValueSets = () => {
         <Row>
           <Col style={{ maxWidth: '400px' }}>
             <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e) }
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
               id='vs-name-search'
               label='Search by Name'
               hasIcon={true}
@@ -88,7 +118,7 @@ const ValueSets = () => {
               style={{ marginBottom: '12px'}}
             />
             <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
               id='vs-oid-search'
               label='Search by OID'
               hasIcon={true}
@@ -98,7 +128,7 @@ const ValueSets = () => {
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
               buttonContext='search'
-              onClick={submitSearch}
+              onClick={(e) => submitSearch(e)}
             />
           </Col>
           <Button text='Add Selected To Program'

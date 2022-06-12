@@ -13,22 +13,23 @@ interface TableData {
   oid: ValueSet['id']
 }
 
-const parseValueSet = (valueSets: BundleEntry[]): TableData[] => {
+const parseValueSet = (valueSets: ValueSet[]): TableData[] => {
   if (!valueSets || valueSets.length < 1) { return [] }
 
-  const data =  valueSets.map(({ resource }) => {
-    const { id, name, publisher } = resource as ValueSet
+  const data = valueSets.map((vs) => {
+    const { id, name, publisher, url } = vs as ValueSet
     return {
       name,
       steward: publisher,
-      oid: id
+      oid: id,
+      url: url
     }
   })
 
   return data
 }
 
-const SearchTable = ({ valueSets = [] }:{ valueSets: BundleEntry[] | undefined }) => {
+const SearchTable = ({ valueSets = [] }:{ valueSets: ValueSet[] | undefined }) => {
   const tableData = parseValueSet(valueSets)
 
   return (

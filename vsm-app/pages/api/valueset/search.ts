@@ -17,9 +17,13 @@ export default async function handler(
           })
           break
         case 'oid':
-          response = await vsacFhirClient.read({
-            resourceType: 'ValueSet', id: search as string
-          })
+          const oidList = search?.split(',')
+          response = await Promise.all(oidList.map((oid: string) => (
+            vsacFhirClient.read({
+              resourceType: 'ValueSet', id: oid
+            })
+          )))
+
           break
         // not currently using steward as a search
         case 'steward':
