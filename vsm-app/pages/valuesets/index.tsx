@@ -8,6 +8,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { IconButton } from '@/components/buttons/IconButton'
+import { dedupeArray } from '@/helpers/dedupeArray'
 
 const Row = styled.div`
   display: flex;
@@ -37,7 +38,7 @@ const ValueSets = () => {
   const [error, setError] = useState()
 
   const handleFetchResponse = async (response: Response, type?: SearchType) => {
-    if (response.ok && type === 'oid') {
+    if (response?.ok && type === 'oid') {
       const valueSetResponse = await response.json() as ValueSet[]
       setValueSets(valueSetResponse)
       setIsLoading(false)
@@ -70,8 +71,9 @@ const ValueSets = () => {
     } else if (oidSearchTerm) {
       searchType = 'oid'
       const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+
       // trim whitespace from entire search term and internal oids
-      const trimmedSearch: string[] = oidSearchTerm?.trim()?.split(',')?.map(item => item?.trim())
+      const trimmedSearch: string[] = dedupeArray(oidSearchTerm?.trim()?.split(',')?.map(item => item?.trim()))
       const allTermsAreOid = Boolean(trimmedSearch.filter(oid => !oidRegex.test(oid)))
 
       if (allTermsAreOid) {
@@ -81,10 +83,6 @@ const ValueSets = () => {
 
     await handleFetchResponse(response, searchType)
   }
-
-  useEffect(() => {
-    console.log('name, oid: ', nameSearchTerm + ' ' + oidSearchTerm)
-  }, [nameSearchTerm, oidSearchTerm])
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
     e.preventDefault()
