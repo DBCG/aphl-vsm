@@ -72,11 +72,16 @@ const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], 
         ]
       } else {
         const existingConditionContexts = vs?.useContext?.filter(ctx => ctx?.code?.system?.endsWith('/usage-context-type') && (ctx?.code?.code === 'focus'))
+        console.log('existing: ', existingConditionContexts)
         const dedupedNewConditionContexts = newConditionContexts?.filter(condition => (
           existingConditionContexts?.find(ec => (ec?.valueCodeableConcept?.system === condition?.valueCodeableConcept?.system) && (ec.valueCodeableConcept?.code === condition.valueCodeableConcept?.code))
         ))
+        console.log('new: ', newConditionContexts)
+        console.log('deduped: ', dedupedNewConditionContexts)
+
         vs.useContext = [
           ...nonConditionContexts,
+          ...existingConditionContexts,
           ...dedupedNewConditionContexts
         ]
       }
