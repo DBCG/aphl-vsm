@@ -20,9 +20,7 @@ export default async function handler(
   } if (req.method === 'PUT') {
     const body = await req.body
     const bodyJson = JSON.parse(body)
-    console.log('body: ', bodyJson)
 
-    console.log('conditions: ', bodyJson.selectedConditions[0]);
     let vSetsToUpdate = []
     let vsToUpdate
 
@@ -37,8 +35,6 @@ export default async function handler(
     )
     ))
 
-    console.log('existing: ', existingVSets)
-
     const filteredVSets = existingVSets
       ?.filter(x => x)
       ?.map(item => item?.entry?.[0]?.resource)
@@ -46,8 +42,6 @@ export default async function handler(
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
       if (matchingValueSetInCQF) {
-        console.log('match found')
-        console.log('match useContext: ', matchingValueSetInCQF.useContext)
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
@@ -79,7 +73,6 @@ export default async function handler(
     // add conditions to valueSet
     const updatedValueSetItems = vSetsToUpdate?.map(vs => {
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
-      console.log('updatedVs.usecontext: ', updatedVs.useContext)
       return ({
         valueSet: updatedVs,
         method: vs.method
@@ -101,8 +94,6 @@ export default async function handler(
           })
         }
       }))
-
-      console.log('updated: ', performedUpdate)
 
     } catch (e) {
       console.error(e)

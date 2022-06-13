@@ -64,7 +64,6 @@ const SearchTable = ({
       pagination
       paginationPerPage={10}
       onSelectedRowsChange={(e) => {
-        console.log(e.selectedRows)
         setSelectedValueSets(e.selectedRows)
       }
       }

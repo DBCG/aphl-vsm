@@ -42,7 +42,6 @@ interface Error {
 }
 
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
-  console.log('format called: ')
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
     label: vSet.title.replace('_', ''),
@@ -147,7 +146,6 @@ const ValueSets = () => {
 
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
-    console.log('selectedGroupers: ', selectedGroupers)
     let response
     // handle errors (e.g. if no grouper, no condition)
     // if (error) {

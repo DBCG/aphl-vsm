@@ -105,8 +105,10 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
 
+
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {
+    console.log('rerun')
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
     try {
@@ -134,13 +136,17 @@ export default async function handler(
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
-              let leafValueSetCanonicals: string[] = []
-              const leafValueSetResult = await Promise.all(allGrouperVSets.map(grouperVs => {
+
+              const leafValueSetCanonicals: string[] = []
+
+              allGrouperVSets.forEach(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
-                const leafUrls = grouperVs?.compose?.include?.[0]?.valueSet
+                const leafUrlsInGrouper = grouperVs?.compose?.include?.[0]?.valueSet
+
                 // add groups to the leaf URLs
-                leafUrls?.forEach(url => {
+                leafUrlsInGrouper?.forEach(url => {
                   leafValueSetCanonicals.push(url)
+
                   const groupToAdd = {
                     id: grouperVs.id || 'Undefined',
                     url: grouperVs.url || 'Undefined',
@@ -148,12 +154,19 @@ export default async function handler(
                   }
 
                   if (groupsByValueSetCanonical[url]) {
+                    console.log('pushing', groupToAdd)
+                    console.log('url ', url);
+                    console.log('before, ', groupsByValueSetCanonical[url]);
+
+
                     groupsByValueSetCanonical[url].push(groupToAdd)
+                    console.log('after, ', groupsByValueSetCanonical[url]);
                   } else {
                     groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
-              }))
+                console.log('groups by valuesetCanon: ', groupsByValueSetCanonical) // wny only one per each?
+              })
 
               if (leafValueSetCanonicals.length) {
                 const stringToFind = req.query.findInVsName as string | undefined
@@ -165,14 +178,21 @@ export default async function handler(
         }
       }
 
-      console.log('leaf vsets: ', leafValueSets)
-
       const response = leafValueSets?.map(valueSet => {
-        if (!valueSet) return
+        console.log('response runs');
+
+        // if (!valueSet) return
+        console.log('groups by vs canonical!: ', groupsByValueSetCanonical)
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
-        const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+        // const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
+        const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k === valueSet.url as string)
+        console.log('groupsByvscanonical again: ', groupsByValueSetCanonical)
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+
+        console.log('leafVsCnonical: ', leafVsCanonical)
+        console.log('groupsVsBelongsTo: ', groupsVsBelongsTo)
+
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',

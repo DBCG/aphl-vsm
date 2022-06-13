@@ -24,7 +24,6 @@ export default async function handler(
       ?.resource
 
     const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
-    console.log('grouper canonical: ', grouperLibraryCanonical)
 
     const grouperLibrarySearchBundle = await fhirCdrClient.search({
       resourceType: 'Library',
@@ -38,8 +37,6 @@ export default async function handler(
       ?.relatedArtifact
       ?.filter(art => art.type === 'composed-of' && art.resource.includes('/ValueSet/'))
       ?.map(item => item?.resource)
-
-    console.log('grouperLibrary: ', grouperValueSetCanonicals)
 
     if (grouperValueSetCanonicals?.length) {
       const grouperValueSetSearchSets = await Promise.all(grouperValueSetCanonicals?.map((canonical: string) => {

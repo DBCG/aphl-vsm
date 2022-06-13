@@ -4,13 +4,11 @@ const useGetGroups = (programId: string): [] | fhir4.ValueSet[] => {
   const [groups, setGroups] = useState([])
 
   useEffect(() => {
-    console.log('this called again from useget')
     async function getGroups(): Promise<void> {
       if (!programId) {
         return
       }
       let endpoint = `/api/programs/${programId}/details/valuesets/groups`
-      console.log('programId: ', programId)
       try {
         const response: Response = await fetch(endpoint)
         const json = await response.json()
