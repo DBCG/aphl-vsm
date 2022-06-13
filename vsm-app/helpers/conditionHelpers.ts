@@ -54,21 +54,33 @@ const buildConditionItem = (condition: Condition) => {
   return conditionItem
 }
 
-// there should be no useContext if it is an empty array
-const updateConditions = (valueSet: fhir4.ValueSet, conditions: Condition[], overrideExisting=false) => {
+// DETAILS PAGE: you want to override existing ones each time
+// VALUESETS PAGE: you want to keep any existing conditions that you have added before
+// TODO there should be no useContext if it is an empty array
+const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
   let vs = valueSet
   if (vs?.useContext) {
     const nonConditionContexts = vs?.useContext?.filter(ctx => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus'))
-    const newConditionContexts = conditions?.map(c => buildConditionItem(c))
+    const newConditionContexts = newConditions?.map(c => buildConditionItem(c))
     if (nonConditionContexts?.length || newConditionContexts?.length) {
-
-      vs.useContext = [
-        ...nonConditionContexts,
-        ...newConditionContexts
-      ]
+      if (overrideExisting) {
+        vs.useContext = [
+          ...nonConditionContexts,
+          ...newConditionContexts
+        ]
+      } else {
+        const existingConditionContexts = vs?.useContext?.filter(ctx => ctx?.code?.system?.endsWith('/usage-context-type') && (ctx?.code?.code === 'focus'))
+        const dedupedNewConditionContexts = newConditionContexts?.filter(condition => (
+          existingConditionContexts?.find(ec => (ec?.valueCodeableConcept?.system === condition?.valueCodeableConcept?.system) && (ec.valueCodeableConcept?.code === condition.valueCodeableConcept?.code))
+        ))
+        vs.useContext = [
+          ...nonConditionContexts,
+          ...dedupedNewConditionContexts
+        ]
+      }
     }
-  } else if (!vs?.useContext && conditions?.length) {
-    vs.useContext = conditions?.map(c => buildConditionItem(c))
+  } else if (!vs?.useContext && newConditions?.length) {
+    vs.useContext = newConditions?.map(c => buildConditionItem(c))
   }
   return vs
 }
