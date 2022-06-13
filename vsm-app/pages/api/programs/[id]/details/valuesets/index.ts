@@ -172,10 +172,7 @@ export default async function handler(
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
         const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
-        console.log(1)
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
-        console.log(2)
-        console.log('valueSet: ', valueSet)
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
@@ -202,7 +199,6 @@ export default async function handler(
           // if there's more than 1 group, the valuesets must match ALL active group filters
           return groupIdsToFilterBy?.every((id: string) => groupsVsBelongsTo?.find(g => g?.id === id))
         }
-        console.log(3)
         const valueSetContainsRequiredCondition = () => {
           const useContextConditions = valueSet?.useContext
             ?.filter(i => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type'))

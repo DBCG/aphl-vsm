@@ -130,13 +130,17 @@ const ProgramValueSetDetails: NextPage = () => {
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
-        let updatedVs = fetch(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(conditionToUpdate)
-        }).then(res => res.json())
-  
-        let json = await updatedVs
-        setUpdatedValueSet(json)
+        try {
+          let updatedVs = fetch(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(conditionToUpdate)
+          }).then(res => res.json())
+    
+          let json = await updatedVs
+          setUpdatedValueSet(json)
+        } catch (e) {
+          console.error('error: ', e)
+        }
         setConditionLoading(false)
       }
     }

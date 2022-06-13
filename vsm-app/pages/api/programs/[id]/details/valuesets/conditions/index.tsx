@@ -9,18 +9,35 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
+    console.log('body: ', body)
     const valuesetId = body?.canonical?.split('/ValueSet/')?.[1]
     // need to identify by version, too... can do w/ read?
-    const valueSetToUpdate = await fhirCdrClient.read({ resourceType: 'ValueSet', id: valuesetId }) as fhir4.ValueSet
-
-    const updatedValueSet = updateConditions(valueSetToUpdate, body.conditionInfo)
-
-    const updated = await fhirCdrClient.update({
+    const valueSetToUpdate = await fhirCdrClient.search({
       resourceType: 'ValueSet',
-      id: valuesetId,
-      body: updatedValueSet
-    })
+      searchParams: {
+        url: body?.canonical,
+        version: body?.version
+      }
+    }) as fhir4.ValueSet
 
-    res.status(200).send(updated)
+    const vs = valueSetToUpdate?.entry?.[0]?.resource
+    const updatedValueSet = updateConditions(vs, body.conditionInfo)
+    let updated
+    console.log('body: ', body)
+    try {
+      updated = await fhirCdrClient.update({
+        resourceType: 'ValueSet',
+        searchParams: {
+          url: body.url,
+          version: body.version
+        },
+        body: updatedValueSet
+      })
+      console.log('updated! ', updated)
+      res.status(200).send(updated)
+    } catch (e) {
+      console.error('error in .det.val.cond: ', e)
+      res.status(400).send({ error: 'error'})
+    }
   }
 }
