@@ -44,7 +44,7 @@ interface Error {
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
-    label: vSet.title.replace('_', ''),
+    label: vSet?.title?.replace('_', ''),
     url: vSet.url,
     version: vSet.version,
     id: vSet.id,
@@ -169,7 +169,6 @@ const ValueSets = () => {
       body: leafPutBody
     })
 
-    console.log(leafsUpdated)
     // useUpdateGrouperValueSets
   }
 
@@ -218,7 +217,7 @@ const ValueSets = () => {
             <Select
               isMulti={true}
               options={buildConditionOptions(allConditions, selectedConditions)}
-              onChange={(e) => (setSelectedConditions(e))}
+              onChange={(e: any) => (setSelectedConditions(e))}
             />
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Groups
@@ -226,8 +225,7 @@ const ValueSets = () => {
             <Select
               isMulti={true}
               options={formattedGroups}
-              onChange={(e) => {
-                console.log('groupers: ', e)
+              onChange={(e: any) => {
                 setSelectedGroupers(e)
               }
               }
@@ -249,9 +247,8 @@ const ValueSets = () => {
         isLoading
           ? <LoadingIndicator />
           : <SearchTable
-            valueSets={valueSets}
+            valueSets={valueSets || []}
             setSelectedValueSets={setSelectedValueSets}
-            activeSearchType={activeSearchType}
           />
       }
     </Col>

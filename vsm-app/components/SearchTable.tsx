@@ -19,7 +19,7 @@ export interface BundleEntryItem {
   resource: fhir4.ValueSet
 }
 
-const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, activeSearchType: string | null): TableData[] => {
+const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): TableData[] => {
   if (!valueSets?.length) {
     return []
   }
@@ -45,16 +45,14 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, a
 
 interface Input {
   valueSets: ValueSet[] | BundleEntryItem[],
-  activeSearchType: 'error' | 'oid' | 'name',
-  setSelectedValueSets: () => void
+  setSelectedValueSets: (eventItem: any) => void
 }
 
 const SearchTable = ({
   valueSets = [],
-  activeSearchType,
   setSelectedValueSets
 }: Input) => {
-  const tableData = parseValueSets(valueSets, activeSearchType)
+  const tableData = parseValueSets(valueSets)
 
   return (
     <DataTable

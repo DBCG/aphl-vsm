@@ -24,7 +24,7 @@ export default async function handler(
     let vSetsToUpdate = []
     let vsToUpdate
 
-    const existingVSets = await Promise.all(bodyJson?.selectedValueSets?.map(item => (
+    const existingVSets = await Promise.all(bodyJson?.selectedValueSets?.map((item: any) => (
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
@@ -100,7 +100,7 @@ export default async function handler(
     }
 
     // get groupers
-    const groupersToUpdate = await Promise.all(bodyJson.selectedGroupers.map(async (grouperItem) => {
+    const groupersToUpdate = await Promise.all(bodyJson.selectedGroupers.map(async (grouperItem: any) => {
       return await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: grouperItem.id
@@ -112,7 +112,7 @@ export default async function handler(
       // when we allow users to create groupers
       const performGrouperUpdate = await Promise.all(groupersToUpdate.map(async (grouperVs) => {
         const originalComposeInclude = grouperVs.compose.include[0].valueSet
-        const newValueSetCanonicals = bodyJson.selectedValueSets.map(item => item.url)
+        const newValueSetCanonicals = bodyJson.selectedValueSets.map((item: any) => item.url)
         // deduplicate with set
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
 

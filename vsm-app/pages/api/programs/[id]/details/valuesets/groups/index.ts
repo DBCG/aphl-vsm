@@ -20,7 +20,7 @@ export default async function handler(
     const programLibrary = await fetchProgram(req.query.id as string)
 
     const grouperLibraryCanonical = programLibrary?.relatedArtifact
-      ?.find(art => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))
+      ?.find((art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))
       ?.resource
 
     const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
@@ -33,10 +33,12 @@ export default async function handler(
       }
     })
 
-    const grouperValueSetCanonicals = grouperLibrarySearchBundle?.entry?.[0]?.resource
+    const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
+
+    const grouperValueSetCanonicals = library
       ?.relatedArtifact
-      ?.filter(art => art.type === 'composed-of' && art.resource.includes('/ValueSet/'))
-      ?.map(item => item?.resource)
+      ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
+      ?.map(item => item?.resource) as string[]
 
     if (grouperValueSetCanonicals?.length) {
       const grouperValueSetSearchSets = await Promise.all(grouperValueSetCanonicals?.map((canonical: string) => {

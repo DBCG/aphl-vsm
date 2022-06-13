@@ -108,7 +108,6 @@ export default async function handler(
 
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {
-    console.log('rerun')
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
     try {
@@ -154,18 +153,11 @@ export default async function handler(
                   }
 
                   if (groupsByValueSetCanonical[url]) {
-                    console.log('pushing', groupToAdd)
-                    console.log('url ', url);
-                    console.log('before, ', groupsByValueSetCanonical[url]);
-
-
                     groupsByValueSetCanonical[url].push(groupToAdd)
-                    console.log('after, ', groupsByValueSetCanonical[url]);
                   } else {
                     groupsByValueSetCanonical[url] = [groupToAdd]
                   }
                 })
-                console.log('groups by valuesetCanon: ', groupsByValueSetCanonical) // wny only one per each?
               })
 
               if (leafValueSetCanonicals.length) {
@@ -179,19 +171,13 @@ export default async function handler(
       }
 
       const response = leafValueSets?.map(valueSet => {
-        console.log('response runs');
 
         // if (!valueSet) return
-        console.log('groups by vs canonical!: ', groupsByValueSetCanonical)
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
         // const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
         const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k === valueSet.url as string)
-        console.log('groupsByvscanonical again: ', groupsByValueSetCanonical)
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
-
-        console.log('leafVsCnonical: ', leafVsCanonical)
-        console.log('groupsVsBelongsTo: ', groupsVsBelongsTo)
 
         let result = {
           programName: program?.name || 'Undefined',

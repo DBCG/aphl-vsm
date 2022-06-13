@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react'
 const useUpdateLeafValueSets = (
   programId: string,
   selectedValueSets: fhir4.ValueSet[],
-  selectedConditions,
-  selectedGroups
+  selectedConditions: any,
+  selectedGroups: any
 ): [] | fhir4.ValueSet[] => {
   const [leafVSets, setLeafVSets] = useState([])
-  // instead of passing around data, can just pivot on 200
+
   useEffect(() => {
     async function updateLeafVSets(): Promise<void> {
       if (!programId) {
@@ -20,6 +20,7 @@ const useUpdateLeafValueSets = (
         const response: Response = await fetch(endpoint, {
           method: 'PUT',
           body: {
+            // @ts-ignore-next
             valueSetsToUpdate: selectedValueSets,
             conditionsToAdd: selectedConditions,
             groupsToUpdate: selectedGroups

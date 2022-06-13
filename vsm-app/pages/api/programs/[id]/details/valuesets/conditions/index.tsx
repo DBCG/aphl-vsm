@@ -17,7 +17,7 @@ export default async function handler(
         url: body?.canonical,
         version: body?.version
       }
-    }) as fhir4.ValueSet
+    })
 
     const vs = valueSetToUpdate?.entry?.[0]?.resource
     const updatedValueSet = updateConditions(vs, body.conditionInfo)
