@@ -14,12 +14,21 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 
+const TitleRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`
+
 const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 12px;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 `
 
 const Col = styled.div`
@@ -32,6 +41,10 @@ const Col = styled.div`
 const ErrorText = styled.span`
   color: darkRed;
   font-size: 90%;
+`
+
+const SelectInputContainer = styled.div`
+  min-width: 300px;
 `
 
 type SearchType = 'name' | 'oid' | 'steward'
@@ -169,7 +182,6 @@ const ValueSets = () => {
       body: leafPutBody
     })
 
-    // useUpdateGrouperValueSets
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
@@ -191,56 +203,66 @@ const ValueSets = () => {
 
   return (
     <Col>
-      <PageTitle>ValueSet Search</PageTitle>
+      <TitleRow>
+        <PageTitle>ValueSet Search</PageTitle>
+        <Row>
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
+            id='vs-name-search'
+            label='Name'
+            hasIcon={true}
+            minWidth={300}
+          />
+          <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
+            id='vs-oid-search'
+            label='OID'
+            hasIcon={true}
+            minWidth={300}
+          />
+          {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
+          <IconButton
+            style={{ alignSelf: 'flex-end', marginTop: '12px' }}
+            buttonContext='search'
+            onClick={(e) => submitVSetSearch(e)}
+          />
+        </Row>
+
+      </TitleRow>
       <form>
         <Row>
-          <Col style={{ maxWidth: '400px' }}>
-            <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
-              id='vs-name-search'
-              label='Name'
-              hasIcon={true}
-              minWidth={400}
-              style={{ marginBottom: '12px'}}
-            />
-            <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
-              id='vs-oid-search'
-              label='OID'
-              hasIcon={true}
-              minWidth={400}
-            />
-            {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
+          <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Conditions
             </StyledLabel>
-            <Select
-              isMulti={true}
-              options={buildConditionOptions(allConditions, selectedConditions)}
-              onChange={(e: any) => (setSelectedConditions(e))}
-            />
+            <SelectInputContainer>
+              <Select
+                isMulti={true}
+                options={buildConditionOptions(allConditions, selectedConditions)}
+                onChange={(e: any) => (setSelectedConditions(e))}
+              />
+            </SelectInputContainer>
+          </div>
+          <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Groups
             </StyledLabel>
-            <Select
-              isMulti={true}
-              options={formattedGroups}
-              onChange={(e: any) => {
-                setSelectedGroupers(e)
-              }
-              }
-            />
-            <IconButton
-              style={{ alignSelf: 'flex-end', marginTop: '12px' }}
-              buttonContext='search'
-              onClick={(e) => submitVSetSearch(e)}
-            />
-          </Col>
-          <Button text='Add Selected To Program'
-            style={{ maxHeight: '60px'}}
-            onClick={(e) => submitAddVSet(e)}
-          />
+            <SelectInputContainer>
+              <Select
+                isMulti={true}
+                options={formattedGroups}
+                onChange={(e: any) => {
+                  setSelectedGroupers(e)
+                }}
+              />
+            </SelectInputContainer>
+          </div>
+        <Button text='Add Selected To Program'
+          style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
+          onClick={(e) => submitAddVSet(e)}
+        />
         </Row>
+
       </form>
       {
         // @ts-ignore-next-line
