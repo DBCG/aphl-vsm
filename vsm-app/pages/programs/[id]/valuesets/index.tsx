@@ -82,10 +82,12 @@ interface GroupUpdateItem {
 }
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
+  console.log('groupvsets: ', groupVsets)
   return groupVsets?.map(g => ({
     value: g.id,
-    label: g.title,
-    dataId: `${g.id}${g.title}`
+    label: g.title?.replace('_', ' '),
+    id: g.id
+    // dataId: `${g.id}${g.title}`
   }))
 }
 
@@ -243,7 +245,8 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: false,
       wrap: true,
       cell: (row: DataItem) => {
-        const selectedOptions = row?.groups?.map(i => ({ label: i?.title, value: i?.id }))
+        console.log('row.groups: ', row.groups)
+        const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
         return (
           <SelectInputContainer>
             <Toaster/>

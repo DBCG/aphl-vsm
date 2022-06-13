@@ -38,26 +38,26 @@ const cache = new NodeCache()
 
 
 
-const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, useCache = true) => {
-  const cachedCopy = cache.get(canonical)
-  if (cachedCopy && useCache) { return cachedCopy }
+const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
+  // const cachedCopy = cache.get(canonical)
+  // if (cachedCopy && useCache) { return cachedCopy }
 
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
   if (version) { searchParams.version = version }
   const result = client.search({ resourceType, searchParams })
-  cache.set(canonical, result)
+  // cache.set(canonical, result)
 
   return result
 }
 
-const fetchGrouperLibrary = (client: FhirKitClient, canonical: string, useCache = true) => {
-  return fetchByCanonical(client, 'Library', canonical, useCache)
+const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
+  return fetchByCanonical(client, 'Library', canonical)
 }
 
-const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
+const fetchGrouperValueSets = (canonicals: string[]) => {
   return Promise.all(
-    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, useCache))
+    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical))
   )
 }
 
@@ -90,7 +90,7 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
     ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
     ?.filter((value, index, self) => (
       // @ts-ignore-next-line filter out multiple ids
-      self.findIndex(v2 => v2.id === value.id) === index
+      self.findIndex(v2 => v2?.id === value?.id) === index
     ))
   return valueSets
 }
@@ -112,14 +112,13 @@ export default async function handler(
     try {
       const program = await fetchProgram(req.query.id as string)
       // disabling proto-cache because it causes problems with updating groupers
-      const useCache = false
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
         const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
 
         if (grouperLibraryCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical, useCache)
+          const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical)
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
@@ -131,7 +130,7 @@ export default async function handler(
               .filter(isDefinedString)
 
             if (grouperValueSetCanonicals) {
-              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals, useCache))
+              allGrouperVSets = (await fetchGrouperValueSets(grouperValueSetCanonicals))
                 .filter(is.bundle)
                 .flatMap(bundle => bundle.entry?.map(e => e.resource))
                 .filter(is.valueSet)
@@ -147,6 +146,7 @@ export default async function handler(
                     url: grouperVs.url || 'Undefined',
                     title: groupTitle
                   }
+
                   if (groupsByValueSetCanonical[url]) {
                     groupsByValueSetCanonical[url].push(groupToAdd)
                   } else {
@@ -165,17 +165,21 @@ export default async function handler(
         }
       }
 
+      console.log('leaf vsets: ', leafValueSets)
+
       const response = leafValueSets?.map(valueSet => {
+        if (!valueSet) return
         // condition VS is static, in our CDR
         // only snomed for now, but is an array of codesets grouped by system
         const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
-
+        console.log(1)
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
-
+        console.log(2)
+        console.log('valueSet: ', valueSet)
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
-          title: valueSet.name || 'Undefined',
+          title: valueSet?.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
           valueSet: valueSet,
@@ -198,7 +202,7 @@ export default async function handler(
           // if there's more than 1 group, the valuesets must match ALL active group filters
           return groupIdsToFilterBy?.every((id: string) => groupsVsBelongsTo?.find(g => g?.id === id))
         }
-
+        console.log(3)
         const valueSetContainsRequiredCondition = () => {
           const useContextConditions = valueSet?.useContext
             ?.filter(i => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type'))
@@ -229,7 +233,5 @@ export default async function handler(
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
-  } else if (req.method === 'PUT') {
-    console.log('programid: ', req.query.id)
   }
 }
