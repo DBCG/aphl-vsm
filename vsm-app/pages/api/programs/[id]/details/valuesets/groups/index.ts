@@ -2,6 +2,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
+import { fetchProgram } from '@/helpers/libraryHelpers'
+import { is } from '@/helpers/is'
 
 interface GroupInfoItem {
   label: string,
@@ -12,7 +14,53 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  if (req.method === 'PUT') {
+  if (req.method === 'GET') {
+    let result = []
+    // get all grouper valueSets from within a program
+    const programLibrary = await fetchProgram(req.query.id as string)
+
+    const grouperLibraryCanonical = programLibrary?.relatedArtifact
+      ?.find(art => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))
+      ?.resource
+
+    const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
+    console.log('grouper canonical: ', grouperLibraryCanonical)
+
+    const grouperLibrarySearchBundle = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams: {
+        url: grouperLibUrl,
+        version: grouperLibVersion
+      }
+    })
+
+    const grouperValueSetCanonicals = grouperLibrarySearchBundle?.entry?.[0]?.resource
+      ?.relatedArtifact
+      ?.filter(art => art.type === 'composed-of' && art.resource.includes('/ValueSet/'))
+      ?.map(item => item?.resource)
+
+    console.log('grouperLibrary: ', grouperValueSetCanonicals)
+
+    if (grouperValueSetCanonicals?.length) {
+      const grouperValueSetSearchSets = await Promise.all(grouperValueSetCanonicals?.map((canonical: string) => {
+        const [url, version] = canonical.split('|')
+        return (
+          fhirCdrClient.search({
+            resourceType: 'ValueSet',
+            searchParams: {
+              url: url,
+              version: version
+            }
+          })
+        )
+      }
+      ))
+
+      const grouperVSets = grouperValueSetSearchSets?.map(bundle => bundle?.entry?.[0]?.resource)
+      result = grouperVSets
+    }
+    res.status(200).send(result)
+  } else if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
     const { groupInfo } = body
     const leafValuesetId = body?.canonical?.split('/ValueSet/')?.[1]

@@ -1,14 +1,18 @@
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
+import Select from 'react-select'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { SearchInput } from '@/components/SearchInput'
+import { useGetConditions } from '@/hooks/useGetConditions'
+import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { BundleEntryItem, SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
+import { useGetGroups } from '@/hooks/useGetGroups'
 
 const Row = styled.div`
   display: flex;
@@ -32,22 +36,40 @@ const ErrorText = styled.span`
 
 type SearchType = 'name' | 'oid' | 'steward'
 
-type ActiveSearchType = 'error' | 'oid' | 'name' | null
-
 interface Error {
   type: 'search-overload' | 'oid-not-found'
   message: string
 }
 
+const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
+  return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
+    label: vSet.title.replace('_', ''),
+    url: vSet.url,
+    version: vSet.version,
+    dataId: `${vSet.url}|${vSet.version}`
+  }))
+}
+
 const ValueSets = () => {
   const router = useRouter()
+  const programId = router.query.id as string
+
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   // set search terms from inputs
   const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
   const [oidSearchTerm, setOidSearchTerm] = useState<string>('')
+  // set conditions and groupers to be applied to valuesets
+  const [selectedGroupers, setSelectedGroupers] = useState([])
+  const [selectedConditions, setSelectedConditions] = useState([])
   // error info
   const [error, setError] = useState<Error | null>(null)
+
+  const conditions = useGetConditions()
+  const groups = useGetGroups(programId)
+  const allConditions = formatConditionsComposeInclude(conditions)
+  console.log('allConditions: ', allConditions)
+  console.log('groups: ', groups)
 
   let activeSearchType = null
 
@@ -71,7 +93,7 @@ const ValueSets = () => {
 
   }, [nameSearchTerm, oidSearchTerm])
 
-  const handleFetchResponse = async (response: Response | undefined, type?: SearchType) => {
+  const handleSearchResponse = async (response: Response | undefined, type?: SearchType) => {
     if (response?.ok && type === 'oid') {
       const valueSetResponse = await response.json() as ValueSet[]
       setValueSets(valueSetResponse)
@@ -113,7 +135,7 @@ const ValueSets = () => {
       }
     }
 
-    await handleFetchResponse(response, searchType)
+    await handleSearchResponse(response, searchType)
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
@@ -155,6 +177,22 @@ const ValueSets = () => {
               minWidth={400}
             />
             {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
+            <StyledLabel id="aria-label" htmlFor="conditions-selector">
+              Conditions
+            </StyledLabel>
+            <Select
+              isMulti={true}
+              options={buildConditionOptions(allConditions, selectedConditions)}
+              onChange={(e) => (setSelectedConditions(e))}
+            />
+            <StyledLabel id="aria-label" htmlFor="conditions-selector">
+              Groups
+            </StyledLabel>
+            <Select
+              isMulti={true}
+              options={formatGrouperValueSets(groups)}
+              onChange={(e) => (setSelectedGroupers(e))}
+            />
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
               buttonContext='search'

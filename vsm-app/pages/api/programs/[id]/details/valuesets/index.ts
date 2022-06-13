@@ -4,7 +4,7 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
-import { version } from 'os'
+import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
 // Items in the table
 interface Group {
@@ -36,9 +36,7 @@ interface ValueSetTableEntry {
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
 const cache = new NodeCache()
 
-const fetchProgram = (id: string) => {
-  return fhirCdrClient.read({ resourceType: 'Library', id })
-}
+
 
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, useCache = true) => {
   const cachedCopy = cache.get(canonical)
@@ -53,8 +51,8 @@ const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical
   return result
 }
 
-const fetchGrouperLibrary = (canonical: string, useCache = true) => {
-  return fetchByCanonical(fhirCdrClient, 'Library', canonical, useCache)
+const fetchGrouperLibrary = (client: FhirKitClient, canonical: string, useCache = true) => {
+  return fetchByCanonical(client, 'Library', canonical, useCache)
 }
 
 const fetchGrouperValueSets = (canonicals: string[], useCache = true) => {
@@ -118,12 +116,10 @@ export default async function handler(
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
-        const grouperLibraryCanonical = program.relatedArtifact
-          ?.find(related => related.resource?.includes('/Library/'))
-          ?.resource
+        const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
 
         if (grouperLibraryCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(grouperLibraryCanonical, useCache)
+          const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical, useCache)
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {

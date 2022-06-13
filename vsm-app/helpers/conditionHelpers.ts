@@ -8,9 +8,31 @@ interface Condition {
   }
 }
 
+interface ConditionItem {
+  system: string,
+  version: string,
+  code: string,
+  display: string
+}
+
 interface UsageContextItem {
   code: fhir4.Coding,
   valueCodeableConcept: fhir4.CodeableConcept
+}
+
+interface ConditionInfo {
+  label: string,
+  value: {
+    code: string,
+    system: string,
+    text: string
+  }
+}
+
+interface ConditionToUpdate {
+  canonical: string,
+  version: string,
+  conditionInfo: ConditionInfo[]
 }
 
 const buildConditionItem = (condition: Condition) => {
@@ -51,4 +73,49 @@ const updateConditions = (valueSet: fhir4.ValueSet, conditions: Condition[]) => 
   return vs
 }
 
-export { updateConditions }
+const formatConditionsComposeInclude = (conditionsList: any) => {
+  const list = conditionsList?.map((c: any) => (
+    c?.concept?.map((item: any) => ({
+      system: c.system,
+      version: c.version,
+      code: item.code,
+      display: item?.designation
+        ?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')
+        ?.value || c?.display || ''
+    }))
+  )).flat()
+  // sort by display
+  return list?.sort((firstItem: ConditionItem, secondItem: ConditionItem) => (
+    firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase()))
+  )
+}
+
+const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
+  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
+  const flattenedConditions = conditions?.flat(2)
+  const result = flattenedConditions?.map(c => (
+    {
+      value: {
+        system: c.system,
+        version: c.version,
+        code: c.code,
+        text: c.display
+      },
+      label: c.display,
+      dataId: `${c.system}${c.code}${c.display}`
+    }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
+  return result
+}
+
+
+
+export {
+  updateConditions,
+  formatConditionsComposeInclude,
+  buildConditionOptions
+}
+export type {
+  ConditionItem,
+  ConditionInfo,
+  ConditionToUpdate
+}

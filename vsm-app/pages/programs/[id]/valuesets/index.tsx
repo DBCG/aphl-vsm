@@ -13,6 +13,7 @@ import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
+import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 
 const customStyles = {
   cells: {
@@ -69,27 +70,6 @@ const Id = styled(PageTitle).attrs({
 })`
   font-size: 20px;
 `
-interface ConditionItem {
-  system: string,
-  version: string,
-  code: string,
-  display: string
-}
-
-interface ConditionInfo {
-  label: string,
-  value: {
-    code: string,
-    system: string,
-    text: string
-  }
-}
-
-interface ConditionToUpdate {
-  canonical: string,
-  version: string,
-  conditionInfo: ConditionInfo[]
-}
 
 interface GroupInfoItem {
   label: string,
@@ -99,25 +79,6 @@ interface GroupInfoItem {
 interface GroupUpdateItem {
   canonical?: string,
   groupInfo?: GroupInfoItem[]
-}
-
-
-
-export const formatConditionsValueSet = (conditionsList: any) => {
-  const list = conditionsList?.map((c: any) => (
-    c?.concept?.map((item: any) => ({
-      system: c.system,
-      version: c.version,
-      code: item.code,
-      display: item?.designation
-        ?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')
-        ?.value || c?.display || ''
-    }))
-  )).flat()
-  // sort by display
-  return list?.sort((firstItem: ConditionItem, secondItem: ConditionItem) => (
-    firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase()))
-  )
 }
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
@@ -212,7 +173,7 @@ const ProgramValueSetDetails: NextPage = () => {
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
-  const allConditions = formatConditionsValueSet(conditions)
+  const allConditions = formatConditionsComposeInclude(conditions)
   // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
   
