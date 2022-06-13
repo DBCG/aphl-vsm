@@ -55,6 +55,7 @@ const ValueSets = () => {
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
+  const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   // set search terms from inputs
   const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
@@ -207,7 +208,9 @@ const ValueSets = () => {
       </form>
       {
         // @ts-ignore-next-line
-        isLoading ? <LoadingIndicator /> : <SearchTable valueSets={valueSets} activeSearchType={activeSearchType} />
+        isLoading
+          ? <LoadingIndicator />
+          : <SearchTable valueSets={valueSets} setSelectedValueSets={setSelectedValueSets} activeSearchType={activeSearchType} />
       }
     </Col>
   )
