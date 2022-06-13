@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 
-const useUpdateLeafValueSets = (programId: string, selectedValueSets: fhir4.ValueSet[], selectedConditions): [] | fhir4.ValueSet[] => {
+const useUpdateLeafValueSets = (
+  programId: string,
+  selectedValueSets: fhir4.ValueSet[],
+  selectedConditions,
+  selectedGroups
+): [] | fhir4.ValueSet[] => {
   const [leafVSets, setLeafVSets] = useState([])
   // instead of passing around data, can just pivot on 200
   useEffect(() => {
@@ -13,10 +18,11 @@ const useUpdateLeafValueSets = (programId: string, selectedValueSets: fhir4.Valu
 
       try {
         const response: Response = await fetch(endpoint, {
-          method: 'PUT', 
+          method: 'PUT',
           body: {
             valueSetsToUpdate: selectedValueSets,
-            conditionsToAdd: selectedConditions
+            conditionsToAdd: selectedConditions,
+            groupsToUpdate: selectedGroups
           }
         })
         const json = await response.json()

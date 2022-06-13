@@ -59,6 +59,8 @@ const buildConditionItem = (condition: Condition) => {
 // TODO there should be no useContext if it is an empty array
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
   let vs = valueSet
+
+  // console.log('valueset: ', valueSet)
   if (vs?.useContext) {
     const nonConditionContexts = vs?.useContext?.filter(ctx => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus'))
     const newConditionContexts = newConditions?.map(c => buildConditionItem(c))
@@ -80,8 +82,10 @@ const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], 
       }
     }
   } else if (!vs?.useContext && newConditions?.length) {
+    console.log('didn not already exist: ')
     vs.useContext = newConditions?.map(c => buildConditionItem(c))
   }
+  console.log('new vs: ', vs)
   return vs
 }
 

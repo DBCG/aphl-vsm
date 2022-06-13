@@ -147,6 +147,7 @@ const ValueSets = () => {
 
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
+    console.log('selectedGroupers: ', selectedGroupers)
     let response
     // handle errors (e.g. if no grouper, no condition)
     // if (error) {
@@ -161,7 +162,8 @@ const ValueSets = () => {
 
     const leafPutBody = JSON.stringify({
       selectedValueSets,
-      selectedConditions
+      selectedConditions,
+      selectedGroupers
     })
   
     const leafsUpdated = await fetch('/api/valueset', {
@@ -226,7 +228,11 @@ const ValueSets = () => {
             <Select
               isMulti={true}
               options={formattedGroups}
-              onChange={(e) => setSelectedGroupers(e)}
+              onChange={(e) => {
+                console.log('groupers: ', e)
+                setSelectedGroupers(e)
+              }
+              }
             />
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
