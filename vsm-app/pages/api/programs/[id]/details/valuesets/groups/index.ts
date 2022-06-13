@@ -58,8 +58,10 @@ export default async function handler(
 
       const grouperVSets = grouperValueSetSearchSets?.map(bundle => bundle?.entry?.[0]?.resource)
       result = grouperVSets
+      res.status(200).send(result)
+      return
     }
-    res.status(200).send(result)
+    res.status(400).send({ error: 'get groupers failed' })
   } else if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
     const { groupInfo } = body

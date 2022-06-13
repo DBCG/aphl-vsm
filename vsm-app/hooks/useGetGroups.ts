@@ -4,6 +4,7 @@ const useGetGroups = (programId: string): [] | fhir4.ValueSet[] => {
   const [groups, setGroups] = useState([])
 
   useEffect(() => {
+    console.log('this called again from useget')
     async function getGroups(): Promise<void> {
       if (!programId) {
         return

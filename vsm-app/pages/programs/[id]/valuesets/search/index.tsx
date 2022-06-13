@@ -1,5 +1,5 @@
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
-import { ChangeEvent, SyntheticEvent, useEffect, useState } from 'react'
+import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -37,16 +37,19 @@ const ErrorText = styled.span`
 type SearchType = 'name' | 'oid' | 'steward'
 
 interface Error {
-  type: 'search-overload' | 'oid-not-found'
+  type: 'search-overload' | 'missing-data' | 'oid-not-found'
   message: string
 }
 
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
+  console.log('format called: ')
+  if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
     label: vSet.title.replace('_', ''),
     url: vSet.url,
     version: vSet.version,
-    dataId: `${vSet.url}|${vSet.version}`
+    id: vSet.id,
+    value: vSet.url
   }))
 }
 
@@ -69,8 +72,11 @@ const ValueSets = () => {
   const conditions = useGetConditions()
   const groups = useGetGroups(programId)
   const allConditions = formatConditionsComposeInclude(conditions)
-  console.log('allConditions: ', allConditions)
-  console.log('groups: ', groups)
+
+  const formattedGroups = useMemo(() => {
+    if (!groups) return []
+    return formatGrouperValueSets(groups)
+}, [groups])
 
   let activeSearchType = null
 
@@ -112,7 +118,7 @@ const ValueSets = () => {
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
-  const submitSearch = async (e: SyntheticEvent) => {
+  const submitVSetSearch = async (e: SyntheticEvent) => {
     e.preventDefault()
     let response
     if (error) {
@@ -137,6 +143,34 @@ const ValueSets = () => {
     }
 
     await handleSearchResponse(response, searchType)
+  }
+
+  const submitAddVSet = async (e: SyntheticEvent) => {
+    e.preventDefault()
+    let response
+    // handle errors (e.g. if no grouper, no condition)
+    // if (error) {
+    //   return
+    // }
+    // setIsLoading(true)
+
+    if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
+      console.error('missing data')
+      return
+    }
+
+    const leafPutBody = JSON.stringify({
+      selectedValueSets,
+      selectedConditions
+    })
+  
+    const leafsUpdated = await fetch('/api/valueset', {
+      method: 'PUT',
+      body: leafPutBody
+    })
+
+    console.log(leafsUpdated)
+    // useUpdateGrouperValueSets
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
@@ -191,18 +225,18 @@ const ValueSets = () => {
             </StyledLabel>
             <Select
               isMulti={true}
-              options={formatGrouperValueSets(groups)}
-              onChange={(e) => (setSelectedGroupers(e))}
+              options={formattedGroups}
+              onChange={(e) => setSelectedGroupers(e)}
             />
             <IconButton
               style={{ alignSelf: 'flex-end', marginTop: '12px' }}
               buttonContext='search'
-              onClick={(e) => submitSearch(e)}
+              onClick={(e) => submitVSetSearch(e)}
             />
           </Col>
           <Button text='Add Selected To Program'
             style={{ maxHeight: '60px'}}
-            onClick={onClick}
+            onClick={(e) => submitAddVSet(e)}
           />
         </Row>
       </form>
@@ -210,7 +244,11 @@ const ValueSets = () => {
         // @ts-ignore-next-line
         isLoading
           ? <LoadingIndicator />
-          : <SearchTable valueSets={valueSets} setSelectedValueSets={setSelectedValueSets} activeSearchType={activeSearchType} />
+          : <SearchTable
+            valueSets={valueSets}
+            setSelectedValueSets={setSelectedValueSets}
+            activeSearchType={activeSearchType}
+          />
       }
     </Col>
   )

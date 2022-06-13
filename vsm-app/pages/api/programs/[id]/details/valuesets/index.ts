@@ -229,5 +229,7 @@ export default async function handler(
       console.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
+  } else if (req.method === 'PUT') {
+    console.log('programid: ', req.query.id)
   }
 }

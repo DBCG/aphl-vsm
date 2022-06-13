@@ -35,6 +35,7 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, a
       steward: publisher,
       oid: id,
       url: is.valueSet(vs) ? url : vs.fullUrl,
+      version: valueSetResource.version,
       id: `${id}-version${valueSetResource.version}`
     }
   })
