@@ -3,6 +3,7 @@ import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react
 import Select from 'react-select'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import { ToastContainer, toast } from 'react-toastify'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
@@ -14,6 +15,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
+import 'react-toastify/dist/ReactToastify.min.css'
 
 const TitleRow = styled.div`
   display: flex;
@@ -96,7 +98,6 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
-
   const handleSearchResponse = async (response: Response | undefined) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
@@ -174,10 +175,20 @@ const ValueSets = () => {
 
   }
 
+  useEffect(() => {
+    if (fetchError?.message) {
+      toast.error(fetchError.message)
+    }
+  }, [fetchError?.message])
+
   return (
     <Col>
       <TitleRow>
-        <PageTitle>ValueSet Search: { programId }</PageTitle>
+        <ToastContainer
+          autoClose={false}
+          closeOnClick={false}
+        />
+        <PageTitle>ValueSet Search: {programId}</PageTitle>
         <Row>
           <SearchInput
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
@@ -192,7 +203,6 @@ const ValueSets = () => {
             onClick={(e) => submitVSetSearch(e)}
           />
         </Row>
-        { fetchError?.message && fetchError.message }
       </TitleRow>
       <form>
         <Row>

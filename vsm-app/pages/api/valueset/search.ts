@@ -59,12 +59,15 @@ export default async function handler(
 
             const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
 
-            const failedOIDs = oidList?.filter((oid) => successfulOIDs?.includes(oid))
+            const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
 
             if (failedOIDs.length > 0) {
               responseInfo.error = {
                 errorType: 'failed-oids',
-                message: `Search for these OIDs failed: ${failedOIDs.join(', ')}. Check if they are malformed or nonexistent and try again.`
+                message:
+                  `Search for these OIDs failed: ${failedOIDs.join(', ')}.
+                  
+                   Check if they are malformed or nonexistent and try again.`
               }
             }
 
