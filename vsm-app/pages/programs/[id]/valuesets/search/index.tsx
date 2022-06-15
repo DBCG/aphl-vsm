@@ -75,18 +75,14 @@ const ValueSets = () => {
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  // set search terms from inputs
-  const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
-  const [oidSearchTerm, setOidSearchTerm] = useState<string>('')
-  // set search term from inputs
+  const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
+  // set search term from input
   const [searchTerm, setSearchTerm] = useState<string>('')
-  // const [searchType, setSearchType] = useState<'name' | 'oid' | ''>('')
-
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
   // error info
-  const [error, setError] = useState<Error | null>(null)
+  const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
 
   const conditions = useGetConditions()
@@ -125,7 +121,7 @@ const ValueSets = () => {
     e.preventDefault()
 
     let response
-    if (error || !searchTerm || !searchTerm?.trim()) {
+    if (!searchTerm?.trim()) {
       return
     }
 
@@ -150,15 +146,12 @@ const ValueSets = () => {
 
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
+    setAddedValueSetsLoading(true)
     let response
-    // handle errors (e.g. if no grouper, no condition)
-    // if (error) {
-    //   return
-    // }
-    // setIsLoading(true)
 
     if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
-      console.error('missing data')
+      const message = 'You must select at least one valueset, with an associated condition and group.'
+      toast.error(message)
       return
     }
 
