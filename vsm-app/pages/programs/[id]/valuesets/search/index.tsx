@@ -13,6 +13,7 @@ import { PageTitle } from '@/components/Typography'
 import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
+import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 
 const TitleRow = styled.div`
   display: flex;
@@ -84,6 +85,7 @@ const ValueSets = () => {
   const [selectedConditions, setSelectedConditions] = useState([])
   // error info
   const [error, setError] = useState<Error | null>(null)
+  const [fetchError, setFetchError] = useState<FetchError | null>(null)
 
   const conditions = useGetConditions()
   const groups = useGetGroups(programId)
@@ -95,19 +97,23 @@ const ValueSets = () => {
   }, [groups])
 
 
-  const handleSearchResponse = async (response: Response | undefined, type?: SearchType) => {
-    if (response?.ok && type === 'oid') {
-      const valueSetResponse = await response.json() as ValueSet[]
-      setValueSets(valueSetResponse)
-      setIsLoading(false)
-    } else if (response?.ok) {
-      const { entry } = await response.json()
-      setValueSets(entry)
-      setIsLoading(false)
+  const handleSearchResponse = async (response: Response | undefined) => {
+    if (response?.ok) {
+      const valueSetResponse = await response.json() as SearchResponse
+      setValueSets(valueSetResponse.valueSets)
+      setFetchError(valueSetResponse.error || null)
+    } else if (response && !response?.ok) {
+      const valueSetResponse = await response.json()
+      setValueSets([])
+      setFetchError(valueSetResponse)
     } else {
       setValueSets([])
-      setIsLoading(false)
+      setFetchError({
+        errorType: 'fetch-error',
+        message: 'No response for search'
+      })
     }
+    setIsLoading(false)
   }
 
   /**
@@ -132,14 +138,13 @@ const ValueSets = () => {
       searchType = 'oid'
       const dedupedOids = dedupeArray(trimmedWords)
       searchStr = dedupedOids?.join(',')
-      const invalidOids = trimmedWords?.filter(w => !w.match(oidRegex))
     } else {
       searchType = 'name'
       searchStr = searchTerm.trim()
     }
-    response = await fetch(`/api/valueset/search?search=${searchStr}&searchType=oid`)
+    response = await fetch(`/api/valueset/search?search=${searchStr}&searchType=${searchType}`)
 
-    await handleSearchResponse(response, searchType)
+    await handleSearchResponse(response)
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
@@ -169,25 +174,6 @@ const ValueSets = () => {
 
   }
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    e.preventDefault()
-    const { target: { value } } = e
-
-    const isSearchOid = value?.trim(' ')?.split(',')?.map(item => item?.trim)
-
-    if (type === 'name') {
-      setNameSearchTerm(value)
-    } else if (type === 'oid') {
-      setOidSearchTerm(value)
-    }
-  }
-
-  // @ts-expect-error
-  const onClick = (e) => {
-    e.preventDefault()
-    router.push('/programs')
-  }
-
   return (
     <Col>
       <TitleRow>
@@ -200,28 +186,13 @@ const ValueSets = () => {
             hasIcon={true}
             minWidth={300}
           />
-          {/* <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
-            id='vs-name-search'
-            label='Name'
-            hasIcon={true}
-            minWidth={300}
-          />
-          <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'oid')}
-            id='vs-oid-search'
-            label='OID'
-            hasIcon={true}
-            minWidth={300}
-          /> */}
-          {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
           <IconButton
             style={{ alignSelf: 'flex-end', marginTop: '12px' }}
             buttonContext='search'
             onClick={(e) => submitVSetSearch(e)}
           />
         </Row>
-
+        { fetchError?.message && fetchError.message }
       </TitleRow>
       <form>
         <Row>

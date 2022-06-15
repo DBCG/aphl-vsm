@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient } from 'fhirClients'
 
-interface FetchError {
-  errorType: 'server-error' | 'failed-oids' | '',
+export interface FetchError {
+  errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
   message: string
 }
 
-interface Response {
+export interface SearchResponse {
   valueSets: fhir4.ValueSet[] | [],
   error?: FetchError
 }
@@ -17,7 +17,7 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'GET') {
     const { search, searchType } = req.query
-    let responseInfo: Response = {
+    let responseInfo: SearchResponse = {
       valueSets: []
     }
 
@@ -64,14 +64,14 @@ export default async function handler(
             if (failedOIDs.length > 0) {
               responseInfo.error = {
                 errorType: 'failed-oids',
-                message: `Search for these OIDs failed: ${failedOIDs.join(', ')}.`
+                message: `Search for these OIDs failed: ${failedOIDs.join(', ')}. Check if they are malformed or nonexistent and try again.`
               }
             }
 
           } catch (e) {
             console.error(e)
             responseInfo.error = {
-              errorType: 'server-error',
+              errorType: 'oid-error',
               message: `Search by OID failed.`
             }
           }
@@ -80,9 +80,11 @@ export default async function handler(
       }
 
       res.status(200).send(responseInfo)
+      return
     } catch (e) {
       console.error('error:  ', e)
-      res.status(400).json({ error: 'Loading ValueSets failed' })
+      res.status(400).json({ 'server-error': 'ValueSet search failed.' })
+      return
     }
   }
 }
