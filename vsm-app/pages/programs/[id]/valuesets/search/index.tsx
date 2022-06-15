@@ -50,7 +50,7 @@ const SelectInputContainer = styled.div`
 type SearchType = 'name' | 'oid' | 'steward'
 
 interface Error {
-  type: 'search-overload' | 'missing-data' | 'oid-not-found'
+  type: 'invalid-oid' | 'missing-data' | 'oid-not-found' 
   message: string
 }
 
@@ -75,6 +75,10 @@ const ValueSets = () => {
   // set search terms from inputs
   const [nameSearchTerm, setNameSearchTerm] = useState<string>('')
   const [oidSearchTerm, setOidSearchTerm] = useState<string>('')
+  // set search term from inputs
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  // const [searchType, setSearchType] = useState<'name' | 'oid' | ''>('')
+
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
@@ -88,29 +92,8 @@ const ValueSets = () => {
   const formattedGroups = useMemo(() => {
     if (!groups) return []
     return formatGrouperValueSets(groups)
-}, [groups])
+  }, [groups])
 
-  let activeSearchType = null
-
-  if (oidSearchTerm?.trim()?.length && nameSearchTerm?.trim()?.length) {
-    activeSearchType = 'error'
-  } else if (oidSearchTerm) {
-    activeSearchType = 'oid'
-  } else if (nameSearchTerm) {
-    activeSearchType = 'name'
-  }
-
-  useEffect(() => {
-    if (nameSearchTerm && oidSearchTerm) {
-      setError({
-        message: 'Cannot search by both OID and name',
-        type: 'search-overload'
-      })
-    } else {
-      setError(null)
-    }
-
-  }, [nameSearchTerm, oidSearchTerm])
 
   const handleSearchResponse = async (response: Response | undefined, type?: SearchType) => {
     if (response?.ok && type === 'oid') {
@@ -131,28 +114,30 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = async (e: SyntheticEvent) => {
+    console.log('this runs')
     e.preventDefault()
+
     let response
-    if (error) {
+    if (error || !searchTerm || !searchTerm?.trim()) {
       return
     }
+
     setIsLoading(true)
+    const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
+    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+    let searchType = ''
+    let searchStr = ''
 
-    let searchType: SearchType = 'name'
-    if (nameSearchTerm) {
-      response = await fetch(`/api/valueset/search?search=${nameSearchTerm}&searchType=${searchType}`)
-    } else if (oidSearchTerm) {
+    if (trimmedWords?.some(word => word?.match(oidRegex))) {
       searchType = 'oid'
-      const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-
-      // trim whitespace from entire search term and internal oids
-      const trimmedSearch: string[] = dedupeArray(oidSearchTerm?.trim()?.split(',')?.map(item => item?.trim()))
-      const allTermsAreOid = Boolean(trimmedSearch.filter(oid => !oidRegex.test(oid)))
-
-      if (allTermsAreOid) {
-        response = await fetch(`/api/valueset/search?search=${trimmedSearch.join(',')}&searchType=${searchType}`) 
-      }
+      const dedupedOids = dedupeArray(trimmedWords)
+      searchStr = dedupedOids?.join(',')
+      const invalidOids = trimmedWords?.filter(w => !w.match(oidRegex))
+    } else {
+      searchType = 'name'
+      searchStr = searchTerm.trim()
     }
+    response = await fetch(`/api/valueset/search?search=${searchStr}&searchType=oid`)
 
     await handleSearchResponse(response, searchType)
   }
@@ -184,9 +169,11 @@ const ValueSets = () => {
 
   }
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>, type: 'name' | 'oid'): void => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     e.preventDefault()
     const { target: { value } } = e
+
+    const isSearchOid = value?.trim(' ')?.split(',')?.map(item => item?.trim)
 
     if (type === 'name') {
       setNameSearchTerm(value)
@@ -207,6 +194,13 @@ const ValueSets = () => {
         <PageTitle>ValueSet Search: { programId }</PageTitle>
         <Row>
           <SearchInput
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
+            id='vs-search'
+            label='Search by Name or OID'
+            hasIcon={true}
+            minWidth={300}
+          />
+          {/* <SearchInput
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange(e, 'name') }
             id='vs-name-search'
             label='Name'
@@ -219,7 +213,7 @@ const ValueSets = () => {
             label='OID'
             hasIcon={true}
             minWidth={300}
-          />
+          /> */}
           {error?.type === 'search-overload' && <ErrorText>{error.message}</ErrorText>}
           <IconButton
             style={{ alignSelf: 'flex-end', marginTop: '12px' }}
