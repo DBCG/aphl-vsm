@@ -41,7 +41,7 @@ export default async function handler(
       res.status(200).send(json)
 
     } catch (e: any) {
-      console.error('error programs:  ', e?.response?.data?.text)
+      console.error('error programs:  ', e)
       res.status(400).json({ error: 'Search for program failed.' })
     }
   }
