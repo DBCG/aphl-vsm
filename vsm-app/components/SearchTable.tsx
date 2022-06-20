@@ -1,4 +1,4 @@
-import { BundleEntry, ValueSet } from 'fhir/r4'
+import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { is } from '@/helpers/is' 
 
@@ -19,7 +19,7 @@ export interface BundleEntryItem {
   resource: fhir4.ValueSet
 }
 
-const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, activeSearchType: string | null): TableData[] => {
+const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): TableData[] => {
   if (!valueSets?.length) {
     return []
   }
@@ -34,7 +34,9 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, a
       name,
       steward: publisher,
       oid: id,
-      url: is.valueSet(vs) ? url : vs.fullUrl
+      url: is.valueSet(vs) ? url : vs.fullUrl,
+      version: valueSetResource.version,
+      id: `${id}-version${valueSetResource.version}`
     }
   })
 
@@ -43,14 +45,14 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, a
 
 interface Input {
   valueSets: ValueSet[] | BundleEntryItem[],
-  activeSearchType: 'error' | 'oid' | 'name'
+  setSelectedValueSets: (eventItem: any) => void
 }
 
 const SearchTable = ({
   valueSets = [],
-  activeSearchType
+  setSelectedValueSets
 }: Input) => {
-  const tableData = parseValueSets(valueSets, activeSearchType)
+  const tableData = parseValueSets(valueSets)
 
   return (
     <DataTable
@@ -59,6 +61,10 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationPerPage={10}
+      onSelectedRowsChange={(e) => {
+        setSelectedValueSets(e.selectedRows)
+      }
+      }
     />
   )
 }
