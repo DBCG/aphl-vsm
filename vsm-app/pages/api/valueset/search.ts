@@ -31,7 +31,7 @@ export default async function handler(
             })
 
             if (serverResponse.entry) {
-              responseInfo.valueSets = serverResponse.entry.map((item) => {
+              responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                 item.resource.url = item.fullUrl
                 return item.resource
               })

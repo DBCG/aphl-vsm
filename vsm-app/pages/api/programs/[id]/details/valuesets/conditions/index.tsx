@@ -33,7 +33,7 @@ export default async function handler(
       })
       res.status(200).send(updated)
     } catch (e) {
-      console.error('error in .det.val.cond: ', e.response.data.text)
+      console.error('error: ', e)
       res.status(400).send({ error: 'error'})
     }
   }

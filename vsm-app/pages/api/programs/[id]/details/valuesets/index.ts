@@ -79,20 +79,22 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
 
     // add canonical url to the valueset
     const valueSets = result?.map((e) => {
-      const fullUrl = e?.entry?.[0]?.fullUrl
-      const resource = e?.entry?.[0]?.resource as fhir4.ValueSet
-      if (fullUrl && resource) {
-        return ({
-          url: fullUrl,
-          ...resource
-        })
-      }
+      return e.entry.map((entry: fhir4.BundleEntry) => {
+        // const fullUrl = entry?.fullUrl
+        const resource = entry?.resource as fhir4.ValueSet
+        if (resource) {
+          return (resource)
+        }
+
+      })
     })
+      ?.flat()
       ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
       ?.filter((value, index, self) => (
         // @ts-ignore-next-line filter out multiple ids
         self.findIndex(v2 => v2?.id === value?.id) === index
       ))
+
     return valueSets
   } catch (e) {
     // TODO: handle
@@ -127,7 +129,7 @@ export default async function handler(
         if (grouperLibraryCanonical) {
           const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical)
 
-          // get all grouperValueSet canonicals
+          // get all grou'perValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
