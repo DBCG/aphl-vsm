@@ -31,9 +31,10 @@ export default async function handler(
             })
 
             if (serverResponse.entry) {
-              responseInfo.valueSets = serverResponse.entry.map((item) => (
-                item.resource
-              ))
+              responseInfo.valueSets = serverResponse.entry.map((item) => {
+                item.resource.url = item.fullUrl
+                return item.resource
+              })
             }
           } catch (e) {
             console.error(e)
@@ -66,7 +67,7 @@ export default async function handler(
                 errorType: 'failed-oids',
                 message:
                   `Search for these OIDs failed: ${failedOIDs.join(', ')}.
-                  
+
                    Check if they are malformed or nonexistent and try again.`
               }
             }

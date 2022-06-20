@@ -64,35 +64,41 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
   const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
-  const result = await Promise.all(canonicals.map(canonical =>
-  (fhirCdrClient.search({
-    resourceType: 'ValueSet',
-    // @ts-expect-error
-    searchParams: {
-      url: canonical,
-      status: 'active',
-      ...searchParams
-    }
-  }))
-  ))
-
-  // add canonical url to the valueset
-  const valueSets = result?.map((e) => {
-    const fullUrl = e?.entry?.[0]?.fullUrl
-    const resource = e?.entry?.[0]?.resource as fhir4.ValueSet
-    if (fullUrl && resource) {
-      return ({
-        url: fullUrl,
-        ...resource
-      })
-    }
-  })
-    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-    ?.filter((value, index, self) => (
-      // @ts-ignore-next-line filter out multiple ids
-      self.findIndex(v2 => v2?.id === value?.id) === index
+  try {
+    const result = await Promise.all(canonicals.map(canonical =>
+    (fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      // @ts-expect-error
+      searchParams: {
+        url: canonical,
+        status: 'active',
+        ...searchParams
+      }
+    }))
     ))
-  return valueSets
+
+    // add canonical url to the valueset
+    const valueSets = result?.map((e) => {
+      const fullUrl = e?.entry?.[0]?.fullUrl
+      const resource = e?.entry?.[0]?.resource as fhir4.ValueSet
+      if (fullUrl && resource) {
+        return ({
+          url: fullUrl,
+          ...resource
+        })
+      }
+    })
+      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.filter((value, index, self) => (
+        // @ts-ignore-next-line filter out multiple ids
+        self.findIndex(v2 => v2?.id === value?.id) === index
+      ))
+    return valueSets
+  } catch (e) {
+    // TODO: handle
+    console.error(e)
+  }
+
 }
 
 
@@ -162,6 +168,7 @@ export default async function handler(
 
               if (leafValueSetCanonicals.length) {
                 const stringToFind = req.query.findInVsName as string | undefined
+
                 // @ts-ignore-next-line
                 leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind)
               }
@@ -170,12 +177,9 @@ export default async function handler(
         }
       }
 
-      const response = leafValueSets?.map(valueSet => {
+      // TODO: reconsider this filter as it may hide problems
+      const response = await leafValueSets?.filter(x => x).map(valueSet => {
 
-        // if (!valueSet) return
-        // condition VS is static, in our CDR
-        // only snomed for now, but is an array of codesets grouped by system
-        // const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k?.endsWith(valueSet?.id as string))
         const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find(k => k === valueSet.url as string)
         const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
 

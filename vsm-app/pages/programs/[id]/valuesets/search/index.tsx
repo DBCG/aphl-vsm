@@ -34,6 +34,17 @@ const Row = styled.div`
   flex-wrap: wrap;
 `
 
+const StyledForm = styled.form`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 12px;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+`
+
 const Col = styled.div`
   display: flex;
   width: 100%;
@@ -117,7 +128,6 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = async (e: SyntheticEvent) => {
-    console.log('this runs')
     e.preventDefault()
 
     let response
@@ -166,6 +176,13 @@ const ValueSets = () => {
       body: leafPutBody
     })
 
+    if (leafsUpdated.ok) {
+      setSearchTerm('')
+      setSelectedConditions([])
+      setSelectedGroupers([])
+      toast.success('ValueSet Add Successful')
+    }
+
   }
 
   useEffect(() => {
@@ -178,23 +195,26 @@ const ValueSets = () => {
     <Col>
       <TitleRow>
         <ToastContainer
-          autoClose={false}
           closeOnClick={false}
         />
         <PageTitle>ValueSet Search: {programId}</PageTitle>
         <Row>
-          <SearchInput
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
-            id='vs-search'
-            label='Search by Name or OID'
-            hasIcon={true}
-            minWidth={300}
-          />
-          <IconButton
-            style={{ alignSelf: 'flex-end', marginTop: '12px' }}
-            buttonContext='search'
-            onClick={(e) => submitVSetSearch(e)}
-          />
+          <StyledForm>
+            <SearchInput
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
+              id='vs-search'
+              label='Search by Name or OID'
+              value={searchTerm}
+              hasIcon={true}
+              minWidth={300}
+            />
+            <IconButton
+              style={{ alignSelf: 'flex-end', marginTop: '12px' }}
+              buttonContext='search'
+              type='submit'
+              onClick={(e) => submitVSetSearch(e)}
+            />
+          </StyledForm>
         </Row>
       </TitleRow>
       <form>
@@ -206,7 +226,9 @@ const ValueSets = () => {
             <SelectInputContainer>
               <Select
                 isMulti={true}
+                // @ts-ignore-next-line
                 options={buildConditionOptions(allConditions, selectedConditions)}
+                value={selectedConditions}
                 onChange={(e: any) => (setSelectedConditions(e))}
               />
             </SelectInputContainer>
@@ -218,7 +240,9 @@ const ValueSets = () => {
             <SelectInputContainer>
               <Select
                 isMulti={true}
+                // @ts-ignore-next-line
                 options={formattedGroups}
+                value={selectedGroupers}
                 onChange={(e: any) => {
                   setSelectedGroupers(e)
                 }}

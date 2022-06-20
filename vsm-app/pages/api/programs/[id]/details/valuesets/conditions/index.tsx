@@ -9,7 +9,6 @@ export default async function handler(
 ): Promise<any> {
   if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
-    const valuesetId = body?.canonical?.split('/ValueSet/')?.[1]
     // need to identify by version, too... can do w/ read?
     const valueSetToUpdate = await fhirCdrClient.search({
       resourceType: 'ValueSet',
@@ -21,19 +20,20 @@ export default async function handler(
 
     const vs = valueSetToUpdate?.entry?.[0]?.resource
     const updatedValueSet = updateConditions(vs, body.conditionInfo)
+
     let updated
     try {
       updated = await fhirCdrClient.update({
         resourceType: 'ValueSet',
         searchParams: {
-          url: body.url,
+          url: body?.canonical,
           version: body.version
         },
         body: updatedValueSet
       })
       res.status(200).send(updated)
     } catch (e) {
-      console.error('error in .det.val.cond: ', e)
+      console.error('error in .det.val.cond: ', e.response.data.text)
       res.status(400).send({ error: 'error'})
     }
   }

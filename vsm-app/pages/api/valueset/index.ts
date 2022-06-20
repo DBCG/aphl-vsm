@@ -14,7 +14,7 @@ export default async function handler(
 
       res.status(200).send(response)
     } catch (e) {
-      console.error('error:  ', e)
+      console.error(e)
       res.status(400).json({ error: 'Loading ValueSets failed' })
     }
   } if (req.method === 'PUT') {
@@ -24,7 +24,8 @@ export default async function handler(
     let vSetsToUpdate = []
     let vsToUpdate
 
-    const existingVSets = await Promise.all(bodyJson?.selectedValueSets?.map((item: any) => (
+    // check fhir server first to see if we already have the selected valueSets
+    const serverResponses = await Promise.allSettled(bodyJson?.selectedValueSets?.map((item: any) => (
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
@@ -35,9 +36,13 @@ export default async function handler(
     )
     ))
 
-    const filteredVSets = existingVSets
+    const existingVSetBundles = serverResponses
+      ?.map(item => item?.status === 'fulfilled' && item?.value)
+      ?.filter(x => x) as fhir4.Bundle[]
+
+    const filteredVSets = existingVSetBundles
       ?.filter(x => x)
-      ?.map(item => item?.entry?.[0]?.resource)
+      ?.map(item => item?.entry?.[0]?.resource) as fhir4.ValueSet[]
 
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
@@ -64,7 +69,7 @@ export default async function handler(
           }
 
         } catch (e) {
-          console.error('error: ', e)
+          console.error('error 2: ', e)
         }
       }
     }
@@ -80,9 +85,9 @@ export default async function handler(
     })
 
     try {
-      const performedUpdate = await Promise.all(updatedValueSetItems.map(async (item) => {
+      const performedUpdate = await Promise.allSettled(updatedValueSetItems.map(async (item) => {
         if (item.method === 'PUT') {
-          await fhirCdrClient.update({
+          const updated = await fhirCdrClient.update({
             resourceType: 'ValueSet',
             id: item.valueSet.id,
             body: item.valueSet
@@ -95,8 +100,10 @@ export default async function handler(
         }
       }))
 
+      const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
+
     } catch (e) {
-      console.error(e)
+      console.error('error 3', e)
     }
 
     // get groupers
@@ -110,12 +117,11 @@ export default async function handler(
     try {
       // this assumes grouper already has a compose/include block, will need to be updated
       // when we allow users to create groupers
-      const performGrouperUpdate = await Promise.all(groupersToUpdate.map(async (grouperVs) => {
+      await Promise.all(groupersToUpdate.map(async (grouperVs) => {
         const originalComposeInclude = grouperVs.compose.include[0].valueSet
         const newValueSetCanonicals = bodyJson.selectedValueSets.map((item: any) => item.url)
         // deduplicate with set
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
-
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
         return await fhirCdrClient.update({
@@ -125,7 +131,7 @@ export default async function handler(
         })
       }))
     } catch (e) {
-      console.error(e)
+      console.error('error 4: ', e)
     }
 
     res.send(200)
