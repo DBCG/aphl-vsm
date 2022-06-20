@@ -125,8 +125,6 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
   return result
 }
 
-
-
 export {
   updateConditions,
   formatConditionsComposeInclude,
