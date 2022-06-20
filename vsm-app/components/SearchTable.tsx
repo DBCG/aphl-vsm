@@ -1,5 +1,6 @@
 import { BundleEntry, ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
+import { is } from '@/helpers/is' 
 
 const columns = [
   { name: 'Name', selector: (row: TableData) => row.name! },
@@ -13,23 +14,43 @@ interface TableData {
   oid: ValueSet['id']
 }
 
-const parseValueSet = (valueSets: BundleEntry[]): TableData[] => {
+export interface BundleEntryItem {
+  fullUrl: string
+  resource: fhir4.ValueSet
+}
+
+const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined, activeSearchType: string | null): TableData[] => {
+  if (!valueSets?.length) {
+    return []
+  }
+
   if (!valueSets || valueSets.length < 1) { return [] }
 
-  const data =  valueSets.map(({ resource }) => {
-    const { id, name, publisher } = resource as ValueSet
+  const data = valueSets.map((vs) => {
+    let valueSetResource = is.valueSet(vs) ? vs : vs.resource
+
+    const { id, name, publisher, url } = valueSetResource as ValueSet
     return {
       name,
       steward: publisher,
-      oid: id
+      oid: id,
+      url: is.valueSet(vs) ? url : vs.fullUrl
     }
   })
 
   return data
 }
 
-const SearchTable = ({ valueSets = [] }:{ valueSets: BundleEntry[] | undefined }) => {
-  const tableData = parseValueSet(valueSets)
+interface Input {
+  valueSets: ValueSet[] | BundleEntryItem[],
+  activeSearchType: 'error' | 'oid' | 'name'
+}
+
+const SearchTable = ({
+  valueSets = [],
+  activeSearchType
+}: Input) => {
+  const tableData = parseValueSets(valueSets, activeSearchType)
 
   return (
     <DataTable

@@ -9,6 +9,7 @@ import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { IconButton } from '@/components/buttons/IconButton'
+import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
@@ -333,7 +334,6 @@ const ProgramValueSetDetails: NextPage = () => {
     const target = e.target as HTMLInputElement;
     setFindInVsName(target.value)
   }
-
   return (
     <>
       <Row>
@@ -341,6 +341,10 @@ const ProgramValueSetDetails: NextPage = () => {
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
           <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
         </PageTitle>
+        <Button text='Add Valuesets'
+          style={{ maxHeight: '60px'}}
+          onClick={() => router.push(`${router.asPath}/search`)}
+        />
       </Row>
       <SearchOptions>
         <p style={{ color: 'var(--theme-500)', fontWeight: 'bold', display: 'inline-block' }}>Filter Valuesets</p>

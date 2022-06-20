@@ -10,20 +10,26 @@ export default async function handler(
 
     try {
       let response;
-      switch(searchType) {
+      switch (searchType) {
         case 'name':
           response = await vsacFhirClient.search({
             resourceType: 'ValueSet', searchParams: { 'name:contains': search }
           })
-          break;
+          break
+        case 'oid':
+          // @ts-ignore-next-line
+          const oidList = search?.split(',')
+          response = await Promise.all(oidList.map((oid: string) => (
+            vsacFhirClient.read({
+              resourceType: 'ValueSet', id: oid
+            })
+          )))
+
+          break
+        // not currently using steward as a search
         case 'steward':
           response = await vsacFhirClient.search({
             resourceType: 'ValueSet', searchParams: { 'publisher:contains': search }
-          })
-          break;
-        case 'oid':
-          response =  await vsacFhirClient.read({
-            resourceType: 'ValueSet', id: search as string
           })
       }
 
