@@ -15,6 +15,7 @@
     "fhir-kit-client": "^1.9.0",
     "lodash.set": "^4.3.2",
     "next": "12.1.0",
+    "next-auth": "^4.5.0",
     "node-cache": "^5.1.2",
     "normalize.css": "^8.0.1",
     "react": "17.0.2",
