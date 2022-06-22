@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient } from 'fhirClients'
+import { getSession } from 'next-auth/react'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -15,6 +16,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
+  const session = await getSession({ req })
+  if (!session) {
+    res.status(401).end()
+  }
+
   if (req.method === 'GET') {
     const { search, searchType } = req.query
     let responseInfo: SearchResponse = {
