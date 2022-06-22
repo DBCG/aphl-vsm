@@ -2,6 +2,7 @@ import NextAuth from 'next-auth'
 import CredentialProvider from 'next-auth/providers/credentials'
 
 const userRoles = [
+  'sysadmin',
   'admin',
   'author'
 ]
@@ -11,12 +12,12 @@ export default NextAuth({
     CredentialProvider({
       name: 'credentials',
       credentials: {
-        username: { label: 'email', type: 'email', placeholder: 'johndoe@test.com' },
+        username: { label: 'username', type: 'text', placeholder: 'John123' },
         password: { label: 'password', type: 'password' }
       },
       authorize: (credentials) => {
-        // db lookup
-        if (credentials.username === 'johndoe@test.com' && credentials.password === 'test') {
+        // db lookup would go here
+        if (credentials.username.toLocaleLowerCase() === 'john123' && credentials.password === 'test') {
           return {
             id: 2,
             name: 'John',

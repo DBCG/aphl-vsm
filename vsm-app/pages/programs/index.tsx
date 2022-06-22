@@ -1,5 +1,6 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
+import { useSession, getSession, GetSessionParams } from "next-auth/react"
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
 import DT, { TableColumn } from 'react-data-table-component'
@@ -8,6 +9,17 @@ import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
+
+interface Context {
+  data: {
+    expires: string,
+    id: number
+  },
+  user: {
+    email: string,
+    name: string
+  }
+}
 
 const Row = styled.div`
   display: flex;
@@ -50,7 +62,8 @@ const Programs: NextPage = () => {
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
-
+  const session = useSession()
+  console.log('session: ', session)
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
@@ -173,6 +186,23 @@ const Programs: NextPage = () => {
       />
     </Col>
   )
+}
+
+export async function getServerSideProps(context: GetSessionParams) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
 }
 
 export default Programs

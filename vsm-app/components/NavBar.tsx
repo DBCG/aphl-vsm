@@ -1,4 +1,6 @@
 import styled from 'styled-components'
+import { signOut } from 'next-auth/react'
+import { Button } from './buttons/Button'
 
 const BarWrapper = styled.nav`
   margin-bottom: 24px;
@@ -12,6 +14,7 @@ const Bar = styled.ol`
   list-style-type: none;
   margin: 0;
   padding: 0;
+  align-items: flex-end;
   display: flex;
   flex: 1;
   width: 100%;
@@ -22,6 +25,7 @@ const NavBar = () => {
   return (
     <BarWrapper>
       <Bar>
+        <Button text='Sign Out' onClick={() => signOut()}/>
       </Bar>
     </BarWrapper>
   )
