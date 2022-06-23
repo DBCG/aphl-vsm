@@ -13,8 +13,8 @@ const BarWrapper = styled.nav`
 const Bar = styled.ol`
   list-style-type: none;
   margin: 0;
-  padding: 0;
-  align-items: flex-end;
+  padding: 15px;
+  justify-content: flex-end;
   display: flex;
   flex: 1;
   width: 100%;
