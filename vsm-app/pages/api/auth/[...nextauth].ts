@@ -12,16 +12,16 @@ export default NextAuth({
     CredentialProvider({
       name: 'credentials',
       credentials: {
-        username: { label: 'username', type: 'text', placeholder: 'John123' },
-        password: { label: 'password', type: 'password' }
+        username: { label: 'username', type: 'text', placeholder: 'test' },
+        password: { label: 'password', type: 'password', placeholder: 'testPw' }
       },
       authorize: (credentials) => {
         // db lookup would go here
-        if (credentials.username.toLocaleLowerCase() === 'john123' && credentials.password === 'test') {
+        if (credentials?.username?.toLocaleLowerCase() === 'test' && credentials?.password === 'testPw') {
           return {
             id: 2,
-            name: 'John',
-            email: 'johndoe@test.com',
+            name: 'test',
+            email: 'test@test.com',
             role: 'admin'
           }
         }
@@ -44,9 +44,7 @@ export default NextAuth({
       return session
     },
   },
-  secret: 'test',
   jwt: {
-    secret: 'test',
-    encryption: true
+    secret: 'test'
   }
 })
