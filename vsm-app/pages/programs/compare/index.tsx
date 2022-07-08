@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { PageTitle } from '@/components/Typography'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
+import { getSession, GetSessionParams } from 'next-auth/react'
 
 const Row = styled.div`
   display: flex;
@@ -28,6 +29,23 @@ const ProgramCompare: NextPage = () => {
       </Row>
     </Col>
   )
+}
+
+export async function getServerSideProps(context: GetSessionParams) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
 }
 
 export default ProgramCompare

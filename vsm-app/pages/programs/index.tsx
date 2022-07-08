@@ -1,8 +1,9 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
+import { useSession, getSession, GetSessionParams } from "next-auth/react"
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
-import DT, { TableColumn } from 'react-data-table-component'
+import DT from 'react-data-table-component'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
@@ -27,13 +28,7 @@ const Col = styled.div`
 
 const ButtonWrapper = styled.div`
 margin-left: 6px;
-  // margin: 0 auto;
 `
-
-interface DTProps {
-  data: fhir4.Library[];
-  columns: TableColumn<fhir4.Library[]>[];
-}
 
 const customStyles = {
   cells: {
@@ -46,13 +41,13 @@ const customStyles = {
 
 const Programs: NextPage = () => {
   const router = useRouter()
-  const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
 
+  const session = useSession()
+
   const programs = useGetPrograms({
-    id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription
@@ -128,13 +123,6 @@ const Programs: NextPage = () => {
         Programs
       </PageTitle>
       <Row>
-        {/* <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
-          id='program-search-id'
-          label='Search by ID'
-          hasIcon={true}
-          minWidth={400}
-        /> */}
         <SearchInput
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
           id='program-search-name'
@@ -173,6 +161,23 @@ const Programs: NextPage = () => {
       />
     </Col>
   )
+}
+
+export async function getServerSideProps(context: GetSessionParams) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
 }
 
 export default Programs

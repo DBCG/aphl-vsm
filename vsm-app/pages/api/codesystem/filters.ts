@@ -1,6 +1,7 @@
 import { CapabilityStatement } from 'fhir/r4';
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient } from 'fhirClients';
+import { getSession } from 'next-auth/react';
 
 export interface CodeSystemFilters {
   valueUri: string
@@ -23,6 +24,11 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
+  const session = await getSession({ req })
+  if (!session) {
+    res.status(401).end()
+  }
+
   if (req.method === 'GET') {
     try {
       const response = await vsacFhirClient.capabilityStatement()

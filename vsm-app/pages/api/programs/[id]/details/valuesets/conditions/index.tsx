@@ -2,11 +2,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
+import { getSession } from 'next-auth/react'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
+    const session = await getSession({ req })
+  if (!session) {
+    res.status(401).end()
+  }
+
   if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
     // need to identify by version, too... can do w/ read?

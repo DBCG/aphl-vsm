@@ -14,6 +14,7 @@ import { FieldTitle } from '..'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
+import { getSession, GetSessionParams } from 'next-auth/react'
 
 const customStyles = {
   cells: {
@@ -375,6 +376,23 @@ const ProgramValueSetDetails: NextPage = () => {
       />
     </>
   )
+}
+
+export async function getServerSideProps(context: GetSessionParams) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
 }
 
 export default ProgramValueSetDetails

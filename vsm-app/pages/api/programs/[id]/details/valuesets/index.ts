@@ -5,6 +5,7 @@ import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import NodeCache from 'node-cache'
 import { is } from '@/helpers/is'
 import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { getSession } from 'next-auth/react'
 
 // Items in the table
 interface Group {
@@ -112,7 +113,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-
+  const session = await getSession({ req })
+  if (!session) {
+    res.status(401).end()
+  }
 
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {

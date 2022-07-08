@@ -16,6 +16,7 @@ import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import 'react-toastify/dist/ReactToastify.min.css'
+import { getSession, GetSessionParams } from 'next-auth/react'
 
 const TitleRow = styled.div`
   display: flex;
@@ -267,6 +268,23 @@ const ValueSets = () => {
       }
     </Col>
   )
+}
+
+export async function getServerSideProps(context: GetSessionParams) {
+  const session = await getSession(context)
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/api/auth/signin',
+        permanent: false,
+      },
+    }
+  }
+
+  return {
+    props: { session }
+  }
 }
 
 export default ValueSets
