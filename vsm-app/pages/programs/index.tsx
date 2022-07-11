@@ -236,7 +236,7 @@ const Programs: NextPage = () => {
       </Row>
       <DT
         data={programs}
-        // @ts-expect-error
+        
         columns={columns}
         theme='aphl'
         pagination

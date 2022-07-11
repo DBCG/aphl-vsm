@@ -45,8 +45,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
       }
     }
     void getPrograms()
-    // disabled b/c including 'fields' obj results in infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [id, name, title, description, version])
 
   return libraries

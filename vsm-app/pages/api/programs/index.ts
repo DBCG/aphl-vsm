@@ -45,7 +45,6 @@ export default async function handler(
         }
       })
 
-
       const programs = searchResult?.entry?.map((e: any) => e?.resource)
       const json = JSON.stringify(programs)
       res.status(200).send(json)

@@ -30,6 +30,7 @@ export default async function handler(
       console.error('error creating new library:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Creation of new library failed.' })
     }
+    
   //}
   //if(req.method === 'GET') {
   //  try {
