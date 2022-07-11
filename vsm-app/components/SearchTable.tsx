@@ -9,7 +9,10 @@ const columns = [
     selector: (row: TableData) => row.steward!,
     sortable: true
   },
-  { name: 'OID', selector: (row: TableData) => row.oid! }
+  {
+    name: 'OID',
+    selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
+  }
 ]
 
 interface TableData {
