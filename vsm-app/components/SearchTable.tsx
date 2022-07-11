@@ -4,7 +4,11 @@ import { is } from '@/helpers/is'
 
 const columns = [
   { name: 'Name', selector: (row: TableData) => row.name! },
-  { name: 'Steward', selector: (row: TableData) => row.steward! },
+  {
+    name: 'Steward',
+    selector: (row: TableData) => row.steward!,
+    sortable: true
+  },
   { name: 'OID', selector: (row: TableData) => row.oid! }
 ]
 

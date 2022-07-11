@@ -174,9 +174,6 @@ const ProgramValueSetDetails: NextPage = () => {
     updatedValueSet,
     updatedGrouperValuesets
   )
-  
-  useEffect(() => {
-  }, [progValueSetDets])
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
@@ -204,6 +201,13 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: 'Version',
       selector: (row: DataItem) => row.version,
+      sortable: true,
+      maxWidth: '80px',
+      wrap: true
+    },
+    {
+      name: 'Steward',
+      selector: (row: DataItem) => row.valueSet.publisher,
       sortable: true,
       maxWidth: '80px',
       wrap: true
