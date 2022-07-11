@@ -3,11 +3,13 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { getSession } from 'next-auth/react'
 
+
 interface Query {
   '_id:contains'?: string,
   'name:contains'?: string,
   'description:contains'?: string,
   'title:contains'?: string,
+  'version:contains'?: string,
 }
 
 export default async function handler(
@@ -31,6 +33,8 @@ export default async function handler(
         queries['description:contains'] = req.query['description'] as string
       } if (req.query['title']) {
         queries['title:contains'] = req.query['title'] as string
+      } if (req.query['version']) {
+        queries['version:contains'] = req.query['version'] as string
       }
       const searchResult = await fhirCdrClient.search({
         resourceType: 'Library',
