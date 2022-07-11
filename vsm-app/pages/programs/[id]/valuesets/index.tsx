@@ -7,7 +7,7 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
-import { SearchInput, StyledLabel } from '@/components/SearchInput'
+import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
@@ -17,6 +17,11 @@ import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, Condition
 import { getSession, GetSessionParams } from 'next-auth/react'
 
 const customStyles = {
+  headCells: {
+    style: {
+      padding: '16px'
+    }
+  },
   cells: {
     style: {
       paddingTop: '12px',
@@ -30,40 +35,14 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const SearchOptions = styled.form`
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
-  padding-left: 0;
-
-  .groups__control, .conditions__control {
-    min-width: 300px;
-  }
-
+const ColumnFilterContainer = styled.div`
   .groups__menu, .conditions__menu {
-    z-index: 100000;
+    z-index: 10000000;
   }
-`
-
-const TextInputContainer = styled.div`
-  max-width: 250px;
-  display: inline-block;
-`
-
-const SelectContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 12px;
-  align-items: center;
-`
-
-const SelectGroup = styled.div`
-  display: flex;
-  flex-direction: column;
 `
 
 const SelectInputContainer = styled.div`
-  width: 400px;
+  width: 100%;
 `
 
 const Id = styled(PageTitle).attrs({
@@ -87,7 +66,6 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
     value: g.id,
     label: g.title?.replace('_', ' '),
     id: g.id
-    // dataId: `${g.id}${g.title}`
   }))
 }
 
@@ -194,7 +172,17 @@ const ProgramValueSetDetails: NextPage = () => {
 
   const columns = useMemo(() => [
     {
-      name: 'Name',
+      name: (
+        <div>
+          Valueset Name
+          <FilterInput
+            onChange={(e) => handleNameSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
       selector: (row: DataItem) => row.title,
       sortable: true,
       maxWidth: '350px',
@@ -208,14 +196,37 @@ const ProgramValueSetDetails: NextPage = () => {
       wrap: true
     },
     {
-      name: 'Steward',
+      name: (
+        <div>
+          Steward
+          <FilterInput
+            onChange={(e) => handleStewardSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
       selector: (row: DataItem) => row.valueSet.publisher,
       sortable: true,
       maxWidth: '80px',
       wrap: true
     },
     {
-      name: 'Conditions',
+      name: (
+        <SelectInputContainer>
+          Conditions
+          <Select
+            placeholder='Filter conditions'
+            classNamePrefix='conditions'
+            inputId='conditions-selector'
+            isMulti
+            options={buildConditionOptions(allConditions)}
+            // @ts-expect-error
+            onChange={(e) => {setActiveConditions(e)}}
+          />
+        </SelectInputContainer>
+      ),
       selector: (row: DataItem) => row.valueSet,
       sortable: false,
       wrap: true,
@@ -250,9 +261,25 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     },
     {
-      name: 'Groups',
+      name: (
+        <SelectInputContainer>
+          Groups
+          <Select
+            placeholder='Filter groups'
+            classNamePrefix='groups'
+            inputId='groups-selector'
+            isMulti
+            options={buildGroupOptions(alphabetizedGroups)}
+            onChange={(e) => {
+              // @ts-expect-error
+              setActiveGroups(e)
+            }}
+          />
+        </SelectInputContainer>
+      ),
       selector: (row: DataItem) => row.groups,
       sortable: false,
+      allowOverflow: true,
       wrap: true,
       cell: (row: DataItem) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
@@ -325,77 +352,16 @@ const ProgramValueSetDetails: NextPage = () => {
           onClick={() => router.push(`${router.asPath}/search`)}
         />
       </Row>
-      <SearchOptions>
-        <p style={{ color: 'var(--theme-500)', fontWeight: 'bold', display: 'inline-block' }}>Filter Valuesets</p>
-        <div>
-          <SelectContainer>
-            <TextInputContainer>
-              <SearchInput
-                onChange={(e) => handleNameSearch(e)}
-                label='ValueSet Name'
-                id='VSearch'
-                style={{
-                  display: 'inline-block',
-                  height: '36px'
-                }}
-              />
-            </TextInputContainer>
-            <TextInputContainer>
-              <SearchInput
-                onChange={(e) => handleStewardSearch(e)}
-                label='Steward'
-                id='VSearchSteward'
-                style={{
-                  display: 'inline-block',
-                  height: '36px'
-                }}
-              />
-            </TextInputContainer>
-            {alphabetizedGroups && (
-              <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="groups-selector">
-                  Groups
-                </StyledLabel>
-                <Select
-                  classNamePrefix='groups'
-                  inputId='groups-selector'
-                  isMulti
-                  options={buildGroupOptions(alphabetizedGroups)}
-                  onChange={(e) => {
-                    // @ts-expect-error
-                    setActiveGroups(e)
-                  }}
-                />
-              </SelectGroup>
-            )}
-            {allConditions && (
-              <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="conditions-selector">
-                  Conditions
-                </StyledLabel>
-                <Select
-                  classNamePrefix='conditions'
-                  inputId='conditions-selector'
-                  isMulti
-                  options={buildConditionOptions(allConditions)}
-                  // @ts-expect-error
-                  onChange={(e) => {setActiveConditions(e)}}
-                />
-              </SelectGroup>
-            )}
-          </SelectContainer>
-        </div>
-      </SearchOptions>
       <DT
         // @ts-expect-error
         data={progValueSetDets?.data}
+        persistTableHead={true}
         // @ts-expect-error
         columns={columns}
         theme='aphl'
         pagination
         fixedHeader
         customStyles={customStyles}
-        // keyField='dataId'
       />
     </>
   )

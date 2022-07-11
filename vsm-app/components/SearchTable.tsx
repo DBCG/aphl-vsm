@@ -3,7 +3,10 @@ import DataTable from 'react-data-table-component'
 import { is } from '@/helpers/is' 
 
 const columns = [
-  { name: 'Name', selector: (row: TableData) => row.name! },
+  {
+    name: 'Name',
+    selector: (row: TableData) => row.name!
+  },
   {
     name: 'Steward',
     selector: (row: TableData) => row.steward!,
