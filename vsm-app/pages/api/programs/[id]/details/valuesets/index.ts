@@ -63,13 +63,27 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
 }
 
 // The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
-const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefined) => {
-  const searchParams = is.string(nameStr) ? { 'name:contains': nameStr } : {}
+const fetchLeafValueSets = async (
+  canonicals: string[],
+  nameStr: string | undefined,
+  stewardStr: string | undefined
+) => {
+  let searchParams = {} as any
+  if (is.string(nameStr)) {
+    searchParams['name:contains'] = nameStr
+  }
+  if (is.string(stewardStr)) {
+    searchParams['publisher:contains'] = stewardStr
+  }
+
+  console.log('stewardstr: ', stewardStr)
+  console.log('searchParams: ', searchParams)
+  console.log('canonicals: ', canonicals)
+
   try {
     const result = await Promise.all(canonicals.map(canonical =>
     (fhirCdrClient.search({
       resourceType: 'ValueSet',
-      // @ts-expect-error
       searchParams: {
         url: canonical,
         status: 'active',
@@ -78,28 +92,30 @@ const fetchLeafValueSets = async (canonicals: string[], nameStr: string | undefi
     }))
     ))
 
+    console.log('result: ', result)
+
     // add canonical url to the valueset
     const valueSets = result?.map((e) => {
-      return e.entry.map((entry: fhir4.BundleEntry) => {
-        // const fullUrl = entry?.fullUrl
-        const resource = entry?.resource as fhir4.ValueSet
-        if (resource) {
-          return (resource)
-        }
-
-      })
+      if (e.entry) {
+        return e.entry.map((entry: fhir4.BundleEntry) => {
+          const resource = entry?.resource as fhir4.ValueSet
+          if (resource) {
+            return (resource)
+          }
+        })
+      }
     })
-      ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter((value, index, self) => (
-        // @ts-ignore-next-line filter out multiple ids
-        self.findIndex(v2 => v2?.id === value?.id) === index
-      ))
+    ?.flat()
+    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+    ?.filter((value, index, self) => (
+      // @ts-ignore-next-line filter out multiple ids
+      self.findIndex(v2 => v2?.id === value?.id) === index
+    ))
 
     return valueSets
   } catch (e) {
     // TODO: handle
-    console.error(e)
+    console.error('error here ', e)
   }
 
 }
@@ -133,7 +149,7 @@ export default async function handler(
         if (grouperLibraryCanonical) {
           const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical)
 
-          // get all grou'perValueSet canonicals
+          // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
             const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
@@ -174,9 +190,10 @@ export default async function handler(
 
               if (leafValueSetCanonicals.length) {
                 const stringToFind = req.query.findInVsName as string | undefined
+                const stewardToFind = req.query.findInSteward as string | undefined
 
                 // @ts-ignore-next-line
-                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind)
+                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind, stewardToFind)
               }
             }
           }

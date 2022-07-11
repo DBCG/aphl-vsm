@@ -41,6 +41,7 @@ interface Result {
 const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
+  findInSteward: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
   updatedValueSet: fhir4.ValueSet | undefined,
@@ -59,6 +60,11 @@ const useGetProgramValueSetDetails = (
 
       if (findInVsName.length) {
         queries.push(`findInVsName=${encodeURIComponent(findInVsName)}`)
+      }
+
+      if (findInSteward.length) {
+        console.log('findInSteward: ', findInSteward)
+        queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
       }
 
       if (activeGroups.length) {
@@ -101,7 +107,15 @@ const useGetProgramValueSetDetails = (
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet, updatedGrouperValueSets])
+  }, [
+    id,
+    findInVsName,
+    findInSteward,
+    activeGroups,
+    activeConditions,
+    updatedValueSet,
+    updatedGrouperValueSets
+  ])
 
   return data
 }

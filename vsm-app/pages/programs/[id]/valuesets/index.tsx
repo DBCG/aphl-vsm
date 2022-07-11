@@ -113,6 +113,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const programId = router.query.id as string
   // filter updates
   const [findInVsName, setFindInVsName] = useState('')
+  const [findInSteward, setFindInSteward] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
@@ -169,6 +170,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
+    findInSteward,
     activeGroups,
     activeConditions,
     updatedValueSet,
@@ -305,6 +307,12 @@ const ProgramValueSetDetails: NextPage = () => {
     const target = e.target as HTMLInputElement;
     setFindInVsName(target.value)
   }
+
+  const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
+    const target = e.target as HTMLInputElement;
+    setFindInSteward(target.value)
+  }
+
   return (
     <>
       <Row>
@@ -326,6 +334,17 @@ const ProgramValueSetDetails: NextPage = () => {
                 onChange={(e) => handleNameSearch(e)}
                 label='ValueSet Name'
                 id='VSearch'
+                style={{
+                  display: 'inline-block',
+                  height: '36px'
+                }}
+              />
+            </TextInputContainer>
+            <TextInputContainer>
+              <SearchInput
+                onChange={(e) => handleStewardSearch(e)}
+                label='Steward'
+                id='VSearchSteward'
                 style={{
                   display: 'inline-block',
                   height: '36px'
