@@ -273,6 +273,7 @@ const ValueSets = () => {
           setFindInSteward={setFindInSteward}
           setFindInStatus={setFindInStatus}
           setFindOids={setOids}
+          // handle this loader
           isLoading={isLoading}
         />
       }

@@ -94,20 +94,21 @@ const SearchTable = ({
         </div>
       ),
       selector: (row: TableData) => row.name!,
+      sortable: true,
       style: {
         rowWrap: 'wrap'
       }
     },
     {
       name: (
-        <SelectInputContainer>
-          Status
+        <SelectInputContainer onClick={e => e.stopPropagation()} style={{ marginRight: '4px' }}>
+          <SelectInputTitle>Status</SelectInputTitle>
           <Select
             placeholder='Select'
             classNamePrefix='status'
             inputId='status-selector'
             options={statusOptions}
-            onChange={(e) => {setFindInStatus(e)}}
+            onChange={(e) => { setFindInStatus(e) }}
           />
         </SelectInputContainer>
       ),
