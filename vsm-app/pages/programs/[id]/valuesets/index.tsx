@@ -26,7 +26,9 @@ export const customStyles = {
   cells: {
     style: {
       paddingTop: '12px',
-      paddingBottom: '12px'
+      paddingBottom: '12px',
+      whiteSpace: 'normal !important',
+      overflow: 'visible'
     }
   }
 }

@@ -273,7 +273,7 @@ const ValueSets = () => {
           setFindInSteward={setFindInSteward}
           setFindInStatus={setFindInStatus}
           setFindOids={setOids}
-          // handle this loader
+          // handle this loader to make sure status doesn't move table
           isLoading={isLoading}
         />
       }

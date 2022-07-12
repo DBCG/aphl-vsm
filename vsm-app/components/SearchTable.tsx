@@ -93,6 +93,7 @@ const SearchTable = ({
           />
         </div>
       ),
+      wrap: true,
       selector: (row: TableData) => row.name!,
       sortable: true,
       style: {
@@ -113,6 +114,7 @@ const SearchTable = ({
         </SelectInputContainer>
       ),
       sortable: true,
+      wrap: true,
       id: 'select-vs-status',
       selector: (row: TableData) => row.status!,
       maxWidth: '140px'
@@ -120,6 +122,7 @@ const SearchTable = ({
     {
       name: 'Last Updated',
       sortable: true,
+      wrap: true,
       selector: (row: TableData) => row.lastUpdated!
     },
     {
@@ -135,7 +138,8 @@ const SearchTable = ({
         </div>
       ),
       selector: (row: TableData) => row.steward!,
-      sortable: true
+      sortable: true,
+      wrap: true,
     },
     {
       name: (
@@ -149,6 +153,7 @@ const SearchTable = ({
           />
         </div>
       ),
+      wrap: true,
       selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
     }
   ]
