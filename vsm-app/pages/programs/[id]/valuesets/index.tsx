@@ -38,9 +38,6 @@ const Row = styled.div`
 
 const SelectInputContainer = styled.div`
   width: 100%;
-  & > .rdt_TableCol_Sortable {
-    overflow: auto !important;
-  }
 `
 
 const SelectInputTitle = styled.p`
