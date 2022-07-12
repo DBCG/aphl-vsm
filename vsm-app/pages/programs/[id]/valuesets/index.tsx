@@ -43,6 +43,11 @@ const SelectInputContainer = styled.div`
   }
 `
 
+const SelectInputTitle = styled.p`
+  padding-bottom: 8px;
+  margin: 0;
+`
+
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
@@ -174,7 +179,7 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div>
-          Valueset Name
+          <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
             onChange={(e) => handleNameSearch(e)}
             style={{
@@ -192,7 +197,7 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div>
-          Version
+          <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
             onChange={(e) => handleVersionSearch(e)}
             style={{
@@ -210,7 +215,7 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div>
-          Steward
+         <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
             onChange={(e) => handleStewardSearch(e)}
             style={{
