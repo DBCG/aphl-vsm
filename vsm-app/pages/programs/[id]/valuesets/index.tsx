@@ -36,7 +36,7 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const SelectInputContainer = styled.div`
+export const SelectInputContainer = styled.div`
   width: 100%;
 `
 

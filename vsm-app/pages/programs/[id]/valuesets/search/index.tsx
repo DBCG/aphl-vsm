@@ -89,7 +89,15 @@ const ValueSets = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
   // set search term from input
+  // TODO REMOVE THIS
   const [searchTerm, setSearchTerm] = useState<string>('')
+
+  // filters
+  const [findInName, setFindInName] = useState('')
+  const [findInSteward, setFindInSteward] = useState('')
+  const [findInStatus, setFindInStatus] = useState('')
+  const [oids, setOids] = useState([])
+
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
@@ -258,13 +266,15 @@ const ValueSets = () => {
 
       </form>
       {
-        // @ts-ignore-next-line
-        isLoading
-          ? <LoadingIndicator />
-          : <SearchTable
-              valueSets={valueSets || []}
-              setSelectedValueSets={setSelectedValueSets}
-            />
+        <SearchTable
+          valueSets={valueSets || []}
+          setSelectedValueSets={setSelectedValueSets}
+          setFindInName={setFindInName}
+          setFindInSteward={setFindInSteward}
+          setFindInStatus={setFindInStatus}
+          setFindOids={setOids}
+          isLoading={isLoading}
+        />
       }
     </Col>
   )
