@@ -16,7 +16,7 @@ import { useGetConditions } from '@/hooks/useGetConditions'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import { getSession, GetSessionParams } from 'next-auth/react'
 
-const customStyles = {
+export const customStyles = {
   headCells: {
     style: {
       padding: '16px',
@@ -40,7 +40,7 @@ const SelectInputContainer = styled.div`
   width: 100%;
 `
 
-const SelectInputTitle = styled.p`
+export const SelectInputTitle = styled.p`
   padding-bottom: 8px;
   margin: 0;
 `

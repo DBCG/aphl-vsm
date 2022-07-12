@@ -262,9 +262,9 @@ const ValueSets = () => {
         isLoading
           ? <LoadingIndicator />
           : <SearchTable
-            valueSets={valueSets || []}
-            setSelectedValueSets={setSelectedValueSets}
-          />
+              valueSets={valueSets || []}
+              setSelectedValueSets={setSelectedValueSets}
+            />
       }
     </Col>
   )
