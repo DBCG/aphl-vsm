@@ -27,7 +27,7 @@ const Col = styled.div`
 `
 
 const ButtonWrapper = styled.div`
-margin-left: 6px;
+  margin-left: 6px;
 `
 
 const customStyles = {

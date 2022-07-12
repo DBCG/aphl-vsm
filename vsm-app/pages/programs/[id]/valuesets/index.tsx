@@ -19,7 +19,8 @@ import { getSession, GetSessionParams } from 'next-auth/react'
 const customStyles = {
   headCells: {
     style: {
-      padding: '16px'
+      padding: '16px',
+      overflow: 'visible'
     }
   },
   cells: {
@@ -35,14 +36,11 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const ColumnFilterContainer = styled.div`
-  .groups__menu, .conditions__menu {
-    z-index: 10000000;
-  }
-`
-
 const SelectInputContainer = styled.div`
   width: 100%;
+  & > .rdt_TableCol_Sortable {
+    overflow: auto !important;
+  }
 `
 
 const Id = styled(PageTitle).attrs({
@@ -227,6 +225,7 @@ const ProgramValueSetDetails: NextPage = () => {
           />
         </SelectInputContainer>
       ),
+      id: 'value-set-conditions',
       selector: (row: DataItem) => row.valueSet,
       sortable: false,
       wrap: true,
@@ -277,6 +276,7 @@ const ProgramValueSetDetails: NextPage = () => {
           />
         </SelectInputContainer>
       ),
+      id: 'value-set-groups',
       selector: (row: DataItem) => row.groups,
       sortable: false,
       allowOverflow: true,
