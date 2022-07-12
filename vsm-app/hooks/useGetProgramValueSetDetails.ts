@@ -41,6 +41,7 @@ interface Result {
 const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
+  findInVersion: string,
   findInSteward: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
@@ -62,8 +63,11 @@ const useGetProgramValueSetDetails = (
         queries.push(`findInVsName=${encodeURIComponent(findInVsName)}`)
       }
 
+      if (findInVersion.length) {
+        queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
+      }
+
       if (findInSteward.length) {
-        console.log('findInSteward: ', findInSteward)
         queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
       }
 
@@ -110,6 +114,7 @@ const useGetProgramValueSetDetails = (
   }, [
     id,
     findInVsName,
+    findInVersion,
     findInSteward,
     activeGroups,
     activeConditions,

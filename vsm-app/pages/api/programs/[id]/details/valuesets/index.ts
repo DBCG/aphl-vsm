@@ -37,8 +37,6 @@ interface ValueSetTableEntry {
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
 const cache = new NodeCache()
 
-
-
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
   // const cachedCopy = cache.get(canonical)
   // if (cachedCopy && useCache) { return cachedCopy }
@@ -66,19 +64,22 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
 const fetchLeafValueSets = async (
   canonicals: string[],
   nameStr: string | undefined,
-  stewardStr: string | undefined
+  stewardStr: string | undefined,
+  versionStr: string | undefined
 ) => {
   let searchParams = {} as any
+
   if (is.string(nameStr)) {
     searchParams['name:contains'] = nameStr
   }
+
   if (is.string(stewardStr)) {
     searchParams['publisher:contains'] = stewardStr
   }
 
-  console.log('stewardstr: ', stewardStr)
-  console.log('searchParams: ', searchParams)
-  console.log('canonicals: ', canonicals)
+  if (is.string(versionStr)) {
+    searchParams['version:contains'] = versionStr
+  }
 
   try {
     const result = await Promise.all(canonicals.map(canonical =>
@@ -92,8 +93,6 @@ const fetchLeafValueSets = async (
     }))
     ))
 
-    console.log('result: ', result)
-
     // add canonical url to the valueset
     const valueSets = result?.map((e) => {
       if (e.entry) {
@@ -105,12 +104,12 @@ const fetchLeafValueSets = async (
         })
       }
     })
-    ?.flat()
-    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-    ?.filter((value, index, self) => (
-      // @ts-ignore-next-line filter out multiple ids
-      self.findIndex(v2 => v2?.id === value?.id) === index
-    ))
+      ?.flat()
+      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.filter((value, index, self) => (
+        // @ts-ignore-next-line filter out multiple ids
+        self.findIndex(v2 => v2?.id === value?.id) === index
+      ))
 
     return valueSets
   } catch (e) {
@@ -191,9 +190,15 @@ export default async function handler(
               if (leafValueSetCanonicals.length) {
                 const stringToFind = req.query.findInVsName as string | undefined
                 const stewardToFind = req.query.findInSteward as string | undefined
+                const versionToFind = req.query.findInVersion as string | undefined
 
                 // @ts-ignore-next-line
-                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind, stewardToFind)
+                leafValueSets = await fetchLeafValueSets(
+                  leafValueSetCanonicals,
+                  stringToFind,
+                  stewardToFind,
+                  versionToFind
+                )
               }
             }
           }

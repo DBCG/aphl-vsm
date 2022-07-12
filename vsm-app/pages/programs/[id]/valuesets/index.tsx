@@ -90,6 +90,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // filter updates
   const [findInVsName, setFindInVsName] = useState('')
   const [findInSteward, setFindInSteward] = useState('')
+  const [findInVersion, setFindInVersion] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
@@ -146,6 +147,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
+    findInVersion,
     findInSteward,
     activeGroups,
     activeConditions,
@@ -181,13 +183,25 @@ const ProgramValueSetDetails: NextPage = () => {
           />
         </div>
       ),
+      id: 'vs-name-search',
       selector: (row: DataItem) => row.title,
       sortable: true,
       maxWidth: '350px',
       wrap: true
     },
     {
-      name: 'Version',
+      name: (
+        <div>
+          Version
+          <FilterInput
+            onChange={(e) => handleVersionSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
+      id: 'vs-version-search',
       selector: (row: DataItem) => row.version,
       sortable: true,
       maxWidth: '80px',
@@ -333,6 +347,11 @@ const ProgramValueSetDetails: NextPage = () => {
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
     const target = e.target as HTMLInputElement;
     setFindInVsName(target.value)
+  }
+
+  const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
+    const target = e.target as HTMLInputElement;
+    setFindInVersion(target.value)
   }
 
   const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
