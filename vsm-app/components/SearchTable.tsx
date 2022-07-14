@@ -30,7 +30,6 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
 
   const data = valueSets.map((vs) => {
     let valueSetResource = is.valueSet(vs) ? vs : vs.resource
-    console.log('vs: ', vs)
     const { id, name, publisher, url, status, meta, date } = valueSetResource as ValueSet
 
     const lastUpdated = meta?.lastUpdated || date || 'Unknown'
@@ -56,7 +55,7 @@ interface Input {
   setFindInName: (eventItem: any) => void,
   setFindInSteward: (eventItem: any) => void,
   setFindInStatus: (eventItem: any) => void,
-  setFindOids: (eventItem: any) => void,
+  setFindInOid: (eventItem: any) => void,
 }
 
 const vsStatuses = [
@@ -75,7 +74,7 @@ const SearchTable = ({
   setFindInName,
   setFindInStatus,
   setFindInSteward,
-  setFindOids
+  setFindInOid
 }: Input) => {
   const tableData = parseValueSets(valueSets)
   const router = useRouter()
@@ -84,12 +83,13 @@ const SearchTable = ({
     {
       name: (
         <div>
-        <SelectInputTitle>Name</SelectInputTitle>
-          <FilterInput
-            onChange={(e) => setFindInName(e)}
-            style={{
-              height: '30px'
-            }}
+          <SelectInputTitle>Name</SelectInputTitle>
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInName(target.value.trim())
+              }}
+              style={{ height: '30px' }}
           />
         </div>
       ),
@@ -130,7 +130,10 @@ const SearchTable = ({
         <div>
         <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
-            onChange={(e) => setFindInSteward(e)}
+            onChange={(e: React.ChangeEvent<Element>) => {
+              const target = e.target as HTMLInputElement
+              setFindInSteward(target.value.trim())
+            }}
             style={{
               height: '30px'
             }}
@@ -145,8 +148,12 @@ const SearchTable = ({
       name: (
         <div>
         <SelectInputTitle>OID</SelectInputTitle>
-          <FilterTextArea
-            onChange={(e) => setFindOids(e)}
+          <FilterInput
+            onChange={(e: React.ChangeEvent<Element>) => {
+              console.log('filter')
+              const target = e.target as HTMLInputElement
+              setFindInOid(target.value.trim())
+            }}
             style={{
               height: '30px'
             }}

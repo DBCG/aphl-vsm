@@ -62,6 +62,8 @@ const SelectInputContainer = styled.div`
   min-width: 300px;
 `
 
+const paginationMaximum = 100
+
 type SearchType = 'name' | 'oid' | 'steward'
 
 interface Error {
@@ -85,6 +87,7 @@ const ValueSets = () => {
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
+  const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
@@ -96,7 +99,7 @@ const ValueSets = () => {
   const [findInName, setFindInName] = useState('')
   const [findInSteward, setFindInSteward] = useState('')
   const [findInStatus, setFindInStatus] = useState('')
-  const [oids, setOids] = useState([])
+  const [findInOid, setFindInOid] = useState('')
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -132,6 +135,47 @@ const ValueSets = () => {
     }
     setIsLoading(false)
   }
+
+  // handle filters
+  useEffect(() => {
+    if (!findInName.length && !findInStatus.length && !findInSteward.length && !findInOid.length) {
+      setFilteredVSets([])
+      return
+    }
+    // if there are no valuesets, don't filter
+    if (!valueSets || !valueSets.length) return
+    // if there are less than <max> valuesets, filter in FE synchronously
+    if (valueSets.length < paginationMaximum) {
+      let filteredValueSets = valueSets
+      if (findInOid.length) {
+        filteredValueSets = filteredValueSets?.filter(vs => vs?.id?.includes(findInOid))
+        console.log('filtered: ', filteredValueSets)
+      } else if (findInName.length) {
+        filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
+      } else if (findInStatus.length) {
+        filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
+      } else if (findInSteward.length) {
+        filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
+      }
+      setFilteredVSets(filteredValueSets)
+      return
+    }
+
+
+
+    let active = true
+    filter()
+    return () => { active = false }
+
+    async function filter() {
+      // if there are no valuesets, don't filter
+
+      // setResult(undefined) // this is optional
+      // const res = await someLongRunningApi(arg1, arg2)
+      // if (!active) { return }
+      // setResult(res)
+    }
+  }, [valueSets, findInName, findInStatus, findInSteward, findInOid])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -200,6 +244,11 @@ const ValueSets = () => {
     }
   }, [fetchError?.message])
 
+  const filterExists = findInName.length
+    || findInStatus.length
+    || findInSteward.length
+    || findInOid.length
+
   return (
     <Col>
       <TitleRow>
@@ -267,12 +316,12 @@ const ValueSets = () => {
       </form>
       {
         <SearchTable
-          valueSets={valueSets || []}
+          valueSets={!filterExists ? (valueSets || []) : filteredVSets}
           setSelectedValueSets={setSelectedValueSets}
           setFindInName={setFindInName}
           setFindInSteward={setFindInSteward}
           setFindInStatus={setFindInStatus}
-          setFindOids={setOids}
+          setFindInOid={setFindInOid}
           // handle this loader to make sure status doesn't move table
           isLoading={isLoading}
         />

@@ -349,17 +349,17 @@ const ProgramValueSetDetails: NextPage = () => {
   ], [router, groupsInProgram, allConditions])
 
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement
     setFindInVsName(target.value)
   }
 
   const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement
     setFindInVersion(target.value)
   }
 
   const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement
     setFindInSteward(target.value)
   }
 

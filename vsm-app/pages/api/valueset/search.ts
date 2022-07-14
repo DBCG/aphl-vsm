@@ -22,6 +22,7 @@ export default async function handler(
   }
 
   if (req.method === 'GET') {
+    console.log('req.query: ', req.query)
     const { search, searchType } = req.query
     let responseInfo: SearchResponse = {
       valueSets: []
