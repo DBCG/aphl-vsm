@@ -37,13 +37,15 @@ export default async function handler(
         case 'name':
           let searchParams = { 'name:contains': search }
 
-          // if (statusFilter) {
-          //   params.status = statusFilter
-          // }
+          if (stewardFilter) {
+            searchParams['author:contains'] = stewardFilter
+          }
           try {
             serverResponse = await vsacFhirClient.search({
               resourceType: 'ValueSet', searchParams
             })
+
+            console.log('serverResponse: ', serverResponse)
 
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {

@@ -1,5 +1,6 @@
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
+import { format } from 'date-fns'
 import { useRouter } from 'next/router'
 import Select from 'react-select'
 import debounce from 'lodash.debounce'
@@ -14,7 +15,7 @@ interface TableData {
   steward: ValueSet['publisher']
   oid: ValueSet['id']
   status: ValueSet['status']
-  lastUpdated: ValueSet['date']
+  lastUpdated: string
   version: string
 }
 
@@ -33,14 +34,20 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
   const data = valueSets.map((vs) => {
     let valueSetResource = is.valueSet(vs) ? vs : vs.resource
     const { id, name, publisher, url, status, meta, date } = valueSetResource as ValueSet
-
-    const lastUpdated = meta?.lastUpdated || date || 'Unknown'
+    let updatedDate
+    if (meta?.lastUpdated) {
+      updatedDate = format(new Date(meta?.lastUpdated), 'YYY-MM-d')
+    } else if (date) {
+      updatedDate = format(new Date(date), 'YYY-MM-d')
+    } else {
+      updatedDate = 'Unknown'
+    }
 
     return {
       name,
       steward: publisher,
       status: status,
-      lastUpdated: lastUpdated,
+      lastUpdated: updatedDate,
       oid: id,
       url: is.valueSet(vs) ? url : vs.fullUrl,
       version: valueSetResource.version,
