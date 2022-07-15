@@ -82,6 +82,11 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   }))
 }
 
+interface SearchReponseParams {
+  searchContext: 'filter' | 'search',
+  response: Response | undefined
+}
+
 const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string
@@ -117,11 +122,16 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
-  const handleSearchResponse = async (response: Response | undefined) => {
+  const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
-      setValueSets(valueSetResponse.valueSets)
-      setFetchError(valueSetResponse.error || null)
+      if (searchContext === 'filter') {
+        setFilteredVSets(valueSetResponse.valueSets)
+        setFetchError(valueSetResponse.error || null)
+      } else {
+        setValueSets(valueSetResponse.valueSets)
+        setFetchError(valueSetResponse.error || null)
+      }
     } else if (response && !response?.ok) {
       const valueSetResponse = await response.json()
       setValueSets([])
@@ -136,9 +146,14 @@ const ValueSets = () => {
     setIsLoading(false)
   }
 
+  const filterExists = findInName.length
+    || findInStatus.length
+    || findInSteward.length
+    || findInOid.length
+
   // handle filters
   useEffect(() => {
-    if (!findInName.length && !findInStatus.length && !findInSteward.length && !findInOid.length) {
+    if (!filterExists) {
       setFilteredVSets([])
       return
     }
@@ -161,18 +176,14 @@ const ValueSets = () => {
       return
     }
 
-
-
     let active = true
     filter()
     return () => { active = false }
 
     async function filter() {
-      // if there are no valuesets, don't filter
-
       // setResult(undefined) // this is optional
-      // const res = await someLongRunningApi(arg1, arg2)
-      // if (!active) { return }
+      await submitVSetSearch()
+      if (!active) { return }
       // setResult(res)
     }
   }, [valueSets, findInName, findInStatus, findInSteward, findInOid])
@@ -180,8 +191,10 @@ const ValueSets = () => {
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
-  const submitVSetSearch = async (e: SyntheticEvent) => {
-    e.preventDefault()
+  const submitVSetSearch = async (e?: SyntheticEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
 
     let response
     if (!searchTerm?.trim()) {
@@ -202,9 +215,23 @@ const ValueSets = () => {
       searchType = 'name'
       searchStr = searchTerm.trim()
     }
-    response = await fetch(`/api/valueset/search?search=${searchStr}&searchType=${searchType}`)
 
-    await handleSearchResponse(response)
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}`
+    if (findInName.length) {
+      endpoint += `&nameFilter=${findInName}`
+    } if (findInStatus.length) {
+      endpoint += `&statusFilter=${findInStatus}`
+    } if (findInOid.length) {
+      endpoint += `&oidFilter=${findInOid}`
+    } if (findInSteward.length) {
+      endpoint += `&stewardFilter=${findInSteward}`
+    }
+
+    response = await fetch(endpoint)
+
+    const searchContext = filterExists ? 'filter' : 'search'
+
+    await handleSearchResponse({ searchContext, response })
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
@@ -243,11 +270,6 @@ const ValueSets = () => {
       toast.error(fetchError.message)
     }
   }, [fetchError?.message])
-
-  const filterExists = findInName.length
-    || findInStatus.length
-    || findInSteward.length
-    || findInOid.length
 
   return (
     <Col>

@@ -23,7 +23,10 @@ export default async function handler(
 
   if (req.method === 'GET') {
     console.log('req.query: ', req.query)
-    const { search, searchType } = req.query
+    const {
+      search, searchType,
+      nameFilter, statusFilter, oidFilter, stewardFilter
+    } = req.query
     let responseInfo: SearchResponse = {
       valueSets: []
     }
@@ -32,9 +35,20 @@ export default async function handler(
       let serverResponse
       switch (searchType) {
         case 'name':
+          let searchParams = { 'name:contains': search }
+
+          // if (statusFilter) {
+          //   params.status = statusFilter
+          // }
+          // if (oidFilter) {
+          //   params['id:contains'] = oidFilter
+          // }
+          if (nameFilter) {
+            searchParams['name:contains'] = [search, nameFilter]
+          }
           try {
             serverResponse = await vsacFhirClient.search({
-              resourceType: 'ValueSet', searchParams: { 'name:contains': search }
+              resourceType: 'ValueSet', searchParams
             })
 
             if (serverResponse.entry) {
@@ -44,7 +58,9 @@ export default async function handler(
               })
             }
           } catch (e) {
+            console.error('error requesting ',)
             console.error(e)
+            console.error('issue: ', e.response.data.issue)
             responseInfo.error = {
               errorType: 'server-error',
               message: `Search for '${search}' failed.`
