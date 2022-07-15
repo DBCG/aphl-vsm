@@ -40,14 +40,6 @@ export default async function handler(
           // if (statusFilter) {
           //   params.status = statusFilter
           // }
-          if (oidFilter) {
-            searchParams = {}
-            searchParams['_id'] = oidFilter
-            console.log('searchParams: ', searchParams)
-          }
-          if (nameFilter) {
-            searchParams['name:contains'] = [search, nameFilter]
-          }
           try {
             serverResponse = await vsacFhirClient.search({
               resourceType: 'ValueSet', searchParams
