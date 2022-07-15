@@ -163,7 +163,12 @@ const ValueSets = () => {
     if (valueSets.length < paginationMaximum) {
       let filteredValueSets = valueSets
       if (findInOid.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.id?.includes(findInOid))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => {
+            const oid = vs.id.split('|')[1]
+            return oid?.includes(findInOid)
+          }
+        )
         console.log('filtered: ', filteredValueSets)
       } else if (findInName.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
