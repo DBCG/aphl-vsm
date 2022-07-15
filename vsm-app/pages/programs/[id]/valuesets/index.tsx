@@ -15,6 +15,7 @@ import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramVal
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import { getSession, GetSessionParams } from 'next-auth/react'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 export const customStyles = {
   headCells: {
@@ -104,6 +105,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   // loading states
+  const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
 
@@ -158,6 +160,13 @@ const ProgramValueSetDetails: NextPage = () => {
     updatedValueSet,
     updatedGrouperValuesets
   )
+
+  useEffect(() => {
+    const keys = Object.keys(progValueSetDets)
+    if (keys.length) {
+      setPageLoading(false)
+    }
+  }, [progValueSetDets])
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
@@ -385,6 +394,8 @@ const ProgramValueSetDetails: NextPage = () => {
         pagination
         fixedHeader
         customStyles={customStyles}
+        progressPending={pageLoading}
+        progressComponent={<LoadingIndicator/>}
       />
     </>
   )

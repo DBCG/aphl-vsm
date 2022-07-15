@@ -102,9 +102,13 @@ const useGetProgramValueSetDetails = (
           setData(programJson)
         } else {
           console.error(programJson.error)
+          // handle error better
+          setData(null)
         }
       } catch (e) {
         console.error('error: ', e)
+        // handle error better
+        setData(null)
       }
     }
 
