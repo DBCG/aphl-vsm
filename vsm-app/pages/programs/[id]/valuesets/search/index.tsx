@@ -125,6 +125,7 @@ const ValueSets = () => {
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
+      console.log('vsets: ', valueSetResponse.valueSets)
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -159,7 +160,7 @@ const ValueSets = () => {
     }
     // if there are no valuesets, don't filter
     if (!valueSets || !valueSets.length) return
-    // if there are less than <max> valuesets, filter in FE synchronously
+    // if there are less than paginationMaximum, filter in FE synchronously
     if (valueSets.length < paginationMaximum) {
       let filteredValueSets = valueSets
       if (findInOid.length) {
@@ -169,7 +170,6 @@ const ValueSets = () => {
             return oid?.includes(findInOid)
           }
         )
-        console.log('filtered: ', filteredValueSets)
       } else if (findInName.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       } else if (findInStatus.length) {

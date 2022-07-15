@@ -15,6 +15,7 @@ interface TableData {
   oid: ValueSet['id']
   status: ValueSet['status']
   lastUpdated: ValueSet['date']
+  version: string
 }
 
 export interface BundleEntryItem {
@@ -127,6 +128,11 @@ const SearchTable = ({
       sortable: true,
       wrap: true,
       selector: (row: TableData) => row.lastUpdated!
+    },
+    {
+      name: 'Version',
+      wrap: true,
+      selector: (row: TableData) => row.version!
     },
     {
       name: (

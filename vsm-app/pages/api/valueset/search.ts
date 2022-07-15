@@ -40,9 +40,11 @@ export default async function handler(
           // if (statusFilter) {
           //   params.status = statusFilter
           // }
-          // if (oidFilter) {
-          //   params['id:contains'] = oidFilter
-          // }
+          if (oidFilter) {
+            searchParams = {}
+            searchParams['_id'] = oidFilter
+            console.log('searchParams: ', searchParams)
+          }
           if (nameFilter) {
             searchParams['name:contains'] = [search, nameFilter]
           }
@@ -58,7 +60,7 @@ export default async function handler(
               })
             }
           } catch (e) {
-            console.error('error requesting ',)
+            console.error('error requesting ')
             console.error(e)
             console.error('issue: ', e.response.data.issue)
             responseInfo.error = {
