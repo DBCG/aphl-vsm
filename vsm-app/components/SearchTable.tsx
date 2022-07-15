@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
+import { useRouter } from 'next/router'
 import Select from 'react-select'
+import debounce from 'lodash.debounce'
 import { is } from '@/helpers/is' 
 import { FilterInput } from './FilterInput'
+import LoadingIndicator from './LoadingIndicator'
 import { FilterTextArea } from './FilterTextArea'
 import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
-import { useRouter } from 'next/router'
 
 interface TableData {
   name: ValueSet['name']
@@ -56,6 +57,7 @@ interface Input {
   setFindInSteward: (eventItem: any) => void,
   setFindInStatus: (eventItem: any) => void,
   setFindInOid: (eventItem: any) => void,
+  isLoading: boolean
 }
 
 const vsStatuses = [
@@ -74,7 +76,8 @@ const SearchTable = ({
   setFindInName,
   setFindInStatus,
   setFindInSteward,
-  setFindInOid
+  setFindInOid,
+  isLoading=false
 }: Input) => {
   const tableData = parseValueSets(valueSets)
   const router = useRouter()
@@ -173,6 +176,8 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationPerPage={10}
+      progressPending={isLoading}
+      progressComponent={<LoadingIndicator/>}
       onSelectedRowsChange={(e) => {
         setSelectedValueSets(e.selectedRows)
       }}
