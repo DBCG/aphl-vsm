@@ -36,7 +36,7 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
     const { id, name, publisher, url, status, meta, date } = valueSetResource as ValueSet
     let updatedDate
     if (meta?.lastUpdated) {
-      updatedDate = format(new Date(meta?.lastUpdated), 'YYY-MM-d')
+      updatedDate = format(new Date(meta?.lastUpdated), 'YYY-M-d')
     } else if (date) {
       updatedDate = format(new Date(date), 'YYY-MM-d')
     } else {
