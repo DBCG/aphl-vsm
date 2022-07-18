@@ -115,6 +115,7 @@ const ValueSets = () => {
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
+  const [findInKeyword, setFindInKeyword] = useState('')
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -164,6 +165,7 @@ const ValueSets = () => {
     || findInOid?.length
     || findInLastUpdated?.length
     || findInVersion?.length
+    || findInKeyword?.length
 
   // handle filters
   useEffect(() => {
@@ -183,15 +185,25 @@ const ValueSets = () => {
             return oid?.includes(findInOid)
           }
         )
-      } else if (findInName.length) {
+      } else if (findInName?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       } else if (findInStatus?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
-      } else if (findInVersion.length) {
+      } else if (findInVersion?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
-      } else if (findInSteward.length) {
+      } else if (findInSteward?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
-      } else if (findInLastUpdated.length) {
+      } else if (findInKeyword?.length) {
+        filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
+          const extensionKeywords = vs?.extension
+          ?.filter(ext => ext?.url?.endsWith('keyWord'))
+          ?.map(xt => xt?.value?.toLowerCase())
+
+          const matches = extensionKeywords?.filter(keyword?.includes(findInKeyword?.toLowerCase()))
+          return Boolean(matches && matches?.length) 
+
+        })
+      } else if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter(
           (vs: fhir4.ValueSet) => {
             const lastUpdateDate = formatValuesetDate(
@@ -214,7 +226,7 @@ const ValueSets = () => {
       if (!active) { return }
       // setResult(res)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, findInVersion])
+  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, findInVersion, findInKeyword])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -383,6 +395,7 @@ const ValueSets = () => {
         setFindInOid={setFindInOid}
         setFindInLastUpdated={setFindInLastUpdated}
         setFindInVersion={setFindInVersion}
+        setFindInKeyword={setFindInKeyword}
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}

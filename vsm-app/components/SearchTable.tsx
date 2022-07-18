@@ -22,6 +22,7 @@ interface TableData {
   status: ValueSet['status']
   lastUpdated: string
   version: string
+  keywords: []
 }
 
 export interface BundleEntryItem {
@@ -52,6 +53,9 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
       updatedDate = 'Unknown'
     }
 
+    const keywords = vs?.extension?.filter((ext) => ext?.url?.endsWith('keyWord'))?.value || []
+
+
     return {
       name,
       steward: publisher,
@@ -60,7 +64,8 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
       oid: id,
       url: is.valueSet(vs) ? url : vs.fullUrl,
       version: valueSetResource.version,
-      id: `${id}-version${valueSetResource.version}`
+      id: `${id}-version${valueSetResource.version}`,
+      keywords: keywords
     }
   })
 
@@ -76,6 +81,7 @@ interface Input {
   setFindInOid: (eventItem: any) => void,
   setFindInLastUpdated: (eventItem: any) => void,
   setFindInVersion: (eventItem: any) => void,
+  setFindInKeyword: (eventItem: any) => void,
   isLoading: boolean,
   showFilters: boolean
 }
@@ -99,11 +105,12 @@ const SearchTable = ({
   setFindInOid,
   setFindInLastUpdated,
   setFindInVersion,
+  setFindInKeyword,
   isLoading=false,
   showFilters
 }: Input) => {
+
   const tableData = parseValueSets(valueSets)
-  const router = useRouter()
 
   const columns = [
     {
@@ -231,6 +238,27 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
+    },
+    {
+      name: (
+        <div>
+        <SelectInputTitle>Keyword</SelectInputTitle>
+          { showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInKeyword(target.value.trim())
+              }}
+              style={{
+                height: '30px'
+              }}
+            />
+          )}
+        </div>
+      ),
+      wrap: true,
+      
+      selector: (row: TableData) => row?.keywords?.join(', ') 
     }
   ]
 
