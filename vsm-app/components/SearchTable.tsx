@@ -75,6 +75,7 @@ interface Input {
   setFindInStatus: (eventItem: any) => void,
   setFindInOid: (eventItem: any) => void,
   setFindInLastUpdated: (eventItem: any) => void,
+  setFindInVersion: (eventItem: any) => void,
   isLoading: boolean,
   showFilters: boolean
 }
@@ -97,6 +98,7 @@ const SearchTable = ({
   setFindInSteward,
   setFindInOid,
   setFindInLastUpdated,
+  setFindInVersion,
   isLoading=false,
   showFilters
 }: Input) => {
@@ -173,7 +175,20 @@ const SearchTable = ({
       selector: (row: TableData) => row.lastUpdated!
     },
     {
-      name: 'Version',
+      name: (
+        <div>
+          <SelectInputTitle>Version</SelectInputTitle>
+            { showFilters && (
+              <FilterInput
+                onChange={(e: React.ChangeEvent<Element>) => {
+                  const target = e.target as HTMLInputElement
+                  setFindInVersion(target.value.trim())
+                }}
+                style={{ height: '30px' }}
+            />
+            )}
+        </div>
+      ),
       wrap: true,
       selector: (row: TableData) => row.version!
     },

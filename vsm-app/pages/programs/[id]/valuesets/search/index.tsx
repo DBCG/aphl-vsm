@@ -114,6 +114,7 @@ const ValueSets = () => {
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
+  const [findInVersion, setFindInVersion] = useState('')
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -167,6 +168,7 @@ const ValueSets = () => {
     || findInSteward?.length
     || findInOid?.length
     || findInLastUpdated?.length
+    || findInVersion?.length
 
   useEffect(() => {
     console.log('find: ', findInLastUpdated)
@@ -195,18 +197,16 @@ const ValueSets = () => {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       } else if (findInStatus?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
+      } else if (findInVersion.length) {
+        filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
       } else if (findInSteward.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       } else if (findInLastUpdated.length) {
-        console.log('test456ß: ', findInLastUpdated)
         filteredValueSets = filteredValueSets?.filter(
           (vs: fhir4.ValueSet) => {
-            console.log('hi')
             const lastUpdateDate = formatValuesetDate(
               { valueSet: vs, dateType: 'lastUpdated' }
             ) 
-            console.log('lastUpdateDate: ', lastUpdateDate)
-            console.log('findInLastUpdated: ', findInLastUpdated)
             return lastUpdateDate?.includes(findInLastUpdated)
             })
       }
@@ -224,7 +224,7 @@ const ValueSets = () => {
       if (!active) { return }
       // setResult(res)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated])
+  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, findInVersion])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -394,6 +394,7 @@ const ValueSets = () => {
         setFindInStatus={setFindInStatus}
         setFindInOid={setFindInOid}
         setFindInLastUpdated={setFindInLastUpdated}
+        setFindInVersion={setFindInVersion}
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
