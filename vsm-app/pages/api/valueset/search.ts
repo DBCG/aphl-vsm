@@ -39,10 +39,6 @@ export default async function handler(
             'name:contains': search,
             // _offset: 200
           }
-
-          if (stewardFilter) {
-            searchParams['author:contains'] = stewardFilter
-          }
           try {
             serverResponse = await vsacFhirClient.search({
               resourceType: 'ValueSet',
@@ -56,6 +52,13 @@ export default async function handler(
                 item.resource.url = item.fullUrl
                 return item.resource
               })
+
+              console.log('serverResponse.total: ', serverResponse.total)
+              responseInfo.total = serverResponse.total
+              responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
+              responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url
+              responseInfo.previous = serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+
             }
           } catch (e) {
             console.error('error requesting ')

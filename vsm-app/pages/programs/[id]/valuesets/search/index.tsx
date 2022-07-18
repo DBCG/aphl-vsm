@@ -46,6 +46,11 @@ const StyledForm = styled.form`
   flex-wrap: wrap;
 `
 
+const InnerFormRow = styled.div`
+  display: flex;
+  flex-direction: row;
+`
+
 const Col = styled.div`
   display: flex;
   width: 100%;
@@ -56,6 +61,7 @@ const Col = styled.div`
 const ErrorText = styled.span`
   color: darkRed;
   font-size: 90%;
+  margin-left: 0;
 `
 
 const SelectInputContainer = styled.div`
@@ -92,6 +98,7 @@ const ValueSets = () => {
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
+  const [searchTotal, setSearchTotal] = useState(null)
   const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -122,15 +129,21 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
+  useEffect(() => {
+    console.log('findInStatus: ', findInStatus)
+  },[findInStatus])
+
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
-      console.log('vsets: ', valueSetResponse.valueSets)
+      console.log('valueSetResponse: ', valueSetResponse)
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
+        // what to do with total when filtered? probably fine
       } else {
         setValueSets(valueSetResponse.valueSets)
+        setSearchTotal(valueSetResponse.total)
         setFetchError(valueSetResponse.error || null)
       }
     } else if (response && !response?.ok) {
@@ -147,10 +160,10 @@ const ValueSets = () => {
     setIsLoading(false)
   }
 
-  const filterExists = findInName.length
-    || findInStatus.length
-    || findInSteward.length
-    || findInOid.length
+  const filterExists = findInName?.length
+    || findInStatus?.length
+    || findInSteward?.length
+    || findInOid?.length
 
   // handle filters
   useEffect(() => {
@@ -172,7 +185,8 @@ const ValueSets = () => {
         )
       } else if (findInName.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
-      } else if (findInStatus.length) {
+      } else if (findInStatus?.length) {
+        console.log('test')
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
       } else if (findInSteward.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
@@ -197,6 +211,8 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = async (e?: SyntheticEvent) => {
+
+    console.log('hello')
     if (e) {
       e.preventDefault()
     }
@@ -235,7 +251,7 @@ const ValueSets = () => {
     response = await fetch(endpoint)
 
     const searchContext = filterExists ? 'filter' : 'search'
-
+    console.log('gets here 246')
     await handleSearchResponse({ searchContext, response })
   }
 
@@ -276,6 +292,9 @@ const ValueSets = () => {
     }
   }, [fetchError?.message])
 
+  const showFilters = searchTotal && (searchTotal > -1 && searchTotal <= paginationMaximum)
+  const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
+
   return (
     <Col>
       <TitleRow>
@@ -285,20 +304,27 @@ const ValueSets = () => {
         <PageTitle>ValueSet Search: {programId}</PageTitle>
         <Row>
           <StyledForm>
-            <SearchInput
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
-              id='vs-search'
-              label='Search by Name or OID'
-              value={searchTerm}
-              hasIcon={true}
-              minWidth={300}
-            />
-            <IconButton
-              style={{ alignSelf: 'flex-end', marginTop: '12px' }}
-              buttonContext='search'
-              type='submit'
-              onClick={(e) => submitVSetSearch(e)}
-            />
+            <div>
+              <InnerFormRow>
+                <SearchInput
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
+                  id='vs-search'
+                  label='Search by Name or OID'
+                  value={searchTerm}
+                  hasIcon={true}
+                  minWidth={300}
+                />
+                <IconButton
+                  style={{ alignSelf: 'flex-end', marginTop: '12px', marginLeft: '12px' }}
+                  buttonContext='search'
+                  type='submit'
+                  onClick={(e) => submitVSetSearch(e)}
+                />
+              </InnerFormRow>
+              { vsNumExceedsFilterLimit &&
+                <ErrorText>{searchTotal} results.<br/>Refine search to enable filters (max 100 results)</ErrorText>
+              }
+            </div>
           </StyledForm>
         </Row>
       </TitleRow>
@@ -341,18 +367,17 @@ const ValueSets = () => {
         </Row>
 
       </form>
-      {
-        <SearchTable
-          valueSets={!filterExists ? (valueSets || []) : filteredVSets}
-          setSelectedValueSets={setSelectedValueSets}
-          setFindInName={setFindInName}
-          setFindInSteward={setFindInSteward}
-          setFindInStatus={setFindInStatus}
-          setFindInOid={setFindInOid}
-          // handle this loader to make sure status doesn't move table
-          isLoading={isLoading}
-        />
-      }
+      <SearchTable
+        valueSets={!filterExists ? (valueSets || []) : filteredVSets}
+        setSelectedValueSets={setSelectedValueSets}
+        setFindInName={setFindInName}
+        setFindInSteward={setFindInSteward}
+        setFindInStatus={setFindInStatus}
+        setFindInOid={setFindInOid}
+        showFilters={showFilters}
+        // handle this loader to make sure status doesn't move table
+        isLoading={isLoading}
+      />
     </Col>
   )
 }
