@@ -4,6 +4,7 @@ import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
+import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
@@ -68,6 +69,23 @@ const ErrorText = styled.span`
 
 const SelectInputContainer = styled.div`
   min-width: 300px;
+`
+
+const ModalContent = styled.div`  
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+`
+
+const ModalColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-self: center;
+  text-align: center;
+`
+
+const ModalTitle = styled.h1`
 `
 
 const paginationMaximum = 100
@@ -282,6 +300,7 @@ const ValueSets = () => {
     if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
       const message = 'Select at least one valueset, with an associated condition and group.'
       toast.error(message)
+      setAddedValueSetsLoading(false)
       return
     }
 
@@ -291,6 +310,7 @@ const ValueSets = () => {
       selectedGroupers
     })
   
+    // needs some error handling down here
     const leafsUpdated = await fetch('/api/valueset', {
       method: 'PUT',
       body: leafPutBody
@@ -303,6 +323,7 @@ const ValueSets = () => {
       toast.success('ValueSet Add Successful')
     }
 
+    setAddedValueSetsLoading(false)
   }
 
   useEffect(() => {
@@ -316,6 +337,14 @@ const ValueSets = () => {
 
   return (
     <Col>
+      <ReactModal isOpen={addedValueSetsLoading}>
+        <ModalContent>
+          <ModalColumn>
+            <LoadingIndicator size='large'/>
+            <ModalTitle>Saving Valuesets to Program</ModalTitle>
+          </ModalColumn>
+        </ModalContent>
+      </ReactModal>
       <TitleRow>
         <ToastContainer
           closeOnClick={false}
@@ -343,7 +372,7 @@ const ValueSets = () => {
                 />
               </InnerFormRow>
               { vsNumExceedsFilterLimit &&
-                <ErrorText>{searchTotal} results.<br/>Refine search to enable filters (max {paginationMaximum} results)</ErrorText>
+                <ErrorText>{searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)</ErrorText>
               }
             </div>
           </StyledForm>

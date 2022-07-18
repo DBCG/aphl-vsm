@@ -11,10 +11,6 @@ import { FilterTextArea } from './FilterTextArea'
 import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
 
-const customReactSelectStyles = {
-  control: ((styles) => ({ ...styles, zIndex: '100000' })),
-}
-
 interface TableData {
   name: ValueSet['name']
   steward: ValueSet['publisher']
@@ -144,7 +140,6 @@ const SearchTable = ({
               <Select
                 defaultValue=''
                 isClearable={true}
-                styles={customReactSelectStyles}
                 placeholder='Select'
                 classNamePrefix='status'
                 inputId='status-selector'
