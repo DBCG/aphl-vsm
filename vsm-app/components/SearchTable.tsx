@@ -9,6 +9,7 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { FilterTextArea } from './FilterTextArea'
 import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
+import { formatValuesetDate } from '@/helpers/formatDates'
 
 const customReactSelectStyles = {
   control: ((styles) => ({ ...styles, zIndex: '100000' })),
@@ -45,10 +46,8 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
     let valueSetResource = is.valueSet(vs) ? vs : vs.resource
     const { id, name, publisher, url, status, meta, date } = valueSetResource as ValueSet
     let updatedDate
-    if (meta?.lastUpdated) {
-      updatedDate = format(new Date(meta?.lastUpdated), 'YYY-M-d')
-    } else if (date) {
-      updatedDate = format(new Date(date), 'YYY-M-d')
+    if (meta?.lastUpdated || date) {
+      updatedDate = formatValuesetDate({ valueSet: valueSetResource, dateType: 'lastUpdated' })
     } else {
       updatedDate = 'Unknown'
     }
@@ -75,6 +74,7 @@ interface Input {
   setFindInSteward: (eventItem: any) => void,
   setFindInStatus: (eventItem: any) => void,
   setFindInOid: (eventItem: any) => void,
+  setFindInLastUpdated: (eventItem: any) => void,
   isLoading: boolean,
   showFilters: boolean
 }
@@ -96,6 +96,7 @@ const SearchTable = ({
   setFindInStatus,
   setFindInSteward,
   setFindInOid,
+  setFindInLastUpdated,
   isLoading=false,
   showFilters
 }: Input) => {
@@ -152,7 +153,21 @@ const SearchTable = ({
       maxWidth: '180px'
     },
     {
-      name: 'Last Updated',
+      name: (
+        <div>
+          <SelectInputTitle>Last Updated</SelectInputTitle>
+            { showFilters && (
+              <FilterInput
+                onChange={(e: React.ChangeEvent<Element>) => {
+                  const target = e.target as HTMLInputElement
+                  console.log('target.value: ', target.value)
+                  setFindInLastUpdated(target.value.trim())
+                }}
+                style={{ height: '30px' }}
+            />
+            )}
+        </div>
+      ),
       sortable: true,
       wrap: true,
       selector: (row: TableData) => row.lastUpdated!

@@ -17,6 +17,7 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { getSession, GetSessionParams } from 'next-auth/react'
+import { formatValuesetDate } from '@/helpers/formatDates'
 
 const TitleRow = styled.div`
   display: flex;
@@ -112,6 +113,7 @@ const ValueSets = () => {
   const [findInSteward, setFindInSteward] = useState('')
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
+  const [findInLastUpdated, setFindInLastUpdated] = useState('')
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -164,9 +166,15 @@ const ValueSets = () => {
     || findInStatus?.length
     || findInSteward?.length
     || findInOid?.length
+    || findInLastUpdated?.length
+
+  useEffect(() => {
+    console.log('find: ', findInLastUpdated)
+  }, [findInLastUpdated])
 
   // handle filters
   useEffect(() => {
+    console.log('findinlastupdated: ', findInLastUpdated)
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -186,10 +194,21 @@ const ValueSets = () => {
       } else if (findInName.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       } else if (findInStatus?.length) {
-        console.log('test')
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
       } else if (findInSteward.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
+      } else if (findInLastUpdated.length) {
+        console.log('test456ß: ', findInLastUpdated)
+        filteredValueSets = filteredValueSets?.filter(
+          (vs: fhir4.ValueSet) => {
+            console.log('hi')
+            const lastUpdateDate = formatValuesetDate(
+              { valueSet: vs, dateType: 'lastUpdated' }
+            ) 
+            console.log('lastUpdateDate: ', lastUpdateDate)
+            console.log('findInLastUpdated: ', findInLastUpdated)
+            return lastUpdateDate?.includes(findInLastUpdated)
+            })
       }
       setFilteredVSets(filteredValueSets)
       return
@@ -205,7 +224,7 @@ const ValueSets = () => {
       if (!active) { return }
       // setResult(res)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid])
+  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -374,6 +393,7 @@ const ValueSets = () => {
         setFindInSteward={setFindInSteward}
         setFindInStatus={setFindInStatus}
         setFindInOid={setFindInOid}
+        setFindInLastUpdated={setFindInLastUpdated}
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
