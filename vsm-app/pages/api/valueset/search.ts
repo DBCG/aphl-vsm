@@ -22,7 +22,6 @@ export default async function handler(
   }
 
   if (req.method === 'GET') {
-    console.log('req.query: ', req.query)
     const {
       search, searchType,
       nameFilter, statusFilter, oidFilter, stewardFilter
@@ -45,7 +44,6 @@ export default async function handler(
               searchParams
             })
 
-            console.log('serverResponse: ', serverResponse)
 
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {
@@ -53,7 +51,6 @@ export default async function handler(
                 return item.resource
               })
 
-              console.log('serverResponse.total: ', serverResponse.total)
               responseInfo.total = serverResponse.total
               responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
               responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url

@@ -132,14 +132,9 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
-  useEffect(() => {
-    console.log('findInStatus: ', findInStatus)
-  },[findInStatus])
-
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
-      console.log('valueSetResponse: ', valueSetResponse)
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -170,13 +165,8 @@ const ValueSets = () => {
     || findInLastUpdated?.length
     || findInVersion?.length
 
-  useEffect(() => {
-    console.log('find: ', findInLastUpdated)
-  }, [findInLastUpdated])
-
   // handle filters
   useEffect(() => {
-    console.log('findinlastupdated: ', findInLastUpdated)
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -231,7 +221,6 @@ const ValueSets = () => {
    */
   const submitVSetSearch = async (e?: SyntheticEvent) => {
 
-    console.log('hello')
     if (e) {
       e.preventDefault()
     }
@@ -270,7 +259,6 @@ const ValueSets = () => {
     response = await fetch(endpoint)
 
     const searchContext = filterExists ? 'filter' : 'search'
-    console.log('gets here 246')
     await handleSearchResponse({ searchContext, response })
   }
 
@@ -280,7 +268,7 @@ const ValueSets = () => {
     let response
 
     if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
-      const message = 'You must select at least one valueset, with an associated condition and group.'
+      const message = 'Select at least one valueset, with an associated condition and group.'
       toast.error(message)
       return
     }

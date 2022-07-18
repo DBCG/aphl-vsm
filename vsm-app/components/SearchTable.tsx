@@ -162,7 +162,6 @@ const SearchTable = ({
               <FilterInput
                 onChange={(e: React.ChangeEvent<Element>) => {
                   const target = e.target as HTMLInputElement
-                  console.log('target.value: ', target.value)
                   setFindInLastUpdated(target.value.trim())
                 }}
                 style={{ height: '30px' }}
@@ -220,7 +219,6 @@ const SearchTable = ({
           { showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
-                console.log('filter')
                 const target = e.target as HTMLInputElement
                 setFindInOid(target.value.trim())
               }}
