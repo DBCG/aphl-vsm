@@ -182,7 +182,7 @@ const ValueSets = () => {
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
           vs => {
-            const oid = vs.id.split('|')[1]
+            const oid = vs.id.split('|')[0]
             return oid?.includes(findInOid)
           }
         )
@@ -193,6 +193,7 @@ const ValueSets = () => {
       } else if (findInVersion?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
       } else if (findInSteward?.length) {
+        console.log('findInsteward: ', findInSteward)
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       } else if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
@@ -252,6 +253,13 @@ const ValueSets = () => {
     if (trimmedWords?.some(word => word?.match(oidRegex))) {
       searchType = 'oid'
       const dedupedOids = dedupeArray(trimmedWords)
+      // if more than 100 OIDs, exit with error
+      if (dedupedOids?.length > paginationMaximum) {
+        const message = `OID search maximum is ${paginationMaximum} at a time.`
+        setIsLoading(false)
+        toast.error(message)
+        return
+      }
       searchStr = dedupedOids?.join(',')
     } else {
       searchType = 'name'
@@ -259,15 +267,6 @@ const ValueSets = () => {
     }
 
     let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}`
-    if (findInName.length) {
-      endpoint += `&nameFilter=${findInName}`
-    } if (findInStatus.length) {
-      endpoint += `&statusFilter=${findInStatus}`
-    } if (findInOid.length) {
-      endpoint += `&oidFilter=${findInOid}`
-    } if (findInSteward.length) {
-      endpoint += `&stewardFilter=${findInSteward}`
-    }
 
     response = await fetch(endpoint)
 
@@ -344,7 +343,7 @@ const ValueSets = () => {
                 />
               </InnerFormRow>
               { vsNumExceedsFilterLimit &&
-                <ErrorText>{searchTotal} results.<br/>Refine search to enable filters (max 100 results)</ErrorText>
+                <ErrorText>{searchTotal} results.<br/>Refine search to enable filters (max {paginationMaximum} results)</ErrorText>
               }
             </div>
           </StyledForm>

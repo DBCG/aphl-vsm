@@ -82,6 +82,7 @@ export default async function handler(
               ?.filter(x => x) as fhir4.ValueSet[]
 
             const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
+            responseInfo.total = successfulOIDs.length
 
             const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
 
