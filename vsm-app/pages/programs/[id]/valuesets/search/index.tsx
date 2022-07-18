@@ -1,6 +1,7 @@
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ToastContainer, toast } from 'react-toastify'
@@ -331,6 +332,8 @@ const ValueSets = () => {
                   label='Search by Name or OID'
                   value={searchTerm}
                   hasIcon={true}
+                  includeInfo={true}
+                  info='OID search supports a comma-delimited list, max 100 OIDs'
                   minWidth={300}
                 />
                 <IconButton
