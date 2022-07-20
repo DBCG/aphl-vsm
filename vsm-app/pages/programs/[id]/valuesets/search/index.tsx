@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
-import { BundleEntryItem, SearchTable } from '@/components/SearchTable'
+import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
@@ -184,6 +184,8 @@ const ValueSets = () => {
 
   // handle filters
   useEffect(() => {
+    console.log('findInSteward called: ', findInSteward.length)
+    console.log('findInName called: ', findInName.length)
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -192,6 +194,7 @@ const ValueSets = () => {
     if (!valueSets || !valueSets.length) return
     // if there are less than paginationMaximum, filter in FE synchronously
     if (valueSets.length < paginationMaximum) {
+      console.log('test')
       let filteredValueSets = valueSets as fhir4.ValueSet[]
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
@@ -201,12 +204,14 @@ const ValueSets = () => {
           }
         )
       } else if (findInName?.length) {
+        console.log('called')
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       } else if (findInStatus?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
       } else if (findInVersion?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
       } else if (findInSteward?.length) {
+        console.log('gets here')
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       } else if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
@@ -227,6 +232,7 @@ const ValueSets = () => {
             return lastUpdateDate?.includes(findInLastUpdated)
             })
       }
+      console.log('filtered: ', filteredValueSets)
       setFilteredVSets(filteredValueSets)
       return
     }
@@ -236,15 +242,13 @@ const ValueSets = () => {
     return () => { active = false }
 
     async function filter() {
-      // setResult(undefined) // this is optional
       await submitVSetSearch()
       if (!active) { return }
-      // setResult(res)
     }
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
-    findInVersion, findInKeyword
+    findInVersion, findInKeyword, filterExists
   ])
 
   /**
@@ -294,7 +298,6 @@ const ValueSets = () => {
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     setAddedValueSetsLoading(true)
-    let response
 
     if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
       const message = 'Select at least one valueset, with an associated condition and group.'
