@@ -184,8 +184,6 @@ const ValueSets = () => {
 
   // handle filters
   useEffect(() => {
-    console.log('findInSteward called: ', findInSteward.length)
-    console.log('findInName called: ', findInName.length)
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -194,7 +192,6 @@ const ValueSets = () => {
     if (!valueSets || !valueSets.length) return
     // if there are less than paginationMaximum, filter in FE synchronously
     if (valueSets.length < paginationMaximum) {
-      console.log('test')
       let filteredValueSets = valueSets as fhir4.ValueSet[]
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
@@ -203,17 +200,20 @@ const ValueSets = () => {
             return oid?.includes(findInOid)
           }
         )
-      } else if (findInName?.length) {
-        console.log('called')
+      }
+      if (findInName?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
-      } else if (findInStatus?.length) {
+      }
+      if (findInStatus?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
-      } else if (findInVersion?.length) {
+      }
+      if (findInVersion?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
-      } else if (findInSteward?.length) {
-        console.log('gets here')
+      }
+      if (findInSteward?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
-      } else if (findInKeyword?.length) {
+      }
+      if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
           const extensionKeywords = vs?.extension
           ?.filter(ext => ext?.url?.endsWith('keyWord'))
@@ -223,7 +223,8 @@ const ValueSets = () => {
           return Boolean(matches && matches?.length) 
 
         })
-      } else if (findInLastUpdated?.length) {
+      }
+      if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter(
           (vs: fhir4.ValueSet) => {
             const lastUpdateDate = formatValuesetDate(
@@ -232,7 +233,6 @@ const ValueSets = () => {
             return lastUpdateDate?.includes(findInLastUpdated)
             })
       }
-      console.log('filtered: ', filteredValueSets)
       setFilteredVSets(filteredValueSets)
       return
     }
@@ -248,7 +248,7 @@ const ValueSets = () => {
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
-    findInVersion, findInKeyword, filterExists
+    findInVersion, findInKeyword
   ])
 
   /**
