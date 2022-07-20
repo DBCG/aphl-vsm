@@ -9,7 +9,8 @@ export interface FetchError {
 
 export interface SearchResponse {
   valueSets: fhir4.ValueSet[] | [],
-  error?: FetchError
+  error?: FetchError,
+  total: number | null
 }
 
 export default async function handler(
@@ -27,7 +28,8 @@ export default async function handler(
       nameFilter, statusFilter, oidFilter, stewardFilter
     } = req.query
     let responseInfo: SearchResponse = {
-      valueSets: []
+      valueSets: [],
+      total: null
     }
 
     try {
@@ -35,8 +37,7 @@ export default async function handler(
       switch (searchType) {
         case 'name':
           let searchParams = {
-            'name:contains': search,
-            // _offset: 200
+            'name:contains': search
           }
           try {
             serverResponse = await vsacFhirClient.search({
@@ -52,15 +53,13 @@ export default async function handler(
               })
 
               responseInfo.total = serverResponse.total
-              responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
-              responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url
-              responseInfo.previous = serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+              // responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
+              // responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url
+              // responseInfo.previous = serverResponse?.link?.find(l => l?.relation === 'previous')?.url
 
             }
           } catch (e) {
-            console.error('error requesting ')
             console.error(e)
-            console.error('issue: ', e.response.data.issue)
             responseInfo.error = {
               errorType: 'server-error',
               message: `Search for '${search}' failed.`

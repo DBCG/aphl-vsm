@@ -48,11 +48,11 @@ const useGetProgramValueSetDetails = (
   updatedValueSet: fhir4.ValueSet | undefined,
   updatedGrouperValueSets: [] | fhir4.ValueSet[]
 ): Result | {} => {
-  const [data, setData] = useState({})
+  const [data, setData] = useState< {} | Result >({})
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {
-        setData([])
+        setData({})
         return
       }
 
@@ -103,12 +103,12 @@ const useGetProgramValueSetDetails = (
         } else {
           console.error(programJson.error)
           // handle error better
-          setData(null)
+          setData({})
         }
       } catch (e) {
         console.error('error: ', e)
         // handle error better
-        setData(null)
+        setData({})
       }
     }
 

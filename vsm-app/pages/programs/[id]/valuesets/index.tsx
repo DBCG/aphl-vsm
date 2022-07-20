@@ -393,6 +393,7 @@ const ProgramValueSetDetails: NextPage = () => {
         theme='aphl'
         pagination
         fixedHeader
+        // @ts-expect-error
         customStyles={customStyles}
         progressPending={pageLoading}
         progressComponent={<LoadingIndicator/>}

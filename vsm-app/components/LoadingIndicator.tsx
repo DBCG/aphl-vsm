@@ -1,5 +1,9 @@
 import styled, { keyframes } from 'styled-components';
 
+interface Props {
+  size?: 'large'
+}
+
 const rotate360 = keyframes`
   from {
     transform: rotate(0deg);
@@ -9,7 +13,7 @@ const rotate360 = keyframes`
   }
 `;
 
-const LoadingIndicator = styled.div`
+const LoadingIndicator = styled.div<Props>`
   animation: ${rotate360} 1s linear infinite;
   transform: translateZ(0);
   border-top: 2px solid var(--theme-500);

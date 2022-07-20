@@ -1,11 +1,10 @@
-import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
@@ -17,7 +16,6 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
-import 'react-toastify/dist/ReactToastify.min.css'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 
@@ -90,8 +88,6 @@ const ModalTitle = styled.h1`
 
 const paginationMaximum = 100
 
-type SearchType = 'name' | 'oid' | 'steward'
-
 interface Error {
   type: 'invalid-oid' | 'missing-data' | 'oid-not-found' 
   message: string
@@ -117,9 +113,9 @@ const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
-  const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
-  const [searchTotal, setSearchTotal] = useState(null)
-  const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | BundleEntryItem[] | undefined>([])
+  const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
+  const [searchTotal, setSearchTotal] = useState<null | number>(null)
+  const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
@@ -140,7 +136,7 @@ const ValueSets = () => {
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
   // error info
-  const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
+  // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
 
   const conditions = useGetConditions()
@@ -196,11 +192,11 @@ const ValueSets = () => {
     if (!valueSets || !valueSets.length) return
     // if there are less than paginationMaximum, filter in FE synchronously
     if (valueSets.length < paginationMaximum) {
-      let filteredValueSets = valueSets
+      let filteredValueSets = valueSets as fhir4.ValueSet[]
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
           vs => {
-            const oid = vs.id.split('|')[0]
+            const oid = vs?.id?.split('|')?.[0]
             return oid?.includes(findInOid)
           }
         )
@@ -211,15 +207,14 @@ const ValueSets = () => {
       } else if (findInVersion?.length) {
         filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
       } else if (findInSteward?.length) {
-        console.log('findInsteward: ', findInSteward)
         filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       } else if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
           const extensionKeywords = vs?.extension
           ?.filter(ext => ext?.url?.endsWith('keyWord'))
-          ?.map(xt => xt?.value?.toLowerCase())
+          ?.map(xt => xt?.valueString?.toLowerCase())
 
-          const matches = extensionKeywords?.filter(keyword?.includes(findInKeyword?.toLowerCase()))
+          const matches = extensionKeywords?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
           return Boolean(matches && matches?.length) 
 
         })
@@ -246,7 +241,11 @@ const ValueSets = () => {
       if (!active) { return }
       // setResult(res)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, findInVersion, findInKeyword])
+  }, [
+    valueSets, findInName, findInStatus,
+    findInSteward, findInOid, findInLastUpdated,
+    findInVersion, findInKeyword
+  ])
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -332,7 +331,7 @@ const ValueSets = () => {
     }
   }, [fetchError?.message])
 
-  const showFilters = searchTotal && (searchTotal > -1 && searchTotal <= paginationMaximum)
+  const showFilters = Boolean(searchTotal) && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
   const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
 
   return (

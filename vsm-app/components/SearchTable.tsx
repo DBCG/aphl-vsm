@@ -1,24 +1,22 @@
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
-import { format } from 'date-fns'
-import { useRouter } from 'next/router'
 import Select from 'react-select'
-import debounce from 'lodash.debounce'
-import { is } from '@/helpers/is' 
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
-import { FilterTextArea } from './FilterTextArea'
 import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
+import { ReactNode } from 'react'
 
 interface TableData {
   name: ValueSet['name']
   steward: ValueSet['publisher']
-  oid: ValueSet['id']
   status: ValueSet['status']
   lastUpdated: string
-  version: string
-  keywords: []
+  oid: ValueSet['id']
+  url: ValueSet['url']
+  version: ValueSet['version']
+  id: ValueSet['id']
+  keywords: string[] | []
 }
 
 export interface BundleEntryItem {
@@ -26,31 +24,35 @@ export interface BundleEntryItem {
   resource: fhir4.ValueSet
 }
 
-const PropagationStopper = ({ children }) => {
+interface PropagationProp {
+  children: ReactNode
+}
+
+const PropagationStopper = ({ children }: PropagationProp) => {
   return (
     <div onClick={(e) => e.stopPropagation()}>{children}</div>
   )
 }
 
-const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): TableData[] => {
+const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
   if (!valueSets?.length) {
     return []
   }
 
   if (!valueSets || valueSets.length < 1) { return [] }
 
-  const data = valueSets.map((vs) => {
-    let valueSetResource = is.valueSet(vs) ? vs : vs.resource
-    const { id, name, publisher, url, status, meta, date } = valueSetResource as ValueSet
+  const data = valueSets.map((vs: fhir4.ValueSet) => {
+    const { id, name, publisher, url, status, meta, date, version } = vs
     let updatedDate
     if (meta?.lastUpdated || date) {
-      updatedDate = formatValuesetDate({ valueSet: valueSetResource, dateType: 'lastUpdated' })
+      updatedDate = formatValuesetDate({ valueSet: vs, dateType: 'lastUpdated' }) || 'Unknown'
     } else {
       updatedDate = 'Unknown'
     }
 
-    const keywords = vs?.extension?.filter((ext) => ext?.url?.endsWith('keyWord'))?.value || []
-
+    const keywords = vs?.extension
+      ?.filter((ext) => ext.url.endsWith('/valueset-keyWord'))
+      ?.map(xt => xt.valueString).filter(x => x) || []
 
     return {
       name,
@@ -58,10 +60,10 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
       status: status,
       lastUpdated: updatedDate,
       oid: id,
-      url: is.valueSet(vs) ? url : vs.fullUrl,
-      version: valueSetResource.version,
-      id: `${id}-version${valueSetResource.version}`,
-      keywords: keywords
+      url: url,
+      version: version,
+      id: `${id}-version${version}`,
+      keywords: keywords as string[] | []
     }
   })
 
@@ -69,7 +71,7 @@ const parseValueSets = (valueSets: ValueSet[] | BundleEntryItem[] | undefined): 
 }
 
 interface Input {
-  valueSets: ValueSet[] | BundleEntryItem[],
+  valueSets: ValueSet[] | undefined,
   setSelectedValueSets: (eventItem: any) => void,
   setFindInName: (eventItem: any) => void,
   setFindInSteward: (eventItem: any) => void,
@@ -143,8 +145,10 @@ const SearchTable = ({
                 placeholder='Select'
                 classNamePrefix='status'
                 inputId='status-selector'
+                // @ts-ignore-next-line
                 options={statusOptions}
-                onChange={(e) => { setFindInStatus(e?.value) }}
+                // @ts-ignore-next-line
+                onChange={(e) => {setFindInStatus(e?.value) }}
               />
             </PropagationStopper>
           )}
@@ -270,6 +274,7 @@ const SearchTable = ({
       onSelectedRowsChange={(e) => {
         setSelectedValueSets(e.selectedRows)
       }}
+      // @ts-ignore-next-line
       customStyles={customStyles}
     />
   )
