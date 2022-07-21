@@ -202,16 +202,24 @@ const ValueSets = () => {
         )
       }
       if (findInName?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase())
+          )
       }
       if (findInStatus?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.status === findInStatus
+        )
       }
       if (findInVersion?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase())
+        )
       }
       if (findInSteward?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase())
+        )
       }
       if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
@@ -219,7 +227,9 @@ const ValueSets = () => {
           ?.filter(ext => ext?.url?.endsWith('keyWord'))
           ?.map(xt => xt?.valueString?.toLowerCase())
 
-          const matches = extensionKeywords?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
+          const matches = extensionKeywords
+            ?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
+
           return Boolean(matches && matches?.length) 
 
         })
@@ -334,7 +344,9 @@ const ValueSets = () => {
     }
   }, [fetchError?.message])
 
-  const showFilters = Boolean(searchTotal) && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
+  const showFilters = Boolean(searchTotal)
+    && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
+
   const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
 
   return (
@@ -374,7 +386,9 @@ const ValueSets = () => {
                 />
               </InnerFormRow>
               { vsNumExceedsFilterLimit &&
-                <ErrorText>{searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)</ErrorText>
+                <ErrorText>
+                  {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
+                </ErrorText>
               }
             </div>
           </StyledForm>
