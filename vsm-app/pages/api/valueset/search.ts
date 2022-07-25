@@ -101,6 +101,7 @@ export default async function handler(
           }
           break
         case 'oid':
+          // pagination is not going to work the same for the OID list because each is a separate query
           // @ts-ignore-next-line
           const oidList: string[] = search?.split(',')
           try {

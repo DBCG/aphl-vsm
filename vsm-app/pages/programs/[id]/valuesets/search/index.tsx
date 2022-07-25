@@ -146,6 +146,7 @@ const ValueSets = () => {
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
   const [findInKeyword, setFindInKeyword] = useState('')
+  const [searchType, setSearchType] = useState('name')
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -363,6 +364,7 @@ const ValueSets = () => {
       searchType = 'name'
       searchStr = searchTerm.trim()
     }
+    setSearchType(searchType)
 
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
@@ -508,6 +510,7 @@ const ValueSets = () => {
 
       </form>
       <SearchTable
+        searchType={searchType}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         setFindInName={setFindInName}
