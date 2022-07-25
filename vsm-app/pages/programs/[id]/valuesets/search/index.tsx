@@ -1,6 +1,5 @@
 import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
-import isEqual from 'lodash.isequal'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
@@ -439,7 +438,7 @@ const ValueSets = () => {
         <ToastContainer
           closeOnClick={false}
         />
-        <PageTitle>ValueSet Search: {programId} {searchTotal}</PageTitle>
+        <PageTitle>ValueSet Search: {programId}</PageTitle>
         <Row>
           <StyledForm>
             <div>
