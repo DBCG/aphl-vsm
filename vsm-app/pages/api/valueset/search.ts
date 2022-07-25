@@ -44,7 +44,7 @@ export default async function handler(
 
   if (req.method === 'GET') {
     const {
-      search, searchType, count, offset,
+      search, searchType, count, offset, sortBy, sortDirection,
       nameFilter, statusFilter, oidFilter, stewardFilter
     } = req.query
     let responseInfo = {
@@ -56,9 +56,12 @@ export default async function handler(
       let serverResponse
       switch (searchType) {
         case 'name':
+          const sortStr = '-publisher'//`${sortDirection == 'asc' ? '' : '-'}${sortBy}`
+          console.log('sortStr: ', sortStr)
           let searchParams = {
             'name:contains': search,
-            _count: count
+            _count: count,
+            _sort: sortStr
           } as SearchParams
 
           if (typeof offset === 'string') {

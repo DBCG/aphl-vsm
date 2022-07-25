@@ -82,10 +82,12 @@ interface Input {
   setFindInKeyword: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
+  handleSort: (eventItem: any) => void,
   searchType: string,
   paginationTotalRows: number,
   isLoading: boolean,
-  showFilters: boolean
+  showFilters: boolean,
+  resultsPerPage: number
 }
 
 const vsStatuses = [
@@ -113,7 +115,9 @@ const SearchTable = ({
   handlePageChange,
   handlePerRowsChange,
   paginationTotalRows,
-  searchType
+  searchType,
+  resultsPerPage,
+  handleSort
 }: Input) => {
 
   const tableData = parseValueSets(valueSets)
@@ -277,6 +281,8 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationServer={searchType == 'name'}
+      sortServer={searchType == 'name' && resultsPerPage > paginationTotalRows}
+      onSort={handleSort}
       paginationPerPage={10}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator/>}
@@ -288,6 +294,8 @@ const SearchTable = ({
       paginationTotalRows={paginationTotalRows}
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
+      // sorting
+      
     />
   )
 }

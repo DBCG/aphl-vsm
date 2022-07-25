@@ -91,6 +91,13 @@ const ModalTitle = styled.h1`
 
 const paginationMaximum = 100
 
+const columnSortMap = {
+  1: 'name',
+  3: 'lastupdated',
+  4: 'version',
+  5: 'publisher'
+}
+
 interface Error {
   type: 'invalid-oid' | 'missing-data' | 'oid-not-found' 
   message: string
@@ -146,6 +153,7 @@ const ValueSets = () => {
   const [findInVersion, setFindInVersion] = useState('')
   const [findInKeyword, setFindInKeyword] = useState('')
   const [searchType, setSearchType] = useState('name')
+  const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -286,7 +294,7 @@ const ValueSets = () => {
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
     findInVersion, findInKeyword, currentPage,
-    resultsPerPage
+    resultsPerPage, sortParams
   ])
 
 
@@ -302,7 +310,16 @@ const ValueSets = () => {
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage])
+  }, [currentPage, resultsPerPage, sortParams])
+
+  const handleSort = (column, sortDirection: 'asc' | 'desc') => {
+    console.log('col: ', column)
+    const columnToSort = columnSortMap[column.id]
+    setSortParams({
+      column: columnToSort,
+      direction: sortDirection
+    })
+  }
 
   const handlePageChange = (newPage: number) => {
     // don't call if same page
@@ -364,10 +381,10 @@ const ValueSets = () => {
       searchStr = searchTerm.trim()
     }
     setSearchType(searchType)
-
+    console.log('sort params: ', sortParams)
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}`
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
     
     // if offsets are defined, add to the query
     if (offset?.length) {
@@ -522,9 +539,11 @@ const ValueSets = () => {
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
+        resultsPerPage={resultsPerPage}
         paginationTotalRows={searchTotal || 0}
         handlePageChange={handlePageChange}
         handlePerRowsChange={handlePerRowsChange}
+        handleSort={handleSort}
       />
     </Col>
   )
