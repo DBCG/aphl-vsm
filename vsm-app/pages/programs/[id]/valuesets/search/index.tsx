@@ -1,5 +1,6 @@
 import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
+import isEqual from 'lodash.isequal'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
@@ -134,8 +135,9 @@ const ValueSets = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [offsets, setOffsets] = useState(defaultOffsets)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState({ type: 'self', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
+  const [pageChangeType, setPageChangeType] = useState(null) // self, next, last, previous, first
 
 
   // filters
@@ -175,9 +177,6 @@ const ValueSets = () => {
         last: valueSetResponse.last
       }
 
-      console.log('new Offsets: ', newOffsets)
-      console.log('valueset response', valueSetResponse)
-
       setOffsets(newOffsets)
 
       if (searchContext === 'filter') {
@@ -213,7 +212,6 @@ const ValueSets = () => {
 
   // handle filters
   useEffect(() => {
-    console.log('called')
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -307,8 +305,24 @@ const ValueSets = () => {
     }
   }, [currentPage, resultsPerPage])
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
+  const handlePageChange = (newPage: number) => {
+    // don't call if same page
+    if (newPage == currentPage.page) return
+    const pageChangeState = {
+      type: 'self',
+      page: newPage
+    }
+    if (newPage == currentPage.page - 1) {
+      pageChangeState.type = 'previous'
+    } else if (newPage == currentPage.page + 1) {
+      pageChangeState.type = 'next'
+    } else if (newPage < currentPage.page) {
+      pageChangeState.type = 'first'
+    } else if (newPage > currentPage.page) {
+      pageChangeState.type = 'last'
+    }
+
+    setCurrentPage(pageChangeState)
   }
 
   const handlePerRowsChange = (rows: number) => {
@@ -351,7 +365,14 @@ const ValueSets = () => {
       searchStr = searchTerm.trim()
     }
 
+    // @ts-ignore-next-line
+    let offset = offsets?.[currentPage?.type] || ''
     let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}`
+    
+    // if offsets are defined, add to the query
+    if (offset?.length) {
+      endpoint = endpoint.concat(`&offset=${offset}`)
+    }
 
     response = await fetch(endpoint)
 
