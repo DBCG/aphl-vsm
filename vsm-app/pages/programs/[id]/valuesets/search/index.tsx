@@ -114,7 +114,7 @@ interface SearchReponseParams {
 }
 
 const defaultOffsets = {
-  first: 0,
+  first: '0',
   next: null,
   previous: null,
   last: null
@@ -137,8 +137,6 @@ const ValueSets = () => {
   const [offsets, setOffsets] = useState(defaultOffsets)
   const [currentPage, setCurrentPage] = useState({ type: 'self', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
-  const [pageChangeType, setPageChangeType] = useState(null) // self, next, last, previous, first
-
 
   // filters
   const [findInName, setFindInName] = useState('')
@@ -171,12 +169,13 @@ const ValueSets = () => {
       const valueSetResponse = await response.json() as SearchResponse
       
       const newOffsets = {
-        first: valueSetResponse.first,
-        next: valueSetResponse.next,
-        previous: valueSetResponse.previous,
-        last: valueSetResponse.last
+        first: valueSetResponse?.first || null,
+        next: valueSetResponse?.next || null,
+        previous: valueSetResponse?.previous || null,
+        last: valueSetResponse?.last || null
       }
 
+      // @ts-expect-error
       setOffsets(newOffsets)
 
       if (searchContext === 'filter') {

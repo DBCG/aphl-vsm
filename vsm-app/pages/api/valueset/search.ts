@@ -8,15 +8,31 @@ export interface FetchError {
 }
 
 export interface SearchResponse {
-  valueSets: fhir4.ValueSet[] | [],
-  error?: FetchError,
+  valueSets: fhir4.ValueSet[] | []
+  error?: FetchError
   total: number | null
+  first: string | null
+  next: string | null
+  previous: string | null
+  last: string | null
+}
+
+interface LinkItem {
+  relation: string,
+  url: string
 }
 
 const offsetRegex = /&_offset=\d+/
 
-const getOffsetFromUrl = (str: string) => str?.match(offsetRegex)?.[0]?.split('_offset=')?.[1]
+const getOffsetFromUrl = (str: string) => (
+  str?.match(offsetRegex)?.[0]?.split('_offset=')?.[1]
+)
 
+interface SearchParams {
+  'name:contains': string
+  _count: string
+  _offset?: string
+}
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -31,10 +47,10 @@ export default async function handler(
       search, searchType, count, offset,
       nameFilter, statusFilter, oidFilter, stewardFilter
     } = req.query
-    let responseInfo: SearchResponse = {
+    let responseInfo = {
       valueSets: [],
       total: null
-    }
+    } as SearchResponse
 
     try {
       let serverResponse
@@ -43,14 +59,15 @@ export default async function handler(
           let searchParams = {
             'name:contains': search,
             _count: count
-          }
+          } as SearchParams
 
-          if (offset) {
+          if (typeof offset === 'string') {
             searchParams._offset = offset
           }
           try {
             serverResponse = await vsacFhirClient.search({
               resourceType: 'ValueSet',
+              // @ts-expect-error
               searchParams
             })
 
@@ -61,18 +78,17 @@ export default async function handler(
               })
               // TODO need this for OID search too
               responseInfo.total = serverResponse.total
-
               responseInfo.first = getOffsetFromUrl(
-                serverResponse?.link?.find(l => l?.relation === 'first')?.url
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
               ) || null
               responseInfo.next = getOffsetFromUrl(
-                serverResponse?.link?.find(l => l?.relation === 'next')?.url
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
                ) || null
               responseInfo.previous = getOffsetFromUrl(
-                serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
               ) || null
               responseInfo.last = getOffsetFromUrl(
-                serverResponse?.link?.find(l => l?.relation === 'last')?.url
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
               ) || null
 
             }

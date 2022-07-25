@@ -80,6 +80,9 @@ interface Input {
   setFindInLastUpdated: (eventItem: any) => void,
   setFindInVersion: (eventItem: any) => void,
   setFindInKeyword: (eventItem: any) => void,
+  handlePageChange: (eventItem: any) => void,
+  handlePerRowsChange: (eventItem: any) => void,
+  paginationTotalRows: number,
   isLoading: boolean,
   showFilters: boolean
 }
