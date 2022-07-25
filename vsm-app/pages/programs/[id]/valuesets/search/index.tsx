@@ -134,6 +134,8 @@ const ValueSets = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [offsets, setOffsets] = useState(defaultOffsets)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [resultsPerPage, setResultsPerPage] = useState(10)
 
 
   // filters
@@ -211,6 +213,7 @@ const ValueSets = () => {
 
   // handle filters
   useEffect(() => {
+    console.log('called')
     if (!filterExists) {
       setFilteredVSets([])
       return
@@ -285,8 +288,32 @@ const ValueSets = () => {
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
-    findInVersion, findInKeyword
+    findInVersion, findInKeyword, currentPage,
+    resultsPerPage
   ])
+
+
+  useEffect(() => {
+    if (!searchTerm) return
+    let loading = true
+    setIsLoading(loading)
+    search()
+    return () => {
+      loading = false
+      setIsLoading(loading)
+    }
+    async function search() {
+      await submitVSetSearch()
+    }
+  }, [currentPage, resultsPerPage])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handlePerRowsChange = (rows: number) => {
+    setResultsPerPage(rows)
+  }
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -324,7 +351,7 @@ const ValueSets = () => {
       searchStr = searchTerm.trim()
     }
 
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}`
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}`
 
     response = await fetch(endpoint)
 
@@ -390,7 +417,7 @@ const ValueSets = () => {
         <ToastContainer
           closeOnClick={false}
         />
-        <PageTitle>ValueSet Search: {programId}</PageTitle>
+        <PageTitle>ValueSet Search: {programId} {searchTotal}</PageTitle>
         <Row>
           <StyledForm>
             <div>
@@ -473,6 +500,9 @@ const ValueSets = () => {
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
+        paginationTotalRows={searchTotal || 0}
+        handlePageChange={handlePageChange}
+        handlePerRowsChange={handlePerRowsChange}
       />
     </Col>
   )

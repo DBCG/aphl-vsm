@@ -105,7 +105,10 @@ const SearchTable = ({
   setFindInVersion,
   setFindInKeyword,
   isLoading=false,
-  showFilters
+  showFilters,
+  handlePageChange,
+  handlePerRowsChange,
+  paginationTotalRows
 }: Input) => {
 
   const tableData = parseValueSets(valueSets)
@@ -268,6 +271,7 @@ const SearchTable = ({
       data={tableData}
       selectableRows
       pagination
+      paginationServer
       paginationPerPage={10}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator/>}
@@ -276,6 +280,9 @@ const SearchTable = ({
       }}
       // @ts-ignore-next-line
       customStyles={customStyles}
+      paginationTotalRows={paginationTotalRows}
+      onChangePage={handlePageChange}
+      onChangeRowsPerPage={handlePerRowsChange}
     />
   )
 }

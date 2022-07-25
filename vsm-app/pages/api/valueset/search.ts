@@ -28,7 +28,7 @@ export default async function handler(
 
   if (req.method === 'GET') {
     const {
-      search, searchType,
+      search, searchType, count,
       nameFilter, statusFilter, oidFilter, stewardFilter
     } = req.query
     let responseInfo: SearchResponse = {
@@ -41,7 +41,8 @@ export default async function handler(
       switch (searchType) {
         case 'name':
           let searchParams = {
-            'name:contains': search
+            'name:contains': search,
+            _count: count
           }
           try {
             serverResponse = await vsacFhirClient.search({
@@ -55,6 +56,7 @@ export default async function handler(
                 item.resource.url = item.fullUrl
                 return item.resource
               })
+              console.log('server response: ', serverResponse)
               console.log('link: ', serverResponse?.link)
               // TODO need this for OID search too
               responseInfo.total = serverResponse.total
