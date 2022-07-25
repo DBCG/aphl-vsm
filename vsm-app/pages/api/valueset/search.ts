@@ -9,7 +9,8 @@ export interface FetchError {
 
 export interface SearchResponse {
   valueSets: fhir4.ValueSet[] | [],
-  error?: FetchError
+  error?: FetchError,
+  total: number | null
 }
 
 export default async function handler(
@@ -22,25 +23,40 @@ export default async function handler(
   }
 
   if (req.method === 'GET') {
-    const { search, searchType } = req.query
+    const {
+      search, searchType,
+      nameFilter, statusFilter, oidFilter, stewardFilter
+    } = req.query
     let responseInfo: SearchResponse = {
-      valueSets: []
+      valueSets: [],
+      total: null
     }
 
     try {
       let serverResponse
       switch (searchType) {
         case 'name':
+          let searchParams = {
+            'name:contains': search
+          }
           try {
             serverResponse = await vsacFhirClient.search({
-              resourceType: 'ValueSet', searchParams: { 'name:contains': search }
+              resourceType: 'ValueSet',
+              searchParams
             })
+
 
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                 item.resource.url = item.fullUrl
                 return item.resource
               })
+
+              responseInfo.total = serverResponse.total
+              // responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
+              // responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url
+              // responseInfo.previous = serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+
             }
           } catch (e) {
             console.error(e)
@@ -65,6 +81,7 @@ export default async function handler(
               ?.filter(x => x) as fhir4.ValueSet[]
 
             const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
+            responseInfo.total = successfulOIDs.length
 
             const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
 

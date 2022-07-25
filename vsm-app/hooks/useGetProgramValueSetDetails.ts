@@ -41,16 +41,18 @@ interface Result {
 const useGetProgramValueSetDetails = (
   id: string,
   findInVsName: string,
+  findInVersion: string,
+  findInSteward: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
   updatedValueSet: fhir4.ValueSet | undefined,
   updatedGrouperValueSets: [] | fhir4.ValueSet[]
 ): Result | {} => {
-  const [data, setData] = useState({})
+  const [data, setData] = useState< {} | Result >({})
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {
-        setData([])
+        setData({})
         return
       }
 
@@ -59,6 +61,14 @@ const useGetProgramValueSetDetails = (
 
       if (findInVsName.length) {
         queries.push(`findInVsName=${encodeURIComponent(findInVsName)}`)
+      }
+
+      if (findInVersion.length) {
+        queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
+      }
+
+      if (findInSteward.length) {
+        queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
       }
 
       if (activeGroups.length) {
@@ -92,16 +102,29 @@ const useGetProgramValueSetDetails = (
           setData(programJson)
         } else {
           console.error(programJson.error)
+          // handle error better
+          setData({})
         }
       } catch (e) {
         console.error('error: ', e)
+        // handle error better
+        setData({})
       }
     }
 
     void getData()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, findInVsName, activeGroups, activeConditions, updatedValueSet, updatedGrouperValueSets])
+  }, [
+    id,
+    findInVsName,
+    findInVersion,
+    findInSteward,
+    activeGroups,
+    activeConditions,
+    updatedValueSet,
+    updatedGrouperValueSets
+  ])
 
   return data
 }

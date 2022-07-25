@@ -7,7 +7,7 @@ import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import { PageTitle } from '@/components/Typography'
-import { SearchInput, StyledLabel } from '@/components/SearchInput'
+import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
@@ -15,12 +15,21 @@ import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramVal
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import { getSession, GetSessionParams } from 'next-auth/react'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
-const customStyles = {
+export const customStyles = {
+  headCells: {
+    style: {
+      padding: '16px',
+      overflow: 'visible'
+    }
+  },
   cells: {
     style: {
       paddingTop: '12px',
-      paddingBottom: '12px'
+      paddingBottom: '12px',
+      whiteSpace: 'normal !important',
+      overflow: 'visible'
     }
   }
 }
@@ -30,40 +39,13 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const SearchOptions = styled.form`
-  display: flex;
-  flex-direction: column;
-  padding: 8px 12px;
-  padding-left: 0;
-
-  .groups__control, .conditions__control {
-    min-width: 300px;
-  }
-
-  .groups__menu, .conditions__menu {
-    z-index: 100000;
-  }
+export const SelectInputContainer = styled.div`
+  width: 100%;
 `
 
-const TextInputContainer = styled.div`
-  max-width: 250px;
-  display: inline-block;
-`
-
-const SelectContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 12px;
-  align-items: center;
-`
-
-const SelectGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-`
-
-const SelectInputContainer = styled.div`
-  width: 400px;
+export const SelectInputTitle = styled.p`
+  padding-bottom: 8px;
+  margin: 0;
 `
 
 const Id = styled(PageTitle).attrs({
@@ -87,7 +69,6 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
     value: g.id,
     label: g.title?.replace('_', ' '),
     id: g.id
-    // dataId: `${g.id}${g.title}`
   }))
 }
 
@@ -113,6 +94,8 @@ const ProgramValueSetDetails: NextPage = () => {
   const programId = router.query.id as string
   // filter updates
   const [findInVsName, setFindInVsName] = useState('')
+  const [findInSteward, setFindInSteward] = useState('')
+  const [findInVersion, setFindInVersion] = useState('')
   const [activeGroups, setActiveGroups] = useState([])
   const [activeConditions, setActiveConditions] = useState([])
   // updates that happen via multiselects within table
@@ -122,6 +105,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   // loading states
+  const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
 
@@ -169,13 +153,19 @@ const ProgramValueSetDetails: NextPage = () => {
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
     findInVsName,
+    findInVersion,
+    findInSteward,
     activeGroups,
     activeConditions,
     updatedValueSet,
     updatedGrouperValuesets
   )
-  
+
   useEffect(() => {
+    const keys = Object.keys(progValueSetDets)
+    if (keys.length) {
+      setPageLoading(false)
+    }
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
@@ -195,21 +185,74 @@ const ProgramValueSetDetails: NextPage = () => {
 
   const columns = useMemo(() => [
     {
-      name: 'Name',
+      name: (
+        <div>
+          <SelectInputTitle>Valueset Name</SelectInputTitle>
+          <FilterInput
+            onChange={(e) => handleNameSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
+      id: 'vs-name-search',
       selector: (row: DataItem) => row.title,
       sortable: true,
       maxWidth: '350px',
       wrap: true
     },
     {
-      name: 'Version',
+      name: (
+        <div>
+          <SelectInputTitle>Version</SelectInputTitle>
+          <FilterInput
+            onChange={(e) => handleVersionSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
+      id: 'vs-version-search',
       selector: (row: DataItem) => row.version,
       sortable: true,
       maxWidth: '80px',
       wrap: true
     },
     {
-      name: 'Conditions',
+      name: (
+        <div>
+         <SelectInputTitle>Steward</SelectInputTitle>
+          <FilterInput
+            onChange={(e) => handleStewardSearch(e)}
+            style={{
+              height: '30px'
+            }}
+          />
+        </div>
+      ),
+      selector: (row: DataItem) => row.valueSet.publisher,
+      sortable: true,
+      maxWidth: '80px',
+      wrap: true
+    },
+    {
+      name: (
+        <SelectInputContainer>
+          Conditions
+          <Select
+            placeholder='Filter conditions'
+            classNamePrefix='conditions'
+            inputId='conditions-selector'
+            isMulti
+            options={buildConditionOptions(allConditions)}
+            // @ts-expect-error
+            onChange={(e) => {setActiveConditions(e)}}
+          />
+        </SelectInputContainer>
+      ),
+      id: 'value-set-conditions',
       selector: (row: DataItem) => row.valueSet,
       sortable: false,
       wrap: true,
@@ -244,9 +287,26 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     },
     {
-      name: 'Groups',
+      name: (
+        <SelectInputContainer>
+          Groups
+          <Select
+            placeholder='Filter groups'
+            classNamePrefix='groups'
+            inputId='groups-selector'
+            isMulti
+            options={buildGroupOptions(alphabetizedGroups)}
+            onChange={(e) => {
+              // @ts-expect-error
+              setActiveGroups(e)
+            }}
+          />
+        </SelectInputContainer>
+      ),
+      id: 'value-set-groups',
       selector: (row: DataItem) => row.groups,
       sortable: false,
+      allowOverflow: true,
       wrap: true,
       cell: (row: DataItem) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
@@ -298,9 +358,20 @@ const ProgramValueSetDetails: NextPage = () => {
   ], [router, groupsInProgram, allConditions])
 
   const handleNameSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement
     setFindInVsName(target.value)
   }
+
+  const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
+    const target = e.target as HTMLInputElement
+    setFindInVersion(target.value)
+  }
+
+  const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
+    const target = e.target as HTMLInputElement
+    setFindInSteward(target.value)
+  }
+
   return (
     <>
       <Row>
@@ -313,66 +384,19 @@ const ProgramValueSetDetails: NextPage = () => {
           onClick={() => router.push(`${router.asPath}/search`)}
         />
       </Row>
-      <SearchOptions>
-        <p style={{ color: 'var(--theme-500)', fontWeight: 'bold', display: 'inline-block' }}>Filter Valuesets</p>
-        <div>
-          <SelectContainer>
-            <TextInputContainer>
-              <SearchInput
-                onChange={(e) => handleNameSearch(e)}
-                label='ValueSet Name'
-                id='VSearch'
-                style={{
-                  display: 'inline-block',
-                  height: '36px'
-                }}
-              />
-            </TextInputContainer>
-            {alphabetizedGroups && (
-              <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="groups-selector">
-                  Groups
-                </StyledLabel>
-                <Select
-                  classNamePrefix='groups'
-                  inputId='groups-selector'
-                  isMulti
-                  options={buildGroupOptions(alphabetizedGroups)}
-                  onChange={(e) => {
-                    // @ts-expect-error
-                    setActiveGroups(e)
-                  }}
-                />
-              </SelectGroup>
-            )}
-            {allConditions && (
-              <SelectGroup>
-                <StyledLabel id="aria-label" htmlFor="conditions-selector">
-                  Conditions
-                </StyledLabel>
-                <Select
-                  classNamePrefix='conditions'
-                  inputId='conditions-selector'
-                  isMulti
-                  options={buildConditionOptions(allConditions)}
-                  // @ts-expect-error
-                  onChange={(e) => {setActiveConditions(e)}}
-                />
-              </SelectGroup>
-            )}
-          </SelectContainer>
-        </div>
-      </SearchOptions>
       <DT
         // @ts-expect-error
         data={progValueSetDets?.data}
+        persistTableHead={true}
         // @ts-expect-error
         columns={columns}
         theme='aphl'
         pagination
         fixedHeader
+        // @ts-expect-error
         customStyles={customStyles}
-        // keyField='dataId'
+        progressPending={pageLoading}
+        progressComponent={<LoadingIndicator/>}
       />
     </>
   )

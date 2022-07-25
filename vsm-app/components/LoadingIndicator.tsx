@@ -1,5 +1,9 @@
 import styled, { keyframes } from 'styled-components';
 
+interface Props {
+  size?: 'large'
+}
+
 const rotate360 = keyframes`
   from {
     transform: rotate(0deg);
@@ -9,18 +13,18 @@ const rotate360 = keyframes`
   }
 `;
 
-const LoadingIndicator = styled.div`
+const LoadingIndicator = styled.div<Props>`
   animation: ${rotate360} 1s linear infinite;
   transform: translateZ(0);
-  
-  border-top: 2px solid grey;
-  border-right: 2px solid grey;
-  border-bottom: 2px solid grey;
-  border-left: 4px solid black;
+  border-top: 2px solid var(--theme-500);
+  border-right: 2px solid var(--theme-500);
+  border-bottom: 2px solid var(--theme-500);
+  border-left: 4px solid var(--theme-500);
   background: transparent;
-  width: 24px;
-  height: 24px;
+  width: ${props => props.size == 'large' ? '128px' : '48px' };
+  height: ${props => props.size == 'large' ? '128px' : '48px' };
   border-radius: 50%;
+  margin: 24px;
 `;
 
 export default LoadingIndicator;
