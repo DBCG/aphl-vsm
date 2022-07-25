@@ -6,7 +6,10 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import {
+  buildConditionOptions,
+  formatConditionsComposeInclude
+} from '@/helpers/conditionHelpers'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -109,19 +112,29 @@ interface SearchReponseParams {
   response: Response | undefined
 }
 
+const defaultOffsets = {
+  first: 0,
+  next: null,
+  previous: null,
+  last: null
+}
+
 const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
-  const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
   // set search term from input
-  // TODO REMOVE THIS
+  
+  // Paging & search info
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [searchTotal, setSearchTotal] = useState<null | number>(null)
+  const [offsets, setOffsets] = useState(defaultOffsets)
+
 
   // filters
   const [findInName, setFindInName] = useState('')
@@ -148,9 +161,23 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
+  // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
+      
+      const newOffsets = {
+        first: valueSetResponse.first,
+        next: valueSetResponse.next,
+        previous: valueSetResponse.previous,
+        last: valueSetResponse.last
+      }
+
+      console.log('new Offsets: ', newOffsets)
+      console.log('valueset response', valueSetResponse)
+
+      setOffsets(newOffsets)
+
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)

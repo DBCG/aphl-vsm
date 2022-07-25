@@ -13,6 +13,10 @@ export interface SearchResponse {
   total: number | null
 }
 
+const offsetRegex = /&_offset=\d+/
+
+const getOffsetFromUrl = (str: string) => str?.match(offsetRegex)?.[0]?.split('_offset=')?.[1]
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -45,17 +49,28 @@ export default async function handler(
               searchParams
             })
 
-
+            console.log('here 1')
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                 item.resource.url = item.fullUrl
                 return item.resource
               })
-
+              console.log('link: ', serverResponse?.link)
+              // TODO need this for OID search too
               responseInfo.total = serverResponse.total
-              // responseInfo.next = serverResponse?.link?.find(l => l?.relation === 'next')?.url
-              // responseInfo.last = serverResponse?.link?.find(l => l?.relation === 'last')?.url
-              // responseInfo.previous = serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+
+              responseInfo.first = getOffsetFromUrl(
+                serverResponse?.link?.find(l => l?.relation === 'first')?.url
+              ) || null
+              responseInfo.next = getOffsetFromUrl(
+                serverResponse?.link?.find(l => l?.relation === 'next')?.url
+               ) || null
+              responseInfo.previous = getOffsetFromUrl(
+                serverResponse?.link?.find(l => l?.relation === 'previous')?.url
+              ) || null
+              responseInfo.last = getOffsetFromUrl(
+                serverResponse?.link?.find(l => l?.relation === 'last')?.url
+              ) || null
 
             }
           } catch (e) {
