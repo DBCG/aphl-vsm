@@ -1,0 +1,41 @@
+#!/bin/bash
+
+set -e
+
+read -p 'Keycloak Base URL (http://localhost:8081): ' base_url
+read -p 'Username: (admin) ' username
+read -s -p $'Password: (admin) \n' password
+read -p 'Realm: (aphl) ' realm
+read -p 'Client: (aphl-app) ' client
+read -p 'Redirect URIs: (["*"]) ' redirect_uris
+read -p 'Web Origins: (["*"])' web_origins
+
+base_url=${base_url:-'http://localhost:8081'}
+username=${username:-admin}
+password=${password:-admin}
+realm=${realm:-aphl}
+client=${client:-aphl-app}
+redirect_uris=${redirect_uris:-'["*"]'}
+web_origins=${web_origins:-'["*"]'}
+
+res=$(curl -sS --data-urlencode 'username='$username --data-urlencode 'password='$password -d 'grant_type=password&client_id=admin-cli' -X POST $base_url/auth/realms/master/protocol/openid-connect/token)
+token=$(echo $res | jq -r '.access_token')
+
+if [ $token == 'null' ]; then
+echo 'Unable to fetch token.'
+echo $res
+exit 1
+fi
+
+echo 'Creating realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/auth/admin/realms
+
+echo 'Creating admin role on realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "admin"}' $base_url/auth/admin/realms/$realm/roles
+
+echo 'Creating client '$client' on realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/auth/admin/realms/$realm/clients
+
+echo 'Fetching authentication certificate for realm '$realm'...'
+raw_cert=$(curl -H 'Authorization: Bearer '$token $base_url/auth/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
+echo '-----BEGIN CERTIFICATE-----\n'$raw_cert'\n-----END CERTIFICATE-----'
