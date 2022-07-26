@@ -1,11 +1,36 @@
-import handler from "pages/api/template";
+import { useEffect, useState } from 'react'
+import LoadingIndicator from "@/components/LoadingIndicator";
 
-async function getNextVersion() {
-  console.log('Making next version call');
-  let request: any;
-  let response: any;
-  const result = await handler(request, response);
-  console.log('Done making next version call: ' + result.body);
+const Template = () => {
+  const [libraryTemplateData, setLibraryTemplateData] = useState({ hi: 'hello' })
+  const [loading, setLoading] = useState(false)
+  const newLibraryData = {data: 'hello from the frontend!'}
+
+  useEffect(() => {
+    setLoading(true)
+
+    async function getData() {
+      const asyncTemplateData = await fetch('/api/template', {
+        method: 'POST',
+        body: JSON.stringify(newLibraryData)
+      })
+      const json = await asyncTemplateData.json()
+      setLibraryTemplateData(json)
+    }
+
+    getData()
+    setLoading(false)
+  }, [])
+
+  if (loading) {
+    return <LoadingIndicator/>
+  } else {
+    return (
+      <div>
+        <p>{libraryTemplateData.data}</p>
+      </div>
+    )
+  }
 }
-  
-getNextVersion();
+
+export default Template

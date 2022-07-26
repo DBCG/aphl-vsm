@@ -7,23 +7,33 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   
-  let newLibrary = null;
   // create library template
-  //if (req.method === 'POST') {
+  if (req.method === 'POST') {
     try {
+      const body = JSON.parse(req.body)
+      const { data } = body
+      console.log('data from the FE: ', data)
 
-      //const newLibrary = null;  //searchResult?.entry?.map((e: any) => e?.resource)
+      // *** I have commented this out for now because I don't think that this will
+      // function with our CDR
+      // ~~~~~~~~~~~~~~~~~~~~~~
+      // const result = fhirCdrClient.request('/createNewVersion', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json',
+      //   body: JSON.stringify(libraryTemplateData)
+      // })
 
-      const result = await fetch('${http://localhost:8080/fhir/createNewVersion', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/json',
-      },
-      
-      body: JSON.stringify(newLibrary),
-    })
+      // *** Same goes for this
+      // ~~~~~~~~~~~~~~~~~~~~~~
+      // const result = await fetch(`${process.env.FHIR_CDR_URL}/createNewVersion`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(libraryTemplateData),
+      // })
 
-      //const json = JSON.stringify(newLibrary)
+      let result = {data: 'hello from the server!'}
       res.status(200).send(result)
 
     } catch (e: any) {
@@ -31,38 +41,5 @@ export default async function handler(
       res.status(400).json({ error: 'Creation of new library failed.' })
     }
     
-  //}
-  //if(req.method === 'GET') {
-  //  try {
-  //    let queries: Query = {}
-  //    
-  //    if (req.query['id']) {
-  //      queries['_id:contains'] = req.query['id'] as string
-  //    } if (req.query['name']) {
-  //      queries['name:contains'] = req.query['name'] as string
-  //    } if (req.query['description']) {
-  //      queries['description:contains'] = req.query['description'] as string
-  //    } if (req.query['title']) {
-  //      queries['title:contains'] = req.query['title'] as string
-  //    } if (req.query['version']) {
-  //      queries['version:contains'] = req.query['version'] as string
-  //    }
-  //    const searchResult = await fhirCdrClient.search({
-  //      resourceType: 'Library',
-  //      searchParams: {
-  //        context: 'library',
-  //        _sort: ['-date'],
-   //       ...queries
-  //      }
-  //    })
-//
-  //    const libraries = searchResult?.entry?.map((e: any) => e?.resource)
-  //    const json = JSON.stringify(libraries)
-  //    res.status(200).send(json)
-//
-  //  } catch (e: any) {
-  //    console.error('error libraries:  ', e?.response?.data?.text)
-  //    res.status(400).json({ error: 'Search for libraries failed.' })
-  //  }
-  //}
+  }
 }
