@@ -21,6 +21,7 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
+import { TextArea } from '@/components/TextArea'
 
 const TitleRow = styled.div`
   display: flex;
@@ -455,12 +456,12 @@ const ValueSets = () => {
         <ToastContainer
           closeOnClick={false}
         />
-        <PageTitle>ValueSet Search: {programId}</PageTitle>
+        <PageTitle>Add ValueSets to Program: {programId}</PageTitle>
         <Row>
           <StyledForm>
             <div>
               <InnerFormRow>
-                <SearchInput
+                <TextArea
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
                   label='Search by Name or OID'

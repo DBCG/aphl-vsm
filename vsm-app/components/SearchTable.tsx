@@ -145,33 +145,33 @@ const SearchTable = ({
         rowWrap: 'wrap'
       }
     },
-    {
-      name: (
-        <SelectInputContainer onClick={e => e.stopPropagation()} style={{ marginRight: '4px' }}>
-          <SelectInputTitle>Status</SelectInputTitle>
-          { showFilters && (
-            <PropagationStopper>
-              <Select
-                defaultValue=''
-                isClearable={true}
-                placeholder='Select'
-                classNamePrefix='status'
-                inputId='status-selector'
-                // @ts-ignore-next-line
-                options={statusOptions}
-                // @ts-ignore-next-line
-                onChange={(e) => {setFindInStatus(e?.value) }}
-              />
-            </PropagationStopper>
-          )}
-        </SelectInputContainer>
-      ),
-      sortable: false,
-      wrap: true,
-      id: 'select-vs-status',
-      selector: (row: TableData) => row.status!,
-      maxWidth: '180px'
-    },
+    // {
+    //   name: (
+    //     <SelectInputContainer onClick={e => e.stopPropagation()} style={{ marginRight: '4px' }}>
+    //       <SelectInputTitle>Status</SelectInputTitle>
+    //       { showFilters && (
+    //         <PropagationStopper>
+    //           <Select
+    //             defaultValue=''
+    //             isClearable={true}
+    //             placeholder='Select'
+    //             classNamePrefix='status'
+    //             inputId='status-selector'
+    //             // @ts-ignore-next-line
+    //             options={statusOptions}
+    //             // @ts-ignore-next-line
+    //             onChange={(e) => {setFindInStatus(e?.value) }}
+    //           />
+    //         </PropagationStopper>
+    //       )}
+    //     </SelectInputContainer>
+    //   ),
+    //   sortable: false,
+    //   wrap: true,
+    //   id: 'select-vs-status',
+    //   selector: (row: TableData) => row.status!,
+    //   maxWidth: '180px'
+    // },
     {
       name: (
         <div>

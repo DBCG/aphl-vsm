@@ -16,6 +16,7 @@ export default async function handler(
   if (req.method === 'PUT') {
     const body = JSON.parse(req.body)
     // need to identify by version, too... can do w/ read?
+    // ISSUE to be fixed by cache... thihs isn't immediately available
     const valueSetToUpdate = await fhirCdrClient.search({
       resourceType: 'ValueSet',
       searchParams: {
@@ -24,7 +25,10 @@ export default async function handler(
       }
     })
 
+    console.log('valueset to update: ', valueSetToUpdate)
+
     const vs = valueSetToUpdate?.entry?.[0]?.resource
+    console.log('vs: ', vs)
     const updatedValueSet = updateConditions(vs, body.conditionInfo)
 
     let updated

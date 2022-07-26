@@ -46,6 +46,7 @@ export const SelectInputContainer = styled.div`
 export const SelectInputTitle = styled.p`
   padding-bottom: 8px;
   margin: 0;
+  margin-right: 12px;
 `
 
 const Id = styled(PageTitle).attrs({

@@ -57,11 +57,10 @@ export default async function handler(
       switch (searchType) {
         case 'name':
           const sortStr = '-publisher'//`${sortDirection == 'asc' ? '' : '-'}${sortBy}`
-          console.log('sortStr: ', sortStr)
           let searchParams = {
             'name:contains': search,
             _count: count,
-            _sort: sortStr
+            // _sort: sortStr
           } as SearchParams
 
           if (typeof offset === 'string') {

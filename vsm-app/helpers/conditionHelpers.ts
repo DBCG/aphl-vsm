@@ -60,6 +60,8 @@ const buildConditionItem = (condition: Condition) => {
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
   let vs = valueSet
 
+  console.log('vs: ', vs)
+
   if (vs?.useContext) {
     const nonConditionContexts = vs?.useContext?.filter(ctx => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus'))
     const newConditionContexts = newConditions?.map(c => buildConditionItem(c))

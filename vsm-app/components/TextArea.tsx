@@ -1,4 +1,6 @@
 import styled from 'styled-components'
+import Image from 'next/image'
+import { StyledLabel as StyledInputLabel } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -29,6 +31,35 @@ const Container = styled.div`
   flex-direction: column;
 `
 
+const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+`
+
+const TooltipContainer = styled.div`
+  position: absolute;
+  bottom: 18px;
+  background-color: white;
+  padding: 2px 8px;
+  width: 150px;
+  display: none;
+`
+
+const InfoContainer = styled.div`
+  position: relative;
+  transform: translateY(-8px);
+  &:hover {
+    cursor: pointer;
+  }
+  &:hover ${TooltipContainer} {
+    display: unset;
+  }
+`
+
+const ToolTipText = styled.p`
+  font-size: 80%;
+`
+
 interface Props {
   placeholder?: string,
   onChange?: React.ChangeEventHandler,
@@ -37,7 +68,9 @@ interface Props {
   def?: string,
   minWidth?: number,
   minHeight?: number,
-  hasIcon?: boolean
+  hasIcon?: boolean,
+  includeInfo?: boolean,
+  info?: string,
 }
 
 interface LabelProps {
@@ -51,16 +84,30 @@ const TextArea = ({
   id,
   def,
   minWidth,
-  minHeight
+  minHeight,
+  includeInfo,
+  info
 }: Props) => {
   return (
     <Container>
+      <FlexRow>
       {
         (label !== undefined && id !== undefined) &&
-        <StyledLabel for={id}>
+        <StyledInputLabel>
           {label}
-        </StyledLabel>
+        </StyledInputLabel>
       }
+      { includeInfo && (
+        <InfoContainer>
+          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
+          <TooltipContainer>
+            <ToolTipText>
+              {info}
+            </ToolTipText>
+          </TooltipContainer>
+        </InfoContainer>
+      )}
+      </FlexRow>
       <Input
         name={id}
         placeholder={placeholder}
