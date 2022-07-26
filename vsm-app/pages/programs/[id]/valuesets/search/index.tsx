@@ -426,12 +426,15 @@ const ValueSets = () => {
     })
 
     if (leafsUpdated.ok) {
+      console.log('ok!')
       setSearchTerm('')
       setSelectedConditions([])
       setSelectedGroupers([])
       toast.success('ValueSet Add Successful')
     }
-
+   
+    // why does this not work?
+    setSelectedValueSets([])
     setAddedValueSetsLoading(false)
   }
 

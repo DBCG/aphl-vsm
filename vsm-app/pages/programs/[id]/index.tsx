@@ -12,6 +12,7 @@ import { useIsEditing } from '@/hooks/useIsEditing'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const Row = styled.div`
   display: flex;
@@ -69,6 +70,15 @@ const ButtonContainer = styled.div`
   justify-content: center;
 `
 
+const IndicatorContainer = styled.div`
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding-top: 100px;
+`
+
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
@@ -82,6 +92,7 @@ export const FieldValue = styled.span``
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const [isEditing, setIsEditing] = useIsEditing()
+  const [loading, setLoading] = useState(true)
   const [formTouched, setFormTouched] = useState(false)
   // to edit draft program
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
@@ -93,7 +104,9 @@ const ProgramDetails: NextPage = () => {
     })
     
     // If there is an error in the PUT request to update the library, reset the program to default
-    if (!response.ok) { setEditedProgram(programAndGrouperInfo.program as fhir4.Library) }
+    if (!response.ok) {
+      setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
+    }
     handleEditButton(e)
     e.preventDefault()
   }
@@ -101,9 +114,13 @@ const ProgramDetails: NextPage = () => {
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
 
-  // early return if no data, id must exist if there's data
+  // early return if no data, must be a library if there's data
   if (!is.library(programAndGrouperInfo.program)) {
-    return null
+    return (
+      <IndicatorContainer>
+        <LoadingIndicator size='large'/>
+      </IndicatorContainer>
+    )
   }
 
   const setProgram = (): fhir4.Library => {

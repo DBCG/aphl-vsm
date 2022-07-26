@@ -395,7 +395,7 @@ const ProgramValueSetDetails: NextPage = () => {
           <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
         </FlexRow>
         <Button text='Add Valuesets'
-          style={{ maxHeight: '60px'}}
+          style={{ maxHeight: '60px', minWidth: '150px' }}
           onClick={() => router.push(`${router.asPath}/search`)}
         />
       </Row>
