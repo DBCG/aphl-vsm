@@ -75,8 +75,10 @@ const SelectInputContainer = styled.div`
 
 const ModalContent = styled.div`  
   display: flex;
+  height: 80%;
   flex-direction: row;
   justify-content: center;
+  align-self: center;
   align-items: center;
 `
 
@@ -84,6 +86,8 @@ const ModalColumn = styled.div`
   display: flex;
   flex-direction: column;
   justify-self: center;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 `
 

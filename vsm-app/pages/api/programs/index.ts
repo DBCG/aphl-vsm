@@ -7,7 +7,7 @@ interface Query {
   '_id:contains'?: string,
   'name:contains'?: string,
   'description:contains'?: string,
-  'title:contains'?: string,
+  'title:contains'?: string
 }
 
 export default async function handler(
@@ -21,7 +21,8 @@ export default async function handler(
 
   if (req.method === 'GET') {
     try {
-      let queries: Query = {}
+      // should program status only be draft here? or also active?
+      let queries: Query = { }
       // partial match doesn't work on ID, maybe because isn't a string
       if (req.query['id']) {
         queries['_id:contains'] = req.query['id'] as string

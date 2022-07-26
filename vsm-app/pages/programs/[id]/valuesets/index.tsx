@@ -55,6 +55,12 @@ const Id = styled(PageTitle).attrs({
   font-size: 20px;
 `
 
+const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`
+
 interface GroupInfoItem {
   label: string,
   value: string
@@ -376,10 +382,11 @@ const ProgramValueSetDetails: NextPage = () => {
   return (
     <>
       <Row>
-        <PageTitle>Program ValueSet Details
+        <FlexRow>
+          <PageTitle>Program ValueSet Details</PageTitle>
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
           <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
-        </PageTitle>
+        </FlexRow>
         <Button text='Add Valuesets'
           style={{ maxHeight: '60px'}}
           onClick={() => router.push(`${router.asPath}/search`)}
