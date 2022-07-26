@@ -59,6 +59,7 @@ const FlexRow = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: 100%;
 `
 
 interface GroupInfoItem {
@@ -349,17 +350,23 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     },
     {
-      name: 'Remove ValueSet',
+      name: (
+        <div style={{ textAlign: 'center', width: '100%' }}>
+          <p>Remove ValueSet</p>
+        </div>
+      ),
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       maxWidth: '150px',
       cell: (row: fhir4.Library) => (
-        <IconButton
-          onClick={() => router.push(`/programs/${row.id}`)}
-          buttonContext='delete'
-          style={{ backgroundColor: 'darkRed' }}
-        />
+        <FlexRow style={{ justifyContent: 'center' }}>
+          <IconButton
+            onClick={() => router.push(`/programs/${row.id}`)}
+            buttonContext='delete'
+            style={{ backgroundColor: 'darkRed' }}
+          />
+        </FlexRow>
       )
     }
   ], [router, groupsInProgram, allConditions])
