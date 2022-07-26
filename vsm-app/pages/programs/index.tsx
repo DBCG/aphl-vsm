@@ -16,7 +16,7 @@ const Row = styled.div`
   flex: 1;
   flex-direction: row;
   justify-content: space-evenly;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 `
 
@@ -127,10 +127,7 @@ const Programs: NextPage = () => {
   }
 
   const onClickNewVersion = () => {
-    router.push({
-      pathname: '/api/template',
-      query: {newLibrary: newLibrary},
-    })
+    router.push('/programs/template')
   }
 
   const onClickSearch = () => {
