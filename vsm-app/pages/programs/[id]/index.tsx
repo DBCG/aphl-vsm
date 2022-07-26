@@ -25,6 +25,7 @@ const Row = styled.div`
     margin-bottom: 16px;
   }
   &.readonly-inputs {
+    flex-direction: column;
     justify-content: flex-start;
     column-gap: 8px;
     row-gap: 14px;
@@ -145,8 +146,8 @@ const ProgramDetails: NextPage = () => {
       <Row style={{ justifyContent: 'space-between' }}>
         <PageTitle style={{ marginRight: '12px' }}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
         <Button
-          style={{ marginBottom: '12px', width: '150px' }}
-          text='Edit Program'
+          style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
+          text='Edit Program Metadata'
           onClick={handleEditButton}
         />
       </Row>
@@ -165,7 +166,7 @@ const ProgramDetails: NextPage = () => {
         <div>
           <Row className='inputs'>
             <ModalForm>
-            <PageTitle>Edit Program Details</PageTitle> 
+            <PageTitle>Edit Program Metadata</PageTitle> 
               <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
