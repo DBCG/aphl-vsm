@@ -1,8 +1,8 @@
 #!/bin/bash
-
+# https://github.com/ThisIsRuvos/ersd-keycloak/blob/master/configure
 set -e
 
-read -p 'Keycloak Base URL (http://localhost:8081): ' base_url
+read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
 read -p 'Username: (admin) ' username
 read -s -p $'Password: (admin) \n' password
 read -p 'Realm: (aphl) ' realm
@@ -10,7 +10,7 @@ read -p 'Client: (aphl-app) ' client
 read -p 'Redirect URIs: (["*"]) ' redirect_uris
 read -p 'Web Origins: (["*"])' web_origins
 
-base_url=${base_url:-'http://localhost:8081'}
+base_url=${base_url:-'http://localhost:8080'}
 username=${username:-admin}
 password=${password:-admin}
 realm=${realm:-aphl}
@@ -21,7 +21,7 @@ web_origins=${web_origins:-'["*"]'}
 res=$(curl -sS --data-urlencode 'username='$username --data-urlencode 'password='$password -d 'grant_type=password&client_id=admin-cli' -X POST $base_url/auth/realms/master/protocol/openid-connect/token)
 token=$(echo $res | jq -r '.access_token')
 
-if [ $token == 'null' ]; then
+if [ $token == null ]; then
 echo 'Unable to fetch token.'
 echo $res
 exit 1

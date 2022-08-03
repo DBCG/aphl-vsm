@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth'
-import CredentialProvider from 'next-auth/providers/credentials'
+import KeycloakProvider from 'next-auth/providers/keycloak'
 
 const userRoles = [
   'sysadmin',
@@ -9,24 +9,11 @@ const userRoles = [
 
 export default NextAuth({
   providers: [
-    CredentialProvider({
-      name: 'credentials',
-      credentials: {
-        username: { label: 'username', type: 'text', placeholder: 'test' },
-        password: { label: 'password', type: 'password', placeholder: 'testPw' }
-      },
-      authorize: (credentials) => {
-        // db lookup would go here
-        if (credentials?.username?.toLocaleLowerCase() === 'test' && credentials?.password === 'testPw') {
-          return {
-            id: 2,
-            name: 'test',
-            email: 'test@test.com',
-            role: 'admin'
-          }
-        }
-        return null
-      }
+    KeycloakProvider({
+      clientId: process.env.KEYCLOAK_ID,
+      clientSecret: process.env.KEYCLOAK_SECRET,
+      issuer: process.env.KEYCLOAK_ISSUER,
+      redirect_uris: [process.env.KEYCLOAK_REDIRECT_URI]
     })
   ],
   callbacks: {

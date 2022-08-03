@@ -3,9 +3,9 @@
 
 Please note this is using [jboss/keycloak from Docker hub](https://hub.docker.com/r/jboss/keycloak/).  Go [there](https://hub.docker.com/r/jboss/keycloak/) for more information if needed.
 
-# Run With MySQL as Database
-```bash
-docker run -p 8081:8081 -e KEYCLOAK_USER=<KC_MASTER_USERNAME> -e KEYCLOAK_PASSWORD=<KC_MASTER_PASS> -e DB_VENDOR=mysql -e DB_ADDR=<DB_ADDR> -e DB_USER=<DB_USER> -e DB_PASSWORD=<DB_PASS> -t jboss/keycloak
+# Run With Postgres as Database
+```
+docker-compose up
 ```
 
 # Configuration
