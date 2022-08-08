@@ -25,10 +25,8 @@ export default async function handler(
       }
     })
 
-    console.log('valueset to update: ', valueSetToUpdate)
-
     const vs = valueSetToUpdate?.entry?.[0]?.resource
-    console.log('vs: ', vs)
+
     const updatedValueSet = updateConditions(vs, body.conditionInfo)
 
     let updated
