@@ -46,12 +46,20 @@ export const SelectInputContainer = styled.div`
 export const SelectInputTitle = styled.p`
   padding-bottom: 8px;
   margin: 0;
+  margin-right: 12px;
 `
 
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
   font-size: 20px;
+`
+
+const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 `
 
 interface GroupInfoItem {
@@ -342,17 +350,23 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     },
     {
-      name: 'Remove ValueSet',
+      name: (
+        <div style={{ textAlign: 'center', width: '100%' }}>
+          <p>Remove ValueSet</p>
+        </div>
+      ),
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       maxWidth: '150px',
       cell: (row: fhir4.Library) => (
-        <IconButton
-          onClick={() => router.push(`/programs/${row.id}`)}
-          buttonContext='delete'
-          style={{ backgroundColor: 'darkRed' }}
-        />
+        <FlexRow style={{ justifyContent: 'center' }}>
+          <IconButton
+            onClick={() => router.push(`/programs/${row.id}`)}
+            buttonContext='delete'
+            style={{ backgroundColor: 'darkRed' }}
+          />
+        </FlexRow>
       )
     }
   ], [router, groupsInProgram, allConditions])
@@ -375,12 +389,13 @@ const ProgramValueSetDetails: NextPage = () => {
   return (
     <>
       <Row>
-        <PageTitle>Program ValueSet Details
+        <FlexRow>
+          <PageTitle>Program ValueSet Details</PageTitle>
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
           <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
-        </PageTitle>
+        </FlexRow>
         <Button text='Add Valuesets'
-          style={{ maxHeight: '60px'}}
+          style={{ maxHeight: '60px', minWidth: '150px' }}
           onClick={() => router.push(`${router.asPath}/search`)}
         />
       </Row>

@@ -6,7 +6,10 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import {
+  buildConditionOptions,
+  formatConditionsComposeInclude
+} from '@/helpers/conditionHelpers'
 import { SearchInput, StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -18,6 +21,7 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
+import { TextArea } from '@/components/TextArea'
 
 const TitleRow = styled.div`
   display: flex;
@@ -71,8 +75,10 @@ const SelectInputContainer = styled.div`
 
 const ModalContent = styled.div`  
   display: flex;
+  height: 80%;
   flex-direction: row;
   justify-content: center;
+  align-self: center;
   align-items: center;
 `
 
@@ -80,6 +86,8 @@ const ModalColumn = styled.div`
   display: flex;
   flex-direction: column;
   justify-self: center;
+  justify-content: center;
+  align-items: center;
   text-align: center;
 `
 
@@ -87,6 +95,13 @@ const ModalTitle = styled.h1`
 `
 
 const paginationMaximum = 100
+
+const columnSortMap = {
+  1: 'name',
+  3: 'lastupdated',
+  4: 'version',
+  5: 'publisher'
+}
 
 interface Error {
   type: 'invalid-oid' | 'missing-data' | 'oid-not-found' 
@@ -109,19 +124,30 @@ interface SearchReponseParams {
   response: Response | undefined
 }
 
+const defaultOffsets = {
+  first: '0',
+  next: null,
+  previous: null,
+  last: null
+}
+
 const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
-  const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
   // set search term from input
-  // TODO REMOVE THIS
+  
+  // Paging & search info
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [searchTotal, setSearchTotal] = useState<null | number>(null)
+  const [offsets, setOffsets] = useState(defaultOffsets)
+  const [currentPage, setCurrentPage] = useState({ type: 'self', page: 1 })
+  const [resultsPerPage, setResultsPerPage] = useState(10)
 
   // filters
   const [findInName, setFindInName] = useState('')
@@ -131,6 +157,8 @@ const ValueSets = () => {
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
   const [findInKeyword, setFindInKeyword] = useState('')
+  const [searchType, setSearchType] = useState('name')
+  const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -148,9 +176,21 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
+  // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
+      
+      const newOffsets = {
+        first: valueSetResponse?.first || null,
+        next: valueSetResponse?.next || null,
+        previous: valueSetResponse?.previous || null,
+        last: valueSetResponse?.last || null
+      }
+
+      // @ts-expect-error
+      setOffsets(newOffsets)
+
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -202,16 +242,24 @@ const ValueSets = () => {
         )
       }
       if (findInName?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase())
+          )
       }
       if (findInStatus?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.status === findInStatus)
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.status === findInStatus
+        )
       }
       if (findInVersion?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase())
+        )
       }
       if (findInSteward?.length) {
-        filteredValueSets = filteredValueSets?.filter(vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter(
+          vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase())
+        )
       }
       if (findInKeyword?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
@@ -219,7 +267,9 @@ const ValueSets = () => {
           ?.filter(ext => ext?.url?.endsWith('keyWord'))
           ?.map(xt => xt?.valueString?.toLowerCase())
 
-          const matches = extensionKeywords?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
+          const matches = extensionKeywords
+            ?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
+
           return Boolean(matches && matches?.length) 
 
         })
@@ -248,8 +298,56 @@ const ValueSets = () => {
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
-    findInVersion, findInKeyword
+    findInVersion, findInKeyword, currentPage,
+    resultsPerPage, sortParams
   ])
+
+
+  useEffect(() => {
+    if (!searchTerm) return
+    let loading = true
+    setIsLoading(loading)
+    search()
+    return () => {
+      loading = false
+      setIsLoading(loading)
+    }
+    async function search() {
+      await submitVSetSearch()
+    }
+  }, [currentPage, resultsPerPage, sortParams])
+
+  const handleSort = (column, sortDirection: 'asc' | 'desc') => {
+    const columnToSort = columnSortMap[column.id]
+    setSortParams({
+      column: columnToSort,
+      direction: sortDirection
+    })
+  }
+
+  const handlePageChange = (newPage: number) => {
+    // don't call if same page
+    if (newPage == currentPage.page) return
+    const pageChangeState = {
+      type: 'self',
+      page: newPage
+    }
+    if (newPage == currentPage.page - 1) {
+      pageChangeState.type = 'previous'
+    } else if (newPage == currentPage.page + 1) {
+      pageChangeState.type = 'next'
+    } else if (newPage < currentPage.page) {
+      pageChangeState.type = 'first'
+    } else if (newPage > currentPage.page) {
+      pageChangeState.type = 'last'
+    }
+
+    setCurrentPage(pageChangeState)
+  }
+
+  const handlePerRowsChange = (rows: number) => {
+    setResultsPerPage(rows)
+  }
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
@@ -286,8 +384,15 @@ const ValueSets = () => {
       searchType = 'name'
       searchStr = searchTerm.trim()
     }
-
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}`
+    setSearchType(searchType)
+    // @ts-ignore-next-line
+    let offset = offsets?.[currentPage?.type] || ''
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
+    
+    // if offsets are defined, add to the query
+    if (offset?.length) {
+      endpoint = endpoint.concat(`&offset=${offset}`)
+    }
 
     response = await fetch(endpoint)
 
@@ -324,7 +429,9 @@ const ValueSets = () => {
       setSelectedGroupers([])
       toast.success('ValueSet Add Successful')
     }
-
+   
+    // why does this not work?
+    setSelectedValueSets([])
     setAddedValueSetsLoading(false)
   }
 
@@ -334,7 +441,9 @@ const ValueSets = () => {
     }
   }, [fetchError?.message])
 
-  const showFilters = Boolean(searchTotal) && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
+  const showFilters = Boolean(searchTotal)
+    && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
+
   const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
 
   return (
@@ -351,12 +460,12 @@ const ValueSets = () => {
         <ToastContainer
           closeOnClick={false}
         />
-        <PageTitle>ValueSet Search: {programId}</PageTitle>
+        <PageTitle>Add ValueSets to Program: {programId}</PageTitle>
         <Row>
           <StyledForm>
             <div>
               <InnerFormRow>
-                <SearchInput
+                <TextArea
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
                   label='Search by Name or OID'
@@ -374,7 +483,9 @@ const ValueSets = () => {
                 />
               </InnerFormRow>
               { vsNumExceedsFilterLimit &&
-                <ErrorText>{searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)</ErrorText>
+                <ErrorText>
+                  {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
+                </ErrorText>
               }
             </div>
           </StyledForm>
@@ -420,6 +531,7 @@ const ValueSets = () => {
 
       </form>
       <SearchTable
+        searchType={searchType}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         setFindInName={setFindInName}
@@ -432,6 +544,11 @@ const ValueSets = () => {
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
+        resultsPerPage={resultsPerPage}
+        paginationTotalRows={searchTotal || 0}
+        handlePageChange={handlePageChange}
+        handlePerRowsChange={handlePerRowsChange}
+        handleSort={handleSort}
       />
     </Col>
   )

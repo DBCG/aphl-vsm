@@ -27,7 +27,7 @@ const Col = styled.div`
 `
 
 const ButtonWrapper = styled.div`
-  margin-left: 6px;
+  margin-left: 12px;
 `
 
 const customStyles = {
@@ -97,7 +97,7 @@ const Programs: NextPage = () => {
       wrap: true
     },
     {
-      name: 'Details',
+      name: 'View + Edit',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,

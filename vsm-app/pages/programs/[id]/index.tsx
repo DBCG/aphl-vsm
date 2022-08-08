@@ -12,6 +12,7 @@ import { useIsEditing } from '@/hooks/useIsEditing'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const Row = styled.div`
   display: flex;
@@ -25,6 +26,7 @@ const Row = styled.div`
     margin-bottom: 16px;
   }
   &.readonly-inputs {
+    flex-direction: column;
     justify-content: flex-start;
     column-gap: 8px;
     row-gap: 14px;
@@ -68,6 +70,15 @@ const ButtonContainer = styled.div`
   justify-content: center;
 `
 
+const IndicatorContainer = styled.div`
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding-top: 100px;
+`
+
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
@@ -81,6 +92,7 @@ export const FieldValue = styled.span``
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const [isEditing, setIsEditing] = useIsEditing()
+  const [loading, setLoading] = useState(true)
   const [formTouched, setFormTouched] = useState(false)
   // to edit draft program
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
@@ -92,7 +104,9 @@ const ProgramDetails: NextPage = () => {
     })
     
     // If there is an error in the PUT request to update the library, reset the program to default
-    if (!response.ok) { setEditedProgram(programAndGrouperInfo.program as fhir4.Library) }
+    if (!response.ok) {
+      setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
+    }
     handleEditButton(e)
     e.preventDefault()
   }
@@ -100,9 +114,13 @@ const ProgramDetails: NextPage = () => {
   const identifier = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
 
-  // early return if no data, id must exist if there's data
+  // early return if no data, must be a library if there's data
   if (!is.library(programAndGrouperInfo.program)) {
-    return null
+    return (
+      <IndicatorContainer>
+        <LoadingIndicator size='large'/>
+      </IndicatorContainer>
+    )
   }
 
   const setProgram = (): fhir4.Library => {
@@ -145,8 +163,8 @@ const ProgramDetails: NextPage = () => {
       <Row style={{ justifyContent: 'space-between' }}>
         <PageTitle style={{ marginRight: '12px' }}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
         <Button
-          style={{ marginBottom: '12px', width: '150px' }}
-          text='Edit Program'
+          style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
+          text='Edit Program Metadata'
           onClick={handleEditButton}
         />
       </Row>
@@ -165,7 +183,7 @@ const ProgramDetails: NextPage = () => {
         <div>
           <Row className='inputs'>
             <ModalForm>
-            <PageTitle>Edit Program Details</PageTitle> 
+            <PageTitle>Edit Program Metadata</PageTitle> 
               <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>

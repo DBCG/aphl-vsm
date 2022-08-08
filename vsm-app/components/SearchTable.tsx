@@ -80,8 +80,14 @@ interface Input {
   setFindInLastUpdated: (eventItem: any) => void,
   setFindInVersion: (eventItem: any) => void,
   setFindInKeyword: (eventItem: any) => void,
+  handlePageChange: (eventItem: any) => void,
+  handlePerRowsChange: (eventItem: any) => void,
+  handleSort: (eventItem: any) => void,
+  searchType: string,
+  paginationTotalRows: number,
   isLoading: boolean,
-  showFilters: boolean
+  showFilters: boolean,
+  resultsPerPage: number
 }
 
 const vsStatuses = [
@@ -105,7 +111,13 @@ const SearchTable = ({
   setFindInVersion,
   setFindInKeyword,
   isLoading=false,
-  showFilters
+  showFilters,
+  handlePageChange,
+  handlePerRowsChange,
+  paginationTotalRows,
+  searchType,
+  resultsPerPage,
+  handleSort
 }: Input) => {
 
   const tableData = parseValueSets(valueSets)
@@ -133,33 +145,33 @@ const SearchTable = ({
         rowWrap: 'wrap'
       }
     },
-    {
-      name: (
-        <SelectInputContainer onClick={e => e.stopPropagation()} style={{ marginRight: '4px' }}>
-          <SelectInputTitle>Status</SelectInputTitle>
-          { showFilters && (
-            <PropagationStopper>
-              <Select
-                defaultValue=''
-                isClearable={true}
-                placeholder='Select'
-                classNamePrefix='status'
-                inputId='status-selector'
-                // @ts-ignore-next-line
-                options={statusOptions}
-                // @ts-ignore-next-line
-                onChange={(e) => {setFindInStatus(e?.value) }}
-              />
-            </PropagationStopper>
-          )}
-        </SelectInputContainer>
-      ),
-      sortable: false,
-      wrap: true,
-      id: 'select-vs-status',
-      selector: (row: TableData) => row.status!,
-      maxWidth: '180px'
-    },
+    // {
+    //   name: (
+    //     <SelectInputContainer onClick={e => e.stopPropagation()} style={{ marginRight: '4px' }}>
+    //       <SelectInputTitle>Status</SelectInputTitle>
+    //       { showFilters && (
+    //         <PropagationStopper>
+    //           <Select
+    //             defaultValue=''
+    //             isClearable={true}
+    //             placeholder='Select'
+    //             classNamePrefix='status'
+    //             inputId='status-selector'
+    //             // @ts-ignore-next-line
+    //             options={statusOptions}
+    //             // @ts-ignore-next-line
+    //             onChange={(e) => {setFindInStatus(e?.value) }}
+    //           />
+    //         </PropagationStopper>
+    //       )}
+    //     </SelectInputContainer>
+    //   ),
+    //   sortable: false,
+    //   wrap: true,
+    //   id: 'select-vs-status',
+    //   selector: (row: TableData) => row.status!,
+    //   maxWidth: '180px'
+    // },
     {
       name: (
         <div>
@@ -268,6 +280,9 @@ const SearchTable = ({
       data={tableData}
       selectableRows
       pagination
+      paginationServer={searchType == 'name'}
+      sortServer={searchType == 'name' && resultsPerPage > paginationTotalRows}
+      onSort={handleSort}
       paginationPerPage={10}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator/>}
@@ -276,6 +291,11 @@ const SearchTable = ({
       }}
       // @ts-ignore-next-line
       customStyles={customStyles}
+      paginationTotalRows={paginationTotalRows}
+      onChangePage={handlePageChange}
+      onChangeRowsPerPage={handlePerRowsChange}
+      // sorting
+      
     />
   )
 }

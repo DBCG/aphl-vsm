@@ -20,22 +20,27 @@ const Bar = styled.ol`
   flex: 1;
   width: 100%;
   column-gap: 24px;
+  a {
+    color: var(--theme-500) !important;
+    font-weight: semibold;
+    font-size: 110%;
+  }
 `
 
 const NavBar = () => {
   return (
     <BarWrapper>
       <Bar>
-      <Breadcrumbs
-        useDefaultStyle
-        omitRootLabel
-        activeItemClassName='active-crumb'
-        inactiveItemClassName='inactive-crumb'
-        transformLabel={(title) => title.charAt(0).toUpperCase() + title.slice(1)}
-        activeItemStyle={{
-          backgroundColor: 'red !important'
-        }}
-      />
+        <Breadcrumbs
+          useDefaultStyle
+          omitRootLabel
+          activeItemClassName='active-crumb'
+          inactiveItemClassName='inactive-crumb'
+          transformLabel={(title) => title.charAt(0).toUpperCase() + title.slice(1)}
+          activeItemStyle={{
+            backgroundColor: 'red !important'
+          }}
+        />
         <Button text='Sign Out' onClick={() => signOut()}/>
       </Bar>
     </BarWrapper>
