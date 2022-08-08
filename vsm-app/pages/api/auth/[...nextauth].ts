@@ -1,12 +1,6 @@
 import NextAuth from 'next-auth'
 import KeycloakProvider from 'next-auth/providers/keycloak'
 
-const userRoles = [
-  'sysadmin',
-  'admin',
-  'author'
-]
-
 export default NextAuth({
   providers: [
     KeycloakProvider({
