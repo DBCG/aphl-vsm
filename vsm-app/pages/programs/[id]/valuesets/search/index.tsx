@@ -318,7 +318,6 @@ const ValueSets = () => {
   }, [currentPage, resultsPerPage, sortParams])
 
   const handleSort = (column, sortDirection: 'asc' | 'desc') => {
-    console.log('col: ', column)
     const columnToSort = columnSortMap[column.id]
     setSortParams({
       column: columnToSort,
@@ -386,7 +385,6 @@ const ValueSets = () => {
       searchStr = searchTerm.trim()
     }
     setSearchType(searchType)
-    console.log('sort params: ', sortParams)
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
     let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
@@ -426,7 +424,6 @@ const ValueSets = () => {
     })
 
     if (leafsUpdated.ok) {
-      console.log('ok!')
       setSearchTerm('')
       setSelectedConditions([])
       setSelectedGroupers([])
