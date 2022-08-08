@@ -5,7 +5,7 @@ DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 KEYCLOAK_DIR=${DIR}/../keycloak
 
-echo -e "This command will stop + delete: \n  - all docker containers \n  - associated volumes \n  - docker networks\n"
+echo -e "This command will stop + delete: \n  - all containers \n  - associated volumes \n  - docker networks\n"
 read -p "Continue? (y/n)?" choice
 
 
