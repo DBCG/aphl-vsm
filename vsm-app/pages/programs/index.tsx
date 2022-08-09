@@ -45,10 +45,12 @@ const Programs: NextPage = () => {
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
   const [searchTermVersion, setSearchTermVersion] = useState('')
+  const [searchTermID, setSearchTermID] = useState('')
 
   const session = useSession()
 
   const programs = useGetPrograms({
+    id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription,
@@ -68,7 +70,8 @@ const Programs: NextPage = () => {
       selector: (row: fhir4.Library) => row.id,
       sortable: true,
       maxWidth: '250px',
-      wrap: true
+      wrap: true,
+      
     },
     {
       name: 'Name',
@@ -231,15 +234,7 @@ const Programs: NextPage = () => {
           </Row>
         </Col>  
       </Row>
-      <DT
-        data={programs}
-        
-        columns={columns}
-        theme='aphl'
-        pagination
-        fixedHeader
-        customStyles={customStyles}
-      />
+      
     </Col>
   )
 }
