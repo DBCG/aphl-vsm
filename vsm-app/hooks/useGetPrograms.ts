@@ -32,12 +32,14 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
         endpoint = endpoint.concat('?', query)
       }
       try {
-        const response: Response = await fetch(endpoint)
-        const json = await response.json()
-        if (json.error) {
-          setLibraries([])
-        } else {
-          setLibraries(json)
+        if(id?.length != 0 && name?.length != 0 && title?.length != 0 && description?.length != 0 && version?.length != 0) {
+          const response: Response = await fetch(endpoint)
+          const json = await response.json()
+          if (json.error) {
+            setLibraries([])
+          } else {
+            setLibraries(json)
+          }
         }
       } catch (e) {
         setLibraries([])

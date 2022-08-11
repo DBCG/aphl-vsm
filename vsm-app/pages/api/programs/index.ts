@@ -21,14 +21,13 @@ export default async function handler(
     res.status(401).end()
   }
 
-  //console.log('before req.method: ' + req.method)
   if (req.method === 'GET') {
     try {
       let queries: Query = {}
       let fieldCnt = 0;
       // partial match doesn't work on ID, maybe because isn't a string
       req.query['id'] = 'ersd20211229';
-      //console.log('req.query: ' + req.query);
+      console.log('req.query: ' + req.query);
       if (req.query['id']) {
         queries['_id:contains'] = req.query['id'] as string
         fieldCnt =fieldCnt +1;
@@ -45,9 +44,9 @@ export default async function handler(
         queries['version:contains'] = req.query['version'] as string
         fieldCnt =fieldCnt +1;
       }
-      //console.log('fieldCnt: ' + fieldCnt)
+      console.log('fieldCnt: ' + fieldCnt)
       if(fieldCnt > 0) {
-        //console.log('calling search')
+        console.log('calling search')
         const searchResult = await fhirCdrClient.search({
           resourceType: 'Library',
           searchParams: {
@@ -57,13 +56,13 @@ export default async function handler(
           }
         })
       
+        console.log('searchResult: ' + searchResult?.type)
         const programs = searchResult?.entry?.map((e: any) => e?.resource)
-        //console.log('programs: ' + programs)
+        console.log('programs: ' + programs)
         const json = JSON.stringify(programs)
-        //console.log('json: ' + json)
+        console.log('json: ' + json)
         //return json
         res.status(200).send(json)
-        //res.status(200).send(json)
       } else {
         res.status(400).json({ error: 'Search for program failed.' })
       }

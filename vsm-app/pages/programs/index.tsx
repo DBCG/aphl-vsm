@@ -234,7 +234,15 @@ const Programs: NextPage = () => {
           </Row>
         </Col>  
       </Row>
-      
+      <DT
+        data={programs}
+         // @ts-expect-error
+         columns={columns}
+         theme='aphl'
+         pagination
+         fixedHeader
+         customStyles={customStyles}
+       />
     </Col>
   )
 }

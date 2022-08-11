@@ -1,6 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-//import { fhirCdrClient } from 'fhirClients'
 
 interface Query {
   '_id:contains'?: string,
@@ -41,38 +40,16 @@ export default async function handler(
       if(fieldCnt > 0) {
         const body = JSON.parse(req.body)
         const { data } = body
-        console.log('data from the FE: ', data)
       
-        const dataRes = await fetch('http://localhost:8080/fhir/createNewVersion', {
+        const dataRes = await fetch('http://localhost:8080/fhir/$createNewVersion', {
           body: data,
           headers: { 
             'Content-Type': 'application/json',
           },
           method: 'POST'
         });
-        console.log('dataRes: ' + dataRes.body);
-        console.log('After the http call');
-        // *** I have commented this out for now because I don't think that this will
-        // function with our CDR
-        // ~~~~~~~~~~~~~~~~~~~~~~
-        // const result = fhirCdrClient.request('/createNewVersion', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json',
-        //   body: JSON.stringify(libraryTemplateData)
-        // })
-
-        // *** Same goes for this
-        // ~~~~~~~~~~~~~~~~~~~~~~
-        // const result = await fetch(`${process.env.FHIR_CDR_URL}/createNewVersion`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(libraryTemplateData),
-        // })
-
-        let result = {data: 'hello from the server! 1234'}
-        res.status(200).send(result)
+        const json = await dataRes.json();
+        res.status(200).send(json)
       } else {
         res.status(400).json({ error: 'Search data is missing to get library. One or more fields need to be filled out.' })
       }
