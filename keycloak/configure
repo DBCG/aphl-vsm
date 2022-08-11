@@ -21,7 +21,7 @@ non_admin_pswd=${non_admin_password:-testpassword}
 
 realm=${realm:-aphl}
 client=${client:-aphl-app}
-redirect_uris=${redirect_uris:-'["http://localhost:3000/api/auth/callback/keycloak", "http://localhost:3000/programs"]'}
+redirect_uris=${redirect_uris:-'["http://localhost:3000/api/auth/callback/keycloak"]'}
 web_origins=${web_origins:-'["*"]'}
 
 res=$(curl -sS --data-urlencode 'username='${admin_username} --data-urlencode 'password='${admin_password} -d 'grant_type=password&client_id=admin-cli' -X POST $base_url/auth/realms/master/protocol/openid-connect/token)
