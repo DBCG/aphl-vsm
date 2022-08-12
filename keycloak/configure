@@ -1,0 +1,75 @@
+#!/bin/bash
+# https://github.com/ThisIsRuvos/ersd-keycloak/blob/master/configure
+set -e
+
+read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
+read -p 'Admin Username: (admin) ' admin_username
+read -s -p $'Admin Password: (admin) \n' admin_password
+read -p 'Non-Admin Username: (johndoe) ' non_admin_username
+read -s -p $'Non-Admin Password: (password) \n' non_admin_password
+read -p 'Realm: (aphl) ' realm
+read -p 'Client: (aphl-app) ' client
+read -p 'Redirect URIs: (["http://localhost:3000/api/auth/callback/keycloak"]) ' redirect_uris
+read -p 'Web Origins: (["*"])' web_origins
+
+# set defaults if user does not enter anything themselves
+base_url=${base_url:-'http://localhost:8080'}
+admin_username=${admin_username:-admin}
+admin_password=${admin_password:-admin}
+non_admin_username=${non_admin_username:-johndoe}
+non_admin_pswd=${non_admin_password:-password}
+
+realm=${realm:-aphl}
+client=${client:-aphl-app}
+redirect_uris=${redirect_uris:-'["http://localhost:3000/api/auth/callback/keycloak"]'}
+web_origins=${web_origins:-'["*"]'}
+
+res=$(curl -sS --data-urlencode 'username='${admin_username} --data-urlencode 'password='${admin_password} -d 'grant_type=password&client_id=admin-cli' -X POST $base_url/auth/realms/master/protocol/openid-connect/token)
+token=$(echo $res | jq -r '.access_token')
+
+echo token: $token
+
+if [ $token == null ]; then
+echo 'Unable to fetch token.'
+echo $res
+exit 1
+fi
+
+echo -e '\n________________________________\n'
+echo -e 'Creating realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/auth/admin/realms
+echo -e '\n________________________________\n'
+
+echo -e 'Creating admin role on realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "admin"}' $base_url/auth/admin/realms/$realm/roles
+echo -e '\n________________________________\n'
+
+echo -e 'Creating client '$client' on realm '$realm'...'
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/auth/admin/realms/$realm/clients
+echo -e '\n________________________________\n'
+
+# https://www.appsdeveloperblog.com/keycloak-rest-api-create-a-new-user/
+echo -e 'Creating user '${non_admin_username}' on realm '$realm'...'
+curl --location --request POST 'http://localhost:8080/auth/admin/realms/aphl/users' \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoe@test.com",
+  "enabled": true,
+  "username": "'${non_admin_username}'",
+  "credentials": [
+    {
+      "type": "password",
+      "value": "'${non_admin_password}'",
+      "temporary": false
+    }
+  ]
+}'
+echo -e '\n________________________________\n'
+
+echo -e 'Fetching authentication certificate for realm '$realm'...'
+raw_cert=$(curl -H 'Authorization: Bearer '$token $base_url/auth/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
+echo -e '\n________________________________\n'
+echo '-----BEGIN CERTIFICATE-----\n'$raw_cert'\n-----END CERTIFICATE-----'

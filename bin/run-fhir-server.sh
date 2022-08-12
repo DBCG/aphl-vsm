@@ -17,4 +17,4 @@ docker volume rm -f cqf-server-vsm-app
 docker volume create cqf-server-vsm-app 2>/dev/null
 
 # run hapi server with attached volume
-docker run -d --rm -p 8080:8080 --platform linux/amd64 --mount source=cqf-server-vsm-app,target=/usr/local/tomcat/target/database alphora/cqf-ruler:latest
+docker run -d --rm -p 8081:8080 --platform linux/amd64 --mount source=cqf-server-vsm-app,target=/usr/local/tomcat/target/database alphora/cqf-ruler:latest
