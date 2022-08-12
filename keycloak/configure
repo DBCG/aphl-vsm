@@ -5,8 +5,8 @@ set -e
 read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
 read -p 'Admin Username: (admin) ' admin_username
 read -s -p $'Admin Password: (admin) \n' admin_password
-read -p 'Non-Admin Username: (testuser) ' non_admin_username
-read -s -p $'Non-Admin Password: (testpassword) \n' non_admin_password
+read -p 'Non-Admin Username: (johndoe) ' non_admin_username
+read -s -p $'Non-Admin Password: (password) \n' non_admin_password
 read -p 'Realm: (aphl) ' realm
 read -p 'Client: (aphl-app) ' client
 read -p 'Redirect URIs: (["http://localhost:3000/api/auth/callback/keycloak"]) ' redirect_uris
@@ -16,8 +16,8 @@ read -p 'Web Origins: (["*"])' web_origins
 base_url=${base_url:-'http://localhost:8080'}
 admin_username=${admin_username:-admin}
 admin_password=${admin_password:-admin}
-non_admin_username=${non_admin_username:-testuser}
-non_admin_pswd=${non_admin_password:-testpassword}
+non_admin_username=${non_admin_username:-johndoe}
+non_admin_pswd=${non_admin_password:-password}
 
 realm=${realm:-aphl}
 client=${client:-aphl-app}
@@ -58,11 +58,11 @@ curl --location --request POST 'http://localhost:8080/auth/admin/realms/aphl/use
   "lastName": "Doe",
   "email": "johndoe@test.com",
   "enabled": true,
-  "username": "johndoe",
+  "username": "'${non_admin_username}'",
   "credentials": [
     {
       "type": "password",
-      "value": "password",
+      "value": "'${non_admin_password}'",
       "temporary": false
     }
   ]
