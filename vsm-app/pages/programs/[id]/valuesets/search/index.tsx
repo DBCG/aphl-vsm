@@ -529,6 +529,7 @@ const ValueSets = () => {
                       <CopyButton
                         onClick={(e) => {
                           e.preventDefault()
+                          toast.success('Copied failed OIDs to clipboard!')
                           copyText(fetchError?.data || '')}
                         }
                         title='Copy Failed OIDs'>
