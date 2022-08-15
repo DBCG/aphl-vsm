@@ -147,10 +147,6 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
 
 const copyText = (txt: string) => navigator.clipboard.writeText(txt);
 
-// const copyBtnEvent = (e) => {
-//   e.preventDefault()
-//   copyText
-// }
 interface SearchReponseParams {
   searchContext: 'filter' | 'search',
   response: Response | undefined
