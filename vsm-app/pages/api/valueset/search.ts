@@ -4,7 +4,8 @@ import { getSession } from 'next-auth/react'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
-  message: string
+  message: string,
+  data?: string
 }
 
 export interface SearchResponse {
@@ -122,11 +123,13 @@ export default async function handler(
 
             const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
 
-            if (failedOIDs.length > 0) {
+            if (failedOIDs?.length > 0) {
+              const failureList = failedOIDs.join(', ')
               responseInfo.error = {
                 errorType: 'failed-oids',
+                data: failureList,
                 message:
-                  `Search for these OIDs failed: ${failedOIDs.join(', ')}.
+                  `Search for these OIDs failed: ${failureList}.
 
                    Check if they are malformed or nonexistent and try again.`
               }
