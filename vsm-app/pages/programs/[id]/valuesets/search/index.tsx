@@ -349,7 +349,9 @@ const ValueSets = () => {
     }
   }, [currentPage, resultsPerPage, sortParams])
 
-  const handleSort = (column, sortDirection: 'asc' | 'desc') => {
+  // unused for now because VSAC FHIR does not seem support _filter params...
+  const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
+    // @ts-expect-error
     const columnToSort = columnSortMap[column.id]
     setSortParams({
       column: columnToSort,
@@ -501,7 +503,6 @@ const ValueSets = () => {
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
                   label='Search by Name or OID'
-                  value={searchTerm}
                   hasIcon={true}
                   includeInfo={true}
                   info='OID search supports a comma-delimited list, max 100 OIDs'
@@ -528,7 +529,7 @@ const ValueSets = () => {
                       <CopyButton
                         onClick={(e) => {
                           e.preventDefault()
-                          copyText(fetchError?.data)}
+                          copyText(fetchError?.data || '')}
                         }
                         title='Copy Failed OIDs'>
                         <Image src='/images/clipboard-outline.svg' alt='Copy' width={16} height={16}/>
@@ -597,7 +598,6 @@ const ValueSets = () => {
         paginationTotalRows={searchTotal || 0}
         handlePageChange={handlePageChange}
         handlePerRowsChange={handlePerRowsChange}
-        handleSort={handleSort}
       />
     </Col>
   )
