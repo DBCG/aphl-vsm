@@ -1,3 +1,4 @@
+// @ts-nocheck
 import NextAuth from 'next-auth'
 import KeycloakProvider from 'next-auth/providers/keycloak'
 

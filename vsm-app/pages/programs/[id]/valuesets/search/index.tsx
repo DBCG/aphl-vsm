@@ -1,5 +1,6 @@
 import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
@@ -94,6 +95,31 @@ const ModalColumn = styled.div`
 const ModalTitle = styled.h1`
 `
 
+
+const ErrorBlock = styled.div`
+  background-color: white;
+  border-left: 2px solid red;
+  border-bottom: 2px solid red;
+  padding: 4px 6px;
+  margin-top: 12px;
+  position: relative;
+`
+
+const ErrorBlockText = styled.p`
+  margin-top: 0;
+  margin-bottom: 8px;
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+`
+
+const CopyButton = styled.button`
+  background-color: transparent;
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  padding: 0px 6px 4px 6px;
+`
 const paginationMaximum = 100
 
 const columnSortMap = {
@@ -118,6 +144,8 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
     value: vSet.url
   }))
 }
+
+const copyText = (txt: string) => navigator.clipboard.writeText(txt);
 
 interface SearchReponseParams {
   searchContext: 'filter' | 'search',
@@ -317,7 +345,9 @@ const ValueSets = () => {
     }
   }, [currentPage, resultsPerPage, sortParams])
 
-  const handleSort = (column, sortDirection: 'asc' | 'desc') => {
+  // unused for now because VSAC FHIR does not seem support _filter params...
+  const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
+    // @ts-expect-error
     const columnToSort = columnSortMap[column.id]
     setSortParams({
       column: columnToSort,
@@ -436,7 +466,7 @@ const ValueSets = () => {
   }
 
   useEffect(() => {
-    if (fetchError?.message) {
+    if (fetchError?.message && fetchError?.errorType !== 'failed-oids') {
       toast.error(fetchError.message)
     }
   }, [fetchError?.message])
@@ -469,7 +499,6 @@ const ValueSets = () => {
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
                   label='Search by Name or OID'
-                  value={searchTerm}
                   hasIcon={true}
                   includeInfo={true}
                   info='OID search supports a comma-delimited list, max 100 OIDs'
@@ -486,6 +515,24 @@ const ValueSets = () => {
                 <ErrorText>
                   {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
                 </ErrorText>
+              }
+              {
+                fetchError?.errorType === 'failed-oids'
+                  ? <ErrorBlock>
+                      <ErrorBlockText>Search for these OIDs failed:</ErrorBlockText>
+                      <ErrorBlockText>{fetchError?.data}</ErrorBlockText>
+                      <ErrorBlockText>They may be malformed or nonexistent.</ErrorBlockText>
+                      <CopyButton
+                        onClick={(e) => {
+                          e.preventDefault()
+                          toast.success('Copied failed OIDs to clipboard!')
+                          copyText(fetchError?.data || '')}
+                        }
+                        title='Copy Failed OIDs'>
+                        <Image src='/images/clipboard-outline.svg' alt='Copy' width={16} height={16}/>
+                      </CopyButton>
+                    </ErrorBlock>
+                  : null
               }
             </div>
           </StyledForm>
@@ -548,7 +595,6 @@ const ValueSets = () => {
         paginationTotalRows={searchTotal || 0}
         handlePageChange={handlePageChange}
         handlePerRowsChange={handlePerRowsChange}
-        handleSort={handleSort}
       />
     </Col>
   )

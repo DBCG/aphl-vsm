@@ -80,7 +80,6 @@ interface Input {
   setFindInKeyword: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
-  handleSort: (eventItem: any) => void,
   searchType: string,
   paginationTotalRows: number,
   isLoading: boolean,
@@ -115,7 +114,6 @@ const SearchTable = ({
   paginationTotalRows,
   searchType,
   resultsPerPage,
-  handleSort
 }: Input) => {
 
   const tableData = parseValueSets(valueSets)
@@ -138,7 +136,7 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => row.name!,
-      sortable: true,
+      sortable: false,
       style: {
         rowWrap: 'wrap'
       }
@@ -158,7 +156,7 @@ const SearchTable = ({
             )}
         </div>
       ),
-      sortable: true,
+      sortable: false,
       wrap: true,
       selector: (row: TableData) => row.lastUpdated!
     },
@@ -198,7 +196,7 @@ const SearchTable = ({
         </div>
       ),
       selector: (row: TableData) => row.steward!,
-      sortable: true,
+      sortable: false,
       wrap: true,
     },
     {
@@ -252,8 +250,6 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationServer={searchType == 'name'}
-      sortServer={searchType == 'name' && resultsPerPage > paginationTotalRows}
-      onSort={handleSort}
       paginationPerPage={10}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator/>}
@@ -265,8 +261,6 @@ const SearchTable = ({
       paginationTotalRows={paginationTotalRows}
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
-      // sorting
-      
     />
   )
 }
