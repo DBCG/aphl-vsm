@@ -434,8 +434,8 @@ const ValueSets = () => {
     e.preventDefault()
     setAddedValueSetsLoading(true)
 
-    if (!selectedValueSets.length || !selectedConditions.length || !selectedGroupers.length) {
-      const message = 'Select at least one valueset, with an associated condition and group.'
+    if (!selectedValueSets.length || !selectedGroupers.length) {
+      const message = 'Select at least one valueset with an associated group. (Conditions optional)'
       toast.error(message)
       setAddedValueSetsLoading(false)
       return
