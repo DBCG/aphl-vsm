@@ -1,5 +1,6 @@
 import styled from 'styled-components'
-import Breadcrumbs from 'nextjs-breadcrumbs'
+// import Breadcrumbs from 'nextjs-breadcrumbs'
+import { BreadCrumbs } from './Breadcrumbs'
 import { signOut } from 'next-auth/react'
 import { Button } from './buttons/Button'
 
@@ -31,7 +32,8 @@ const NavBar = () => {
   return (
     <BarWrapper>
       <Bar>
-        <Breadcrumbs
+        <BreadCrumbs/>
+        {/* <Breadcrumbs
           useDefaultStyle
           omitRootLabel
           activeItemClassName='active-crumb'
@@ -40,7 +42,7 @@ const NavBar = () => {
           activeItemStyle={{
             backgroundColor: 'red !important'
           }}
-        />
+        /> */}
         <Button text='Sign Out' onClick={() => signOut()}/>
       </Bar>
     </BarWrapper>
