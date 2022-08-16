@@ -3,6 +3,10 @@ import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styled from 'styled-components'
 
+interface Props {
+  alpha: number
+}
+
 const NavList = styled.ul`
   display: flex;
   flex-direction: row;
@@ -11,7 +15,7 @@ const NavList = styled.ul`
   }
 `
 
-const NavItem = styled.li`
+const NavItem = styled.li<Props>`
   display: inline-block;
   list-style-type: none;
   background-color: white;
@@ -28,13 +32,13 @@ const NavItem = styled.li`
   }
 `
 
-const composePath = (pathItems: string[], lastOfPath: string) => {
+const composePath = (pathItems: string, lastOfPath: string) => {
   const idx = pathItems.indexOf(lastOfPath)
   return pathItems.slice(0, idx + lastOfPath.length)
 }
 
 const BreadCrumbs = () => {
-  const [breadCrumbs, setBreadCrumbs] = useState([])
+  const [breadCrumbs, setBreadCrumbs] = useState<[] | string[]>([])
   const router = useRouter()
 
   useEffect(() => {
