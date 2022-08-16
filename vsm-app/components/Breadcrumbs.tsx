@@ -51,18 +51,21 @@ const BreadCrumbs = () => {
   const items = breadCrumbs.map((c, index) => {
     if (c !== '') {
       return (
-      <Link href={composePath(router.asPath, c)}>
         <NavItem alpha={index / 0.1} key={c}>
+          <Link href={composePath(router.asPath, c)}>
             {`${c}`} 
+          </Link>
         </NavItem>
-      </Link>
-    )}
+      )
+    }
   })
 
   return (
-    <NavList>
-      {items}
-    </NavList>
+    <nav aria-label='breadcrumbs'>
+      <NavList>
+        {items}
+      </NavList>
+    </nav>
   )
 }
 
