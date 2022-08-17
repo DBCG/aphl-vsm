@@ -62,7 +62,7 @@ curl --location --request POST 'http://localhost:8080/auth/admin/realms/aphl/use
   "credentials": [
     {
       "type": "password",
-      "value": "'${non_admin_password}'",
+      "value": "'${non_admin_pswd}'",
       "temporary": false
     }
   ]
