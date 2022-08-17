@@ -57,7 +57,7 @@ export default async function handler(
         })
       
         console.log('searchResult: ' + searchResult?.type)
-        const programs = searchResult?.entry?.map((e: any) => e?.resource)
+        const programs = searchResult?.entry?.map((e: any) => e?.Library)
         console.log('programs: ' + programs)
         const json = JSON.stringify(programs)
         console.log('json: ' + json)
