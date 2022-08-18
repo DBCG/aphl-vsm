@@ -14,20 +14,19 @@ const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  justify-content: space-evenly;
+  margin-bottom: 15px;
   flex-wrap: wrap;
 `
 
 const Col = styled.div`
   display: flex;
-  width: 100%;
   flex-direction: column;
   height: fit-content;
 `
 
 const ButtonWrapper = styled.div`
-  margin-left: 12px;
+  margin-left: 6px;
 `
 
 const customStyles = {
@@ -41,6 +40,7 @@ const customStyles = {
 
 const Programs: NextPage = () => {
   const router = useRouter()
+  const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
@@ -48,6 +48,7 @@ const Programs: NextPage = () => {
   const session = useSession()
 
   const programs = useGetPrograms({
+    id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription
@@ -112,6 +113,22 @@ const Programs: NextPage = () => {
     }
   ], [router])
 
+  const onClickDownload = () => {
+    router.push('/programs/download')
+  }
+
+  const onClickNewVersion = () => {
+    router.push('/programs/template')
+  }
+
+  const onClickSearch = () => {
+    router.push('/api/programs')
+  }
+
+  const onClickValueSet = () => {
+    router.push('/programs/valueset')
+  }
+
   const onClick = () => {
     router.push('/programs/new')
   }
@@ -122,35 +139,80 @@ const Programs: NextPage = () => {
       <PageTitle>
         Programs
       </PageTitle>
-      <Row>
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
-          id='program-search-name'
-          label='Name'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
-          id='program-search-title'
-          label='Title'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            setSearchTermDescription(e.target.value)
-          }}
-          id='program-search-description'
-          label='Description'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <Button style={{ marginTop: '12px' }} text='Add New Program'
-          onClick={onClick}
-        />
-      </Row>
-      <DT
+        <Row>
+          <Col>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
+               id='program-search-id'
+               label='ID'
+               hasIcon={true}
+               style={{ paddingTop: '15px' }}      
+             />
+           </Row>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
+               id='program-search-name'
+               label='Name'
+               hasIcon={true}
+               style={{ paddingTop: '15px' }}        
+             />
+           </Row>
+         </Col>
+         <Col>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
+               id='program-search-title'
+               label='Title'
+               hasIcon={true}
+               minWidth={500}
+               style={{ paddingTop: '15px' }}
+             />
+           </Row>
+         </Col>
+         <Col> 
+          <Row>
+           <SearchInput
+             onChange={(e: ChangeEvent<HTMLInputElement>) => {setSearchTermDescription(e.target.value)}}
+             id='program-search-description'
+             label='Description'
+             hasIcon={true}
+             minWidth={300}
+             style={{ height: '140px' }}
+           />
+          </Row>   
+         </Col>
+         <Col>
+           <Row>
+             <Button style={{ marginTop: '1px', width:'160px' }} text='Create New Version'
+               onClick={onClickNewVersion}
+             />
+           </Row>
+           <Row>
+             <Button style={{ marginTop: '1px', width:'160px' }} text='Search'
+               onClick={onClickSearch}
+             />
+           </Row>
+           <Row>
+             <Button style={{ marginTop: '1px', width:'160px' }} text='Download'
+               onClick={onClickDownload}
+             />
+           </Row>
+           <Row>    
+             <Button style={{ marginTop: '1px', width:'160px'}} text='+Value Set'
+               onClick={onClickValueSet}
+             />
+           </Row>
+           <Row>
+             <Button style={{ marginTop: '1px', width:'160px'}} text='Add New Program'
+               onClick={onClick}
+             />
+           </Row>
+         </Col>  
+       </Row>
+       <DT
         data={programs}
         // @ts-expect-error
         columns={columns}
