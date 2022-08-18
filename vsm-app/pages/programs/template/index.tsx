@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import DT from 'react-data-table-component';
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
+import { useGetPrograms } from '@/hooks/useGetPrograms';
 
 const Row = styled.div`
   display: flex;
@@ -33,10 +34,11 @@ const Template = () => {
   const router = useRouter()
   
   let programId = router?.query?.id || ''
-  const program = useGetProgramValueSetDetails(programId)
+  const programDetails = useGetProgramValueSetDetails(programId)
+  const program = useGetPrograms({ id: programId })
 
   useEffect(() => {
-    console.log('program: ', program)
+    console.log('program: ', program[0])
   }, [program])
 
   let href: any = '';
@@ -81,7 +83,7 @@ const Template = () => {
         </Row>
         <p>Edit Program Value Sets</p>
         <DT
-          data={program?.data}
+          data={programDetails?.data}
           columns={columns}
           theme='aphl'
           pagination
