@@ -40,9 +40,9 @@ interface Result {
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = (
   id: string,
-  findInVsName: string,
-  findInVersion: string,
-  findInSteward: string,
+  findInVsName?: string,
+  findInVersion?: string,
+  findInSteward?: string,
   activeGroups: [] | Group[],
   activeConditions: [] | ConditionItem[],
   updatedValueSet: fhir4.ValueSet | undefined,
@@ -59,31 +59,31 @@ const useGetProgramValueSetDetails = (
       let endpoint = `/api/programs/${id}/details/valuesets`
       let queries = []
 
-      if (findInVsName.length) {
+      if (findInVsName?.length) {
         queries.push(`findInVsName=${encodeURIComponent(findInVsName)}`)
       }
 
-      if (findInVersion.length) {
+      if (findInVersion?.length) {
         queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
       }
 
-      if (findInSteward.length) {
+      if (findInSteward?.length) {
         queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
       }
 
-      if (activeGroups.length) {
+      if (activeGroups?.length) {
         const canonicals = activeGroups.map(g => g.value)
         const result = canonicals.join(',')
         queries.push(`groups=${encodeURIComponent(result)}`)
       }
 
-      if (activeConditions.length) {
+      if (activeConditions?.length) {
         const codes = activeConditions.map(g => g.value.code)
         const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
-      if (updatedGrouperValueSets.length) {
+      if (updatedGrouperValueSets?.length) {
         queries.push('useCache=false')
       }
 
