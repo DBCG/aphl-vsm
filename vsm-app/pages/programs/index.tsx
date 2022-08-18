@@ -119,7 +119,7 @@ const Programs: NextPage = () => {
       cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
-            onClick={() => router.push(`/programs/template?base=${row.id}`)}
+            onClick={() => router.push(`/programs/template?id=${row.id}`)}
             buttonContext='edit'
           />
         </ButtonWrapper>
@@ -199,11 +199,6 @@ const Programs: NextPage = () => {
           </Row>   
          </Col>
          <Col>
-           <Row>
-             <Button style={{ marginTop: '1px', width:'160px' }} text='Create New Version'
-               onClick={onClickNewVersion}
-             />
-           </Row>
            <Row>
              <Button style={{ marginTop: '1px', width:'160px' }} text='Search'
                onClick={onClickSearch}
