@@ -57,7 +57,7 @@ const BreadCrumbs = () => {
       return (
         <NavItem alpha={index / 0.1} key={c}>
           <Link href={composePath(router.asPath, c)}>
-            {`${c}`} 
+            {`${c.replace('?id=', ' ')}`} 
           </Link>
         </NavItem>
       )
