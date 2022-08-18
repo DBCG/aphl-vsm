@@ -110,6 +110,20 @@ const Programs: NextPage = () => {
           />
         </ButtonWrapper>
       )
+    },
+    {
+      name: 'Use as Template',
+      selector: (row: fhir4.Library) => row.name,
+      sortable: false,
+      wrap: true,
+      cell: (row: fhir4.Library) => (
+        <ButtonWrapper>
+          <IconButton
+            onClick={() => router.push(`/programs/template?base=${row.id}`)}
+            buttonContext='edit'
+          />
+        </ButtonWrapper>
+      )
     }
   ], [router])
 
