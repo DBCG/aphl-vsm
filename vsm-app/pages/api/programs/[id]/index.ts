@@ -40,5 +40,14 @@ export default async function handler(
     })
 
     res.send(response)
-  }
+  } else if (req.method === 'POST ') {
+    // update the program by id
+    const response = await fhirCdrClient.update({
+      resourceType: 'Library',
+      id: req.query['id'] as string,
+      body: req.body,
+    })
+
+    res.send(response)
+  } 
 }

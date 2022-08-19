@@ -1,9 +1,11 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import DT from 'react-data-table-component';
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
 import { useGetPrograms } from '@/hooks/useGetPrograms';
+import { Button } from '@/components/buttons/Button';
+import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails';
 
 const Row = styled.div`
   display: flex;
@@ -36,6 +38,7 @@ const Template = () => {
   let programId = router?.query?.id || ''
   const programDetails = useGetProgramValueSetDetails(programId)
   const program = useGetPrograms({ id: programId })
+  //const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
 
   useEffect(() => {
     console.log('program: ', program[0])
@@ -45,6 +48,10 @@ const Template = () => {
   
   const handleClick = () => {
     router.push(href)
+  }
+
+  const onClickClone = () => {
+    router.push(`/api/template`)
   }
 
   const columns = useMemo(() => [
@@ -80,6 +87,13 @@ const Template = () => {
           <a href={'/programs'} onClick={handleClick}>
             Return to programs page
           </a>
+        </Row>
+        <Row>
+          <Button
+            style={{ marginLeft: '800px', marginBottom: '12px', width: '240px', lineHeight: '130%' }}
+            text='Clone Program as Template'
+            onClick={onClickClone}
+          />
         </Row>
         <p>Edit Program Value Sets</p>
         <DT
