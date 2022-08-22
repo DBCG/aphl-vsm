@@ -1,9 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients';
-import { getSession } from 'next-auth/react';
-import { useGetPrograms } from '@/hooks/useGetPrograms';
-import { useRouter } from 'next/router';
+import { Router, useRouter } from 'next/router';
 
 
 //const router = useRouter()
@@ -12,10 +10,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
   // create library template
   req.method = 'POST'
   
@@ -23,12 +17,16 @@ export default async function handler(
     // update the program by id
     console.log("in api template")
     console.log('body: ' + req.body)
-    const response = await fhirCdrClient.create({
+    const res = await fhirCdrClient.create({
       resourceType: 'Library',
       //id: req.query['id'] as string,
       body: req.body,
     })
-    res.send(response)
+    if(res.status(200)) {
+      //router.push(`/programs/${id}`)
+    } else {
+      res.status(400).json({ error: 'Creation of new library failed.' })
+    }
   } catch (e: any) {
     console.error('error:  ', e?.response?.data?.text)
     res.status(400).json({ error: 'Creation of new library failed.' })
