@@ -19,7 +19,6 @@ export default async function handler(
     console.log('body: ' + req.body)
     const res = await fhirCdrClient.create({
       resourceType: 'Library',
-      //id: req.query['id'] as string,
       body: req.body,
     })
     if(res.status(200)) {
@@ -32,3 +31,7 @@ export default async function handler(
     res.status(400).json({ error: 'Creation of new library failed.' })
   }
 }
+
+//export async function getStaticProps() {
+//
+//}
