@@ -5,7 +5,7 @@ import DT from 'react-data-table-component';
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
 import { useGetPrograms } from '@/hooks/useGetPrograms';
 import { Button } from '@/components/buttons/Button';
-import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails';
+import Link from 'next/link';
 
 const Row = styled.div`
   display: flex;
@@ -34,11 +34,10 @@ const customStyles = {
 const Template = () => {
 
   const router = useRouter()
-  
   let programId = router?.query?.id || ''
   const programDetails = useGetProgramValueSetDetails(programId)
   const program = useGetPrograms({ id: programId })
-  //const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
+  let [data, setData] = useState('');
 
   useEffect(() => {
     console.log('program: ', program[0])
@@ -46,12 +45,23 @@ const Template = () => {
 
   let href: any = '';
   
-  const handleClick = () => {
-    router.push(href)
+  const fetchData = async () => {
+    const req = await fetch('/api/template', {
+      method: 'POST',
+      body: data
+    });
+    const newData = await req.json();
+    setData(newData)
   }
 
-  const onClickClone = () => {
-    router.push(`/api/template`)
+  const onClickClone = (event) => {
+    event.preventDefault();
+
+    fetchData();
+  };
+
+  const handleClick = () => {
+    router.push(href)
   }
 
   const columns = useMemo(() => [
@@ -78,7 +88,7 @@ const Template = () => {
       wrap: true,
       
     }
-  ], [])
+  ], [data])
 
   {
     return (
