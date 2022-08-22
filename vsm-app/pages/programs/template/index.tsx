@@ -46,9 +46,11 @@ const Template = () => {
   let href: any = '';
   
   const fetchData = async () => {
+    let libraryData: any = '';
+    libraryData = program[0];
     const req = await fetch('/api/template', {
       method: 'POST',
-      body: data
+      body: libraryData
     });
     const newData = await req.json();
     setData(newData)
