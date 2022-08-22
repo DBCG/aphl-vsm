@@ -16,7 +16,8 @@ export default async function handler(
   try {
     // update the program by id
     console.log("in api template")
-    console.log('body: ' + req.body)
+    const body = await req.body
+    console.log('body: ' + body)
     const res = await fhirCdrClient.create({
       resourceType: 'Library',
       body: req.body,
