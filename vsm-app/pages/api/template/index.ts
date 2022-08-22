@@ -11,24 +11,23 @@ export default async function handler(
   res: NextApiResponse
 ): Promise<any> {
   // create library template
-  req.method = 'POST'
   
   try {
-    // update the program by id
-    console.log("in api template")
-    const body = await req.body
-    console.log('body: ' + body)
+    let bodyObj = JSON.parse(req.body)
+    // deleting mutates the object, deleting the id key
+    delete bodyObj.id
     const res = await fhirCdrClient.create({
       resourceType: 'Library',
       body: req.body,
     })
+
     if(res.status(200)) {
       //router.push(`/programs/${id}`)
     } else {
       res.status(400).json({ error: 'Creation of new library failed.' })
     }
   } catch (e: any) {
-    console.error('error:  ', e?.response?.data?.text)
+    console.error('error:  ', e)
     res.status(400).json({ error: 'Creation of new library failed.' })
   }
 }

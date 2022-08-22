@@ -55,6 +55,7 @@ const Template = () => {
       body: json
     });
     const newData = await req.json();
+    console.log('new data: ', newData)
     setData(newData)
   }
 
