@@ -5,7 +5,6 @@ import DT from 'react-data-table-component';
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
 import { useGetPrograms } from '@/hooks/useGetPrograms';
 import { Button } from '@/components/buttons/Button';
-import Link from 'next/link';
 
 const Row = styled.div`
   display: flex;
@@ -48,15 +47,14 @@ const Template = () => {
   const fetchData = async () => {
     let libraryData: any = '';
     libraryData = program[0];
-    console.log('lib data: ', libraryData)
     const json = JSON.stringify(libraryData)
     const req = await fetch('/api/template', {
       method: 'POST',
       body: json
     });
     const newData = await req.json();
-    console.log('new data: ', newData)
     setData(newData)
+    router.push('/programs');
   }
 
   const onClickClone = (event) => {
