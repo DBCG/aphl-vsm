@@ -19,7 +19,7 @@ export default async function handler(
     bodyObj.version = 'draft-' + date;
     const response = await fhirCdrClient.create({
       resourceType: 'Library',
-      body: req.body,
+      body: bodyObj,
     })
 
     res.send(response);
