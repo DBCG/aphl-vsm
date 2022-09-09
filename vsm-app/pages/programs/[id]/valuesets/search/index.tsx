@@ -184,7 +184,6 @@ const ValueSets = () => {
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
-  const [findInKeyword, setFindInKeyword] = useState('')
   const [searchType, setSearchType] = useState('name')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
@@ -248,7 +247,6 @@ const ValueSets = () => {
     || findInOid?.length
     || findInLastUpdated?.length
     || findInVersion?.length
-    || findInKeyword?.length
 
   // handle filters
   useEffect(() => {
@@ -289,19 +287,6 @@ const ValueSets = () => {
           vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase())
         )
       }
-      if (findInKeyword?.length) {
-        filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
-          const extensionKeywords = vs?.extension
-          ?.filter(ext => ext?.url?.endsWith('keyWord'))
-          ?.map(xt => xt?.valueString?.toLowerCase())
-
-          const matches = extensionKeywords
-            ?.filter((keyword) => keyword?.includes(findInKeyword?.toLowerCase()))
-
-          return Boolean(matches && matches?.length) 
-
-        })
-      }
       if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter(
           (vs: fhir4.ValueSet) => {
@@ -326,7 +311,7 @@ const ValueSets = () => {
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated,
-    findInVersion, findInKeyword, currentPage,
+    findInVersion, currentPage,
     resultsPerPage, sortParams
   ])
 
@@ -587,7 +572,6 @@ const ValueSets = () => {
         setFindInOid={setFindInOid}
         setFindInLastUpdated={setFindInLastUpdated}
         setFindInVersion={setFindInVersion}
-        setFindInKeyword={setFindInKeyword}
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
