@@ -15,7 +15,6 @@ interface TableData {
   url: ValueSet['url']
   version: ValueSet['version']
   id: ValueSet['id']
-  keywords: string[] | []
 }
 
 export interface BundleEntryItem {
@@ -49,10 +48,6 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
       updatedDate = 'Unknown'
     }
 
-    const keywords = vs?.extension
-      ?.filter((ext) => ext.url.endsWith('/valueset-keyWord'))
-      ?.map(xt => xt.valueString).filter(x => x) || []
-
     return {
       name,
       steward: publisher,
@@ -60,8 +55,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
       oid: id,
       url: url,
       version: version,
-      id: `${id}-version${version}`,
-      keywords: keywords as string[] | []
+      id: `${id}-version${version}`
     }
   })
 
@@ -77,7 +71,6 @@ interface Input {
   setFindInOid: (eventItem: any) => void,
   setFindInLastUpdated: (eventItem: any) => void,
   setFindInVersion: (eventItem: any) => void,
-  setFindInKeyword: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
   searchType: string,
@@ -106,7 +99,6 @@ const SearchTable = ({
   setFindInOid,
   setFindInLastUpdated,
   setFindInVersion,
-  setFindInKeyword,
   isLoading=false,
   showFilters,
   handlePageChange,
@@ -218,27 +210,6 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
-    },
-    {
-      name: (
-        <div>
-        <SelectInputTitle>Keyword</SelectInputTitle>
-          { showFilters && (
-            <FilterInput
-              onChange={(e: React.ChangeEvent<Element>) => {
-                const target = e.target as HTMLInputElement
-                setFindInKeyword(target.value.trim())
-              }}
-              style={{
-                height: '30px'
-              }}
-            />
-          )}
-        </div>
-      ),
-      wrap: true,
-      
-      selector: (row: TableData) => row?.keywords?.join(', ') 
     }
   ]
 
