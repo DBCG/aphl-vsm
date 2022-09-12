@@ -31,8 +31,14 @@ const ButtonWrapper = styled.div`
   width: 100%;
 `
 
-const ButtonRowTitle = styled.p`
-  text-align: center;
+const StatusTag = styled.div`
+  padding: 4px 6px;
+  border-radius: 4px;
+  background-color: ${
+    props => props.status === 'active'
+    ? 'rgba(46, 192, 205, 0.3)'
+    : 'rgba(252, 186, 3, 0.3)'
+  }
 `
 
 const customStyles = {
@@ -61,6 +67,19 @@ const Programs: NextPage = () => {
   })
 
   const columns = useMemo(() => [
+    {
+      name: 'Status',
+      selector: (row: fhir4.Library) => row.status,
+      sortable: true,
+      maxWidth: '150px',
+      wrap: true,
+      center: true,
+      cell: (row) => {
+        return (
+          <StatusTag status={row.status}>{ row.status }</StatusTag>
+        )
+      }
+    },
     {
       name: 'Updated',
       selector: (row: fhir4.Library) => row.date,
