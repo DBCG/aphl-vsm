@@ -23,6 +23,7 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
   if (leafVsInGroup) {
     const updatedLeafVsInGroup = vs?.compose?.include?.[0]?.valueSet
       ?.filter(leafCanonical => leafCanonical !== vsCanonical)
+
     if (vs?.compose?.include?.[0]?.valueSet !== undefined) {
       vs.compose.include[0].valueSet = updatedLeafVsInGroup
     }
