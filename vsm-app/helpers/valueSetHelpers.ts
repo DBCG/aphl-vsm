@@ -18,9 +18,7 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.Va
   return vs
 }
 
-// allowNoGroupers is true if the user is deleting a whole valueset from a program
-// it is false if they are just editing groupers within a program, as program valuesets cannot be without groupers
-const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string, allowNoGroupers = false): fhir4.ValueSet => {
+const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
   let leafVsInGroup = vs.compose?.include?.[0]?.valueSet
   if (leafVsInGroup) {
     const updatedLeafVsInGroup = vs?.compose?.include?.[0]?.valueSet
