@@ -99,7 +99,6 @@ const Template = () => {
             onClick={onClickClone}
           />
         </Row>
-        <p>Edit Program Value Sets</p>
         <DT
           data={programDetails?.data}
           columns={columns}
