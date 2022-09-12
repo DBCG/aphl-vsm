@@ -26,7 +26,13 @@ const Col = styled.div`
 `
 
 const ButtonWrapper = styled.div`
-  margin-left: 6px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+`
+
+const ButtonRowTitle = styled.p`
+  text-align: center;
 `
 
 const customStyles = {
@@ -102,6 +108,7 @@ const Programs: NextPage = () => {
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
+      center: true,
       cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
@@ -116,6 +123,7 @@ const Programs: NextPage = () => {
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
+      center: true,
       cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
