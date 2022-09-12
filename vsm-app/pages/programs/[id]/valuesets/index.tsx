@@ -303,6 +303,7 @@ const ProgramValueSetDetails: NextPage = () => {
             placeholder='Filter conditions'
             classNamePrefix='conditions'
             inputId='conditions-selector'
+            instanceId='conditions-selector'
             isMulti
             options={buildConditionOptions(allConditions)}
             // @ts-expect-error
@@ -330,6 +331,7 @@ const ProgramValueSetDetails: NextPage = () => {
         return (
           <SelectInputContainer>
             <Select
+              instanceId='condition-selector'
               isMulti={true}
               options={buildConditionOptions(allConditions, selectedOptions)}
               value={selectedOptions}
@@ -352,6 +354,7 @@ const ProgramValueSetDetails: NextPage = () => {
             placeholder='Filter groups'
             classNamePrefix='groups'
             inputId='groups-selector'
+            instanceId='groups-selector'
             isMulti
             options={buildGroupOptions(alphabetizedGroups)}
             onChange={(e) => {
@@ -375,6 +378,7 @@ const ProgramValueSetDetails: NextPage = () => {
               isClearable={false}
               classNamePrefix='groups'
               inputId='groups-selector'
+              instanceId='groups-selector'
               isMulti={true}
               isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
               // @ts-expect-error

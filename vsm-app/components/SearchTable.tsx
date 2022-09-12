@@ -1,6 +1,5 @@
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
-import Select from 'react-select'
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
@@ -24,12 +23,6 @@ export interface BundleEntryItem {
 
 interface PropagationProp {
   children: ReactNode
-}
-
-const PropagationStopper = ({ children }: PropagationProp) => {
-  return (
-    <div onClick={(e) => e.stopPropagation()}>{children}</div>
-  )
 }
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
@@ -94,7 +87,6 @@ const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
   setFindInName,
-  setFindInStatus,
   setFindInSteward,
   setFindInOid,
   setFindInLastUpdated,
