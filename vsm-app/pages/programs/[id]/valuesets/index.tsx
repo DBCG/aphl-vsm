@@ -17,6 +17,22 @@ import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, Condition
 import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
+interface GroupItem {
+  id: string,
+  title: string,
+  url: string
+}
+
+interface TableRow {
+  programName: string,
+  programId: string,
+  canonical: string,
+  title: string,
+  version: string,
+  valueSet: fhir4.ValueSet,
+  groups: GroupItem[]
+}
+
 export const customStyles = {
   headCells: {
     style: {
@@ -72,6 +88,11 @@ interface GroupUpdateItem {
   groupInfo?: GroupInfoItem[]
 }
 
+interface DeleteParams {
+  vsCanonical: string | undefined,
+  grouperCanonicals: string[] | undefined
+}
+
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map(g => ({
     value: g.id,
@@ -112,10 +133,39 @@ const ProgramValueSetDetails: NextPage = () => {
   // returned data from PUT operations
   const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
+    setIsDeleting(true)
+    if (!vsCanonical || !grouperCanonicals) {
+      setIsDeleting(false)
+      return
+    }
+    try {
+      const body = {
+        vsCanonical,
+        grouperCanonicals,
+      }
+      const result = fetch(`/api/programs/${programId}/groupers`, {
+        method: 'PUT',
+        body: JSON.stringify(body)
+      }).then(res => res.json())
+
+      const json = await result
+
+      if (!json) {
+        console.error('failure result: ', json)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+    setIsDeleting(false)
+  }
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
@@ -140,23 +190,23 @@ const ProgramValueSetDetails: NextPage = () => {
     postUpdate()
   }, [conditionToUpdate, programId])
 
-    useEffect(() => {
-      let endpoint = `/api/programs/${programId}/details/valuesets/groups`
-      const postUpdate = async () => {
-        if (updateVsGroups?.groupInfo) {
-          setGrouperLoading(true)
-          let updatedVs = fetch(endpoint, {
-            method: 'PUT',
-            body: JSON.stringify(updateVsGroups)
-          }).then(res => res.json())
+  useEffect(() => {
+    let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+    const postUpdate = async () => {
+      if (updateVsGroups?.groupInfo) {
+        setGrouperLoading(true)
+        let updatedVs = fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(updateVsGroups)
+        }).then(res => res.json())
 
-          let json = await updatedVs
-          setUpdatedGrouperValueSets(json)
-          setGrouperLoading(false)
-        }
+        let json = await updatedVs
+        setUpdatedGrouperValueSets(json)
+        setGrouperLoading(false)
       }
-      postUpdate()
-    }, [updateVsGroups.groupInfo, programId])
+    }
+    postUpdate()
+  }, [updateVsGroups.groupInfo, programId])
 
   const progValueSetDets = useGetProgramValueSetDetails(
     programId,
@@ -205,7 +255,7 @@ const ProgramValueSetDetails: NextPage = () => {
         </div>
       ),
       id: 'vs-name-search',
-      selector: (row: DataItem) => row.title,
+      selector: (row: TableRow) => row.title,
       sortable: true,
       maxWidth: '350px',
       wrap: true
@@ -223,7 +273,7 @@ const ProgramValueSetDetails: NextPage = () => {
         </div>
       ),
       id: 'vs-version-search',
-      selector: (row: DataItem) => row.version,
+      selector: (row: TableRow) => row.version,
       sortable: true,
       maxWidth: '80px',
       wrap: true
@@ -240,7 +290,7 @@ const ProgramValueSetDetails: NextPage = () => {
           />
         </div>
       ),
-      selector: (row: DataItem) => row.valueSet.publisher,
+      selector: (row: TableRow) => row.valueSet.publisher,
       sortable: true,
       maxWidth: '80px',
       wrap: true
@@ -261,10 +311,10 @@ const ProgramValueSetDetails: NextPage = () => {
         </SelectInputContainer>
       ),
       id: 'value-set-conditions',
-      selector: (row: DataItem) => row.valueSet,
+      selector: (row: TableRow) => row.valueSet,
       sortable: false,
       wrap: true,
-      cell: (row: DataItem) => {
+      cell: (row: TableRow) => {
         const selectedOptions = row?.valueSet?.useContext?.map(i => {
           if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
             return ({
@@ -312,11 +362,11 @@ const ProgramValueSetDetails: NextPage = () => {
         </SelectInputContainer>
       ),
       id: 'value-set-groups',
-      selector: (row: DataItem) => row.groups,
+      selector: (row: TableRow) => row.groups,
       sortable: false,
       allowOverflow: true,
       wrap: true,
-      cell: (row: DataItem) => {
+      cell: (row: TableRow) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
         return (
           <SelectInputContainer>
@@ -355,14 +405,20 @@ const ProgramValueSetDetails: NextPage = () => {
           <p>Remove ValueSet</p>
         </div>
       ),
-      selector: (row: fhir4.Library) => row.name,
+      selector: (row: TableRow) => row,
       sortable: false,
       wrap: true,
       maxWidth: '150px',
-      cell: (row: fhir4.Library) => (
+      cell: (row: TableRow) => (
         <FlexRow style={{ justifyContent: 'center' }}>
           <IconButton
-            onClick={() => router.push(`/programs/${row.id}`)}
+            onClick={async () => {
+              await handleDelete({
+                vsCanonical: row?.valueSet?.url,
+                grouperCanonicals: row.groups.map(g => g.url)
+              })
+              window.location.reload()
+            }}
             buttonContext='delete'
             style={{ backgroundColor: 'darkRed' }}
           />
