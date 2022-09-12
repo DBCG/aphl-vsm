@@ -38,10 +38,6 @@ const Template = () => {
   const program = useGetPrograms({ id: programId })
   let [data, setData] = useState('');
 
-  useEffect(() => {
-    console.log('program: ', program[0])
-  }, [program])
-
   let href: any = '';
   
   const fetchData = async () => {
