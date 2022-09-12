@@ -84,7 +84,7 @@ const Programs: NextPage = () => {
       name: 'Updated',
       selector: (row: fhir4.Library) => row.date,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '100px',
       wrap: true
     },
     {
@@ -147,7 +147,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             onClick={() => router.push(`/programs/template?id=${row.id}`)}
-            buttonContext='edit'
+            buttonContext='clone'
           />
         </ButtonWrapper>
       )
