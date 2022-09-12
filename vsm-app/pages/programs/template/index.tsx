@@ -10,7 +10,7 @@ const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: flex-end;
   margin-bottom: 16px;
   flex-wrap: wrap;
 `
@@ -92,11 +92,6 @@ const Template = () => {
   {
     return (
       <Col>
-        <Row>
-          <a href={'/programs'} onClick={handleClick}>
-            Return to programs page
-          </a>
-        </Row>
         <Row>
           <Button
             style={{ marginLeft: '800px', marginBottom: '12px', width: '240px', lineHeight: '130%' }}
