@@ -35,6 +35,9 @@ const IconButton = ({ type, buttonContext, onClick, style }: IButtonProps) => {
     case 'search':
       image = 'search'
       break
+    case 'clone':
+      image = 'clone'
+      break
   }
 
   return (
