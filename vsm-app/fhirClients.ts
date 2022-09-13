@@ -45,7 +45,6 @@ class TerminologyClient {
       client = new FhirKitClient({ baseUrl: ONTOSERVER_BASE_URL })
     }
 
-
     this.client = client
   }
 }
