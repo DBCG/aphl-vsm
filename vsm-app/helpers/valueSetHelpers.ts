@@ -2,7 +2,7 @@ import set from 'lodash.set'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.map(item => item?.valueSet?.[0]).filter(x => x)
+  let leafVSetsInGroup = vs?.compose?.include?.map(item => item?.valueSet?.[0]).filter(x => !!x)
   const valueToAdd = [vsCanonical]
   // if no compose include & no leaf valuesets
   if (!vs?.compose?.include && !leafVSetsInGroup) {
@@ -10,7 +10,7 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.Va
     const path = 'compose.include[0].valueSet' // make this more flexible? 
     // what if something in compose.include that isn't valueset in the future
     set(vs, path, valueToAdd)
-  // if some vsets exist, but not
+    // if some vsets exist, but not
   } else if (vs?.compose?.include) {
     if (leafVSetsInGroup && !leafVSetsInGroup?.includes(vsCanonical)) {
       leafVSetsInGroup.push(vsCanonical)
@@ -27,7 +27,7 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
     } else {
       return item
     }
-  }).filter(x => x)
+  }).filter(x => !!x)
 
   if (updatedComposeInclude && vs?.compose?.include) {
     // @ts-ignore-next-line
@@ -135,17 +135,17 @@ const setExpansionParameters = (library: fhir4.Library, manifestDataMap: any) =>
   const extension = library?.extension?.find(ext => ext.url === expansionParameterUrl)
   if (extension == null) {
     library.extension = [...(library?.extension || []), {
-      "url" : "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension",
-      "valueReference" : {
-        "reference" : "#expansion-parameters-ecr"
+      "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension",
+      "valueReference": {
+        "reference": "#expansion-parameters-ecr"
       }
     }]
   }
   const parameter = buildParametersParameter(manifestDataMap)
   const parametersParameterResource = {
-    "resourceType" : "Parameters",
-    "id" : "expansion-parameters-ecr",
-    "parameter": parameter, 
+    "resourceType": "Parameters",
+    "id": "expansion-parameters-ecr",
+    "parameter": parameter,
   } as fhir4.Parameters
   const filteredContain = library?.contained?.filter(resource => resource.id !== 'expansion-parameters-ecr') || [] // extract other contained resources
   filteredContain.push(parametersParameterResource)

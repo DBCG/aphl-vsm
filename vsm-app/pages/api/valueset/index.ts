@@ -43,10 +43,10 @@ export default async function handler(
 
     const existingVSetBundles = serverResponses
       ?.map(item => item?.status === 'fulfilled' && item?.value)
-      ?.filter(x => x) as fhir4.Bundle[]
+      ?.filter(x => !!x) as fhir4.Bundle[]
 
     const filteredVSets = existingVSetBundles
-      ?.filter(x => x)
+      ?.filter(x => !!x)
       ?.map(item => item?.entry?.[0]?.resource) as fhir4.ValueSet[]
 
     for (const selectedVS of bodyJson.selectedValueSets) {

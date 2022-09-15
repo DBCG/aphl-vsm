@@ -1,8 +1,8 @@
 import styled from 'styled-components'
 
 interface InputProps {
-  minWidth?: number;
-  onChange: React.ChangeEventHandler | undefined;
+  minWidth?: number
+  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
 const Input = styled.input<InputProps>`
@@ -20,7 +20,7 @@ const Container = styled.div`
 
 interface Props {
   placeholder?: string,
-  onChange?: React.ChangeEventHandler,
+  onChange?: React.ChangeEventHandler<HTMLInputElement>,
   value?: string,
   def?: string,
   minWidth?: number,

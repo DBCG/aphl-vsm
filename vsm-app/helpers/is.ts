@@ -36,10 +36,10 @@ const is = {
   isRootLibrary: (resource: fhir4.Library | any): resource is fhir4.Library => {
     // All three constitutes a root library
     const type = resource.type.coding?.[0]?.code === 'asset-collection'
-     const usageContext = resource.useContext
+    const usageContext = resource.useContext
       .find((i: fhir4.UsageContext) => i?.code?.code === 'specification-type')
-    const usageContextProgram = usageContext.valueCodeableConcept?.[0]?.code === 'program' 
-    
+    const usageContextProgram = usageContext.valueCodeableConcept?.[0]?.code === 'program'
+
     return type && usageContextProgram && usageContext
   },
   observation: (resource: fhir4.Observation | any): resource is fhir4.Observation => {

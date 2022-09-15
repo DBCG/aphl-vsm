@@ -22,15 +22,6 @@ interface UsageContextItem {
   valueCodeableConcept: fhir4.CodeableConcept
 }
 
-interface ConditionInfo {
-  label: string,
-  value: {
-    code: string,
-    system: string,
-    text: string
-  }
-}
-
 interface ConditionValue {
   system: string
   version: string
@@ -148,7 +139,6 @@ export {
 export type {
   Condition,
   ConditionItem,
-  ConditionInfo,
   ConditionToUpdate,
   SelectedCondition
 }

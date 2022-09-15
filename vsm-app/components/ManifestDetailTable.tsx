@@ -12,9 +12,9 @@ interface ManifestDataMap {
 }
 
 const prepData = (data: ManifestDataMap) => {
-  const preparedData = [] as ManifestData[]
+  const preparedData: ManifestData[] = []
   Object.entries(data).forEach(([system, value]) => {
-    value.forEach((version) => preparedData.push({system, version}))
+    value?.forEach((version) => preparedData.push({system, version}))
   })
   return preparedData
 }

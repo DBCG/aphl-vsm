@@ -28,12 +28,13 @@ export interface DataItem {
   groups: GroupItem[],
   title: string,
   version: string,
-  valueSet: fhir4.ValueSet
+  valueSet: fhir4.ValueSet,
+  programStatus: fhir4.Library['status']
 }
 
-interface Result {
-  data: DataItem,
-  groupsInProgram: fhir4.ValueSet[]
+export interface Result {
+  data?: DataItem[],
+  groupsInProgram?: fhir4.ValueSet[]
 }
 
 interface Args {
@@ -54,8 +55,8 @@ const useGetProgramValueSetDetails = ({
   activeGroups,
   activeConditions,
   updatedGrouperValueSets
-}: Args): Result | {} => {
-  const [data, setData] = useState<{} | Result>({})
+}: Args): Result => {
+  const [data, setData] = useState<Result>({})
 
   useEffect(() => {
     async function getData(): Promise<void> {
@@ -120,9 +121,7 @@ const useGetProgramValueSetDetails = ({
       }
     }
 
-    void getData()
-    // disabled eslint here b/c including 'fields' obj results in infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    getData()
   }, [
     id,
     findInVsName,
