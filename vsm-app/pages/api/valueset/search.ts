@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from 'fhirClients'
+import { TerminologyClient, vsacFhirClient } from 'fhirClients'
 import { getSession } from 'next-auth/react'
+import { terminologyClient, privateTermClient } from 'fhirClients'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -45,14 +46,13 @@ export default async function handler(
 
   if (req.method === 'GET') {
     const {
-      search, searchType, count, offset, sortBy, sortDirection,
+      search, searchType, count, offset, terminologyServer, sortBy, sortDirection,
       nameFilter, statusFilter, oidFilter, stewardFilter
     } = req.query
     let responseInfo = {
       valueSets: [],
       total: null
     } as SearchResponse
-
     try {
       let serverResponse
       switch (searchType) {
@@ -68,15 +68,24 @@ export default async function handler(
             searchParams._offset = offset
           }
           try {
-            serverResponse = await vsacFhirClient.search({
+            privateTermClient.setClient(terminologyServer)
+            // const terminologyClientInstance = TerminologyClient.getInstance()
+
+            // terminologyClientInstance.setClient(terminologyServer)
+
+            const activeTerminologyClient = privateTermClient.getClient()
+
+            serverResponse = await activeTerminologyClient.search({
               resourceType: 'ValueSet',
               // @ts-expect-error
               searchParams
             })
 
+            console.log('server response: ', serverResponse)
+
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                item.resource.url = item.fullUrl
+                // item.resource.url = item.fullUrl
                 return item.resource
               })
               // TODO need this for OID search too
@@ -86,7 +95,7 @@ export default async function handler(
               ) || null
               responseInfo.next = getOffsetFromUrl(
                 serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
-               ) || null
+              ) || null
               responseInfo.previous = getOffsetFromUrl(
                 serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
               ) || null
@@ -105,6 +114,7 @@ export default async function handler(
           break
         case 'oid':
           // pagination is not going to work the same for the OID list because each is a separate query
+          // OID is actually kindof search by canonical
           // @ts-ignore-next-line
           const oidList: string[] = search?.split(',')
           try {

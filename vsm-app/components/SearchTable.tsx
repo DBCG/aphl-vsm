@@ -32,6 +32,8 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
 
   if (!valueSets || valueSets.length < 1) { return [] }
 
+  console.log('valuesets here: ', valueSets)
+
   const data = valueSets.map((vs: fhir4.ValueSet) => {
     const { id, name, publisher, url, status, meta, date, version } = vs
     let updatedDate

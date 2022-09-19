@@ -11,7 +11,7 @@ import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
-import { SearchInput, StyledLabel } from '@/components/SearchInput'
+import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
@@ -23,6 +23,7 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
 
 const TitleRow = styled.div`
   display: flex;
@@ -187,6 +188,9 @@ const ValueSets = () => {
   const [searchType, setSearchType] = useState('name')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
+  // set default terminology server for search
+  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
+
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
@@ -328,7 +332,7 @@ const ValueSets = () => {
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams])
+  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -368,7 +372,6 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = async (e?: SyntheticEvent) => {
-
     if (e) {
       e.preventDefault()
     }
@@ -402,7 +405,7 @@ const ValueSets = () => {
     setSearchType(searchType)
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}&terminologyServer=${selectedTerminologyServer.value.title}`
     
     // if offsets are defined, add to the query
     if (offset?.length) {
@@ -418,6 +421,8 @@ const ValueSets = () => {
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     setAddedValueSetsLoading(true)
+    console.log('selectedValueSets: ', selectedValueSets)
+    console.log('e: ', e)
 
     if (!selectedValueSets.length || !selectedGroupers.length) {
       const message = 'Select at least one valueset with an associated group. (Conditions optional)'
@@ -425,6 +430,7 @@ const ValueSets = () => {
       setAddedValueSetsLoading(false)
       return
     }
+
 
     const leafPutBody = JSON.stringify({
       selectedValueSets,
@@ -525,6 +531,23 @@ const ValueSets = () => {
       </TitleRow>
       <form>
         <Row>
+          <div>
+            <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+              Terminology Source
+            </StyledLabel>
+            <SelectInputContainer>
+              <Select
+                isMulti={false}
+                // @ts-ignore-next-line
+                options={terminologyServerEndpoints}
+                value={selectedTerminologyServer}
+                onChange={(e: any) => {
+                  return (setSelectedTerminologyServer(e))
+                }
+                }
+              />
+            </SelectInputContainer>
+          </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Conditions

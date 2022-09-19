@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { getSession } from 'next-auth/react'
+import { TerminologyClient, privateTermClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
@@ -57,7 +58,15 @@ export default async function handler(
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
         try {
-          const matchingVSetsFromRemoteServer = await vsacFhirClient.search({
+
+          console.log('terminology client: ', privateTermClient)
+          const terminologyClientInstance = TerminologyClient.getInstance()
+          console.log('instance: ', terminologyClientInstance)
+          console.log('selected vs: ', selectedVS)
+          const terminologyClient = terminologyClientInstance.getClient()
+
+          console.log('check client here: ', terminologyClient)
+          const matchingVSetsFromRemoteServer = await terminologyClient.search({
             resourceType: 'ValueSet',
             searchParams: {
               url: selectedVS.url,
@@ -66,8 +75,12 @@ export default async function handler(
             }
           })
 
+          console.log('matching: ', matchingVSetsFromRemoteServer)
+          console.log('term client: ', terminologyClient.getClientName())
+
           const matchingVSFromRemote = matchingVSetsFromRemoteServer?.entry?.[0]?.resource
           if (matchingVSFromRemote) {
+            console.log('editing url:')
             matchingVSFromRemote.url = matchingVSetsFromRemoteServer?.entry?.[0]?.fullUrl
             vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSFromRemote })
           } else {
