@@ -57,11 +57,9 @@ export default async function handler(
       let serverResponse
       switch (searchType) {
         case 'name':
-          const sortStr = '-publisher'//`${sortDirection == 'asc' ? '' : '-'}${sortBy}`
           let searchParams = {
             'name:contains': search,
             _count: count,
-            // _sort: sortStr
           } as SearchParams
 
           if (typeof offset === 'string') {
@@ -86,7 +84,7 @@ export default async function handler(
               ) || null
               responseInfo.next = getOffsetFromUrl(
                 serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
-               ) || null
+              ) || null
               responseInfo.previous = getOffsetFromUrl(
                 serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
               ) || null

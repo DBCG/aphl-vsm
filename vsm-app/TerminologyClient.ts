@@ -1,4 +1,3 @@
-import { terminologyServerEndpoints, ONTOSERVER_R4_BASE_URL } from './fhirClientOptions'
 import FhirKitClient from 'fhir-kit-client'
 
 /**
@@ -45,17 +44,17 @@ class TerminologyClient {
 
 let instance: TerminologyClient | undefined
 
-if (process.env.VSAC_BASE_URL) {
+if (process.env.NEXT_PUBLIC_VSAC_BASE_URL) {
   let vsacAuthString: string | undefined = undefined
   if (process.env.VSAC_USERNAME && process.env.VSAC_API_KEY) {
     vsacAuthString = `${process.env.VSAC_USERNAME}:${process.env.VSAC_API_KEY}`
   }
 
-  instance = new TerminologyClient(process.env.VSAC_BASE_URL, vsacAuthString)
+  instance = new TerminologyClient(process.env.NEXT_PUBLIC_VSAC_BASE_URL, vsacAuthString)
 
   Object.freeze(instance)
 } else {
-  throw Error('Default terminology server URL (VSAC_BASE_URL) is not set')
+  throw Error('Default terminology server URL (NEXT_PUBLIC_VSAC_BASE_URL) is not set')
 }
 
 export default instance
