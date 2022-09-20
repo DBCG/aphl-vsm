@@ -434,7 +434,8 @@ const ValueSets = () => {
     const leafPutBody = JSON.stringify({
       selectedValueSets,
       selectedConditions,
-      selectedGroupers
+      selectedGroupers,
+      selectedTerminologyServer
     })
   
     // needs some error handling down here
@@ -541,7 +542,6 @@ const ValueSets = () => {
                 options={terminologyServerEndpoints_FE}
                 value={selectedTerminologyServer}
                 onChange={(e: any) => {
-                  console.log('e: ', e)
                   return (setSelectedTerminologyServer(e))
                 }
                 }

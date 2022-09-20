@@ -10,7 +10,6 @@ export default async function handler(
 ): Promise<any> {
   const session = await getSession({ req })
   if (!session) {
-    console.log('no session')
     res.status(401).end()
   }
 

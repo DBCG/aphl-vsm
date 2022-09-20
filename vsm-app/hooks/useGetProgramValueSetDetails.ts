@@ -48,7 +48,7 @@ const useGetProgramValueSetDetails = (
   updatedValueSet: fhir4.ValueSet | undefined,
   updatedGrouperValueSets: [] | fhir4.ValueSet[]
 ): Result | {} => {
-  const [data, setData] = useState< {} | Result >({})
+  const [data, setData] = useState<{} | Result>({})
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {

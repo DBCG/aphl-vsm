@@ -56,6 +56,7 @@ export default async function handler(
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
+        // if there is no match in CQF server for the valueSet...
         try {
           const matchingVSetsFromRemoteServer = await vsacFhirClient.search({
             resourceType: 'ValueSet',
@@ -75,7 +76,7 @@ export default async function handler(
           }
 
         } catch (e) {
-          console.error('error 2: ', e)
+          console.error('error matching VS to remote: ', e)
         }
       }
     }
@@ -93,21 +94,21 @@ export default async function handler(
     try {
       const performedUpdate = await Promise.allSettled(updatedValueSetItems.map(async (item) => {
         if (item.method === 'PUT') {
-          const updated = await fhirCdrClient.update({
+          const result = await fhirCdrClient.update({
             resourceType: 'ValueSet',
             id: item.valueSet.id,
             body: item.valueSet
           })
         } else {
-          await fhirCdrClient.create({
+          const result = await fhirCdrClient.create({
             resourceType: 'ValueSet',
             body: item.valueSet
           })
+
         }
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-
     } catch (e) {
       console.error('error 3', e)
     }

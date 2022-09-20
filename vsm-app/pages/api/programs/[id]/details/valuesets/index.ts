@@ -93,7 +93,6 @@ const fetchLeafValueSets = async (
     }))
     ))
 
-    // add canonical url to the valueset
     const valueSets = result?.map((e) => {
       if (e.entry) {
         return e.entry.map((entry: fhir4.BundleEntry) => {
@@ -106,10 +105,13 @@ const fetchLeafValueSets = async (
     })
       ?.flat()
       ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter((value, index, self) => (
+      ?.filter((value, index, self) => {
+
         // @ts-ignore-next-line filter out multiple ids
-        self.findIndex(v2 => v2?.id === value?.id) === index
-      ))
+        const result = self.findIndex(v2 => v2?.id === value?.id) === index
+        return result
+      }
+      )
 
     return valueSets
   } catch (e) {

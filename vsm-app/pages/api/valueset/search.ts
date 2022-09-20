@@ -61,6 +61,7 @@ export default async function handler(
           let searchParams = {
             'name:contains': search,
             _count: count,
+            status: 'active'
           } as SearchParams
 
           if (typeof offset === 'string') {
@@ -110,8 +111,12 @@ export default async function handler(
           const oidList: string[] = search?.split(',')
           try {
             serverResponse = await Promise.allSettled(oidList.map((oid: string) => (
+              // this is not currently blocking draft valuesets from showing up
+              // additionally, we need to be switching between terminology servers here
+              
               vsacFhirClient.read({
-                resourceType: 'ValueSet', id: oid
+                resourceType: 'ValueSet',
+                id: oid,
               })
             )))
 
