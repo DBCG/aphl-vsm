@@ -52,7 +52,6 @@ if (process.env.NEXT_PUBLIC_VSAC_BASE_URL) {
 
   instance = new TerminologyClient(process.env.NEXT_PUBLIC_VSAC_BASE_URL, vsacAuthString)
 
-  Object.freeze(instance)
 } else {
   throw Error('Default terminology server URL (NEXT_PUBLIC_VSAC_BASE_URL) is not set')
 }
