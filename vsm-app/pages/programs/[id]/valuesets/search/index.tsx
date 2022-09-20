@@ -486,6 +486,25 @@ const ValueSets = () => {
           <StyledForm>
             <div>
               <InnerFormRow>
+                <div style={{ marginBottom: '24px' }}>
+                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                    Terminology Source
+                  </StyledLabel>
+                  <SelectInputContainer>
+                    <Select
+                      isMulti={false}
+                      // @ts-ignore-next-line
+                      options={terminologyServerEndpoints_FE}
+                      value={selectedTerminologyServer}
+                      onChange={(e: any) => {
+                        return (setSelectedTerminologyServer(e))
+                      }
+                      }
+                    />
+                  </SelectInputContainer>
+                </div>
+              </InnerFormRow>
+              <InnerFormRow>
                 <TextArea
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
@@ -531,23 +550,6 @@ const ValueSets = () => {
       </TitleRow>
       <form>
         <Row>
-          <div>
-            <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-              Terminology Source
-            </StyledLabel>
-            <SelectInputContainer>
-              <Select
-                isMulti={false}
-                // @ts-ignore-next-line
-                options={terminologyServerEndpoints_FE}
-                value={selectedTerminologyServer}
-                onChange={(e: any) => {
-                  return (setSelectedTerminologyServer(e))
-                }
-                }
-              />
-            </SelectInputContainer>
-          </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Conditions
