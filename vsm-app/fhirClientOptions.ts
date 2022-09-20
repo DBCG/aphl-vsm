@@ -1,4 +1,4 @@
-// does not include username/password for FE use (building dropdown, etc)
+// non-sensitive values for FE use (building dropdown, etc)
 const terminologyServerEndpoints_FE = [
   {
     label: 'VSAC',
@@ -23,10 +23,7 @@ const terminologyServerEndpoints_BE = [
   {
     id: 'vsac',
     url: process.env.NEXT_PUBLIC_VSAC_BASE_URL,
-    auth: {
-      user: process.env.VSAC_USERNAME,
-      pw: process.env.VSAC_API_KEY
-    }
+    authString: `${process.env.VSAC_USERNAME}:${process.env.VSAC_API_KEY}`
   },
   {
     id: 'ontoserver_r4',
