@@ -11,7 +11,7 @@ if (process.env.NEXT_PUBLIC_FHIR_CDR_URL) {
   throw Error('Missing .env variable for NEXT_PUBLIC_FHIR_CDR_URL')
 }
 
-let vsacFhirClient
+let vsacFhirClient: FhirKitClient
 if (process.env.NEXT_PUBLIC_VSAC_BASE_URL) {
   vsacFhirClient = new FhirKitClient({
     baseUrl: process.env.NEXT_PUBLIC_VSAC_BASE_URL,
