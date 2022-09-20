@@ -1,17 +1,27 @@
 import FhirKitClient from 'fhir-kit-client'
 
-const { 
-  FHIR_CDR_URL,
-  VSAC_USERNAME,
-  VSAC_API_KEY,
-  VSAC_BASE_URL
-} = process.env as Record<string, string>
+const vsacAuthString = `${process.env.VSAC_USERNAME}:${process.env.VSAC_API_KEY}`
 
-const vsacAuthString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
+let fhirCdrClient
+if (process.env.NEXT_PUBLIC_FHIR_CDR_URL) {
+  fhirCdrClient = new FhirKitClient({
+    baseUrl: process.env.NEXT_PUBLIC_FHIR_CDR_URL
+  })
+} else {
+  throw Error('Missing .env variable for NEXT_PUBLIC_FHIR_CDR_URL')
+}
 
-const fhirCdrClient = new FhirKitClient({ baseUrl: FHIR_CDR_URL })
-
-const vsacFhirClient = new FhirKitClient({ baseUrl: VSAC_BASE_URL, customHeaders: { 'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}` } })
+let vsacFhirClient
+if (process.env.NEXT_PUBLIC_VSAC_BASE_URL) {
+  vsacFhirClient = new FhirKitClient({
+    baseUrl: process.env.NEXT_PUBLIC_VSAC_BASE_URL,
+    customHeaders: {
+      'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}`
+    }
+  })
+} else {
+  throw Error('Missing .env variable for NEXT_PUBLIC_VSAC_BASE_URL')
+}
 
 export {
   fhirCdrClient,
