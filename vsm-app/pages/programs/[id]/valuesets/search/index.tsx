@@ -333,7 +333,7 @@ const ValueSets = () => {
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams])
+  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -407,7 +407,7 @@ const ValueSets = () => {
     setSearchType(searchType)
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
+    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}&terminologySource=${selectedTerminologyServer.dataId}`
     
     // if offsets are defined, add to the query
     if (offset?.length) {

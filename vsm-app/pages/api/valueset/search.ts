@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient } from 'fhirClients'
 import { getSession } from 'next-auth/react'
+import { terminologyServerEndpoints_BE } from 'fhirClientOptions'
+import TerminologyFHIRClient from '../../../TerminologyClient'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -45,8 +47,7 @@ export default async function handler(
 
   if (req.method === 'GET') {
     const {
-      search, searchType, count, offset, sortBy, sortDirection,
-      nameFilter, statusFilter, oidFilter, stewardFilter
+      search, searchType, count, offset, terminologySource
     } = req.query
     let responseInfo = {
       valueSets: [],
@@ -66,9 +67,11 @@ export default async function handler(
             searchParams._offset = offset
           }
           try {
-            serverResponse = await vsacFhirClient.search({
+            const clientConfig = terminologyServerEndpoints_BE.find(item => item.id === terminologySource)
+            TerminologyFHIRClient?.setUrlAndAuth(clientConfig?.url, clientConfig?.authString)
+            serverResponse = await TerminologyFHIRClient.connection.search({
               resourceType: 'ValueSet',
-              // @ts-expect-error
+              //@ts-expect-error
               searchParams
             })
 
