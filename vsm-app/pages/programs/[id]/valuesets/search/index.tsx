@@ -6,12 +6,13 @@ import styled from 'styled-components'
 import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
+import { terminologyServerEndpoints_FE } from 'fhirClientOptions'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
-import { SearchInput, StyledLabel } from '@/components/SearchInput'
+import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
@@ -190,6 +191,10 @@ const ValueSets = () => {
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
+
+  // set terminology server to use for search
+  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints_FE[0])
+
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
@@ -525,6 +530,24 @@ const ValueSets = () => {
       </TitleRow>
       <form>
         <Row>
+          <div>
+            <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+              Terminology Source
+            </StyledLabel>
+            <SelectInputContainer>
+              <Select
+                isMulti={false}
+                // @ts-ignore-next-line
+                options={terminologyServerEndpoints_FE}
+                value={selectedTerminologyServer}
+                onChange={(e: any) => {
+                  console.log('e: ', e)
+                  return (setSelectedTerminologyServer(e))
+                }
+                }
+              />
+            </SelectInputContainer>
+          </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Conditions
