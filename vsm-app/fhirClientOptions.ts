@@ -8,15 +8,20 @@ const terminologyServerEndpoints_FE = [
       auth: true
     }
   },
-  {
-    label: 'Ontoserver (R4)',
-    dataId: 'ontoserver_r4',
-    value: {
-      url: process.env.NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL,
-      auth: false
-    }
-  }
 ]
+
+if (process.env.NEXT_PUBLIC_SHOW_TEST_TERMINOLOGY_SERVER) {
+  terminologyServerEndpoints_FE.push(
+    {
+      label: 'Ontoserver (R4)',
+      dataId: 'ontoserver_r4',
+      value: {
+        url: process.env.NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL,
+        auth: false
+      }
+    }
+  )
+}
 
 // includes username/password to call terminology client in server
 const terminologyServerEndpoints_BE = [
