@@ -502,6 +502,25 @@ const ValueSets = () => {
                   onClick={(e) => submitVSetSearch(e)}
                 />
               </InnerFormRow>
+              <InnerFormRow>
+            <div style={{ marginTop: '12px' }}>
+              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                Terminology Source
+              </StyledLabel>
+              <SelectInputContainer>
+                <Select
+                  isMulti={false}
+                  // @ts-ignore-next-line
+                  options={terminologyServerEndpoints}
+                  value={selectedTerminologyServer}
+                  onChange={(e: any) => {
+                    return (setSelectedTerminologyServer(e))
+                  }
+                  }
+                />
+              </SelectInputContainer>
+            </div>
+              </InnerFormRow>
               { vsNumExceedsFilterLimit &&
                 <ErrorText>
                   {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
@@ -531,23 +550,6 @@ const ValueSets = () => {
       </TitleRow>
       <form>
         <Row>
-          <div>
-            <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-              Terminology Source
-            </StyledLabel>
-            <SelectInputContainer>
-              <Select
-                isMulti={false}
-                // @ts-ignore-next-line
-                options={terminologyServerEndpoints}
-                value={selectedTerminologyServer}
-                onChange={(e: any) => {
-                  return (setSelectedTerminologyServer(e))
-                }
-                }
-              />
-            </SelectInputContainer>
-          </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Conditions
