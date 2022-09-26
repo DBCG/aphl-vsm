@@ -186,7 +186,7 @@ const SearchTable = ({
     {
       name: (
         <div>
-        <SelectInputTitle>OID</SelectInputTitle>
+        <SelectInputTitle>ID</SelectInputTitle>
           { showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
