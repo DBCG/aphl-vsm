@@ -59,13 +59,9 @@ export default async function handler(
       } else {
         try {
 
-          console.log('terminology client: ', privateTermClient)
           const terminologyClientInstance = TerminologyClient.getInstance()
-          console.log('instance: ', terminologyClientInstance)
-          console.log('selected vs: ', selectedVS)
           const terminologyClient = terminologyClientInstance.getClient()
 
-          console.log('check client here: ', terminologyClient)
           const matchingVSetsFromRemoteServer = await terminologyClient.search({
             resourceType: 'ValueSet',
             searchParams: {
@@ -75,12 +71,8 @@ export default async function handler(
             }
           })
 
-          console.log('matching: ', matchingVSetsFromRemoteServer)
-          console.log('term client: ', terminologyClient.getClientName())
-
           const matchingVSFromRemote = matchingVSetsFromRemoteServer?.entry?.[0]?.resource
           if (matchingVSFromRemote) {
-            console.log('editing url:')
             matchingVSFromRemote.url = matchingVSetsFromRemoteServer?.entry?.[0]?.fullUrl
             vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSFromRemote })
           } else {

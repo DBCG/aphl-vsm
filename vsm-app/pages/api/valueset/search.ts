@@ -81,8 +81,6 @@ export default async function handler(
               searchParams
             })
 
-            console.log('server response: ', serverResponse)
-
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                 // item.resource.url = item.fullUrl

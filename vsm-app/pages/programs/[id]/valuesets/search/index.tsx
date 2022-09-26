@@ -421,8 +421,6 @@ const ValueSets = () => {
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     setAddedValueSetsLoading(true)
-    console.log('selectedValueSets: ', selectedValueSets)
-    console.log('e: ', e)
 
     if (!selectedValueSets.length || !selectedGroupers.length) {
       const message = 'Select at least one valueset with an associated group. (Conditions optional)'
