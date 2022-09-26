@@ -2,7 +2,7 @@ import Client from 'fhir-kit-client'
 import FhirKitClient from 'fhir-kit-client'
 
 const {
-  FHIR_CDR_URL,
+  NEXT_PUBLIC_FHIR_CDR_URL,
   VSAC_USERNAME,
   VSAC_API_KEY,
   NEXT_PUBLIC_VSAC_BASE_URL
@@ -12,7 +12,7 @@ const ONTOSERVER_R4_BASE_URL = 'https://r4.ontoserver.csiro.au/fhir'
 
 const vsacAuthString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
 
-const fhirCdrClient = new FhirKitClient({ baseUrl: FHIR_CDR_URL })
+const fhirCdrClient = new FhirKitClient({ baseUrl: NEXT_PUBLIC_FHIR_CDR_URL })
 
 const vsacFhirClient = new FhirKitClient({ baseUrl: NEXT_PUBLIC_VSAC_BASE_URL, customHeaders: { 'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}` } })
 
