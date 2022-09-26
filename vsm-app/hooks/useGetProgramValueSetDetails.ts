@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 
-// value is the grouper canonical
 interface Group {
   label: string,
   value: string
@@ -43,12 +42,12 @@ const useGetProgramValueSetDetails = (
   findInVsName?: string,
   findInVersion?: string,
   findInSteward?: string,
-  activeGroups: [] | Group[],
-  activeConditions: [] | ConditionItem[],
-  updatedValueSet: fhir4.ValueSet | undefined,
-  updatedGrouperValueSets: [] | fhir4.ValueSet[]
+  activeGroups?: [] | Group[],
+  activeConditions?: [] | ConditionItem[],
+  updatedValueSet?: fhir4.ValueSet | undefined,
+  updatedGrouperValueSets?: [] | fhir4.ValueSet[]
 ): Result | {} => {
-  const [data, setData] = useState< {} | Result >({})
+  const [data, setData] = useState<{} | Result>({})
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {

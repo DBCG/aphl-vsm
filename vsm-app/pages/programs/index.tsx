@@ -9,6 +9,7 @@ import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const Row = styled.div`
   display: flex;
@@ -30,8 +31,11 @@ const ButtonWrapper = styled.div`
   justify-content: center;
   width: 100%;
 `
+interface StatusProps {
+  status: string
+}
 
-const StatusTag = styled.div`
+const StatusTag = styled.div<StatusProps>`
   padding: 4px 6px;
   border-radius: 4px;
   background-color: ${
@@ -50,6 +54,7 @@ const customStyles = {
   }
 }
 
+
 const Programs: NextPage = () => {
   const router = useRouter()
   const [searchTermID, setSearchTermID] = useState('')
@@ -57,13 +62,12 @@ const Programs: NextPage = () => {
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
 
-  const session = useSession()
-
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
-    description: searchTermDescription
+    description: searchTermDescription,
+    newProgram: `${router?.query?.new}`
   })
 
   const columns = useMemo(() => [
@@ -74,7 +78,7 @@ const Programs: NextPage = () => {
       maxWidth: '150px',
       wrap: true,
       center: true,
-      cell: (row) => {
+      cell: (row: fhir4.Library) => {
         return (
           <StatusTag status={row.status}>{ row.status }</StatusTag>
         )
@@ -152,7 +156,7 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     }
-  ], [router])
+  ], [router, router?.query?.new])
 
   const onClickDownload = () => {
     router.push('/programs/download')
@@ -246,9 +250,9 @@ const Programs: NextPage = () => {
                onClick={onClick}
              />
            </Row>
-         </Col>  
-       </Row>
-       <DT
+         </Col>
+      </Row>
+      <DT
         data={programs}
         // @ts-expect-error
         columns={columns}
@@ -256,7 +260,9 @@ const Programs: NextPage = () => {
         pagination
         fixedHeader
         customStyles={customStyles}
-      />
+        progressPending={!programs.length}
+        progressComponent={<LoadingIndicator/>}
+        />
     </Col>
   )
 }

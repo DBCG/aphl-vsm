@@ -1,10 +1,12 @@
-import { useMemo, useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import styled from 'styled-components';
-import DT from 'react-data-table-component';
-import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
-import { useGetPrograms } from '@/hooks/useGetPrograms';
-import { Button } from '@/components/buttons/Button';
+import { useMemo, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import styled from 'styled-components'
+import DT from 'react-data-table-component'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetPrograms } from '@/hooks/useGetPrograms'
+import { Button } from '@/components/buttons/Button'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import { DataItem } from '@/hooks/useGetProgramValueSetDetails'
 
 const Row = styled.div`
   display: flex;
@@ -34,46 +36,44 @@ const Template = () => {
 
   const router = useRouter()
   let programId = router?.query?.id || ''
-  const programDetails = useGetProgramValueSetDetails(programId)
-  const program = useGetPrograms({ id: programId })
-  let [data, setData] = useState('');
+  const programDetails = useGetProgramValueSetDetails(`${programId}`)
+  const program = useGetPrograms({ id: `${programId}` })
+  let [data, setData] = useState('')
 
   let href: any = '';
   
   const fetchData = async () => {
-    let libraryData: any = '';
-    libraryData = program[0];
+    let libraryData: any = ''
+    libraryData = program[0]
     const json = JSON.stringify(libraryData)
+
     const req = await fetch('/api/template', {
       method: 'POST',
       body: json
-    });
-    const newData = await req.json();
-    setData(newData)
-    router.push('/programs');
+    })
+
+    const newData = await req.json()
+
+    if (newData) {
+      router.push(`/programs`)
+    }
   }
 
-  const onClickClone = (event) => {
-    event.preventDefault();
-
+  const onClickClone = () => {
     fetchData();
   };
-
-  const handleClick = () => {
-    router.push(href)
-  }
 
   const columns = useMemo(() => [
     {
       name: 'Value Set Name',
-      selector: (row) => row.valueSet.name,
+      selector: (row: DataItem) => row.valueSet.name,
       sortable: true,
       maxWidth: '350px',
       wrap: true
     },
     {
       name: 'Template Value Set Version',
-      selector: (row) => row.valueSet.version,
+      selector: (row: DataItem) => row.valueSet.version,
       sortable: true,
       maxWidth: '250px',
       wrap: true,
@@ -81,7 +81,7 @@ const Template = () => {
     },
     {
       name: 'Edit Value Set Version',
-      selector: (row) => 'include a select here to get available versions?',
+      selector: (row: DataItem) => 'include a select here to get available versions?',
       sortable: true,
       maxWidth: '250px',
       wrap: true,
@@ -100,12 +100,17 @@ const Template = () => {
           />
         </Row>
         <DT
-          data={programDetails?.data}
+          // @ts-expect-error
+          data={programDetails?.data || []}
+          // @ts-expect-error
           columns={columns}
           theme='aphl'
           pagination
           fixedHeader
           customStyles={customStyles}
+          // @ts-expect-error
+          progressPending={Boolean(!programDetails?.data)}
+          progressComponent={<LoadingIndicator/>}
         />
       </Col>
     )
