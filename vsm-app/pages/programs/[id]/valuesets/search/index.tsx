@@ -27,9 +27,15 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
-  { label: 'Value Set Name', value: 'name' },
-  { label: 'Value Set URL', value: 'url'}
+  { label: 'Name', value: 'name' },
+  { label: 'URL', value: 'url'}
 ]
+
+const searchInfoText = {
+  oid: 'OID search supports a comma-delimited list, max 100 OIDs',
+  name: 'Name search finds full or partial matches within VS name',
+  url: 'URL search requires a full URL'
+}
 
 const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
 
@@ -193,7 +199,6 @@ const ValueSets = () => {
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
-  const [searchType, setSearchType] = useState('name')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set default terminology server for search
@@ -405,9 +410,9 @@ const ValueSets = () => {
         return
       }
       searchStr = dedupedOids?.join(',')
-    } else if (searchType === 'name') {
+    } else if (searchTypeTest.value === 'name') {
       searchStr = searchTerm.trim()
-    } else if (searchType === 'url') {
+    } else if (searchTypeTest.value === 'url') {
       searchStr = searchTerm.trim()
     }
 
@@ -521,7 +526,7 @@ const ValueSets = () => {
               <InnerFormRow>
                 <div style={{ marginBottom: '16px' }}>
                   <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                    Search Type
+                    Search By ValueSet
                   </StyledLabel>
                   <SelectInputContainer>
                     <Select
@@ -620,7 +625,7 @@ const ValueSets = () => {
 
       </form>
       <SearchTable
-        searchType={searchType}
+        searchType={searchTypeTest.value}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         setFindInName={setFindInName}

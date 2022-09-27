@@ -2,7 +2,7 @@ import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
-import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
+import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { ReactNode } from 'react'
 
@@ -19,10 +19,6 @@ interface TableData {
 export interface BundleEntryItem {
   fullUrl: string
   resource: fhir4.ValueSet
-}
-
-interface PropagationProp {
-  children: ReactNode
 }
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
@@ -44,6 +40,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
     return {
       name,
       steward: publisher,
+      status: status,
       lastUpdated: updatedDate,
       oid: id,
       url: url,
@@ -120,6 +117,31 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => row.name!,
+      sortable: false,
+      style: {
+        rowWrap: 'wrap'
+      }
+    },
+    {
+      name: (
+        <div>
+          <SelectInputTitle>Status</SelectInputTitle>
+            { showFilters && (
+              <FilterInput
+                onChange={(e: React.ChangeEvent<Element>) => {
+                  const target = e.target as HTMLInputElement
+                  setFindInName(target.value.trim())
+                }}
+                style={{ height: '30px' }}
+            />
+            )}
+        </div>
+      ),
+      wrap: true,
+      selector: (row: TableData) => {
+        return row.status!
+      },
+        
       sortable: false,
       style: {
         rowWrap: 'wrap'

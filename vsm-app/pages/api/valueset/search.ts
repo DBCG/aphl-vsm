@@ -65,6 +65,7 @@ export default async function handler(
         case 'name':
           searchParams = {
             'name:contains': search,
+            status: 'active',
             _count: count,
           } as SearchParams
 
@@ -115,7 +116,8 @@ export default async function handler(
           try {
             serverResponse = await Promise.allSettled(oidList.map((oid: string) => (
               activeTerminologyClient.read({
-                resourceType: 'ValueSet', id: oid
+                resourceType: 'ValueSet',
+                id: oid
               })
             )))
 
