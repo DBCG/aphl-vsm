@@ -31,10 +31,12 @@ const getOffsetFromUrl = (str: string) => (
 )
 
 interface SearchParams {
-  'name:contains': string
+  'name:contains'?: string
+  'url:contains'?: string
   _count: string
   _offset?: string
 }
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -54,27 +56,22 @@ export default async function handler(
       total: null
     } as SearchResponse
     try {
+      // set the terminology client to be VSAC or other
+      privateTermClient.setClient(terminologyServer)
+      const activeTerminologyClient = privateTermClient.getClient()
       let serverResponse
+      let searchParams
       switch (searchType) {
         case 'name':
-          const sortStr = '-publisher'//`${sortDirection == 'asc' ? '' : '-'}${sortBy}`
-          let searchParams = {
+          searchParams = {
             'name:contains': search,
             _count: count,
-            // _sort: sortStr
           } as SearchParams
 
           if (typeof offset === 'string') {
             searchParams._offset = offset
           }
           try {
-            privateTermClient.setClient(terminologyServer)
-            // const terminologyClientInstance = TerminologyClient.getInstance()
-
-            // terminologyClientInstance.setClient(terminologyServer)
-
-            const activeTerminologyClient = privateTermClient.getClient()
-
             serverResponse = await activeTerminologyClient.search({
               resourceType: 'ValueSet',
               // @ts-expect-error
@@ -117,7 +114,7 @@ export default async function handler(
           const oidList: string[] = search?.split(',')
           try {
             serverResponse = await Promise.allSettled(oidList.map((oid: string) => (
-              vsacFhirClient.read({
+              activeTerminologyClient.read({
                 resourceType: 'ValueSet', id: oid
               })
             )))
@@ -152,6 +149,52 @@ export default async function handler(
           }
 
           break
+        case 'url':
+          searchParams = {
+            'url:contains': search,
+            _count: count,
+          } as SearchParams
+
+          if (typeof offset === 'string') {
+            searchParams._offset = offset
+          }
+          try {
+            serverResponse = await activeTerminologyClient.search({
+              resourceType: 'ValueSet',
+              // @ts-expect-error
+              searchParams
+            })
+
+            if (serverResponse.entry) {
+              responseInfo.valueSets = serverResponse.entry.map((item: any) => {
+                // item.resource.url = item.fullUrl
+                return item.resource
+              })
+              // TODO need this for OID search too
+              responseInfo.total = serverResponse.total
+              responseInfo.first = getOffsetFromUrl(
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
+              ) || null
+              responseInfo.next = getOffsetFromUrl(
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
+              ) || null
+              responseInfo.previous = getOffsetFromUrl(
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
+              ) || null
+              responseInfo.last = getOffsetFromUrl(
+                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
+              ) || null
+
+            }
+          } catch (e) {
+            console.error(e)
+            responseInfo.error = {
+              errorType: 'server-error',
+              message: `Search for '${search}' in url failed.`
+            }
+          }
+          break
+
       }
 
       res.status(200).send(responseInfo)

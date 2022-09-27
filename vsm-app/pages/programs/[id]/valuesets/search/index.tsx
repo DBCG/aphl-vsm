@@ -25,6 +25,14 @@ import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 
+const searchTypes = [
+  { label: 'OID', value: 'oid' },
+  { label: 'Value Set Name', value: 'name' },
+  { label: 'Value Set URL', value: 'url'}
+]
+
+const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+
 const TitleRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -190,6 +198,7 @@ const ValueSets = () => {
 
   // set default terminology server for search
   const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
+  const [searchTypeTest, setSearchTypeTest] = useState(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -382,13 +391,11 @@ const ValueSets = () => {
     }
 
     setIsLoading(true)
-    const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
-    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-    let searchType = ''
+    
     let searchStr = ''
-
-    if (trimmedWords?.some(word => word?.match(oidRegex))) {
-      searchType = 'oid'
+    
+    if (searchTypeTest.value === 'oid') {
+      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
       const dedupedOids = dedupeArray(trimmedWords)
       // if more than 100 OIDs, exit with error
       if (dedupedOids?.length > paginationMaximum) {
@@ -398,19 +405,28 @@ const ValueSets = () => {
         return
       }
       searchStr = dedupedOids?.join(',')
-    } else {
-      searchType = 'name'
+    } else if (searchType === 'name') {
+      searchStr = searchTerm.trim()
+    } else if (searchType === 'url') {
       searchStr = searchTerm.trim()
     }
-    setSearchType(searchType)
+
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}&terminologyServer=${selectedTerminologyServer.value.title}`
-    
-    // if offsets are defined, add to the query
-    if (offset?.length) {
-      endpoint = endpoint.concat(`&offset=${offset}`)
+    let queryStringItems = {
+      searchType: searchTypeTest?.value,
+      count: resultsPerPage,
+      sortBy: sortParams?.column,
+      sortDirection: sortParams?.direction,
+      offset: offset,
+      terminologyServer: selectedTerminologyServer?.value?.title
     }
+
+    let queryString = ''
+    
+    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key]}`)
+
+    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 
     response = await fetch(endpoint)
 
@@ -484,10 +500,47 @@ const ValueSets = () => {
           <StyledForm>
             <div>
               <InnerFormRow>
+                <div style={{ marginBottom: '12px' }}>
+                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                    Terminology Source
+                  </StyledLabel>
+                  <SelectInputContainer>
+                    <Select
+                      isMulti={false}
+                      // @ts-ignore-next-line
+                      options={terminologyServerEndpoints}
+                      value={selectedTerminologyServer}
+                      onChange={(e: any) => {
+                        return (setSelectedTerminologyServer(e))
+                      }
+                      }
+                    />
+                  </SelectInputContainer>
+                </div>
+              </InnerFormRow>
+              <InnerFormRow>
+                <div style={{ marginBottom: '16px' }}>
+                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                    Search Type
+                  </StyledLabel>
+                  <SelectInputContainer>
+                    <Select
+                      isMulti={false}
+                      // @ts-ignore-next-line
+                      options={searchTypes}
+                      value={searchTypeTest}
+                      onChange={(e: any) => {
+                        return (setSearchTypeTest(e))
+                      }}
+                    />
+                  </SelectInputContainer>
+                </div>
+              </InnerFormRow>
+              <InnerFormRow>
                 <TextArea
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
-                  label='Search by Name or OID'
+                  label='Search Text'
                   hasIcon={true}
                   includeInfo={true}
                   info='OID search supports a comma-delimited list, max 100 OIDs'
@@ -499,25 +552,6 @@ const ValueSets = () => {
                   type='submit'
                   onClick={(e) => submitVSetSearch(e)}
                 />
-              </InnerFormRow>
-              <InnerFormRow>
-            <div style={{ marginTop: '12px' }}>
-              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                Terminology Source
-              </StyledLabel>
-              <SelectInputContainer>
-                <Select
-                  isMulti={false}
-                  // @ts-ignore-next-line
-                  options={terminologyServerEndpoints}
-                  value={selectedTerminologyServer}
-                  onChange={(e: any) => {
-                    return (setSelectedTerminologyServer(e))
-                  }
-                  }
-                />
-              </SelectInputContainer>
-            </div>
               </InnerFormRow>
               { vsNumExceedsFilterLimit &&
                 <ErrorText>
