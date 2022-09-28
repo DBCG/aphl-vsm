@@ -7,24 +7,13 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  // create library template
 
+  // create library template
   try {
-    let bodyObj = JSON.parse(req.body)
-    const current = new Date()
-    // deleting mutates the object, deleting the ids key
-    // delete bodyObj.id
-    // delete bodyObj.version
-    // bodyObj.status = 'draft'
-    // bodyObj.version = `${current.getFullYear()}-${current.getMonth() + 1}-${current.getDate()}`
+    let bodyJson = JSON.stringify(req.body)
     const response = await fhirCdrClient.request('Library/$draft', {
-      // options: {
-      //   headers: {
-      //     'Content-Type': 'application/json+fhir'
-      //   },
-      // },
       method: 'POST',
-      body: bodyObj,
+      body: bodyJson,
     })
 
     res.send(response)
