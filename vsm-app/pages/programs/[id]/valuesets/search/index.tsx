@@ -67,6 +67,18 @@ const StyledForm = styled.form`
   flex-wrap: wrap;
 `
 
+interface SubmitProps {
+  hide: boolean
+}
+
+const SubmitSelectedForm = styled.form<SubmitProps>`
+  padding: 12px 18px;
+  background-color: var(--theme-100);
+  max-height: ${props => props.hide ? '0' : '1000px'};
+  padding: ${props => props.hide ? '0' : 'auto'};
+  transition: all 0.3s;
+`
+
 const InnerFormRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -585,7 +597,7 @@ const ValueSets = () => {
           </StyledForm>
         </Row>
       </TitleRow>
-      <form>
+      <SubmitSelectedForm hide={!selectedValueSets?.length}>
         <Row>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
@@ -618,12 +630,12 @@ const ValueSets = () => {
             </SelectInputContainer>
           </div>
         <Button text='Add Selected To Program'
+          disabled={!selectedValueSets.length}
           style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
           onClick={(e) => submitAddVSet(e)}
         />
         </Row>
-
-      </form>
+      </SubmitSelectedForm>
       <SearchTable
         searchType={searchTypeTest.value}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
