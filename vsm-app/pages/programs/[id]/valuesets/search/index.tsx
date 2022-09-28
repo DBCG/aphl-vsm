@@ -220,6 +220,7 @@ const ValueSets = () => {
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
+  const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
@@ -227,6 +228,10 @@ const ValueSets = () => {
   const conditions = useGetConditions()
   const groups = useGetGroups(programId)
   const allConditions = formatConditionsComposeInclude(conditions)
+
+  const handleClearRows = () => {
+    setToggledClearRows(!toggledClearRows)
+  }
 
   const formattedGroups = useMemo(() => {
     if (!groups) return []
@@ -401,6 +406,7 @@ const ValueSets = () => {
     if (e) {
       e.preventDefault()
     }
+    setSelectedValueSets([])
 
     let response
     if (!searchTerm?.trim()) {
@@ -496,7 +502,7 @@ const ValueSets = () => {
   const showFilters = Boolean(searchTotal)
     && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
 
-  const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
+  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
   return (
     <Col>
@@ -640,6 +646,7 @@ const ValueSets = () => {
         searchType={searchTypeTest.value}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
+        clearSelectedRows={toggledClearRows}
         setFindInName={setFindInName}
         setFindInSteward={setFindInSteward}
         setFindInStatus={setFindInStatus}

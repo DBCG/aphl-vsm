@@ -63,6 +63,7 @@ interface Input {
   setFindInVersion: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
+  clearSelectedRows: boolean,
   searchType: string,
   paginationTotalRows: number,
   isLoading: boolean,
@@ -94,6 +95,7 @@ const SearchTable = ({
   handlePerRowsChange,
   paginationTotalRows,
   searchType,
+  clearSelectedRows,
   resultsPerPage,
 }: Input) => {
 
@@ -246,6 +248,7 @@ const SearchTable = ({
       paginationTotalRows={paginationTotalRows}
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
+      clearSelectedRows={clearSelectedRows}
     />
   )
 }
