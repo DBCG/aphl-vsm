@@ -132,6 +132,11 @@ const ErrorBlock = styled.div`
   position: relative;
 `
 
+const GroupsRequired = styled.i`
+  color: var(--accent);
+  font-size: 80%;
+`
+
 const ErrorBlockText = styled.p`
   margin-top: 0;
   margin-bottom: 8px;
@@ -406,7 +411,8 @@ const ValueSets = () => {
     if (e) {
       e.preventDefault()
     }
-    setSelectedValueSets([])
+
+    setToggledClearRows(true)
 
     let response
     if (!searchTerm?.trim()) {
@@ -455,6 +461,8 @@ const ValueSets = () => {
 
     const searchContext = filterExists ? 'filter' : 'search'
     await handleSearchResponse({ searchContext, response })
+    setToggledClearRows(false)
+    setSelectedValueSets([])
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
@@ -467,7 +475,6 @@ const ValueSets = () => {
       setAddedValueSetsLoading(false)
       return
     }
-
 
     const leafPutBody = JSON.stringify({
       selectedValueSets,
@@ -491,6 +498,9 @@ const ValueSets = () => {
     // why does this not work?
     setSelectedValueSets([])
     setAddedValueSetsLoading(false)
+    if (toggledClearRows === false) {
+      setToggledClearRows(true)
+    }
   }
 
   useEffect(() => {
@@ -621,7 +631,7 @@ const ValueSets = () => {
           </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
-              Groups
+              Groups <GroupsRequired>(*required)</GroupsRequired>
             </StyledLabel>
             <SelectInputContainer>
               <Select
@@ -636,7 +646,7 @@ const ValueSets = () => {
             </SelectInputContainer>
           </div>
         <Button text='Add Selected To Program'
-          disabled={!selectedValueSets.length}
+          disabled={!selectedValueSets.length || !selectedGroupers.length}
           style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
           onClick={(e) => submitAddVSet(e)}
         />
@@ -647,6 +657,7 @@ const ValueSets = () => {
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         clearSelectedRows={toggledClearRows}
+        setClearSelectedRows={setToggledClearRows}
         setFindInName={setFindInName}
         setFindInSteward={setFindInSteward}
         setFindInStatus={setFindInStatus}

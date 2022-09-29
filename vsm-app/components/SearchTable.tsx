@@ -55,6 +55,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
 interface Input {
   valueSets: ValueSet[] | undefined,
   setSelectedValueSets: (eventItem: any) => void,
+  setClearSelectedRows: (eventItem: any) => void,
   setFindInName: (eventItem: any) => void,
   setFindInSteward: (eventItem: any) => void,
   setFindInStatus: (eventItem: any) => void,
@@ -96,6 +97,7 @@ const SearchTable = ({
   paginationTotalRows,
   searchType,
   clearSelectedRows,
+  setClearSelectedRows,
   resultsPerPage,
 }: Input) => {
 
@@ -242,6 +244,9 @@ const SearchTable = ({
       progressComponent={<LoadingIndicator/>}
       onSelectedRowsChange={(e) => {
         setSelectedValueSets(e.selectedRows)
+        if (clearSelectedRows === true) {
+          setClearSelectedRows(false)
+        }
       }}
       // @ts-ignore-next-line
       customStyles={customStyles}
