@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { getSession } from 'next-auth/react'
-import { TerminologyClient, privateTermClient } from 'fhirClients'
+import { TerminologyClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,

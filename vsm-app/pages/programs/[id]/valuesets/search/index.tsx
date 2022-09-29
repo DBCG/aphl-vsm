@@ -39,6 +39,14 @@ const searchInfoText = {
 
 const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
 
+interface QueryStringItems {
+  searchType: string;
+  count: string;
+  sortBy:  string;
+  sortDirection: string;
+  offset: string;
+  terminologyServer: string;
+}
 const TitleRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -453,7 +461,7 @@ const ValueSets = () => {
 
     let queryString = ''
     
-    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key]}`)
+    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`)
 
     const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 

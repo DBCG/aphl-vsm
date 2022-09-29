@@ -28,19 +28,22 @@ export default async function handler(
           }
         }) as fhir4.Bundle
 
-        const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource
-        const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
+        const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
 
-        groupersToUpdate.push(updatedGrouper)
-        const result = await Promise.all(groupersToUpdate.map(grouperVs => (
-          fhirCdrClient.update({
-            resourceType: 'ValueSet',
-            id: grouperVs.id,
-            body: grouperVs
-          })
-        )))
-        res.status(200).send(result)
-        return
+        if (grouperVsToUpdate) {
+          const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
+
+          groupersToUpdate.push(updatedGrouper)
+          const result = await Promise.all(groupersToUpdate.map(grouperVs => (
+            fhirCdrClient.update({
+              resourceType: 'ValueSet',
+              id: grouperVs.id,
+              body: grouperVs
+            })
+          )))
+          res.status(200).send(result)
+          return
+        }
       }
 
     } catch (e) {

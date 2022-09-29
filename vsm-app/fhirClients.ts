@@ -64,11 +64,11 @@ class TerminologyClient {
   }
 }
 
-const privateTermClient = new PrivateTerminologyClient()
+const terminologyClient = new PrivateTerminologyClient()
 
 export {
   fhirCdrClient,
   vsacFhirClient,
   TerminologyClient,
-  privateTermClient
+  terminologyClient
 }

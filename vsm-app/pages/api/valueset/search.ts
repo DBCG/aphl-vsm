@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { TerminologyClient, vsacFhirClient } from 'fhirClients'
 import { getSession } from 'next-auth/react'
-import { terminologyClient, privateTermClient } from 'fhirClients'
+import { terminologyClient } from 'fhirClients'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -47,18 +46,23 @@ export default async function handler(
   }
 
   if (req.method === 'GET') {
-    const {
-      search, searchType, count, offset, terminologyServer, sortBy, sortDirection,
-      nameFilter, statusFilter, oidFilter, stewardFilter
-    } = req.query
+    // @ts-ignore-next-line
+    const { search, searchType, count, offset, terminologyServer }:
+      {
+        search: string,
+        searchType: 'oid' | 'name' | 'url',
+        count: string,
+        offset?: string,
+        terminologyServer: 'vsac' | 'ontoserverR4'
+      } = req.query
     let responseInfo = {
       valueSets: [],
       total: null
     } as SearchResponse
     try {
       // set the terminology client to be VSAC or other
-      privateTermClient.setClient(terminologyServer)
-      const activeTerminologyClient = privateTermClient.getClient()
+      terminologyClient.setClient(terminologyServer)
+      const activeTerminologyClient = terminologyClient.getClient()
       let serverResponse
       let searchParams
       switch (searchType) {
@@ -72,40 +76,47 @@ export default async function handler(
           if (typeof offset === 'string') {
             searchParams._offset = offset
           }
-          try {
-            serverResponse = await activeTerminologyClient.search({
-              resourceType: 'ValueSet',
-              // @ts-expect-error
-              searchParams
-            })
-
-            if (serverResponse.entry) {
-              responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                // item.resource.url = item.fullUrl
-                return item.resource
+          if (activeTerminologyClient) {
+            try {
+              serverResponse = await activeTerminologyClient.search({
+                resourceType: 'ValueSet',
+                // @ts-expect-error
+                searchParams
               })
-              // TODO need this for OID search too
-              responseInfo.total = serverResponse.total
-              responseInfo.first = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
-              ) || null
-              responseInfo.next = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
-              ) || null
-              responseInfo.previous = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
-              ) || null
-              responseInfo.last = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
-              ) || null
-
+  
+              if (serverResponse.entry) {
+                responseInfo.valueSets = serverResponse.entry.map((item: any) => {
+                  // item.resource.url = item.fullUrl
+                  return item.resource
+                })
+                // TODO need this for OID search too
+                responseInfo.total = serverResponse.total
+                responseInfo.first = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
+                ) || null
+                responseInfo.next = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
+                ) || null
+                responseInfo.previous = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
+                ) || null
+                responseInfo.last = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
+                ) || null
+  
+              }
+            } catch (e) {
+              console.error(e)
+              responseInfo.error = {
+                errorType: 'server-error',
+                message: `Search for '${search}' failed.`
+              }
             }
-          } catch (e) {
-            console.error(e)
+          } else {
             responseInfo.error = {
               errorType: 'server-error',
-              message: `Search for '${search}' failed.`
-            }
+              message: `Connection to terminology server failed.`
+            } 
           }
           break
         case 'oid':
@@ -113,43 +124,49 @@ export default async function handler(
           // OID is actually kindof search by canonical
           // @ts-ignore-next-line
           const oidList: string[] = search?.split(',')
-          try {
-            serverResponse = await Promise.allSettled(oidList.map((oid: string) => (
-              activeTerminologyClient.read({
-                resourceType: 'ValueSet',
-                id: oid
-              })
-            )))
-
-            responseInfo.valueSets = serverResponse
-              ?.map(item => item?.status === 'fulfilled' && item?.value)
-              ?.filter(x => x) as fhir4.ValueSet[]
-
-            const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
-            responseInfo.total = successfulOIDs.length
-
-            const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
-
-            if (failedOIDs?.length > 0) {
-              const failureList = failedOIDs.join(', ')
+          if (activeTerminologyClient) {
+            try {
+              serverResponse = await Promise.allSettled(oidList.map((oid: string) => (
+                activeTerminologyClient.read({
+                  resourceType: 'ValueSet',
+                  id: oid
+                })
+              )))
+  
+              responseInfo.valueSets = serverResponse
+                ?.map(item => item?.status === 'fulfilled' && item?.value)
+                ?.filter(x => x) as fhir4.ValueSet[]
+  
+              const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
+              responseInfo.total = successfulOIDs.length
+  
+              const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
+  
+              if (failedOIDs?.length > 0) {
+                const failureList = failedOIDs.join(', ')
+                responseInfo.error = {
+                  errorType: 'failed-oids',
+                  data: failureList,
+                  message:
+                    `Search for these OIDs failed: ${failureList}.
+  
+                     Check if they are malformed or nonexistent and try again.`
+                }
+              }
+  
+            } catch (e) {
+              console.error(e)
               responseInfo.error = {
-                errorType: 'failed-oids',
-                data: failureList,
-                message:
-                  `Search for these OIDs failed: ${failureList}.
-
-                   Check if they are malformed or nonexistent and try again.`
+                errorType: 'oid-error',
+                message: `Search by OID failed.`
               }
             }
-
-          } catch (e) {
-            console.error(e)
+          } else {
             responseInfo.error = {
-              errorType: 'oid-error',
-              message: `Search by OID failed.`
+              errorType: 'server-error',
+              message: `Connection to terminology server failed.`
             }
           }
-
           break
         case 'url':
           searchParams = {
@@ -160,39 +177,46 @@ export default async function handler(
           if (typeof offset === 'string') {
             searchParams._offset = offset
           }
-          try {
-            serverResponse = await activeTerminologyClient.search({
-              resourceType: 'ValueSet',
-              // @ts-expect-error
-              searchParams
-            })
-
-            if (serverResponse.entry) {
-              responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                // item.resource.url = item.fullUrl
-                return item.resource
+          if (activeTerminologyClient) {
+            try {
+              serverResponse = await activeTerminologyClient.search({
+                resourceType: 'ValueSet',
+                // @ts-expect-error
+                searchParams
               })
-              // TODO need this for OID search too
-              responseInfo.total = serverResponse.total
-              responseInfo.first = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
-              ) || null
-              responseInfo.next = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
-              ) || null
-              responseInfo.previous = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
-              ) || null
-              responseInfo.last = getOffsetFromUrl(
-                serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
-              ) || null
-
+  
+              if (serverResponse.entry) {
+                responseInfo.valueSets = serverResponse.entry.map((item: any) => {
+                  // item.resource.url = item.fullUrl
+                  return item.resource
+                })
+                // TODO need this for OID search too
+                responseInfo.total = serverResponse.total
+                responseInfo.first = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
+                ) || null
+                responseInfo.next = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url
+                ) || null
+                responseInfo.previous = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url
+                ) || null
+                responseInfo.last = getOffsetFromUrl(
+                  serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
+                ) || null
+  
+              }
+            } catch (e) {
+              console.error(e)
+              responseInfo.error = {
+                errorType: 'server-error',
+                message: `Search for '${search}' in url failed.`
+              }
             }
-          } catch (e) {
-            console.error(e)
+          } else {
             responseInfo.error = {
               errorType: 'server-error',
-              message: `Search for '${search}' in url failed.`
+              message: `Connection to terminology server failed.`
             }
           }
           break

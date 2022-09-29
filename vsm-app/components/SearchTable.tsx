@@ -14,6 +14,7 @@ interface TableData {
   url: ValueSet['url']
   version: ValueSet['version']
   id: ValueSet['id']
+  status: ValueSet['status']
 }
 
 export interface BundleEntryItem {
