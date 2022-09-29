@@ -242,10 +242,6 @@ const ValueSets = () => {
   const groups = useGetGroups(programId)
   const allConditions = formatConditionsComposeInclude(conditions)
 
-  const handleClearRows = () => {
-    setToggledClearRows(!toggledClearRows)
-  }
-
   const formattedGroups = useMemo(() => {
     if (!groups) return []
     return formatGrouperValueSets(groups)
