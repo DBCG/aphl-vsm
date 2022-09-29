@@ -580,7 +580,8 @@ const ValueSets = () => {
                   label='Search Text'
                   hasIcon={true}
                   includeInfo={true}
-                  info='OID search supports a comma-delimited list, max 100 OIDs'
+                  // @ts-ignore-next-line
+                  info={searchInfoText[searchTypeTest.value]}
                   minWidth={300}
                 />
                 <IconButton
