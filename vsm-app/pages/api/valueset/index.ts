@@ -86,6 +86,7 @@ export default async function handler(
       }
     }
 
+    console.log('vsets to update: ', vSetsToUpdate)
     // handle if no vsets to update, too
     // add conditions to valueSet
     const updatedValueSetItems = vSetsToUpdate?.map(vs => {
@@ -113,7 +114,7 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-
+      console.log('failed updates: ', failedUpdates?.[0]?.reason?.response?.data)
     } catch (e) {
       console.error('error 3', e)
     }

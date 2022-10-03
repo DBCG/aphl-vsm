@@ -23,11 +23,19 @@ interface LinkItem {
   url: string
 }
 
-const offsetRegex = /&_offset=\d+/
+const offsetRegexStandard = /&_offset=\d+/
+// ontoserver has what looks like a non-standard-FHIR way of declaring offsets in the link array
+const offsetRegexOntoserver = /&_getpagesoffset=\d+/
 
 const getOffsetFromUrl = (str: string) => (
-  str?.match(offsetRegex)?.[0]?.split('_offset=')?.[1]
+  str?.match(offsetRegexStandard)?.[0]?.split('_offset=')?.[1]
+  || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
 )
+
+// const generatePaginationInfo = (linkBlock: fhir4.Bundle['link']) => {
+//   let paginationInfo = {}
+//   linkBlock?.forEach(linkItem => )
+// }
 
 interface SearchParams {
   'name:contains'?: string
@@ -74,6 +82,7 @@ export default async function handler(
           } as SearchParams
 
           if (typeof offset === 'string') {
+            console.log('offset: ', offset)
             searchParams._offset = offset
           }
           if (activeTerminologyClient) {
@@ -86,15 +95,10 @@ export default async function handler(
 
               if (serverResponse.entry) {
                 console.log('serverresponse.entry: ', serverResponse.entry)
-                responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                  // add the URL in here because it doesn't exist on the resource result itself
-                  if (!item.resource.url) {
-                    item.resource.url = item.fullUrl
-                  }
-                  return item.resource
-                })
+                responseInfo.valueSets = serverResponse.entry.map((item: any) => item?.resource)
                 // TODO need this for OID search too
                 responseInfo.total = serverResponse.total
+                console.log('serverresponse.link: ', serverResponse?.link)
                 responseInfo.first = getOffsetFromUrl(
                   serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
                 ) || null

@@ -255,6 +255,7 @@ const ValueSets = () => {
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
+      console.log('response: ', valueSetResponse)
       
       const newOffsets = {
         first: valueSetResponse?.first || null,
@@ -262,6 +263,8 @@ const ValueSets = () => {
         previous: valueSetResponse?.previous || null,
         last: valueSetResponse?.last || null
       }
+      console.log('new ffsets: ', newOffsets);
+      
 
       // @ts-expect-error
       setOffsets(newOffsets)
@@ -449,6 +452,7 @@ const ValueSets = () => {
 
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
+    console.log('currentPage: ', currentPage)
     let queryStringItems = {
       searchType: searchType?.value,
       count: resultsPerPage,

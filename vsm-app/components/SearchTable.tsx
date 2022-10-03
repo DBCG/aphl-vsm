@@ -46,7 +46,8 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
       oid: id,
       url: url,
       version: version,
-      id: id
+      id: id,
+      valueSet: vs
     }
   })
 
