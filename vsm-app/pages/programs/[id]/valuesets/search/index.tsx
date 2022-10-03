@@ -228,7 +228,7 @@ const ValueSets = () => {
 
   // set default terminology server for search
   const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
-  const [searchTypeTest, setSearchTypeTest] = useState(searchTypes[0])
+  const [searchType, setsearchType] = useState(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
@@ -247,6 +247,10 @@ const ValueSets = () => {
     return formatGrouperValueSets(groups)
   }, [groups])
 
+  useEffect(() => {
+    console.log('selected vs: ', selectedValueSets)
+  }, [selectedValueSets])
+
   // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
@@ -261,7 +265,6 @@ const ValueSets = () => {
 
       // @ts-expect-error
       setOffsets(newOffsets)
-
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -427,7 +430,7 @@ const ValueSets = () => {
     
     let searchStr = ''
     
-    if (searchTypeTest.value === 'oid') {
+    if (searchType.value === 'oid') {
       const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
       const dedupedOids = dedupeArray(trimmedWords)
       // if more than 100 OIDs, exit with error
@@ -438,16 +441,16 @@ const ValueSets = () => {
         return
       }
       searchStr = dedupedOids?.join(',')
-    } else if (searchTypeTest.value === 'name') {
+    } else if (searchType.value === 'name') {
       searchStr = searchTerm.trim()
-    } else if (searchTypeTest.value === 'url') {
+    } else if (searchType.value === 'url') {
       searchStr = searchTerm.trim()
     }
 
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
     let queryStringItems = {
-      searchType: searchTypeTest?.value,
+      searchType: searchType?.value,
       count: resultsPerPage,
       sortBy: sortParams?.column,
       sortDirection: sortParams?.direction,
@@ -470,6 +473,7 @@ const ValueSets = () => {
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
+    console.log('e: ', e)
     e.preventDefault()
     setAddedValueSetsLoading(true)
 
@@ -481,6 +485,7 @@ const ValueSets = () => {
     }
 
     const leafPutBody = JSON.stringify({
+      selectedTerminologyServer: selectedTerminologyServer?.value?.title,
       selectedValueSets,
       selectedConditions,
       selectedGroupers
@@ -565,9 +570,9 @@ const ValueSets = () => {
                       isMulti={false}
                       // @ts-ignore-next-line
                       options={searchTypes}
-                      value={searchTypeTest}
+                      value={searchType}
                       onChange={(e: any) => {
-                        return (setSearchTypeTest(e))
+                        return (setsearchType(e))
                       }}
                     />
                   </SelectInputContainer>
@@ -581,7 +586,7 @@ const ValueSets = () => {
                   hasIcon={true}
                   includeInfo={true}
                   // @ts-ignore-next-line
-                  info={searchInfoText[searchTypeTest.value]}
+                  info={searchInfoText[searchType.value]}
                   minWidth={300}
                 />
                 <IconButton
@@ -658,7 +663,7 @@ const ValueSets = () => {
         </Row>
       </SubmitSelectedForm>
       <SearchTable
-        searchType={searchTypeTest.value}
+        searchType={searchType.value}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         clearSelectedRows={toggledClearRows}

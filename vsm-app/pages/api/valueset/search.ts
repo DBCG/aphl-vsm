@@ -83,10 +83,14 @@ export default async function handler(
                 // @ts-expect-error
                 searchParams
               })
-  
+
               if (serverResponse.entry) {
+                console.log('serverresponse.entry: ', serverResponse.entry)
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                  // item.resource.url = item.fullUrl
+                  // add the URL in here because it doesn't exist on the resource result itself
+                  if (!item.resource.url) {
+                    item.resource.url = item.fullUrl
+                  }
                   return item.resource
                 })
                 // TODO need this for OID search too
@@ -103,7 +107,7 @@ export default async function handler(
                 responseInfo.last = getOffsetFromUrl(
                   serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
                 ) || null
-  
+
               }
             } catch (e) {
               console.error(e)
@@ -116,7 +120,7 @@ export default async function handler(
             responseInfo.error = {
               errorType: 'server-error',
               message: `Connection to terminology server failed.`
-            } 
+            }
           }
           break
         case 'oid':
@@ -132,16 +136,16 @@ export default async function handler(
                   id: oid
                 })
               )))
-  
+
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
                 ?.filter(x => x) as fhir4.ValueSet[]
-  
+
               const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
               responseInfo.total = successfulOIDs.length
-  
+
               const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
-  
+
               if (failedOIDs?.length > 0) {
                 const failureList = failedOIDs.join(', ')
                 responseInfo.error = {
@@ -153,7 +157,7 @@ export default async function handler(
                      Check if they are malformed or nonexistent and try again.`
                 }
               }
-  
+
             } catch (e) {
               console.error(e)
               responseInfo.error = {
@@ -184,7 +188,7 @@ export default async function handler(
                 // @ts-expect-error
                 searchParams
               })
-  
+
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                   // item.resource.url = item.fullUrl
@@ -204,7 +208,7 @@ export default async function handler(
                 responseInfo.last = getOffsetFromUrl(
                   serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
                 ) || null
-  
+
               }
             } catch (e) {
               console.error(e)

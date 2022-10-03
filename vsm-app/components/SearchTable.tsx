@@ -4,7 +4,6 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
-import { ReactNode } from 'react'
 
 interface TableData {
   name: ValueSet['name']
@@ -23,6 +22,7 @@ export interface BundleEntryItem {
 }
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
+  console.log('valueSets: ', valueSets)
   if (!valueSets?.length) {
     return []
   }
@@ -46,7 +46,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
       oid: id,
       url: url,
       version: version,
-      id: `${id}-version${version}`
+      id: id
     }
   })
 

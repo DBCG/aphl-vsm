@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { getSession } from 'next-auth/react'
-import { TerminologyClient } from 'fhirClients'
+import { terminologyClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
@@ -47,6 +47,8 @@ export default async function handler(
       ?.map(item => item?.status === 'fulfilled' && item?.value)
       ?.filter(x => x) as fhir4.Bundle[]
 
+    console.log('exists: ', existingVSetBundles)
+
     const filteredVSets = existingVSetBundles
       ?.filter(x => x)
       ?.map(item => item?.entry?.[0]?.resource) as fhir4.ValueSet[]
@@ -59,21 +61,20 @@ export default async function handler(
       } else {
         try {
 
-          const terminologyClientInstance = TerminologyClient.getInstance()
-          const terminologyClient = terminologyClientInstance.getClient()
-
-          const matchingVSetsFromRemoteServer = await terminologyClient.search({
+          terminologyClient.setClient(bodyJson.selectedTerminologyServer)
+          const terminologyClientInstance = terminologyClient.getClient()
+          let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
             resourceType: 'ValueSet',
             searchParams: {
               url: selectedVS.url,
-              // commenting out version here because they don't match in test data
-              // version: selectedVS.version
             }
           })
 
+          console.log('remote: ', matchingVSetsFromRemoteServer);
+
+
           const matchingVSFromRemote = matchingVSetsFromRemoteServer?.entry?.[0]?.resource
           if (matchingVSFromRemote) {
-            matchingVSFromRemote.url = matchingVSetsFromRemoteServer?.entry?.[0]?.fullUrl
             vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSFromRemote })
           } else {
             console.error('no match found')
@@ -98,7 +99,7 @@ export default async function handler(
     try {
       const performedUpdate = await Promise.allSettled(updatedValueSetItems.map(async (item) => {
         if (item.method === 'PUT') {
-          const updated = await fhirCdrClient.update({
+          await fhirCdrClient.update({
             resourceType: 'ValueSet',
             id: item.valueSet.id,
             body: item.valueSet
@@ -126,20 +127,25 @@ export default async function handler(
     }))
 
     try {
+      console.log('got here')
       // this assumes grouper already has a compose/include block, will need to be updated
       // when we allow users to create groupers
       await Promise.all(groupersToUpdate.map(async (grouperVs) => {
+        console.log('original grouper: ', grouperVs.compose.include)
+        console.log('selected valuesets:  ', bodyJson.selectedValueSets)
         const originalComposeInclude = grouperVs.compose.include[0].valueSet
         const newValueSetCanonicals = bodyJson.selectedValueSets.map((item: any) => item.url)
         // deduplicate with set
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
-        return await fhirCdrClient.update({
+        const result = await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs
         })
+
+        console.log('result grouper: ', JSON.stringify(result.compose.include))
       }))
     } catch (e) {
       console.error('error 4: ', e)
