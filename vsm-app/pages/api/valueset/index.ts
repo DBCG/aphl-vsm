@@ -47,8 +47,6 @@ export default async function handler(
       ?.map(item => item?.status === 'fulfilled' && item?.value)
       ?.filter(x => x) as fhir4.Bundle[]
 
-    console.log('exists: ', existingVSetBundles)
-
     const filteredVSets = existingVSetBundles
       ?.filter(x => x)
       ?.map(item => item?.entry?.[0]?.resource) as fhir4.ValueSet[]
@@ -56,6 +54,7 @@ export default async function handler(
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
       if (matchingValueSetInCQF) {
+
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
@@ -69,13 +68,16 @@ export default async function handler(
               url: selectedVS.url,
             }
           })
-
-          console.log('remote: ', matchingVSetsFromRemoteServer);
-
-
-          const matchingVSFromRemote = matchingVSetsFromRemoteServer?.entry?.[0]?.resource
-          if (matchingVSFromRemote) {
-            vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSFromRemote })
+          console.log('matches found in remote: ', matchingVSetsFromRemoteServer)
+          // add url from bundle since doesn't exist on resource
+          if (matchingVSetsFromRemoteServer.entry) {
+            matchingVSetsFromRemoteServer?.entry?.forEach((entryItem) => {
+              const valueSet = entryItem.resource
+              if (valueSet) {
+                valueSet.url = entryItem.fullUrl
+                vSetsToUpdate.push({ method: 'POST', valueSet })
+              }
+            })
           } else {
             console.error('no match found')
           }
@@ -89,7 +91,7 @@ export default async function handler(
     console.log('vsets to update: ', vSetsToUpdate)
     // handle if no vsets to update, too
     // add conditions to valueSet
-    const updatedValueSetItems = vSetsToUpdate?.map(vs => {
+    const valueSetItemsToUpdate = vSetsToUpdate?.map(vs => {
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
       return ({
         valueSet: updatedVs,
@@ -98,7 +100,7 @@ export default async function handler(
     })
 
     try {
-      const performedUpdate = await Promise.allSettled(updatedValueSetItems.map(async (item) => {
+      const performedUpdate = await Promise.allSettled(valueSetItemsToUpdate.map(async (item) => {
         if (item.method === 'PUT') {
           await fhirCdrClient.update({
             resourceType: 'ValueSet',
@@ -114,7 +116,6 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-      console.log('failed updates: ', failedUpdates?.[0]?.reason?.response?.data)
     } catch (e) {
       console.error('error 3', e)
     }
@@ -128,7 +129,6 @@ export default async function handler(
     }))
 
     try {
-      console.log('got here')
       // this assumes grouper already has a compose/include block, will need to be updated
       // when we allow users to create groupers
       await Promise.all(groupersToUpdate.map(async (grouperVs) => {
@@ -140,13 +140,12 @@ export default async function handler(
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
-        const result = await fhirCdrClient.update({
+        await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs
         })
 
-        console.log('result grouper: ', JSON.stringify(result.compose.include))
       }))
     } catch (e) {
       console.error('error 4: ', e)

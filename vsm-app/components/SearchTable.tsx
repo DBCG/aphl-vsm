@@ -22,7 +22,6 @@ export interface BundleEntryItem {
 }
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
-  console.log('valueSets: ', valueSets)
   if (!valueSets?.length) {
     return []
   }

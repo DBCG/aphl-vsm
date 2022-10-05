@@ -82,7 +82,6 @@ export default async function handler(
           } as SearchParams
 
           if (typeof offset === 'string') {
-            console.log('offset: ', offset)
             searchParams._offset = offset
           }
           if (activeTerminologyClient) {
@@ -94,11 +93,20 @@ export default async function handler(
               })
 
               if (serverResponse.entry) {
-                console.log('serverresponse.entry: ', serverResponse.entry)
-                responseInfo.valueSets = serverResponse.entry.map((item: any) => item?.resource)
+                console.log('serverResponse: ', serverResponse)
+                console.log('serverResponse.entry: ', serverResponse.entry)
+                responseInfo.valueSets = serverResponse.entry.map((item: any) => {
+                  if (!item?.resource) {
+                    return
+                  } else if (!item.resource.url) {
+                    console.log('lacks url')
+                    item.resource.url = item.fullUrl
+                  }
+                  console.log('item.resource: ', item.resource)
+                  return item.resource
+                })
                 // TODO need this for OID search too
                 responseInfo.total = serverResponse.total
-                console.log('serverresponse.link: ', serverResponse?.link)
                 responseInfo.first = getOffsetFromUrl(
                   serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url
                 ) || null
@@ -141,10 +149,15 @@ export default async function handler(
                 })
               )))
 
+              console.log('server response:', serverResponse)
+
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
-                ?.filter(x => x) as fhir4.ValueSet[]
+                ?.filter(x => x)
+                // filter out inactive VS
+                ?.filter((vs: fhir4.ValueSet) => vs.status === 'active') as fhir4.ValueSet[]
 
+              console.log('responseInfo.valueSets: ', responseInfo.valueSets)
               const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
               responseInfo.total = successfulOIDs.length
 
@@ -180,6 +193,7 @@ export default async function handler(
           searchParams = {
             'url:contains': search,
             _count: count,
+            status: 'active'
           } as SearchParams
 
           if (typeof offset === 'string') {
@@ -189,13 +203,15 @@ export default async function handler(
             try {
               serverResponse = await activeTerminologyClient.search({
                 resourceType: 'ValueSet',
+                status: 'active',
                 // @ts-expect-error
                 searchParams
               })
 
+              console.log('server response for URL: ', serverResponse.entry[0].resource)
+
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
-                  // item.resource.url = item.fullUrl
                   return item.resource
                 })
                 // TODO need this for OID search too

@@ -1,8 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import FhirKitClient from 'fhir-kit-client'
-import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
-import NodeCache from 'node-cache'
+import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { getSession } from 'next-auth/react'
@@ -35,7 +34,6 @@ interface ValueSetTableEntry {
 
 // TODO - replace with redis and make sure we stay under 20 requests per second
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-const cache = new NodeCache()
 
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
   // const cachedCopy = cache.get(canonical)
@@ -45,7 +43,6 @@ const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical
   const searchParams: Record<string, string> = { url }
   if (version) { searchParams.version = version }
   const result = client.search({ resourceType, searchParams })
-  // cache.set(canonical, result)
 
   return result
 }

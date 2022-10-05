@@ -263,8 +263,6 @@ const ValueSets = () => {
         previous: valueSetResponse?.previous || null,
         last: valueSetResponse?.last || null
       }
-      console.log('new ffsets: ', newOffsets);
-      
 
       // @ts-expect-error
       setOffsets(newOffsets)
@@ -452,7 +450,6 @@ const ValueSets = () => {
 
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    console.log('currentPage: ', currentPage)
     let queryStringItems = {
       searchType: searchType?.value,
       count: resultsPerPage,
@@ -477,7 +474,6 @@ const ValueSets = () => {
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
-    console.log('e: ', e)
     e.preventDefault()
     setAddedValueSetsLoading(true)
 
