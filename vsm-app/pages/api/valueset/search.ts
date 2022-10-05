@@ -93,16 +93,12 @@ export default async function handler(
               })
 
               if (serverResponse.entry) {
-                console.log('serverResponse: ', serverResponse)
-                console.log('serverResponse.entry: ', serverResponse.entry)
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                   if (!item?.resource) {
                     return
                   } else if (!item.resource.url) {
-                    console.log('lacks url')
                     item.resource.url = item.fullUrl
                   }
-                  console.log('item.resource: ', item.resource)
                   return item.resource
                 })
                 // TODO need this for OID search too
@@ -149,15 +145,13 @@ export default async function handler(
                 })
               )))
 
-              console.log('server response:', serverResponse)
-
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
                 ?.filter(x => x)
                 // filter out inactive VS
+                // @ts-ignore-next-line
                 ?.filter((vs: fhir4.ValueSet) => vs.status === 'active') as fhir4.ValueSet[]
 
-              console.log('responseInfo.valueSets: ', responseInfo.valueSets)
               const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
               responseInfo.total = successfulOIDs.length
 
@@ -190,6 +184,8 @@ export default async function handler(
           }
           break
         case 'url':
+          // VSAC is not respecting status=active. The following request shows some draft VS:
+          // http://cts.nlm.nih.gov/fhir/ValueSet?status=active
           searchParams = {
             'url:contains': search,
             _count: count,
@@ -203,12 +199,9 @@ export default async function handler(
             try {
               serverResponse = await activeTerminologyClient.search({
                 resourceType: 'ValueSet',
-                status: 'active',
                 // @ts-expect-error
                 searchParams
               })
-
-              console.log('server response for URL: ', serverResponse.entry[0].resource)
 
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
