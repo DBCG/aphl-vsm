@@ -68,7 +68,6 @@ export default async function handler(
               url: selectedVS.url,
             }
           })
-          console.log('matches found in remote: ', matchingVSetsFromRemoteServer)
           // add url from bundle since doesn't exist on resource
           if (matchingVSetsFromRemoteServer.entry) {
             matchingVSetsFromRemoteServer?.entry?.forEach((entryItem) => {
@@ -88,7 +87,6 @@ export default async function handler(
       }
     }
 
-    console.log('vsets to update: ', vSetsToUpdate)
     // handle if no vsets to update, too
     // add conditions to valueSet
     const valueSetItemsToUpdate = vSetsToUpdate?.map(vs => {
@@ -132,15 +130,12 @@ export default async function handler(
       // this assumes grouper already has a compose/include block, will need to be updated
       // when we allow users to create groupers
       await Promise.all(groupersToUpdate.map(async (grouperVs) => {
-        console.log('original grouper: ', grouperVs.compose.include)
-        console.log('selected valuesets:  ', bodyJson.selectedValueSets)
         const originalComposeInclude = grouperVs.compose.include[0].valueSet
         const newValueSetCanonicals = bodyJson.selectedValueSets.map((item: any) => item.url)
         // deduplicate with set
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
-        console.log('new grouper: ', newComposeInclude)
         await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,

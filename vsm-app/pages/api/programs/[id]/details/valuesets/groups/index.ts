@@ -99,7 +99,6 @@ export default async function handler(
           groupersToUpdate.push(removeValueSetFromGrouper(grouperValueSet, body.canonical))
         }
       }
-      console.log('groupers to update: ', groupersToUpdate)
       const result = await Promise.all(groupersToUpdate.map(grouperVs => (
         fhirCdrClient.update({
           resourceType: 'ValueSet',

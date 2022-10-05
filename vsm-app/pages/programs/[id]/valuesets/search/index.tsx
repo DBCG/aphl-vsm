@@ -248,14 +248,12 @@ const ValueSets = () => {
   }, [groups])
 
   useEffect(() => {
-    console.log('selected vs: ', selectedValueSets)
   }, [selectedValueSets])
 
   // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
       const valueSetResponse = await response.json() as SearchResponse
-      console.log('response: ', valueSetResponse)
       
       const newOffsets = {
         first: valueSetResponse?.first || null,
