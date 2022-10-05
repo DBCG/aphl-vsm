@@ -1,10 +1,10 @@
+import styled from 'styled-components'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
-import { SelectInputTitle, customStyles, SelectInputContainer } from 'pages/programs/[id]/valuesets'
+import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
-import { ReactNode } from 'react'
 
 interface TableData {
   name: ValueSet['name']
@@ -14,6 +14,7 @@ interface TableData {
   url: ValueSet['url']
   version: ValueSet['version']
   id: ValueSet['id']
+  status: ValueSet['status']
 }
 
 export interface BundleEntryItem {
@@ -21,9 +22,22 @@ export interface BundleEntryItem {
   resource: fhir4.ValueSet
 }
 
-interface PropagationProp {
-  children: ReactNode
+interface StatusProps {
+  status: 'active' | 'draft' | 'retired' | 'unknown'
 }
+
+const StatusTag = styled.div<StatusProps>`
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: ${ props => props.status === 'draft' ? '#F4CB92' : props.status === 'active' ? 'var(--theme-200)' : '#F4CB92' };
+  width: max-content;
+  display: inline-block;
+`
+
+const StatusWarning = styled.p`
+  color: var(--accent);
+  font-size: 80%;
+`
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
   if (!valueSets?.length) {
@@ -44,11 +58,13 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
     return {
       name,
       steward: publisher,
+      status: status,
       lastUpdated: updatedDate,
       oid: id,
       url: url,
       version: version,
-      id: `${id}-version${version}`
+      id: id,
+      valueSet: vs
     }
   })
 
@@ -58,6 +74,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
 interface Input {
   valueSets: ValueSet[] | undefined,
   setSelectedValueSets: (eventItem: any) => void,
+  setClearSelectedRows: (eventItem: any) => void,
   setFindInName: (eventItem: any) => void,
   setFindInSteward: (eventItem: any) => void,
   setFindInStatus: (eventItem: any) => void,
@@ -66,6 +83,7 @@ interface Input {
   setFindInVersion: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
+  clearSelectedRows: boolean,
   searchType: string,
   paginationTotalRows: number,
   isLoading: boolean,
@@ -97,6 +115,8 @@ const SearchTable = ({
   handlePerRowsChange,
   paginationTotalRows,
   searchType,
+  clearSelectedRows,
+  setClearSelectedRows,
   resultsPerPage,
 }: Input) => {
 
@@ -120,6 +140,37 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => row.name!,
+      sortable: false,
+      style: {
+        rowWrap: 'wrap'
+      }
+    },
+    {
+      name: (
+        <div>
+          <SelectInputTitle>Status</SelectInputTitle>
+            { showFilters && (
+              <FilterInput
+                onChange={(e: React.ChangeEvent<Element>) => {
+                  const target = e.target as HTMLInputElement
+                  setFindInName(target.value.trim())
+                }}
+                style={{ height: '30px' }}
+            />
+            )}
+        </div>
+      ),
+      wrap: true,
+      selector: (row: TableData) => (row.status),
+      cell : (row: TableData) => {
+        return (
+          <div>
+            <StatusTag status={row.status}>{row.status!}</StatusTag>
+            { row.status !== 'active' && (<><br/><StatusWarning>* only active ValueSets can be added to program</StatusWarning></>)} 
+          </div>
+          
+        )
+      }, 
       sortable: false,
       style: {
         rowWrap: 'wrap'
@@ -186,7 +237,7 @@ const SearchTable = ({
     {
       name: (
         <div>
-        <SelectInputTitle>OID</SelectInputTitle>
+        <SelectInputTitle>ID</SelectInputTitle>
           { showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
@@ -218,12 +269,18 @@ const SearchTable = ({
       progressComponent={<LoadingIndicator/>}
       onSelectedRowsChange={(e) => {
         setSelectedValueSets(e.selectedRows)
+        if (clearSelectedRows === true) {
+          setClearSelectedRows(false)
+        }
       }}
       // @ts-ignore-next-line
       customStyles={customStyles}
       paginationTotalRows={paginationTotalRows}
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
+      clearSelectedRows={clearSelectedRows}
+      selectableRowDisabled={row => row.status !== 'active'}
+
     />
   )
 }

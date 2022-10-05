@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { getSession } from 'next-auth/react'
+import { terminologyClient } from 'fhirClients'
 
 export default async function handler(
   req: NextApiRequest,
@@ -57,21 +58,29 @@ export default async function handler(
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
         try {
-          const matchingVSetsFromRemoteServer = await vsacFhirClient.search({
-            resourceType: 'ValueSet',
-            searchParams: {
-              url: selectedVS.url,
-              // commenting out version here because they don't match in test data
-              // version: selectedVS.version
+          terminologyClient.setClient(bodyJson.selectedTerminologyServer)
+          const terminologyClientInstance = terminologyClient.getClient()
+          if (terminologyClientInstance) {
+            let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
+              resourceType: 'ValueSet',
+              searchParams: {
+                url: selectedVS.url,
+              }
+            })
+            // add url from bundle since doesn't exist on resource
+            if (matchingVSetsFromRemoteServer.entry) {
+              matchingVSetsFromRemoteServer?.entry?.forEach((entryItem: any) => {
+                const valueSet = entryItem.resource
+                if (valueSet && !valueSet.url) {
+                  valueSet.url = entryItem.fullUrl
+                }
+                vSetsToUpdate.push({ method: 'POST', valueSet })
+              })
+            } else {
+              console.error('no match found')
             }
-          })
-
-          const matchingVSFromRemote = matchingVSetsFromRemoteServer?.entry?.[0]?.resource
-          if (matchingVSFromRemote) {
-            matchingVSFromRemote.url = matchingVSetsFromRemoteServer?.entry?.[0]?.fullUrl
-            vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSFromRemote })
           } else {
-            console.error('no match found')
+            throw new Error('Terminology client is not defined')
           }
 
         } catch (e) {
@@ -82,7 +91,7 @@ export default async function handler(
 
     // handle if no vsets to update, too
     // add conditions to valueSet
-    const updatedValueSetItems = vSetsToUpdate?.map(vs => {
+    const valueSetItemsToUpdate = vSetsToUpdate?.map(vs => {
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
       return ({
         valueSet: updatedVs,
@@ -91,9 +100,9 @@ export default async function handler(
     })
 
     try {
-      const performedUpdate = await Promise.allSettled(updatedValueSetItems.map(async (item) => {
+      const performedUpdate = await Promise.allSettled(valueSetItemsToUpdate.map(async (item) => {
         if (item.method === 'PUT') {
-          const updated = await fhirCdrClient.update({
+          await fhirCdrClient.update({
             resourceType: 'ValueSet',
             id: item.valueSet.id,
             body: item.valueSet
@@ -107,7 +116,7 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-
+      console.error('failed updates: ', failedUpdates)
     } catch (e) {
       console.error('error 3', e)
     }
@@ -130,11 +139,12 @@ export default async function handler(
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
-        return await fhirCdrClient.update({
+        await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs
         })
+
       }))
     } catch (e) {
       console.error('error 4: ', e)

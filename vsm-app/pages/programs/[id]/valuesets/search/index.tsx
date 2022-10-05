@@ -11,7 +11,7 @@ import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
-import { SearchInput, StyledLabel } from '@/components/SearchInput'
+import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
@@ -23,7 +23,30 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
 
+const searchTypes = [
+  { label: 'OID', value: 'oid' },
+  { label: 'Name', value: 'name' },
+  { label: 'URL', value: 'url'}
+]
+
+const searchInfoText = {
+  oid: 'OID search supports a comma-delimited list, max 100 OIDs',
+  name: 'Name search finds full or partial matches within VS name',
+  url: 'URL search requires a full URL'
+}
+
+const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+
+interface QueryStringItems {
+  searchType: string;
+  count: string;
+  sortBy:  string;
+  sortDirection: string;
+  offset: string;
+  terminologyServer: string;
+}
 const TitleRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -50,6 +73,18 @@ const StyledForm = styled.form`
   column-gap: 12px;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+`
+
+interface SubmitProps {
+  hide: boolean
+}
+
+const SubmitSelectedForm = styled.form<SubmitProps>`
+  padding: 12px 18px;
+  background-color: var(--theme-100);
+  max-height: ${props => props.hide ? '0' : '1000px'};
+  padding: ${props => props.hide ? '0' : 'auto'};
+  transition: all 0.3s;
 `
 
 const InnerFormRow = styled.div`
@@ -103,6 +138,11 @@ const ErrorBlock = styled.div`
   padding: 4px 6px;
   margin-top: 12px;
   position: relative;
+`
+
+const GroupsRequired = styled.i`
+  color: var(--accent);
+  font-size: 80%;
 `
 
 const ErrorBlockText = styled.p`
@@ -184,12 +224,16 @@ const ValueSets = () => {
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
-  const [searchType, setSearchType] = useState('name')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
+
+  // set default terminology server for search
+  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
+  const [searchType, setsearchType] = useState(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
+  const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
@@ -202,6 +246,9 @@ const ValueSets = () => {
     if (!groups) return []
     return formatGrouperValueSets(groups)
   }, [groups])
+
+  useEffect(() => {
+  }, [selectedValueSets])
 
   // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
@@ -217,7 +264,6 @@ const ValueSets = () => {
 
       // @ts-expect-error
       setOffsets(newOffsets)
-
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -328,7 +374,7 @@ const ValueSets = () => {
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams])
+  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -368,10 +414,11 @@ const ValueSets = () => {
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = async (e?: SyntheticEvent) => {
-
     if (e) {
       e.preventDefault()
     }
+
+    setToggledClearRows(true)
 
     let response
     if (!searchTerm?.trim()) {
@@ -379,13 +426,11 @@ const ValueSets = () => {
     }
 
     setIsLoading(true)
-    const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
-    const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
-    let searchType = ''
+    
     let searchStr = ''
-
-    if (trimmedWords?.some(word => word?.match(oidRegex))) {
-      searchType = 'oid'
+    
+    if (searchType.value === 'oid') {
+      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
       const dedupedOids = dedupeArray(trimmedWords)
       // if more than 100 OIDs, exit with error
       if (dedupedOids?.length > paginationMaximum) {
@@ -395,24 +440,35 @@ const ValueSets = () => {
         return
       }
       searchStr = dedupedOids?.join(',')
-    } else {
-      searchType = 'name'
+    } else if (searchType.value === 'name') {
+      searchStr = searchTerm.trim()
+    } else if (searchType.value === 'url') {
       searchStr = searchTerm.trim()
     }
-    setSearchType(searchType)
+
     // @ts-ignore-next-line
     let offset = offsets?.[currentPage?.type] || ''
-    let endpoint = `/api/valueset/search?search=${searchStr}&searchType=${searchType}&count=${resultsPerPage}&sortBy=${sortParams.column}&sortDirection=${sortParams.direction}`
-    
-    // if offsets are defined, add to the query
-    if (offset?.length) {
-      endpoint = endpoint.concat(`&offset=${offset}`)
+    let queryStringItems = {
+      searchType: searchType?.value,
+      count: resultsPerPage,
+      sortBy: sortParams?.column,
+      sortDirection: sortParams?.direction,
+      offset: offset,
+      terminologyServer: selectedTerminologyServer?.value?.title
     }
+
+    let queryString = ''
+    
+    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`)
+
+    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 
     response = await fetch(endpoint)
 
     const searchContext = filterExists ? 'filter' : 'search'
     await handleSearchResponse({ searchContext, response })
+    setToggledClearRows(false)
+    setSelectedValueSets([])
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
@@ -427,6 +483,7 @@ const ValueSets = () => {
     }
 
     const leafPutBody = JSON.stringify({
+      selectedTerminologyServer: selectedTerminologyServer?.value?.title,
       selectedValueSets,
       selectedConditions,
       selectedGroupers
@@ -448,6 +505,13 @@ const ValueSets = () => {
     // why does this not work?
     setSelectedValueSets([])
     setAddedValueSetsLoading(false)
+    if (toggledClearRows === false) {
+      setToggledClearRows(true)
+    }
+
+    if (leafsUpdated.ok) {
+      router.push(`/programs/${programId}/valuesets`)
+    }
   }
 
   useEffect(() => {
@@ -459,7 +523,7 @@ const ValueSets = () => {
   const showFilters = Boolean(searchTotal)
     && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
 
-  const vsNumExceedsFilterLimit = searchTotal && searchTotal > paginationMaximum
+  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
   return (
     <Col>
@@ -480,13 +544,51 @@ const ValueSets = () => {
           <StyledForm>
             <div>
               <InnerFormRow>
+                <div style={{ marginBottom: '12px' }}>
+                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                    Terminology Source
+                  </StyledLabel>
+                  <SelectInputContainer>
+                    <Select
+                      isMulti={false}
+                      // @ts-ignore-next-line
+                      options={terminologyServerEndpoints}
+                      value={selectedTerminologyServer}
+                      onChange={(e: any) => {
+                        return (setSelectedTerminologyServer(e))
+                      }
+                      }
+                    />
+                  </SelectInputContainer>
+                </div>
+              </InnerFormRow>
+              <InnerFormRow>
+                <div style={{ marginBottom: '16px' }}>
+                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                    Search By ValueSet
+                  </StyledLabel>
+                  <SelectInputContainer>
+                    <Select
+                      isMulti={false}
+                      // @ts-ignore-next-line
+                      options={searchTypes}
+                      value={searchType}
+                      onChange={(e: any) => {
+                        return (setsearchType(e))
+                      }}
+                    />
+                  </SelectInputContainer>
+                </div>
+              </InnerFormRow>
+              <InnerFormRow>
                 <TextArea
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
                   id='vs-search'
-                  label='Search by Name or OID'
+                  label='Search Text'
                   hasIcon={true}
                   includeInfo={true}
-                  info='OID search supports a comma-delimited list, max 100 OIDs'
+                  // @ts-ignore-next-line
+                  info={searchInfoText[searchType.value]}
                   minWidth={300}
                 />
                 <IconButton
@@ -523,7 +625,7 @@ const ValueSets = () => {
           </StyledForm>
         </Row>
       </TitleRow>
-      <form>
+      <SubmitSelectedForm hide={!selectedValueSets?.length}>
         <Row>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
@@ -541,7 +643,7 @@ const ValueSets = () => {
           </div>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
-              Groups
+              Groups <GroupsRequired>(*required)</GroupsRequired>
             </StyledLabel>
             <SelectInputContainer>
               <Select
@@ -556,16 +658,18 @@ const ValueSets = () => {
             </SelectInputContainer>
           </div>
         <Button text='Add Selected To Program'
+          disabled={!selectedValueSets.length || !selectedGroupers.length}
           style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
           onClick={(e) => submitAddVSet(e)}
         />
         </Row>
-
-      </form>
+      </SubmitSelectedForm>
       <SearchTable
-        searchType={searchType}
+        searchType={searchType.value}
         valueSets={!filterExists ? (valueSets || []) : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
+        clearSelectedRows={toggledClearRows}
+        setClearSelectedRows={setToggledClearRows}
         setFindInName={setFindInName}
         setFindInSteward={setFindInSteward}
         setFindInStatus={setFindInStatus}

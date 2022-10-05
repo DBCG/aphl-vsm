@@ -10,7 +10,7 @@ export default async function handler(
 ): Promise<any> {
   const session = await getSession({ req })
   if (!session) {
-    console.log('no session')
+    console.error('no session')
     res.status(401).end()
   }
 
@@ -28,23 +28,26 @@ export default async function handler(
           }
         }) as fhir4.Bundle
 
-        const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource
-        const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
+        const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
 
-        groupersToUpdate.push(updatedGrouper)
-        const result = await Promise.all(groupersToUpdate.map(grouperVs => (
-          fhirCdrClient.update({
-            resourceType: 'ValueSet',
-            id: grouperVs.id,
-            body: grouperVs
-          })
-        )))
-        res.status(200).send(result)
-        return
+        if (grouperVsToUpdate) {
+          const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
+
+          groupersToUpdate.push(updatedGrouper)
+          const result = await Promise.all(groupersToUpdate.map(grouperVs => (
+            fhirCdrClient.update({
+              resourceType: 'ValueSet',
+              id: grouperVs.id,
+              body: grouperVs
+            })
+          )))
+          res.status(200).send(result)
+          return
+        }
       }
 
     } catch (e) {
-      console.error('error here: ', e)
+      console.error('error here b: ', e)
     }
   }
 

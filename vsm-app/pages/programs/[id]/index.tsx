@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
@@ -91,8 +91,12 @@ export const FieldValue = styled.span``
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
+
+  useEffect(() => {
+    Modal.setAppElement('#__next');
+  }, [])
+
   const [isEditing, setIsEditing] = useIsEditing()
-  const [loading, setLoading] = useState(true)
   const [formTouched, setFormTouched] = useState(false)
   // to edit draft program
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
@@ -155,8 +159,6 @@ const ProgramDetails: NextPage = () => {
     e.preventDefault()
     setIsEditing()
   }
-
-  Modal.setAppElement('#__next');
 
   return (
     <Col>
