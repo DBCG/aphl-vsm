@@ -32,11 +32,6 @@ const getOffsetFromUrl = (str: string) => (
   || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
 )
 
-// const generatePaginationInfo = (linkBlock: fhir4.Bundle['link']) => {
-//   let paginationInfo = {}
-//   linkBlock?.forEach(linkItem => )
-// }
-
 interface SearchParams {
   'name:contains'?: string
   'url:contains'?: string
