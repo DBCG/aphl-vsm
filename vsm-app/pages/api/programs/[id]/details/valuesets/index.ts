@@ -32,12 +32,9 @@ interface ValueSetTableEntry {
   groups: Group[]
 }
 
-// TODO - replace with redis and make sure we stay under 20 requests per second
+// vsac limits queries
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-
 const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
-  // const cachedCopy = cache.get(canonical)
-  // if (cachedCopy && useCache) { return cachedCopy }
 
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
@@ -90,7 +87,6 @@ const fetchLeafValueSets = async (
     }))
     ))
 
-    // add canonical url to the valueset
     const valueSets = result?.map((e) => {
       if (e.entry) {
         return e.entry.map((entry: fhir4.BundleEntry) => {

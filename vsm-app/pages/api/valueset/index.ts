@@ -73,7 +73,7 @@ export default async function handler(
           if (matchingVSetsFromRemoteServer.entry) {
             matchingVSetsFromRemoteServer?.entry?.forEach((entryItem) => {
               const valueSet = entryItem.resource
-              if (valueSet) {
+              if (valueSet && !valueSet.url) {
                 valueSet.url = entryItem.fullUrl
                 vSetsToUpdate.push({ method: 'POST', valueSet })
               }
@@ -140,6 +140,7 @@ export default async function handler(
         const newComposeInclude = Array.from(new Set([...originalComposeInclude, ...newValueSetCanonicals]))
         grouperVs.compose.include[0].valueSet = newComposeInclude
 
+        console.log('new grouper: ', newComposeInclude)
         await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
