@@ -1,3 +1,4 @@
+import styled from 'styled-components'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
@@ -20,6 +21,19 @@ export interface BundleEntryItem {
   fullUrl: string
   resource: fhir4.ValueSet
 }
+
+const StatusTag = styled.div`
+  padding: 4px 8px;
+  border-radius: 8px;
+  background-color: pink;
+  width: max-content;
+  display: inline-block;
+`
+
+const StatusWarning = styled.p`
+  color: var(--accent);
+  font-size: 80%;
+`
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
   if (!valueSets?.length) {
@@ -144,7 +158,13 @@ const SearchTable = ({
       ),
       wrap: true,
       selector: (row: TableData) => {
-        return row.status!
+        return (
+          <>
+            <StatusTag>{row.status!}</StatusTag>
+            { row.status !== 'active' && (<><br/><StatusWarning>* only active ValueSets can be added to program</StatusWarning></>)} 
+          </>
+          
+        )
       },
         
       sortable: false,
@@ -255,6 +275,8 @@ const SearchTable = ({
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
       clearSelectedRows={clearSelectedRows}
+      selectableRowDisabled={row => row.status !== 'active'}
+
     />
   )
 }
