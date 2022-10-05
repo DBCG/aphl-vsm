@@ -58,26 +58,30 @@ export default async function handler(
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
         try {
-
           terminologyClient.setClient(bodyJson.selectedTerminologyServer)
           const terminologyClientInstance = terminologyClient.getClient()
-          let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
-            resourceType: 'ValueSet',
-            searchParams: {
-              url: selectedVS.url,
-            }
-          })
-          // add url from bundle since doesn't exist on resource
-          if (matchingVSetsFromRemoteServer.entry) {
-            matchingVSetsFromRemoteServer?.entry?.forEach((entryItem) => {
-              const valueSet = entryItem.resource
-              if (valueSet && !valueSet.url) {
-                valueSet.url = entryItem.fullUrl
+          if (terminologyClientInstance) {
+            let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
+              resourceType: 'ValueSet',
+              searchParams: {
+                url: selectedVS.url,
               }
-              vSetsToUpdate.push({ method: 'POST', valueSet })
             })
+            // add url from bundle since doesn't exist on resource
+            if (matchingVSetsFromRemoteServer.entry) {
+              matchingVSetsFromRemoteServer?.entry?.forEach((entryItem: any) => {
+                const valueSet = entryItem.resource
+                if (valueSet && !valueSet.url) {
+                  valueSet.url = entryItem.fullUrl
+                }
+                vSetsToUpdate.push({ method: 'POST', valueSet })
+              })
+            } else {
+              console.error('no match found')
+            }
           } else {
-            console.error('no match found')
+            throw new Error('Terminology client is not defined');
+
           }
 
         } catch (e) {
