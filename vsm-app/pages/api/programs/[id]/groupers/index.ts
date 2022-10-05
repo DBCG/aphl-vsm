@@ -47,7 +47,7 @@ export default async function handler(
       }
 
     } catch (e) {
-      console.error('error here: ', e)
+      console.error('error here b: ', e)
     }
   }
 

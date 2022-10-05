@@ -508,6 +508,10 @@ const ValueSets = () => {
     if (toggledClearRows === false) {
       setToggledClearRows(true)
     }
+
+    if (leafsUpdated.ok) {
+      router.push(`/programs/${programId}/valuesets`)
+    }
   }
 
   useEffect(() => {

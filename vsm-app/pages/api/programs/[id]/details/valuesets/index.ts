@@ -107,7 +107,7 @@ const fetchLeafValueSets = async (
     return valueSets
   } catch (e) {
     // TODO: handle
-    console.error('error here ', e)
+    console.error('error here a', e)
   }
 
 }

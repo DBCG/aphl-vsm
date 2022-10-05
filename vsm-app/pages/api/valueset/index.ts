@@ -54,7 +54,6 @@ export default async function handler(
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
       if (matchingValueSetInCQF) {
-
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
       } else {
@@ -74,8 +73,8 @@ export default async function handler(
               const valueSet = entryItem.resource
               if (valueSet && !valueSet.url) {
                 valueSet.url = entryItem.fullUrl
-                vSetsToUpdate.push({ method: 'POST', valueSet })
               }
+              vSetsToUpdate.push({ method: 'POST', valueSet })
             })
           } else {
             console.error('no match found')
@@ -114,6 +113,7 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
+      console.error('failed updates: ', failedUpdates)
     } catch (e) {
       console.error('error 3', e)
     }
