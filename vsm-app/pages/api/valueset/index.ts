@@ -80,8 +80,7 @@ export default async function handler(
               console.error('no match found')
             }
           } else {
-            throw new Error('Terminology client is not defined');
-
+            throw new Error('Terminology client is not defined')
           }
 
         } catch (e) {
