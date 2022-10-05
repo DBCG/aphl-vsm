@@ -2,19 +2,19 @@ import Client from 'fhir-kit-client'
 import FhirKitClient from 'fhir-kit-client'
 
 const {
-  NEXT_PUBLIC_FHIR_CDR_URL,
+  FHIR_CDR_URL,
   VSAC_USERNAME,
   VSAC_API_KEY,
-  NEXT_PUBLIC_VSAC_BASE_URL
+  VSAC_BASE_URL
 } = process.env as Record<string, string>
 
 const ONTOSERVER_R4_BASE_URL = 'https://r4.ontoserver.csiro.au/fhir'
 
 const vsacAuthString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
 
-const fhirCdrClient = new FhirKitClient({ baseUrl: NEXT_PUBLIC_FHIR_CDR_URL })
+const fhirCdrClient = new FhirKitClient({ baseUrl: FHIR_CDR_URL })
 
-const vsacFhirClient = new FhirKitClient({ baseUrl: NEXT_PUBLIC_VSAC_BASE_URL, customHeaders: { 'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}` } })
+const vsacFhirClient = new FhirKitClient({ baseUrl: VSAC_BASE_URL, customHeaders: { 'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}` } })
 
 // we need the ability to switch between different terminology servers
 class PrivateTerminologyClient {
@@ -36,7 +36,7 @@ class PrivateTerminologyClient {
   setClient(newClient: 'vsac' | 'ontoserverR4') {
     // defaults to VSAC
     let client = new FhirKitClient({
-      baseUrl: NEXT_PUBLIC_VSAC_BASE_URL,
+      baseUrl: VSAC_BASE_URL,
       customHeaders: {
         'Authorization': `Basic ${Buffer.from(vsacAuthString).toString('base64')}`
       }
