@@ -1,6 +1,5 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 export default async function handler(
@@ -10,15 +9,30 @@ export default async function handler(
 
   // create library template
   try {
-    let bodyJson = JSON.stringify(req.body)
-    const response = await fhirCdrClient.request('Library/$draft', {
-      method: 'POST',
-      body: bodyJson,
+    let body = JSON.parse(req.body)
+
+    const postBody = JSON.stringify({
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'specification',
+          resource: body
+        }
+      ]
     })
 
-    res.send(response)
+    const resp = await fetch(`${process.env.NEXT_PUBLIC_FHIR_CDR_URL}/$draft`, {
+      method: 'POST',
+      headers: {
+        'cache-control': 'no-cache',
+        'content-type': 'application/json'
+      },
+      body: postBody
+    })
+
+    res.send(resp)
   } catch (e: any) {
-    console.error('error:  ', e.response.data)
+    console.error('error:  ', e)
     res.status(400).json({ error: 'Creation of new library failed.' })
   }
 }
