@@ -21,7 +21,7 @@ export default async function handler(
       ]
     })
 
-    const resp = await fetch(`${process.env.NEXT_PUBLIC_FHIR_CDR_URL}/$draft`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_FHIR_CDR_URL}/$draft`, {
       method: 'POST',
       headers: {
         'cache-control': 'no-cache',
@@ -30,7 +30,10 @@ export default async function handler(
       body: postBody
     })
 
-    res.send(resp)
+    let json = await response.json()
+
+    console.log('response: ', json)
+    res.send(response)
   } catch (e: any) {
     console.error('error:  ', e)
     res.status(400).json({ error: 'Creation of new library failed.' })
