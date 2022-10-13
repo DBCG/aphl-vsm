@@ -42,7 +42,7 @@ export default async function handler(
         },
         searchParams: {
           context: 'program',
-          _sort: ['-date'],
+          _sort: ['-_lastUpdated'],
           ...queries
         }
       })
@@ -52,7 +52,7 @@ export default async function handler(
       res.status(200).send(json)
 
     } catch (e: any) {
-      console.error('error programs:  ', e)
+      console.error('error programs:  ', e.response.data.text)
       res.status(400).json({ error: 'Search for program failed.' })
     }
   }
