@@ -147,7 +147,7 @@ const Programs: NextPage = () => {
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => (
+      cell: (row: fhir4.Library) => row.status === 'active' && (
         <ButtonWrapper>
           <IconButton
             onClick={() => router.push(`/programs/template?id=${row.id}`)}
