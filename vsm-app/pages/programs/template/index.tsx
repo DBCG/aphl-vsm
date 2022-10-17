@@ -38,11 +38,8 @@ const Template = () => {
   let programId = router?.query?.id || ''
   const programDetails = useGetProgramValueSetDetails(`${programId}`)
   const program = useGetPrograms({ id: `${programId}` })
-  let [data, setData] = useState('')
 
-  let href: any = '';
-  
-  const fetchData = async () => {
+  const cloneProgram = async () => {
     let libraryData: any = ''
     libraryData = program[0]
     const json = JSON.stringify(libraryData)
@@ -60,8 +57,8 @@ const Template = () => {
   }
 
   const onClickClone = () => {
-    fetchData();
-  };
+    cloneProgram()
+  }
 
   const columns = useMemo(() => [
     {
@@ -87,7 +84,7 @@ const Template = () => {
       wrap: true,
       
     }
-  ], [data])
+  ], [])
 
   {
     return (
