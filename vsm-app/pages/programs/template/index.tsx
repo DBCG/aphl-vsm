@@ -73,16 +73,14 @@ const Template = () => {
       selector: (row: DataItem) => row.valueSet.version,
       sortable: true,
       maxWidth: '250px',
-      wrap: true,
-      
+      wrap: true
     },
     {
       name: 'Edit Value Set Version',
       selector: (row: DataItem) => 'include a select here to get available versions?',
       sortable: true,
       maxWidth: '250px',
-      wrap: true,
-      
+      wrap: true
     }
   ], [])
 
