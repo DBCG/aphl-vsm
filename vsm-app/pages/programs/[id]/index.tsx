@@ -126,17 +126,25 @@ const ProgramDetails: NextPage = () => {
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
 
   const submitChanges = async (e: React.SyntheticEvent) => {
-    const response = await fetch(`/api/programs/${id}`,{
+    handleEditButton(e)
+    e.preventDefault()
+    const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
       body: JSON.stringify(editedProgram)
     })
     
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
+
+      console.log('response was not ok: ', response)
       setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
+      // should handle if doesn't work
+      return
+    } else {
+      // router.push(`/programs?new=updated`)
+      const json = JSON.stringify(response)
+      console.log('response: ', json)
     }
-    handleEditButton(e)
-    e.preventDefault()
   }
 
   const identifier = router.query.id as string
@@ -161,7 +169,6 @@ const ProgramDetails: NextPage = () => {
 
   const program = setProgram()
   const { id='', name='', version='', title='', description='', status } = program
-  const viewEditButton: boolean = status === 'draft'
 
   const onClick = () => {
     router.push(`/programs/${id}/valuesets`)
@@ -215,7 +222,7 @@ const ProgramDetails: NextPage = () => {
           <Row className='inputs'>
             <ModalForm>
             <PageTitle>Edit Program Metadata</PageTitle> 
-              <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
+              <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
               <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
