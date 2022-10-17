@@ -13,6 +13,7 @@ import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { StatusProps } from '..'
 
 const Row = styled.div`
   display: flex;
@@ -39,6 +40,29 @@ const Col = styled.div`
   width: 100%;
   flex-direction: column;
   height: fit-content;
+`
+
+const MetadataTitle = styled.div`
+  display: flex;
+  align-items: center;
+`
+
+const StatusTag = styled.div<StatusProps>`
+  border-radius: 8px;
+  padding: 12px 24px;
+  height: fit-content;
+  color: ${
+    props => props.status === 'active'
+    ? 'white'
+    : '#ca9547'
+  };
+  font-weight: bold;
+  text-transform: uppercase;
+  background-color: ${
+    props => props.status === 'active'
+    ? 'rgba(46, 192, 205, 1)'
+    : 'white'
+  }
 `
 
 export const ItemWrapper = styled.div`
@@ -163,12 +187,17 @@ const ProgramDetails: NextPage = () => {
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
-        <PageTitle style={{ marginRight: '12px' }}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
-        <Button
-          style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
-          text='Edit Program Metadata'
-          onClick={handleEditButton}
-        />
+        <MetadataTitle>
+          <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
+          <StatusTag status={status}>{status}</StatusTag>
+        </MetadataTitle>
+        {status === 'draft' && (
+          <Button
+            style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
+            text='Edit Program Metadata'
+            onClick={handleEditButton}
+          />
+        )}
       </Row>
       <Modal
         isOpen={isEditing}
@@ -211,10 +240,6 @@ const ProgramDetails: NextPage = () => {
           <div>
             <Row className='readonly-inputs'>
               <ItemWrapper>
-                <FieldTitle>ID </FieldTitle>
-                <FieldValue>{ id }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
                 <FieldTitle>Title </FieldTitle>
                 <FieldValue>{ title }</FieldValue>
               </ItemWrapper>
@@ -224,18 +249,13 @@ const ProgramDetails: NextPage = () => {
               </ItemWrapper>
               <ItemWrapper>
                 <FieldTitle>Version </FieldTitle>
-                <FieldValue>{ version }</FieldValue>
+                <FieldValue>{ version || 'No version set'}</FieldValue>
               </ItemWrapper>
               <ItemWrapper>
                 <FieldTitle>Description </FieldTitle>
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
             </Row>
-            { viewEditButton ? <Button text={'Edit Program'} 
-                style={{ marginBottom: '12px', width: '150px', backgroundColor: '' }} 
-                onClick={handleEditButton}
-              /> : null
-            }
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>
               <Button text='View ValueSets'

@@ -31,7 +31,8 @@ const ButtonWrapper = styled.div`
   justify-content: center;
   width: 100%;
 `
-interface StatusProps {
+
+export interface StatusProps {
   status: string
 }
 
@@ -50,6 +51,14 @@ const customStyles = {
     style: {
       paddingTop: '12px',
       paddingBottom: '12px'
+    }
+  },
+  rows: {
+    style: {
+      cursor: 'pointer',
+    },
+    highlightOnHoverStyle: {
+      backgroundColor: '#DBF0F3'
     }
   }
 }
@@ -125,21 +134,6 @@ const Programs: NextPage = () => {
       selector: (row: fhir4.Library) => row.version,
       sortable: true,
       wrap: true
-    },
-    {
-      name: 'View + Edit',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: false,
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => (
-        <ButtonWrapper>
-          <IconButton
-            onClick={() => router.push(`/programs/${row.id}`)}
-            buttonContext='edit'
-          />
-        </ButtonWrapper>
-      )
     },
     {
       name: 'Use as Template',
@@ -259,6 +253,8 @@ const Programs: NextPage = () => {
         theme='aphl'
         pagination
         fixedHeader
+        highlightOnHover={true}
+        onRowClicked={(row) => router.push(`/programs/${row.id}`)}
         customStyles={customStyles}
         progressPending={!programs.length}
         progressComponent={<LoadingIndicator/>}
