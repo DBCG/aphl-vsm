@@ -221,29 +221,7 @@ const Programs: NextPage = () => {
              minWidth={300}
              style={{ height: '140px' }}
            />
-          </Row>   
-         </Col>
-         <Col>
-           <Row>
-             <Button style={{ marginTop: '1px', width:'160px' }} text='Search'
-               onClick={onClickSearch}
-             />
-           </Row>
-           <Row>
-             <Button style={{ marginTop: '1px', width:'160px' }} text='Download'
-               onClick={onClickDownload}
-             />
-           </Row>
-           <Row>    
-             <Button style={{ marginTop: '1px', width:'160px'}} text='+Value Set'
-               onClick={onClickValueSet}
-             />
-           </Row>
-           <Row>
-             <Button style={{ marginTop: '1px', width:'160px'}} text='Add New Program'
-               onClick={onClick}
-             />
-           </Row>
+          </Row>
          </Col>
       </Row>
       <DT
