@@ -30,9 +30,6 @@ export default async function handler(
       body: postBody
     })
 
-    let json = await response.json()
-
-    console.log('response: ', json)
     res.send(response)
   } catch (e: any) {
     console.error('error:  ', e)
