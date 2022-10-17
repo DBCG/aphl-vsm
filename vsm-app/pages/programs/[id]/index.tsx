@@ -13,6 +13,7 @@ import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { StatusProps } from '..'
 
 const Row = styled.div`
   display: flex;
@@ -39,6 +40,29 @@ const Col = styled.div`
   width: 100%;
   flex-direction: column;
   height: fit-content;
+`
+
+const MetadataTitle = styled.div`
+  display: flex;
+  align-items: center;
+`
+
+const StatusTag = styled.div<StatusProps>`
+  border-radius: 8px;
+  padding: 12px 24px;
+  height: fit-content;
+  color: ${
+    props => props.status === 'active'
+    ? 'white'
+    : '#ca9547'
+  };
+  font-weight: bold;
+  text-transform: uppercase;
+  background-color: ${
+    props => props.status === 'active'
+    ? 'rgba(46, 192, 205, 1)'
+    : 'white'
+  }
 `
 
 export const ItemWrapper = styled.div`
@@ -82,7 +106,7 @@ const IndicatorContainer = styled.div`
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
-  backgroundColor: 'darkOrange',
+  backgroundColor: '#ca9547',
   marginTop: '20px',
   alignSelf: 'center'
 }
@@ -102,7 +126,9 @@ const ProgramDetails: NextPage = () => {
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
 
   const submitChanges = async (e: React.SyntheticEvent) => {
-    const response = await fetch(`/api/programs/${id}`,{
+    handleEditButton(e)
+    e.preventDefault()
+    const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
       body: JSON.stringify(editedProgram)
     })
@@ -110,9 +136,12 @@ const ProgramDetails: NextPage = () => {
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
       setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
+      // should handle if doesn't work
+      return
+    } else {
+      // return to programs page, with updated data
+      router.push(`/programs`)
     }
-    handleEditButton(e)
-    e.preventDefault()
   }
 
   const identifier = router.query.id as string
@@ -136,10 +165,10 @@ const ProgramDetails: NextPage = () => {
   }
 
   const program = setProgram()
-  const { id='', name='', version='', title='', description='', status } = program
-  const viewEditButton: boolean = status === 'draft'
 
-  const onClick = () => {
+  const { id='', name='', version='', title='', description='', status } = program
+
+  const viewValueSets = () => {
     router.push(`/programs/${id}/valuesets`)
   }
 
@@ -163,12 +192,17 @@ const ProgramDetails: NextPage = () => {
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
-        <PageTitle style={{ marginRight: '12px' }}>Program Details: <i style={{ textTransform: 'none'}}>{ id }</i></PageTitle>
-        <Button
-          style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
-          text='Edit Program Metadata'
-          onClick={handleEditButton}
-        />
+        <MetadataTitle>
+          <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
+          <StatusTag status={status}>{status}</StatusTag>
+        </MetadataTitle>
+        {status === 'draft' && (
+          <Button
+            style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
+            text='Edit Program Metadata'
+            onClick={handleEditButton}
+          />
+        )}
       </Row>
       <Modal
         isOpen={isEditing}
@@ -185,8 +219,8 @@ const ProgramDetails: NextPage = () => {
         <div>
           <Row className='inputs'>
             <ModalForm>
-            <PageTitle>Edit Program Metadata</PageTitle> 
-              <SearchInput id='prog-id' label='ID' def={id} disabled={true}/>
+              <PageTitle>Edit Program Metadata</PageTitle> 
+              <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
               <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
@@ -211,10 +245,6 @@ const ProgramDetails: NextPage = () => {
           <div>
             <Row className='readonly-inputs'>
               <ItemWrapper>
-                <FieldTitle>ID </FieldTitle>
-                <FieldValue>{ id }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
                 <FieldTitle>Title </FieldTitle>
                 <FieldValue>{ title }</FieldValue>
               </ItemWrapper>
@@ -224,22 +254,17 @@ const ProgramDetails: NextPage = () => {
               </ItemWrapper>
               <ItemWrapper>
                 <FieldTitle>Version </FieldTitle>
-                <FieldValue>{ version }</FieldValue>
+                <FieldValue>{ version || 'No version set'}</FieldValue>
               </ItemWrapper>
               <ItemWrapper>
                 <FieldTitle>Description </FieldTitle>
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
             </Row>
-            { viewEditButton ? <Button text={'Edit Program'} 
-                style={{ marginBottom: '12px', width: '150px', backgroundColor: '' }} 
-                onClick={handleEditButton}
-              /> : null
-            }
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>
               <Button text='View ValueSets'
-                onClick={onClick}
+                onClick={viewValueSets}
               />
             </Row>
           </div>

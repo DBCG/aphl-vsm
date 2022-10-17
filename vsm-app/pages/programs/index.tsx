@@ -9,25 +9,41 @@ import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 24px;
+  justify-content: space-evenly;
+  margin-bottom: 15px;
   flex-wrap: wrap;
 `
 
 const Col = styled.div`
   display: flex;
-  width: 100%;
   flex-direction: column;
   height: fit-content;
 `
 
 const ButtonWrapper = styled.div`
-  margin-left: 12px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+`
+
+export interface StatusProps {
+  status: string
+}
+
+const StatusTag = styled.div<StatusProps>`
+  padding: 4px 6px;
+  border-radius: 4px;
+  background-color: ${
+    props => props.status === 'active'
+    ? 'rgba(46, 192, 205, 0.3)'
+    : 'rgba(252, 186, 3, 0.3)'
+  }
 `
 
 const customStyles = {
@@ -36,29 +52,52 @@ const customStyles = {
       paddingTop: '12px',
       paddingBottom: '12px'
     }
+  },
+  rows: {
+    style: {
+      cursor: 'pointer',
+    },
+    highlightOnHoverStyle: {
+      backgroundColor: '#DBF0F3'
+    }
   }
 }
 
+
 const Programs: NextPage = () => {
   const router = useRouter()
+  const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
 
-  const session = useSession()
-
   const programs = useGetPrograms({
+    id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
-    description: searchTermDescription
+    description: searchTermDescription,
+    newProgram: `${router?.query?.new}`
   })
 
   const columns = useMemo(() => [
     {
+      name: 'Status',
+      selector: (row: fhir4.Library) => row.status,
+      sortable: true,
+      maxWidth: '150px',
+      wrap: true,
+      center: true,
+      cell: (row: fhir4.Library) => {
+        return (
+          <StatusTag status={row.status}>{ row.status }</StatusTag>
+        )
+      }
+    },
+    {
       name: 'Updated',
       selector: (row: fhir4.Library) => row.date,
       sortable: true,
-      maxWidth: '150px',
+      maxWidth: '100px',
       wrap: true
     },
     {
@@ -97,20 +136,37 @@ const Programs: NextPage = () => {
       wrap: true
     },
     {
-      name: 'View + Edit',
+      name: 'Use as Template',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
-      cell: (row: fhir4.Library) => (
+      center: true,
+      cell: (row: fhir4.Library) => row.status === 'active' && (
         <ButtonWrapper>
           <IconButton
-            onClick={() => router.push(`/programs/${row.id}`)}
-            buttonContext='edit'
+            onClick={() => router.push(`/programs/template?id=${row.id}`)}
+            buttonContext='clone'
           />
         </ButtonWrapper>
       )
     }
-  ], [router])
+  ], [router, router?.query?.new])
+
+  const onClickDownload = () => {
+    router.push('/programs/download')
+  }
+
+  const onClickNewVersion = () => {
+    router.push('/programs/template')
+  }
+
+  const onClickSearch = () => {
+    router.push('/api/programs')
+  }
+
+  const onClickValueSet = () => {
+    router.push('/programs/valueset')
+  }
 
   const onClick = () => {
     router.push('/programs/new')
@@ -122,34 +178,53 @@ const Programs: NextPage = () => {
       <PageTitle>
         Programs
       </PageTitle>
-      <Row>
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
-          id='program-search-name'
-          label='Name'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
-          id='program-search-title'
-          label='Title'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <SearchInput
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            setSearchTermDescription(e.target.value)
-          }}
-          id='program-search-description'
-          label='Description'
-          hasIcon={true}
-          minWidth={400}
-        />
-        <Button style={{ marginTop: '12px' }} text='Add New Program'
-          onClick={onClick}
-        />
-      </Row>
+        {/* comment out below because some previous work broke this */}
+        {/* <Row>
+          <Col>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
+               id='program-search-id'
+               label='ID'
+               hasIcon={true}
+               style={{ paddingTop: '15px' }}      
+             />
+           </Row>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
+               id='program-search-name'
+               label='Name'
+               hasIcon={true}
+               style={{ paddingTop: '15px' }}        
+             />
+           </Row>
+         </Col>
+         <Col>
+           <Row>
+             <SearchInput
+               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
+               id='program-search-title'
+               label='Title'
+               hasIcon={true}
+               minWidth={500}
+               style={{ paddingTop: '15px' }}
+             />
+           </Row>
+         </Col>
+         <Col> 
+          <Row>
+           <SearchInput
+             onChange={(e: ChangeEvent<HTMLInputElement>) => {setSearchTermDescription(e.target.value)}}
+             id='program-search-description'
+             label='Description'
+             hasIcon={true}
+             minWidth={300}
+             style={{ height: '140px' }}
+           />
+          </Row>
+         </Col>
+      </Row> */}
       <DT
         data={programs}
         // @ts-expect-error
@@ -157,8 +232,12 @@ const Programs: NextPage = () => {
         theme='aphl'
         pagination
         fixedHeader
+        highlightOnHover={true}
+        onRowClicked={(row) => router.push(`/programs/${row.id}`)}
         customStyles={customStyles}
-      />
+        progressPending={!programs.length}
+        progressComponent={<LoadingIndicator/>}
+        />
     </Col>
   )
 }

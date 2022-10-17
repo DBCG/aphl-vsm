@@ -58,6 +58,7 @@ export default async function handler(
           resourceType: 'ValueSet',
           searchParams
         })
+
         const resource = grouperVS?.entry?.[0]?.resource
         if (resource) {
           grouperValueSets.push(resource)
