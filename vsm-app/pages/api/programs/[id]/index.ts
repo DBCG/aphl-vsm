@@ -14,8 +14,6 @@ export default async function handler(
     res.status(401).end()
   }
 
-  console.log('req query: ', req.query['id'])
-
   if (req.method === 'GET') {
     try {
       const data = await fhirCdrClient.search({
@@ -38,6 +36,10 @@ export default async function handler(
     try {
       // if the user does not want to change the id of the FHIR Library
       // simply update the values in the existing resource
+      if (req.body.status === 'active') {
+        console.error('Cannot edit an active Program Library')
+        res.status(405).send('Not allowed')
+      }
       if (req.body.id === req.query['id']) {
         // update the program by id
         const response = await fhirCdrClient.update({
@@ -56,27 +58,19 @@ export default async function handler(
           body: req.body,
         }).then(async (newLibraryData) => {
           const { response: newLibraryResponse } = Client.httpFor(newLibraryData)
-          console.log('got here')
           // return response
           if (newLibraryResponse.ok) {
-            console.log('new program created, delete old one')
-            console.log('library to delete: ', req.query['id'])
             await fhirCdrClient.delete({
               resourceType: 'Library',
               id: req.query['id'] as string
             }).then((data) => {
-              const { response: deleteResponse, request } = Client.httpFor(data)
-              console.log('data: ', deleteResponse)
-              console.log('request from delete: ', request)
+              const { response: deleteResponse } = Client.httpFor(data as any)
               if (deleteResponse.ok) {
-                console.log('delete was ok')
-                console.log('response from delete: ', deleteResponse)
                 res.send(newLibraryData)
               }
             })
           } else {
             console.error('failed to create new program');
-
           }
         })
       }
