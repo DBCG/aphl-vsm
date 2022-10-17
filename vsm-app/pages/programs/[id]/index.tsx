@@ -106,7 +106,7 @@ const IndicatorContainer = styled.div`
 const buttonStyles = {
   marginBottom: '12px',
   width: '150px',
-  backgroundColor: 'darkOrange',
+  backgroundColor: '#ca9547',
   marginTop: '20px',
   alignSelf: 'center'
 }
@@ -135,15 +135,12 @@ const ProgramDetails: NextPage = () => {
     
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
-
-      console.log('response was not ok: ', response)
       setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
       // should handle if doesn't work
       return
     } else {
-      // router.push(`/programs?new=updated`)
-      const json = JSON.stringify(response)
-      console.log('response: ', json)
+      // return to programs page, with updated data
+      router.push(`/programs`)
     }
   }
 
@@ -168,9 +165,10 @@ const ProgramDetails: NextPage = () => {
   }
 
   const program = setProgram()
+
   const { id='', name='', version='', title='', description='', status } = program
 
-  const onClick = () => {
+  const viewValueSets = () => {
     router.push(`/programs/${id}/valuesets`)
   }
 
@@ -221,7 +219,7 @@ const ProgramDetails: NextPage = () => {
         <div>
           <Row className='inputs'>
             <ModalForm>
-            <PageTitle>Edit Program Metadata</PageTitle> 
+              <PageTitle>Edit Program Metadata</PageTitle> 
               <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
@@ -266,7 +264,7 @@ const ProgramDetails: NextPage = () => {
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>
               <Button text='View ValueSets'
-                onClick={onClick}
+                onClick={viewValueSets}
               />
             </Row>
           </div>
