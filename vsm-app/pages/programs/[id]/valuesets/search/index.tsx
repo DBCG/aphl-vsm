@@ -223,7 +223,6 @@ const ValueSets = () => {
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
-  const [findInVersion, setFindInVersion] = useState('')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set default terminology server for search
@@ -292,7 +291,6 @@ const ValueSets = () => {
     || findInSteward?.length
     || findInOid?.length
     || findInLastUpdated?.length
-    || findInVersion?.length
 
   // handle filters
   useEffect(() => {
@@ -323,11 +321,6 @@ const ValueSets = () => {
           vs => vs?.status === findInStatus
         )
       }
-      if (findInVersion?.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          vs => vs?.version?.toLowerCase()?.includes(findInVersion?.toLocaleLowerCase())
-        )
-      }
       if (findInSteward?.length) {
         filteredValueSets = filteredValueSets?.filter(
           vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase())
@@ -356,8 +349,7 @@ const ValueSets = () => {
     }
   }, [
     valueSets, findInName, findInStatus,
-    findInSteward, findInOid, findInLastUpdated,
-    findInVersion, currentPage,
+    findInSteward, findInOid, findInLastUpdated, currentPage,
     resultsPerPage, sortParams
   ])
 
@@ -675,7 +667,6 @@ const ValueSets = () => {
         setFindInStatus={setFindInStatus}
         setFindInOid={setFindInOid}
         setFindInLastUpdated={setFindInLastUpdated}
-        setFindInVersion={setFindInVersion}
         showFilters={showFilters}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
