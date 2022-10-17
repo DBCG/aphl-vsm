@@ -178,7 +178,8 @@ const Programs: NextPage = () => {
       <PageTitle>
         Programs
       </PageTitle>
-        <Row>
+        {/* comment out below because some previous work broke this */}
+        {/* <Row>
           <Col>
            <Row>
              <SearchInput
@@ -223,7 +224,7 @@ const Programs: NextPage = () => {
            />
           </Row>
          </Col>
-      </Row>
+      </Row> */}
       <DT
         data={programs}
         // @ts-expect-error
