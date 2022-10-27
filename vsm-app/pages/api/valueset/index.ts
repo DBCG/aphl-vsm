@@ -2,8 +2,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
+import { addExtensionToVs } from '@/helpers/valueSetHelpers'
 import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
 
 export default async function handler(
   req: NextApiRequest,
@@ -53,6 +55,7 @@ export default async function handler(
 
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
+      // valueset already exists in our server, don't need to call other terminology server
       if (matchingValueSetInCQF) {
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
@@ -70,10 +73,21 @@ export default async function handler(
             // add url from bundle since doesn't exist on resource
             if (matchingVSetsFromRemoteServer.entry) {
               matchingVSetsFromRemoteServer?.entry?.forEach((entryItem: any) => {
-                const valueSet = entryItem.resource
+                let valueSet = entryItem.resource
                 if (valueSet && !valueSet.url) {
                   valueSet.url = entryItem.fullUrl
                 }
+
+                const vsUrl = terminologyServerEndpoints
+                  ?.find(grp => grp.value.title === bodyJson.selectedTerminologyServer)
+                  ?.value?.url
+
+                if (vsUrl) {
+                  // add authoritativeSource extension
+                  // this allows us to keep track of where valuesets come from
+                  valueSet = addExtensionToVs(valueSet, 'https://hl7.org/fhir/extension-valueset-authoritativesource.html', vsUrl)
+                }
+
                 vSetsToUpdate.push({ method: 'POST', valueSet })
               })
             } else {
