@@ -13,6 +13,7 @@ const FileBody = styled.div`
   min-height: 500px;
   padding: 32px 36px;
   position: relative;
+  backdrop-filter: blur(8px);
 `
 
 interface FileContainerProps  {
