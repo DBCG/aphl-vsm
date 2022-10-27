@@ -75,6 +75,16 @@ const StyledForm = styled.form`
   flex-wrap: wrap;
 `
 
+const DescriptionText = styled.p`
+  color: var(--theme-500);
+  line-height: 160%;
+`
+
+const LinkText = styled.a`
+  text-decoration: underline;
+  cursor: pointer;
+`
+
 interface SubmitProps {
   hide: boolean
 }
@@ -160,6 +170,7 @@ const CopyButton = styled.button`
   right: 6px;
   padding: 0px 6px 4px 6px;
 `
+
 const paginationMaximum = 100
 
 const columnSortMap = {
@@ -422,7 +433,7 @@ const ValueSets = () => {
     let searchStr = ''
     
     if (searchType.value === 'oid') {
-      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term =>term?.trim())
+      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term => term?.trim())
       const dedupedOids = dedupeArray(trimmedWords)
       // if more than 100 OIDs, exit with error
       if (dedupedOids?.length > paginationMaximum) {
@@ -531,7 +542,12 @@ const ValueSets = () => {
         <ToastContainer
           closeOnClick={false}
         />
-        <PageTitle>Add ValueSets to Program: {programId}</PageTitle>
+        <Col style={{ marginRight: '24px' }}>
+          <PageTitle>Add ValueSets: {programId}</PageTitle>
+          <DescriptionText>Valuesets added here will default to the most recent version available.
+            <br />After adding a valueset to the program, you may specify a different version on <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
+          </DescriptionText>
+        </Col>
         <Row>
           <StyledForm>
             <div>
