@@ -33,4 +33,24 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
   return vs
 }
 
-export { addValueSetToGrouper, removeValueSetFromGrouper }
+// this only handles extensions with valueUri as type for now
+const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionValue: string): fhir4.ValueSet => {
+  const valueToAdd = {
+    url: extensionUri,
+    valueUri: extensionValue
+  }
+
+  if (vs?.extension) {
+    // if this extension already exists
+    if (vs?.extension?.find(ext => ext?.url === extensionUri)) {
+      return vs
+    } else {
+      vs.extension.push(valueToAdd)
+    }
+  } else {
+    vs.extension = [valueToAdd]
+  }
+  return vs
+}
+
+export { addValueSetToGrouper, removeValueSetFromGrouper, addExtensionToVs }
