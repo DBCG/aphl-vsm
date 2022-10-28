@@ -1,4 +1,5 @@
 import set from 'lodash.set'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
   let leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet || []
@@ -53,4 +54,45 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
-export { addValueSetToGrouper, removeValueSetFromGrouper, addExtensionToVs }
+const authoritativeSourceExtensionUrl = 'https://hl7.org/fhir/extension-valueset-authoritativesource.html'
+
+interface TerminologyResult {
+  value: string | undefined
+  hasExtension: boolean
+}
+
+const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
+  const terminologyExt = valueSet?.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
+  if (terminologyExt) {
+    const val = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url === terminologyExt?.valueUri)
+    return {
+      value: val?.label,
+      hasExtension: true
+    }
+  } else {
+    // check if valueset url shares a base url with one of the terminology servers
+    // if so, use that as the return
+    const valuesetServerBase = valueSet?.url?.split('/fhir/')[0]
+
+    if (valuesetServerBase) {
+      const terminologyItem = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url?.startsWith(valuesetServerBase))
+      return {
+        value: terminologyItem?.label,
+        hasExtension: true
+      }
+    } else {
+      return {
+        value: undefined,
+        hasExtension: false
+      }
+    }
+  }
+}
+
+export {
+  addValueSetToGrouper,
+  removeValueSetFromGrouper,
+  addExtensionToVs,
+  authoritativeSourceExtensionUrl,
+  getTerminologySource
+}

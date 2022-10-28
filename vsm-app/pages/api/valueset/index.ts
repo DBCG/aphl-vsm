@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
-import { addExtensionToVs } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
 import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
@@ -79,13 +79,13 @@ export default async function handler(
                 }
 
                 const vsUrl = terminologyServerEndpoints
-                  ?.find(grp => grp.value.title === bodyJson.selectedTerminologyServer)
+                  ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
                   ?.value?.url
 
                 if (vsUrl) {
                   // add authoritativeSource extension
                   // this allows us to keep track of where valuesets come from
-                  valueSet = addExtensionToVs(valueSet, 'https://hl7.org/fhir/extension-valueset-authoritativesource.html', vsUrl)
+                  valueSet = addExtensionToVs(valueSet, authoritativeSourceExtensionUrl, vsUrl)
                 }
 
                 vSetsToUpdate.push({ method: 'POST', valueSet })

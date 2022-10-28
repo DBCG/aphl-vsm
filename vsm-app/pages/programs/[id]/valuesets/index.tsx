@@ -11,9 +11,12 @@ import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
-import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
+import {
+  formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate
+} from '@/helpers/conditionHelpers'
+import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
@@ -294,6 +297,22 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: true,
       maxWidth: '80px',
       wrap: true
+    },
+    {
+      name: (
+        <div>
+         <SelectInputTitle>Source</SelectInputTitle>
+        </div>
+      ),
+      selector: (row: TableRow) => row.valueSet,
+      sortable: true,
+      maxWidth: '80px',
+      wrap: true,
+      cell: (row: TableRow) => {
+        return (
+          <div>{getTerminologySource(row.valueSet).value}</div>
+        )
+      }
     },
     {
       name: (
