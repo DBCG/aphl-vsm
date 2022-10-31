@@ -66,27 +66,44 @@ export default async function handler(
           const terminologyClientInstance = terminologyClient.getClient()
           if (terminologyClientInstance) {
 
-            let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+            // get all matching valuesets
+            // vsac doesn't support _sort so doing this broader search + sorting below
+            const allAvailableMatches = await terminologyClientInstance.search({
               resourceType: 'ValueSet',
-              id: selectedVS.id
+              searchParams: {
+                url: selectedVS.url
+              }
             })
 
-            if (is.valueSet(matchingVSetFromRemoteServer)) {
-              const vsUrl = terminologyServerEndpoints
-                ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
-                ?.value?.url
+            if (allAvailableMatches.entry) {
+              // sorting here because we cannot use _sort on VSAC server -- not supported
+              const orderedMatchingVSets = allAvailableMatches.entry
+                .map((e: fhir4.BundleEntry) => e.resource)
+                // @ts-ignore-next-line
+                .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version.localeCompare(a.version))
+              let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+                resourceType: 'ValueSet',
+                id: orderedMatchingVSets[0].id
+              })
 
-              if (vsUrl) {
-                // add authoritativeSource extension
-                // this allows us to keep track of where valuesets come from
-                matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, vsUrl)
+              if (is.valueSet(matchingVSetFromRemoteServer)) {
+                const vsUrl = terminologyServerEndpoints
+                  ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
+                  ?.value?.url
+
+                if (vsUrl) {
+                  // add authoritativeSource extension
+                  // this allows us to keep track of where valuesets come from
+                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, vsUrl)
+                }
+
+                vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
+
+              } else {
+                console.error('no match found')
               }
-
-              vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
-
-            } else {
-              console.error('no match found')
             }
+
           } else {
             throw new Error('Terminology client is not defined')
           }
