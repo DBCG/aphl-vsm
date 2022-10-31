@@ -309,6 +309,8 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '80px',
       wrap: true,
       cell: (row: TableRow) => {
+        console.log('name: ', row.valueSet.name)
+        console.log('source: ', getTerminologySource(row.valueSet).value)
         return (
           <div>{getTerminologySource(row.valueSet).value}</div>
         )

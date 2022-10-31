@@ -6,6 +6,7 @@ import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/val
 import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { is } from '@/helpers/is'
 
 export default async function handler(
   req: NextApiRequest,
@@ -64,32 +65,25 @@ export default async function handler(
           terminologyClient.setClient(bodyJson.selectedTerminologyServer)
           const terminologyClientInstance = terminologyClient.getClient()
           if (terminologyClientInstance) {
-            let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
+
+            let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
               resourceType: 'ValueSet',
-              searchParams: {
-                url: selectedVS.url,
-              }
+              id: selectedVS.id
             })
-            // add url from bundle since doesn't exist on resource
-            if (matchingVSetsFromRemoteServer.entry) {
-              matchingVSetsFromRemoteServer?.entry?.forEach((entryItem: any) => {
-                let valueSet = entryItem.resource
-                if (valueSet && !valueSet.url) {
-                  valueSet.url = entryItem.fullUrl
-                }
 
-                const vsUrl = terminologyServerEndpoints
-                  ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
-                  ?.value?.url
+            if (is.valueSet(matchingVSetFromRemoteServer)) {
+              const vsUrl = terminologyServerEndpoints
+                ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
+                ?.value?.url
 
-                if (vsUrl) {
-                  // add authoritativeSource extension
-                  // this allows us to keep track of where valuesets come from
-                  valueSet = addExtensionToVs(valueSet, authoritativeSourceExtensionUrl, vsUrl)
-                }
+              if (vsUrl) {
+                // add authoritativeSource extension
+                // this allows us to keep track of where valuesets come from
+                matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, vsUrl)
+              }
 
-                vSetsToUpdate.push({ method: 'POST', valueSet })
-              })
+              vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
+
             } else {
               console.error('no match found')
             }

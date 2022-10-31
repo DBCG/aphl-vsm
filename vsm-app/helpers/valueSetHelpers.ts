@@ -72,10 +72,10 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   } else {
     // check if valueset url shares a base url with one of the terminology servers
     // if so, use that as the return
-    const valuesetServerBase = valueSet?.url?.split('/fhir/')[0]
+    const valuesetServerBase = valueSet?.url?.split('/fhir/')?.[0]?.split('//')[1]
 
     if (valuesetServerBase) {
-      const terminologyItem = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url?.startsWith(valuesetServerBase))
+      const terminologyItem = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url?.includes(valuesetServerBase))
       return {
         value: terminologyItem?.label,
         hasExtension: true
