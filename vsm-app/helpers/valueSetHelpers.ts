@@ -65,6 +65,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
   if (terminologyExt) {
     const val = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url === terminologyExt?.valueUri)
+
     return {
       value: val?.label,
       hasExtension: true
@@ -78,7 +79,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
       const terminologyItem = terminologyServerEndpoints?.find(endpoint => endpoint?.value?.url?.includes(valuesetServerBase))
       return {
         value: terminologyItem?.label,
-        hasExtension: true
+        hasExtension: false
       }
     } else {
       return {
