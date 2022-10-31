@@ -300,19 +300,19 @@ const ProgramValueSetDetails: NextPage = () => {
     },
     {
       name: (
-        <div>
+        <div style={{ marginTop: '20px' }}>
          <SelectInputTitle>Source</SelectInputTitle>
+         <p style={{ fontSize: '90%' }}>* source inferred by url</p>
         </div>
       ),
       selector: (row: TableRow) => row.valueSet,
       sortable: true,
-      maxWidth: '80px',
+      maxWidth: '120px',
       wrap: true,
       cell: (row: TableRow) => {
-        console.log('name: ', row.valueSet.name)
-        console.log('source: ', getTerminologySource(row.valueSet).value)
+        const terminologyInfo = getTerminologySource(row.valueSet)
         return (
-          <div>{getTerminologySource(row.valueSet).value}</div>
+          <div>{terminologyInfo.value}{ terminologyInfo.hasExtension ? null : '*' }</div>
         )
       }
     },
