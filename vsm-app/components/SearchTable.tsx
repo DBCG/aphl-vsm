@@ -260,8 +260,6 @@ const SearchTable = ({
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
       clearSelectedRows={clearSelectedRows}
-      selectableRowDisabled={row => row.status !== 'active'}
-
     />
   )
 }
