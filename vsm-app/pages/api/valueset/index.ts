@@ -116,7 +116,8 @@ export default async function handler(
 
     // handle if no vsets to update, too
     // add conditions to valueSet
-    const valueSetItemsToUpdate = vSetsToUpdate?.map(vs => {
+    const valueSetItemsToUpdate = vSetsToUpdate?.map((vs) => {
+      // @ts-ignore-next-line
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
       return ({
         valueSet: updatedVs,
