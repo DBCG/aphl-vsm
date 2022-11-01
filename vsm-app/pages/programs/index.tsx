@@ -1,15 +1,15 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import { useSession, getSession, GetSessionParams } from "next-auth/react"
+import ReactModal from 'react-modal'
+import { getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
-import { SearchInput } from '@/components/SearchInput'
-import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { Button } from '@/components/buttons/Button'
 
 const Row = styled.div`
   display: flex;
@@ -63,6 +63,12 @@ const customStyles = {
   }
 }
 
+const ModalContent = styled.div`
+  display: flex;
+  height: 100%;
+  width: 100%;
+`
+
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -70,6 +76,8 @@ const Programs: NextPage = () => {
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [programToPublish, setProgramToPublish] = useState(null)
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -149,6 +157,21 @@ const Programs: NextPage = () => {
           />
         </ButtonWrapper>
       )
+    },
+    {
+      name: 'Publish',
+      selector: (row: fhir4.Library) => row.name,
+      sortable: false,
+      wrap: true,
+      center: true,
+      cell: (row: fhir4.Library) => row.status === 'draft' && (
+        <ButtonWrapper>
+          <IconButton
+            onClick={() => setProgramToPublish(row)}
+            buttonContext='clone'
+          />
+        </ButtonWrapper>
+      )
     }
   ], [router, router?.query?.new])
 
@@ -171,60 +194,48 @@ const Programs: NextPage = () => {
   const onClick = () => {
     router.push('/programs/new')
   }
-  // commenting out the ID search input
-  // because cannot partial-string-search on field
+  
+  const customModalStyles = {
+    overlay: {
+      zIndex: 2
+    }
+  }
+
+  const publishProgram = async (program) => {
+    console.log('program: ', JSON.stringify(program))
+    const updatedProgram = await fetch(`/api/programs/${program.id}/publish`, {
+      method: 'POST',
+      body: JSON.stringify(program)
+    })
+
+    console.log('updated: ', updatedProgram)
+  }
+
   return (
     <Col>
       <PageTitle>
         Programs
       </PageTitle>
-        {/* comment out below because some previous work broke this */}
-        {/* <Row>
-          <Col>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
-               id='program-search-id'
-               label='ID'
-               hasIcon={true}
-               style={{ paddingTop: '15px' }}      
-             />
-           </Row>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
-               id='program-search-name'
-               label='Name'
-               hasIcon={true}
-               style={{ paddingTop: '15px' }}        
-             />
-           </Row>
-         </Col>
-         <Col>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
-               id='program-search-title'
-               label='Title'
-               hasIcon={true}
-               minWidth={500}
-               style={{ paddingTop: '15px' }}
-             />
-           </Row>
-         </Col>
-         <Col> 
-          <Row>
-           <SearchInput
-             onChange={(e: ChangeEvent<HTMLInputElement>) => {setSearchTermDescription(e.target.value)}}
-             id='program-search-description'
-             label='Description'
-             hasIcon={true}
-             minWidth={300}
-             style={{ height: '140px' }}
-           />
-          </Row>
-         </Col>
-      </Row> */}
+      <ReactModal
+        isOpen={!!programToPublish}
+        style={customModalStyles}
+      >
+        <ModalContent>
+          <div>
+            <p>Publish Program</p>
+            <p>Publishing this program will mark it as active and allow others to use it as a template.</p>
+            <p>Would you like to continue?</p>
+            <Button
+              text='Cancel'
+              onClick={() => setProgramToPublish(null)}
+            />
+            <Button
+              text='Publish'
+              onClick={() => publishProgram(programToPublish)}
+            />
+          </div>
+        </ModalContent>
+      </ReactModal>
       <DT
         data={programs}
         // @ts-expect-error
