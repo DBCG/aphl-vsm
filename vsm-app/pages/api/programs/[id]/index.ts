@@ -79,7 +79,7 @@ export default async function handler(
       console.error('ERROR: ', e)
     }
 
-  } else if (req.method === 'POST ') {
+  } else if (req.method === 'POST') {
     // update the program by id
     const response = await fhirCdrClient.update({
       resourceType: 'Library',
