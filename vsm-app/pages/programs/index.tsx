@@ -1,5 +1,6 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
+import ReactModal from 'react-modal'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
@@ -9,6 +10,16 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { ReleasePublishModal } from '@/components/modals/ReleasePublishModal'
+import { Button } from '@/components/buttons/Button'
+
+const Row = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  justify-content: space-evenly;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+`
 
 const Col = styled.div`
   display: flex;
@@ -70,6 +81,12 @@ const ErrorText = styled.p<ErrorProp>`
   color: var(--accent);
   display: ${props => props.error ? 'inherit' : 'none'}
 `
+const ModalContent = styled.div`
+  display: flex;
+  height: 100%;
+  width: 100%;
+`
+
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -81,6 +98,7 @@ const Programs: NextPage = () => {
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState('')
+  const [showPublishModal, setShowPublishModal] = useState(false)
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -222,6 +240,12 @@ const Programs: NextPage = () => {
   const handleCancelModal = () => {
     setProgramToPublish(null)
     setProgramToRelease(null)
+  }
+
+  const customModalStyles = {
+    overlay: {
+      zIndex: 2
+    }
   }
 
   const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
