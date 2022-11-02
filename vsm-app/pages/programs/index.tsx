@@ -122,6 +122,7 @@ const Programs: NextPage = () => {
   const [searchTermDescription, setSearchTermDescription] = useState('')
   const [publishLoading, setPublishLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
+  const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [publishError, setPublishError] = useState('')
 
   const programs = useGetPrograms({
@@ -203,13 +204,31 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     },
+        {
+      name: 'Release',
+      selector: (row: fhir4.Library) => row.name,
+      sortable: false,
+      wrap: true,
+      center: true,
+      cell: (row: fhir4.Library) => row.status === 'draft' && (
+        <ButtonWrapper>
+          <IconButton
+            onClick={() => {
+              setPublishError('')
+              setProgramToRelease(row)
+            }}
+            buttonContext='release'
+          />
+        </ButtonWrapper>
+      )
+    },
     {
       name: 'Publish',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => row.status === 'draft' && (
+      cell: (row: fhir4.Library) => row.status === 'active' && (
         <ButtonWrapper>
           <IconButton
             onClick={() => {
