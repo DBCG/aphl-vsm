@@ -29,7 +29,7 @@ interface StatusProps {
 const StatusTag = styled.div<StatusProps>`
   padding: 4px 8px;
   border-radius: 8px;
-  background-color: ${ props => props.status === 'draft' ? '#F4CB92' : props.status === 'active' ? 'var(--theme-200)' : '#F4CB92' };
+  background-color: ${ props => props.status === 'draft' ? 'var(--warning-light)' : props.status === 'active' ? 'var(--theme-200)' : 'var(--warning-light)' };
   width: max-content;
   display: inline-block;
 `
