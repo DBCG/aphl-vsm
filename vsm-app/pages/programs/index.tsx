@@ -11,15 +11,6 @@ import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 
-const Row = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  justify-content: space-evenly;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-`
-
 const Col = styled.div`
   display: flex;
   flex-direction: column;
@@ -63,12 +54,65 @@ const customStyles = {
   }
 }
 
-const ModalContent = styled.div`
-  display: flex;
-  height: 100%;
+const ModalOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(200, 200, 200, 0.5);
+  backdrop-filter: blur(10px);
+
 `
 
+const ModalContent = styled.div`
+  justify-content: center;
+  text-align: center;
+`
+
+const ModalTitle = styled.h1`
+  margin-bottom: 36px;
+`
+
+const ModalText = styled.p`
+  max-width: 400px;
+  line-height: 140%;
+  margin: 0 auto;
+  margin-bottom: 12px;
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 36px;
+`
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+`
+
+interface ErrorProp {
+  error: string
+}
+
+const ErrorContainer = styled.div<ErrorProp>`
+  max-height: ${props => props.error ? '500px' : '0'};
+  background-color: white;
+  transition: max-height 1s ease;
+  padding-left: 18px;
+  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
+
+`
+
+const ErrorText = styled.p<ErrorProp>`
+  color: var(--accent);
+  display: ${props => props.error ? 'inherit' : 'none'}
+`
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -76,8 +120,9 @@ const Programs: NextPage = () => {
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
-  const [showPublishModal, setShowPublishModal] = useState(false)
-  const [programToPublish, setProgramToPublish] = useState(null)
+  const [publishLoading, setPublishLoading] = useState(false)
+  const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
+  const [publishError, setPublishError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -167,7 +212,10 @@ const Programs: NextPage = () => {
       cell: (row: fhir4.Library) => row.status === 'draft' && (
         <ButtonWrapper>
           <IconButton
-            onClick={() => setProgramToPublish(row)}
+            onClick={() => {
+              setPublishError('')
+              setProgramToPublish(row)
+            }}
             buttonContext='clone'
           />
         </ButtonWrapper>
@@ -197,18 +245,29 @@ const Programs: NextPage = () => {
   
   const customModalStyles = {
     overlay: {
-      zIndex: 2
+      zIndex: 2,
+    },
+    content: {
+      maxWidth: '500px',
+      margin: '0 auto'
     }
   }
 
-  const publishProgram = async (program) => {
-    console.log('program: ', JSON.stringify(program))
-    const updatedProgram = await fetch(`/api/programs/${program.id}/publish`, {
+  const publishProgram = async (program: fhir4.Library) => {
+    setPublishLoading(true)
+    const result = await fetch(`/api/programs/${program.id}/publish`, {
       method: 'POST',
       body: JSON.stringify(program)
     })
 
-    console.log('updated: ', updatedProgram)
+    if (!result.ok) {
+      setPublishError(`Error occurred while publishing program: ${program.id}. Please try again.`)
+    } else {
+      router.reload()
+    }
+    
+    setPublishLoading(false)
+    setProgramToPublish(null)
   }
 
   return (
@@ -222,20 +281,35 @@ const Programs: NextPage = () => {
       >
         <ModalContent>
           <div>
-            <p>Publish Program</p>
-            <p>Publishing this program will mark it as active and allow others to use it as a template.</p>
-            <p>Would you like to continue?</p>
-            <Button
-              text='Cancel'
-              onClick={() => setProgramToPublish(null)}
-            />
-            <Button
-              text='Publish'
-              onClick={() => publishProgram(programToPublish)}
-            />
+            <ModalTitle>Publish Program</ModalTitle>
+            <ModalText>Publishing this program will mark it as active and allow others to use it as a template.</ModalText>
+            <ModalText>Would you like to continue?</ModalText>
+            <ButtonGroup>
+              <Button
+                text='Cancel'
+                onClick={() => setProgramToPublish(null)}
+                style={{ backgroundColor: 'var(--neutral-300)' }}
+                />
+              <Button
+                text='YES - Publish'
+                onClick={() => publishProgram(programToPublish as fhir4.Library)}
+                />
+            </ButtonGroup>
+            {
+              publishLoading &&
+              <ModalOverlay>
+                  <LoadingContainer>
+                    <ModalText>Publishing may take up to a minute.<br/>Please keep this window open until it completes.</ModalText>
+                    <LoadingIndicator size='large' />
+                  </LoadingContainer>
+              </ModalOverlay>
+            }
           </div>
         </ModalContent>
       </ReactModal>
+      <ErrorContainer error={publishError}>
+        <ErrorText error={publishError}>{ publishError }</ErrorText>
+      </ErrorContainer>
       <DT
         data={programs}
         // @ts-expect-error
