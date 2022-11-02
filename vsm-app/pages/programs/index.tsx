@@ -12,15 +12,6 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { ReleasePublishModal } from '@/components/modals/ReleasePublishModal'
 import { Button } from '@/components/buttons/Button'
 
-const Row = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  justify-content: space-evenly;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-`
-
 const Col = styled.div`
   display: flex;
   flex-direction: column;
@@ -81,12 +72,65 @@ const ErrorText = styled.p<ErrorProp>`
   color: var(--accent);
   display: ${props => props.error ? 'inherit' : 'none'}
 `
-const ModalContent = styled.div`
-  display: flex;
-  height: 100%;
+const ModalOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(200, 200, 200, 0.5);
+  backdrop-filter: blur(10px);
+
 `
 
+const ModalContent = styled.div`
+  justify-content: center;
+  text-align: center;
+`
+
+const ModalTitle = styled.h1`
+  margin-bottom: 36px;
+`
+
+const ModalText = styled.p`
+  max-width: 400px;
+  line-height: 140%;
+  margin: 0 auto;
+  margin-bottom: 12px;
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 36px;
+`
+
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+`
+
+interface ErrorProp {
+  error: string
+}
+
+const ErrorContainer = styled.div<ErrorProp>`
+  max-height: ${props => props.error ? '500px' : '0'};
+  background-color: white;
+  transition: max-height 1s ease;
+  padding-left: 18px;
+  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
+
+`
+
+const ErrorText = styled.p<ErrorProp>`
+  color: var(--accent);
+  display: ${props => props.error ? 'inherit' : 'none'}
+`
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -99,6 +143,8 @@ const Programs: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState('')
   const [showPublishModal, setShowPublishModal] = useState(false)
+  const [publishLoading, setPublishLoading] = useState(false)
+  const [publishError, setPublishError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -244,7 +290,11 @@ const Programs: NextPage = () => {
 
   const customModalStyles = {
     overlay: {
-      zIndex: 2
+      zIndex: 2,
+    },
+    content: {
+      maxWidth: '500px',
+      margin: '0 auto'
     }
   }
 

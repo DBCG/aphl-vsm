@@ -13,7 +13,6 @@ export default async function handler(
   }
 
   if (req.method === 'POST') {
-    // update the program by id
     const response = await fetch(`${process.env.FHIR_CDR_URL}/$publish`, {
       method: 'POST',
       headers: {
