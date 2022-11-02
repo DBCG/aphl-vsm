@@ -216,7 +216,7 @@ const Programs: NextPage = () => {
               setPublishError('')
               setProgramToPublish(row)
             }}
-            buttonContext='clone'
+            buttonContext='publish'
           />
         </ButtonWrapper>
       )

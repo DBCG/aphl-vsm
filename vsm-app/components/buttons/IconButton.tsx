@@ -38,6 +38,12 @@ const IconButton = ({ type, buttonContext, onClick, style }: IButtonProps) => {
     case 'clone':
       image = 'clone'
       break
+    case 'publish':
+      image = 'publish'
+      break
+    case 'release':
+      image = 'release'
+      break
   }
 
   return (
