@@ -227,7 +227,8 @@ const Programs: NextPage = () => {
   const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
     let result
     let endpoint
-    setLoading (true)
+    setLoading(true)
+    console.log('program: ', program)
     if (actionType === 'release') {
       endpoint = `/api/programs/${program.id}/release`
     } else {
