@@ -147,7 +147,7 @@ const Programs: NextPage = () => {
       wrap: true
     },
     {
-      name: 'Use as Template',
+      name: 'Clone',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
