@@ -1,6 +1,5 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import ReactModal from 'react-modal'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
@@ -10,7 +9,6 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { ReleasePublishModal } from '@/components/modals/ReleasePublishModal'
-import { Button } from '@/components/buttons/Button'
 
 const Col = styled.div`
   display: flex;
@@ -72,65 +70,6 @@ const ErrorText = styled.p<ErrorProp>`
   color: var(--accent);
   display: ${props => props.error ? 'inherit' : 'none'}
 `
-const ModalOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(200, 200, 200, 0.5);
-  backdrop-filter: blur(10px);
-
-`
-
-const ModalContent = styled.div`
-  justify-content: center;
-  text-align: center;
-`
-
-const ModalTitle = styled.h1`
-  margin-bottom: 36px;
-`
-
-const ModalText = styled.p`
-  max-width: 400px;
-  line-height: 140%;
-  margin: 0 auto;
-  margin-bottom: 12px;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-top: 36px;
-`
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-`
-
-interface ErrorProp {
-  error: string
-}
-
-const ErrorContainer = styled.div<ErrorProp>`
-  max-height: ${props => props.error ? '500px' : '0'};
-  background-color: white;
-  transition: max-height 1s ease;
-  padding-left: 18px;
-  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
-
-`
-
-const ErrorText = styled.p<ErrorProp>`
-  color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'}
-`
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -142,9 +81,6 @@ const Programs: NextPage = () => {
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState('')
-  const [showPublishModal, setShowPublishModal] = useState(false)
-  const [publishLoading, setPublishLoading] = useState(false)
-  const [publishError, setPublishError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -288,21 +224,10 @@ const Programs: NextPage = () => {
     setProgramToRelease(null)
   }
 
-  const customModalStyles = {
-    overlay: {
-      zIndex: 2,
-    },
-    content: {
-      maxWidth: '500px',
-      margin: '0 auto'
-    }
-  }
-
   const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
     let result
     let endpoint
-    setLoading(true)
-    console.log('program: ', program)
+    setLoading (true)
     if (actionType === 'release') {
       endpoint = `/api/programs/${program.id}/release`
     } else {

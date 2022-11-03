@@ -13,9 +13,7 @@ export default async function handler(
   }
 
   if (req.method === 'POST') {
-    console.log('RELEASING...')
-    console.log('.......................................................')
-    const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}/$release`, {
+    const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.body.id}/$release`, {
       method: 'POST',
       headers: {
         'cache-control': 'no-cache',
@@ -23,12 +21,6 @@ export default async function handler(
       },
       body: req.body
     })
-
-    const json = await response.json()
-
-    console.log('...............................................')
-    console.log('RELEASE RESPONSE: ')
-    console.log(json)
 
     res.send(response)
   }
