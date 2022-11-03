@@ -1,6 +1,5 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import ReactModal from 'react-modal'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
@@ -9,7 +8,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { Button } from '@/components/buttons/Button'
+import { ReleasePublishModal } from '@/components/modals/ReleasePublishModal'
 
 const Col = styled.div`
   display: flex;
@@ -54,48 +53,6 @@ const customStyles = {
   }
 }
 
-const ModalOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(200, 200, 200, 0.5);
-  backdrop-filter: blur(10px);
-
-`
-
-const ModalContent = styled.div`
-  justify-content: center;
-  text-align: center;
-`
-
-const ModalTitle = styled.h1`
-  margin-bottom: 36px;
-`
-
-const ModalText = styled.p`
-  max-width: 400px;
-  line-height: 140%;
-  margin: 0 auto;
-  margin-bottom: 12px;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-top: 36px;
-`
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-`
-
 interface ErrorProp {
   error: string
 }
@@ -120,10 +77,10 @@ const Programs: NextPage = () => {
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
-  const [publishLoading, setPublishLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [publishError, setPublishError] = useState('')
+  const [error, setError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -214,7 +171,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             onClick={() => {
-              setPublishError('')
+              setError('')
               setProgramToRelease(row)
             }}
             buttonContext='release'
@@ -232,7 +189,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             onClick={() => {
-              setPublishError('')
+              setError('')
               setProgramToPublish(row)
             }}
             buttonContext='publish'
@@ -261,32 +218,37 @@ const Programs: NextPage = () => {
   const onClick = () => {
     router.push('/programs/new')
   }
-  
-  const customModalStyles = {
-    overlay: {
-      zIndex: 2,
-    },
-    content: {
-      maxWidth: '500px',
-      margin: '0 auto'
-    }
+
+  const handleCancelModal = () => {
+    setProgramToPublish(null)
+    setProgramToRelease(null)
   }
 
-  const publishProgram = async (program: fhir4.Library) => {
-    setPublishLoading(true)
-    const result = await fetch(`/api/programs/${program.id}/publish`, {
+  const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
+    let result
+    let endpoint
+    setLoading (true)
+    if (actionType === 'release') {
+      endpoint = `/api/programs/${program.id}/release`
+    } else {
+      endpoint = `/api/programs/${program.id}/publish`
+    }
+
+    result = await fetch(endpoint, {
       method: 'POST',
       body: JSON.stringify(program)
     })
 
     if (!result.ok) {
-      setPublishError(`Error occurred while publishing program: ${program.id}. Please try again.`)
+      setError(`Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`)
     } else {
       router.reload()
     }
-    
-    setPublishLoading(false)
+
+    setLoading(false)
     setProgramToPublish(null)
+    setProgramToRelease(null)
+
   }
 
   return (
@@ -294,40 +256,16 @@ const Programs: NextPage = () => {
       <PageTitle>
         Programs
       </PageTitle>
-      <ReactModal
-        isOpen={!!programToPublish}
-        style={customModalStyles}
-      >
-        <ModalContent>
-          <div>
-            <ModalTitle>Publish Program</ModalTitle>
-            <ModalText>Publishing this program will mark it as active and allow others to use it as a template.</ModalText>
-            <ModalText>Would you like to continue?</ModalText>
-            <ButtonGroup>
-              <Button
-                text='Cancel'
-                onClick={() => setProgramToPublish(null)}
-                style={{ backgroundColor: 'var(--neutral-300)' }}
-                />
-              <Button
-                text='YES - Publish'
-                onClick={() => publishProgram(programToPublish as fhir4.Library)}
-                />
-            </ButtonGroup>
-            {
-              publishLoading &&
-              <ModalOverlay>
-                  <LoadingContainer>
-                    <ModalText>Publishing may take up to a minute.<br/>Please keep this window open until it completes.</ModalText>
-                    <LoadingIndicator size='large' />
-                  </LoadingContainer>
-              </ModalOverlay>
-            }
-          </div>
-        </ModalContent>
-      </ReactModal>
-      <ErrorContainer error={publishError}>
-        <ErrorText error={publishError}>{ publishError }</ErrorText>
+      <ReleasePublishModal
+        isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
+        actionType={programToRelease ? 'release' : 'publish'}
+        loading={loading}
+        handleCancelModal={handleCancelModal}
+        handleModalAction={handleModalAction}
+        program={programToPublish || programToRelease}
+      />
+      <ErrorContainer error={error}>
+        <ErrorText error={error}>{ error }</ErrorText>
       </ErrorContainer>
       <DT
         data={programs}
