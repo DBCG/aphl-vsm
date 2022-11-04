@@ -12,15 +12,20 @@ interface ModalInfo {
   program:  fhir4.Library | null
 }
 
+const LoadingText = styled.p`
+  font-size: 120%;
+  line-height: 150%;
+`
+
 const modalText = {
   publish: {
     title: 'Publish Program',
     text: 'Publishing ',
     actionText: 'Would you like to continue?',
     modalLoadingText: (
-      <>
+      <LoadingText>
         Publishing may take up to a minute.<br/>Please keep this window open until it completes.
-      </> 
+      </LoadingText> 
     )
   },
   release: {
@@ -28,9 +33,9 @@ const modalText = {
     text: 'Releasing this program will mark it as active and allow others to use it as a template.',
     actionText: 'Would you like to continue?',
     modalLoadingText: (
-      <>
+      <LoadingText>
         Releasing may take up to a minute.<br/>Please keep this window open until it completes.
-      </> 
+      </LoadingText> 
     )
   }
 }
@@ -98,8 +103,8 @@ const ModalOverlay = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(200, 200, 200, 0.5);
-  backdrop-filter: blur(10px);
+  background-color: var(--theme-color);
+  backdrop-filter: blur(20px);
 
 `
 
