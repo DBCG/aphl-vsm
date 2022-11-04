@@ -261,9 +261,9 @@ const Programs: NextPage = () => {
         Programs
       </PageTitle>
       <ReleasePublishModal
-        isOpen={true || Boolean(programToRelease) || Boolean(programToPublish)}
+        isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
         actionType={programToRelease ? 'release' : 'publish'}
-        loading={true || loading}
+        loading={loading}
         handleCancelModal={handleCancelModal}
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
