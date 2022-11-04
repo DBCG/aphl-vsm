@@ -152,9 +152,10 @@ const Programs: NextPage = () => {
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => row.status === 'active' && (
+      cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
+            disabled={row.status !== 'active'}
             onClick={() => router.push(`/programs/template?id=${row.id}`)}
             buttonContext='clone'
           />
@@ -167,9 +168,10 @@ const Programs: NextPage = () => {
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => row.status === 'draft' && (
+      cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
+            disabled={row.status !== 'draft'}
             onClick={() => {
               setError('')
               setProgramToRelease(row)
@@ -185,9 +187,10 @@ const Programs: NextPage = () => {
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => row.status === 'active' && (
+      cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
+            disabled={row.status !== 'active'}
             onClick={() => {
               setError('')
               setProgramToPublish(row)
