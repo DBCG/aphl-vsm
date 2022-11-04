@@ -50,13 +50,10 @@ export default async function handler(
       console.log('result: ', searchResult)
 
       if (searchResult.entry) {
-        console.log('resources exist: ')
         const programs = searchResult?.entry?.map((e: any) => e?.resource)
         const json = JSON.stringify(programs)
         res.status(200).send(json)
       } else {
-        console.error('..........................................')
-        console.error('no entry in result:')
         console.error(searchResult)
         res.status(404).send([])
       } 
