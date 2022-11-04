@@ -28,7 +28,7 @@ const btnTitleText = {
   edit: 'Edit',
   delete: 'Delete',
   search: 'Search',
-  clone: 'Make a new program based on this one',
+  clone: 'Make a new program based on this one (must have active status)',
   release: 'Promote this program from draft to active status',
   publish: 'Publish this program'
 }
