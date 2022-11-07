@@ -42,10 +42,10 @@ export default async function handler(
               body: grouperVs
             })
           )))
-          res.status(200).send(result)
-          return
         }
       }
+      res.status(200).send(groupersToUpdate)
+      return
 
     } catch (e) {
       console.error('error here b: ', e)
