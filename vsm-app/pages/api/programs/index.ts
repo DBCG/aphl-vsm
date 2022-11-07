@@ -47,8 +47,6 @@ export default async function handler(
         }
       })
 
-      console.log('result: ', searchResult)
-
       if (searchResult.entry) {
         const programs = searchResult?.entry?.map((e: any) => e?.resource)
         const json = JSON.stringify(programs)

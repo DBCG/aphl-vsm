@@ -231,7 +231,7 @@ const Programs: NextPage = () => {
     let result
     let endpoint
     setLoading(true)
-    console.log('program: ', program)
+
     if (actionType === 'release') {
       endpoint = `/api/programs/${program.id}/release`
     } else {

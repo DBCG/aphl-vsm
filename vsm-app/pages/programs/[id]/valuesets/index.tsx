@@ -135,6 +135,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
+  const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const defaultFilters = {
@@ -148,7 +149,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // all available filters
   const [filters, setFilters] = useState(defaultFilters)
 
-  const debouncedFilters = useDebounce(filters, 500)
+  const debouncedFilters = useDebounce(filters, 300)
 
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
     setIsDeleting(true)
@@ -225,6 +226,15 @@ const ProgramValueSetDetails: NextPage = () => {
     ...debouncedFilters
   })
 
+    // since query takes a while, expose loading state
+  useEffect(() => {
+    setVSetsLoading(true)
+  }, [filters])
+
+  useEffect(() => {
+    setVSetsLoading(false)
+  }, [progValueSetDets])
+
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
     if (keys.length) {
@@ -259,7 +269,6 @@ const ProgramValueSetDetails: NextPage = () => {
           <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
             onChange={(e) => {
-              console.log('e.vlue: ', e)
               handleFilterChange(e.target.value, 'findInVsName')
             }
             }
@@ -460,21 +469,6 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   ], [router, groupsInProgram, allConditions])
 
-  // const handleNameSearch = (e: React.ChangeEvent<Element>) => {
-  //   const target = e.target as HTMLInputElement
-  //   setFindInVsName(target.value)
-  // }
-
-  // const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
-  //   const target = e.target as HTMLInputElement
-  //   setFindInVersion(target.value)
-  // }
-
-  // const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
-  //   const target = e.target as HTMLInputElement
-  //   setFindInSteward(target.value)
-  // }
-
   return (
     <>
       <Row>
@@ -499,7 +493,7 @@ const ProgramValueSetDetails: NextPage = () => {
         fixedHeader
         // @ts-expect-error
         customStyles={customStyles}
-        progressPending={pageLoading}
+        progressPending={pageLoading || vSetsLoading}
         progressComponent={<LoadingIndicator/>}
       />
     </>
