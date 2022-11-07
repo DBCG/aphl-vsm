@@ -28,6 +28,7 @@ export default async function handler(
           }
         }) as fhir4.Bundle
 
+        // there is an issue in the sample data where grouper valuesets have the exact same url
         const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
 
         if (grouperVsToUpdate) {

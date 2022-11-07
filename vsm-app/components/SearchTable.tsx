@@ -30,6 +30,7 @@ const StatusTag = styled.div<StatusProps>`
   padding: 4px 8px;
   border-radius: 8px;
   background-color: ${ props => props.status === 'draft' ? '#F4CB92' : props.status === 'active' ? 'var(--theme-200)' : '#F4CB92' };
+  color: ${ props => props.status === 'draft' ? 'inherit' : 'white' };
   width: max-content;
   display: inline-block;
 `
@@ -80,7 +81,6 @@ interface Input {
   setFindInStatus: (eventItem: any) => void,
   setFindInOid: (eventItem: any) => void,
   setFindInLastUpdated: (eventItem: any) => void,
-  setFindInVersion: (eventItem: any) => void,
   handlePageChange: (eventItem: any) => void,
   handlePerRowsChange: (eventItem: any) => void,
   clearSelectedRows: boolean,
@@ -108,7 +108,6 @@ const SearchTable = ({
   setFindInSteward,
   setFindInOid,
   setFindInLastUpdated,
-  setFindInVersion,
   isLoading=false,
   showFilters,
   handlePageChange,
@@ -198,24 +197,6 @@ const SearchTable = ({
     {
       name: (
         <div>
-          <SelectInputTitle>Version</SelectInputTitle>
-            { showFilters && (
-              <FilterInput
-                onChange={(e: React.ChangeEvent<Element>) => {
-                  const target = e.target as HTMLInputElement
-                  setFindInVersion(target.value.trim())
-                }}
-                style={{ height: '30px' }}
-            />
-            )}
-        </div>
-      ),
-      wrap: true,
-      selector: (row: TableData) => row.version!
-    },
-    {
-      name: (
-        <div>
         <SelectInputTitle>Steward</SelectInputTitle>
           { showFilters && (
             <FilterInput
@@ -279,8 +260,6 @@ const SearchTable = ({
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}
       clearSelectedRows={clearSelectedRows}
-      selectableRowDisabled={row => row.status !== 'active'}
-
     />
   )
 }
