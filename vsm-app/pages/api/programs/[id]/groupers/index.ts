@@ -48,7 +48,7 @@ export default async function handler(
       return
 
     } catch (e) {
-      console.error('error here b: ', e)
+      console.error('error caught in /groupers: ', e)
     }
   }
 
