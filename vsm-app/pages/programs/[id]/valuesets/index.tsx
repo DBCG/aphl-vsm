@@ -256,7 +256,7 @@ const ProgramValueSetDetails: NextPage = () => {
       ),
       id: 'vs-name-search',
       selector: (row: TableRow) => row.title,
-      sortable: true,
+      sortable: false,
       maxWidth: '350px',
       wrap: true
     },
@@ -274,7 +274,7 @@ const ProgramValueSetDetails: NextPage = () => {
       ),
       id: 'vs-version-search',
       selector: (row: TableRow) => row.version,
-      sortable: true,
+      sortable: false,
       maxWidth: '80px',
       wrap: true
     },
