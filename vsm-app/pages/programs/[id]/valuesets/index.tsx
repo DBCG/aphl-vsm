@@ -79,6 +79,12 @@ const FlexRow = styled.div`
   width: 100%;
 `
 
+const FlexCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`
+
 interface GroupInfoItem {
   label: string,
   value: string
@@ -133,9 +139,10 @@ const ProgramValueSetDetails: NextPage = () => {
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
+  const [groupersUpdated, setGroupersUpdated] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
 
   const defaultFilters = {
     findInVsName: '',
@@ -147,15 +154,18 @@ const ProgramValueSetDetails: NextPage = () => {
 
   // all available filters
   const [filters, setFilters] = useState(defaultFilters)
-
+  
+  // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
-
+  
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
-    setIsDeleting(true)
     if (!vsCanonical || !grouperCanonicals) {
       setIsDeleting(false)
       return
+    } else {
+      setIsDeleting(vsCanonical)
     }
+
     try {
       const body = {
         vsCanonical,
@@ -168,8 +178,13 @@ const ProgramValueSetDetails: NextPage = () => {
 
       const json = await result
 
+      // setGroupersUpdated(json)
+
       if (!json) {
         console.error('failure result: ', json)
+      } else {
+        setIsDeleting(false)
+        window.location.reload()
       }
     } catch (e) {
       console.error(e)
@@ -432,17 +447,21 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '150px',
       cell: (row: TableRow) => (
         <FlexRow style={{ justifyContent: 'center' }}>
-          <IconButton
-            onClick={async () => {
-              await handleDelete({
-                vsCanonical: row?.valueSet?.url,
-                grouperCanonicals: row.groups.map(g => g.url)
-              })
-              window.location.reload()
-            }}
-            buttonContext='delete'
-            style={{ backgroundColor: 'darkRed' }}
-          />
+          <FlexCol>
+            <IconButton
+              onClick={async () => {
+                await handleDelete({
+                  vsCanonical: row?.valueSet?.url,
+                  grouperCanonicals: row.groups.map(g => g.url)
+                })
+                window.location.reload()
+              }}
+              buttonContext='delete'
+              style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+            />
+            {isDeleting === row?.valueSet?.url && <p><em>Deleting...</em></p>}
+
+          </FlexCol>
         </FlexRow>
       )
     }
