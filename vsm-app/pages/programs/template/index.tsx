@@ -36,7 +36,7 @@ const Template = () => {
 
   const router = useRouter()
   let programId = router?.query?.id || ''
-  const programDetails = useGetProgramValueSetDetails(`${programId}`)
+  const programDetails = useGetProgramValueSetDetails({ id: `${programId}` })
   const program = useGetPrograms({ id: `${programId}` })
 
   const cloneProgram = async () => {
