@@ -58,20 +58,8 @@ const useGetProgramValueSetDetails = ({
   updatedGrouperValueSets
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
-  console.log('this is called 1')
-  const test = {
-    id,
-    findInVsName,
-    findInVersion,
-    findInSteward,
-    activeGroups,
-    activeConditions,
-    updatedValueSet,
-    updatedGrouperValueSets
-  }
-  console.log('test: ', test)
+
   useEffect(() => {
-    console.log('useEffect triggered 1 ')
     async function getData(): Promise<void> {
       if (!id) {
         setData({})
