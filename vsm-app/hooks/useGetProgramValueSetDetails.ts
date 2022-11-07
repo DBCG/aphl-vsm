@@ -36,8 +36,7 @@ interface Result {
   groupsInProgram: fhir4.ValueSet[]
 }
 
-// gets data necessary to build the program valueset details page
-const useGetProgramValueSetDetails = (
+interface Args {
   id: string,
   findInVsName?: string,
   findInVersion?: string,
@@ -46,9 +45,33 @@ const useGetProgramValueSetDetails = (
   activeConditions?: [] | ConditionItem[],
   updatedValueSet?: fhir4.ValueSet | undefined,
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
-): Result | {} => {
+}
+// gets data necessary to build the program valueset details page
+const useGetProgramValueSetDetails = ({
+  id,
+  findInVsName,
+  findInVersion,
+  findInSteward,
+  activeGroups,
+  activeConditions,
+  updatedValueSet,
+  updatedGrouperValueSets
+}: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
+  console.log('this is called 1')
+  const test = {
+    id,
+    findInVsName,
+    findInVersion,
+    findInSteward,
+    activeGroups,
+    activeConditions,
+    updatedValueSet,
+    updatedGrouperValueSets
+  }
+  console.log('test: ', test)
   useEffect(() => {
+    console.log('useEffect triggered 1 ')
     async function getData(): Promise<void> {
       if (!id) {
         setData({})

@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { NextPage } from 'next'
+import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
+import { getSession, GetSessionParams } from 'next-auth/react'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
@@ -13,8 +14,8 @@ import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
+import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
-import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
 interface GroupItem {
@@ -121,12 +122,7 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  // filter updates
-  const [findInVsName, setFindInVsName] = useState('')
-  const [findInSteward, setFindInSteward] = useState('')
-  const [findInVersion, setFindInVersion] = useState('')
-  const [activeGroups, setActiveGroups] = useState([])
-  const [activeConditions, setActiveConditions] = useState([])
+
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
@@ -139,6 +135,19 @@ const ProgramValueSetDetails: NextPage = () => {
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const defaultFilters = {
+    findInVsName: '',
+    findInSteward: '',
+    findInVersion: '',
+    activeConditions: [],
+    activeGroups: []
+  }
+
+  // all available filters
+  const [filters, setFilters] = useState(defaultFilters)
+
+  const debouncedFilters = useDebounce(filters, 500)
 
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
     setIsDeleting(true)
@@ -208,16 +217,12 @@ const ProgramValueSetDetails: NextPage = () => {
     postUpdate()
   }, [updateVsGroups.groupInfo, programId])
 
-  const progValueSetDets = useGetProgramValueSetDetails(
-    programId,
-    findInVsName,
-    findInVersion,
-    findInSteward,
-    activeGroups,
-    activeConditions,
-    updatedValueSet,
-    updatedGrouperValuesets
-  )
+  const progValueSetDets = useGetProgramValueSetDetails({
+    id: programId,
+    updatedValueSet, // this gets updated when a user adds a condition
+    updatedGrouperValuesets, // this gets updated when a user adds a vs to a grouper
+    ...debouncedFilters
+  })
 
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
@@ -241,13 +246,22 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   )
 
+  const handleFilterChange = (e, type: string) => {
+    const updatedFilters = { ...filters, [type]: e }
+    setFilters(updatedFilters)
+  }
+
   const columns = useMemo(() => [
     {
       name: (
         <div>
           <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleNameSearch(e)}
+            onChange={(e) => {
+              console.log('e.vlue: ', e)
+              handleFilterChange(e.target.value, 'findInVsName')
+            }
+            }
             style={{
               height: '30px'
             }}
@@ -265,7 +279,7 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
           <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleVersionSearch(e)}
+            onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
             style={{
               height: '30px'
             }}
@@ -283,7 +297,7 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
          <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleStewardSearch(e)}
+            onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
             style={{
               height: '30px'
             }}
@@ -306,8 +320,7 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='conditions-selector'
             isMulti
             options={buildConditionOptions(allConditions)}
-            // @ts-expect-error
-            onChange={(e) => {setActiveConditions(e)}}
+            onChange={(e) => {handleFilterChange(e, 'activeConditions')}}
           />
         </SelectInputContainer>
       ),
@@ -357,10 +370,7 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='groups-selector'
             isMulti
             options={buildGroupOptions(alphabetizedGroups)}
-            onChange={(e) => {
-              // @ts-expect-error
-              setActiveGroups(e)
-            }}
+            onChange={(e) => {handleFilterChange(e, 'activeGroups')}}
           />
         </SelectInputContainer>
       ),
@@ -431,20 +441,20 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   ], [router, groupsInProgram, allConditions])
 
-  const handleNameSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInVsName(target.value)
-  }
+  // const handleNameSearch = (e: React.ChangeEvent<Element>) => {
+  //   const target = e.target as HTMLInputElement
+  //   setFindInVsName(target.value)
+  // }
 
-  const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInVersion(target.value)
-  }
+  // const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
+  //   const target = e.target as HTMLInputElement
+  //   setFindInVersion(target.value)
+  // }
 
-  const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInSteward(target.value)
-  }
+  // const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
+  //   const target = e.target as HTMLInputElement
+  //   setFindInSteward(target.value)
+  // }
 
   return (
     <>
