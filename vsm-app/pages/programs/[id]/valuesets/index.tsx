@@ -257,7 +257,7 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   )
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleFilterChange = (e: string | React.ChangeEvent<HTMLInputElement>, type: string) => {
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
   }
@@ -269,6 +269,7 @@ const ProgramValueSetDetails: NextPage = () => {
           <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
             onChange={(e) => {
+              // @ts-ignore-next-line
               handleFilterChange(e.target.value, 'findInVsName')
             }}
             style={{ height: '30px' }}
@@ -286,6 +287,7 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
           <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
+            // @ts-ignore-next-line
             onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
             style={{ height: '30px' }}
           />
@@ -302,6 +304,7 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
          <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
+            // @ts-ignore-next-line
             onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
             style={{ height: '30px' }}
           />
@@ -341,6 +344,7 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='conditions-selector'
             isMulti
             options={buildConditionOptions(allConditions)}
+            // @ts-ignore-next-line
             onChange={(e) => {handleFilterChange(e, 'activeConditions')}}
           />
         </SelectInputContainer>
@@ -391,6 +395,7 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='groups-selector'
             isMulti
             options={buildGroupOptions(alphabetizedGroups)}
+            // @ts-ignore-next-line
             onChange={(e) => {handleFilterChange(e, 'activeGroups')}}
           />
         </SelectInputContainer>
