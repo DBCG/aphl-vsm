@@ -256,7 +256,7 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   )
 
-  const handleFilterChange = (e, type: string) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
   }
@@ -269,11 +269,8 @@ const ProgramValueSetDetails: NextPage = () => {
           <FilterInput
             onChange={(e) => {
               handleFilterChange(e.target.value, 'findInVsName')
-            }
-            }
-            style={{
-              height: '30px'
             }}
+            style={{ height: '30px' }}
           />
         </div>
       ),
@@ -289,9 +286,7 @@ const ProgramValueSetDetails: NextPage = () => {
           <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
             onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
-            style={{
-              height: '30px'
-            }}
+            style={{ height: '30px' }}
           />
         </div>
       ),
@@ -307,9 +302,7 @@ const ProgramValueSetDetails: NextPage = () => {
          <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
             onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
-            style={{
-              height: '30px'
-            }}
+            style={{ height: '30px' }}
           />
         </div>
       ),
