@@ -90,6 +90,11 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   }
 }
 
+// can't pass through whole valuesets -- node will error if data too large
+const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
+  const { id, url, resourceType, }
+}
+
 export {
   addValueSetToGrouper,
   removeValueSetFromGrouper,

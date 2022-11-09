@@ -54,7 +54,6 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
   )
 }
 
-// The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (
   canonicals: string[],
   nameStr: string | undefined,
@@ -76,6 +75,9 @@ const fetchLeafValueSets = async (
   }
 
   try {
+
+    console.log('canonicals: ', canonicals)
+
     const result = await Promise.all(canonicals.map(canonical =>
     (fhirCdrClient.search({
       resourceType: 'ValueSet',
@@ -87,22 +89,25 @@ const fetchLeafValueSets = async (
     }))
     ))
 
+    // console.log('result: ', result)
+
     const valueSets = result?.map((e) => {
       if (e.entry) {
         return e.entry.map((entry: fhir4.BundleEntry) => {
           const resource = entry?.resource as fhir4.ValueSet
           if (resource) {
+            console.log('resource: ', resource)
             return (resource)
           }
         })
       }
     })
-      ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter((value, index, self) => (
-        // @ts-ignore-next-line filter out multiple ids
-        self.findIndex(v2 => v2?.id === value?.id) === index
-      ))
+    ?.flat()
+    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+    ?.filter((value, index, self) => (
+      // @ts-ignore-next-line filter out multiple ids
+      self.findIndex(v2 => v2?.id === value?.id) === index
+    ))
 
     return valueSets
   } catch (e) {
