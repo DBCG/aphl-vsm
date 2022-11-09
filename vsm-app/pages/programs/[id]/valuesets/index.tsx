@@ -12,8 +12,9 @@ import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
-import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
+import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -328,6 +329,24 @@ const ProgramValueSetDetails: NextPage = () => {
       sortable: true,
       maxWidth: '80px',
       wrap: true
+    },
+    {
+      name: (
+        <div style={{ marginTop: '20px' }}>
+         <SelectInputTitle>Source</SelectInputTitle>
+         <p style={{ fontSize: '90%' }}>* source inferred by url</p>
+        </div>
+      ),
+      selector: (row: TableRow) => row.valueSet,
+      sortable: true,
+      maxWidth: '120px',
+      wrap: true,
+      cell: (row: TableRow) => {
+        const terminologyInfo = getTerminologySource(row.valueSet)
+        return (
+          <div>{terminologyInfo.value}{ terminologyInfo.hasExtension ? null : '*' }</div>
+        )
+      }
     },
     {
       name: (

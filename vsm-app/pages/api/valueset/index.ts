@@ -2,8 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
 import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { is } from '@/helpers/is'
 
 export default async function handler(
   req: NextApiRequest,
@@ -53,6 +56,7 @@ export default async function handler(
 
     for (const selectedVS of bodyJson.selectedValueSets) {
       const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
+      // valueset already exists in our server, don't need to call other terminology server
       if (matchingValueSetInCQF) {
         vsToUpdate = matchingValueSetInCQF
         vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
@@ -61,24 +65,45 @@ export default async function handler(
           terminologyClient.setClient(bodyJson.selectedTerminologyServer)
           const terminologyClientInstance = terminologyClient.getClient()
           if (terminologyClientInstance) {
-            let matchingVSetsFromRemoteServer = await terminologyClientInstance.search({
+
+            // get all matching valuesets
+            // vsac doesn't support _sort so doing this broader search + sorting below
+            const allAvailableMatches = await terminologyClientInstance.search({
               resourceType: 'ValueSet',
               searchParams: {
-                url: selectedVS.url,
+                url: selectedVS.url
               }
             })
-            // add url from bundle since doesn't exist on resource
-            if (matchingVSetsFromRemoteServer.entry) {
-              matchingVSetsFromRemoteServer?.entry?.forEach((entryItem: any) => {
-                const valueSet = entryItem.resource
-                if (valueSet && !valueSet.url) {
-                  valueSet.url = entryItem.fullUrl
-                }
-                vSetsToUpdate.push({ method: 'POST', valueSet })
+
+            if (allAvailableMatches.entry) {
+              // sorting here because we cannot use _sort on VSAC server -- not supported
+              const orderedMatchingVSets = allAvailableMatches.entry
+                .map((e: fhir4.BundleEntry) => e.resource)
+                // @ts-ignore-next-line
+                .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version.localeCompare(a.version))
+              let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+                resourceType: 'ValueSet',
+                id: orderedMatchingVSets[0].id
               })
-            } else {
-              console.error('no match found')
+
+              if (is.valueSet(matchingVSetFromRemoteServer)) {
+                const vsUrl = terminologyServerEndpoints
+                  ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
+                  ?.value?.url
+
+                if (vsUrl) {
+                  // add authoritativeSource extension
+                  // this allows us to keep track of where valuesets come from
+                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, vsUrl)
+                }
+
+                vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
+
+              } else {
+                console.error('no match found')
+              }
             }
+
           } else {
             throw new Error('Terminology client is not defined')
           }
@@ -91,7 +116,8 @@ export default async function handler(
 
     // handle if no vsets to update, too
     // add conditions to valueSet
-    const valueSetItemsToUpdate = vSetsToUpdate?.map(vs => {
+    const valueSetItemsToUpdate = vSetsToUpdate?.map((vs) => {
+      // @ts-ignore-next-line
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
       return ({
         valueSet: updatedVs,
