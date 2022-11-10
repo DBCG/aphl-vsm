@@ -4,6 +4,7 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { valuesetDataForDisplay } from '@/helpers/valueSetHelpers'
 import { getSession } from 'next-auth/react'
 
 // Items in the table
@@ -89,15 +90,14 @@ const fetchLeafValueSets = async (
     }))
     ))
 
-    // console.log('result: ', result)
-
     const valueSets = result?.map((e) => {
       if (e.entry) {
         return e.entry.map((entry: fhir4.BundleEntry) => {
           const resource = entry?.resource as fhir4.ValueSet
           if (resource) {
+            return resource
             console.log('resource: ', resource)
-            return (resource)
+            return (valuesetDataForDisplay(resource))
           }
         })
       }

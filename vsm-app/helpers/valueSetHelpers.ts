@@ -92,7 +92,23 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
 
 // can't pass through whole valuesets -- node will error if data too large
 const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
-  const { id, url, resourceType, }
+
+  const allowedProperties = [
+    'id', 'url', 'resourceType', 'version', 'date',
+    'name', 'publisher', 'description', 'meta'
+  ]
+
+  const allKeys = Object.keys(valueset)
+
+  const result = allKeys.reduce((next, key) => {
+    if (allowedProperties.includes(key)) {
+      return { ...next, [key]: valueset[key] }
+    } else {
+      return next
+    }
+  }, {})
+
+  return result
 }
 
 export {
@@ -100,5 +116,6 @@ export {
   removeValueSetFromGrouper,
   addExtensionToVs,
   authoritativeSourceExtensionUrl,
-  getTerminologySource
+  getTerminologySource,
+  valuesetDataForDisplay
 }

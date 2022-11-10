@@ -172,14 +172,13 @@ const ProgramValueSetDetails: NextPage = () => {
         vsCanonical,
         grouperCanonicals,
       }
+
       const result = fetch(`/api/programs/${programId}/groupers`, {
         method: 'PUT',
         body: JSON.stringify(body)
       }).then(res => res.json())
 
       const json = await result
-
-      // setGroupersUpdated(json)
 
       if (!json) {
         console.error('failure result: ', json)
