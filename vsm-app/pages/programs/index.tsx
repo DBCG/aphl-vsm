@@ -8,7 +8,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { ReleasePublishModal } from '@/components/modals/ReleasePublishModal'
+import { LoadingModal } from '@/components/modals/LoadingModal'
 
 const Col = styled.div`
   display: flex;
@@ -260,7 +260,7 @@ const Programs: NextPage = () => {
       <PageTitle>
         Programs
       </PageTitle>
-      <ReleasePublishModal
+      <LoadingModal
         isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
         actionType={programToRelease ? 'release' : 'publish'}
         loading={loading}

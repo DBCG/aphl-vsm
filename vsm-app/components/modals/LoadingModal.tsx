@@ -4,7 +4,7 @@ import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish',
+  actionType: 'release' | 'publish' | 'clone',
   isOpen: boolean,
   handleCancelModal: () => void,
   handleModalAction: Function,
@@ -37,7 +37,17 @@ const modalText = {
         Releasing may take up to a minute.<br/>Please keep this window open until it completes.
       </LoadingText> 
     )
-  }
+  },
+  clone: {
+    title: 'Clone Program',
+    text: 'Cloning this program will create a draft copy that you can edit.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Cloning may take up to a minute.<br/>Please keep this window open until it completes.
+      </LoadingText> 
+    )
+  }, 
 }
 
 const customModalStyles = {
@@ -52,7 +62,7 @@ const customModalStyles = {
   }
 }
 
-const ReleasePublishModal = ({
+const LoadingModal = ({
   isOpen,
   actionType,
   loading,
@@ -139,4 +149,4 @@ const LoadingContainer = styled.div`
   align-items: center;
 `
 
-export { ReleasePublishModal }
+export { LoadingModal }
