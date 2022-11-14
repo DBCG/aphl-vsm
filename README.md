@@ -8,10 +8,10 @@ ValueSet Manager Application
 
 - Run the HAPI FHIR Server as detached process
 ```bin/run-fhir-server.sh```
-The `baseURL` for the server in development is: `http://localhost:8080/fhir`
+The `baseURL` for the server in development is: `http://localhost:8082/fhir`
 
 - Load data to FHIR server (wait 30 sec/1min before doing this for the server to be ready)
-```bin/post-demo-data.sh```
+```bin/load-data.sh```
 
 ### Run Keycloak to sign in to the app
 - In ./keycloak, run:
