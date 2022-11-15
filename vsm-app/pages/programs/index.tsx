@@ -9,11 +9,18 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
+import { Button } from '@/components/buttons/Button'
 
 const Col = styled.div`
   display: flex;
   flex-direction: column;
   height: fit-content;
+`
+
+const Row = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 `
 
 const ButtonWrapper = styled.div`
@@ -104,13 +111,13 @@ const Programs: NextPage = () => {
         )
       }
     },
-    {
-      name: 'Updated',
-      selector: (row: fhir4.Library) => row.date,
-      sortable: true,
-      maxWidth: '100px',
-      wrap: true
-    },
+    // {
+    //   name: 'Updated',
+    //   selector: (row: fhir4.Library) => row.date,
+    //   sortable: true,
+    //   maxWidth: '100px',
+    //   wrap: true
+    // },
     {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
@@ -181,25 +188,25 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     },
-    {
-      name: 'Publish',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: false,
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => (
-        <ButtonWrapper>
-          <IconButton
-            disabled={row.status !== 'active'}
-            onClick={() => {
-              setError('')
-              setProgramToPublish(row)
-            }}
-            buttonContext='publish'
-          />
-        </ButtonWrapper>
-      )
-    }
+    // {
+    //   name: 'Publish',
+    //   selector: (row: fhir4.Library) => row.name,
+    //   sortable: false,
+    //   wrap: true,
+    //   center: true,
+    //   cell: (row: fhir4.Library) => (
+    //     <ButtonWrapper>
+    //       <IconButton
+    //         disabled={row.status !== 'active'}
+    //         onClick={() => {
+    //           setError('')
+    //           setProgramToPublish(row)
+    //         }}
+    //         buttonContext='publish'
+    //       />
+    //     </ButtonWrapper>
+    //   )
+    // }
   ], [router, router?.query?.new])
 
   const onClickDownload = () => {
@@ -257,9 +264,15 @@ const Programs: NextPage = () => {
 
   return (
     <Col>
-      <PageTitle>
-        Programs
-      </PageTitle>
+      <Row>
+        <PageTitle>
+          Programs
+        </PageTitle>
+        <Button
+          text='Publish'
+          // style={{ ba}}
+        />
+      </Row>
       <LoadingModal
         isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
         actionType={programToRelease ? 'release' : 'publish'}

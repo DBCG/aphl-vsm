@@ -6,6 +6,7 @@ const StyledButton = styled.button`
   : 'var(--theme-300)'}; 
   color: ${props => props.disabled ? '#B0B5C1' : 'white !important'};
   font-weight: 600;
+  height: fit-content;
   border: none;
   padding: 8px 8px;
   cursor: ${props => props.disabled ? 'default' : 'pointer'};
