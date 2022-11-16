@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
-import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -12,10 +11,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   // get ValueSets by id
   if (req.method === 'GET') {

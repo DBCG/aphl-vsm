@@ -2,17 +2,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
-import { getSession } from 'next-auth/react'
 
 // this only gets the program library
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   if (req.method === 'GET') {
     try {

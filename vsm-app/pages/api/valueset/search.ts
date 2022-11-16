@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getSession } from 'next-auth/react'
 import { terminologyClient } from 'fhirClients'
 
 export interface FetchError {
@@ -43,10 +42,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   if (req.method === 'GET') {
     // @ts-ignore-next-line

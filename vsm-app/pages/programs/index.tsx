@@ -40,7 +40,7 @@ const StatusTag = styled.div<StatusProps>`
     props => props.status === 'active'
     ? 'rgba(46, 192, 205, 0.3)'
     : 'rgba(252, 186, 3, 0.3)'
-  }
+  };
 `
 
 const customStyles = {
@@ -75,7 +75,7 @@ const ErrorContainer = styled.div<ErrorProp>`
 
 const ErrorText = styled.p<ErrorProp>`
   color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'}
+  display: ${props => props.error ? 'inherit' : 'none'};
 `
 
 const Programs: NextPage = () => {
@@ -303,7 +303,7 @@ const Programs: NextPage = () => {
 
 export async function getServerSideProps(context: GetSessionParams) {
   const session = await getSession(context)
-
+  console.log(session)
   if (!session) {
     return {
       redirect: {
