@@ -49,8 +49,7 @@ export default async function handler(
 
       if (searchResult.entry) {
         const programs = searchResult?.entry?.map((e: any) => e?.resource)
-        const json = JSON.stringify(programs)
-        res.status(200).send(json)
+        res.status(200).send(programs)
       } else {
         console.error(searchResult)
         res.status(404).send([])

@@ -34,7 +34,7 @@ export default async function handler(
       const response = await vsacFhirClient.capabilityStatement()
       const codeSystemFilters = parseCapabilityStatement(response as CapabilityStatement)
 
-      res.status(200).send(JSON.stringify(codeSystemFilters))
+      res.status(200).send(codeSystemFilters)
     } catch (e) {
       console.error('error:  ', e)
       res.status(400).json({ error: 'Loading CodeSystems failed' })
