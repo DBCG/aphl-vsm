@@ -2,17 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
-import { getSession } from 'next-auth/react'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    console.error('no session')
-    res.status(401).end()
-  }
 
   if (req.method === 'PUT') {
     try {
