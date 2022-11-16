@@ -25,8 +25,7 @@ export default async function handler(
       })
 
       const lib = data?.entry?.map((e: any) => e?.resource)
-      const json = JSON.stringify(lib)
-      res.status(200).send(json)
+      res.status(200).send(lib)
 
     } catch (e: any) {
       console.error('error:  ', e?.response?.data?.text)

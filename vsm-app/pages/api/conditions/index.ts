@@ -25,9 +25,7 @@ export default async function handler(
       // this will return a set of code/display pairs, along with their system info
       // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
       const valueSet = data?.entry?.[0]?.resource?.compose?.include
-      const json = JSON.stringify(valueSet)
-      res.status(200).send(json)
-
+      res.status(200).send(valueSet)
     } catch (e: any) {
       console.error('error:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Search for conditions valueset failed.' })
