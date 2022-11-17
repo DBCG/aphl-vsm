@@ -31,7 +31,7 @@ export const AuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {
-    secret: 'test' // TODO: swap this out
+    secret: process.env.NEXTAUTH_SECRET
   }
 } as NextAuthOptions
 
