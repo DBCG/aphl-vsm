@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   compress: true,
+  typescript: {
+    ignoreBuildErrors: true
+  },
   async redirects() {
     return [{
       source: '/',
