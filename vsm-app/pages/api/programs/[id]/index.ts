@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
+import { is } from '@/helpers/is'
 
 // this only gets the program library
 export default async function handler(
@@ -10,20 +11,25 @@ export default async function handler(
 ): Promise<any> {
 
   if (req.method === 'GET') {
-    try {
-      const data = await fhirCdrClient.search({
-        resourceType: 'Library',
-        searchParams: {
-          context: 'triggering-valueset-library',
-          id: req.query.id
-        }
-      })
+    if(is.string(req?.query?.id)) {
+      try {
+        const data = await fhirCdrClient.search({
+          resourceType: 'Library',
+          searchParams: {
+            context: 'triggering-valueset-library',
+            id: req.query.id
+          }
+        })
 
-      const lib = data?.entry?.map((e: any) => e?.resource)
-      res.status(200).send(lib)
+        const lib = data?.entry?.map((e: any) => e?.resource)
+        res.status(200).send(lib)
 
-    } catch (e: any) {
-      console.error('error:  ', e?.response?.data?.text)
+      } catch (e: any) {
+        console.error('error: ', e?.response?.data?.text)
+        res.status(400).json({ error: 'Search for program by id failed.' })
+      }
+    } else {
+      console.error('error: Invalid program ID')
       res.status(400).json({ error: 'Search for program by id failed.' })
     }
   } else if (req.method === 'PUT') {

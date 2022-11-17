@@ -102,7 +102,7 @@ const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
 
   const result = allKeys.reduce((next, key) => {
     if (allowedProperties.includes(key)) {
-      return { ...next, [key]: valueset[key] }
+      return { ...next, [key]: valueset[key as keyof fhir4.ValueSet] }
     } else {
       return next
     }
