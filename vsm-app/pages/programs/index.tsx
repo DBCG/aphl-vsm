@@ -290,7 +290,7 @@ const Programs: NextPage = () => {
 
 export async function getServerSideProps(context: GetSessionParams) {
   const session = await getSession(context)
-  console.log(session)
+
   if (!session) {
     return {
       redirect: {
