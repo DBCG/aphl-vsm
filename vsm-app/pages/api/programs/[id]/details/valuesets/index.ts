@@ -76,8 +76,6 @@ const fetchLeafValueSets = async (
 
   try {
 
-    console.log('canonicals: ', canonicals)
-
     const result = await Promise.all(canonicals.map(canonical =>
     (fhirCdrClient.search({
       resourceType: 'ValueSet',
@@ -94,8 +92,7 @@ const fetchLeafValueSets = async (
         return e.entry.map((entry: fhir4.BundleEntry) => {
           const resource = entry?.resource as fhir4.ValueSet
           if (resource) {
-            return resource
-            console.log('resource: ', resource)
+            // instead of returning whole valuesets, just return a portion of the data
             return (valuesetDataForDisplay(resource))
           }
         })
