@@ -8,10 +8,10 @@ ValueSet Manager Application
 
 - Run the HAPI FHIR Server as detached process
 ```bin/run-fhir-server.sh```
-The `baseURL` for the server in development is: `http://localhost:8080/fhir`
+The `baseURL` for the server in development is: `http://localhost:8082/fhir`
 
 - Load data to FHIR server (wait 30 sec/1min before doing this for the server to be ready)
-```bin/post-demo-data.sh```
+```bin/load-data.sh```
 
 ### Run Keycloak to sign in to the app
 - In ./keycloak, run:
@@ -24,7 +24,7 @@ The `baseURL` for the server in development is: `http://localhost:8080/fhir`
 In order to connect your local Keycloak to the app, you must:
 - navigate to http://localhost:8080 (Keycloak admin UI)
 - enter admin username/pw (default: admin/admin)
-- in dropdown top left, choose APHL, thhen click on clients at left. Select aphl-app from list
+- in dropdown top left, choose APHL, then click on clients at left. Select aphl-app from list
 ![APHL Realm main page](./md-images/keycloak_aphl_realm.png "Contains info related to the APHL realm")
 
 - On the settings page about halfway down, edit this block as seen here and PRESS SAVE:

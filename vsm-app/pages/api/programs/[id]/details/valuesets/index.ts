@@ -4,7 +4,7 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { getSession } from 'next-auth/react'
+import { valuesetDataForDisplay } from '@/helpers/valueSetHelpers'
 
 // Items in the table
 interface Group {
@@ -54,7 +54,6 @@ const fetchGrouperValueSets = (canonicals: string[]) => {
   )
 }
 
-// The leaf valueSets will eventually come from a maintained cache... for now, just grabbing from the fhir server
 const fetchLeafValueSets = async (
   canonicals: string[],
   nameStr: string | undefined,
@@ -76,6 +75,7 @@ const fetchLeafValueSets = async (
   }
 
   try {
+
     const result = await Promise.all(canonicals.map(canonical =>
     (fhirCdrClient.search({
       resourceType: 'ValueSet',
@@ -92,17 +92,18 @@ const fetchLeafValueSets = async (
         return e.entry.map((entry: fhir4.BundleEntry) => {
           const resource = entry?.resource as fhir4.ValueSet
           if (resource) {
-            return (resource)
+            // instead of returning whole valuesets, just return a portion of the data
+            return (valuesetDataForDisplay(resource))
           }
         })
       }
     })
-      ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter((value, index, self) => (
-        // @ts-ignore-next-line filter out multiple ids
-        self.findIndex(v2 => v2?.id === value?.id) === index
-      ))
+    ?.flat()
+    ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+    ?.filter((value, index, self) => (
+      // @ts-ignore-next-line filter out multiple ids
+      self.findIndex(v2 => v2?.id === value?.id) === index
+    ))
 
     return valueSets
   } catch (e) {
@@ -121,10 +122,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   const groupsByValueSetCanonical: Record<string, Group[]> = {}
   if (req.method === 'GET') {

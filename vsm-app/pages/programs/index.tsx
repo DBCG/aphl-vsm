@@ -1,29 +1,26 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import { useSession, getSession, GetSessionParams } from "next-auth/react"
+import { getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
-import { SearchInput } from '@/components/SearchInput'
-import { Button } from '@/components/buttons/Button'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
-
-const Row = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  justify-content: space-evenly;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-`
+import { LoadingModal } from '@/components/modals/LoadingModal'
+import { Button } from '@/components/buttons/Button'
 
 const Col = styled.div`
   display: flex;
   flex-direction: column;
   height: fit-content;
+`
+
+const Row = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 `
 
 const ButtonWrapper = styled.div`
@@ -43,7 +40,7 @@ const StatusTag = styled.div<StatusProps>`
     props => props.status === 'active'
     ? 'rgba(46, 192, 205, 0.3)'
     : 'rgba(252, 186, 3, 0.3)'
-  }
+  };
 `
 
 const customStyles = {
@@ -63,6 +60,23 @@ const customStyles = {
   }
 }
 
+interface ErrorProp {
+  error: string
+}
+
+const ErrorContainer = styled.div<ErrorProp>`
+  max-height: ${props => props.error ? '500px' : '0'};
+  background-color: white;
+  transition: max-height 1s ease;
+  padding-left: 18px;
+  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
+
+`
+
+const ErrorText = styled.p<ErrorProp>`
+  color: var(--accent);
+  display: ${props => props.error ? 'inherit' : 'none'};
+`
 
 const Programs: NextPage = () => {
   const router = useRouter()
@@ -70,6 +84,10 @@ const Programs: NextPage = () => {
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
   const [searchTermDescription, setSearchTermDescription] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
+  const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
+  const [error, setError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -93,13 +111,13 @@ const Programs: NextPage = () => {
         )
       }
     },
-    {
-      name: 'Updated',
-      selector: (row: fhir4.Library) => row.date,
-      sortable: true,
-      maxWidth: '100px',
-      wrap: true
-    },
+    // {
+    //   name: 'Updated',
+    //   selector: (row: fhir4.Library) => row.date,
+    //   sortable: true,
+    //   maxWidth: '100px',
+    //   wrap: true
+    // },
     {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
@@ -136,20 +154,59 @@ const Programs: NextPage = () => {
       wrap: true
     },
     {
-      name: 'Use as Template',
+      name: 'Clone',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
       wrap: true,
       center: true,
-      cell: (row: fhir4.Library) => row.status === 'active' && (
+      cell: (row: fhir4.Library) => (
         <ButtonWrapper>
           <IconButton
+            disabled={row.status !== 'active'}
             onClick={() => router.push(`/programs/template?id=${row.id}`)}
             buttonContext='clone'
           />
         </ButtonWrapper>
       )
-    }
+    },
+        {
+      name: 'Release',
+      selector: (row: fhir4.Library) => row.name,
+      sortable: false,
+      wrap: true,
+      center: true,
+      cell: (row: fhir4.Library) => (
+        <ButtonWrapper>
+          <IconButton
+            disabled={row.status !== 'draft'}
+            onClick={() => {
+              setError('')
+              setProgramToRelease(row)
+            }}
+            buttonContext='release'
+          />
+        </ButtonWrapper>
+      )
+    },
+    // {
+    //   name: 'Publish',
+    //   selector: (row: fhir4.Library) => row.name,
+    //   sortable: false,
+    //   wrap: true,
+    //   center: true,
+    //   cell: (row: fhir4.Library) => (
+    //     <ButtonWrapper>
+    //       <IconButton
+    //         disabled={row.status !== 'active'}
+    //         onClick={() => {
+    //           setError('')
+    //           setProgramToPublish(row)
+    //         }}
+    //         buttonContext='publish'
+    //       />
+    //     </ButtonWrapper>
+    //   )
+    // }
   ], [router, router?.query?.new])
 
   const onClickDownload = () => {
@@ -171,60 +228,62 @@ const Programs: NextPage = () => {
   const onClick = () => {
     router.push('/programs/new')
   }
-  // commenting out the ID search input
-  // because cannot partial-string-search on field
+
+  const handleCancelModal = () => {
+    setProgramToPublish(null)
+    setProgramToRelease(null)
+  }
+
+  const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
+    let result
+    let endpoint
+    setLoading(true)
+
+    if (actionType === 'release') {
+      endpoint = `/api/programs/${program.id}/release`
+    } else {
+      endpoint = `/api/programs/${program.id}/publish`
+    }
+
+    result = await fetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(program)
+    })
+
+    if (!result.ok) {
+      setError(`Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`)
+    } else {
+      router.reload()
+    }
+
+    setLoading(false)
+    setProgramToPublish(null)
+    setProgramToRelease(null)
+
+  }
+
   return (
     <Col>
-      <PageTitle>
-        Programs
-      </PageTitle>
-        {/* comment out below because some previous work broke this */}
-        {/* <Row>
-          <Col>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermID(e.target.value)}
-               id='program-search-id'
-               label='ID'
-               hasIcon={true}
-               style={{ paddingTop: '15px' }}      
-             />
-           </Row>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermName(e.target.value)}
-               id='program-search-name'
-               label='Name'
-               hasIcon={true}
-               style={{ paddingTop: '15px' }}        
-             />
-           </Row>
-         </Col>
-         <Col>
-           <Row>
-             <SearchInput
-               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTermTitle(e.target.value)}
-               id='program-search-title'
-               label='Title'
-               hasIcon={true}
-               minWidth={500}
-               style={{ paddingTop: '15px' }}
-             />
-           </Row>
-         </Col>
-         <Col> 
-          <Row>
-           <SearchInput
-             onChange={(e: ChangeEvent<HTMLInputElement>) => {setSearchTermDescription(e.target.value)}}
-             id='program-search-description'
-             label='Description'
-             hasIcon={true}
-             minWidth={300}
-             style={{ height: '140px' }}
-           />
-          </Row>
-         </Col>
-      </Row> */}
+      <Row>
+        <PageTitle>
+          Programs
+        </PageTitle>
+        <Button
+          text='Publish'
+          // style={{ ba}}
+        />
+      </Row>
+      <LoadingModal
+        isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
+        actionType={programToRelease ? 'release' : 'publish'}
+        loading={loading}
+        handleCancelModal={handleCancelModal}
+        handleModalAction={handleModalAction}
+        program={programToPublish || programToRelease}
+      />
+      <ErrorContainer error={error}>
+        <ErrorText error={error}>{ error }</ErrorText>
+      </ErrorContainer>
       <DT
         data={programs}
         // @ts-expect-error

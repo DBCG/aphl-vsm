@@ -3,8 +3,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 import { fetchProgram } from '@/helpers/libraryHelpers'
-import { is } from '@/helpers/is'
-import { getSession } from 'next-auth/react'
 
 interface GroupInfoItem {
   label: string,
@@ -15,10 +13,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   if (req.method === 'GET') {
     let result = []

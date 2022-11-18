@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import type { NextPage } from 'next'
+import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
+import { getSession, GetSessionParams } from 'next-auth/react'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
@@ -13,11 +14,9 @@ import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '..'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import {
-  formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate
-} from '@/helpers/conditionHelpers'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
-import { getSession, GetSessionParams } from 'next-auth/react'
+import { useDebounce } from '@/hooks/useDebounce'
+import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
 interface GroupItem {
@@ -81,6 +80,12 @@ const FlexRow = styled.div`
   width: 100%;
 `
 
+const FlexCol = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+`
+
 interface GroupInfoItem {
   label: string,
   value: string
@@ -124,12 +129,7 @@ const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: Co
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  // filter updates
-  const [findInVsName, setFindInVsName] = useState('')
-  const [findInSteward, setFindInSteward] = useState('')
-  const [findInVersion, setFindInVersion] = useState('')
-  const [activeGroups, setActiveGroups] = useState([])
-  const [activeConditions, setActiveConditions] = useState([])
+
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
@@ -140,20 +140,39 @@ const ProgramValueSetDetails: NextPage = () => {
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
+  const [groupersUpdated, setGroupersUpdated] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [vSetsLoading, setVSetsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
 
+  const defaultFilters = {
+    findInVsName: '',
+    findInSteward: '',
+    findInVersion: '',
+    activeConditions: [],
+    activeGroups: []
+  }
+
+  // all available filters
+  const [filters, setFilters] = useState(defaultFilters)
+  
+  // debounce changes to avoid extra server reqs
+  const debouncedFilters = useDebounce(filters, 300)
+  
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
-    setIsDeleting(true)
     if (!vsCanonical || !grouperCanonicals) {
       setIsDeleting(false)
       return
+    } else {
+      setIsDeleting(vsCanonical)
     }
+
     try {
       const body = {
         vsCanonical,
         grouperCanonicals,
       }
+
       const result = fetch(`/api/programs/${programId}/groupers`, {
         method: 'PUT',
         body: JSON.stringify(body)
@@ -163,6 +182,9 @@ const ProgramValueSetDetails: NextPage = () => {
 
       if (!json) {
         console.error('failure result: ', json)
+      } else {
+        setIsDeleting(false)
+        window.location.reload()
       }
     } catch (e) {
       console.error(e)
@@ -211,16 +233,21 @@ const ProgramValueSetDetails: NextPage = () => {
     postUpdate()
   }, [updateVsGroups.groupInfo, programId])
 
-  const progValueSetDets = useGetProgramValueSetDetails(
-    programId,
-    findInVsName,
-    findInVersion,
-    findInSteward,
-    activeGroups,
-    activeConditions,
-    updatedValueSet,
-    updatedGrouperValuesets
-  )
+  const progValueSetDets = useGetProgramValueSetDetails({
+    id: programId,
+    updatedValueSet, // this gets updated when a user adds a condition
+    updatedGrouperValuesets, // this gets updated when a user adds a vs to a grouper
+    ...debouncedFilters
+  })
+
+    // since query takes a while, expose loading state
+  useEffect(() => {
+    setVSetsLoading(true)
+  }, [filters])
+
+  useEffect(() => {
+    setVSetsLoading(false)
+  }, [progValueSetDets])
 
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
@@ -244,22 +271,28 @@ const ProgramValueSetDetails: NextPage = () => {
     }
   )
 
+  const handleFilterChange = (e: string | React.ChangeEvent<HTMLInputElement>, type: string) => {
+    const updatedFilters = { ...filters, [type]: e }
+    setFilters(updatedFilters)
+  }
+
   const columns = useMemo(() => [
     {
       name: (
         <div>
           <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleNameSearch(e)}
-            style={{
-              height: '30px'
+            onChange={(e) => {
+              // @ts-ignore-next-line
+              handleFilterChange(e.target.value, 'findInVsName')
             }}
+            style={{ height: '30px' }}
           />
         </div>
       ),
       id: 'vs-name-search',
       selector: (row: TableRow) => row.title,
-      sortable: true,
+      sortable: false,
       maxWidth: '350px',
       wrap: true
     },
@@ -268,16 +301,15 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
           <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleVersionSearch(e)}
-            style={{
-              height: '30px'
-            }}
+            // @ts-ignore-next-line
+            onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
+            style={{ height: '30px' }}
           />
         </div>
       ),
       id: 'vs-version-search',
       selector: (row: TableRow) => row.version,
-      sortable: true,
+      sortable: false,
       maxWidth: '80px',
       wrap: true
     },
@@ -286,10 +318,9 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
          <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
-            onChange={(e) => handleStewardSearch(e)}
-            style={{
-              height: '30px'
-            }}
+            // @ts-ignore-next-line
+            onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
+            style={{ height: '30px' }}
           />
         </div>
       ),
@@ -327,8 +358,8 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='conditions-selector'
             isMulti
             options={buildConditionOptions(allConditions)}
-            // @ts-expect-error
-            onChange={(e) => {setActiveConditions(e)}}
+            // @ts-ignore-next-line
+            onChange={(e) => {handleFilterChange(e, 'activeConditions')}}
           />
         </SelectInputContainer>
       ),
@@ -378,10 +409,8 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='groups-selector'
             isMulti
             options={buildGroupOptions(alphabetizedGroups)}
-            onChange={(e) => {
-              // @ts-expect-error
-              setActiveGroups(e)
-            }}
+            // @ts-ignore-next-line
+            onChange={(e) => {handleFilterChange(e, 'activeGroups')}}
           />
         </SelectInputContainer>
       ),
@@ -436,36 +465,25 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '150px',
       cell: (row: TableRow) => (
         <FlexRow style={{ justifyContent: 'center' }}>
-          <IconButton
-            onClick={async () => {
-              await handleDelete({
-                vsCanonical: row?.valueSet?.url,
-                grouperCanonicals: row.groups.map(g => g.url)
-              })
-              window.location.reload()
-            }}
-            buttonContext='delete'
-            style={{ backgroundColor: 'darkRed' }}
-          />
+          <FlexCol>
+            <IconButton
+              onClick={async () => {
+                await handleDelete({
+                  vsCanonical: row?.valueSet?.url,
+                  grouperCanonicals: row.groups.map(g => g.url)
+                })
+                window.location.reload()
+              }}
+              buttonContext='delete'
+              style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+            />
+            {isDeleting === row?.valueSet?.url && <p><em>Deleting...</em></p>}
+
+          </FlexCol>
         </FlexRow>
       )
     }
   ], [router, groupsInProgram, allConditions])
-
-  const handleNameSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInVsName(target.value)
-  }
-
-  const handleVersionSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInVersion(target.value)
-  }
-
-  const handleStewardSearch = (e: React.ChangeEvent<Element>) => {
-    const target = e.target as HTMLInputElement
-    setFindInSteward(target.value)
-  }
 
   return (
     <>
@@ -491,7 +509,7 @@ const ProgramValueSetDetails: NextPage = () => {
         fixedHeader
         // @ts-expect-error
         customStyles={customStyles}
-        progressPending={pageLoading}
+        progressPending={pageLoading || vSetsLoading}
         progressComponent={<LoadingIndicator/>}
       />
     </>

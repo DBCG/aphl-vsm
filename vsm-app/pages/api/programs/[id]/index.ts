@@ -2,34 +2,34 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
-import { getSession } from 'next-auth/react'
+import { is } from '@/helpers/is'
 
 // this only gets the program library
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   if (req.method === 'GET') {
-    try {
-      const data = await fhirCdrClient.search({
-        resourceType: 'Library',
-        searchParams: {
-          context: 'triggering-valueset-library',
-          id: req.query.id
-        }
-      })
+    if(is.string(req?.query?.id)) {
+      try {
+        const data = await fhirCdrClient.search({
+          resourceType: 'Library',
+          searchParams: {
+            context: 'triggering-valueset-library',
+            id: req.query.id
+          }
+        })
 
-      const lib = data?.entry?.map((e: any) => e?.resource)
-      const json = JSON.stringify(lib)
-      res.status(200).send(json)
+        const lib = data?.entry?.map((e: any) => e?.resource)
+        res.status(200).send(lib)
 
-    } catch (e: any) {
-      console.error('error:  ', e?.response?.data?.text)
+      } catch (e: any) {
+        console.error('error: ', e?.response?.data?.text)
+        res.status(400).json({ error: 'Search for program by id failed.' })
+      }
+    } else {
+      console.error('error: Invalid program ID')
       res.status(400).json({ error: 'Search for program by id failed.' })
     }
   } else if (req.method === 'PUT') {
@@ -79,7 +79,7 @@ export default async function handler(
       console.error('ERROR: ', e)
     }
 
-  } else if (req.method === 'POST ') {
+  } else if (req.method === 'POST') {
     // update the program by id
     const response = await fhirCdrClient.update({
       resourceType: 'Library',

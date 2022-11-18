@@ -22,7 +22,7 @@ const useGetProgramDetails = (id: string): Result => {
 
   useEffect(() => {
     async function getProgram(): Promise<void> {
-      const programEndpoint = `/api/programs/?id=${id}`
+      const programEndpoint = `/api/programs?id=${id}`
 
       let result = {
         program: {},

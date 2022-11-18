@@ -1,17 +1,12 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
-import { getSession } from 'next-auth/react'
 
 // this only gets the program library
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    res.status(401).end()
-  }
 
   if (req.method === 'GET') {
     try {
@@ -25,9 +20,7 @@ export default async function handler(
       // this will return a set of code/display pairs, along with their system info
       // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
       const valueSet = data?.entry?.[0]?.resource?.compose?.include
-      const json = JSON.stringify(valueSet)
-      res.status(200).send(json)
-
+      res.status(200).send(valueSet)
     } catch (e: any) {
       console.error('error:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Search for conditions valueset failed.' })

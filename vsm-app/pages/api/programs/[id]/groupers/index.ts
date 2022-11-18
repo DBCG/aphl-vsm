@@ -2,17 +2,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
-import { getSession } from 'next-auth/react'
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> {
-  const session = await getSession({ req })
-  if (!session) {
-    console.error('no session')
-    res.status(401).end()
-  }
 
   if (req.method === 'PUT') {
     try {
@@ -42,13 +36,13 @@ export default async function handler(
               body: grouperVs
             })
           )))
-          res.status(200).send(result)
-          return
         }
       }
+      res.status(200).send(groupersToUpdate)
+      return
 
     } catch (e) {
-      console.error('error here b: ', e)
+      console.error('error caught in /groupers: ', e)
     }
   }
 

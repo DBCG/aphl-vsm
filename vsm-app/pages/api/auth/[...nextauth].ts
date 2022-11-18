@@ -1,8 +1,9 @@
 // @ts-nocheck
 import NextAuth from 'next-auth'
 import KeycloakProvider from 'next-auth/providers/keycloak'
+import type { NextAuthOptions } from 'next-auth'
 
-export default NextAuth({
+export const AuthOptions = {
   providers: [
     KeycloakProvider({
       clientId: process.env.KEYCLOAK_ID,
@@ -26,7 +27,12 @@ export default NextAuth({
       return session
     },
   },
+  session: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   jwt: {
-    secret: 'test'
+    secret: process.env.NEXTAUTH_SECRET
   }
-})
+} as NextAuthOptions
+
+export default NextAuth(AuthOptions)

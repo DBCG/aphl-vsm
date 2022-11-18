@@ -32,11 +32,16 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
       }
       try {
         const response: Response = await fetch(endpoint)
-        const json = await response.json()
-        if (json.error) {
+        if (!response.ok) {
+          console.error('not ok!')
           setLibraries([])
         } else {
-          setLibraries(json)
+          const json = await response.json()
+          if (json.error) {
+            setLibraries([])
+          } else {
+            setLibraries(json)
+          }
         }
       } catch (e) {
         setLibraries([])
