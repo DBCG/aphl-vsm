@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
+import retry from 'helpers/retryRequest';
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -76,11 +77,11 @@ export default async function handler(
           }
           if (activeTerminologyClient) {
             try {
-              serverResponse = await activeTerminologyClient.search({
+              serverResponse = await retry(() => activeTerminologyClient.search({
                 resourceType: 'ValueSet',
                 // @ts-expect-error
                 searchParams
-              })
+              }))
 
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
