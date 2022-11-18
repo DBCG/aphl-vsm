@@ -1,4 +1,6 @@
 #!/bin/bash
+# Command used to debug script quickly
+# docker rm -f keycloak-keycloak-1 keycloak-postgres-1 && docker volume prune -f && docker-compose up -d && ./configure
 # https://github.com/ThisIsRuvos/ersd-keycloak/blob/master/configure
 set -e
 
@@ -8,7 +10,7 @@ read -s -p $'Admin Password: (admin) \n' admin_password
 read -p 'Non-Admin Username: (johndoe) ' non_admin_username
 read -s -p $'Non-Admin Password: (password) \n' non_admin_password
 read -p 'Realm: (aphl) ' realm
-read -p 'Client: (aphl-app) ' client
+read -p 'Client: (aphl_app) ' client
 read -p 'Redirect URIs: (["http://localhost:3000/api/auth/callback/keycloak"]) ' redirect_uris
 read -p 'Web Origins: (["*"])' web_origins
 
@@ -20,7 +22,7 @@ non_admin_username=${non_admin_username:-johndoe}
 non_admin_pswd=${non_admin_password:-password}
 
 realm=${realm:-aphl}
-client=${client:-aphl-app}
+client=${client:-aphl_app}
 redirect_uris=${redirect_uris:-'["http://localhost:3000/api/auth/callback/keycloak"]'}
 web_origins=${web_origins:-'["*"]'}
 
@@ -40,17 +42,67 @@ echo -e 'Creating realm '$realm'...'
 curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/auth/admin/realms
 echo -e '\n________________________________\n'
 
-echo -e 'Creating admin role on realm '$realm'...'
-curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "admin"}' $base_url/auth/admin/realms/$realm/roles
-echo -e '\n________________________________\n'
-
 echo -e 'Creating client '$client' on realm '$realm'...'
-curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/auth/admin/realms/$realm/clients
+client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/auth/admin/realms/$realm/clients -si | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
+echo "Created $client with id: $client_id"
 echo -e '\n________________________________\n'
 
+
+### Create Admin role
+echo -e '\n________________________________\n'
+echo -e 'Creating admin role'
+admin_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "admin"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
+echo "url $admin_role_url"
+admin_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$admin_role_url" | jq '.id'| tr -d '\r')
+echo -e "Created admin role with id: $admin_role_id"
+echo -e '\n________________________________\n'
+
+# Create Author Role
+echo -e '\n________________________________\n'
+echo -e 'Creating author role'
+author_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "author"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
+echo "url $author_role_url"
+author_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$author_role_url" | jq '.id'| tr -d '\r')
+echo -e "Created author role with id: $author_role_id"
+echo -e '\n________________________________\n'
+
+echo -e 'Fetching authentication certificate for realm '$realm'...'
+raw_cert=$(curl -H 'Authorization: Bearer '$token $base_url/auth/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
+echo -e '\n________________________________\n'
+echo '-----BEGIN CERTIFICATE-----\n'$raw_cert'\n-----END CERTIFICATE-----'
+
+
+# Add mapper for scopes
+echo -e '\n________________________________\n'
+echo -e 'Creating mapper for scopes with this url:' $base_url/auth/admin/realms/$realm/clients/$client_id/protocol-mappers/models
+curl --location --request POST $base_url/auth/admin/realms/$realm/clients/$client_id/protocol-mappers/models \
+  --header 'Content-Type: application/json' \
+  --header "Authorization: Bearer ${token}" \
+  --data-raw '{
+    "protocol": "openid-connect",
+    "protocolMapper": "oidc-usermodel-client-role-mapper",
+    "name": "ClientRole",
+    "config": {
+      "usermodel.clientRoleMapping.rolePrefix": "",
+      "claim.name": "resource_access.${client_id}.roles",
+      "usermodel.clientRoleMapping.clientId": "aphl_app",
+      "multivalued": "true",
+      "jsonType.label": "",
+      "id.token.claim": "true",
+      "access.token.claim": "true",
+      "userinfo.token.claim": "true"
+    }
+  }'
+echo -e 'successfully created client role mappings to token'
+echo -e '\n________________________________\n'
+
+
+
+################################################################
+# Create Admin User in app
 # https://www.appsdeveloperblog.com/keycloak-rest-api-create-a-new-user/
-echo -e 'Creating user '${non_admin_username}' on realm '$realm'...'
-curl --location --request POST 'http://localhost:8080/auth/admin/realms/aphl/users' \
+echo -e 'Creating user for admin role '${non_admin_username}' on realm '$realm'...'
+admin_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
 --header 'Content-Type: application/json' \
 --header "Authorization: Bearer ${token}" \
 --data-raw '{
@@ -66,10 +118,72 @@ curl --location --request POST 'http://localhost:8080/auth/admin/realms/aphl/use
       "temporary": false
     }
   ]
-}'
+}'| grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
+echo "sucessfully created admin user with id: $admin_user_id"
 echo -e '\n________________________________\n'
 
-echo -e 'Fetching authentication certificate for realm '$realm'...'
-raw_cert=$(curl -H 'Authorization: Bearer '$token $base_url/auth/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
+
+# Map user to admin role
 echo -e '\n________________________________\n'
-echo '-----BEGIN CERTIFICATE-----\n'$raw_cert'\n-----END CERTIFICATE-----'
+echo -e 'Mapping '${non_admin_username}' to role admin'
+curl -X POST $base_url/auth/admin/realms/$realm/users/$admin_user_id/role-mappings/realm \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[]'
+curl -X POST $base_url/auth/admin/realms/$realm/users/$admin_user_id/role-mappings/clients/$client_id \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[{
+    "id": '${admin_role_id}',
+    "name": "admin"
+}]'
+echo "sucessfully mapped user to admin role"
+echo -e '\n________________________________\n'
+
+
+# Create new user
+echo -e '\n________________________________\n'
+echo -e 'Creating user for author role '${non_admin_username}'-author on realm '$realm'...'
+author_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoeauthor@test.com",
+  "enabled": true,
+  "username": "'${non_admin_username}-author'",
+  "credentials": [
+    {
+      "type": "password",
+      "value": "'${non_admin_pswd}'",
+      "temporary": false
+    }
+  ]
+}' | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
+echo "Created user '${non_admin_username}-author with user_id: $author_user_id"
+echo -e '\n________________________________\n'
+
+
+# Map new user to author role
+echo -e '\n________________________________\n'
+echo -e 'Mapping '${non_admin_username}'-author to role author'
+
+curl -X POST $base_url/auth/admin/realms/$realm/users/$author_user_id/role-mappings/realm \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[]'
+
+curl -X POST $base_url/auth/admin/realms/$realm/users/$author_user_id/role-mappings/clients/$client_id \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[{
+    "id": '${author_role_id}',
+    "name": "author"
+}]'
+
+echo 'successfully mapped user to role author'
+echo -e '\n________________________________\n'
+
+
+echo -e "Finished running setup script\n----------------------------------------------------------------"
