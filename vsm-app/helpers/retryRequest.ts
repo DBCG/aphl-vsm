@@ -11,16 +11,15 @@ const wait = (ms: number) => {
 }
 
 /**
- * Retry Wrapper Function for flakey API Calls
+ * Retry Wrapper Function for flakey API Calls with backoff delays
  * @param apiCall 
  * @param maxRetries 
  * @param delay 
  * @returns 
  */
-const retry = async (apiCall: Function, maxRetries = 3, delay = 1000) => {
+const retry = async (apiCall: Function, maxRetries = 3, delay = 500) => {
   let error: ErrorOptions | undefined
   for (let i = 0; i < maxRetries; i++) {
-    console.log(i, "try with delay:", delay* i)
     try {
       const results = await apiCall()
       return results
@@ -29,6 +28,7 @@ const retry = async (apiCall: Function, maxRetries = 3, delay = 1000) => {
       await wait(delay * i)
     }
   }
+  console.error(`Error for API Call: ${apiCall.name } after ${maxRetries} retries`)
   throw new Error("Max retry reached", error)
 }
 
