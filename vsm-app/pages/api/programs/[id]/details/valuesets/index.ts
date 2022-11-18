@@ -32,16 +32,37 @@ interface ValueSetTableEntry {
   groups: Group[]
 }
 
+// Whitelisting ValueSet fields to avoid querying the 'expansion' field
+// as it could be quite large and slow down the application
+const WHITELIST_VALUESET_FIELDS = [
+  'extension',
+  'url',
+  'identifier',
+  'version',
+  'name',
+  'title',
+  'status',
+  'publisher',
+  'description',
+  'useContext',
+  'purpose',
+  'compose',
+]
+
 // vsac limits queries
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string) => {
-
-  const [url, version] = canonical.split('|')
-  const searchParams: Record<string, string> = { url }
-  if (version) { searchParams.version = version }
-  const result = client.search({ resourceType, searchParams })
-
-  return result
+const fetchByCanonical = (
+  client: FhirKitClient,
+  resourceType: string,
+  canonical: string,
+  whitelistFields?: string[]
+  ) => {
+    const [url, version] = canonical.split('|')
+    const searchParams: Record<string, string> = { url }
+    if (version) { searchParams.version = version }
+    if (whitelistFields) { searchParams["_elements"] = whitelistFields.join(',')}
+    const result = client.search({ resourceType, searchParams })
+    return result
 }
 
 const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
@@ -50,7 +71,7 @@ const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
 
 const fetchGrouperValueSets = (canonicals: string[]) => {
   return Promise.all(
-    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical))
+    canonicals.map(canonical => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, WHITELIST_VALUESET_FIELDS))
   )
 }
 
@@ -73,18 +94,18 @@ const fetchLeafValueSets = async (
   if (is.string(versionStr)) {
     searchParams['version:contains'] = versionStr
   }
-
+    searchParams["_elements"] = WHITELIST_VALUESET_FIELDS.join(',')
   try {
 
     const result = await Promise.all(canonicals.map(canonical =>
-    (fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams: {
-        url: canonical,
-        status: 'active',
-        ...searchParams
-      }
-    }))
+      (fhirCdrClient.search({
+        resourceType: 'ValueSet',
+        searchParams: {
+          url: canonical,
+          status: 'active',
+          ...searchParams
+        }
+      }))
     ))
 
     const valueSets = result?.map((e) => {
