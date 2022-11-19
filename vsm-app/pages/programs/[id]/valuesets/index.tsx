@@ -134,13 +134,12 @@ const ProgramValueSetDetails: NextPage = () => {
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   // returned data from PUT operations
-  const [updatedGrouperValuesets, setUpdatedGrouperValueSets] = useState([])
+  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
-  const [groupersUpdated, setGroupersUpdated] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
@@ -216,17 +215,16 @@ const ProgramValueSetDetails: NextPage = () => {
   }, [conditionToUpdate, programId])
 
   useEffect(() => {
-    let endpoint = `/api/programs/${programId}/details/valuesets/groups`
+    const endpoint = `/api/programs/${programId}/details/valuesets/groups`
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         setGrouperLoading(true)
-        let updatedVs = fetch(endpoint, {
+        const updatedVs = await fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(updateVsGroups)
         }).then(res => res.json())
 
-        let json = await updatedVs
-        setUpdatedGrouperValueSets(json)
+        setUpdatedGrouperValueSets(updatedVs)
         setGrouperLoading(false)
       }
     }
@@ -236,7 +234,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
-    updatedGrouperValuesets, // this gets updated when a user adds a vs to a grouper
+    updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     ...debouncedFilters
   })
 

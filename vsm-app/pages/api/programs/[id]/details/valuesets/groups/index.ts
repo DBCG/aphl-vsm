@@ -79,9 +79,7 @@ export default async function handler(
 
       for (const grouperValueSet of grouperValueSets) {
         const leafVSetsInGroup = grouperValueSet?.compose?.include?.[0]?.valueSet
-        const leafExistsInGrouper = leafVSetsInGroup?.find(canonical => {
-          return canonical?.endsWith(leafValuesetId)
-        })
+        const leafExistsInGrouper = leafVSetsInGroup?.find(canonical => canonical?.endsWith(leafValuesetId))
 
         const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => i?.value === grouperValueSet?.id)
 
@@ -93,6 +91,7 @@ export default async function handler(
           groupersToUpdate.push(removeValueSetFromGrouper(grouperValueSet, body.canonical))
         }
       }
+      //TODO: Think about batching this in the future if its a lot of valuesets and we can create a job to follow through
       const result = await Promise.all(groupersToUpdate.map(grouperVs => (
         fhirCdrClient.update({
           resourceType: 'ValueSet',
@@ -101,12 +100,11 @@ export default async function handler(
         })
       )))
 
-      res.status(200).send(result)
-      return
+      return res.status(200).send(result)
     } catch (e) {
       console.error('error: ', e)
+      return res.status(404).send({ error: 'update grouper valuesets did not complete' })
     }
   }
 
-  res.status(404).send({ error: 'update grouper valuesets did not complete' })
 }
