@@ -4,7 +4,6 @@ import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { valuesetDataForDisplay } from '@/helpers/valueSetHelpers'
 
 // Items in the table
 interface Group {
@@ -114,7 +113,7 @@ const fetchLeafValueSets = async (
           const resource = entry?.resource as fhir4.ValueSet
           if (resource) {
             // instead of returning whole valuesets, just return a portion of the data
-            return (valuesetDataForDisplay(resource))
+            return resource
           }
         })
       }
