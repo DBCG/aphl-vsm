@@ -43,7 +43,6 @@ interface Args {
   findInSteward?: string,
   activeGroups?: [] | Group[],
   activeConditions?: [] | ConditionItem[],
-  updatedValueSet?: fhir4.ValueSet | undefined,
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
 }
 // gets data necessary to build the program valueset details page
@@ -54,7 +53,6 @@ const useGetProgramValueSetDetails = ({
   findInSteward,
   activeGroups,
   activeConditions,
-  updatedValueSet,
   updatedGrouperValueSets
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
@@ -132,7 +130,6 @@ const useGetProgramValueSetDetails = ({
     findInSteward,
     activeGroups,
     activeConditions,
-    updatedValueSet,
     updatedGrouperValueSets
   ])
 
