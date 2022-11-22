@@ -17,6 +17,10 @@ export default async function handler(
       body: req.body
     })
 
-    res.send(response)
+    if (!response.ok) {
+      console.error('error', response.status, response.statusText)
+      return res.status(400).json({ error: response.statusText })
+    }
+    return res.send(response)
   }
 }

@@ -1,7 +1,10 @@
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
+import { TextArea } from '../TextArea'
 
 interface ModalInfo {
   actionType: 'release' | 'publish' | 'clone',
@@ -71,6 +74,19 @@ const LoadingModal = ({
   program
 }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
+  
+  const [currentProgram, setProgram] = useState(program)
+  const [currentInput, setCurrentInput] = useState('')
+  const [disableSubmission, setDisableSubmission] = useState(false)
+
+  useEffect(() => {
+    // Need to set here because async
+    if(program != null) {
+      setProgram(program)
+      setCurrentInput(getReleaseDescription(program))
+    }
+  }, [program])
+
   return (
     <ReactModal
       isOpen={isOpen}
@@ -81,6 +97,28 @@ const LoadingModal = ({
           <ModalTitle>{ title }</ModalTitle>
           <ModalText>{ text }</ModalText>
           <ModalText>{ actionText }</ModalText>
+          {actionType === 'release' && (
+            <>
+              <TextArea
+                label='Description of Release'
+                id="releaseDescription"
+                required={true}
+                currentValue={currentInput}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const newValue = e?.target?.value?.trim()
+                  setCurrentInput(newValue)
+                  if (newValue.length > 0 && program) {
+                    setDisableSubmission(false)
+                    const modifiedProgram = setReleaseDescription(program, newValue)
+                    setProgram(modifiedProgram)
+                  } else {
+                    setDisableSubmission(true)
+                  }
+
+                }} />
+            </>
+            )
+          }
           <ButtonGroup>
             <Button
               text='Cancel'
@@ -89,7 +127,8 @@ const LoadingModal = ({
               />
             <Button
               text={`YES, ${actionType}`}
-              onClick={() => (handleModalAction(actionType, program))}
+              disabled={disableSubmission}
+              onClick={() => handleModalAction(actionType, currentProgram)}
               />
           </ButtonGroup>
           {

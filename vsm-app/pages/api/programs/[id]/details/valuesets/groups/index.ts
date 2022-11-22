@@ -2,7 +2,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
-import { fetchProgram } from '@/helpers/libraryHelpers'
 
 interface GroupInfoItem {
   label: string,
@@ -17,7 +16,7 @@ export default async function handler(
   if (req.method === 'GET') {
     let result = []
     // get all grouper valueSets from within a program
-    const programLibrary = await fetchProgram(req.query.id as string)
+    const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
     const grouperLibraryCanonical = programLibrary?.relatedArtifact
       ?.find((art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))

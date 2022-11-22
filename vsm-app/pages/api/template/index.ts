@@ -31,15 +31,15 @@ export default async function handler(
     })
 
     if (response.ok) {
-      res.send(response)
+      return res.send(response)
     }
     
   } catch (e: any) {
     console.error('error:  ', e)
-    res.status(400).json({ error: 'Creation of new library failed.' })
+    return res.status(400).json({ error: 'Creation of new library failed.' })
   }
 
   // if response was NOT ok (not 200 from FHIR server, but did complete)
   console.error('Failure to perform $draft from FHIR server')
-  res.status(422).json({ error: 'Creation of new library failed.' })
+  return res.status(422).json({ error: 'Creation of new library failed.' })
 }

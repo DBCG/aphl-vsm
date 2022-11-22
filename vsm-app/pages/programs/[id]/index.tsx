@@ -9,6 +9,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
 import { useIsEditing } from '@/hooks/useIsEditing'
+import { getReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
@@ -62,7 +63,7 @@ const StatusTag = styled.div<StatusProps>`
     props => props.status === 'active'
     ? 'rgba(46, 192, 205, 1)'
     : 'white'
-  }
+  };
 `
 
 export const ItemWrapper = styled.div`
@@ -111,7 +112,9 @@ const buttonStyles = {
   alignSelf: 'center'
 }
 
-export const FieldValue = styled.span``
+export const FieldValue = styled.span`
+  white-space: pre-line;
+`
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
@@ -167,6 +170,7 @@ const ProgramDetails: NextPage = () => {
   const program = setProgram()
 
   const { id='', name='', version='', title='', description='', status } = program
+  const releaseDescription = getReleaseDescription(program)
 
   const viewValueSets = () => {
     router.push(`/programs/${id}/valuesets`)
@@ -260,6 +264,12 @@ const ProgramDetails: NextPage = () => {
                 <FieldTitle>Description </FieldTitle>
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
+              {releaseDescription && (
+              <ItemWrapper>
+                <FieldTitle>Release Description </FieldTitle>
+                <FieldValue>{ releaseDescription }</FieldValue>
+              </ItemWrapper>)
+              }
             </Row>
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>

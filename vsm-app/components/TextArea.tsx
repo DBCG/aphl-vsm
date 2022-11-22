@@ -63,6 +63,8 @@ const ToolTipText = styled.p`
 interface Props {
   placeholder?: string,
   onChange?: React.ChangeEventHandler,
+  required: boolean,
+  currentValue?: string,
   label?: string,
   id?: string,
   def?: string,
@@ -80,7 +82,9 @@ interface LabelProps {
 const TextArea = ({
   placeholder,
   onChange,
+  currentValue,
   label,
+  required = false,
   id,
   def,
   minWidth,
@@ -95,6 +99,7 @@ const TextArea = ({
         (label !== undefined && id !== undefined) &&
         <StyledInputLabel>
           {label}
+          {required && <span style={{color: 'red'}}>*</span>}
         </StyledInputLabel>
       }
       { includeInfo && (
@@ -111,6 +116,7 @@ const TextArea = ({
       <Input
         name={id}
         placeholder={placeholder}
+        value={currentValue}
         onChange={onChange}
         minWidth={minWidth}
         minHeight={minHeight}

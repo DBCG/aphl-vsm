@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
-import { fetchProgram, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
 // Items in the table
 interface Group {
@@ -148,7 +148,7 @@ export default async function handler(
     let leafValueSets: fhir4.ValueSet[] = []
     let allGrouperVSets: fhir4.ValueSet[] | [] = []
     try {
-      const program = await fetchProgram(req.query.id as string)
+      const program = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
       // disabling proto-cache because it causes problems with updating groupers
       if (is.library(program)) {
         // get the grouper canonical, which is a Library resource
