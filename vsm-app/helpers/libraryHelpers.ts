@@ -6,7 +6,7 @@ const getGrouperLibraryCanonical = (program: fhir4.Library) => {
     ?.resource
 }
 
-const getReleaseDescription = (program: fhir4.Library | null) => {
+const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
   return program?.extension
     ?.find(ext => ext?.url?.endsWith('us-ph-specification-release-description-extension'))
