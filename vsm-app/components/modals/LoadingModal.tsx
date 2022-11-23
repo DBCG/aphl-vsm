@@ -87,6 +87,14 @@ const LoadingModal = ({
     }
   }, [program])
 
+  useEffect(() => {
+    if(actionType === 'release' && currentInput.length === 0) {
+      setDisableSubmission(true)
+    } else {
+      setDisableSubmission(false)
+    }
+  }, [actionType, currentInput.length])
+
   return (
     <ReactModal
       isOpen={isOpen}
@@ -105,15 +113,8 @@ const LoadingModal = ({
                 required={true}
                 currentValue={currentInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const newValue = e?.target?.value?.trim()
+                  const newValue = e?.target?.value
                   setCurrentInput(newValue)
-                  if (newValue.length > 0 && program) {
-                    setDisableSubmission(false)
-                    const modifiedProgram = setReleaseDescription(program, newValue)
-                    setProgram(modifiedProgram)
-                  } else {
-                    setDisableSubmission(true)
-                  }
 
                 }} />
             </>
@@ -128,7 +129,15 @@ const LoadingModal = ({
             <Button
               text={`YES, ${actionType}`}
               disabled={disableSubmission}
-              onClick={() => handleModalAction(actionType, currentProgram)}
+              onClick={() => {
+                let currProgram = currentProgram
+                if (actionType === 'release' && currProgram) {
+                  const modifiedProgram = setReleaseDescription(currProgram, currentInput.trim())
+                  setProgram(modifiedProgram)
+                  currProgram = modifiedProgram
+                }
+                handleModalAction(actionType, currProgram)
+              }}
               />
           </ButtonGroup>
           {
