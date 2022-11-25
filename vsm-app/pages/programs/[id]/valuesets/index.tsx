@@ -457,6 +457,8 @@ const ProgramValueSetDetails: NextPage = () => {
           <p>Remove ValueSet</p>
         </div>
       ),
+      // @ts-expect-error
+      omit: (row: TableRow) =>  row?.status !== 'active' ? false : true,
       selector: (row: TableRow) => row,
       sortable: false,
       wrap: true,
@@ -489,7 +491,9 @@ const ProgramValueSetDetails: NextPage = () => {
         <FlexRow>
           <PageTitle>Program ValueSet Details</PageTitle>
           <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
-          <Id><FieldTitle>ID</FieldTitle>{programId}</Id>
+          <Id>
+            <FieldTitle>ID</FieldTitle>{programId}
+          </Id>
         </FlexRow>
         <Button text='Add Valuesets'
           style={{ maxHeight: '60px', minWidth: '150px' }}
