@@ -220,7 +220,6 @@ const ProgramDetails: NextPage = () => {
           <Row className='inputs'>
             <ModalForm>
               <PageTitle>Edit Program Metadata</PageTitle> 
-              <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
               <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
               <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
               <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
