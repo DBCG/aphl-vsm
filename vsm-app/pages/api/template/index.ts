@@ -21,7 +21,7 @@ export default async function handler(
       ]
     })
 
-    const response = await fetch(`${process.env.FHIR_CDR_URL}/$draft`, {
+    const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${body.id}/$draft`, {
       method: 'POST',
       headers: {
         'cache-control': 'no-cache',
