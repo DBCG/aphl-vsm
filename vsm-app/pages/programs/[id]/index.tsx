@@ -124,10 +124,13 @@ const ProgramDetails: NextPage = () => {
   const [formTouched, setFormTouched] = useState(false)
   // to edit draft program
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
+  const [loading, setLoading] = useState(false)
 
   const submitChanges = async (e: React.SyntheticEvent) => {
     handleEditButton(e)
     e.preventDefault()
+    setLoading(true)
+
     const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
       body: JSON.stringify(editedProgram)
@@ -136,9 +139,11 @@ const ProgramDetails: NextPage = () => {
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
       setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
+      setLoading(false)
       // should handle if doesn't work
       return
     } else {
+      setLoading(false)
       // return to programs page, with updated data
       router.push(`/programs`)
     }
@@ -156,16 +161,7 @@ const ProgramDetails: NextPage = () => {
     )
   }
 
-  const setProgram = (): fhir4.Library => {
-    if (!editedProgram) {
-      // @ts-expect-error
-      return programAndGrouperInfo.program
-    }
-    return editedProgram
-  }
-
-  const program = setProgram()
-
+  const { program } = programAndGrouperInfo
   const { id='', name='', version='', title='', description='', status } = program
 
   const viewValueSets = () => {
