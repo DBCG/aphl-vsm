@@ -63,14 +63,14 @@ export default async function handler(
       terminologyClient.setClient(terminologyServer)
       const activeTerminologyClient = terminologyClient.getClient()
       let serverResponse
-      let searchParams
+      let searchParams: SearchParams & { status?: string }
       switch (searchType) {
         case 'name':
           searchParams = {
             'name:contains': search,
             status: 'active',
             _count: count,
-          } as SearchParams
+          } 
 
           if (typeof offset === 'string') {
             searchParams._offset = offset
