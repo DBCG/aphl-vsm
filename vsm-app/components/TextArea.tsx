@@ -63,7 +63,7 @@ const ToolTipText = styled.p`
 interface Props {
   placeholder?: string,
   onChange?: React.ChangeEventHandler,
-  required: boolean,
+  required?: boolean,
   currentValue?: string,
   label?: string,
   id?: string,

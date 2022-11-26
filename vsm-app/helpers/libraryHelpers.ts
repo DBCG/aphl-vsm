@@ -13,7 +13,7 @@ const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
     ?.valueString || ""
 }
 
-const setReleaseDescription = (program: fhir4.Library, releaseDescription = '') => {
+const setReleaseDescription = (program: fhir4.Library, releaseDescription = ''): fhir4.Library => {
   const clonedProgram = cloneDeep(program)
   const newReleaseDescriptionEntry = {
     "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension",
