@@ -58,9 +58,7 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
           style={buttonStyles}
           text={'Save Changes'}
           type='submit'
-          onClick={(e) => {
-            handleSubmit(editedProgram)
-          }}
+          onClick={() => handleSubmit(editedProgram)}
         />
       </ButtonContainer>
     )}

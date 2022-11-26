@@ -3,6 +3,7 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Modal from 'react-modal'
+import toast, { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
@@ -101,17 +102,16 @@ export const FieldValue = styled.span`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const [isEditing, setIsEditing] = useIsEditing()
-  const identifier = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
+  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
 
-  useEffect(() => {
-    Modal.setAppElement('#__next');
-  }, [])
+  useEffect(() => Modal.setAppElement('#__next'), [])
 
   useEffect(() => {
     // Set initial program
-    setProgram(programAndGrouperInfo?.program as fhir4.Library)
+    if (is.library(programAndGrouperInfo?.program)) {
+      setProgram(programAndGrouperInfo?.program)
+    }
   }, [programAndGrouperInfo.program])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
@@ -121,7 +121,6 @@ const ProgramDetails: NextPage = () => {
   }
 
   const updateProgram = async (toUpdateProgram: fhir4.Library) => {
-    setProgram(toUpdateProgram) // Optimistic update and allows to be reverted when error'ed
     const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
       headers: {
@@ -206,16 +205,28 @@ const ProgramDetails: NextPage = () => {
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
               {releaseDescription && (
-              <ItemWrapper>
-                <FieldTitle>Release Description </FieldTitle>
-                <EditableInput 
-                  value={releaseDescription} 
-                  onBlur={(newValue: string) => {
-                    const modifiedProgram = setReleaseDescription(program, newValue.trim())
-                    updateProgram(modifiedProgram)
-                  }}
-                />
-              </ItemWrapper>)
+                <ItemWrapper>
+                  <FieldTitle>Release Description </FieldTitle>
+                  <Toaster />
+                  <EditableInput
+                    value={releaseDescription}
+                    onBlur={(newValue: string, resetToInitialValue: Function) => {
+                      if (newValue.trim().length !== 0) {
+                        const modifiedProgram = setReleaseDescription(program, newValue.trim())
+                        setProgram(modifiedProgram) // Optimistic update and allows to be reverted when error'ed
+                        updateProgram(modifiedProgram)
+                      } else {
+                        toast.error('Release Description cannot be empty', {
+                          position: 'top-right',
+                          style: {
+                            borderRadius: 0
+                          }
+                        })
+                        resetToInitialValue()
+                      }
+                    }}
+                  />
+                </ItemWrapper>)
               }
             </Row>
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>

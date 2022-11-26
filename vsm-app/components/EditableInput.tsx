@@ -19,7 +19,7 @@ const EditableInput = ({value = "", onBlur} : EditableInputProps) => {
 
   const submitEvent = () => {
     setIsEdit(false)
-    onBlur(currentValue)
+    onBlur(currentValue, () => setCurrentValue(value))
   }
 
   const onKeyPress = (e: React.KeyboardEvent) => {    
