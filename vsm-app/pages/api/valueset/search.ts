@@ -79,7 +79,6 @@ export default async function handler(
             try {
               serverResponse = await retry(() => activeTerminologyClient.search({
                 resourceType: 'ValueSet',
-                // @ts-expect-error
                 searchParams
               }))
 
@@ -190,7 +189,6 @@ export default async function handler(
             try {
               serverResponse = await activeTerminologyClient.search({
                 resourceType: 'ValueSet',
-                // @ts-expect-error
                 searchParams
               })
 
