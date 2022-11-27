@@ -26,12 +26,13 @@ interface GroupItem {
 }
 
 interface TableRow {
-  programName: string,
-  programId: string,
-  canonical: string,
-  title: string,
-  version: string,
-  valueSet: fhir4.ValueSet,
+  programName: string
+  programId: string
+  programStatus: string
+  canonical: string
+  title: string
+  version: string
+  valueSet: fhir4.ValueSet
   groups: GroupItem[]
 }
 
@@ -84,6 +85,19 @@ const FlexCol = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+`
+
+const ReadOnlyContainer = styled.div`
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  flex-wrap: wrap;
+`
+
+const ReadOnlyTag = styled.div`
+  background-color: var(--theme-color-transparent);
+  padding: 6px 8px;
+  border-radius: 8px;
 `
 
 interface GroupInfoItem {
@@ -274,6 +288,9 @@ const ProgramValueSetDetails: NextPage = () => {
     setFilters(updatedFilters)
   }
 
+  // @ts-ignore-next-line
+  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active'
+
   const columns = useMemo(() => [
     {
       name: (
@@ -378,7 +395,9 @@ const ProgramValueSetDetails: NextPage = () => {
             })
             }
         }).filter(x => x) as ConditionInfo[]
-        return (
+        return row.programStatus === 'active'
+          ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
+          : (
           <SelectInputContainer>
             <Select
               instanceId='condition-selector'
@@ -419,7 +438,12 @@ const ProgramValueSetDetails: NextPage = () => {
       wrap: true,
       cell: (row: TableRow) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
-        return (
+        return row.programStatus === 'active'
+          ? (
+            <ReadOnlyContainer>
+              {selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)}
+            </ReadOnlyContainer>
+         ) : (
           <SelectInputContainer>
             <Toaster/>
             <Select
@@ -457,8 +481,7 @@ const ProgramValueSetDetails: NextPage = () => {
           <p>Remove ValueSet</p>
         </div>
       ),
-      // @ts-expect-error
-      omit: (row: TableRow) =>  row?.status !== 'active' ? false : true,
+      omit: omitDelete,
       selector: (row: TableRow) => row,
       sortable: false,
       wrap: true,

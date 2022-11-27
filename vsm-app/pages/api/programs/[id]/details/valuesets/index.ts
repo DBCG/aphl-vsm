@@ -23,6 +23,7 @@ interface FormattedVSItem {
 interface ValueSetTableEntry {
   programName: string
   programId: string
+  programStatus: string
   title: string
   canonical: string
   version: string
@@ -224,6 +225,7 @@ export default async function handler(
         let result = {
           programName: program?.name || 'Undefined',
           programId: program?.id || 'Undefined',
+          programStatus: program?.status || 'Unknown',
           title: valueSet?.name || 'Undefined',
           canonical: valueSet.url || 'Undefined',
           version: valueSet.version || '',
