@@ -33,14 +33,6 @@ const getOffsetFromUrl = (str: string) => (
   || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
 )
 
-// interface SearchParams {
-//   'name:contains'?: string
-//   'url:contains'?: string
-//   _count: string
-//   _offset?: string
-//   status: string
-// }
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
