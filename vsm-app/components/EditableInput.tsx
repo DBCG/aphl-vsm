@@ -5,11 +5,12 @@ const FieldValue = styled.span`
   white-space: pre-line;
 `
 interface EditableInputProps {
-  value: string,
+  value: string
   onBlur: Function
+  disabled: boolean
 }
 
-const EditableInput = ({value = "", onBlur} : EditableInputProps) => {
+const EditableInput = ({value = "", onBlur, disabled = false} : EditableInputProps) => {
   const [currentValue, setCurrentValue] = useState(value)
   const [isEdit, setIsEdit] = useState(false)
 
@@ -31,7 +32,7 @@ const EditableInput = ({value = "", onBlur} : EditableInputProps) => {
 
   return (
     <>
-      {isEdit ? ( <textarea
+      {isEdit && !disabled ? ( <textarea
           onChange={onChange}
           onKeyPress={onKeyPress}
           onBlur={submitEvent}
