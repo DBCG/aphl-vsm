@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import retry from 'helpers/retryRequest';
+import { SearchParams } from 'fhir-kit-client';
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -32,12 +33,13 @@ const getOffsetFromUrl = (str: string) => (
   || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
 )
 
-interface SearchParams {
-  'name:contains'?: string
-  'url:contains'?: string
-  _count: string
-  _offset?: string
-}
+// interface SearchParams {
+//   'name:contains'?: string
+//   'url:contains'?: string
+//   _count: string
+//   _offset?: string
+//   status: string
+// }
 
 export default async function handler(
   req: NextApiRequest,
@@ -63,14 +65,14 @@ export default async function handler(
       terminologyClient.setClient(terminologyServer)
       const activeTerminologyClient = terminologyClient.getClient()
       let serverResponse
-      let searchParams: SearchParams & { status?: string }
+      let searchParams: SearchParams
       switch (searchType) {
         case 'name':
           searchParams = {
             'name:contains': search,
             status: 'active',
             _count: count,
-          } 
+          }
 
           if (typeof offset === 'string') {
             searchParams._offset = offset
