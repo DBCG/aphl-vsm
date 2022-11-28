@@ -3,17 +3,19 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Modal from 'react-modal'
+import toast, { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { SearchInput } from '@/components/SearchInput'
-import { TextArea } from '@/components/TextArea'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
 import { useIsEditing } from '@/hooks/useIsEditing'
+import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
+import EditableInput from '@/components/EditableInput'
+import ProgramEditModalContent from '@/components/ProgramEditModalContent'
 
 const Row = styled.div`
   display: flex;
@@ -62,7 +64,7 @@ const StatusTag = styled.div<StatusProps>`
     props => props.status === 'active'
     ? 'rgba(46, 192, 205, 1)'
     : 'white'
-  }
+  };
 `
 
 export const ItemWrapper = styled.div`
@@ -84,16 +86,6 @@ const StyledSpan = styled.span`
   margin-top: 12px;
 `
 
-const ModalForm = styled.form`
-  margin: 0 auto;
-`
-
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-`
-
 const IndicatorContainer = styled.div`
   display: flex;
   width: 100%;
@@ -103,52 +95,48 @@ const IndicatorContainer = styled.div`
   padding-top: 100px;
 `
 
-const buttonStyles = {
-  marginBottom: '12px',
-  width: '150px',
-  backgroundColor: '#ca9547',
-  marginTop: '20px',
-  alignSelf: 'center'
-}
-
-export const FieldValue = styled.span``
+export const FieldValue = styled.span`
+  white-space: pre-line;
+`
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
+  const [isEditing, setIsEditing] = useIsEditing()
+  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
+  const [program, setProgram] = useState<fhir4.Library>()
+
+  useEffect(() => Modal.setAppElement('#__next'), [])
 
   useEffect(() => {
-    Modal.setAppElement('#__next');
-  }, [])
+    // Set initial program
+    if (is.library(programAndGrouperInfo?.program)) {
+      setProgram(programAndGrouperInfo?.program)
+    }
+  }, [programAndGrouperInfo.program])
 
-  const [isEditing, setIsEditing] = useIsEditing()
-  const [formTouched, setFormTouched] = useState(false)
-  // to edit draft program
-  const [editedProgram, setEditedProgram] = useState<fhir4.Library>()
+  const handleSubmit = async (submittedProgram: fhir4.Library) => {
+    setIsEditing()
+    await updateProgram(submittedProgram)
+    router.push(`/programs`)
+  }
 
-  const submitChanges = async (e: React.SyntheticEvent) => {
-    handleEditButton(e)
-    e.preventDefault()
+  const updateProgram = async (toUpdateProgram: fhir4.Library) => {
     const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
-      body: JSON.stringify(editedProgram)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(toUpdateProgram)
     })
-    
+
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
-      setEditedProgram(programAndGrouperInfo.program as fhir4.Library)
-      // should handle if doesn't work
-      return
-    } else {
-      // return to programs page, with updated data
-      router.push(`/programs`)
+      setProgram(program)
     }
   }
 
-  const identifier = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(identifier) as Result
-
   // early return if no data, must be a library if there's data
-  if (!is.library(programAndGrouperInfo.program)) {
+  if (!is.library(program)) {
     return (
       <IndicatorContainer>
         <LoadingIndicator size='large'/>
@@ -156,39 +144,9 @@ const ProgramDetails: NextPage = () => {
     )
   }
 
-  const setProgram = (): fhir4.Library => {
-    if (!editedProgram) {
-      // @ts-expect-error
-      return programAndGrouperInfo.program
-    }
-    return editedProgram
-  }
-
-  const program = setProgram()
-
   const { id='', name='', version='', title='', description='', status } = program
-
-  const viewValueSets = () => {
-    router.push(`/programs/${id}/valuesets`)
-  }
-
-  const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
-    e.preventDefault()
-    const target = e.target as HTMLInputElement;
-    setFormTouched(true)
-    const newProgram = { 
-      ...program,
-      [fieldName]: target.value
-    }
-    setEditedProgram(newProgram)
-  }
-
-  // when editing is live, work happens in the modal
-  const handleEditButton = (e: { preventDefault: () => void }) => {
-    e.preventDefault()
-    setIsEditing()
-  }
-
+  const releaseDescription = getReleaseDescription(program)
+  console.log('releaseDescription', releaseDescription)
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -200,7 +158,7 @@ const ProgramDetails: NextPage = () => {
           <Button
             style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
             text='Edit Program Metadata'
-            onClick={handleEditButton}
+            onClick={() => setIsEditing()}
           />
         )}
       </Row>
@@ -218,24 +176,10 @@ const ProgramDetails: NextPage = () => {
         <button onClick={() => setIsEditing()}>close</button>
         <div>
           <Row className='inputs'>
-            <ModalForm>
-              <PageTitle>Edit Program Metadata</PageTitle> 
-              <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
-              <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
-              <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
-              <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
-              <TextArea id='prog-desc' label='Description' minWidth={500} def={description} onChange={(event) => handleFieldChange(event, 'description')} />
-              {formTouched && (
-                <ButtonContainer>
-                  <Button
-                    style={buttonStyles}
-                    text={'Save Changes'}
-                    type='submit'
-                    onClick={(e) => submitChanges(e)}
-                  />
-                </ButtonContainer>
-              )}
-            </ModalForm>
+            <ProgramEditModalContent
+              program={program}
+              handleSubmit={handleSubmit}
+             />
           </Row>
         </div>
       </Modal>
@@ -260,11 +204,35 @@ const ProgramDetails: NextPage = () => {
                 <FieldTitle>Description </FieldTitle>
                 <FieldValue>{ description }</FieldValue>
               </ItemWrapper>
+              {releaseDescription && (
+                <ItemWrapper>
+                  <FieldTitle>Release Description </FieldTitle>
+                  <Toaster />
+                  <EditableInput
+                    value={releaseDescription}
+                    onBlur={(newValue: string, resetToInitialValue: Function) => {
+                      if (newValue.trim().length !== 0) {
+                        const modifiedProgram = setReleaseDescription(program, newValue.trim())
+                        setProgram(modifiedProgram) // Optimistic update and allows to be reverted when error'ed
+                        updateProgram(modifiedProgram)
+                      } else {
+                        toast.error('Release Description cannot be empty', {
+                          position: 'top-right',
+                          style: {
+                            borderRadius: 0
+                          }
+                        })
+                        resetToInitialValue()
+                      }
+                    }}
+                  />
+                </ItemWrapper>)
+              }
             </Row>
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>
               <Button text='View ValueSets'
-                onClick={viewValueSets}
+                onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
               />
             </Row>
           </div>
