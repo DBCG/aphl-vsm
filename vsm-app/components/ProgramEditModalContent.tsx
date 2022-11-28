@@ -4,6 +4,7 @@ import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { PageTitle } from '@/components/Typography'
+import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 
 const ModalForm = styled.form`
   margin: 0 auto;
@@ -31,15 +32,21 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>(program)
   const [formTouched, setFormTouched] = useState(false)
 
-  const { id='', name='', version='', title='', description='', status } = program
+  const { id='', name='', version='', title='', description='' } = program
+  const releaseDescription = getReleaseDescription(program)
 
   const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
     e.preventDefault()
     const target = e.target as HTMLInputElement;
     setFormTouched(true)
-    const newProgram = { 
-      ...program,
-      [fieldName]: target.value
+    let newProgram
+    if (fieldName === 'releaseDescription') {
+      newProgram = setReleaseDescription(program, target.value)
+    } else {
+      newProgram = { 
+        ...program,
+        [fieldName]: target.value
+      }
     }
     setEditedProgram(newProgram)
   }
@@ -52,6 +59,7 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
     <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
     <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
     <TextArea id='prog-desc' label='Description' minWidth={500} def={description} onChange={(event) => handleFieldChange(event, 'description')} />
+    <TextArea id='prog-release-desc' label='Release Description' minWidth={500} def={releaseDescription} onChange={(event) => handleFieldChange(event, 'releaseDescription')} />
     {formTouched && (
       <ButtonContainer>
         <Button
