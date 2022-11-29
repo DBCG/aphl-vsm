@@ -32,7 +32,6 @@ const Row = styled.div`
     column-gap: 8px;
     row-gap: 14px;
     margin-bottom: 12px;
-    max-width: 400px;
   }
 `
 
@@ -69,7 +68,6 @@ export const ItemWrapper = styled.div`
 export const FieldTitle = styled.div`
   background-color: white;
   display: inline-block;
-  max-width: 120px;
   padding: 4px 8px;
   margin-right: 8px;
   border-radius: 4px;

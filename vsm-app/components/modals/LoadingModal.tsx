@@ -104,7 +104,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, handleMo
         <div>
           <ModalTitle>{title}</ModalTitle>
           <ModalText>{text}</ModalText>
-          <ModalText>{actionText}</ModalText>
+          <ModalText style={{ marginBottom: '36px' }}>{actionText}</ModalText>
           {actionType === 'release' && (
             <>
               <TextArea
