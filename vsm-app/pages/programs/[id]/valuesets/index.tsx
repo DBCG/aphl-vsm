@@ -3,8 +3,9 @@ import type { NextPage } from 'next'
 import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
 import Select, { MultiValue } from 'react-select'
+import { getSession, GetSessionParams, useSession } from 'next-auth/react'
+import AsyncSelect from 'react-select/async'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import uniqBy from 'lodash.uniqby'
@@ -124,9 +125,12 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
+  const [versions, setVersions] = useState({})
+
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
+
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
@@ -356,6 +360,183 @@ const ProgramValueSetDetails: NextPage = () => {
       },
       {
         name: (
+  // need to handle latest
+  const setVersionInfo = async (id) => {
+    console.log('activated')
+    const result = await fetch(`/api/valueset/${id}/versions`)
+    let json
+    if (result.ok) {
+      json = await result.json()
+    } else {
+      json = null
+      console.log(result)
+    }
+    setVersions({ ...versions, ...{ [id]: json } })
+  }
+
+  // versionOptions
+  const getOptions = async (inputValue, callback) => {
+
+    console.log('inputValue: ', inputValue)
+    console.log('callback: ', callback)
+    if (!inputValue) {
+      return callback([])
+    }
+    const defaultVersion = 'latest'
+    const existingVersion = '' // get existing version from grouper if set
+    const defaultVersions = [defaultVersion].map(item => ({value: item, label: item}))
+    const asyncOptions = fetch(`/api/valueset/${inputValue}/versions`)
+      .then(res => res.json())
+      .then((versions) => ([...versions, defaultVersion].map(item => ({value: item, label: item}))))
+  }
+
+  // versionInput
+  const handleVersionChange = () => {
+    // update the grouper canonical version
+  }
+
+  // @ts-ignore-next-line
+  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
+
+  const columns = useMemo(() => [
+    {
+      name: (
+        <div>
+          <SelectInputTitle>Valueset Name</SelectInputTitle>
+          <FilterInput
+            onChange={(e) => {
+              // @ts-ignore-next-line
+              handleFilterChange(e.target.value, 'findInVsName')
+            }}
+            style={{ height: '30px' }}
+          />
+        </div>
+      ),
+      id: 'vs-name-search',
+      selector: (row: TableRow) => row.title,
+      sortable: false,
+      maxWidth: '350px',
+      wrap: true
+    },
+    {
+      name: (
+        <div>
+          <SelectInputTitle>Version</SelectInputTitle>
+          <FilterInput
+            // @ts-ignore-next-line
+            onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
+            style={{ height: '30px' }}
+          />
+        </div>
+      ),
+      id: 'vs-version-search',
+      selector: (row: TableRow) => row.version,
+      sortable: false,
+      maxWidth: '180px',
+      wrap: true,
+      cell: (row: TableRow) => {
+        const versionOptionInState = versions[row.valueSet.id] || []
+        
+        const defaultVersion = 'latest'
+        const existingVersion = '' // get existing version from grouper if set
+        // if version does not exist on grouper, default is latest
+
+        // return row.programStatus === 'active'
+        //   ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
+        //   : (
+        const defaultVersions = [defaultVersion].map(item => ({value: item, label: item}))
+        const allVersions = [...versionOptionInState, defaultVersion].map(item => ({value: item, label: item}))
+        const asyncOptions = fetch(`/api/valueset/${row.valueSet.id}/versions`)
+          .then(res => res.json())
+          .then((versions) => ([...versions, defaultVersion].map(item => ({value: item, label: item}))))
+        return (
+          <SelectInputContainer>
+            <AsyncSelect
+              instanceId='version-selector'
+              isMulti={false}
+              options={allVersions}
+              cacheOptions
+              // value={selectedOptions}
+              isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
+              defaultOptions={defaultVersions}
+              loadOptions={getOptions}
+              // onClick={async () => await setVersionInfo(row.valueSet.id)}
+              />
+          </SelectInputContainer>
+        )
+        // <div onClick={async () => await setVersionInfo(row.valueSet.id)}>{versions[row.valueSet.id] || 'none'}</div>
+      }
+    },
+    {
+      name: (
+        <div>
+         <SelectInputTitle>Steward</SelectInputTitle>
+          <FilterInput
+            // @ts-ignore-next-line
+            onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
+            style={{ height: '30px' }}
+          />
+        </div>
+      ),
+      selector: (row: TableRow) => row.valueSet.publisher,
+      sortable: true,
+      maxWidth: '80px',
+      wrap: true
+    },
+    {
+      name: (
+        <div style={{ marginTop: '20px' }}>
+         <SelectInputTitle>Source</SelectInputTitle>
+         <p style={{ fontSize: '90%' }}>* source inferred by url</p>
+        </div>
+      ),
+      selector: (row: TableRow) => row.valueSet,
+      sortable: true,
+      maxWidth: '120px',
+      wrap: true,
+      cell: (row: TableRow) => {
+        const terminologyInfo = getTerminologySource(row.valueSet)
+        return (
+          <div>{terminologyInfo.value}{ terminologyInfo.hasExtension ? null : '*' }</div>
+        )
+      }
+    },
+    {
+      name: (
+        <SelectInputContainer>
+          Conditions
+          <Select
+            placeholder='Filter conditions'
+            classNamePrefix='conditions'
+            inputId='conditions-selector'
+            instanceId='conditions-selector'
+            isMulti
+            options={buildConditionOptions(allConditions)}
+            // @ts-ignore-next-line
+            onChange={(e) => {handleFilterChange(e, 'activeConditions')}}
+          />
+        </SelectInputContainer>
+      ),
+      id: 'value-set-conditions',
+      selector: (row: TableRow) => row.valueSet,
+      sortable: false,
+      wrap: true,
+      cell: (row: TableRow) => {
+        const selectedOptions = row?.valueSet?.useContext?.map(i => {
+          if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
+            return ({
+              label: i?.valueCodeableConcept?.text,
+              value: {
+                system: i?.valueCodeableConcept?.coding?.[0]?.system,
+                code: i?.valueCodeableConcept?.coding?.[0]?.code,
+                text: i?.valueCodeableConcept?.text
+              }
+            })
+            }
+        }).filter(x => x) as ConditionInfo[]
+        return row.programStatus === 'active' || !can(session, 'edit')
+          ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
+          : (
           <SelectInputContainer>
             Conditions
             <Select
@@ -522,7 +703,7 @@ const ProgramValueSetDetails: NextPage = () => {
 
   return (
     <>
-      <Row>
+      <Row id='testing123'>
         <FlexRow>
           <PageTitle>Program ValueSet Details</PageTitle>
           <Image width={24} height={24} alt="" src="/images/right-chevron.svg" />

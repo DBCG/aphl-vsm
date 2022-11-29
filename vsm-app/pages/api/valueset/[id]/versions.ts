@@ -1,3 +1,4 @@
+import { is } from '@/helpers/is'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -15,38 +16,42 @@ export default async function handler(
     const searchParams = { _elements: WHITELIST_FIELDS }
 
     // if ID not passed in
-    if (!id) {
+    if (!is.string(id)) {
       return res.status(400).json({ error: `ID not valid: ${id}.`})
     }
 
     // first, get the actual ValueSet matching the id
+    // from the FHIR server/cache
     try {
+      console.log('id: ', id)
       response = await fhirCdrClient.read({
         resourceType: 'ValueSet', 
-        id: id // handle TS error
+        id: id
       })
     } catch (e) {
-      console.error(e)
+      console.error('error here is: ', e)
       // if error thrown, return
-      return res.status(400).json({ error: `Error finding ValueSet with id ${id}.`})
+      return res.status(401).json({ error: `Error finding ValueSet with id ${id}.`})
     }
 
     // if response errors out, return
-    if (!response?.ok) {
-      return res.status(400).json({ error: `Error response for ValueSet with id ${id}.`})
-    }
+    // if (!response?.ok) {
+    //   console.log('response: ', response)
+    //   return res.status(402).json({ error: `Error response for ValueSet with id ${id}.`})
+    // }
 
     // if valueset not found in FHIR server, return
-    if (response?.resourceType === 'OperationOutcome') {
-      return res.status(200).json({ error: `No ValueSet found with ID: ${id}.`})
+    if (!is.valueSet(response)) {
+      return res.status(403).json({ error: `No ValueSet found with ID: ${id}.`})
     }
 
     // identify the terminology server for the valueSet
+    // this will try to infer the source if the extension isn't there
     const terminologySource = getTerminologySource(response)?.value
 
     // if there is no terminology source that matches the URL's pattern, don't continue
     if (!terminologySource) {
-      return res.status(400).json({ error: `No maching terminology server found for query.`})
+      return res.status(404).json({ error: `No maching terminology server found for query.`})
     }
 
     terminologyClient.setClient(terminologySource)  // TS: at this point source's a string
@@ -61,19 +66,22 @@ export default async function handler(
       matchingVSetsFromTermServer = await terminologyClientInstance?.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: trimmedValueSet.url,
+          url: response?.url?.split('|')?.[0],
           ...searchParams
         }
       })
+
+      // map through each valueSet and if version exists, keep it in an array
+      // filter out any undefined values
+      versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
+        ?.filter(x => x)
+      console.log('versions: ', versions)
+
+      return res.status(200).json(versions)
     } catch (e) {
       console.error(e)
-      return res.status(400).json({ error: `Error: ${id}.`})
+      return res.status(405).json({ error: `Error: ${id}.`})
     }
-    // map through each valueSet and if version exists, keep it in an array
-    // filter out any undefined values
-    versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
-      ?.filter(x => x)
-    
     // } catch (e: any) {
     //   console.error('error:  ', e)
     //   res.status(400).json({ error: 'Creation of new library failed.' })

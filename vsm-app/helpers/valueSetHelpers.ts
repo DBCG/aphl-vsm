@@ -78,6 +78,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
       hasExtension: true
     }
   } else {
+    // if no other choice, INFER the terminology server
     // check if valueset url shares a base url with one of the terminology servers
     // if so, use that as the return
     const valuesetServerBase = valueSet?.url?.split('/fhir/')?.[0]?.split('//')[1]
