@@ -382,6 +382,9 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '180px',
       wrap: true,
       cell: (row: TableRow) => {
+        if (progValueSetDets.programStatus === 'active') {
+          return 'Active'
+        }
         // const versionOptionInState = versions[row.valueSet.id] || []
         
         // const defaultVersion = 'latest'
