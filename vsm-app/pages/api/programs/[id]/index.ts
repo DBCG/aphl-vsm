@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
-import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 
 // this only gets the program library
 export default async function handler(
@@ -37,24 +36,10 @@ export default async function handler(
     try {
       // if the user does not want to change the id of the FHIR Library
       // simply update the values in the existing resource
-
-      // Update release description only
-      if (req.body.status === 'active' && is.string(req?.query?.id)) {
-        const retrievedLibrary = await fhirCdrClient.read({
-          resourceType: 'Library',
-          id: req.query['id'] as string,
-        }) as fhir4.Library
-
-        const releaseDescription = getReleaseDescription(req.body)
-        const updatedReleaseDescriptionLib = setReleaseDescription(retrievedLibrary, releaseDescription) 
-        const response = await fhirCdrClient.update({
-          resourceType: 'Library',
-          id: req.query['id'] as string,
-          body: updatedReleaseDescriptionLib,
-        })
-        res.send(response)
+      if (req.body.status === 'active') {
+        console.error('Cannot edit an active Program Library')
+        res.status(405).send('Not allowed')
       }
-      
       if (req.body.id === req.query['id']) {
         // update the program by id
         const response = await fhirCdrClient.update({

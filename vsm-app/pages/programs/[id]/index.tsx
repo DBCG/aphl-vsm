@@ -209,12 +209,12 @@ const ProgramDetails: NextPage = () => {
                   <FieldTitle>Release Description </FieldTitle>
                   <Toaster />
                   <EditableInput
+                    disabled={program?.status === 'active'}
                     value={releaseDescription}
                     onBlur={(newValue: string, resetToInitialValue: Function) => {
                       if (newValue.trim().length !== 0) {
                         const modifiedProgram = setReleaseDescription(program, newValue.trim())
                         setProgram(modifiedProgram) // Optimistic update and allows to be reverted when error'ed
-                        updateProgram(modifiedProgram)
                       } else {
                         toast.error('Release Description cannot be empty', {
                           position: 'top-right',
