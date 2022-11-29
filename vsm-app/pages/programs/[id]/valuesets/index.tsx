@@ -24,6 +24,7 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
+import { Tooltip } from '@/components/Tooltip'
 
 export const customStyles = {
   headCells: {
@@ -370,8 +371,9 @@ const ProgramValueSetDetails: NextPage = () => {
     },
     {
       name: (
-        <div>
-          <SelectInputTitle style={{ marginBottom: '30px' }}>Version</SelectInputTitle>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+          <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Version</SelectInputTitle>
+          <Tooltip info='Valueset version that will be included in the published Program. '/>
         </div>
       ),
       id: 'vs-version-search',

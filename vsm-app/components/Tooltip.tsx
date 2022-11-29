@@ -8,6 +8,7 @@ const TooltipContainer = styled.div`
   padding: 2px 8px;
   width: 150px;
   display: none;
+  z-index: 9000;
 `
 
 const InfoContainer = styled.div`
@@ -22,7 +23,7 @@ const InfoContainer = styled.div`
 `
 
 const ToolTipText = styled.p`
-  font-size: 80%;
+  font-size: 12px;
 `
 
 interface Props {
