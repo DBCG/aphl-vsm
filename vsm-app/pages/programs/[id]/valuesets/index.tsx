@@ -647,7 +647,7 @@ const ProgramValueSetDetails: NextPage = () => {
 
   return (
     <>
-      <Row id='testing123'>
+      <Row>
         <FlexRow>
           <PageTitle>Program ValueSet Details</PageTitle>
           <Image width={24} height={24} alt="" src="/images/right-chevron.svg" />

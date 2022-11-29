@@ -173,15 +173,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           .filter((x) => !!x) as DataItem[] // filter out any undefined items
 
         const composedResponse = {
+          programStatus: program.status,
           data: response,
           groupsInProgram: allGrouperVSets
         }
 
         res.status(200).send(composedResponse)
+
+      } catch (e: any) {
+        console.error('error:  ', e)
+        res.status(400).json({ error: 'Search for leaf valueset details failed.' })
       }
-    } catch (e: any) {
-      console.error('error:  ', e)
-      res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
-  }
 }

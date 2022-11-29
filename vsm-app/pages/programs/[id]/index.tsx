@@ -32,6 +32,7 @@ const Row = styled.div`
     column-gap: 8px;
     row-gap: 14px;
     margin-bottom: 12px;
+    max-width: 400px;
   }
 `
 
