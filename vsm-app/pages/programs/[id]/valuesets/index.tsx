@@ -89,6 +89,25 @@ const ReadOnlyTag = styled.div`
   border-radius: 8px;
 `
 
+const LoadingMessage = styled.p`
+  color: blue;
+`
+
+interface GroupInfoItem {
+  label: string,
+  value: string
+}
+
+interface GroupUpdateItem {
+  canonical?: string,
+  groupInfo?: GroupInfoItem[]
+}
+
+interface DeleteParams {
+  vsCanonical: string | undefined,
+  grouperCanonicals: string[] | undefined
+}
+
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
     value: g.id,
@@ -130,6 +149,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
+  const [versionToUpdate, setVersionToUpdate] = useState({})
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
@@ -142,6 +162,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
+  const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
@@ -248,6 +269,7 @@ const ProgramValueSetDetails: NextPage = () => {
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
+    vsVersionToUpdate: versionToUpdate,
     ...debouncedFilters
   })
 
@@ -290,110 +312,38 @@ const ProgramValueSetDetails: NextPage = () => {
     setFilters(updatedFilters)
   }
 
-  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
-
-  const columns = useMemo(
-    () => [
-      {
-        name: (
-          <div>
-            <SelectInputTitle>Valueset Name</SelectInputTitle>
-            <FilterInput
-              onChange={(e) => {
-                handleFilterChange(e.target.value, 'findInVsName')
-              }}
-              style={{ height: '30px' }}
-            />
-          </div>
-        ),
-        id: 'vs-name-search',
-        selector: (row: TableRow) => row.title,
-        sortable: false,
-        maxWidth: '350px',
-        wrap: true
-      },
-      {
-        name: (
-          <div>
-            <SelectInputTitle>Version</SelectInputTitle>
-            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')} style={{ height: '30px' }} />
-          </div>
-        ),
-        id: 'vs-version-search',
-        selector: (row: TableRow) => row.version,
-        sortable: false,
-        maxWidth: '80px',
-        wrap: true
-      },
-      {
-        name: (
-          <div>
-            <SelectInputTitle>Steward</SelectInputTitle>
-            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
-          </div>
-        ),
-        selector: (row: TableRow) => row.valueSet.publisher,
-        sortable: true,
-        maxWidth: '80px',
-        wrap: true
-      },
-      {
-        name: (
-          <div style={{ marginTop: '20px' }}>
-            <SelectInputTitle>Source</SelectInputTitle>
-            <p style={{ fontSize: '90%' }}>* source inferred by url</p>
-          </div>
-        ),
-        selector: (row: TableRow) => row.valueSet,
-        sortable: true,
-        maxWidth: '120px',
-        wrap: true,
-        cell: (row: TableRow) => {
-          const terminologyInfo = getTerminologySource(row.valueSet)
-          return (
-            <div>
-              {terminologyInfo.value}
-              {terminologyInfo.hasExtension ? null : '*'}
-            </div>
-          )
-        }
-      },
-      {
-        name: (
-  // need to handle latest
-  const setVersionInfo = async (id) => {
-    console.log('activated')
-    const result = await fetch(`/api/valueset/${id}/versions`)
-    let json
-    if (result.ok) {
-      json = await result.json()
-    } else {
-      json = null
-      console.log(result)
-    }
-    setVersions({ ...versions, ...{ [id]: json } })
-  }
-
   // versionOptions
-  const getOptions = async (inputValue, callback) => {
-
-    console.log('inputValue: ', inputValue)
-    console.log('callback: ', callback)
-    if (!inputValue) {
-      return callback([])
+  const fetchVersionOptions = async (vsId: string) => {
+    // if already cached in component, use that version
+    if (versions?.[vsId]) {
+      return
     }
+    // otherwise, loading states and fetch
+    setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'
-    const existingVersion = '' // get existing version from grouper if set
-    const defaultVersions = [defaultVersion].map(item => ({value: item, label: item}))
-    const asyncOptions = fetch(`/api/valueset/${inputValue}/versions`)
+    // const existingVersion = '' // get existing version from grouper if set
+    const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
       .then(res => res.json())
-      .then((versions) => ([...versions, defaultVersion].map(item => ({value: item, label: item}))))
+      .then((versions) => ([defaultVersion, ...versions].map(item => ({ value: item, label: item }))))
+
+    console.log('async options: ', asyncOptions)
+    setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
+    setLoadingVersionsForVs(null)
   }
 
   // versionInput
-  const handleVersionChange = () => {
+  const handleVersionChange = (selectedVersion, vsCanonical) => {
+    console.log('selected option: ', selectedVersion);
+    
+    console.log('vsCanonical: ', vsCanonical)
     // update the grouper canonical version
+    setVersionToUpdate({ vsCanonical, version: selectedVersion})
   }
+
+  useEffect(() => {
+    console.log('loading: ', loadingVersionsForVs)
+    // you want to update the associated grouper valuesets, adding or removing versions
+  }, [versionToUpdate])
 
   // @ts-ignore-next-line
   const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
@@ -435,31 +385,28 @@ const ProgramValueSetDetails: NextPage = () => {
       maxWidth: '180px',
       wrap: true,
       cell: (row: TableRow) => {
-        const versionOptionInState = versions[row.valueSet.id] || []
+        // const versionOptionInState = versions[row.valueSet.id] || []
         
-        const defaultVersion = 'latest'
-        const existingVersion = '' // get existing version from grouper if set
-        // if version does not exist on grouper, default is latest
-
-        // return row.programStatus === 'active'
-        //   ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
-        //   : (
-        const defaultVersions = [defaultVersion].map(item => ({value: item, label: item}))
-        const allVersions = [...versionOptionInState, defaultVersion].map(item => ({value: item, label: item}))
-        const asyncOptions = fetch(`/api/valueset/${row.valueSet.id}/versions`)
-          .then(res => res.json())
-          .then((versions) => ([...versions, defaultVersion].map(item => ({value: item, label: item}))))
+        // const defaultVersion = 'latest'
+        const inputValue = 'Retrieving all versions'
+        // const allVersions = [defaultVersion, ...versionOptionInState].map(item => ({value: item, label: item}))
+        console.log('options: ', versions?.[row?.valueSet?.id])
         return (
-          <SelectInputContainer>
-            <AsyncSelect
+          <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
+            {/* <p>loadingvforvs { loadingVersionsForVs }</p> */}
+            {/* <p>row.valueset.id { row?.valueSet?.id }</p> */}
+            <Select
               instanceId='version-selector'
+              onChange={(e) => handleVersionChange(e.value, row.valueSet.url)}
+              isLoading={loadingVersionsForVs === row?.valueSet?.id}
+              loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage> }
               isMulti={false}
-              options={allVersions}
-              cacheOptions
+              options={versions?.[row?.valueSet?.id] || [{ label: 'latest', value: 'latest'}]}
+              defaultValue={[{ label: 'latest', value: 'latest'}]}
               // value={selectedOptions}
-              isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
-              defaultOptions={defaultVersions}
-              loadOptions={getOptions}
+              // isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
+              // defaultOptions={defaultVersions}
+              // loadOptions={getOptions}
               // onClick={async () => await setVersionInfo(row.valueSet.id)}
               />
           </SelectInputContainer>
@@ -480,7 +427,7 @@ const ProgramValueSetDetails: NextPage = () => {
       ),
       selector: (row: TableRow) => row.valueSet.publisher,
       sortable: true,
-      maxWidth: '80px',
+      maxWidth: '120px',
       wrap: true
     },
     {

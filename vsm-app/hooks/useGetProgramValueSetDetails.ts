@@ -54,9 +54,10 @@ const useGetProgramValueSetDetails = ({
   findInSteward,
   activeGroups,
   activeConditions,
-  updatedGrouperValueSets
-}: Args): Result => {
-  const [data, setData] = useState<Result>({})
+  updatedGrouperValueSets,
+  vsVersionToUpdate
+}: Args): Result | {} => {
+  const [data, setData] = useState<{} | Result>({})
 
   useEffect(() => {
     async function getData(): Promise<void> {
