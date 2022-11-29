@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import Image from 'next/image'
+import { Tooltip } from './Tooltip'
 
 interface InputProps {
   minWidth?: number
@@ -135,6 +135,13 @@ const SearchInput = ({
     <Container>
       <FlexRow>
         <Label id={id} info={info} label={label} required={required} readonly={readonly} />
+        {label !== undefined && id !== undefined && (
+          <StyledLabel>
+            {label}
+            {required && <sup style={{ color: 'red' }}>*</sup>}
+          </StyledLabel>
+        )}
+        {includeInfo && <Tooltip info={info} />}
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
