@@ -371,12 +371,7 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div>
-          <SelectInputTitle>Version</SelectInputTitle>
-          <FilterInput
-            // @ts-ignore-next-line
-            onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
-            style={{ height: '30px' }}
-          />
+          <SelectInputTitle style={{ marginBottom: '30px' }}>Version</SelectInputTitle>
         </div>
       ),
       id: 'vs-version-search',
