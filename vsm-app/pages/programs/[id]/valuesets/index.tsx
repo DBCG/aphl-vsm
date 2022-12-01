@@ -3,7 +3,7 @@ import type { NextPage } from 'next'
 import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { getSession, GetSessionParams } from 'next-auth/react'
+import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import Select from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
@@ -18,6 +18,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { isAuthor, VSMSession } from '@/helpers/rolesHelper'
 
 interface GroupItem {
   id: string,
@@ -157,6 +158,8 @@ const ProgramValueSetDetails: NextPage = () => {
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
+
+  const { data: session } = useSession()
 
   const defaultFilters = {
     findInVsName: '',
@@ -518,10 +521,13 @@ const ProgramValueSetDetails: NextPage = () => {
             <FieldTitle>ID</FieldTitle>{programId}
           </Id>
         </FlexRow>
-        <Button text='Add Valuesets'
-          style={{ maxHeight: '60px', minWidth: '150px' }}
-          onClick={() => router.push(`${router.asPath}/search`)}
-        />
+        {isAuthor(session as VSMSession) && (
+          <Button text='Add Valuesets'
+            style={{ maxHeight: '60px', minWidth: '150px' }}
+            onClick={() => router.push(`${router.asPath}/search`)}
+          />
+        )
+        }
       </Row>
       <DT
         // @ts-expect-error
