@@ -521,7 +521,7 @@ const ProgramValueSetDetails: NextPage = () => {
             <FieldTitle>ID</FieldTitle>{programId}
           </Id>
         </FlexRow>
-        {!isAuthor(session as VSMSession) && (
+        {isAuthor(session as VSMSession) && (
           <Button text='Add Valuesets'
             style={{ maxHeight: '60px', minWidth: '150px' }}
             onClick={() => router.push(`${router.asPath}/search`)}
