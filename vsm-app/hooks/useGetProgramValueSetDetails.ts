@@ -122,8 +122,19 @@ const useGetProgramValueSetDetails = ({
       }
     }
 
-    getData()
-  }, [id, findInVsName, findInVersion, findInSteward, activeGroups, activeConditions, updatedGrouperValueSets])
+    void getData()
+    // disabled eslint here b/c including 'fields' obj results in infinite loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    id,
+    findInVsName,
+    findInVersion,
+    findInSteward,
+    activeGroups,
+    activeConditions,
+    updatedGrouperValueSets,
+    vsVersionToUpdate
+  ])
 
   return data
 }

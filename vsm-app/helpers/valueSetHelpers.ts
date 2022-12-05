@@ -180,5 +180,6 @@ export {
   getTerminologySource,
   removeValueSetFromGrouper,
   setExpansionParameters,
-  valuesetDataForDisplay
+  valuesetDataForDisplay,
+  updateLeafVsVersion
 }

@@ -3,6 +3,9 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
+// this endpoint needs to:
+// update the grouper valueset canonicals to point to the right valueset version
+// add + remove versions from canonicals
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -75,6 +78,7 @@ export default async function handler(
       // filter out any undefined values
       versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
         ?.filter(x => x)
+
       console.log('versions: ', versions)
 
       return res.status(200).json(versions)
@@ -82,14 +86,20 @@ export default async function handler(
       console.error(e)
       return res.status(405).json({ error: `Error: ${id}.`})
     }
-    // } catch (e: any) {
-    //   console.error('error:  ', e)
-    //   res.status(400).json({ error: 'Creation of new library failed.' })
-    // }
-  
-    // if response was NOT ok (not 200 from FHIR server, but did complete)
-    console.error('Failure to perform $draft from FHIR server')
-    res.status(422).json({ error: 'Creation of new library failed.' })
+
+  } else if (req.method === 'PUT') {
+    const body = await req.body
+    const { vsCanonical, vsVersion, grouperIds } = body
+
+    const groupersToUpdate = await Promise.all(grouperIds.map((grouperVs: string) => (
+      fhirCdrClient.read({
+        resourceType: 'ValueSet',
+        id: grouperVs.id,
+      })
+    )))
+
+
+    
   } else {
     console.error(`Method '${req.method} not supported.'`)
     res.status(405).json({ error: 'Method not allowed.' })

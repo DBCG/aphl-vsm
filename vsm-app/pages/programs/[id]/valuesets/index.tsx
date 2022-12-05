@@ -385,16 +385,11 @@ const ProgramValueSetDetails: NextPage = () => {
         if (progValueSetDets.programStatus === 'active') {
           return 'Active'
         }
-        // const versionOptionInState = versions[row.valueSet.id] || []
         
-        // const defaultVersion = 'latest'
         const inputValue = 'Retrieving all versions'
-        // const allVersions = [defaultVersion, ...versionOptionInState].map(item => ({value: item, label: item}))
         console.log('options: ', versions?.[row?.valueSet?.id])
         return (
           <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
-            {/* <p>loadingvforvs { loadingVersionsForVs }</p> */}
-            {/* <p>row.valueset.id { row?.valueSet?.id }</p> */}
             <Select
               instanceId='version-selector'
               onChange={(e) => handleVersionChange(e.value, row.valueSet.url)}
