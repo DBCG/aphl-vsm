@@ -44,7 +44,7 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
       newProgram = setReleaseDescription(program, target.value)
     } else {
       newProgram = { 
-        ...program,
+        ...editedProgram,
         [fieldName]: target.value
       }
     }
