@@ -8,6 +8,7 @@ import { Session } from "next-auth"
 // }
 
 export type VSMSession = Session & {
+  idToken: string | undefined | null
   user: {
     roles?: string[] | null;
   }

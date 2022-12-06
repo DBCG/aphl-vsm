@@ -26,6 +26,7 @@ export const AuthOptions = {
         const decodedToken = jwt_decode(token?.token?.account?.access_token)
         const roles = decodedToken?.resource_access?.[process.env.KEYCLOAK_ID]?.roles || []
         session.user = token?.token?.user || {}
+        session.idToken = token?.token?.account?.id_token
         session.user.roles = roles
       }
       return session
