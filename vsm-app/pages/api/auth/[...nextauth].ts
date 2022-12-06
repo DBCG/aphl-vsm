@@ -14,24 +14,27 @@ export const AuthOptions = {
     })
   ],
   callbacks: {
-    jwt: ( token, user ) => {
-      // first time JWT cb is run, user object is available
-      if (user) {
-        token.id = user.id
-      }
-      return token
-    },
-    session: ({ session, token }) => {
+    async session({ session, token }) {
       if (session?.user == null || session?.roles == null ) {
-        const decodedToken = jwt_decode(token?.token?.account?.access_token)
+        const decodedToken = jwt_decode(token?.account?.access_token)
         const roles = decodedToken?.resource_access?.[process.env.KEYCLOAK_ID]?.roles || []
-        session.user = token?.token?.user || {}
+        session.user = token?.user || {}
+        session.idToken = token?.account?.id_token
         session.user.roles = roles
       }
       return session
     },
+    async jwt({token, user, account}) {
+      // first time JWT cb is run, user object is available
+      if (user) {
+        token.user = user
+        token.account = account
+      }
+      return token
+    },
   },
   session: {
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {

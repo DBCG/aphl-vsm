@@ -1,6 +1,7 @@
 import styled from 'styled-components'
-import { BreadCrumbs } from './Breadcrumbs'
+import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
+import { BreadCrumbs } from './Breadcrumbs'
 import { Button } from './buttons/Button'
 
 const BarWrapper = styled.div`
@@ -28,11 +29,16 @@ const Bar = styled.ol`
 `
 
 const NavBar = () => {
+  const router = useRouter()
+
   return (
     <BarWrapper>
       <Bar>
         <BreadCrumbs/>
-        <Button text='Sign Out' onClick={() => signOut()}/>
+        <Button text='Sign Out' onClick={() => {          
+          signOut({ redirect: false })
+          router.push('/api/auth/logout')
+        }}/>
       </Bar>
     </BarWrapper>
   )
