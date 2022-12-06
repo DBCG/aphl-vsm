@@ -1,5 +1,6 @@
-import { cloneDeep } from 'lodash'
-import { addValueSetToGrouper, removeValueSetFromGrouper } from './valueSetHelpers'
+
+import { cloneDeep } from "lodash";
+import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from "./valueSetHelpers";
 
 const testUrl = 'www.test.com'
 const testUrl2 = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082'
@@ -121,15 +122,75 @@ describe('valueSetHelpers', () => {
     })
   })
 
-  it('should remove valueSet from grouper', () => {
-    let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
-    const updatedGrouperVS = removeValueSetFromGrouper(grouperToUpdate, testUrl2)
-    let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
-    if (resultShouldMatch?.compose?.include) {
-      resultShouldMatch.compose.include.pop()
-      expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
-    } else {
-      fail('Test data missing compose.include block')
-    }
+  describe('removeValuesetFromGrouper', () => {
+    it('should remove valueSet from grouper', () => {
+      let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
+      const updatedGrouperVS = removeValueSetFromGrouper(grouperToUpdate, testUrl2)
+      let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
+      if (resultShouldMatch?.compose?.include) {
+        resultShouldMatch.compose.include.pop()
+        expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
+      } else {
+        fail('Test data missing compose.include block')
+      }
+    });
+  })
+
+  describe('updateLeafVsVersion', () => {
+    it('Should update the version at the end of the canonical if specified', () => {
+      const newValueSet = updateLeafVsVersion(testValueSet1, 'www.example.com/hello', '3.0.0')
+      expect(newValueSet).toMatchObject(testValueSetUpdated1)
+    })
+
+    it('Should remove the version if latest version is specified', () => {
+      const newValueSet = updateLeafVsVersion(testValueSet1, 'www.example.com/hello', 'latest')
+      expect(newValueSet).toMatchObject(testValueSetUpdatedLatest)
+    })
   })
 })
+
+const testValueSet1 = {
+  id: 'test',
+  compose: {
+    include: [
+      {
+        valueSet: ['www.example.com/hello|1.0.0'],
+      }, {
+        valueSet: ['www.example.com/hello|2.0.0']
+      }, {
+        valueSet: ['www.cats.com/hello|1.0.0']
+      }
+    ]
+  }
+} as fhir4.ValueSet
+
+const testValueSetUpdated1 = {
+  id: 'test',
+  compose: {
+    include: [
+      {
+        valueSet: ['www.example.com/hello|3.0.0'],
+      }, {
+        valueSet: ['www.example.com/hello|3.0.0']
+      }, {
+        valueSet: ['www.cats.com/hello|1.0.0']
+      }
+    ]
+  }
+} as fhir4.ValueSet
+
+
+const testValueSetUpdatedLatest = {
+  id: 'test',
+  compose: {
+    include: [
+      {
+        valueSet: ['www.example.com/hello'],
+      }, {
+        valueSet: ['www.example.com/hello']
+      }, {
+        valueSet: ['www.cats.com/hello|1.0.0']
+      }
+    ]
+  }
+} as fhir4.ValueSet

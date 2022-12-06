@@ -172,6 +172,27 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
   return parameterMap
 }
 
+
+// update grouper valueset with proper version
+const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
+  // ensure canonical doesn't have attached version
+  const canonicalWithoutVersion = canonicalToUpdate?.split('|')?.[0]
+  // need to deep copy?
+  const composeInclude = vs.compose.include
+  const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
+
+  composeInclude?.forEach(item => {
+    const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
+    if (match) {
+      item.valueSet = [newCanonical]
+    }
+  })
+
+  vs.compose.include = composeInclude
+
+  return vs
+}
+
 export {
   addExtensionToVs,
   addValueSetToGrouper,

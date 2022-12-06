@@ -49,7 +49,6 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
         [fieldName]: target.value
       }
     }
-    console.log('new program: ', newProgram)
     setEditedProgram(newProgram)
   }
 

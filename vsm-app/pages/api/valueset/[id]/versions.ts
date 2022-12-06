@@ -1,5 +1,5 @@
 import { is } from '@/helpers/is'
-import { getTerminologySource } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -98,7 +98,18 @@ export default async function handler(
       })
     )))
 
+    const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
+    const resultFromUpdate = await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
+      fhirCdrClient.update({
+        resourceType: 'ValueSet',
+        id: grouperVs.id,
+        body: grouperVs
+      })
+    )))
+
+    res.status(200).json({ message: 'Update valueset versions completed' }) 
+    
     
   } else {
     console.error(`Method '${req.method} not supported.'`)

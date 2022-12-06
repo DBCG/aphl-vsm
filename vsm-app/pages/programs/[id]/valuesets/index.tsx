@@ -155,6 +155,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+  const [updatedGrouper, setUpdatedGrouper] = useState(null)
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
@@ -270,7 +271,7 @@ const ProgramValueSetDetails: NextPage = () => {
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
-    vsVersionToUpdate: versionToUpdate,
+    updatedGrouper,
     ...debouncedFilters
   })
 
@@ -333,17 +334,45 @@ const ProgramValueSetDetails: NextPage = () => {
   }
 
   // versionInput
-  const handleVersionChange = (selectedVersion, vsCanonical) => {
+  const handleVersionChange = (selectedVersion, vsCanonical, grouperIds) => {
     console.log('selected option: ', selectedVersion);
     
     console.log('vsCanonical: ', vsCanonical)
     // update the grouper canonical version
-    setVersionToUpdate({ vsCanonical, version: selectedVersion})
+    setVersionToUpdate({ vsCanonical, version: selectedVersion, grouperIds})
   }
 
   useEffect(() => {
+    if (!versionToUpdate.grouperIds) {
+      return
+    }
     console.log('loading: ', loadingVersionsForVs)
+    let result
+
+    const body = JSON.stringify({
+      vsCanonical: versionToUpdate.vsCanonical,
+      vsVersion: versionToUpdate.version,
+      grouperIds: versionToUpdate.grouperIds
+    })
     // you want to update the associated grouper valuesets, adding or removing versions
+    async function updateVersions() {
+      result = await fetch(`/api/valueset/versions`, {
+          method: 'PUT',
+        body
+      }).then(res => res.json())
+      console.log('result: ', result)
+      if (result) {
+        setUpdatedGrouper(result)
+      }
+    }
+
+    try {
+      updateVersions()
+
+    } catch (e) {
+      console.error('error: ', e)
+    }
+
   }, [versionToUpdate])
 
   // @ts-ignore-next-line
@@ -387,12 +416,17 @@ const ProgramValueSetDetails: NextPage = () => {
         }
         
         const inputValue = 'Retrieving all versions'
-        console.log('options: ', versions?.[row?.valueSet?.id])
+        console.log('version: ', row.valueSet.version)
         return (
           <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
             <Select
               instanceId='version-selector'
-              onChange={(e) => handleVersionChange(e.value, row.valueSet.url)}
+              onChange={(e) => {
+                const grouperIds = row?.groups?.map(g => g.id)
+                console.log('grouperIds: ', grouperIds)
+                handleVersionChange(e.value, row.valueSet.url, grouperIds)
+              }
+              }
               isLoading={loadingVersionsForVs === row?.valueSet?.id}
               loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage> }
               isMulti={false}
@@ -654,7 +688,7 @@ const ProgramValueSetDetails: NextPage = () => {
             {programId}
           </Id>
         </FlexRow>
-        {can(session, 'edit') && (
+        {can(session, 'edit') && progValueSetDets?.programStatus === 'draft' (
           <Button
             text="Add Valuesets"
             style={{ minHeight: '60px', minWidth: '150px' }}

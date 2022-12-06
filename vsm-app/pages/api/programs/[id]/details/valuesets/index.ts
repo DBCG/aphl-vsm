@@ -80,18 +80,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 leafUrlsInGrouper?.forEach((url) => {
                   if (!url) return
 
-                  leafValueSetCanonicals.push(url)
+                  const [urlNoVersion, version] = url.split('|')[0]
+                  leafValueSetCanonicals.push(urlNoVersion)
 
                   const groupToAdd = {
                     id: grouperVs.id || 'Undefined',
                     url: grouperVs.url || 'Undefined',
                     title: groupTitle
                   }
-
-                  if (groupsByValueSetCanonical[url]) {
-                    groupsByValueSetCanonical[url].push(groupToAdd)
+                  if (groupsByValueSetCanonical[urlNoVersion]) {
+                    groupsByValueSetCanonical[urlNoVersion].push(groupToAdd)
                   } else {
-                    groupsByValueSetCanonical[url] = [groupToAdd]
+                    groupsByValueSetCanonical[urlNoVersion] = [groupToAdd]
                   }
                 })
               })
