@@ -1,9 +1,8 @@
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
+import { signOut } from 'next-auth/react'
 import { BreadCrumbs } from './Breadcrumbs'
-import { signOut, useSession } from 'next-auth/react'
 import { Button } from './buttons/Button'
-import { VSMSession } from '@/helpers/rolesHelper'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -31,17 +30,14 @@ const Bar = styled.ol`
 
 const NavBar = () => {
   const router = useRouter()
-  const { data: session } = useSession() as unknown as { data: VSMSession}
+
   return (
     <BarWrapper>
       <Bar>
         <BreadCrumbs/>
         <Button text='Sign Out' onClick={() => {          
-          signOut().then(() => {
-            if (session?.idToken != null) {
-              router.push(`${process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER}/protocol/openid-connect/logout?id_token_hint=${session.idToken}&post_logout_redirect_uri=${window.location.origin}`)
-            }
-          })
+          signOut({ redirect: false })
+          router.push('/api/auth/logout')
         }}/>
       </Bar>
     </BarWrapper>
