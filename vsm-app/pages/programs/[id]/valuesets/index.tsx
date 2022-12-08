@@ -158,7 +158,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
 
-  const { data: session } = useSession()
+  const { data: session } = useSession() as unknown as { data: VSMSession}
 
   const defaultFilters = {
     findInVsName: '',

@@ -81,7 +81,7 @@ const ErrorText = styled.p<ErrorProp>`
 
 const Programs: NextPage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session } = useSession() as unknown as { data: VSMSession}
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
@@ -158,7 +158,7 @@ const Programs: NextPage = () => {
     {
       name: 'Clone',
       selector: (row: fhir4.Library) => row.name,
-      omit: !can(session as VSMSession, 'clone'),
+      omit: !can(session, 'clone'),
       sortable: false,
       wrap: true,
       center: true,
@@ -176,7 +176,7 @@ const Programs: NextPage = () => {
       name: 'Release',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
-      omit: !can(session as VSMSession, 'release'),
+      omit: !can(session, 'release'),
       wrap: true,
       center: true,
       cell: (row: fhir4.Library) => (

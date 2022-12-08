@@ -102,7 +102,7 @@ export const FieldValue = styled.span`
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { data: session } = useSession() as unknown as { data: VSMSession}
   const [isEditing, setIsEditing] = useIsEditing()
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
@@ -155,7 +155,7 @@ const ProgramDetails: NextPage = () => {
           <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        {can(session as VSMSession, 'clone') && status === 'draft' && (
+        {can(session, 'clone') && status === 'draft' && (
           <Button
             style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
             text='Edit Program Metadata'
