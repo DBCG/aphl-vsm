@@ -1,11 +1,11 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
+import handler from '@/helpers/server/handler'
 
 // this only gets the program library
-export default async function handler(
+const release = async (
   req: NextApiRequest,
   res: NextApiResponse
-): Promise<any> {
+): Promise<any> => {
 
   if (req.method === 'POST') {
     const libraryUpdateResponse = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}`, {
@@ -38,3 +38,10 @@ export default async function handler(
     return res.send(response)
   }
 }
+
+export default handler({
+  POST: {
+    action: release,
+    access: ['admin', 'editor']
+  }
+})

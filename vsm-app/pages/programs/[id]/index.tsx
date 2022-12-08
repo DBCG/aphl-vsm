@@ -11,11 +11,12 @@ import { useIsEditing } from '@/hooks/useIsEditing'
 import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import { is } from '@/helpers/is'
-import { getSession, GetSessionParams } from 'next-auth/react'
+import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
 import EditableInput from '@/components/EditableInput'
 import ProgramEditModalContent from '@/components/ProgramEditModalContent'
+import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
   display: flex;
@@ -101,6 +102,7 @@ export const FieldValue = styled.span`
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
+  const { data: session } = useSession()
   const [isEditing, setIsEditing] = useIsEditing()
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
@@ -146,7 +148,6 @@ const ProgramDetails: NextPage = () => {
 
   const { id='', name='', version='', title='', description='', status } = program
   const releaseDescription = getReleaseDescription(program)
-  console.log('releaseDescription', releaseDescription)
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -154,7 +155,7 @@ const ProgramDetails: NextPage = () => {
           <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        {status === 'draft' && (
+        {can(session as VSMSession, 'clone') && status === 'draft' && (
           <Button
             style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
             text='Edit Program Metadata'

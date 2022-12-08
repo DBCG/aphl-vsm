@@ -1,6 +1,6 @@
 import { Session } from "next-auth"
 
-const editorPermissions = ['draft', 'review']
+const editorPermissions = ['clone', 'review']
 const reviewerPermissions = ['review', 'approve']
 const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, ...editorPermissions])) // unique permissions
 
@@ -19,11 +19,11 @@ export type VSMSession = Session & {
   }
 }
 
-export const can = (session: VSMSession, requestedAction: string) => {
+export const can = (session: VSMSession, requestedPermission: string) => {
   if (!session || session?.user?.roles == null) {
     return false
   }
   // TODO: when users have more than one role we should look into modifying this
   const role = session.user?.roles[0]
-  return permissions?.[role]?.includes(requestedAction.toLowerCase()) != null
+  return permissions?.[role]?.includes(requestedPermission.toLowerCase())
 }

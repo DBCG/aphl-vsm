@@ -18,7 +18,6 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { isAuthor, VSMSession } from '@/helpers/rolesHelper'
 
 interface GroupItem {
   id: string,
@@ -521,13 +520,10 @@ const ProgramValueSetDetails: NextPage = () => {
             <FieldTitle>ID</FieldTitle>{programId}
           </Id>
         </FlexRow>
-        {isAuthor(session as VSMSession) && (
-          <Button text='Add Valuesets'
-            style={{ maxHeight: '60px', minWidth: '150px' }}
-            onClick={() => router.push(`${router.asPath}/search`)}
-          />
-        )
-        }
+        <Button text='Add Valuesets'
+          style={{ maxHeight: '60px', minWidth: '150px' }}
+          onClick={() => router.push(`${router.asPath}/search`)}
+        />
       </Row>
       <DT
         // @ts-expect-error

@@ -49,7 +49,9 @@ client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: 
 echo "Created $client with id: $client_id"
 echo -e '\n________________________________\n'
 
-
+##################
+## Create Roles ##
+##################
 ### Create Admin role
 echo -e '\n________________________________\n'
 echo -e 'Creating admin role'
@@ -59,13 +61,22 @@ admin_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bear
 echo -e "Created admin role with id: $admin_role_id"
 echo -e '\n________________________________\n'
 
-# Create Author Role
+# Create Editor Role
 echo -e '\n________________________________\n'
-echo -e 'Creating author role'
-author_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "author"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
-echo "url $author_role_url"
-author_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$author_role_url" | jq '.id'| tr -d '\r')
-echo -e "Created author role with id: $author_role_id"
+echo -e 'Creating editor role'
+editor_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "editor"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
+echo "url $editor_role_url"
+editor_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$editor_role_url" | jq '.id'| tr -d '\r')
+echo -e "Created editor role with id: $editor_role_id"
+echo -e '\n________________________________\n'
+
+# Create Reviewer Role
+echo -e '\n________________________________\n'
+echo -e 'Creating reviewer role'
+reviewr_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "reviewer"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
+echo "url $reviewr_role_url"
+reviewer_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$reviewr_role_url" | jq '.id'| tr -d '\r')
+echo -e "Created reviewer role with id: $reviewer_role_id"
 echo -e '\n________________________________\n'
 
 echo -e 'Fetching authentication certificate for realm '$realm'...'
@@ -143,18 +154,18 @@ echo "sucessfully mapped user to admin role"
 echo -e '\n________________________________\n'
 
 
-# Create new user
+# Create Editor role User
 echo -e '\n________________________________\n'
-echo -e 'Creating user for author role '${non_admin_username}'-author on realm '$realm'...'
-author_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
+echo -e 'Creating user for editor role '${non_admin_username}'-editor on realm '$realm'...'
+editor_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
 --header 'Content-Type: application/json' \
 --header "Authorization: Bearer ${token}" \
 --data-raw '{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "johndoeauthor@test.com",
+  "firstName": "gary",
+  "lastName": "hale",
+  "email": "garyhale@test.com",
   "enabled": true,
-  "username": "'${non_admin_username}-author'",
+  "username": "gary",
   "credentials": [
     {
       "type": "password",
@@ -163,29 +174,71 @@ author_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
     }
   ]
 }' | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "Created user '${non_admin_username}-author with user_id: $author_user_id"
+echo "Created user '${non_admin_username}-editor with user_id: $editor_user_id"
 echo -e '\n________________________________\n'
 
 
-# Map new user to author role
+# Map new user to editor role
 echo -e '\n________________________________\n'
-echo -e 'Mapping '${non_admin_username}'-author to role author'
+echo -e 'Mapping '${non_admin_username}'-editor to role editor'
 
-curl -X POST $base_url/auth/admin/realms/$realm/users/$author_user_id/role-mappings/realm \
+curl -X POST $base_url/auth/admin/realms/$realm/users/$editor_user_id/role-mappings/realm \
 --header 'Content-Type: application/json' \
 --header "Authorization: Bearer ${token}" \
 --data-raw '[]'
-
-curl -X POST $base_url/auth/admin/realms/$realm/users/$author_user_id/role-mappings/clients/$client_id \
+curl -X POST $base_url/auth/admin/realms/$realm/users/$editor_user_id/role-mappings/clients/$client_id \
 --header 'Content-Type: application/json' \
 --header "Authorization: Bearer ${token}" \
 --data-raw '[{
-    "id": '${author_role_id}',
-    "name": "author"
+    "id": '${editor_role_id}',
+    "name": "editor"
 }]'
 
-echo 'successfully mapped user to role author'
+echo 'successfully mapped user to role editor'
 echo -e '\n________________________________\n'
 
+
+# Create Reviewer role User
+echo -e '\n________________________________\n'
+echo -e 'Creating user for reviewer role '${non_admin_username}'-reviewer on realm '$realm'...'
+reviewer_user_id=$(curl -X POST $base_url/auth/admin/realms/$realm/users -si \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '{
+  "firstName": "Joy",
+  "lastName": "bennet",
+  "email": "Joybennet@test.com",
+  "enabled": true,
+  "username": "joybennet",
+  "credentials": [
+    {
+      "type": "password",
+      "value": "'${non_admin_pswd}'",
+      "temporary": false
+    }
+  ]
+}' | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
+echo "Created user '${non_admin_username}-reviewer with user_id: $reviewer_user_id"
+echo -e '\n________________________________\n'
+
+
+# Map new user to reviewer role
+echo -e '\n________________________________\n'
+echo -e 'Mapping '${non_admin_username}'-reviewer to role reviewer'
+
+curl -X POST $base_url/auth/admin/realms/$realm/users/$reviewer_user_id/role-mappings/realm \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[]'
+curl -X POST $base_url/auth/admin/realms/$realm/users/$reviewer_user_id/role-mappings/clients/$client_id \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${token}" \
+--data-raw '[{
+    "id": '${reviewer_role_id}',
+    "name": "reviewer"
+}]'
+
+echo 'successfully mapped user to role reviewer'
+echo -e '\n________________________________\n'
 
 echo -e "Finished running setup script\n----------------------------------------------------------------"

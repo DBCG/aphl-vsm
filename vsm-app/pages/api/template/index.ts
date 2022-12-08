@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 
@@ -41,6 +40,9 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   return res.status(422).json({ error: 'Creation of new library failed.' })
 }
 
-export default handler(req, res)({ 
-  POST: setDraft
+export default handler({ 
+  POST: {
+    action: setDraft,
+    access: ['admin', 'editor']
+  }
 })
