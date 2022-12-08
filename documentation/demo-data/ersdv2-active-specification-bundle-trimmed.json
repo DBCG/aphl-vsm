@@ -78,11 +78,11 @@
                 [
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification"
+                        "resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19"
                     }
                 ]
             },
@@ -179,7 +179,7 @@
                     {
                         "type": "depends-on",
                         "label": "RCTC Value Set Library of Trigger Codes",
-                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19"
                     }
                 ],
                 "action":
@@ -1328,27 +1328,27 @@
                 [
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|2022-10-19"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc|2022-10-19"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc|2022-10-19"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc|2022-10-19"
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1479"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc|2022-10-19"
                     }
                 ]
             },
@@ -1460,31 +1460,31 @@
                     	{
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|2022-10-19"
                             ]
                         },
                         {
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063|2022-10-19"
                             ]
                         },
                         {
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360|2022-10-19"
                             ]
                         },
                         {
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120|2022-10-19"
                             ]
                         },
                         {
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362|2022-10-19"
                             ]
                         }
                     ]
@@ -180899,11 +180899,11 @@
             }
         },
 		{
-            "fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1479",
+            "fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc",
             "resource":
             {
                 "resourceType": "ValueSet",
-                "id": "2.16.840.1.113762.1.4.1146.1479",
+                "id": "sdtc",
                 "meta":
                 {
                     "profile":
@@ -180929,7 +180929,7 @@
                         }
                     }
                 ],
-                "url": "http://ersd.aimsplatform.org/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1479",
+                "url": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc",
                 "identifier":
                 [
                     {
@@ -181000,11 +181000,11 @@
                         {
                             "valueSet":
                             [
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439",
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436",
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435",
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446",
-                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|2022-10-19",
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|2022-10-19",
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|2022-10-19",
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|2022-10-19",
+                                "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|2022-10-19"
                             ]
                         }
                     ]
@@ -181115,7 +181115,7 @@
             "request":
             {
                 "method": "PUT",
-                "url": "ValueSet/2.16.840.1.113762.1.4.1146.1479"
+                "url": "ValueSet/sdtc"
             }
         },
         {
