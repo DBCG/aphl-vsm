@@ -1,11 +1,16 @@
 import { Session } from "next-auth"
 
-// TODO: Once we have definitive permissions and what those things 
-// can do we could do something like this to allow
-// { author: {
-//   valueSet: ['read', 'write']
-//   }
-// }
+const editorPermissions = ['draft', 'review']
+const reviewerPermissions = ['review', 'approve']
+const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, ...editorPermissions])) // unique permissions
+
+type RolesType = "admin" | "editor" | "reviewer"
+
+const permissions = {
+  admin: adminPermissions,
+  editor: editorPermissions,
+  reviewer: reviewerPermissions,
+} as { [key in RolesType as string]: string[] }
 
 export type VSMSession = Session & {
   idToken: string | undefined | null
@@ -14,10 +19,11 @@ export type VSMSession = Session & {
   }
 }
 
-export const isAuthor = (session: VSMSession | null) => {
-  return session?.user?.roles?.includes('author')
-}
-
-export const isAdmin = (session: VSMSession | null) => {
-  return session?.user?.roles?.includes('admin')
+export const can = (session: VSMSession, requestedAction: string) => {
+  if (!session || session?.user?.roles == null) {
+    return false
+  }
+  // TODO: when users have more than one role we should look into modifying this
+  const role = session.user?.roles[0]
+  return permissions?.[role]?.includes(requestedAction.toLowerCase()) != null
 }

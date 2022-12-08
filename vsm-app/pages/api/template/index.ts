@@ -1,12 +1,9 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
+import handler from '@/helpers/server/handler'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
-
+const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
   try {
     let body = JSON.parse(req.body)
@@ -43,3 +40,7 @@ export default async function handler(
   console.error('Failure to perform $draft from FHIR server')
   return res.status(422).json({ error: 'Creation of new library failed.' })
 }
+
+export default handler(req, res)({ 
+  POST: setDraft
+})
