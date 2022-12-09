@@ -73,9 +73,9 @@ echo -e '\n________________________________\n'
 # Create Reviewer Role
 echo -e '\n________________________________\n'
 echo -e 'Creating reviewer role'
-reviewr_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "reviewer"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
-echo "url $reviewr_role_url"
-reviewer_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$reviewr_role_url" | jq '.id'| tr -d '\r')
+reviewer_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "reviewer"}' $base_url/auth/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
+echo "url $reviewer_role_url"
+reviewer_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$reviewer_role_url" | jq '.id'| tr -d '\r')
 echo -e "Created reviewer role with id: $reviewer_role_id"
 echo -e '\n________________________________\n'
 
