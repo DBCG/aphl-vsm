@@ -155,7 +155,7 @@ const ProgramDetails: NextPage = () => {
           <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        {can(session, 'clone') && status === 'draft' && (
+        {status === 'draft' && (
           <Button
             style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
             text='Edit Program Metadata'
