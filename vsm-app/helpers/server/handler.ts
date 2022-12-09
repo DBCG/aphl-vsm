@@ -14,12 +14,9 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     const { action, access } = methodFn
     const role = session?.user?.roles?.[0] // TODO: when users have more than one role we should look into modifying this
     
-    const isUnauthorized = session == null || 
-      role == null ||
-      (!access?.includes(role) && // check to see if roles in access
-      access != null) // If no access is specified then allow all roles
+    const isAuthorized = session != null || role != null || access?.includes(role) || access == null // if access is unset, the route allows all roles
 
-    if (isUnauthorized) {
+    if (isAuthorized) {
       return res.status(401).json({'error': 'Unauthorized'})
     }
     await action(req, res)
