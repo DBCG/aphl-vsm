@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { splitCanonical } from '@/helpers/splitCanonical'
 import { SearchParams } from 'fhir-kit-client'
+import { getExpansionParametersSystemVersion } from '@/helpers/valueSetHelpers'
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,13 +27,11 @@ export default async function handler(
       const grouperLibrary = await fhirCdrClient.search({
         resourceType: 'Library',
         searchParams
-      })
+      }).then (res => res?.entry?.[0]?.resource)
 
-      const grouperUrls = grouperLibrary
-        ?.entry?.[0]
-        ?.resource
-        ?.relatedArtifact
-        ?.map((i: any) => i?.resource)
+      const grouperUrls = grouperLibrary?.relatedArtifact?.map((i: any) => i?.resource)
+
+      const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
       
       let grouperValueSets = []
 
@@ -69,7 +68,10 @@ export default async function handler(
         version: vs.version
       }))
 
-      res.status(200).send(formattedValueSets)
+      res.status(200).send({
+        valueSets: formattedValueSets,
+        expansionParameters
+      })
 
 
     } catch (e: any) {

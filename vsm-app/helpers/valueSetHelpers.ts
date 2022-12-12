@@ -60,6 +60,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 }
 
 const authoritativeSourceExtensionUrl = 'https://hl7.org/fhir/extension-valueset-authoritativesource.html'
+const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
 
 interface TerminologyResult {
   value: string | undefined
@@ -117,11 +118,67 @@ const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
   return result
 }
 
+const buildParametersParameter = (manifestDataMap: any) => {
+  const parameters = [] as fhir4.ParametersParameter[]
+  for (const [key, value] of Object.entries(manifestDataMap)) {
+    // @ts-ignore
+    value.forEach((v) => {
+      parameters.push({
+        name: 'system-version',
+        valueString: `${key}|${v}`
+      })
+    })
+  }
+  return parameters
+}
+
+const setExpansionParameters = (library: fhir4.Library, manifestDataMap: any) => {
+  const extension = library?.extension?.find(ext => ext.url === expansionParameterUrl)
+  if (extension == null) {
+    library.extension = [...(library?.extension || []), {
+      "url" : "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension",
+      "valueReference" : {
+        "reference" : "#expansion-parameters-ecr"
+      }
+    }]
+  }
+  const parameter = buildParametersParameter(manifestDataMap)
+  const parametersParameterResource = {
+    "resourceType" : "Parameters",
+    "id" : "expansion-parameters-ecr",
+    "parameter": parameter, 
+  } as fhir4.Parameters
+  const filteredContain = library?.contained?.filter(resource => resource.id !== 'expansion-parameters-ecr') || [] // extract other contained resources
+  filteredContain.push(parametersParameterResource)
+  library.contained = filteredContain
+}
+
+const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
+  const parameterMap = {} as any
+  const parameterResource = library?.contained?.find(resource => resource.id === 'expansion-parameters-ecr') as fhir4.Parameters
+  const systemVersion = parameterResource?.parameter?.filter(i => i.name === 'system-version')
+  systemVersion?.forEach((i) => {
+    const [system, version] = i?.valueString?.split('|') || []
+    if (parameterMap[system]) {
+      parameterMap[system].push(version)
+    } else {
+      parameterMap[system] = [version]
+    }
+  })
+  return parameterMap
+}
+
+
+
+
+
 export {
-  addValueSetToGrouper,
-  removeValueSetFromGrouper,
   addExtensionToVs,
+  addValueSetToGrouper,
   authoritativeSourceExtensionUrl,
+  getExpansionParametersSystemVersion,
   getTerminologySource,
+  removeValueSetFromGrouper,
+  setExpansionParameters,
   valuesetDataForDisplay
 }

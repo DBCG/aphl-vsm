@@ -10,6 +10,7 @@ import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
 import { useIsEditing } from '@/hooks/useIsEditing'
 import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
+import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -82,7 +83,7 @@ export const FieldTitle = styled.div`
   border-radius: 4px;
 `
 
-const StyledSpan = styled.span`
+export const StyledSpan = styled.span`
   color: var(--theme-500);
   margin-top: 12px;
 `
@@ -231,6 +232,13 @@ const ProgramDetails: NextPage = () => {
                 </ItemWrapper>)
               }
             </Row>
+            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+            <StyledSpan>Program Manifest</StyledSpan>
+              <Button text='Edit Manifest'
+                onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
+              />
+            </Row>
+            <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
             <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
               <StyledSpan>Included ValueSet Groups</StyledSpan>
               <Button text='View ValueSets'

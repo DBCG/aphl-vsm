@@ -5,11 +5,13 @@ const columns = [
   {
     name: 'Name',
     selector: (row: TableData) => row.name!,
+    sortable: true,
     wrap: true
   },
   {
     name: 'Title',
     selector: (row: TableData) => row.title!,
+    sortable: true,
     wrap: true
   },
   { 
@@ -20,6 +22,7 @@ const columns = [
   {
     name: 'Version',
     selector: (row: TableData) => row.version!,
+    sortable: true,
     wrap: true,
     maxWidth: '150px'
   }

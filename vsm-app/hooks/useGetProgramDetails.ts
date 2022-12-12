@@ -1,3 +1,4 @@
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { useState, useEffect } from 'react'
 
 interface GrouperItem {
@@ -6,19 +7,24 @@ interface GrouperItem {
   title: string,
   url: string
 }
+interface ManifestDataMap {
+  [key: string]: string[];
+}
 
 export interface Result {
   program: fhir4.Library | {}
   grouperData: GrouperItem[] | []
+  manifestData: ManifestDataMap
 }
 
 // gets data necessary to build the program details page
 // this includes:
 // 1. program metadata
 // 2. group metadata (name, canonical, title)
+// 3. manifest data
 const useGetProgramDetails = (id: string): Result => {
   // this is undefined
-  const [programAndGrouperData, setProgramAndGrouperData] = useState({ program: {}, grouperData: [] })
+  const [programAndGrouperData, setProgramAndGrouperData] = useState({ program: {}, grouperData: [], manifestData: {} })
 
   useEffect(() => {
     async function getProgram(): Promise<void> {
@@ -26,7 +32,8 @@ const useGetProgramDetails = (id: string): Result => {
 
       let result = {
         program: {},
-        grouperData: []
+        grouperData: [],
+        manifestData: {}
       }
 
       try {
@@ -35,11 +42,10 @@ const useGetProgramDetails = (id: string): Result => {
 
         // Identify the valueset library within the program
         // the program, by design, only has 2 relatedArtifacts, one of which is this library, other is a planDefinition
-        const grouperLibrary = programJson?.[0]?.relatedArtifact?.filter((a: any) => a?.type === 'composed-of' && a?.resource?.includes('/Library/'))?.[0]
-        const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibrary.resource}`
+        const grouperLibraryUrl = getGrouperLibraryCanonical(programJson?.[0])
+        const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibraryUrl}`
 
-        const groupers = await fetch(grouperEndpoint)
-        const grouperData = await groupers.json()
+        const grouperData = await fetch(grouperEndpoint).then((res) => res.json())
 
         // if the data is found, override default empty objects
         if (programJson) {
@@ -49,7 +55,8 @@ const useGetProgramDetails = (id: string): Result => {
         result.grouperData = []
 
         if (grouperData && !grouperData.error) {
-          result.grouperData = grouperData
+          result.grouperData = grouperData.valueSets
+          result.manifestData = grouperData?.expansionParameters
         }
 
         setProgramAndGrouperData(result)
