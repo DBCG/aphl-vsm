@@ -23,12 +23,12 @@ const retry = async (apiCall: Function, maxRetries = 3, delay = 500) => {
     try {
       const results = await apiCall()
       return results
-    } catch(e: any) {
+    } catch (e: any) {
       error = e
       await wait(delay * i)
     }
   }
-  console.error(`Error for API Call: ${apiCall.name } after ${maxRetries} retries`)
+  console.error(`Error for API Call: ${apiCall} after ${maxRetries} retries`)
   throw new Error("Max retry reached", error)
 }
 
