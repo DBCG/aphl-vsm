@@ -16,7 +16,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     
     const isAuthorized = session != null || role != null || access?.includes(role) || access == null // if access is unset, the route allows all roles
 
-    if (isAuthorized) {
+    if (!isAuthorized) {
       return res.status(401).json({'error': 'Unauthorized'})
     }
     await action(req, res)
