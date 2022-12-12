@@ -1,35 +1,38 @@
 import set from 'lodash.set'
-import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { terminologyServerEndpoints } from '../fhirClientOptions'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.[0]?.valueSet || []
-  if (!leafVSetsInGroup.length) {
+  let leafVSetsInGroup = vs?.compose?.include?.map(item => item?.valueSet?.[0]).filter(x => x)
+  const valueToAdd = [vsCanonical]
+  // if no compose include & no leaf valuesets
+  if (!vs?.compose?.include && !leafVSetsInGroup) {
     // need to make a new path
-    const path = 'compose.include[0].valueSet'
-    const valueToAdd = [vsCanonical]
+    const path = 'compose.include[0].valueSet' // make this more flexible? 
+    // what if something in compose.include that isn't valueset in the future
     set(vs, path, valueToAdd)
-  } else {
-    if (!leafVSetsInGroup.includes(vsCanonical)) {
+  // if some vsets exist, but not
+  } else if (vs?.compose?.include) {
+    if (!leafVSetsInGroup?.includes(vsCanonical)) {
       leafVSetsInGroup.push(vsCanonical)
-      if (vs?.compose?.include?.[0]?.valueSet !== undefined) {
-        vs.compose.include[0].valueSet = leafVSetsInGroup
-      }
+      vs.compose.include.push({ valueSet: valueToAdd })
     }
   }
   return vs
 }
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVsInGroup = vs.compose?.include?.[0]?.valueSet
-  if (leafVsInGroup) {
-    const updatedLeafVsInGroup = vs?.compose?.include?.[0]?.valueSet
-      ?.filter(leafCanonical => leafCanonical !== vsCanonical)
-
-    if (vs?.compose?.include?.[0]?.valueSet !== undefined) {
-      vs.compose.include[0].valueSet = updatedLeafVsInGroup
+  let updatedComposeInclude = vs?.compose?.include?.map(item => {
+    if (item?.valueSet?.[0] === vsCanonical) {
+      return
+    } else {
+      return item
     }
+  }).filter(x => x)
+
+  if (updatedComposeInclude) {
+    vs.compose.include = updatedComposeInclude
   } else {
-    console.error('no leaf valuesets exist in this group')
+    console.error('grouper does not have compose include')
   }
   return vs
 }

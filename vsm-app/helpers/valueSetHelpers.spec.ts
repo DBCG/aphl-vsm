@@ -1,0 +1,145 @@
+import { cloneDeep } from "lodash";
+import { addValueSetToGrouper, removeValueSetFromGrouper } from "./valueSetHelpers";
+
+const testUrl = 'www.test.com'
+const testUrl2 = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082'
+
+describe('valueSetHelpers', () => {
+  let FIXTURE_GROUPER_VS: fhir4.ValueSet
+  beforeEach(() => {
+    FIXTURE_GROUPER_VS = {
+      resourceType: "ValueSet",
+      id: "mrtc",
+      meta: {
+        profile: [
+          "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
+          "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+        ]
+      },
+      extension: [
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/valueset-author",
+          valueContactDetail: {
+            name: "CSTE Author"
+          }
+        },
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+          valueContactDetail: {
+            name: "CSTE Steward"
+          }
+        }
+      ],
+      url: "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc",
+      identifier: [
+        {
+          system: "urn:ietf:rfc:3986",
+          value: "urn:oid:2.16.840.1.113762.1.4.1146.1060"
+        }
+      ],
+      version: "2022-10-19",
+      name: "MedicationsTriggersforPublicHealthReporting",
+      title: "Medications Triggers for Public Health Reporting",
+      status: "active",
+      experimental: true,
+      publisher: "Association of Public Health Laboratories (APHL)",
+      description: "Purpose: Clinical Focus - This set of values contains CVX,RXNORM,SNOMED medication codes that may represent that the patient may have a potentially reportable condition. These pertain to medications administered and medications prescribed, where the medication, coded in CVX,RXNORM,SNOMED, may be indicative of a reportable condition. Purpose: Data Element Scope - Prescription drugs names used in observations documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
+      useContext: [
+        {
+          code: {
+            system: "http://terminology.hl7.org/CodeSystem/usage-context-type",
+            code: "program"
+          },
+          valueReference: {
+            reference: "PlanDefinition/us-ecr-specification"
+          }
+        },
+        {
+          code: {
+            system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+            code: "reporting"
+          },
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                code: "triggering"
+              }
+            ]
+          }
+        },
+        {
+          code: {
+            system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+            code: "priority"
+          },
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                code: "routine"
+              }
+            ]
+          }
+        }
+      ],
+      purpose: "Prescription drugs names used in observations documented in a clinical record.",
+      compose: {
+        include: [
+          {
+            valueSet: [
+              "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601"
+            ]
+          },
+          {
+            valueSet: [
+              "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600"
+            ]
+          },
+          {
+            valueSet: [
+              "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603"
+            ]
+          },
+          {
+            valueSet: [
+              "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602"
+            ]
+          },
+          {
+            valueSet: [
+              "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
+            ]
+          }
+        ]
+      }
+    }
+  })
+
+  describe('addValueSetToGrouper', () => {
+    it('should add valueSet to grouper', () => {
+      let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
+      const updatedGrouperVS = addValueSetToGrouper(grouperToUpdate, testUrl)
+      let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
+      if (resultShouldMatch?.compose?.include) {
+        resultShouldMatch.compose.include.push({ valueSet: [testUrl] })
+  
+        console.log(FIXTURE_GROUPER_VS?.compose?.include)
+        expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
+
+      }
+    });
+  })
+
+  it('should remove valueSet from grouper', () => {
+    let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
+    const updatedGrouperVS = removeValueSetFromGrouper(grouperToUpdate, testUrl2)
+    let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
+    if (resultShouldMatch?.compose?.include) {
+      
+      resultShouldMatch.compose.include.pop()
+      expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
+
+    }
+  });
+})
