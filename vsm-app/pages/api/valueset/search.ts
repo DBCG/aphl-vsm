@@ -73,7 +73,9 @@ export default async function handler(
             try {
               serverResponse = await retry(() => activeTerminologyClient.search({
                 resourceType: 'ValueSet',
-                searchParams
+                searchParams,
+                // @ts-ignore-next-line because FKC doesn't have this typed
+                signal: AbortSignal.timeout(30000)
               }))
 
               if (serverResponse.entry) {
