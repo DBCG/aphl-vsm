@@ -178,10 +178,14 @@ export default async function handler(
 
               allGrouperVSets.forEach(grouperVs => {
                 const groupTitle = grouperVs?.title || ''
-                const leafUrlsInGrouper = grouperVs?.compose?.include?.[0]?.valueSet
-
+                const leafUrlsInGrouper = grouperVs?.compose?.include?.map(item => item?.valueSet)
+                  ?.filter(x => x) // filter out undefined
+                  ?.flat() || [] as string[]
+                
                 // add groups to the leaf URLs
                 leafUrlsInGrouper?.forEach(url => {
+                  if (!url) return
+
                   leafValueSetCanonicals.push(url)
 
                   const groupToAdd = {

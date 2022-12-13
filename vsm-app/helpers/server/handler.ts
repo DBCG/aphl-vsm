@@ -21,7 +21,6 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     }
     await action(req, res)
   } catch (error: any) {
-    console.log(error)
     return res.status(500).json({'error': error?.message});
   }
 }

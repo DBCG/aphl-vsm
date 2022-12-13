@@ -16,6 +16,12 @@ const columns = [
     name: 'URL',
     selector: (row: TableData) => row.url!,
     wrap: true
+  },
+  {
+    name: 'Version',
+    selector: (row: TableData) => row.version!,
+    wrap: true,
+    maxWidth: '150px'
   }
 ]
 
@@ -23,10 +29,10 @@ interface TableData {
   name: ValueSet['name']
   title: ValueSet['title']
   url: ValueSet['url']
+  version: ValueSet['version']
 }
 
 const ProgramDetailTable = ({ data }: any) => {
-
   return (
     <DataTable
       columns={columns}

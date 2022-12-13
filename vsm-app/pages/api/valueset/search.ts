@@ -75,6 +75,7 @@ export default async function handler(
                 resourceType: 'ValueSet',
                 searchParams,
                 options: {
+                  // @ts-ignore-next-line no idea why this is a TS fail, timeout is on the AbortSignal obj
                   signal: AbortSignal.timeout(30000)
                 }
               }))
