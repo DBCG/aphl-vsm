@@ -33,7 +33,7 @@ export default async function handler(
         ?.resource
         ?.relatedArtifact
         ?.map((i: any) => i?.resource)
-
+      
       let grouperValueSets = []
 
       for (const canonical of grouperUrls) {
@@ -44,7 +44,7 @@ export default async function handler(
         } as SearchParams
 
         // tag on version if exists in the grouper
-        // TODO: probably should not change this
+        // TODO: maybe should error out instead?
         if (version) {
           searchParams.version = version
         }
@@ -54,6 +54,7 @@ export default async function handler(
           searchParams
         })
 
+        
         const resource = grouperVS?.entry?.[0]?.resource
         if (resource) {
           grouperValueSets.push(resource)
@@ -64,7 +65,8 @@ export default async function handler(
         id: vs.id,
         name: vs.name,
         title: vs.title,
-        url: vs.url
+        url: vs.url,
+        version: vs.version
       }))
 
       res.status(200).send(formattedValueSets)
