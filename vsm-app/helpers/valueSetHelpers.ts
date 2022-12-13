@@ -12,7 +12,7 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.Va
     set(vs, path, valueToAdd)
   // if some vsets exist, but not
   } else if (vs?.compose?.include) {
-    if (!leafVSetsInGroup?.includes(vsCanonical)) {
+    if (leafVSetsInGroup && !leafVSetsInGroup?.includes(vsCanonical)) {
       leafVSetsInGroup.push(vsCanonical)
       vs.compose.include.push({ valueSet: valueToAdd })
     }
@@ -30,7 +30,8 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
   }).filter(x => x)
 
 
-  if (updatedComposeInclude) {
+  if (updatedComposeInclude && vs?.compose?.include) {
+    // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude
   } else {
     console.error('grouper does not have compose include')

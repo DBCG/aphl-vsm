@@ -18,6 +18,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 interface GroupItem {
   id: string,
