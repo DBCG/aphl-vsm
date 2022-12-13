@@ -123,9 +123,9 @@ describe('valueSetHelpers', () => {
       let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
       if (resultShouldMatch?.compose?.include) {
         resultShouldMatch.compose.include.push({ valueSet: [testUrl] })
-  
         expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
-
+      } else {
+        fail('Test data missing compose.include block')
       }
     });
   })
@@ -135,10 +135,10 @@ describe('valueSetHelpers', () => {
     const updatedGrouperVS = removeValueSetFromGrouper(grouperToUpdate, testUrl2)
     let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
     if (resultShouldMatch?.compose?.include) {
-      
       resultShouldMatch.compose.include.pop()
       expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
-
+    } else {
+      fail('Test data missing compose.include block')
     }
   });
 })
