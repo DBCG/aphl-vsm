@@ -22,12 +22,13 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.Va
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
   let updatedComposeInclude = vs?.compose?.include?.map(item => {
-    if (item?.valueSet?.[0] === vsCanonical) {
+    if (item?.valueSet?.includes(vsCanonical)) {
       return
     } else {
       return item
     }
   }).filter(x => x)
+
 
   if (updatedComposeInclude) {
     vs.compose.include = updatedComposeInclude

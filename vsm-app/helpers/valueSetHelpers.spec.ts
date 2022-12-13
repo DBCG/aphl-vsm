@@ -124,7 +124,6 @@ describe('valueSetHelpers', () => {
       if (resultShouldMatch?.compose?.include) {
         resultShouldMatch.compose.include.push({ valueSet: [testUrl] })
   
-        console.log(FIXTURE_GROUPER_VS?.compose?.include)
         expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
 
       }

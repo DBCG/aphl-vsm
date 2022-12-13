@@ -107,9 +107,10 @@ export default async function handler(
       const groupersToUpdate = []
 
       for (const grouperValueSet of grouperVSets) {
-        console.log('grouperValuesetcomposeinclude: ', grouperValueSet?.compose?.include)
-        const leafVSetsInGroup = grouperValueSet?.compose?.include
-          ?.filter(item => item?.valueSet?.[0]) // fix this
+        const leafVSetsInGroup = grouperValueSet?.compose?.include?.map(item => item?.valueSet)
+          ?.filter(x => x)
+          .flat()
+        
         const leafExistsInGrouper = leafVSetsInGroup?.find(canonical => canonical?.endsWith(leafValuesetId))
 
         const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => i?.value === grouperValueSet?.id)
@@ -134,40 +135,6 @@ export default async function handler(
       return res.status(200).send(result)
 
     }
-
-    // try {
-    //   const grouperValueSets = valueSetBundle?.entry?.map(i => i?.resource)?.filter(x => x?.resourceType === 'ValueSet') as fhir4.ValueSet[]
-    //   let groupersToUpdate = []
-
-    //   for (const grouperValueSet of grouperValueSets) {
-    //     console.log('grouperValuesetcomposeinclude: ', grouperValueSet?.compose?.include)
-    //     const leafVSetsInGroup = grouperValueSet?.compose?.include?.[0]?.valueSet
-    //     const leafExistsInGrouper = leafVSetsInGroup?.find(canonical => canonical?.endsWith(leafValuesetId))
-
-    //     const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => i?.value === grouperValueSet?.id)
-
-    //     if (!leafExistsInGrouper && leafShouldExistInGrouper) {
-    //       // add the grouper
-    //       groupersToUpdate.push(addValueSetToGrouper(grouperValueSet, body.canonical))
-    //     } else if (leafExistsInGrouper && !leafShouldExistInGrouper) {
-    //       // remove from grouper
-    //       groupersToUpdate.push(removeValueSetFromGrouper(grouperValueSet, body.canonical))
-    //     }
-    //   }
-    //   //TODO: Think about batching this in the future if its a lot of valuesets and we can create a job to follow through
-    //   const result = await Promise.all(groupersToUpdate.map(grouperVs => (
-    //     fhirCdrClient.update({
-    //       resourceType: 'ValueSet',
-    //       id: grouperVs.id,
-    //       body: grouperVs
-    //     })
-    //   )))
-
-    //   return res.status(200).send(result)
-    // } catch (e) {
-    //   console.error('error: ', e)
-    //   return res.status(404).send({ error: 'update grouper valuesets did not complete' })
-    // }
   }
 
 }
