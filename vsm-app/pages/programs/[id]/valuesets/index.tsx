@@ -285,11 +285,6 @@ const ProgramValueSetDetails: NextPage = () => {
   }, [progValueSetDets])
 
   useEffect(() => {
-    console.log('groupers: ', progValueSetDets);
-    
-  }, [progValueSetDets])
-
-  useEffect(() => {
     const keys = Object.keys(progValueSetDets)
     if (keys.length) {
       setPageLoading(false)

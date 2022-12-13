@@ -26,7 +26,6 @@ export default async function handler(
     // first, get the actual ValueSet matching the id
     // from the FHIR server/cache
     try {
-      console.log('id: ', id)
       response = await fhirCdrClient.read({
         resourceType: 'ValueSet', 
         id: id
@@ -78,8 +77,6 @@ export default async function handler(
       // filter out any undefined values
       versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
         ?.filter(x => x)
-
-      console.log('versions: ', versions)
 
       return res.status(200).json(versions)
     } catch (e) {
