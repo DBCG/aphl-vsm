@@ -21,7 +21,10 @@ export default async function handler(
       })
     )))
 
-    const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+    const updatedGroupers = groupersToUpdate?.map(
+      (grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion)
+    )
+
     const resultFromUpdate = await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
       fhirCdrClient.update({
         resourceType: 'ValueSet',

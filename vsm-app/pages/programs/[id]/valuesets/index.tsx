@@ -323,16 +323,12 @@ const ProgramValueSetDetails: NextPage = () => {
       .then(res => res.json())
       .then((versions) => ([defaultVersion, ...versions].map(item => ({ value: item, label: item }))))
 
-    console.log('async options: ', asyncOptions)
     setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
     setLoadingVersionsForVs(null)
   }
 
   // versionInput
   const handleVersionChange = (selectedVersion, vsCanonical, grouperIds) => {
-    console.log('selected option: ', selectedVersion);
-    
-    console.log('vsCanonical: ', vsCanonical)
     // update the grouper canonical version
     setVersionToUpdate({ vsCanonical, version: selectedVersion, grouperIds})
   }
@@ -341,7 +337,6 @@ const ProgramValueSetDetails: NextPage = () => {
     if (!versionToUpdate.grouperIds) {
       return
     }
-    console.log('loading: ', loadingVersionsForVs)
     let result
 
     const body = JSON.stringify({
@@ -355,7 +350,6 @@ const ProgramValueSetDetails: NextPage = () => {
           method: 'PUT',
         body
       }).then(res => res.json())
-      console.log('result: ', result)
       if (result) {
         setUpdatedGrouper(result)
       }
@@ -411,14 +405,16 @@ const ProgramValueSetDetails: NextPage = () => {
         }
         
         const inputValue = 'Retrieving all versions'
-        console.log('version: ', row.valueSet.version)
+        const defaultValue = row?.valueSetPinnedVersion || 'latest'
+
+        const defaultOption =  [{ label: defaultValue, value: defaultValue }]
+
         return (
           <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
             <Select
               instanceId='version-selector'
               onChange={(e) => {
                 const grouperIds = row?.groups?.map(g => g.id)
-                console.log('grouperIds: ', grouperIds)
                 handleVersionChange(e.value, row.valueSet.url, grouperIds)
               }
               }
@@ -426,12 +422,7 @@ const ProgramValueSetDetails: NextPage = () => {
               loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage> }
               isMulti={false}
               options={versions?.[row?.valueSet?.id] || [{ label: 'latest', value: 'latest'}]}
-              defaultValue={[{ label: 'latest', value: 'latest'}]}
-              // value={selectedOptions}
-              // isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
-              // defaultOptions={defaultVersions}
-              // loadOptions={getOptions}
-              // onClick={async () => await setVersionInfo(row.valueSet.id)}
+              defaultValue={defaultOption}
               />
           </SelectInputContainer>
         )
