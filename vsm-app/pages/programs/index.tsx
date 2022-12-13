@@ -1,6 +1,6 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
-import { getSession, GetSessionParams } from 'next-auth/react'
+import { useSession, getSession, GetSessionParams } from 'next-auth/react'
 import { useMemo, useState, ChangeEvent } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
@@ -10,6 +10,7 @@ import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
+import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Col = styled.div`
   display: flex;
@@ -80,6 +81,7 @@ const ErrorText = styled.p<ErrorProp>`
 
 const Programs: NextPage = () => {
   const router = useRouter()
+  const { data: session } = useSession() as unknown as { data: VSMSession}
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
@@ -169,10 +171,11 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     },
-        {
+    {
       name: 'Release',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
+      omit: !can(session, 'release'),
       wrap: true,
       center: true,
       cell: (row: fhir4.Library) => (

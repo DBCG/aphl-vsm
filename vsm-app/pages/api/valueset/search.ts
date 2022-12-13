@@ -73,7 +73,10 @@ export default async function handler(
             try {
               serverResponse = await retry(() => activeTerminologyClient.search({
                 resourceType: 'ValueSet',
-                searchParams
+                searchParams,
+                options: {
+                  signal: AbortSignal.timeout(30000)
+                }
               }))
 
               if (serverResponse.entry) {
