@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vsm-app
+  namespace: vsm
+  labels:
+    tag: {{ .Values.tag }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: vsm-app
+  ports:
+  - name: http 
+    port: 80
+    targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vsm-app
+  labels:
+    app: vsm-app
+    tag: {{ .Values.tag }}
+  namespace: vsm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vsm-app
+  template:
+    metadata:
+      labels:
+        app: vsm-app
+    spec:
+      containers:
+      - image: {{ .Values.aws.account_id }}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:{{ .Values.tag }}
+        name: vsm-app
+        imagePullPolicy: Always
+        env:
+        - name: FHIR_CDR_URL
+          value: http://cqf-ruler-vsm/fhir
+        - name: VSAC_USERNAME
+          value: apikey
+        - name: NEXTAUTH_URL
+          value: http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com
+        - name: KEYCLOAK_ID
+          value: aphl_app
+        - name: CONDITIONS_CANONICAL
+          value: http://hl7.org/fhir/us/ecr/ValueSet/rckms-condition-codes
+        - name: KEYCLOAK_SECRET
+          valueFrom:  
+            secretKeyRef:
+              name: vsm-app-secrets
+              key: keycloak-secret
+        - name: KEYCLOAK_ISSUER
+          value: http://a277b15a1bef34b5da8a6af142026e21-1645222855.us-east-1.elb.amazonaws.com/auth/realms/aphl
+        - name: KEYCLOAK_REDIRECT_URI
+          value: http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com/api/auth/callback/keycloak
+        - name: VSAC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: vsm-app-secrets
+              key: vsac-api-key
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: vsm-app-secrets
+              key: nextauth-secret
+        ports:
+        - containerPort: 3000
+          protocol: TCP

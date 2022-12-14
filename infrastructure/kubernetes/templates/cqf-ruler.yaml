@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cqf-ruler-vsm
+  namespace: vsm
+spec:
+  type: NodePort
+  selector:
+    app: cqf-ruler-vsm
+  ports:
+  - name: http 
+    port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cqf-ruler-vsm
+  labels:
+    app: cqf-ruler-vsm
+  namespace: vsm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cqf-ruler-vsm
+  template:
+    metadata:
+      labels:
+        app: cqf-ruler-vsm
+    spec:
+      containers:
+      - image: alphora/cqf-ruler:vsm_draft_operation
+        imagePullPolicy: Always
+        name: cqf-ruler-vsm
+        env:
+        - name: hapi.fhir.server_address
+          value: http://localhost:8080/fhir
+        - name: hapi.fhir.fhir_version
+          value: R4
+        - name: hapi.fhir.cql.cql_logging_enabled
+          value: "true"
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+
