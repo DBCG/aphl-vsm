@@ -1,9 +1,10 @@
  dservices:
   - docker
+before_install:
+  - cd ./vsm-app
 
 install:
   - docker build -t vsm-app:$TRAVIS_COMMIT .
-  - 
 
 jobs:
   include:
