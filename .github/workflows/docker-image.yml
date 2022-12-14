@@ -1,0 +1,20 @@
+name: Docker Build VSM Image
+
+on:
+  push:
+    branches: [ "dockerize-applications" ]
+  pull_request:
+    branches: [ "dockerize-applications" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: 
+        cd ./vsm-app
+        docker build . --file Dockerfile --tag vsm-app:$(date +%s)
