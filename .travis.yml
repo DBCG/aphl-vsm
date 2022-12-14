@@ -1,0 +1,15 @@
+ dservices:
+  - docker
+
+install:
+  - docker build -t vsm-app:$TRAVIS_COMMIT .
+  - 
+
+jobs:
+  include:
+    - stage: test
+      script: docker run --entrypoint npm vsm-app:$TRAVIS_COMMIT run test-ci
+    # - # stage name not required, will continue to use `test`
+    #   script: ./test 2
+    # - stage: deploy
+    #   script: ./deploy
