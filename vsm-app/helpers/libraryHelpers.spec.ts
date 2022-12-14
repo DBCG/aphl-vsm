@@ -12,7 +12,7 @@ describe('libraryHelpers', () => {
     it('should return empty string when null or undefined passed', () => {
       const releaseDescriptionNull = getReleaseDescription(null)    
       const releaseDescriptionUndefined = getReleaseDescription(undefined)    
-      expect(releaseDescriptionNull).toBe('')
+      expect(releaseDescriptionNull).toBe('123')
       expect(releaseDescriptionUndefined).toBe('')
     });   
   })
