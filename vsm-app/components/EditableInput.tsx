@@ -5,12 +5,13 @@ const FieldValue = styled.span`
   white-space: pre-line;
 `
 interface EditableInputProps {
-  value: string
-  onBlur: Function
-  disabled: boolean
+  value?: string
+  onBlur?: Function
+  disabled?: boolean
+  allowEdit?: boolean
 }
 
-const EditableInput = ({value = "", onBlur, disabled = false} : EditableInputProps) => {
+const EditableInput = ({value = "", onBlur, disabled = false, allowEdit = true} : EditableInputProps) => {
   const [currentValue, setCurrentValue] = useState(value)
   const [isEdit, setIsEdit] = useState(false)
 
@@ -39,7 +40,7 @@ const EditableInput = ({value = "", onBlur, disabled = false} : EditableInputPro
           value={currentValue}
         />
       ) : (
-        <FieldValue onClick={() => setIsEdit(true)}>{currentValue}</FieldValue>
+        <FieldValue onClick={() => allowEdit && setIsEdit(true)}>{currentValue}</FieldValue>
       )
       }
     </>

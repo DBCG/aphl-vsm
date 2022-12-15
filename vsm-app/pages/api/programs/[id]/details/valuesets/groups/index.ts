@@ -141,5 +141,5 @@ const updateGroupSets = async (
 
 export default handler({
   GET: { action: retrieveGroupSets },
-  PUT: { action: updateGroupSets }
+  PUT: { action: updateGroupSets, access: ['admin', 'editor'] }
 })

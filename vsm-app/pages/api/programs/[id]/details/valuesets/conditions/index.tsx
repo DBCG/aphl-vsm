@@ -2,42 +2,45 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
+import handler from '@/helpers/server/handler'
 
-export default async function handler(
+const handleConditionUpdate = async (
   req: NextApiRequest,
   res: NextApiResponse
-): Promise<any> {
+) => {
 
-  if (req.method === 'PUT') {
-    const body = JSON.parse(req.body)
-    // need to identify by version, too... can do w/ read?
-    // ISSUE to be fixed by cache... thihs isn't immediately available
-    const valueSetToUpdate = await fhirCdrClient.search({
+  const body = JSON.parse(req.body)
+  // need to identify by version, too... can do w/ read?
+  // ISSUE to be fixed by cache... thihs isn't immediately available
+  const valueSetToUpdate = await fhirCdrClient.search({
+    resourceType: 'ValueSet',
+    searchParams: {
+      url: body?.canonical,
+      version: body?.version
+    }
+  })
+
+  const vs = valueSetToUpdate?.entry?.[0]?.resource
+
+  const updatedValueSet = updateConditions(vs, body.conditionInfo)
+
+  let updated
+  try {
+    updated = await fhirCdrClient.update({
       resourceType: 'ValueSet',
       searchParams: {
         url: body?.canonical,
-        version: body?.version
-      }
+        version: body.version
+      },
+      body: updatedValueSet
     })
-
-    const vs = valueSetToUpdate?.entry?.[0]?.resource
-
-    const updatedValueSet = updateConditions(vs, body.conditionInfo)
-
-    let updated
-    try {
-      updated = await fhirCdrClient.update({
-        resourceType: 'ValueSet',
-        searchParams: {
-          url: body?.canonical,
-          version: body.version
-        },
-        body: updatedValueSet
-      })
-      res.status(200).send(updated)
-    } catch (e) {
-      console.error('error: ', e)
-      res.status(400).send({ error: 'error'})
-    }
+    res.status(200).send(updated)
+  } catch (e) {
+    console.error('error: ', e)
+    res.status(400).send({ error: 'error'})
   }
 }
+
+export default handler({
+  PUT: { action: handleConditionUpdate, access: ['admin', 'editor']}
+})

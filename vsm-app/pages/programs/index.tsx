@@ -159,6 +159,7 @@ const Programs: NextPage = () => {
       name: 'Clone',
       selector: (row: fhir4.Library) => row.name,
       sortable: false,
+      omit: !can(session, 'clone'),
       wrap: true,
       center: true,
       cell: (row: fhir4.Library) => (

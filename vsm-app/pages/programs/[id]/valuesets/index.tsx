@@ -18,7 +18,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { VSMSession } from '@/helpers/rolesHelper'
+import { can, VSMSession } from '@/helpers/rolesHelper'
 
 interface GroupItem {
   id: string,
@@ -292,7 +292,7 @@ const ProgramValueSetDetails: NextPage = () => {
   }
 
   // @ts-ignore-next-line
-  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active'
+  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
   const columns = useMemo(() => [
     {
@@ -398,7 +398,7 @@ const ProgramValueSetDetails: NextPage = () => {
             })
             }
         }).filter(x => x) as ConditionInfo[]
-        return row.programStatus === 'active'
+        return row.programStatus === 'active' || !can(session, 'edit')
           ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
           : (
           <SelectInputContainer>
@@ -441,7 +441,7 @@ const ProgramValueSetDetails: NextPage = () => {
       wrap: true,
       cell: (row: TableRow) => {
         const selectedOptions = row?.groups?.map(i => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
-        return row.programStatus === 'active'
+        return row.programStatus === 'active' || !can(session, 'edit')
           ? (
             <ReadOnlyContainer>
               {selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)}
@@ -521,10 +521,10 @@ const ProgramValueSetDetails: NextPage = () => {
             <FieldTitle>ID</FieldTitle>{programId}
           </Id>
         </FlexRow>
-        <Button text='Add Valuesets'
+        {can(session, 'edit') && <Button text='Add Valuesets'
           style={{ maxHeight: '60px', minWidth: '150px' }}
           onClick={() => router.push(`${router.asPath}/search`)}
-        />
+        />}
       </Row>
       <DT
         // @ts-expect-error

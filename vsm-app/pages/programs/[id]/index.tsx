@@ -155,7 +155,7 @@ const ProgramDetails: NextPage = () => {
           <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        {status === 'draft' && (
+        {can(session, 'edit') && status === 'draft' && (
           <Button
             style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
             text='Edit Program Metadata'
@@ -211,6 +211,7 @@ const ProgramDetails: NextPage = () => {
                   <Toaster />
                   <EditableInput
                     disabled={program?.status === 'active'}
+                    allowEdit={can(session, 'edit')}
                     value={releaseDescription}
                     onBlur={(newValue: string, resetToInitialValue: Function) => {
                       if (newValue.trim().length !== 0) {
