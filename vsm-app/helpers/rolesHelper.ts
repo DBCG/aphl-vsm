@@ -1,7 +1,11 @@
 import { Session } from "next-auth"
 
-const editorPermissions = ['clone']
-const reviewerPermissions = ['approve', 'clone']
+// ContentReviewer - Review, Approve
+// ContentEditor - Review, Approve, Create drafts, edit any draft version
+// ContentAdministrator - Review, Approve, Create drafts, Edit any draft version, Release
+
+const reviewerPermissions = ['approve']
+const editorPermissions = ['clone', 'approve', 'edit']
 const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, ...editorPermissions])) // unique permissions
 
 type RolesType = "admin" | "editor" | "reviewer"
