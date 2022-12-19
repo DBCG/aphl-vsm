@@ -1,5 +1,5 @@
 import { updateLeafVsVersion } from '@/helpers/valueSetHelpers'
-import { fhirCdrClient } from 'fhirClients'
+import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 
@@ -12,7 +12,16 @@ const updateLeafValueSetVersions = async (
 ): Promise<any> => {
   const body = await req.body
   const bodyJson = JSON.parse(body)
-  const { vsCanonical, vsVersion, grouperIds } = bodyJson
+  const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
+  // save that particular version valueSet to the HAPI server
+  // we must place the conditions & authoritative source on the valueset
+  console.log('term: ', terminologyInfo)
+  // steps:
+  // 1. get the existing latest valueset
+  // 2. set the terminology server to the correct endpoint
+  // 3. get the correct version vset from the terminology server
+  // 4. merge use-context and extension info (authoritative src) with versioned vset
+
   const groupersToUpdate = await Promise.all(grouperIds.map((id: string) => (
     fhirCdrClient.read({
       resourceType: 'ValueSet',

@@ -3,9 +3,6 @@ import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHel
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-// this endpoint needs to:
-// update the grouper valueset canonicals to point to the right valueset version
-// add + remove versions from canonicals
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -35,12 +32,6 @@ export default async function handler(
       // if error thrown, return
       return res.status(401).json({ error: `Error finding ValueSet with id ${id}.`})
     }
-
-    // if response errors out, return
-    // if (!response?.ok) {
-    //   console.log('response: ', response)
-    //   return res.status(402).json({ error: `Error response for ValueSet with id ${id}.`})
-    // }
 
     // if valueset not found in FHIR server, return
     if (!is.valueSet(response)) {
@@ -97,7 +88,7 @@ export default async function handler(
 
     const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
-    const resultFromUpdate = await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
+    await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
       fhirCdrClient.update({
         resourceType: 'ValueSet',
         id: grouperVs.id,

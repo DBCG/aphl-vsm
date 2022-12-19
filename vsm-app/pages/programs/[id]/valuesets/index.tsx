@@ -328,9 +328,9 @@ const ProgramValueSetDetails: NextPage = () => {
   }
 
   // versionInput
-  const handleVersionChange = (selectedVersion, vsCanonical, grouperIds) => {
+  const handleVersionChange = (selectedVersion, vsCanonical, grouperIds, terminologyInfo) => {
     // update the grouper canonical version
-    setVersionToUpdate({ vsCanonical, version: selectedVersion, grouperIds})
+    setVersionToUpdate({ vsCanonical, version: selectedVersion, grouperIds, terminologyInfo })
   }
 
   useEffect(() => {
@@ -342,12 +342,13 @@ const ProgramValueSetDetails: NextPage = () => {
     const body = JSON.stringify({
       vsCanonical: versionToUpdate.vsCanonical,
       vsVersion: versionToUpdate.version,
-      grouperIds: versionToUpdate.grouperIds
+      grouperIds: versionToUpdate.grouperIds,
+      terminologyInfo: versionToUpdate.terminologyInfo
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
       result = await fetch(`/api/valueset/versions`, {
-          method: 'PUT',
+        method: 'PUT',
         body
       }).then(res => res.json())
       if (result) {
@@ -403,19 +404,19 @@ const ProgramValueSetDetails: NextPage = () => {
         if (progValueSetDets.programStatus === 'active') {
           return 'Active'
         }
-        
+        const terminologyInfo = getTerminologySource(row.valueSet) 
         const inputValue = 'Retrieving all versions'
         const defaultValue = row?.valueSetPinnedVersion || 'latest'
 
         const defaultOption =  [{ label: defaultValue, value: defaultValue }]
-
+        console.log('term info: ', terminologyInfo)
         return (
           <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
             <Select
               instanceId='version-selector'
               onChange={(e) => {
                 const grouperIds = row?.groups?.map(g => g.id)
-                handleVersionChange(e.value, row.valueSet.url, grouperIds)
+                handleVersionChange(e.value, row.valueSet.url, grouperIds, terminologyInfo)
               }
               }
               isLoading={loadingVersionsForVs === row?.valueSet?.id}
