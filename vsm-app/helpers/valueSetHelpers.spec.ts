@@ -1,4 +1,3 @@
-
 import { cloneDeep } from "lodash";
 import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from "./valueSetHelpers";
 
@@ -134,6 +133,18 @@ describe('valueSetHelpers', () => {
         fail('Test data missing compose.include block')
       }
     });
+
+    it('should remove valueSet from grouper', () => {
+      let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
+      const updatedGrouperVS = removeValueSetFromGrouper(grouperToUpdate, testUrl2)
+      let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
+      if (resultShouldMatch?.compose?.include) {
+        resultShouldMatch.compose.include.pop()
+        expect(updatedGrouperVS).toStrictEqual(resultShouldMatch)
+      } else {
+        fail('Test data missing compose.include block')
+      }
+    })
   })
 
   describe('updateLeafVsVersion', () => {
