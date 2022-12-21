@@ -2,6 +2,7 @@ import { updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
+import { is } from '@/helpers/is'
 
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
@@ -16,12 +17,76 @@ const updateLeafValueSetVersions = async (
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
   console.log('term: ', terminologyInfo)
+  console.log('vs canonical: ', vsCanonical)
+  console.log('version: ', vsVersion)
+  
   // steps:
   // 1. get the existing latest valueset
   // 2. set the terminology server to the correct endpoint
   // 3. get the correct version vset from the terminology server
   // 4. merge use-context and extension info (authoritative src) with versioned vset
 
+  try {
+    const latestValueSetBundle = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: {
+        url: vsCanonical,
+        _sort: 'version',
+        _count: 1
+      }
+    })
+
+    if (!latestValueSetBundle?.entry) {
+      // there was no result, return
+      console.log('no entry')
+    } else {
+      console.log('here');
+      
+      const latestVs = latestValueSetBundle.entry[0]
+
+      terminologyClient.setClient(terminologyInfo.value.toLowerCase())
+
+      const searchParams = {
+        url: vsCanonical
+      }
+
+      // if a specific version is set and is NOT equal to the current version
+      // set that version in the searchParameters
+      if (vsVersion !== 'latest') {
+        searchParams.version = vsVersion
+      } else {
+        // just get the latest one, sort + count = 1
+        // if version matches on both, don't do the search etc
+      }
+
+      const terminologyClientInstance = terminologyClient.getClient()
+
+      const latestOrVersionedVset = await terminologyClientInstance.search({
+        resourceType: 'ValueSet',
+        searchParams
+      })
+
+      const bundleEntry = latestOrVersionedVset?.entry
+
+      if (!bundleEntry) {
+        // return, resource doesn't exist
+      } else if (bundleEntry.length > 1) {
+        // this is necessary because VSAC isn't respecting version searchParam
+        let matchingItem = bundleEntry?.filter(e => e?.resource?.version === vsVersion)
+        if (matchingItem?.meta?.tag?.contains(i => i?.code === 'SUBSETTED')) {
+          // need to get the whole valueset, not just subset
+        }
+      }
+
+      console.log('latest or versioned: ',  latestOrVersionedVset?.entry?.map(i => i.resource))
+    }
+
+
+
+  } catch (e) {
+    console.error('error: ', e)
+  }
+  return 
   const groupersToUpdate = await Promise.all(grouperIds.map((id: string) => (
     fhirCdrClient.read({
       resourceType: 'ValueSet',
