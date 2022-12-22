@@ -31,6 +31,8 @@ const release = async (
       body: req.body
     })
 
+    console.log('response: ', response)
+
     if (!response.ok) {
       console.error('error', response.status, response.statusText)
       return res.status(response.status).json({ error: response.statusText })

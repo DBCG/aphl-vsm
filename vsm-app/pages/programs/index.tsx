@@ -249,7 +249,8 @@ const Programs: NextPage = () => {
       setError(`Error occurred with ${actionType} for program: ${program.id}. Please try again.`)
     } else if (actionType === 'clone') {
       const json = await result.json()
-      router.push(`/programs/${json.id}`)
+      console.log('json: ', json)
+      // router.push(`/programs/${json.id}`)
     } else {
       // this is not ideal
       router.reload()
@@ -271,7 +272,7 @@ const Programs: NextPage = () => {
         />
       </Row>
       <LoadingModal
-        isOpen={Boolean(actionType) || Boolean(selectedProgram)}
+        isOpen={Boolean(actionType) && Boolean(selectedProgram)}
         actionType={actionType}
         loading={loading}
         handleCancelModal={handleCancelModal}

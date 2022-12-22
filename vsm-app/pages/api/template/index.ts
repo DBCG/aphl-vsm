@@ -7,6 +7,10 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     let body = JSON.parse(req.body)
 
+    // need to perform a check up here
+    // if there is already an existing library w/ status = 'draft' and same canonical
+    // this would need to error out because only 1 draft allowed at a time
+
     const postBody = JSON.stringify({
       resourceType: 'Parameters',
       parameter: [
@@ -27,9 +31,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     })
 
     if (response.ok) {
-      console.log('resoponse: ', response)
-      const json = await response.json()
-      return res.send('json   ', json)
+      return res.send(response)
     }
     
   } catch (e: any) {
