@@ -90,6 +90,13 @@ const Programs: NextPage = () => {
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState('')
+  // $draft cloning
+  const [cloneLoading, setCloneLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [cloneError, setCloneError] = useState('')
+  // operations
+  const [selectedProgram, setSelectedProgram] = useState<fhir4.Library | null>(null)
+  const [actionType, setActionType] = useState<'clone' | 'publish' | 'release' | null>(null)
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -98,6 +105,28 @@ const Programs: NextPage = () => {
     description: searchTermDescription,
     newProgram: `${router?.query?.new}`
   })
+
+  const cloneProgram = async () => {
+    setCloneLoading(true)
+    setCloneError('')
+    let libraryData: any = ''
+    libraryData = program[0]
+    const json = JSON.stringify(libraryData)
+
+    const res = await fetch('/api/template', {
+      method: 'POST',
+      body: json
+    })
+
+    if (res.ok) {
+      router.push(`/programs`)
+    } else {
+      // if response is a failure, error message
+      setCloneLoading(false)
+      setModalOpen(false)
+      setCloneError(`Error cloning program ${programId}`)
+    }
+  }
 
   const columns = useMemo(() => [
     {
@@ -113,13 +142,6 @@ const Programs: NextPage = () => {
         )
       }
     },
-    // {
-    //   name: 'Updated',
-    //   selector: (row: fhir4.Library) => row.date,
-    //   sortable: true,
-    //   maxWidth: '100px',
-    //   wrap: true
-    // },
     {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
@@ -166,7 +188,12 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             disabled={row.status !== 'active'}
-            onClick={() => router.push(`/programs/template?id=${row.id}`)}
+            onClick={() => {
+              setActionType('clone')
+              setModalOpen(true)
+              setSelectedProgram(row)
+            }
+            }
             buttonContext='clone'
           />
         </ButtonWrapper>
@@ -185,68 +212,32 @@ const Programs: NextPage = () => {
             disabled={row.status !== 'draft'}
             onClick={() => {
               setError('')
-              setProgramToRelease(row)
+              setActionType('release')
+              setSelectedProgram(row)
+              // setProgramToRelease(row)
             }}
             buttonContext='release'
           />
         </ButtonWrapper>
       )
     },
-    // {
-    //   name: 'Publish',
-    //   selector: (row: fhir4.Library) => row.name,
-    //   sortable: false,
-    //   wrap: true,
-    //   center: true,
-    //   cell: (row: fhir4.Library) => (
-    //     <ButtonWrapper>
-    //       <IconButton
-    //         disabled={row.status !== 'active'}
-    //         onClick={() => {
-    //           setError('')
-    //           setProgramToPublish(row)
-    //         }}
-    //         buttonContext='publish'
-    //       />
-    //     </ButtonWrapper>
-    //   )
-    // }
   ], [router, router?.query?.new])
 
-  const onClickDownload = () => {
-    router.push('/programs/download')
-  }
-
-  const onClickNewVersion = () => {
-    router.push('/programs/template')
-  }
-
-  const onClickSearch = () => {
-    router.push('/api/programs')
-  }
-
-  const onClickValueSet = () => {
-    router.push('/programs/valueset')
-  }
-
-  const onClick = () => {
-    router.push('/programs/new')
-  }
-
   const handleCancelModal = () => {
-    setProgramToPublish(null)
-    setProgramToRelease(null)
+    setSelectedProgram(null)
+    setActionType(null)
   }
 
-  const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
+  const handleModalAction = async (actionType: 'release' | 'publish' | 'clone', program: fhir4.Library) => {
     let result
     let endpoint
+
     setLoading(true)
 
-    if (actionType === 'release') {
-      endpoint = `/api/programs/${program.id}/release`
+    if (actionType === 'release' || actionType === 'publish') {
+      endpoint = `/api/programs/${program.id}/${actionType}`
     } else {
-      endpoint = `/api/programs/${program.id}/publish`
+      endpoint = `/api/template`
     }
 
     result = await fetch(endpoint, {
@@ -255,16 +246,19 @@ const Programs: NextPage = () => {
     })
 
     if (!result.ok) {
-      setError(`Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`)
+      setError(`Error occurred with ${actionType} for program: ${program.id}. Please try again.`)
+    } else if (actionType === 'clone') {
+      const json = await result.json()
+      router.push(`/programs/${json.id}`)
     } else {
+      // this is not ideal
       router.reload()
     }
 
     setLoading(false)
-    setProgramToPublish(null)
-    setProgramToRelease(null)
-
+    setSelectedProgram(null)
   }
+
 
   return (
     <Col>
@@ -274,16 +268,15 @@ const Programs: NextPage = () => {
         </PageTitle>
         <Button
           text='Publish'
-          // style={{ ba}}
         />
       </Row>
       <LoadingModal
-        isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
-        actionType={programToRelease ? 'release' : 'publish'}
+        isOpen={Boolean(actionType) || Boolean(selectedProgram)}
+        actionType={actionType}
         loading={loading}
         handleCancelModal={handleCancelModal}
         handleModalAction={handleModalAction}
-        program={programToPublish || programToRelease}
+        program={selectedProgram}
       />
       <ErrorContainer error={error}>
         <ErrorText error={error}>{ error }</ErrorText>

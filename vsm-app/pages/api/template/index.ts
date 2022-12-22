@@ -27,7 +27,9 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     })
 
     if (response.ok) {
-      return res.send(response)
+      console.log('resoponse: ', response)
+      const json = await response.json()
+      return res.send('json   ', json)
     }
     
   } catch (e: any) {

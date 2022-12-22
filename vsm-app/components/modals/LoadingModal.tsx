@@ -73,12 +73,11 @@ const LoadingModal = ({
   handleModalAction,
   program
 }: ModalInfo) => {
-  const { title, text, actionText, modalLoadingText } = modalText[actionType]
-  
   const [currentProgram, setProgram] = useState(program)
   const [currentInput, setCurrentInput] = useState('')
   const [disableSubmission, setDisableSubmission] = useState(false)
-
+  
+  
   useEffect(() => {
     // Need to set here because async
     if(program != null) {
@@ -94,6 +93,10 @@ const LoadingModal = ({
       setDisableSubmission(false)
     }
   }, [actionType, currentInput.length])
+
+  if (!isOpen) return null
+  
+  const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   return (
     <ReactModal
