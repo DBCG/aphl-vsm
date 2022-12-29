@@ -16,7 +16,7 @@ import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
 import EditableInput from '@/components/EditableInput'
-import ProgramEditModalContent from '@/components/ProgramEditModalContent'
+import ProgramEditModalContent, { ProgramMetadata } from '@/components/ProgramEditModalContent'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
@@ -53,8 +53,9 @@ const MetadataTitle = styled.div`
 
 const StatusTag = styled.div<StatusProps>`
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 6px 8px;
   height: fit-content;
+  margin-right: 12px;
   color: ${
     props => props.status === 'active'
     ? 'white'
@@ -153,8 +154,8 @@ const ProgramDetails: NextPage = () => {
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
         <MetadataTitle>
-          <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
+          <PageTitle>{id}</PageTitle>
         </MetadataTitle>
         {can(session, 'edit') && status === 'draft' && (
           <Button
@@ -247,6 +248,16 @@ const ProgramDetails: NextPage = () => {
             </Row>
           </div>
       )}
+      <ProgramMetadata
+        program={program}
+        handleSubmit={handleSubmit}
+        />
+      <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+        <StyledSpan>Included ValueSet Groups</StyledSpan>
+        <Button text='View ValueSets'
+          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+        />
+      </Row>
       <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
     </Col>
   )

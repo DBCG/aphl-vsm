@@ -40,6 +40,10 @@ const TooltipContainer = styled.div`
   display: none;
 `
 
+export const ReadOnlyContainer = styled.div`
+  min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
+`
+
 const InfoContainer = styled.div`
   position: relative;
   transform: translateY(-8px);
@@ -68,6 +72,7 @@ interface Props {
   includeInfo?: boolean,
   info?: string,
   style?: React.CSSProperties
+  readonly?: boolean
 }
 
 const SearchInput = ({
@@ -81,7 +86,8 @@ const SearchInput = ({
   minWidth,
   includeInfo,
   info,
-  disabled = false
+  disabled = false,
+  readonly = false
 }: Props) => {
   return (
     <Container>
@@ -103,15 +109,21 @@ const SearchInput = ({
         </InfoContainer>
       )}
       </FlexRow>
-      <Input
-        placeholder={placeholder}
-        onChange={onChange}
-        minWidth={minWidth}
-        disabled={disabled}
-        value={value}
-        defaultValue={def}
-        style={style}
-      />
+      { readonly ? (
+        <ReadOnlyContainer minWidth={minWidth}>
+          {def || placeholder}
+        </ReadOnlyContainer>
+      ) : (
+        <Input
+          placeholder={placeholder}
+          onChange={onChange}
+          minWidth={minWidth}
+          disabled={disabled}
+          value={value}
+          defaultValue={def}
+          style={style}
+        />
+      ) }
     </Container>
   )
 }
