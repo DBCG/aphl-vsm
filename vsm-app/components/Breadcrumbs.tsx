@@ -44,7 +44,8 @@ const BreadCrumbs = () => {
   useEffect(() => {
     if (router) {
       const crumbs = router.asPath.split('/')
-      setBreadCrumbs(crumbs)
+      const withoutQueryStrings = crumbs?.map(crumb => crumb?.split('?')?.[0])
+      setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])
     }

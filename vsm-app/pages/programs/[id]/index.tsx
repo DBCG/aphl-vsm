@@ -3,20 +3,16 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Modal from 'react-modal'
-import toast, { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
-import { useIsEditing } from '@/hooks/useIsEditing'
-import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
-import EditableInput from '@/components/EditableInput'
-import ProgramEditModalContent, { ProgramMetadata } from '@/components/ProgramEditModalContent'
+import { ProgramMetadata } from '@/components/ProgramEditModalContent'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
@@ -105,7 +101,6 @@ export const FieldValue = styled.span`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
-  const [isEditing, setIsEditing] = useIsEditing()
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
 
@@ -119,9 +114,7 @@ const ProgramDetails: NextPage = () => {
   }, [programAndGrouperInfo.program])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
-    setIsEditing()
     await updateProgram(submittedProgram)
-    router.push(`/programs`)
   }
 
   const updateProgram = async (toUpdateProgram: fhir4.Library) => {
@@ -136,6 +129,9 @@ const ProgramDetails: NextPage = () => {
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
       setProgram(program)
+    } else {
+      const json = await response.json()
+      setProgram(json)
     }
   }
 
@@ -148,8 +144,7 @@ const ProgramDetails: NextPage = () => {
     )
   }
 
-  const { id='', name='', version='', title='', description='', status } = program
-  const releaseDescription = getReleaseDescription(program)
+  const { id='', status } = program
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -157,13 +152,6 @@ const ProgramDetails: NextPage = () => {
           <StatusTag status={status}>{status}</StatusTag>
           <PageTitle>{id}</PageTitle>
         </MetadataTitle>
-        {can(session, 'edit') && status === 'draft' && (
-          <Button
-            style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
-            text='Edit Program Metadata'
-            onClick={() => setIsEditing()}
-          />
-        )}
       </Row>
       <Modal
         isOpen={isEditing}
@@ -251,7 +239,8 @@ const ProgramDetails: NextPage = () => {
       <ProgramMetadata
         program={program}
         handleSubmit={handleSubmit}
-        />
+        editable={can(session, 'edit') && status === 'draft'}
+      />
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included ValueSet Groups</StyledSpan>
         <Button text='View ValueSets'

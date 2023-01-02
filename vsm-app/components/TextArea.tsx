@@ -73,7 +73,8 @@ interface Props {
   hasIcon?: boolean,
   includeInfo?: boolean,
   info?: string,
-  readonly?: boolean
+  readonly?: boolean,
+  style?: React.CSSProperties
 }
 
 interface LabelProps {

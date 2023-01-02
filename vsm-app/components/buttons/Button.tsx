@@ -11,7 +11,7 @@ const StyledButton = styled.button`
   padding: 8px 8px;
   cursor: ${props => props.disabled ? 'default' : 'pointer'};
   &:hover {
-    background-color: var(--warning-medium) !important;
+    background-color: ${props => props.disabled ? 'lightgray !important' : 'var(--warning-medium) !important'};
   }
 `
 

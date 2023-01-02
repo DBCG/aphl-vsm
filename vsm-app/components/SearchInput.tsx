@@ -6,6 +6,10 @@ interface InputProps {
   onChange: React.ChangeEventHandler | undefined;
 }
 
+interface ReadOnlyContainerProps {
+  minWidth?: number
+}
+
 const Input = styled.input<InputProps>`
   min-width: ${props => props.minWidth || 0}px;
   padding: 4px 6px;
@@ -40,7 +44,7 @@ const TooltipContainer = styled.div`
   display: none;
 `
 
-export const ReadOnlyContainer = styled.div`
+export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
   min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
 `
 
