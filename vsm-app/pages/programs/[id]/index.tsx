@@ -50,8 +50,10 @@ const MetadataTitle = styled.div`
 const StatusTag = styled.div<StatusProps>`
   border-radius: 8px;
   padding: 6px 8px;
+  margin-bottom: 24px;
   height: fit-content;
-  margin-right: 12px;
+  margin-left: 8px;
+  font-size: 80%;
   color: ${
     props => props.status === 'active'
     ? 'white'
@@ -149,8 +151,8 @@ const ProgramDetails: NextPage = () => {
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
         <MetadataTitle>
-          <StatusTag status={status}>{status}</StatusTag>
           <PageTitle>{id}</PageTitle>
+          <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
       </Row>
       <Modal
