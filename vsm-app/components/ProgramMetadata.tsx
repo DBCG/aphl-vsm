@@ -11,6 +11,7 @@ const ModalForm = styled.form`
  gap: 16px 24px;
  margin-bottom: 32px;
  padding: 16px;
+ padding-bottom: 24px;
  background-color: var(--theme-100);
 `
 
