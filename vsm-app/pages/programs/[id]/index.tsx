@@ -87,6 +87,10 @@ export const StyledSpan = styled.span`
   margin-top: 12px;
 `
 
+const ManifestContainer = styled.div`
+  margin-bottom: 32px;
+`
+
 const IndicatorContainer = styled.div`
   display: flex;
   width: 100%;
@@ -155,89 +159,15 @@ const ProgramDetails: NextPage = () => {
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
       </Row>
-      <Modal
-        isOpen={isEditing}
-        style={{
-          content: {
-            border: 'none',
-            backgroundColor: '#C4E8EC',
-            textAlign: 'right'
-          }
-        }}
-        contentLabel='Edit Program Details'
-      >
-        <button onClick={() => setIsEditing()}>close</button>
-        <div>
-          <Row className='inputs'>
-            <ProgramEditModalContent
-              program={program}
-              handleSubmit={handleSubmit}
-             />
-          </Row>
-        </div>
-      </Modal>
-      {false ? (
-        null
-      ) : (
-          <div>
-            <Row className='readonly-inputs'>
-              <ItemWrapper>
-                <FieldTitle>Title </FieldTitle>
-                <FieldValue>{ title }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Name </FieldTitle>
-                <FieldValue>{ name }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Version </FieldTitle>
-                <FieldValue>{ version || 'No version set'}</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Description </FieldTitle>
-                <FieldValue>{ description }</FieldValue>
-              </ItemWrapper>
-              {releaseDescription && (
-                <ItemWrapper>
-                  <FieldTitle>Release Description </FieldTitle>
-                  <Toaster />
-                  <EditableInput
-                    disabled={program?.status === 'active'}
-                    allowEdit={can(session, 'edit')}
-                    value={releaseDescription}
-                    onBlur={(newValue: string, resetToInitialValue: Function) => {
-                      if (newValue.trim().length !== 0) {
-                        const modifiedProgram = setReleaseDescription(program, newValue.trim())
-                        setProgram(modifiedProgram) // Optimistic update and allows to be reverted when error'ed
-                      } else {
-                        toast.error('Release Description cannot be empty', {
-                          position: 'top-right',
-                          style: {
-                            borderRadius: 0
-                          }
-                        })
-                        resetToInitialValue()
-                      }
-                    }}
-                  />
-                </ItemWrapper>)
-              }
-            </Row>
-            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-            <StyledSpan>Program Manifest</StyledSpan>
-              <Button text='Edit Manifest'
-                onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
-              />
-            </Row>
-            <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
-            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-              <StyledSpan>Included ValueSet Groups</StyledSpan>
-              <Button text='View ValueSets'
-                onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
-              />
-            </Row>
-          </div>
-      )}
+      <ManifestContainer>
+        <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+        <StyledSpan>Program Manifest</StyledSpan>
+          <Button text='Edit Manifest'
+            onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
+          />
+        </Row>
+        <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
+      </ManifestContainer>
       <ProgramMetadata
         program={program}
         handleSubmit={handleSubmit}
