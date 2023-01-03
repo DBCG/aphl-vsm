@@ -41,6 +41,13 @@ const ButtonCol = styled(Col)`
   flex: 1;
 `
 
+const RequiredWarning = styled.p`
+  color: red;
+  font-style: italic;
+  margin-top: 0;
+  text-align: right;
+`
+
 const InputRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -65,7 +72,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
 
-  const { id='', name='', version='', title='', description='' } = program
+  const { name='', version='', title='', description='' } = program
   const releaseDescription = getReleaseDescription(program)
 
   const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
@@ -96,6 +103,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
           def={name}
           onChange={(event) => handleFieldChange(event, 'name')}
           placeholder={'No program name set'}
+          required={true}
         />
         <SearchInput
           id='prog-version'
@@ -114,6 +122,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
           def={title}
           onChange={(event) => handleFieldChange(event, 'title')}
           placeholder={'No program title set'}
+          required={true}
         />
         <TextAreaRow>
           <TextArea
@@ -125,6 +134,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
             onChange={(event) => handleFieldChange(event, 'description')}
             placeholder={'No program description set'}
             style={{ flexBasis: '100%', maxWidth: '624px' }}
+            required={true}
           />
           <TextArea
             id='prog-release-desc'
@@ -142,33 +152,36 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
      <ButtonCol>
       {(editable && !enableEditing && !formTouched) ? (
         <ButtonContainer>
-           <Button
-             style={{}}
+          <Button
+            style={{}}
             text={'Edit Metadata'}
             type='button'
             onClick={() => setEnableEditing(true)}
           />
         </ButtonContainer>
       ): <></>}
-      {(editable && enableEditing) ? (
-        <ButtonContainer style={{ alignItems: 'flex-end' }}>
-          <Button
-            style={buttonStyles}
-            text={'Cancel'}
-            type='button'
-            onClick={() => {
-              setFormTouched(false)
-              setEditedProgram(program)
-            }}
-          />
-          <Button
-            disabled={!formTouched}
-            style={buttonStyles}
-            text={'Save Changes'}
-            type='submit'
-            onClick={() => handleSubmit(editedProgram)}
-          />
-        </ButtonContainer>
+       {(editable && enableEditing) ? (
+         <ButtonCol style={{ justifyContent: 'space-between' }}>
+          <RequiredWarning>* field required</RequiredWarning>
+          <ButtonContainer style={{ alignItems: 'flex-end' }}>
+            <Button
+              style={buttonStyles}
+              text={'Cancel'}
+              type='button'
+              onClick={() => {
+                setFormTouched(false)
+                setEditedProgram(program)
+              }}
+            />
+            <Button
+              disabled={!formTouched}
+              style={buttonStyles}
+              text={'Save Changes'}
+              type='submit'
+              onClick={() => handleSubmit(editedProgram)}
+            />
+          </ButtonContainer>
+         </ButtonCol>
       ): <></>}
     </ButtonCol>
 </ModalForm>

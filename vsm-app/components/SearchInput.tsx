@@ -64,19 +64,20 @@ const ToolTipText = styled.p`
 `
 
 interface Props {
-  placeholder?: string,
-  onChange?: React.ChangeEventHandler,
-  label?: string,
-  id?: string,
-  value?: string,
-  def?: string,
-  minWidth?: number,
-  hasIcon?: boolean,
-  disabled?: boolean,
-  includeInfo?: boolean,
-  info?: string,
+  placeholder?: string
+  onChange?: React.ChangeEventHandler
+  label?: string
+  id?: string
+  value?: string
+  def?: string
+  minWidth?: number
+  hasIcon?: boolean
+  disabled?: boolean
+  includeInfo?: boolean
+  info?: string
   style?: React.CSSProperties
   readonly?: boolean
+  required?: boolean
 }
 
 const SearchInput = ({
@@ -91,7 +92,8 @@ const SearchInput = ({
   includeInfo,
   info,
   disabled = false,
-  readonly = false
+  readonly = false,
+  required = false
 }: Props) => {
   return (
     <Container>
@@ -100,6 +102,7 @@ const SearchInput = ({
         (label !== undefined && id !== undefined) &&
         <StyledLabel>
           {label}
+          {required && <sup style={{color: 'red'}}>*</sup>}
         </StyledLabel>
       }
       { includeInfo && (

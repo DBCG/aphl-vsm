@@ -103,7 +103,7 @@ const TextArea = ({
         (label !== undefined && id !== undefined) &&
         <StyledInputLabel>
           {label}
-          {required && <span style={{color: 'red'}}>*</span>}
+          {required && <sup style={{color: 'red'}}>*</sup>}
         </StyledInputLabel>
       }
       { includeInfo && (
