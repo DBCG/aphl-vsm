@@ -12,7 +12,7 @@ import { is } from '@/helpers/is'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
-import { ProgramMetadata } from '@/components/ProgramEditModalContent'
+import { ProgramMetadata } from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
@@ -168,6 +168,7 @@ const ProgramDetails: NextPage = () => {
         </Row>
         <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
       </ManifestContainer>
+      <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
       <ProgramMetadata
         program={program}
         handleSubmit={handleSubmit}
