@@ -32,8 +32,18 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription = ''):
   return clonedProgram
 }
 
+interface ProgHasRequiredFields {
+  program: fhir4.Library,
+  requiredFields: string[]
+}
+
+const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredFields): boolean => (
+  requiredFields.every(field => Boolean(program?.[field]?.trim()))
+)
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
-  setReleaseDescription
+  setReleaseDescription,
+  progHasRequiredFields
 }

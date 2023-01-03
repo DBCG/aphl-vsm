@@ -1,5 +1,5 @@
 import { cloneDeep } from "lodash";
-import { getReleaseDescription, setReleaseDescription } from "./libraryHelpers";
+import { getReleaseDescription, setReleaseDescription, progHasRequiredFields } from "./libraryHelpers";
 
 describe('libraryHelpers', () => {
 
@@ -46,7 +46,20 @@ describe('libraryHelpers', () => {
       expect(retrievedDescription).toBe(newDescription)
     });
   })
+    
+  describe('progHasRequiredFields', () => {
+    it('should return true if fields are present', () => {
+      const fieldsToCheck = ['resourceType', 'publisher']
+      const result = progHasRequiredFields({ program: FIXTURE_PROGRAM, requiredFields: fieldsToCheck })
+      expect(result).toBe(true)
+    })
 
+    it('should return false if fields are missing', () => {
+      const fieldsToCheck = ['resourceType', 'nonexistentfield']
+      const result = progHasRequiredFields({ program: FIXTURE_PROGRAM, requiredFields: fieldsToCheck })
+      expect(result).toBe(false)
+    })
+  })
 })
 
 const FIXTURE_PROGRAM = {
