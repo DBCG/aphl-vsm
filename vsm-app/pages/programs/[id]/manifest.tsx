@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { getSession, GetSessionParams } from 'next-auth/react'
 import Select from 'react-select';
-import DT from 'react-data-table-component'
+import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle, StyledSpan } from '.'
 import { Button } from '@/components/buttons/Button'
@@ -15,7 +15,7 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 export const customStyles = {
   table: {
     style: {
-        minWidth: '600px', // override the row height
+      minWidth: '600px', // override the row height
     },
   },
   headCells: {
@@ -33,7 +33,7 @@ export const customStyles = {
       overflow: 'visible'
     }
   }
-} as TableStyles
+} as unknown as TableStyles
 
 const Row = styled.div`
   display: flex;
