@@ -1,0 +1,24 @@
+language: python
+python:
+  - "3.8"
+services:
+  - docker
+
+before_install:
+  - cd ./vsm-app
+  - docker build -t vsm-app:$TRAVIS_COMMIT .
+
+install:
+  - cd $TRAVIS_BUILD_DIR
+  - ./bin/install_ci_dependencies.sh
+
+jobs:
+  include:
+    - stage: test
+      script: docker run --entrypoint npm vsm-app:$TRAVIS_COMMIT run test-ci
+      install: skip
+    - stage: deploy
+      if: branch = main
+      script:
+        - cd $TRAVIS_BUILD_DIR
+        - ./bin/deploy.sh
