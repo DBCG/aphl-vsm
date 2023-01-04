@@ -69,6 +69,6 @@ const updateManifest = async (
 }
 
 export default handler({
-  GET: { action: getManifestVersions},
-  PUT: { action: updateManifest }
+  GET: { action: getManifestVersions, access: ['admin', 'editor'] },
+  PUT: { action: updateManifest, access: ['admin', 'editor'] }
 })

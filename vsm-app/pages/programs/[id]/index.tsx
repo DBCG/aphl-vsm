@@ -160,6 +160,12 @@ const ProgramDetails: NextPage = () => {
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
       </Row>
+      <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
+      <ProgramMetadata
+        program={program}
+        handleSubmit={handleSubmit}
+        editable={can(session, 'edit') && status === 'draft'}
+      />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Program Manifest</StyledSpan>
@@ -169,12 +175,6 @@ const ProgramDetails: NextPage = () => {
         </Row>
         <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
       </ManifestContainer>
-      <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata
-        program={program}
-        handleSubmit={handleSubmit}
-        editable={can(session, 'edit') && status === 'draft'}
-      />
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included ValueSet Groups</StyledSpan>
         <Button text='View ValueSets'
