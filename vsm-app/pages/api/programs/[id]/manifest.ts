@@ -20,6 +20,7 @@ const getManifestVersions = async (
         }
       })
 
+      //@ts-ignore
       const versions = results?.entry?.map((i: fhir4.BundleEntry) => i?.resource?.version)
       return res.status(200).json(versions)
     }
