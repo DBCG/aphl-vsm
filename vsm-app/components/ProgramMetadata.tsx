@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
+import {
+  getReleaseDescription,
+  setReleaseDescription,
+  progHasRequiredFields
+} from '@/helpers/libraryHelpers'
 
 const ModalForm = styled.form`
  display: flex;
@@ -66,14 +70,27 @@ interface ProgramEditModalContentProps {
   editable: boolean
 }
 
+const requiredFields = [
+  'name', 'description', 'title'
+]
+
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditModalContentProps) => {
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>(program)
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
 
+  const initialErrorState = progHasRequiredFields({ program, requiredFields })
+    ? null : { requiredFields: 'Please fill out required fields' }
+  
+  const [error, setError] = useState(initialErrorState)
+
   const { name='', version='', title='', description='' } = program
   const releaseDescription = getReleaseDescription(program)
+
+  useEffect(() => {
+    console.log('error: ', error)
+  }, [error])
 
   const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
     e.preventDefault()
@@ -87,6 +104,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
         ...editedProgram,
         [fieldName]: target.value
       }
+    }
+    if (!progHasRequiredFields({ program: newProgram, requiredFields })) {
+      setError({ requiredFields: 'Please fill out required fields' })
+    } else {
+      setError(null)
     }
     setEditedProgram(newProgram)
   }
@@ -168,13 +190,13 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
               style={buttonStyles}
               text={'Cancel'}
               type='button'
-              onClick={() => {
+               onClick={() => {
                 setFormTouched(false)
                 setEditedProgram(program)
               }}
             />
             <Button
-              disabled={!formTouched}
+              disabled={!formTouched || Boolean(error)}
               style={buttonStyles}
               text={'Save Changes'}
               type='submit'

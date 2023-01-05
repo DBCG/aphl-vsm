@@ -115,6 +115,7 @@ const ProgramDetails: NextPage = () => {
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperInfo?.program)) {
+      console.log('program: ', programAndGrouperInfo?.program) 
       setProgram(programAndGrouperInfo?.program)
     }
   }, [programAndGrouperInfo.program])
