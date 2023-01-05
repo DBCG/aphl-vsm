@@ -6,6 +6,10 @@ interface InputProps {
   onChange: React.ChangeEventHandler | undefined;
 }
 
+interface ReadOnlyContainerProps {
+  minWidth?: number
+}
+
 const Input = styled.input<InputProps>`
   min-width: ${props => props.minWidth || 0}px;
   padding: 4px 6px;
@@ -40,6 +44,10 @@ const TooltipContainer = styled.div`
   display: none;
 `
 
+export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
+  min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
+`
+
 const InfoContainer = styled.div`
   position: relative;
   transform: translateY(-8px);
@@ -56,18 +64,20 @@ const ToolTipText = styled.p`
 `
 
 interface Props {
-  placeholder?: string,
-  onChange?: React.ChangeEventHandler,
-  label?: string,
-  id?: string,
-  value?: string,
-  def?: string,
-  minWidth?: number,
-  hasIcon?: boolean,
-  disabled?: boolean,
-  includeInfo?: boolean,
-  info?: string,
+  placeholder?: string
+  onChange?: React.ChangeEventHandler
+  label?: string
+  id?: string
+  value?: string
+  def?: string
+  minWidth?: number
+  hasIcon?: boolean
+  disabled?: boolean
+  includeInfo?: boolean
+  info?: string
   style?: React.CSSProperties
+  readonly?: boolean
+  required?: boolean
 }
 
 const SearchInput = ({
@@ -81,7 +91,9 @@ const SearchInput = ({
   minWidth,
   includeInfo,
   info,
-  disabled = false
+  disabled = false,
+  readonly = false,
+  required = false
 }: Props) => {
   return (
     <Container>
@@ -90,6 +102,7 @@ const SearchInput = ({
         (label !== undefined && id !== undefined) &&
         <StyledLabel>
           {label}
+          {required && <sup style={{color: 'red'}}>*</sup>}
         </StyledLabel>
       }
       { includeInfo && (
@@ -103,15 +116,21 @@ const SearchInput = ({
         </InfoContainer>
       )}
       </FlexRow>
-      <Input
-        placeholder={placeholder}
-        onChange={onChange}
-        minWidth={minWidth}
-        disabled={disabled}
-        value={value}
-        defaultValue={def}
-        style={style}
-      />
+      { readonly ? (
+        <ReadOnlyContainer minWidth={minWidth}>
+          {def || placeholder}
+        </ReadOnlyContainer>
+      ) : (
+        <Input
+          placeholder={placeholder}
+          onChange={onChange}
+          minWidth={minWidth}
+          disabled={disabled}
+          value={value}
+          defaultValue={def}
+          style={style}
+        />
+      ) }
     </Container>
   )
 }

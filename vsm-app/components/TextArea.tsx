@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Image from 'next/image'
-import { StyledLabel as StyledInputLabel } from './SearchInput'
+import { StyledLabel as StyledInputLabel, ReadOnlyContainer } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -73,6 +73,8 @@ interface Props {
   hasIcon?: boolean,
   includeInfo?: boolean,
   info?: string,
+  readonly?: boolean,
+  style?: React.CSSProperties
 }
 
 interface LabelProps {
@@ -90,16 +92,18 @@ const TextArea = ({
   minWidth,
   minHeight,
   includeInfo,
-  info
+  info,
+  readonly = false,
+  style={}
 }: Props) => {
   return (
-    <Container>
+    <Container style={style}>
       <FlexRow>
       {
         (label !== undefined && id !== undefined) &&
         <StyledInputLabel>
           {label}
-          {required && <span style={{color: 'red'}}>*</span>}
+          {required && <sup style={{color: 'red'}}>*</sup>}
         </StyledInputLabel>
       }
       { includeInfo && (
@@ -113,15 +117,21 @@ const TextArea = ({
         </InfoContainer>
       )}
       </FlexRow>
-      <Input
-        name={id}
-        placeholder={placeholder}
-        value={currentValue}
-        onChange={onChange}
-        minWidth={minWidth}
-        minHeight={minHeight}
-        defaultValue={def}
-      />
+      {readonly ? (
+        <ReadOnlyContainer minWidth={minWidth}>
+          {def || placeholder}
+        </ReadOnlyContainer>
+      ): (
+        <Input
+          name={id}
+          placeholder={placeholder}
+          value={currentValue}
+          onChange={onChange}
+          minWidth={minWidth}
+          minHeight={minHeight}
+          defaultValue={def}
+        /> 
+      )}
     </Container>
   )
 }

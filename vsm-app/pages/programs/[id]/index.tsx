@@ -3,20 +3,16 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import Modal from 'react-modal'
-import toast, { Toaster } from 'react-hot-toast'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
-import { useIsEditing } from '@/hooks/useIsEditing'
-import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
-import EditableInput from '@/components/EditableInput'
-import ProgramEditModalContent from '@/components/ProgramEditModalContent'
+import { ProgramMetadata } from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
@@ -53,8 +49,11 @@ const MetadataTitle = styled.div`
 
 const StatusTag = styled.div<StatusProps>`
   border-radius: 8px;
-  padding: 12px 24px;
+  padding: 6px 8px;
+  margin-bottom: 24px;
   height: fit-content;
+  margin-left: 8px;
+  font-size: 80%;
   color: ${
     props => props.status === 'active'
     ? 'white'
@@ -88,6 +87,10 @@ export const StyledSpan = styled.span`
   margin-top: 12px;
 `
 
+const ManifestContainer = styled.div`
+  margin-bottom: 32px;
+`
+
 const IndicatorContainer = styled.div`
   display: flex;
   width: 100%;
@@ -104,7 +107,6 @@ export const FieldValue = styled.span`
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
-  const [isEditing, setIsEditing] = useIsEditing()
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
 
@@ -113,14 +115,13 @@ const ProgramDetails: NextPage = () => {
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperInfo?.program)) {
+      console.log('program: ', programAndGrouperInfo?.program) 
       setProgram(programAndGrouperInfo?.program)
     }
   }, [programAndGrouperInfo.program])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
-    setIsEditing()
     await updateProgram(submittedProgram)
-    router.push(`/programs`)
   }
 
   const updateProgram = async (toUpdateProgram: fhir4.Library) => {
@@ -135,6 +136,9 @@ const ProgramDetails: NextPage = () => {
     // If there is an error in the PUT request to update the library, reset the program to default
     if (!response.ok) {
       setProgram(program)
+    } else {
+      const json = await response.json()
+      setProgram(json)
     }
   }
 
@@ -147,106 +151,36 @@ const ProgramDetails: NextPage = () => {
     )
   }
 
-  const { id='', name='', version='', title='', description='', status } = program
-  const releaseDescription = getReleaseDescription(program)
+  const { id='', status } = program
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
         <MetadataTitle>
-          <PageTitle style={{ marginRight: '12px' }}>{id}</PageTitle>
+          <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        {can(session, 'edit') && status === 'draft' && (
-          <Button
-            style={{ marginBottom: '12px', width: '150px', lineHeight: '130%' }}
-            text='Edit Program Metadata'
-            onClick={() => setIsEditing()}
-          />
-        )}
       </Row>
-      <Modal
-        isOpen={isEditing}
-        style={{
-          content: {
-            border: 'none',
-            backgroundColor: '#C4E8EC',
-            textAlign: 'right'
-          }
-        }}
-        contentLabel='Edit Program Details'
-      >
-        <button onClick={() => setIsEditing()}>close</button>
-        <div>
-          <Row className='inputs'>
-            <ProgramEditModalContent
-              program={program}
-              handleSubmit={handleSubmit}
-             />
-          </Row>
-        </div>
-      </Modal>
-      {false ? (
-        null
-      ) : (
-          <div>
-            <Row className='readonly-inputs'>
-              <ItemWrapper>
-                <FieldTitle>Title </FieldTitle>
-                <FieldValue>{ title }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Name </FieldTitle>
-                <FieldValue>{ name }</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Version </FieldTitle>
-                <FieldValue>{ version || 'No version set'}</FieldValue>
-              </ItemWrapper>
-              <ItemWrapper>
-                <FieldTitle>Description </FieldTitle>
-                <FieldValue>{ description }</FieldValue>
-              </ItemWrapper>
-              {releaseDescription && (
-                <ItemWrapper>
-                  <FieldTitle>Release Description </FieldTitle>
-                  <Toaster />
-                  <EditableInput
-                    disabled={program?.status === 'active'}
-                    allowEdit={can(session, 'edit')}
-                    value={releaseDescription}
-                    onBlur={(newValue: string, resetToInitialValue: Function) => {
-                      if (newValue.trim().length !== 0) {
-                        const modifiedProgram = setReleaseDescription(program, newValue.trim())
-                        setProgram(modifiedProgram) // Optimistic update and allows to be reverted when error'ed
-                      } else {
-                        toast.error('Release Description cannot be empty', {
-                          position: 'top-right',
-                          style: {
-                            borderRadius: 0
-                          }
-                        })
-                        resetToInitialValue()
-                      }
-                    }}
-                  />
-                </ItemWrapper>)
-              }
-            </Row>
-            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-            <StyledSpan>Program Manifest</StyledSpan>
-              <Button text='Edit Manifest'
-                onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
-              />
-            </Row>
-            <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
-            <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-              <StyledSpan>Included ValueSet Groups</StyledSpan>
-              <Button text='View ValueSets'
-                onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
-              />
-            </Row>
-          </div>
-      )}
+      <ManifestContainer>
+        <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+        <StyledSpan>Program Manifest</StyledSpan>
+          <Button text='Edit Manifest'
+            onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
+          />
+        </Row>
+        <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
+      </ManifestContainer>
+      <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
+      <ProgramMetadata
+        program={program}
+        handleSubmit={handleSubmit}
+        editable={can(session, 'edit') && status === 'draft'}
+      />
+      <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
+        <StyledSpan>Included ValueSet Groups</StyledSpan>
+        <Button text='View ValueSets'
+          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+        />
+      </Row>
       <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
     </Col>
   )
