@@ -7,3 +7,4 @@
 | Create Drafts                |    X   |          |   X   |
 | Edit in Draft state          |    X   |          |   X   |
 | Release Operation            |        |          |   X   |
+| Retire Operation             |        |          |   X   |
