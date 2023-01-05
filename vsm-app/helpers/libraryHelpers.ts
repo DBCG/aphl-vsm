@@ -38,6 +38,7 @@ interface ProgHasRequiredFields {
 }
 
 const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredFields): boolean => (
+  // @ts-ignore-next-line
   requiredFields.every(field => Boolean(program?.[field]?.trim()))
 )
 
