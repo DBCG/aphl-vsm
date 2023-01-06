@@ -18,7 +18,7 @@ jobs:
       script: docker run --entrypoint npm vsm-app:$TRAVIS_COMMIT run test-ci
       install: skip
     - stage: deploy
-      if: branch = main
+      if: branch IN (main, deployed)
       script:
         - cd $TRAVIS_BUILD_DIR
         - ./bin/deploy.sh
