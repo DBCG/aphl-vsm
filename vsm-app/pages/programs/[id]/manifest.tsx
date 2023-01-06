@@ -137,7 +137,7 @@ const EditManifestDetails = () => {
 
 
   const selectOptions = useMemo(() => {
-    return systemSelections.map(({uri, name}) => ({value: uri, label: `${name}`}))
+    return systemSelections?.map(({uri, name}) => ({value: uri, label: `${name}`}))
   }, [systemSelections])
 
   const deleteFn  = ({system, version}: ManifestData) => {
