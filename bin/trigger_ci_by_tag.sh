@@ -64,6 +64,11 @@ function select_option {
     return $selected
 }
 
+if [[ $(git diff --stat) != '' ]]; then
+  printf "\e[31m**  Error  **\e[0m\n"
+  echo "Unsaved changes in git, please stash files and clear directory first."
+  exit 1
+fi
 
 echo "Syncing Github tags"
 git fetch --prune --prune-tags > /dev/null
