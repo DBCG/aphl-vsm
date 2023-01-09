@@ -4,7 +4,7 @@ metadata:
   name: cqf-ruler-vsm
   namespace: vsm
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: cqf-ruler-vsm
   ports:
