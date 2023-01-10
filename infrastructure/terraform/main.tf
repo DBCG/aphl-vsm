@@ -75,7 +75,7 @@ module "eks" {
     blue = {}
     green = {
       min_size     = 1
-      max_size     = 3
+      max_size     = 4
       desired_size = 1
 
       instance_types = ["t3.medium"]
