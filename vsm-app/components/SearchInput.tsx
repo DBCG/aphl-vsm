@@ -10,6 +10,10 @@ interface ReadOnlyContainerProps {
   minWidth?: number
 }
 
+export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
+  min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
+`
+
 const Input = styled.input<InputProps>`
   min-width: ${(props) => props.minWidth || 0}px;
   padding: 4px 6px;
