@@ -1,8 +1,25 @@
+import { useMemo } from 'react'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
+import { IconButton } from './buttons/IconButton'
 
-const columns = [
-  {
+interface TableData {
+  name: ValueSet['name']
+  title: ValueSet['title']
+  url: ValueSet['url']
+  version: ValueSet['version']
+}
+
+const ProgramDetailTable = ({ data }: any) => {
+
+  // can only delete grouper if has editing permissions
+  // deleting the grouper removes it from the grouper library
+  const deleteGrouper = () => {
+    
+  }
+
+  const columns = useMemo(() => [
+      {
     name: 'Name',
     selector: (row: TableData) => row.name!,
     sortable: true,
@@ -25,17 +42,27 @@ const columns = [
     sortable: true,
     wrap: true,
     maxWidth: '150px'
+  },
+  {
+    name: 'Remove Group',
+    maxWidth: '150px',
+    center: true,
+    cell: (row) => (
+      <IconButton
+        onClick={async () => {
+          // await handleDelete({
+          //   vsCanonical: row?.valueSet?.url,
+          //   grouperCanonicals: row.groups.map(g => g.url)
+          // })
+          window.location.reload()
+        }}
+        buttonContext='delete'
+        style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+      />
+    )
   }
-]
+  ], [data])
 
-interface TableData {
-  name: ValueSet['name']
-  title: ValueSet['title']
-  url: ValueSet['url']
-  version: ValueSet['version']
-}
-
-const ProgramDetailTable = ({ data }: any) => {
   return (
     <DataTable
       columns={columns}

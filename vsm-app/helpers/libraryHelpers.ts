@@ -1,5 +1,16 @@
 import { cloneDeep } from 'lodash'
 
+interface RelatedArtifactItem {
+  url: string,
+  version?: string
+}
+
+interface EditComposeInclude {
+  grouperLib: fhir4.Library
+  relatedArtifact: RelatedArtifactItem
+  method: 'add' | 'remove'
+}
+
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program.relatedArtifact
     ?.find(related => related.resource?.includes('/Library/'))
@@ -42,9 +53,24 @@ const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredField
   requiredFields.every(field => Boolean(program?.[field]?.trim()))
 )
 
+// currently used just for groupers, could make more flexible
+const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditComposeInclude): fhir4.Library => {
+  if (action === 'add') {
+
+  } else if (action === 'remove') {
+    if (!grouperLib?.relatedArtifact) {
+      console.error('No grouper exists')
+    } else {
+      grouper.relatedArtifact
+    }
+  }
+  return grouperLib
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
   setReleaseDescription,
-  progHasRequiredFields
+  progHasRequiredFields,
+  editComposeInclude
 }
