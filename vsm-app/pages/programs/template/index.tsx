@@ -39,7 +39,7 @@ const ErrorContainer = styled.div<ErrorProp>`
 
 const ErrorText = styled.p<ErrorProp>`
   color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'}
+  display: ${props => props.error ? 'inherit' : 'none'};
 `
 
 const customStyles = {

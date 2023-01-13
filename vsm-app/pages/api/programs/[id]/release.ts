@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
+import appCache from 'cache'
 
 // this only gets the program library
 const release = async (
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> => {
+  const cache = appCache?.getInstance()
 
   if (req.method === 'POST') {
     const libraryUpdateResponse = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}`, {
@@ -15,13 +17,13 @@ const release = async (
         'content-type': 'application/json'
       },
       body: req.body
-    })
+    }).then((res) => res?.json())
 
-    if (!libraryUpdateResponse.ok) {
-      console.error('error updating library', libraryUpdateResponse.status, libraryUpdateResponse.statusText)
-      return res.status(libraryUpdateResponse.status).json({ error: libraryUpdateResponse.statusText })
+    if (!libraryUpdateResponse) {
+      console.error('error updating library', libraryUpdateResponse)
+      return res.status(400).json(libraryUpdateResponse)
     }
-
+    cache?.set(`Library/${libraryUpdateResponse.id}`, JSON.stringify(libraryUpdateResponse))
     const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}/$release`, {
       method: 'POST',
       headers: {
