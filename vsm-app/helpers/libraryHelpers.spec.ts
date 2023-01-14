@@ -1,5 +1,10 @@
 import { cloneDeep } from "lodash";
-import { getReleaseDescription, setReleaseDescription, progHasRequiredFields } from "./libraryHelpers";
+import {
+  getReleaseDescription,
+  setReleaseDescription,
+  progHasRequiredFields,
+  editComposeInclude
+} from "./libraryHelpers";
 
 describe('libraryHelpers', () => {
 
@@ -58,6 +63,66 @@ describe('libraryHelpers', () => {
       const fieldsToCheck = ['resourceType', 'nonexistentfield']
       const result = progHasRequiredFields({ program: FIXTURE_PROGRAM, requiredFields: fieldsToCheck })
       expect(result).toBe(false)
+    })
+  })
+
+  describe('editComposeInclude', () => {
+    it('should delete relatedArtifact if base url matches (ignores version)', () => {
+      const simple_lib = {
+        resourceType: 'Library',
+        relatedArtifact: [
+          { 
+            type: 'composed-of',
+            resource: 'www.example.com|1.1',
+          },
+          {
+            type: 'composed-of',
+            resource: 'www.secondExample.com',
+          },
+        ]
+      } as fhir4.Library
+
+      const simple_lib_result = {
+        resourceType: 'Library',
+        relatedArtifact: [
+          {
+            type: 'composed-of',
+            resource: 'www.secondExample.com',
+          },
+        ]
+      } as fhir4.Library
+
+      const fieldToEdit = {
+        url: 'www.example.com'
+      }
+
+      const editedRctc = editComposeInclude({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
+
+      expect(editedRctc).toEqual(simple_lib_result)
+    })
+
+    it('should delete entire relatedArtifact block if empty after delete', () => {
+      const simple_lib = {
+        resourceType: 'Library',
+        relatedArtifact: [
+          {
+            type: 'composed-of',
+            resource: 'www.example.com|1.1',
+          }
+        ]
+      } as fhir4.Library
+
+      const simple_lib_result = {
+        resourceType: 'Library'
+      } as fhir4.Library
+
+      const fieldToEdit = {
+        url: 'www.example.com'
+      }
+
+      const editedRctc = editComposeInclude({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
+
+      expect(editedRctc).toEqual(simple_lib_result)
     })
   })
 })

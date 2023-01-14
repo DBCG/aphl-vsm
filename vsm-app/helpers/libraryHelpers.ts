@@ -8,7 +8,7 @@ interface RelatedArtifactItem {
 interface EditComposeInclude {
   grouperLib: fhir4.Library
   relatedArtifact: RelatedArtifactItem
-  method: 'add' | 'remove'
+  action: 'add' | 'remove'
 }
 
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
@@ -54,14 +54,21 @@ const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredField
 )
 
 // currently used just for groupers, could make more flexible
+// this also doesn't specify deletion by version, deletes all by base url
 const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditComposeInclude): fhir4.Library => {
   if (action === 'add') {
 
   } else if (action === 'remove') {
     if (!grouperLib?.relatedArtifact) {
-      console.error('No grouper exists')
     } else {
-      grouper.relatedArtifact
+      const filteredArtifact = grouperLib.relatedArtifact.filter(
+        x => !x?.resource?.toLowerCase()?.includes(relatedArtifact?.url?.toLowerCase())
+      )
+      if (filteredArtifact.length === 0) {
+        delete grouperLib.relatedArtifact
+      } else {
+        grouperLib.relatedArtifact = filteredArtifact
+      }
     }
   }
   return grouperLib
