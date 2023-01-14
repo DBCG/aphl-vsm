@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import styled from 'styled-components'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { IconButton } from './buttons/IconButton'
@@ -9,6 +10,10 @@ interface TableData {
   url: ValueSet['url']
   version: ValueSet['version']
 }
+
+const ButtonContainer = styled.div`
+  margin: 16px 0;
+`
 
 const ProgramDetailTable = ({ data }: any) => {
 
@@ -48,17 +53,19 @@ const ProgramDetailTable = ({ data }: any) => {
     maxWidth: '150px',
     center: true,
     cell: (row) => (
-      <IconButton
-        onClick={async () => {
-          // await handleDelete({
-          //   vsCanonical: row?.valueSet?.url,
-          //   grouperCanonicals: row.groups.map(g => g.url)
-          // })
-          window.location.reload()
-        }}
-        buttonContext='delete'
-        style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
-      />
+      <ButtonContainer>
+        <IconButton
+          onClick={async () => {
+            // await handleDelete({
+            //   vsCanonical: row?.valueSet?.url,
+            //   grouperCanonicals: row.groups.map(g => g.url)
+            // })
+            window.location.reload()
+          }}
+          buttonContext='delete'
+          style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+        />
+      </ButtonContainer>
     )
   }
   ], [data])
