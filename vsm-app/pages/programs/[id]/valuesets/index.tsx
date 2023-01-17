@@ -189,7 +189,7 @@ const ProgramValueSetDetails: NextPage = () => {
         grouperCanonicals,
       }
 
-      const result = fetch(`/api/programs/${programId}/groupers`, {
+      const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
         method: 'PUT',
         body: JSON.stringify(body)
       }).then(res => res.json())

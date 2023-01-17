@@ -115,7 +115,6 @@ const ProgramDetails: NextPage = () => {
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperInfo?.program)) {
-      console.log('program: ', programAndGrouperInfo?.program) 
       setProgram(programAndGrouperInfo?.program)
     }
   }, [programAndGrouperInfo.program])
@@ -184,7 +183,10 @@ const ProgramDetails: NextPage = () => {
           onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
         />
       </Row>
-      <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
+      <ProgramDetailTable
+        data={programAndGrouperInfo?.grouperData}
+        grouperLibId={programAndGrouperInfo?.grouperLibId}
+      />
     </Col>
   )
 }

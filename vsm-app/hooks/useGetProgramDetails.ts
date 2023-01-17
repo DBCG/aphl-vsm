@@ -56,6 +56,7 @@ const useGetProgramDetails = (id: string): Result => {
 
         if (grouperData && !grouperData.error) {
           result.grouperData = grouperData.valueSets
+          result.grouperLibId = grouperData.grouperLibId
           result.manifestData = grouperData?.expansionParameters
         }
 

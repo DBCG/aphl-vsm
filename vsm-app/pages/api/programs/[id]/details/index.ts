@@ -69,6 +69,7 @@ export default async function handler(
       }))
 
       res.status(200).send({
+        grouperLibId: grouperLibrary.id,
         valueSets: formattedValueSets,
         expansionParameters
       })

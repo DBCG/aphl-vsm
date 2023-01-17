@@ -88,10 +88,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
   const { name='', version='', title='', description='' } = program
   const releaseDescription = getReleaseDescription(program)
 
-  useEffect(() => {
-    console.log('error: ', error)
-  }, [error])
-
   const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
     e.preventDefault()
     const target = e.target as HTMLInputElement;
