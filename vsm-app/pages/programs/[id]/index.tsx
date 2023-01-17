@@ -186,6 +186,8 @@ const ProgramDetails: NextPage = () => {
       <ProgramDetailTable
         data={programAndGrouperInfo?.grouperData}
         grouperLibId={programAndGrouperInfo?.grouperLibId}
+        // @ts-ignore-next-line
+        programStatus={programAndGrouperInfo?.program?.status || {}}
       />
     </Col>
   )
