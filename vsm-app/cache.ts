@@ -12,8 +12,7 @@ export default (function(){
         maxRetriesPerRequest: 0,
         retryStrategy: (times: number) => {
           if (times > 3) {
-            console.error(`[Redis] Could not connect after ${times} attempts`)
-            // throw new Error(`[Redis] Could not connect after ${times} attempts`);
+            throw new Error(`[Redis] Could not connect after ${times} attempts`);
           }
   
           return Math.min(times * 200, 1000);
@@ -28,15 +27,14 @@ export default (function(){
       console.log('Redis Instance Created')
       return instance;
     } catch (e) {
-      console.error('[Redis] Error connecting')
+      console.error('[Redis] Could not create a Redis instance')
       return null;
-      // throw new Error(`[Redis] Could not create a Redis instance`);
     }
   }
   let instance: Redis | null;
   return {
       getInstance: function(){
-          if (instance == null) {
+          if (instance == null && process.env.ENABLE_CACHE === 'true') {
             console.log('Creating Redis Instance')
             instance = Cache();
           }
