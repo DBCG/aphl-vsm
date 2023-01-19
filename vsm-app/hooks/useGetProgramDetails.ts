@@ -45,7 +45,6 @@ const useGetProgramDetails = (id: string): Result => {
     async function getProgram(): Promise<void> {
       const programEndpoint = `/api/programs?id=${id}`
 
-
       try {
         const response: Response = await fetch(programEndpoint)
         const programJson = await response.json()
