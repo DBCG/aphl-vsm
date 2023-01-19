@@ -20,7 +20,6 @@ const updateGrouperLibrary = async (
   res: NextApiResponse
 ) => {
   try {
-    // debugger
     const body = JSON.parse(req.body)
 
     const {
