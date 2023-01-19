@@ -63,3 +63,13 @@ You will need to use the ```non_admin_username``` and ```non_admin_password``` t
 - To clear *everything* out, run:
 ```bin/docker-cleanup```
 - Note that this command will also delete anything related to your local CQF (HAPI) server for this project (and anything you have for other projects)
+
+### Alternative, running application with docker-compose
+
+`docker-compose up` Should bring up all the services required to run the application
+
+`./bin/load-data` will populate your fhir server
+
+`./keycloak/configure` prompt for populating keycloak idp
+
+To stop everything and wipe docker env `./bin/docker-cleanup.sh` 

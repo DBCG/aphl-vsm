@@ -2,20 +2,16 @@
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
-KEYCLOAK_DIR=${DIR}/../keycloak
-
-echo -e "This command will stop + delete: \n  - all containers \n  - associated volumes \n  - docker networks\n"
+echo -e "This command will stop + delete: \n  - all containers \n  - associated volumes \n"
 read -p "Continue? (y/n)?" choice
 
 ALL_CONTAINERS=$(docker ps -a -q)
 
 case "$choice" in 
-  y|Y ) cd ${KEYCLOAK_DIR} \
-    && docker-compose down \
+  y|Y ) docker-compose down \
+    && docker volume prune -f \
     && docker rm -f $ALL_CONTAINERS \
-    && docker volume prune \
-    && docker network prune;;
+    && docker prune -f;;
   n|N ) echo "cancelled";;
   * ) echo "invalid option";;
 esac
