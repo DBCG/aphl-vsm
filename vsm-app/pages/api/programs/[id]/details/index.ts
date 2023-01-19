@@ -22,6 +22,10 @@ export default async function handler(
       // tag on version if it exists in the url
       if (version) {
         searchParams.version = version
+      } else {
+      // if the version doesn't exist in the URL,
+      // the grouper library is in draft
+        searchParams.status = 'draft'
       }
 
       const grouperLibrary = await fhirCdrClient.search({
