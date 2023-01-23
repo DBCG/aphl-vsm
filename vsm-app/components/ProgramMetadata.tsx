@@ -9,7 +9,7 @@ import {
   progHasRequiredFields
 } from '@/helpers/libraryHelpers'
 
-const ModalForm = styled.form`
+const Form = styled.form`
  display: flex;
  flex-wrap: wrap;
  gap: 16px 24px;
@@ -110,7 +110,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
   }
 
  return (
-   <ModalForm>
+   <Form>
      <Col>
        <InputRow>
         <SearchInput
@@ -202,7 +202,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable=true }: ProgramEditMo
          </ButtonCol>
       ): <></>}
     </ButtonCol>
-</ModalForm>
+</Form>
  )
 }
 

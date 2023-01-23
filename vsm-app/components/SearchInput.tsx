@@ -102,7 +102,7 @@ const SearchInput = ({
         (label !== undefined && id !== undefined) &&
         <StyledLabel>
           {label}
-          {required && <sup style={{color: 'red'}}>*</sup>}
+          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
         </StyledLabel>
       }
       { includeInfo && (
