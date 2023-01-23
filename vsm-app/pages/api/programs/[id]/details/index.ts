@@ -38,33 +38,34 @@ export default async function handler(
       const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
       
       let grouperValueSets = []
+      
+      if(grouperUrls) {
+        for (const canonical of grouperUrls) {
+          const [url, version] = splitCanonical(canonical)
 
-      for (const canonical of grouperUrls) {
-        const [url, version] = splitCanonical(canonical)
+          let searchParams = {
+            url
+          } as SearchParams
 
-        let searchParams = {
-          url
-        } as SearchParams
+          // tag on version if exists in the grouper
+          // TODO: maybe should error out instead?
+          if (version) {
+            searchParams.version = version
+          }
 
-        // tag on version if exists in the grouper
-        // TODO: maybe should error out instead?
-        if (version) {
-          searchParams.version = version
-        }
+          const grouperVS = await fhirCdrClient.search({
+            resourceType: 'ValueSet',
+            searchParams
+          })
 
-        const grouperVS = await fhirCdrClient.search({
-          resourceType: 'ValueSet',
-          searchParams
-        })
-
-        
-        const resource = grouperVS?.entry?.[0]?.resource
-        if (resource) {
-          grouperValueSets.push(resource)
+          const resource = grouperVS?.entry?.[0]?.resource
+          if (resource) {
+            grouperValueSets.push(resource)
+          }
         }
       }
 
-      const formattedValueSets = grouperValueSets.map(vs => ({
+      const formattedValueSets = grouperValueSets?.map(vs => ({
         id: vs.id,
         name: vs.name,
         title: vs.title,
