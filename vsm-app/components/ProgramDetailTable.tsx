@@ -7,17 +7,20 @@ import toast, { Toaster } from 'react-hot-toast'
 import DataTable from 'react-data-table-component'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
+import LoadingIndicator from './LoadingIndicator'
 
 interface TableData {
   name: ValueSet['name']
   title: ValueSet['title']
   url: ValueSet['url']
   version: ValueSet['version']
+  id: ValueSet['id']
 }
 
 interface DeleteGrouper {
   grouperLibId: string,
   grouperVsCanonicalToRemove: string | undefined
+  grouperVsIdToRemove: string | undefined
 }
 
 interface Error {
@@ -34,10 +37,12 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
+  const [deleting, setDeleting] = useState(false)
   
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
-  const deleteGrouper = async ({ grouperLibId, grouperVsCanonicalToRemove }: DeleteGrouper) => {
+  const deleteGrouper = async ({ grouperLibId, grouperVsCanonicalToRemove, grouperVsIdToRemove }: DeleteGrouper) => {
+    setDeleting(true)
     let endpoint = `/api/programs/${programId}/grouper/library`
     let updated
     try {
@@ -45,7 +50,8 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
         libraryId: grouperLibId,
         editingInfo: {
           action: 'remove',
-          vsCanonical: grouperVsCanonicalToRemove
+          vsCanonical: grouperVsCanonicalToRemove,
+          vsId: grouperVsIdToRemove
         }
       })
 
@@ -58,8 +64,10 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     }
 
     if (updated?.ok) {
+      setDeleting(false)
       window.location.reload()
     } else {
+      setDeleting(false)
       setError({
         type: 'delete_failed',
         message: 'Failed to delete grouper Value Set'
@@ -122,7 +130,8 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
                 onClick={async () => {
                   await deleteGrouper({
                     grouperLibId,
-                    grouperVsCanonicalToRemove: row?.url
+                    grouperVsCanonicalToRemove: row?.url,
+                    grouperVsIdToRemove: row?.id
                   })
                 }}
                 buttonContext='delete'
@@ -142,6 +151,8 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     <>
       <Toaster/>
       <DataTable
+        progressPending={deleting}
+        progressComponent={<LoadingIndicator/>}
         columns={columns}
         data={data}
         pagination

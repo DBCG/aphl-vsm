@@ -6,12 +6,13 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 
 interface EditingInfo {
-  action: 'remove' | 'add',
+  action: 'remove' | 'add'
   vsCanonical: string
+  vsId: string
 }
 
 interface BodyInfo {
-  libraryId: string,
+  libraryId: string
   editingInfo: EditingInfo
 }
 
@@ -41,13 +42,28 @@ const updateGrouperLibrary = async (
         action: 'remove'
       })
 
+      // update the grouper library to delete the reference
+      // to the grouper valueset
       const updated = await fhirCdrClient.update({
         resourceType: 'Library',
         id: updatedGrouperLib.id,
         body: updatedGrouperLib
       })
 
+      // delete the actual grouper valueset
+      // as these only exist in the context of the program
+      const deleted = await fhirCdrClient.delete({
+        resourceType: 'ValueSet',
+        id: editingInfo.vsId,
+      })
+
       if (is.library(updated)) {
+        // if deletion of the actual ValueSet failed, doesn't matter from FE perspective
+        // because the connection is severed at the Library level, but still warn
+        // as this will create orphaned ValueSets in the data
+        if(!deleted?.ok) {
+          console.error(`Failed to delete ValueSet ${editingInfo.vsId}`)
+        }
         return res.status(200).send(updated)
       } else {
         console.error(`Failed to update grouper lib ${grouperLib.name}`)
