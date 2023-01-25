@@ -59,7 +59,6 @@ const InputRow = styled.div`
 `
 
 const buttonStyles = {
-  width: '150px',
   backgroundColor: '#ca9547',
   marginTop: '20px',
 }
