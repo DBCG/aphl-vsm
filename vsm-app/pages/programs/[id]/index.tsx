@@ -115,7 +115,6 @@ const ProgramDetails: NextPage = () => {
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperInfo?.program)) {
-      console.log('program: ', programAndGrouperInfo?.program) 
       setProgram(programAndGrouperInfo?.program)
     }
   }, [programAndGrouperInfo.program])
@@ -159,6 +158,9 @@ const ProgramDetails: NextPage = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
+        <Button text='View ValueSets'
+          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+        />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
       <ProgramMetadata
@@ -176,12 +178,17 @@ const ProgramDetails: NextPage = () => {
         <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-        <StyledSpan>Included ValueSet Groups</StyledSpan>
-        <Button text='View ValueSets'
+        <StyledSpan>Included Groups</StyledSpan>
+        <Button text='Add Group'
           onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
         />
       </Row>
-      <ProgramDetailTable data={programAndGrouperInfo?.grouperData}/>
+      <ProgramDetailTable
+        data={programAndGrouperInfo?.grouperData}
+        grouperLibId={programAndGrouperInfo?.grouperLibId}
+        // @ts-ignore-next-line
+        programStatus={programAndGrouperInfo?.program?.status || {}}
+      />
     </Col>
   )
 }

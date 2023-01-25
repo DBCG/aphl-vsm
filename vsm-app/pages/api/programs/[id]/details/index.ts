@@ -22,6 +22,10 @@ export default async function handler(
       // tag on version if it exists in the url
       if (version) {
         searchParams.version = version
+      } else {
+      // if the version doesn't exist in the URL,
+      // the grouper library is in draft
+        searchParams.status = 'draft'
       }
 
       const grouperLibrary = await fhirCdrClient.search({
@@ -34,33 +38,34 @@ export default async function handler(
       const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
       
       let grouperValueSets = []
+      
+      if(grouperUrls) {
+        for (const canonical of grouperUrls) {
+          const [url, version] = splitCanonical(canonical)
 
-      for (const canonical of grouperUrls) {
-        const [url, version] = splitCanonical(canonical)
+          let searchParams = {
+            url
+          } as SearchParams
 
-        let searchParams = {
-          url
-        } as SearchParams
+          // tag on version if exists in the grouper
+          // TODO: maybe should error out instead?
+          if (version) {
+            searchParams.version = version
+          }
 
-        // tag on version if exists in the grouper
-        // TODO: maybe should error out instead?
-        if (version) {
-          searchParams.version = version
-        }
+          const grouperVS = await fhirCdrClient.search({
+            resourceType: 'ValueSet',
+            searchParams
+          })
 
-        const grouperVS = await fhirCdrClient.search({
-          resourceType: 'ValueSet',
-          searchParams
-        })
-
-        
-        const resource = grouperVS?.entry?.[0]?.resource
-        if (resource) {
-          grouperValueSets.push(resource)
+          const resource = grouperVS?.entry?.[0]?.resource
+          if (resource) {
+            grouperValueSets.push(resource)
+          }
         }
       }
 
-      const formattedValueSets = grouperValueSets.map(vs => ({
+      const formattedValueSets = grouperValueSets?.map(vs => ({
         id: vs.id,
         name: vs.name,
         title: vs.title,
@@ -69,6 +74,7 @@ export default async function handler(
       }))
 
       res.status(200).send({
+        grouperLibId: grouperLibrary.id,
         valueSets: formattedValueSets,
         expansionParameters
       })

@@ -1,5 +1,16 @@
 import { cloneDeep } from 'lodash'
 
+interface RelatedArtifactItem {
+  url: string,
+  version?: string
+}
+
+interface EditComposeInclude {
+  grouperLib: fhir4.Library
+  relatedArtifact: RelatedArtifactItem
+  action: 'add' | 'remove'
+}
+
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program.relatedArtifact
     ?.find(related => related.resource?.includes('/Library/'))
@@ -42,9 +53,33 @@ const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredField
   requiredFields.every(field => Boolean(program?.[field]?.trim()))
 )
 
+// currently used just for groupers, could make more flexible
+// this also doesn't specify deletion by version, deletes all by base url
+const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditComposeInclude): fhir4.Library => {
+  const clonedGrouperLib = cloneDeep(grouperLib)
+  if (action === 'add') {
+  // will be handled in next pr
+  } else if (action === 'remove') {
+    if (!grouperLib?.relatedArtifact) {
+      console.error('No references to groupers exist')
+    } else {
+      const filteredArtifact = grouperLib.relatedArtifact.filter(
+        x => !x?.resource?.toLowerCase()?.includes(relatedArtifact?.url?.toLowerCase())
+      )
+      if (filteredArtifact.length === 0) {
+        delete clonedGrouperLib.relatedArtifact
+      } else {
+        clonedGrouperLib.relatedArtifact = filteredArtifact
+      }
+    }
+  }
+  return clonedGrouperLib
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
   setReleaseDescription,
-  progHasRequiredFields
+  progHasRequiredFields,
+  editComposeInclude
 }

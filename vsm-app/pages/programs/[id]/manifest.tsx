@@ -83,7 +83,7 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
 }
 
 const EditManifestDetails = () => {
-  const router = useRouter()  
+  const router = useRouter()
   const programId = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
   
@@ -142,41 +142,42 @@ const EditManifestDetails = () => {
 
   const deleteFn  = ({system, version}: ManifestData) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
-    clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i) => i !== version) || []
+    clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]
+      ?.filter((i: any) => i !== version) || []
     updateManifest(clonedcurrentSelectedData)
   }
 
   return (
     <>
-    <Row>
-      <Button 
-        text="&#8592; Back to program"
-        onClick={() => router.push(`/programs/${programId}`)}
-      />
-    </Row>
       <Row>
-        <FlexRow>
-          <PageTitle>Program Manifest Details</PageTitle>
-          <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
-          <Id>
-            <FieldTitle>ID</FieldTitle>{programId}
-          </Id>
-        </FlexRow>
+        <Button 
+          text="&#8592; Back to program"
+          onClick={() => router.push(`/programs/${programId}`)}
+        />
       </Row>
-      <Row>
-      <Select
-        isLoading={pageLoading}
-        styles={{
-          container: (baseStyle) => ({
-            ...baseStyle, width: '300px'
-          })
-        }}
-        isSearchable={true}
-        onChange={({ value }: any) => setSelectedSystem(value)}
-        name="codesystems"
-        options={selectOptions}
-      />
-      </Row>
+        <Row>
+          <FlexRow>
+            <PageTitle>Program Manifest Details</PageTitle>
+            <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
+            <Id>
+              <FieldTitle>ID</FieldTitle>{programId}
+            </Id>
+          </FlexRow>
+        </Row>
+        <Row>
+        <Select
+          isLoading={pageLoading}
+          styles={{
+            container: (baseStyle) => ({
+              ...baseStyle, width: '300px'
+            })
+          }}
+          isSearchable={true}
+          onChange={({ value }: any) => setSelectedSystem(value)}
+          name="codesystems"
+          options={selectOptions}
+        />
+        </Row>
         <DataTableContainer>
           <div>
             <StyledSpan>Available Versions</StyledSpan>

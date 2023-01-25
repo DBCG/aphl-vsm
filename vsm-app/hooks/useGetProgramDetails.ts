@@ -15,6 +15,7 @@ export interface Result {
   program: fhir4.Library | {}
   grouperData: GrouperItem[] | []
   manifestData: ManifestDataMap
+  grouperLibId: string | null
 }
 
 // gets data necessary to build the program details page
@@ -24,17 +25,25 @@ export interface Result {
 // 3. manifest data
 const useGetProgramDetails = (id: string): Result => {
   // this is undefined
-  const [programAndGrouperData, setProgramAndGrouperData] = useState({ program: {}, grouperData: [], manifestData: {} })
+  const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>(
+    {
+      program: {},
+      grouperData: [],
+      manifestData: {},
+      grouperLibId: null
+    }
+  )
 
   useEffect(() => {
+    let result: Result = {
+      program: {},
+      grouperData: [],
+      manifestData: {},
+      grouperLibId: null
+    }
+
     async function getProgram(): Promise<void> {
       const programEndpoint = `/api/programs?id=${id}`
-
-      let result = {
-        program: {},
-        grouperData: [],
-        manifestData: {}
-      }
 
       try {
         const response: Response = await fetch(programEndpoint)
@@ -56,6 +65,7 @@ const useGetProgramDetails = (id: string): Result => {
 
         if (grouperData && !grouperData.error) {
           result.grouperData = grouperData.valueSets
+          result.grouperLibId = grouperData.grouperLibId
           result.manifestData = grouperData?.expansionParameters
         }
 

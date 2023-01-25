@@ -20,12 +20,6 @@ interface LabelProps {
   children: string;
 }
 
-const StyledLabel = styled.label<LabelProps>`
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: var(--theme-500);
-`
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -103,7 +97,7 @@ const TextArea = ({
         (label !== undefined && id !== undefined) &&
         <StyledInputLabel>
           {label}
-          {required && <sup style={{color: 'red'}}>*</sup>}
+          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
         </StyledInputLabel>
       }
       { includeInfo && (

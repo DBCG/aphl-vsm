@@ -29,7 +29,6 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
     }
   }).filter(x => x)
 
-
   if (updatedComposeInclude && vs?.compose?.include) {
     // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude
@@ -170,10 +169,6 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
   })
   return parameterMap
 }
-
-
-
-
 
 export {
   addExtensionToVs,
