@@ -1,6 +1,11 @@
 import styled from 'styled-components'
 
-const StyledButton = styled.button`
+interface StyledButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  hide: boolean
+}
+
+const StyledButton = styled.button<StyledButtonProps>`
+  display: ${props => props.hide ? 'none' : 'inherit'};
   background-color: ${props => props.disabled
   ? 'lightgray !important'
   : 'var(--theme-300)'}; 
@@ -12,13 +17,14 @@ const StyledButton = styled.button`
   cursor: ${props => props.disabled ? 'default' : 'pointer'};
   &:hover {
     background-color: ${props => props.disabled ? 'lightgray !important' : 'var(--warning-medium) !important'};
-  }
+  };
 `
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string
   btnType?:  string
-  style?: React.CSSProperties
+  style?: React.CSSProperties,
+  hide?: boolean
 }
 
 const Button = ({
@@ -26,9 +32,11 @@ const Button = ({
   style,
   disabled,
   onClick=() => {},
+  hide=false
 }: ButtonProps) => {
   return (
     <StyledButton
+      hide={hide}
       style={style}
       disabled={disabled}
       onClick={(e) => {

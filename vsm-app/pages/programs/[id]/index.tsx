@@ -151,6 +151,8 @@ const ProgramDetails: NextPage = () => {
   }
 
   const { id='', status } = program
+  const allowEditing = can(session, 'edit') && status === 'draft'
+
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -166,12 +168,13 @@ const ProgramDetails: NextPage = () => {
       <ProgramMetadata
         program={program}
         handleSubmit={handleSubmit}
-        editable={can(session, 'edit') && status === 'draft'}
+        editable={allowEditing}
       />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Program Manifest</StyledSpan>
           <Button text='Edit Manifest'
+            hide={!allowEditing}
             onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
           />
         </Row>
@@ -179,7 +182,8 @@ const ProgramDetails: NextPage = () => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        <Button text='Add Group'
+        <Button text='Create New Group'
+          hide={!allowEditing}
           onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
         />
       </Row>
