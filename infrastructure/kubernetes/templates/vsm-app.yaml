@@ -40,7 +40,7 @@ spec:
         - name: FHIR_CDR_URL
           value: http://cqf-ruler-vsm/fhir
         - name: ENABLE_CACHE
-          value: false
+          value: "false"
         - name: REDIS_HOST
           value: redis-cache.5hhpo0.ng.0001.use1.cache.amazonaws.com     
         - name: VSAC_USERNAME
