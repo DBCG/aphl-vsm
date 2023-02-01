@@ -73,7 +73,6 @@ interface Props {
   minWidth?: number
   hasIcon?: boolean
   disabled?: boolean
-  includeInfo?: boolean
   info?: string
   style?: React.CSSProperties
   readonly?: boolean
@@ -89,7 +88,6 @@ const SearchInput = ({
   id,
   style,
   minWidth,
-  includeInfo,
   info,
   disabled = false,
   readonly = false,
@@ -105,7 +103,7 @@ const SearchInput = ({
           {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
         </StyledLabel>
       }
-      { includeInfo && (
+      { info && (
         <InfoContainer>
           <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
           <TooltipContainer>

@@ -65,7 +65,6 @@ interface Props {
   minWidth?: number,
   minHeight?: number,
   hasIcon?: boolean,
-  includeInfo?: boolean,
   info?: string,
   readonly?: boolean,
   style?: React.CSSProperties
@@ -85,7 +84,6 @@ const TextArea = ({
   def,
   minWidth,
   minHeight,
-  includeInfo,
   info,
   readonly = false,
   style={}
@@ -100,7 +98,7 @@ const TextArea = ({
           {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
         </StyledInputLabel>
       }
-      { includeInfo && (
+      { info && (
         <InfoContainer>
           <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
           <TooltipContainer>
