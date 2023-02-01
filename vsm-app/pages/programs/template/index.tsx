@@ -124,7 +124,7 @@ const Template = () => {
         />
         <Row>
           <Button
-            style={{ marginLeft: '800px', marginBottom: '12px', width: '240px', lineHeight: '130%' }}
+            style={{ marginLeft: '800px', marginBottom: '12px', lineHeight: '130%' }}
             text='Clone Program as Template'
             onClick={(() => setModalOpen(true))}
           />
