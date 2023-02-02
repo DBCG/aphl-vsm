@@ -9,6 +9,13 @@ interface GroupInfoItem {
   value: string
 }
 
+const addGrouperValueSet = async (
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<any> => {
+  
+}
+
 const retrieveGroupSets = async (
   req: NextApiRequest,
   res: NextApiResponse

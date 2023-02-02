@@ -79,6 +79,38 @@ interface Props {
   required?: boolean
 }
 
+interface LabelProps {
+  id?: string
+  label?: string
+  required?: boolean
+  readonly?: boolean
+  info?: string
+}
+
+export const Label = ({ id, label, required, readonly, info }: LabelProps) => {
+
+  return (
+    <>
+    {  (label !== undefined && id !== undefined) &&
+      <StyledLabel>
+        {label}
+        {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
+      </StyledLabel>
+    }
+    { info && (
+      <InfoContainer>
+        <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
+        <TooltipContainer>
+          <ToolTipText>
+            {info}
+          </ToolTipText>
+        </TooltipContainer>
+      </InfoContainer>
+    )}
+    </>
+  )
+}
+
 const SearchInput = ({
   placeholder,
   onChange,
@@ -96,23 +128,13 @@ const SearchInput = ({
   return (
     <Container>
       <FlexRow>
-      {
-        (label !== undefined && id !== undefined) &&
-        <StyledLabel>
-          {label}
-          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
-        </StyledLabel>
-      }
-      { info && (
-        <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-          <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
-          </TooltipContainer>
-        </InfoContainer>
-      )}
+        <Label
+          id={id}
+          info={info}
+          label={label}
+          required={required}
+          readonly={readonly}
+        />
       </FlexRow>
       { readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>
@@ -120,6 +142,7 @@ const SearchInput = ({
         </ReadOnlyContainer>
       ) : (
         <Input
+          id={id}
           placeholder={placeholder}
           onChange={onChange}
           minWidth={minWidth}
@@ -127,6 +150,7 @@ const SearchInput = ({
           value={value}
           defaultValue={def}
           style={style}
+          required={required}
         />
       ) }
     </Container>

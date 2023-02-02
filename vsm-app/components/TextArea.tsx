@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Image from 'next/image'
-import { StyledLabel as StyledInputLabel, ReadOnlyContainer } from './SearchInput'
+import { Label, ReadOnlyContainer } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -91,23 +91,13 @@ const TextArea = ({
   return (
     <Container style={style}>
       <FlexRow>
-      {
-        (label !== undefined && id !== undefined) &&
-        <StyledInputLabel>
-          {label}
-          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
-        </StyledInputLabel>
-      }
-      { info && (
-        <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-          <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
-          </TooltipContainer>
-        </InfoContainer>
-      )}
+      <Label
+          id={id}
+          info={info}
+          label={label}
+          required={required}
+          readonly={readonly}
+        />
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>
@@ -115,6 +105,7 @@ const TextArea = ({
         </ReadOnlyContainer>
       ): (
         <Input
+          id={id}
           name={id}
           placeholder={placeholder}
           value={currentValue}

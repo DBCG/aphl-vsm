@@ -13,6 +13,7 @@ import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
 import { ProgramMetadata } from '@/components/ProgramMetadata'
+import { AddGrouperModal } from '@/components/modals/AddGrouperModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`
@@ -109,6 +110,7 @@ const ProgramDetails: NextPage = () => {
   const { data: session } = useSession() as unknown as { data: VSMSession}
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
+  const [showGrouperModal, setShowGrouperModal] = useState(true)
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
@@ -155,6 +157,7 @@ const ProgramDetails: NextPage = () => {
 
   return (
     <Col>
+      <AddGrouperModal show={showGrouperModal} programId={id}/>
       <Row style={{ justifyContent: 'space-between' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
@@ -184,7 +187,7 @@ const ProgramDetails: NextPage = () => {
         <StyledSpan>Included Groups</StyledSpan>
         <Button text='Create New Group'
           hide={!allowEditing}
-          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+          onClick={() => { setShowGrouperModal(true) }}
         />
       </Row>
       <ProgramDetailTable
