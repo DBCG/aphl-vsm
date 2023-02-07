@@ -1,6 +1,7 @@
 import Table from 'react-data-table-component'
 import styled from 'styled-components'
 import { IconButton } from '@/components/buttons/IconButton'
+import Select from 'react-select'
 
 interface TableData {
   terminologyServer: string
@@ -44,6 +45,26 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
     setGrouperVSets(filtered)
   }
 
+  const updateConditions = ({ vsId, vsVersion, conditions }) => {
+
+    const filtered = vsToAdd.map(vs => {
+      console.log('vs: ', vs)
+      const idInState = vs.selectedVS.id
+      const versionInState = vs.selectedVS.version
+      if(vsId === idInState && vsVersion === versionInState) {
+        console.log('conditions: ', conditions)
+        if (!conditions) {
+          vs.selectedConditions = []
+        } else {
+          vs.selectedConditions = vs.selectedConditions.filter(c => conditions.includes(c.label))
+        }
+      }
+      return vs
+    })
+
+    setGrouperVSets(filtered)
+  }
+
   const columns = [
     {
       name: 'Name',
@@ -78,7 +99,15 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
           <ConditionItem key={c.label}>{c.label}</ConditionItem>
         ))
         return (
-          <ConditionContainer>{items}</ConditionContainer>
+          // <ConditionContainer>{items}</ConditionContainer>
+          <Select
+            isMulti={true}
+            value={row.selectedConditions}
+            onChange={(e) => {
+              console.log('e: ', e)
+              updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, e})
+            }}
+          />
         )
       } 
     },
