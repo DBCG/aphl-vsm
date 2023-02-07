@@ -487,13 +487,13 @@ const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
       return
     }
 
-    const valueSetData = {
+    const vsData = selectedValueSets.map(vs => ({
+      selectedVS: vs,
       selectedTerminologyServer: selectedTerminologyServer?.value?.title,
-      selectedValueSets,
-      selectedConditions
-    }
+      selectedConditions,
+    }))
 
-    const updatedData = [grouperVSets, valueSetData].flat()
+    const updatedData = [grouperVSets, vsData].flat()
     console.log('updated: ', updatedData)
     setGrouperVSets(updatedData)
   

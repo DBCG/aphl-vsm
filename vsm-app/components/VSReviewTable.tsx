@@ -52,40 +52,39 @@ const ConditionItem = styled.div`
 `
 
 const VSReviewTable = ({ vsToAdd }) => {
-  const tableData = parseVSInfo(vsToAdd)
-
+  console.log('vs to add: ', vsToAdd)
   const columns = [
     {
       name: 'Name',
       wrap: true,
-      selector: (row) => row.name
+      selector: (row) => row.selectedVS.name
     },
     {
       name: 'Steward',
       wrap: true,
-      selector: (row) => row.steward
+      selector: (row) => row.selectedVS.publisher
     },
     {
       name: 'ID',
       wrap: true,
-      selector: (row) => row.id
+      selector: (row) => row.selectedVS.id
     },
     {
       name: 'Terminology Server',
       wrap: true,
-      selector: (row) => row.terminologyServer
+      selector: (row) => row.selectedTerminologyServer
     },
     {
       name: 'Conditions',
       wrap: true,
-      selector: (row: TableData) => row.conditions!,
+      selector: (row) => row.selectedConditions!,
       sortable: false,
       style: {
         rowWrap: 'wrap'
       },
       cell: (row) => {
-        const items = row?.conditions?.map(c => (
-          <ConditionItem key={c}>{c}</ConditionItem>
+        const items = row?.selectedConditions?.map(c => (
+          <ConditionItem key={c.label}>{c.label}</ConditionItem>
         ))
         return (
           <ConditionContainer>{items}</ConditionContainer>
@@ -116,7 +115,7 @@ const VSReviewTable = ({ vsToAdd }) => {
 
   return (
     <Table
-      data={tableData}
+      data={vsToAdd}
       columns={columns}
       customStyles={customStyles}
     />

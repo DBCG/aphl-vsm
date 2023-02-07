@@ -68,6 +68,10 @@ const MetadataContainer = styled.div`
   margin-bottom: 24px;
 `
 
+const Subtitle = styled.p`
+  color: var(--theme-500)
+`
+
 interface FormData {
   name: string
   title: string
@@ -205,7 +209,7 @@ const AddGrouperModal = () => {
     <DirectionContainer>
       <FormDirections><NumberItem>3</NumberItem>Review draft grouper information</FormDirections>
     </DirectionContainer>
-    <p>Grouper Metadata</p>
+    <Subtitle>Grouper Metadata</Subtitle>
     <MetadataContainer>
       <Col>
         <SearchInput
@@ -256,12 +260,12 @@ const AddGrouperModal = () => {
         />
       </Col>
     </MetadataContainer>
-    <p>Selected Groupers</p>
+    <Subtitle>Selected Groupers</Subtitle>
     <VSReviewTable
-      vsToAdd={grouperVSets}
+      vsToAdd={grouperVSets || []}
     />
     <DirectionContainer>
-      <FormDirections><NumberItem>4</NumberItem>Submit grouper to save</FormDirections>
+      <FormDirections><NumberItem>4</NumberItem>After completing the previous sections, submit to save</FormDirections>
     </DirectionContainer>
     <Button
       style={{
