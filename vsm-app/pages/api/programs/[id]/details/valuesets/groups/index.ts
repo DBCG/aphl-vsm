@@ -3,17 +3,50 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
+import { grouperValueSetBase } from '@/helpers/grouperValuesetBase'
 
 interface GroupInfoItem {
   label: string,
   value: string
 }
 
+// POST a grouper that has never existed before
 const addGrouperValueSet = async (
   req: NextApiRequest,
   res: NextApiResponse
 ): Promise<any> => {
-  
+  const body = JSON.parse(req.body)
+
+  const {
+    title, name, status,
+    publisher, version,
+    purpose, description
+  } = body
+
+  let fieldsToAdd = {
+    title, name, status, publisher,
+    version, purpose, description
+  }
+
+  // maybe use a deep copy in case the valueset has deeply nested fields?
+  const newGrouper = Object.assign(
+    grouperValueSetBase,
+    fieldsToAdd
+  )
+
+  try {
+    const newVs = await fhirCdrClient.create({
+      resourceType: 'ValueSet',
+      body: newGrouper
+    })
+
+    console.log('newVs: ', newVs)
+    res.status(200).send(newVs)
+    return
+  } catch (e) {
+    console.error('Saving grouper valueset failed')
+  }
+  res.status(400).send({ error: 'failed to save grouper vs' })
 }
 
 const retrieveGroupSets = async (
@@ -128,7 +161,7 @@ const updateGroupSets = async (
 
       if (!leafExistsInGrouper && leafShouldExistInGrouper) {
         // add the grouper
-        groupersToUpdate.push(addValueSetToGrouper(grouperValueSet, body.canonical))
+        groupersToUpdate.push(addValueSetToGrouper(grouperValueSet, [body.canonical]))
       } else if (leafExistsInGrouper && !leafShouldExistInGrouper) {
         // remove from grouper
         groupersToUpdate.push(removeValueSetFromGrouper(grouperValueSet, body.canonical))
@@ -148,5 +181,6 @@ const updateGroupSets = async (
 
 export default handler({
   GET: { action: retrieveGroupSets },
-  PUT: { action: updateGroupSets, access: ['admin', 'editor'] }
+  PUT: { action: updateGroupSets, access: ['admin', 'editor'] },
+  POST: { action: addGrouperValueSet, access: ['admin', 'editor'] }
 })

@@ -157,7 +157,7 @@ const ProgramDetails: NextPage = () => {
 
   return (
     <Col>
-      <AddGrouperModal show={showGrouperModal} programId={id}/>
+      {/* <AddGrouperModal show={showGrouperModal} programId={id}/> */}
       <Row style={{ justifyContent: 'space-between' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>

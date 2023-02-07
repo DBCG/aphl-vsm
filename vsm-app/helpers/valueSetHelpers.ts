@@ -1,23 +1,28 @@
 import set from 'lodash.set'
+import { cloneDeep } from 'lodash'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
 
-const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.map(item => item?.valueSet?.[0]).filter(x => x)
-  const valueToAdd = [vsCanonical]
+const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet => {
+  const vsClone = cloneDeep(vs)
+  let leafVSetsInGroup = vsClone?.compose?.include?.map(item => item?.valueSet?.[0]).filter(x => x)
+  const valuesToAdd = vsCanonicals.map(val => ({ valueSet: [val] }))
+
   // if no compose include & no leaf valuesets
-  if (!vs?.compose?.include && !leafVSetsInGroup) {
-    // need to make a new path
-    const path = 'compose.include[0].valueSet' // make this more flexible? 
-    // what if something in compose.include that isn't valueset in the future
-    set(vs, path, valueToAdd)
-  // if some vsets exist, but not
-  } else if (vs?.compose?.include) {
-    if (leafVSetsInGroup && !leafVSetsInGroup?.includes(vsCanonical)) {
-      leafVSetsInGroup.push(vsCanonical)
-      vs.compose.include.push({ valueSet: valueToAdd })
-    }
+  if (!vsClone?.compose?.include && !leafVSetsInGroup) {
+    // need to make a new path because this obj location doesn't exist
+    const path = 'compose.include[0]'
+
+    set(vsClone, path, valuesToAdd)
+
+  } else if (vsClone?.compose?.include) {
+    vsCanonicals.forEach(canonical => {
+      if (leafVSetsInGroup && !leafVSetsInGroup?.includes(canonical)) {
+        leafVSetsInGroup.push(canonical)
+        vsClone?.compose?.include?.push({ valueSet: [canonical] })
+      }
+    })
   }
-  return vs
+  return vsClone
 }
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
@@ -169,6 +174,7 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
   })
   return parameterMap
 }
+
 
 export {
   addExtensionToVs,

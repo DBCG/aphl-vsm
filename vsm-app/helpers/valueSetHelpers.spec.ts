@@ -119,7 +119,7 @@ describe('valueSetHelpers', () => {
   describe('addValueSetToGrouper', () => {
     it('should add valueSet to grouper', () => {
       let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
-      const updatedGrouperVS = addValueSetToGrouper(grouperToUpdate, testUrl)
+      const updatedGrouperVS = addValueSetToGrouper(grouperToUpdate, [testUrl])
       let resultShouldMatch = cloneDeep(FIXTURE_GROUPER_VS)
       if (resultShouldMatch?.compose?.include) {
         resultShouldMatch.compose.include.push({ valueSet: [testUrl] })

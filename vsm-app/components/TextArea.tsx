@@ -58,8 +58,8 @@ interface Props {
   placeholder?: string,
   onChange?: React.ChangeEventHandler,
   required?: boolean,
-  currentValue?: string,
   label?: string,
+  value?: string,
   id?: string,
   def?: string,
   minWidth?: number,
@@ -77,9 +77,9 @@ interface LabelProps {
 const TextArea = ({
   placeholder,
   onChange,
-  currentValue,
   label,
   required = false,
+  value,
   id,
   def,
   minWidth,
@@ -108,7 +108,7 @@ const TextArea = ({
           id={id}
           name={id}
           placeholder={placeholder}
-          value={currentValue}
+          value={value}
           onChange={onChange}
           minWidth={minWidth}
           minHeight={minHeight}

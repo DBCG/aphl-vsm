@@ -22,6 +22,8 @@ const Form = styled.form`
 const FormTitle = styled.h1`
   color: var(--theme-500);
   margin-left: 24px;
+  margin-bottom: 48px;
+  font-size: 24px;
 `
 
 const Col = styled.div`

@@ -160,6 +160,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
+      maxWidth: '150px',
       selector: (row: TableData) => (row.status),
       cell : (row: TableData) => {
         return (
@@ -192,6 +193,7 @@ const SearchTable = ({
       ),
       sortable: false,
       wrap: true,
+      maxWidth: '150px',
       selector: (row: TableData) => row.lastUpdated!
     },
     {
