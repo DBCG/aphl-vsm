@@ -150,6 +150,8 @@ const AddGrouperModal = () => {
     }
   }
 
+  const submitDisabled = !(grouperVSets.length && title && author && publisher && description && purpose)
+
   return(
   <>
   <FormTitle>Add a Grouper</FormTitle>
@@ -272,7 +274,8 @@ const AddGrouperModal = () => {
         margin: '0 auto'
       }}
       text='SUBMIT'
-      // disabled={Boolean(error)}
+      disabled={submitDisabled}
+      onClick={() => router.push(`/programs/${router.query.id}`)}
       />
   </>
   )

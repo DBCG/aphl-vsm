@@ -15,16 +15,11 @@ const customStyles = {
     style: {
       paddingRight: '18px',
       paddingLeft: '18px',
-      paddingTop: '8px',
-      paddingBottom: '8px',
+      paddingTop: '12px',
+      paddingBottom: '12px',
     }
   }
 }
-
-const ConditionContainer = styled.div`
-  display: flex;
-  justify-content: flex-start;
-`
 
 const ConditionItem = styled.div`
   padding: 4px 8px;
@@ -91,24 +86,26 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
       wrap: true,
       selector: (row) => row.selectedConditions!,
       sortable: false,
+      minWidth: '300px',
       style: {
         rowWrap: 'wrap'
       },
       cell: (row) => {
-        const items = row?.selectedConditions?.map(c => (
-          <ConditionItem key={c.label}>{c.label}</ConditionItem>
-        ))
-        return (
-          // <ConditionContainer>{items}</ConditionContainer>
-          <Select
-            isMulti={true}
-            value={row.selectedConditions}
-            onChange={(e) => {
-              console.log('e: ', e)
-              updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, e})
-            }}
-          />
-        )
+        if(!row.selectedConditions.length) {
+          return 'None'
+        } else {
+          return (
+            // <ConditionContainer>{items}</ConditionContainer>
+            <Select
+              isMulti={true}
+              value={row.selectedConditions}
+              onChange={(e) => {
+                console.log('e: ', e)
+                updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, e})
+              }}
+            />
+          )
+        }
       } 
     },
     {
