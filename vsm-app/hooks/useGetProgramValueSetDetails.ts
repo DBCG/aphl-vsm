@@ -55,7 +55,8 @@ const useGetProgramValueSetDetails = ({
   activeGroups,
   activeConditions,
   updatedGrouperValueSets,
-  updatedGrouper
+  updatedGrouper,
+  versionToUpdate
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
 
@@ -133,7 +134,8 @@ const useGetProgramValueSetDetails = ({
     activeGroups,
     activeConditions,
     updatedGrouperValueSets,
-    updatedGrouper
+    updatedGrouper,
+    versionToUpdate
   ])
 
   return data

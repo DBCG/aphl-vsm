@@ -86,7 +86,7 @@ const updateLeafValueSetVersions = async (
   } catch (e) {
     console.error('error: ', e)
   }
-  return 
+  // return 
   const groupersToUpdate = await Promise.all(grouperIds.map((id: string) => (
     fhirCdrClient.read({
       resourceType: 'ValueSet',

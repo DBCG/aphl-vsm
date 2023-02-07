@@ -151,6 +151,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   const [versionToUpdate, setVersionToUpdate] = useState({})
+  const [versionUpdated, setVersionUpdated] = useState([])
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
@@ -272,6 +273,7 @@ const ProgramValueSetDetails: NextPage = () => {
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
+    versionUpdated,
     ...debouncedFilters
   })
 
@@ -358,10 +360,10 @@ const ProgramValueSetDetails: NextPage = () => {
 
     try {
       updateVersions()
-
     } catch (e) {
       console.error('error: ', e)
     }
+    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
 
   }, [versionToUpdate])
 
