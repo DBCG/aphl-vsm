@@ -479,7 +479,7 @@ const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
 
     // save valuesets to CQF
     // set valuesets in parent component b/c grouper doesn't exist yet
-
+    console.log('selectedValueSets: ', selectedValueSets)
     if (!selectedValueSets.length) {
       const message = 'Select at least one valueset. (Conditions optional)'
       toast.error(message)
@@ -493,8 +493,8 @@ const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
       selectedConditions
     }
 
-    const updatedData = Object.assign(grouperVSets, valueSetData)
-
+    const updatedData = [grouperVSets, valueSetData].flat()
+    console.log('updated: ', updatedData)
     setGrouperVSets(updatedData)
   
     setSearchTerm('')

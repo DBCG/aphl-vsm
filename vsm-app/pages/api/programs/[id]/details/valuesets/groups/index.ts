@@ -40,7 +40,6 @@ const addGrouperValueSet = async (
       body: newGrouper
     })
 
-    console.log('newVs: ', newVs)
     res.status(200).send(newVs)
     return
   } catch (e) {
