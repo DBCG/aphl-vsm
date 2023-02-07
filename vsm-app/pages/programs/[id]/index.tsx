@@ -185,9 +185,9 @@ const ProgramDetails: NextPage = () => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        <Button text='Create New Group'
+        <Button text='Create New Grouper'
           hide={!allowEditing}
-          onClick={() => { setShowGrouperModal(true) }}
+          onClick={() => { router.push(`/programs/${router.query.id}/grouper`) }}
         />
       </Row>
       <ProgramDetailTable

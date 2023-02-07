@@ -20,26 +20,6 @@ const customStyles = {
   }
 }
 
-const parseVSInfo = (vsInfo) => {
-
-  if (!vsInfo?.length) return []
-
-  let data = []
-
-  vsInfo.forEach(item => {
-    item.selectedValueSets.forEach(vs => {
-      data.push({
-        terminologyServer: item?.selectedTerminologyServer,
-        id: vs?.id,
-        name: vs?.name,
-        steward: vs?.steward,
-        conditions: item?.selectedConditions?.map(c => c.label)
-      })
-    })
-  })
-  return data
-}
-
 const ConditionContainer = styled.div`
   display: flex;
   justify-content: flex-start;
@@ -48,7 +28,7 @@ const ConditionContainer = styled.div`
 const ConditionItem = styled.div`
   padding: 4px 8px;
   border-radius: 8px;
-  background-color: lightblue;
+  background-color: var(--theme-100);
 `
 
 const VSReviewTable = ({ vsToAdd }) => {
