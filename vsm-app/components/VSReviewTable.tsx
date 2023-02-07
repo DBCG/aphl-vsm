@@ -31,8 +31,19 @@ const ConditionItem = styled.div`
   background-color: var(--theme-100);
 `
 
-const VSReviewTable = ({ vsToAdd }) => {
+const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
   console.log('vs to add: ', vsToAdd)
+
+  const deleteVS = (idToDelete, versionToDelete) => {
+
+    const filtered = vsToAdd.filter(vs => {
+      const idInState = vs.selectedVS.id
+      const versionInState = vs.selectedVS.version
+      return !(idInState === idToDelete && versionInState === versionToDelete)
+    })
+    setGrouperVSets(filtered)
+  }
+
   const columns = [
     {
       name: 'Name',
@@ -42,7 +53,7 @@ const VSReviewTable = ({ vsToAdd }) => {
     {
       name: 'Steward',
       wrap: true,
-      selector: (row) => row.selectedVS.publisher
+      selector: (row) => row.selectedVS.steward
     },
     {
       name: 'ID',
@@ -74,7 +85,7 @@ const VSReviewTable = ({ vsToAdd }) => {
     {
       name: 'Remove from Grouper',
       wrap: true,
-      selector: (row: TableData) => row.id!,
+      selector: (row: TableData) => row.selectedVS.id!,
       sortable: false,
       style: {
         rowWrap: 'wrap'
@@ -83,13 +94,12 @@ const VSReviewTable = ({ vsToAdd }) => {
         return (
           <IconButton
             type='button'
-            onClick={(e) => console.log('delete')}
+            onClick={(e) => deleteVS(row.selectedVS.id, row.selectedVS.version)}
             buttonContext='delete'
             style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
           />
         )
       }
-      
     },
   ]
 
