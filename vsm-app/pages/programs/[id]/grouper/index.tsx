@@ -275,7 +275,7 @@ const AddGrouperModal = () => {
         />
       </Col>
     </MetadataContainer>
-    <Subtitle>Selected Groupers</Subtitle>
+    <Subtitle>Valuesets in Grouper</Subtitle>
     <VSReviewTable
       vsToAdd={grouperVSets || []}
       setGrouperVSets={setGrouperVSets}

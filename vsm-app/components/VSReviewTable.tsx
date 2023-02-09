@@ -42,16 +42,17 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
 
   const updateConditions = ({ vsId, vsVersion, conditions }) => {
 
+    // map over all the valuesets for the group
     const filtered = vsToAdd.map(vs => {
-      console.log('vs: ', vs)
       const idInState = vs.selectedVS.id
       const versionInState = vs.selectedVS.version
       if(vsId === idInState && vsVersion === versionInState) {
-        console.log('conditions: ', conditions)
         if (!conditions) {
           vs.selectedConditions = []
         } else {
-          vs.selectedConditions = vs.selectedConditions.filter(c => conditions.includes(c.label))
+          vs.selectedConditions = vs.selectedConditions.filter(c => {
+            return conditions.map(cond => cond.label).includes(c.label)
+          })
         }
       }
       return vs
@@ -95,13 +96,11 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
           return 'None'
         } else {
           return (
-            // <ConditionContainer>{items}</ConditionContainer>
             <Select
               isMulti={true}
               value={row.selectedConditions}
               onChange={(e) => {
-                console.log('e: ', e)
-                updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, e})
+                updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, conditions: e})
               }}
             />
           )
