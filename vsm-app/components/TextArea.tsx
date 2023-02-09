@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Image from 'next/image'
-import { Label, ReadOnlyContainer } from './SearchInput'
+import { ErrorMessage, Label, ReadOnlyContainer } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -68,6 +68,7 @@ interface Props {
   info?: string,
   readonly?: boolean,
   style?: React.CSSProperties
+  errorMessage?: string | null
 }
 
 interface LabelProps {
@@ -86,7 +87,8 @@ const TextArea = ({
   minHeight,
   info,
   readonly = false,
-  style={}
+  style={},
+  errorMessage
 }: Props) => {
   return (
     <Container style={style}>
@@ -104,16 +106,23 @@ const TextArea = ({
           {def || placeholder}
         </ReadOnlyContainer>
       ): (
-        <Input
-          id={id}
-          name={id}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          minWidth={minWidth}
-          minHeight={minHeight}
-          defaultValue={def}
-        /> 
+        <>
+          <Input
+            id={id}
+            name={id}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            minWidth={minWidth}
+            minHeight={minHeight}
+            defaultValue={def}
+          />
+          { errorMessage && (
+            <ErrorMessage>
+              { errorMessage }
+            </ErrorMessage>
+          )}
+        </>
       )}
     </Container>
   )

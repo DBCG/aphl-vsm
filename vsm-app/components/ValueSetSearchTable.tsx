@@ -191,10 +191,10 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
     label: vSet?.title?.replace('_', ''),
-    url: vSet.url,
-    version: vSet.version,
-    id: vSet.id,
-    value: vSet.url
+    url: vSet?.url,
+    version: vSet?.version,
+    id: vSet?.id,
+    value: vSet?.url
   }))
 }
 
@@ -624,7 +624,7 @@ const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
         <Row>
           <div>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
-              Conditions
+              Conditions (optional)
             </StyledLabel>
             <SelectInputContainer>
               <Select

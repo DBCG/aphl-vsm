@@ -72,6 +72,10 @@ const Subtitle = styled.p`
   color: var(--theme-500)
 `
 
+const Asterisk = styled.p`
+  color: var(--accent);
+`
+
 interface FormData {
   name: string
   title: string
@@ -103,6 +107,11 @@ const stripFromName = (str: string) => {
   return cleaned
 }
 
+const startsAlphabetically = (title: string) => {
+  const regex = /^[A-Za-z]/
+  return Boolean(title?.trim().match(regex))
+}
+
 const AddGrouperModal = () => {
   // const [grouperData, setGrouperData] = useState(defaultFormData)
   const [grouperVSets, setGrouperVSets] = useState([])
@@ -115,7 +124,8 @@ const AddGrouperModal = () => {
 
   const errorStates = {
     missingInput: 'Missing metadata fields in step 1',
-    needsValueset: 'Please select at least 1 valueset'
+    needsValueset: 'Please select at least 1 valueset',
+    titleStart: 'Title field must start with a letter'
   }
 
   const version = new Date().toISOString().substring(0,10)
@@ -150,14 +160,16 @@ const AddGrouperModal = () => {
     }
   }
 
-  const submitDisabled = !(grouperVSets.length && title && author && publisher && description && purpose)
+  const submitDisabled = 
+  !(grouperVSets.length && title && author && publisher && description && purpose)
+  || !startsAlphabetically(title)
 
   return(
   <>
   <FormTitle>Add a Grouper</FormTitle>
   <DirectionContainer>
     <FormDirections>
-      <NumberItem>1</NumberItem> Enter metadata for new grouper (all fields required)
+      <NumberItem>1</NumberItem> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)
     </FormDirections>
   </DirectionContainer>
     <Form>
@@ -170,6 +182,9 @@ const AddGrouperModal = () => {
             updateField(e)
           }
           value={title}
+          errorMessage={
+            title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
+          }
         />
         <SearchInput
           label='Author'
@@ -204,7 +219,7 @@ const AddGrouperModal = () => {
       </Col>
     </Form>
     <DirectionContainer>
-      <FormDirections><NumberItem>2</NumberItem>Select at least one valueset to include in grouper (conditions optional)</FormDirections>
+      <FormDirections><NumberItem>2</NumberItem>Select at least one valueset to include in grouper</FormDirections>
     </DirectionContainer>
     <ValueSetSearchTable setGrouperVSets={setGrouperVSets} grouperVSets={grouperVSets}/>
     

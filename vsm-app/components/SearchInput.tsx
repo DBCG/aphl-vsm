@@ -63,6 +63,12 @@ const ToolTipText = styled.p`
   font-size: 80%;
 `
 
+export const ErrorMessage = styled.p`
+  color: var(--accent);
+  margin: 0;
+  font-size: 80%;
+`
+
 interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler
@@ -77,6 +83,7 @@ interface Props {
   style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
+  errorMessage?: string | null
 }
 
 interface LabelProps {
@@ -123,7 +130,8 @@ const SearchInput = ({
   info,
   disabled = false,
   readonly = false,
-  required = false
+  required = false,
+  errorMessage
 }: Props) => {
   return (
     <Container>
@@ -141,6 +149,7 @@ const SearchInput = ({
           {def || placeholder}
         </ReadOnlyContainer>
       ) : (
+        <>
         <Input
           id={id}
           placeholder={placeholder}
@@ -152,6 +161,12 @@ const SearchInput = ({
           style={style}
           required={required}
         />
+        { errorMessage && (
+          <ErrorMessage>
+            {errorMessage}
+          </ErrorMessage>
+        )}
+        </>
       ) }
     </Container>
   )
