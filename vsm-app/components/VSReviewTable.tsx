@@ -32,10 +32,6 @@ const ConditionItem = styled.div`
   background-color: var(--theme-100);
 `
 
-const customStyles = {
-  
-}
-
 const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
