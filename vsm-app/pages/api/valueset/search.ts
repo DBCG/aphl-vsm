@@ -133,8 +133,6 @@ export default async function handler(
                 })
               )))
 
-              console.log('server response: ', serverResponse)
-
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
                 ?.filter(x => x)
