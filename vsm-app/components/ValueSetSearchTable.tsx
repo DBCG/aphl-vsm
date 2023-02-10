@@ -212,6 +212,10 @@ const defaultOffsets = {
   last: null
 }
 
+const customStyles = {
+  menuPortal: (base) => ({ ...base, zIndex: 4 })
+}
+
 const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
   const router = useRouter()
   const programId = router.query.id as string
@@ -628,6 +632,8 @@ const ValueSetSearchTable = ({ setGrouperVSets, grouperVSets }) => {
             </StyledLabel>
             <SelectInputContainer>
               <Select
+                // menuPosition="fixed"
+                // styles={customStyles}
                 isMulti={true}
                 // @ts-ignore-next-line
                 options={buildConditionOptions(allConditions, selectedConditions)}

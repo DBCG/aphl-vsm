@@ -1,7 +1,12 @@
 import Table from 'react-data-table-component'
 import styled from 'styled-components'
 import { IconButton } from '@/components/buttons/IconButton'
+import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
+import {
+  buildConditionOptions,
+  formatConditionsComposeInclude
+} from '@/helpers/conditionHelpers'
 
 interface TableData {
   terminologyServer: string
@@ -27,8 +32,13 @@ const ConditionItem = styled.div`
   background-color: var(--theme-100);
 `
 
+const customStyles = {
+  
+}
+
 const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
-  console.log('vs to add: ', vsToAdd)
+  const conditions = useGetConditions()
+  const allConditions = formatConditionsComposeInclude(conditions)
 
   const deleteVS = (idToDelete, versionToDelete) => {
 
@@ -40,6 +50,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
     setGrouperVSets(filtered)
   }
 
+  // this function currently only works to delete... also needs to add...
   const updateConditions = ({ vsId, vsVersion, conditions }) => {
 
     // map over all the valuesets for the group
@@ -92,20 +103,17 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
         rowWrap: 'wrap'
       },
       cell: (row) => {
-        if(!row.selectedConditions.length) {
-          return 'None'
-        } else {
-          return (
-            <Select
-              isMulti={true}
-              value={row.selectedConditions}
-              onChange={(e) => {
-                updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, conditions: e})
-              }}
-            />
-          )
-        }
-      } 
+        return (
+          <Select
+            options={buildConditionOptions(allConditions, row.selectedConditions)}
+            isMulti={true}
+            value={row.selectedConditions}
+            onChange={(e) => {
+              updateConditions({ vsId: row.selectedVS.id, vsVersion: row.selectedVS.version, conditions: e})
+            }}
+          />
+        )
+      }
     },
     {
       name: 'Remove from Grouper',
