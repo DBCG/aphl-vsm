@@ -10,6 +10,7 @@ import { FieldTitle, StyledSpan } from '.'
 import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
+import { StyledLabel } from '@/components/SearchInput'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 export const customStyles = {
@@ -66,6 +67,10 @@ const FlexRow = styled.div`
 const DataTableContainer = styled.div`
   display: flex;
   justify-content: space-between; 
+`
+
+const CodesystemSelectContainer = styled.div`
+  margin-bottom: 36px;
 `
 
 interface ManifestDataMap {
@@ -164,20 +169,21 @@ const EditManifestDetails = () => {
             </Id>
           </FlexRow>
         </Row>
-        <Row>
-        <Select
-          isLoading={pageLoading}
-          styles={{
-            container: (baseStyle) => ({
-              ...baseStyle, width: '300px'
-            })
-          }}
-          isSearchable={true}
-          onChange={({ value }: any) => setSelectedSystem(value)}
-          name="codesystems"
-          options={selectOptions}
-        />
-        </Row>
+        <CodesystemSelectContainer>
+          <StyledLabel>Codesystem</StyledLabel>
+          <Select
+            isLoading={pageLoading}
+            styles={{
+              container: (baseStyle) => ({
+                ...baseStyle, width: '300px'
+              })
+            }}
+            isSearchable={true}
+            onChange={({ value }: any) => setSelectedSystem(value)}
+            name="codesystems"
+            options={selectOptions}
+          />
+        </CodesystemSelectContainer>
         <DataTableContainer>
           <div>
             <StyledSpan>Available Versions</StyledSpan>
