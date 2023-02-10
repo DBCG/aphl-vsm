@@ -23,7 +23,8 @@ export const customStyles = {
     style: {
       padding: '12px',
       fontWeight: 'bold',
-      overflow: 'visible'
+      overflow: 'visible',
+      // zIndex: -1
     }
   },
   cells: {
@@ -177,7 +178,7 @@ const EditManifestDetails = () => {
             isLoading={pageLoading}
             styles={{
               container: (baseStyle) => ({
-                ...baseStyle, width: '300px'
+                ...baseStyle, width: '300px', zIndex: 2
               })
             }}
             isSearchable={true}
