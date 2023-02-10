@@ -23,8 +23,7 @@ export const customStyles = {
     style: {
       padding: '12px',
       fontWeight: 'bold',
-      overflow: 'visible',
-      // zIndex: -1
+      overflow: 'visible'
     }
   },
   cells: {
