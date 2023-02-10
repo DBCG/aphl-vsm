@@ -89,7 +89,7 @@ interface SubmitProps {
   hide: boolean
 }
 
-const SubmitSelectedForm = styled.form<SubmitProps>`
+export const SubmitSelectedForm = styled.form<SubmitProps>`
   padding: 12px 18px;
   background-color: var(--theme-100);
   max-height: ${props => props.hide ? '0' : '1000px'};
@@ -189,10 +189,10 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
     label: vSet?.title?.replace('_', ''),
-    url: vSet.url,
-    version: vSet.version,
-    id: vSet.id,
-    value: vSet.url
+    url: vSet?.url,
+    version: vSet?.version,
+    id: vSet?.id,
+    value: vSet?.url
   }))
 }
 
@@ -271,6 +271,8 @@ const ValueSets = () => {
         previous: valueSetResponse?.previous || null,
         last: valueSetResponse?.last || null
       }
+
+      console.log('valuesetresponse.error: ', valueSetResponse)
 
       // @ts-expect-error
       setOffsets(newOffsets)
@@ -594,7 +596,6 @@ const ValueSets = () => {
                   id='vs-search'
                   label='Search Text'
                   hasIcon={true}
-                  includeInfo={true}
                   // @ts-ignore-next-line
                   info={searchInfoText[searchType.value]}
                   minWidth={300}

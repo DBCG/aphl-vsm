@@ -133,6 +133,8 @@ export default async function handler(
                 })
               )))
 
+              console.log('server response: ', serverResponse)
+
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
                 ?.filter(x => x)
@@ -143,7 +145,9 @@ export default async function handler(
               const successfulOIDs = responseInfo?.valueSets?.map(v => v?.id)
               responseInfo.total = successfulOIDs.length
 
-              const failedOIDs = oidList?.filter((oid) => !successfulOIDs?.includes(oid))
+              const failedOIDs = oidList?.filter((oid) => {
+                return !successfulOIDs?.find(successfulOid => successfulOid?.includes(oid))
+              })
 
               if (failedOIDs?.length > 0) {
                 const failureList = failedOIDs.join(', ')
