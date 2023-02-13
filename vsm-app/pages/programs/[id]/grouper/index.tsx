@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import { SearchInput, Label } from '@/components/SearchInput'
+import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useRouter } from 'next/router'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
@@ -8,8 +8,8 @@ import { Button } from '@/components/buttons/Button'
 import { VSReviewTable } from '@/components/VSReviewTable'
 
 const Form = styled.form`
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
   gap: 12px;
   justify-content: center;
 `
@@ -93,8 +93,7 @@ const defaultFormData = {
   author: process.env.NEXT_PUBLIC_DEFAULT_AUTHOR,
   publisher: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER,
   description: '',
-  purpose: '',
-  version: new Date().toISOString().substring(0,10)
+  purpose: ''
 }
 
 const stripFromName = (str: string) => {
@@ -115,12 +114,12 @@ const startsAlphabetically = (title: string) => {
 const AddGrouperModal = () => {
   // const [grouperData, setGrouperData] = useState(defaultFormData)
   const [grouperVSets, setGrouperVSets] = useState([])
-  const [title, setTitle] = useState('')
-  const [name, setName] = useState('')
-  const [publisher, setPublisher] = useState(process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER)
-  const [author, setAuthor] = useState(process.env.NEXT_PUBLIC_DEFAULT_AUTHOR)
-  const [description, setDescription] = useState('')
-  const [purpose, setPurpose] = useState('')
+  const [title, setTitle] = useState(defaultFormData.title)
+  const [name, setName] = useState(defaultFormData.name)
+  const [publisher, setPublisher] = useState(defaultFormData.publisher)
+  const [author, setAuthor] = useState(defaultFormData.author)
+  const [description, setDescription] = useState(defaultFormData.description)
+  const [purpose, setPurpose] = useState(defaultFormData.purpose)
 
   const errorStates = {
     missingInput: 'Missing metadata fields in step 1',
@@ -173,50 +172,46 @@ const AddGrouperModal = () => {
     </FormDirections>
   </DirectionContainer>
     <Form>
-      <Col>
-        <SearchInput
-          label='Title'
-          id='title'
-          required={true}
-          onChange={(e) => 
-            updateField(e)
-          }
-          value={title}
-          errorMessage={
-            title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
-          }
-        />
-        <SearchInput
-          label='Author'
-          id='author'
-          required={true}
-          onChange={(e) => updateField(e)}
-          value={author}
-        />
-        <TextArea
-          label='Purpose'
-          id='purpose'
-          required={true}
-          onChange={(e) => updateField(e)}
-          value={purpose}
-        />
-        </Col>
-        <Col>
-        <SearchInput
-          label='Publisher/Steward'
-          id='publisher'
-          required={true}
-          onChange={(e) => updateField(e)}
-          value={publisher}
-        />
-        <TextArea
-          label='Description'
-          id='description'
-          required={true}
-          onChange={(e) => updateField(e)}
-          value={description}
-        />
-      </Col>
+      <SearchInput
+        label='Title'
+        id='title'
+        required={true}
+        onChange={(e) => 
+          updateField(e)
+        }
+        value={title}
+        errorMessage={
+          title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
+        }
+      />
+      <SearchInput
+        label='Author'
+        id='author'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={author}
+      />
+      <TextArea
+        label='Purpose'
+        id='purpose'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={purpose}
+      />
+      <SearchInput
+        label='Publisher/Steward'
+        id='publisher'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={publisher}
+      />
+      <TextArea
+        label='Description'
+        id='description'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={description}
+      />
     </Form>
     <DirectionContainer>
       <FormDirections><NumberItem>2</NumberItem>Select at least one valueset to include in grouper</FormDirections>
