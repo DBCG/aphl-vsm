@@ -7,6 +7,14 @@ import { Button } from '@/components/buttons/Button';
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails';
 import type { NextPage } from 'next';
 
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 1200px;
+  margin-bottom: 48px;
+`;
+
 const Input = styled.input`
   padding: 4px 6px;
   background-color: white;
@@ -14,11 +22,21 @@ const Input = styled.input`
   border-bottom: 2px solid var(--theme-300);
 `;
 
+const StyledDateInput = styled.input.attrs({
+  type: 'date'
+})`
+  margin-bottom: 24px;
+`
+
 const Row = styled.div`
   display: flex;
   flex: 1;
   flex-direction: row;
-  justify-content: space-between;
+  justify-content: flex-start;
+`;
+
+const SubtitleRow = styled(Row)`
+  margin-bottom: 8px;
 `;
 
 const Col = styled.div`
@@ -26,7 +44,6 @@ const Col = styled.div`
   width: 100%;
   flex-direction: column;
   height: fit-content;
-  padding:25px;
 `;
 // http://hl7.org/fhir/R4/valueset-contact-point-system.html
 const contactOptions = {
@@ -134,7 +151,7 @@ const ApproveInfoForm: NextPage = () => {
     return parametersObj;
   };
   return (
-    <Col>
+    <>
       <Row>
         <PageTitle>
           Approve
@@ -143,15 +160,14 @@ const ApproveInfoForm: NextPage = () => {
       <Row>
         <StyledSpan>Approval Date</StyledSpan>
       </Row>
-      <input
-        type={"date"}
+      <StyledDateInput
         value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
-        onChange={(e) => handleFieldChange(e, 'approvalDate')}></input>
-      <Row>
+        onChange={(e) => handleFieldChange(e, 'approvalDate')}/>
+      <GridContainer>
         <Col>
-          <Row>
+          <SubtitleRow>
             <StyledSpan>Endorser</StyledSpan>
-          </Row>
+          </SubtitleRow>
           <label>Name</label>
           <Input
             type={"text"}
@@ -172,8 +188,9 @@ const ApproveInfoForm: NextPage = () => {
           </select>
         </Col>
         <Col>
-          <StyledSpan>Artifact Comment</StyledSpan>
-
+          <SubtitleRow>
+            <StyledSpan>Artifact Comment</StyledSpan>
+          </SubtitleRow>
           <label>Type</label>
           <select
             value={approvalFormData.artifactCommentType}
@@ -182,7 +199,6 @@ const ApproveInfoForm: NextPage = () => {
             {Object.entries(artifactCommentTypes)
               .map(([key, value]) => <option key={key} value={key}>{value}</option>)}
           </select>
-
           <label>Text</label>
           <Input
             type={"text"}
@@ -207,7 +223,7 @@ const ApproveInfoForm: NextPage = () => {
             value={approvalFormData.artifactCommentUser}
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}></Input>
         </Col>
-      </Row>
+      </GridContainer>
 
       <Row>
         <Button
@@ -216,7 +232,7 @@ const ApproveInfoForm: NextPage = () => {
           onClick={handleApprove}
         />
       </Row>
-    </Col>
+    </>
   );
 };
 
