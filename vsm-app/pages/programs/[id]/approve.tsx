@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { PageTitle } from '@/components/Typography';
 import { StyledSpan } from '.';
 import { Button } from '@/components/buttons/Button';
+import { SearchInput } from '@/components/SearchInput';
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails';
 import type { NextPage } from 'next';
 
@@ -168,17 +169,17 @@ const ApproveInfoForm: NextPage = () => {
           <SubtitleRow>
             <StyledSpan>Endorser</StyledSpan>
           </SubtitleRow>
-          <label>Name</label>
-          <Input
-            type={"text"}
+          <SearchInput
+            id='Name'
+            label='Name'
             value={approvalFormData.endorserName}
-            onChange={(e) => handleFieldChange(e, 'endorserName')}></Input>
-          <label>Contact</label>
-          <Input
-            type={"text"}
+            onChange={(e) => handleFieldChange(e, 'endorserName')}/>
+          <SearchInput
+            id='contact'
+            label='Contact'
             value={approvalFormData.endorserContactValue}
-            onChange={(e) => handleFieldChange(e, 'endorserContactValue')}></Input>
-          <label >Type</label>
+            onChange={(e) => handleFieldChange(e, 'endorserContactValue')}/>
+          <label>Type</label>
           <select
             value={approvalFormData.endorserContactType}
             onChange={(e) => handleFieldChange(e, 'endorserContactType')}>
@@ -199,29 +200,26 @@ const ApproveInfoForm: NextPage = () => {
             {Object.entries(artifactCommentTypes)
               .map(([key, value]) => <option key={key} value={key}>{value}</option>)}
           </select>
-          <label>Text</label>
-          <Input
-            type={"text"}
+          <SearchInput
+            id='Text'
+            label='Text'
             value={approvalFormData.artifactCommentText}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}></Input>
-
-          <label>Target</label>
-          <Input
-            type={"text"}
+            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}/>
+          <SearchInput
+            id='Target'
+            label='Target'
             value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}></Input>
-
-          <label>Reference</label>
-          <Input
-            type={"text"}
+            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}/>
+          <SearchInput
+            id='Reference'
+            label='Reference'
             value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}></Input>
-
-          <label>User</label>
-          <Input
-            type={"text"}
+            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}/>
+          <SearchInput
+            id='User'
+            label='User'
             value={approvalFormData.artifactCommentUser}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}></Input>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}/>
         </Col>
       </GridContainer>
 
