@@ -1,10 +1,17 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
-import { removeValueSetFromGrouper, addValueSetToGrouper } from '@/helpers/valueSetHelpers'
+import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import {
+  removeValueSetFromGrouper,
+  addValueSetToGrouper,
+  addExtensionToVs,
+  authoritativeSourceExtensionUrl
+} from '@/helpers/valueSetHelpers'
+import { updateConditions } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
 import { grouperValueSetBase } from '@/helpers/grouperValuesetBase'
-import { cloneDeep } from 'sequelize/types/utils'
+import cloneDeep from 'lodash.clonedeep'
+import { is } from '@/helpers/is'
 
 const updateGroupers = async (
   req: NextApiRequest,
@@ -52,11 +59,111 @@ const addGrouper = async (
 ) => {
   try {
     const body = JSON.parse(req.body)
-    const { grouperInfo, vsCanonicals } = body
 
-    // step 1, create the grouper to be saved
-    let grouperClone = Object.assign(cloneDeep(grouperValueSetBase), grouperInfo)
+    const { grouperVSets, grouperMetadata } = body
+
+    // step 1, grab all full (non-subsetted) leaf valuesets from terminology server w/ Read operation
+    let leafs = []
+    for (const vsInfo of grouperVSets) {
+      let currentLeaf
+      // check CDR to see if leaf VS exists first
+      const leafsInCDR = await fhirCdrClient.search({
+        resourceType: 'ValueSet',
+        searchParams: {
+          url: vsInfo.selectedVS.url,
+          _sort: ['-_version'] // get latest on top
+          // also filter by terminology server?
+        }
+      })
+
+      const latestLeafInCDR = leafsInCDR?.entry?.[0]
+
+      // if the leaf exists in the FHIR server already
+      if (is.valueSet(latestLeafInCDR)) {
+        console.log('Match found in CDR');
+        currentLeaf = latestLeafInCDR
+      } else {
+      // if not, look in the terminology server
+      console.log('No match found in CDR, searching terminology server');
+      terminologyClient.setClient(vsInfo.selectedTerminologyServer)
+      let client = terminologyClient.getClient()
+
+       currentLeaf = await client?.read({
+        resourceType: 'ValueSet',
+        id: vsInfo.selectedVS.id
+      })
+
+      // check to make sure leaf is not an operationOutcome...
+      // currentLeaf could be from CDR or Term server at this point
+      if (is.valueSet(currentLeaf)) {
+        // add authoritativeSource extension
+        currentLeaf = addExtensionToVs(currentLeaf, authoritativeSourceExtensionUrl, vsInfo.selectedTerminologyServer)
   
+        // add associated conditions
+        currentLeaf = updateConditions(currentLeaf, vsInfo.selectedConditions, false)
+        
+        // add to group of leaf vsets that will be saved
+        leafs.push(currentLeaf)
+      } else {
+        console.error(
+          `Failed to GET leaf valueset id ${vsInfo.selectedVs.id} from term server ${vsInfo.selectedTerminologyServer}`
+        )
+        // early return if doesn't could not get leaf?
+        res.status(400).send({ error: 'Failed to get leaf valueset'})
+        return
+      }
+    }
+    leafs.push(currentLeaf)
+  }
+
+    // save leafs to FHIR server
+    try {
+      const result = await Promise.allSettled(leafs.map(async l => {
+        await fhirCdrClient.create({
+          resourceType: 'ValueSet',
+          body: l
+        })
+      }))
+
+      // TODO handle failures
+      const failedUpdates = result?.filter(promiseItem => promiseItem.status === 'rejected')
+
+    } catch(e) {
+      console.error('Failed to save leaf to FHIR server')
+    }
+
+
+    // step 2, create the grouper to be saved
+    // ...rest is all info that is simply on the obj, author is an extension
+    const { author, ...rest} = grouperMetadata
+    let grouperClone = Object.assign(cloneDeep(grouperValueSetBase), rest)
+    // add author extension
+    grouperClone.extension = [
+      {
+        url: 'http://hl7.org/fhir/StructureDefinition/valueset-author',
+        valueContactDetail: { name: author }
+      }
+    ]
+    // add url to grouper
+    grouperClone.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${rest.name}`
+
+    // create compose.include and add valuesets
+    grouperClone.compose = { include: [] }
+    const valueSetsToAdd = grouperVSets.map(vsGroup => (
+      { valueSet: [ vsGroup.url ]}
+    ))
+    grouperClone.compose.include = valueSetsToAdd
+
+    let savedGrouper
+    try {
+      savedGrouper = await fhirCdrClient.create({
+        resourceType: 'ValueSet',
+        body: grouperClone
+      })
+    } catch (e) {
+      console.error('failed to save grouper clone')
+    }
+
     // step 2, add valueset info to compose.include within grouper valueset (add authoritative source?)
     const fullGrouper = addValueSetToGrouper(grouperClone, vsCanonicals)
     // step 3, save leaf valuesets to CQF (different API call)

@@ -45,25 +45,26 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhi
 
 // this only handles extensions with valueUri as type for now
 const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionValue: string): fhir4.ValueSet => {
+  const vsClone = cloneDeep(vs)
   const valueToAdd = {
     url: extensionUri,
     valueUri: extensionValue
   }
 
-  if (vs?.extension) {
+  if (vsClone?.extension) {
     // if this extension already exists
-    if (vs?.extension?.find(ext => ext?.url === extensionUri)) {
-      return vs
+    if (vsClone?.extension?.find(ext => ext?.url === extensionUri)) {
+      return vsClone
     } else {
-      vs.extension.push(valueToAdd)
+      vsClone.extension.push(valueToAdd)
     }
   } else {
-    vs.extension = [valueToAdd]
+    vsClone.extension = [valueToAdd]
   }
-  return vs
+  return vsClone
 }
 
-const authoritativeSourceExtensionUrl = 'https://hl7.org/fhir/extension-valueset-authoritativesource.html'
+const authoritativeSourceExtensionUrl = 'https://hl7.org/fhir/extension-valueset-authoritativeSource.html'
 const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
 
 interface TerminologyResult {

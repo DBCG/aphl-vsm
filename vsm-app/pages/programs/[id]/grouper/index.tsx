@@ -120,11 +120,13 @@ const AddGrouperModal = () => {
   const [author, setAuthor] = useState(defaultFormData.author)
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
+  const [loading, setLoading] = useState(false)
 
   const errorStates = {
     missingInput: 'Missing metadata fields in step 1',
     needsValueset: 'Please select at least 1 valueset',
-    titleStart: 'Title field must start with a letter'
+    titleStart: 'Title field must start with a letter',
+    fetchFailed: 'Could not save grouper to program'
   }
 
   const version = new Date().toISOString().substring(0,10)
@@ -137,6 +139,31 @@ const AddGrouperModal = () => {
 
   const router = useRouter()
   const programId = router.query.id as string
+
+  const addGrouper = async () => {
+    setLoading(true)
+    const grouperMetadata = {
+      title, name, publisher, author, description, purpose, version
+    }
+
+    const json = JSON.stringify({
+      grouperVSets,
+      grouperMetadata
+    })
+
+    const res = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+      method: 'POST',
+      body: json
+    })
+
+    if (res.ok) {
+      setLoading(false)
+      router.push(`/programs/${router.query.id}`)
+    } else {
+      setLoading(false)
+      setError(errorStates.fetchFailed)
+    }
+  }
 
   const updateField = (e) => {
     const targetKey = e.target.id
@@ -285,7 +312,7 @@ const AddGrouperModal = () => {
       }}
       text='SUBMIT'
       disabled={submitDisabled}
-      onClick={() => router.push(`/programs/${router.query.id}`)}
+      onClick={async () => await addGrouper()}
       />
   </>
   )
