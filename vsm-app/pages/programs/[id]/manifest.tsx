@@ -6,10 +6,11 @@ import { getSession, GetSessionParams } from 'next-auth/react'
 import Select from 'react-select';
 import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
-import { FieldTitle, StyledSpan } from '.'
+import { FieldTitle } from '.'
 import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
+import { StyledLabel } from '@/components/SearchInput'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 export const customStyles = {
@@ -65,7 +66,13 @@ const FlexRow = styled.div`
 
 const DataTableContainer = styled.div`
   display: flex;
-  justify-content: space-between; 
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 36px;
+`
+
+const CodesystemSelectContainer = styled.div`
+  margin-bottom: 36px;
 `
 
 interface ManifestDataMap {
@@ -164,23 +171,24 @@ const EditManifestDetails = () => {
             </Id>
           </FlexRow>
         </Row>
-        <Row>
-        <Select
-          isLoading={pageLoading}
-          styles={{
-            container: (baseStyle) => ({
-              ...baseStyle, width: '300px'
-            })
-          }}
-          isSearchable={true}
-          onChange={({ value }: any) => setSelectedSystem(value)}
-          name="codesystems"
-          options={selectOptions}
-        />
-        </Row>
+        <CodesystemSelectContainer>
+          <StyledLabel>Codesystem</StyledLabel>
+          <Select
+            isLoading={pageLoading}
+            styles={{
+              container: (baseStyle) => ({
+                ...baseStyle, width: '300px', zIndex: 2
+              })
+            }}
+            isSearchable={true}
+            onChange={({ value }: any) => setSelectedSystem(value)}
+            name="codesystems"
+            options={selectOptions}
+          />
+        </CodesystemSelectContainer>
         <DataTableContainer>
           <div>
-            <StyledSpan>Available Versions</StyledSpan>
+            <StyledLabel>Available Versions</StyledLabel>
             <DT
               data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
               style={{width: '900px'}}
@@ -224,7 +232,7 @@ const EditManifestDetails = () => {
             />
           </div>
           <div>
-            <StyledSpan>Current Manifest</StyledSpan>
+            <StyledLabel>Current Manifest</StyledLabel>
             <ManifestDetailTable 
               customStyles={customStyles}
               data={currentSelectedData}
