@@ -45,7 +45,9 @@ const Col = styled.div`
   width: 100%;
   flex-direction: column;
   height: fit-content;
+  gap: 8px;
 `;
+
 // http://hl7.org/fhir/R4/valueset-contact-point-system.html
 const contactOptions = {
   phone: {
