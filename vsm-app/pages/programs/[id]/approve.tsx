@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
-import Select from 'react-select';
+import Select, { SingleValue } from 'react-select';
 import { PageTitle } from '@/components/Typography';
 import { StyledSpan } from '.';
 import { Button } from '@/components/buttons/Button';
@@ -22,7 +22,7 @@ const StyledDateInput = styled.input.attrs({
   type: 'date'
 })`
   margin-bottom: 24px;
-`
+`;
 
 const Row = styled.div`
   display: flex;
@@ -37,7 +37,7 @@ const SubtitleRow = styled(Row)`
 
 const LabelStyled = styled(StyledLabel)`
   margin-bottom: 0;
-`
+`;
 
 const Col = styled.div`
   display: flex;
@@ -106,25 +106,33 @@ const ApproveInfoForm: NextPage = () => {
       body: JSON.stringify(parameterObj)
     });
   };
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, fieldName: keyof formData) => {
-    if (fieldName === 'approvalDate') {
-      const newDate = new Date(e.target.value);
-      if (newDate.toString() !== 'Invalid Date') {
-        setApprovalFormData({
-          ...approvalFormData,
-          [fieldName]: newDate
-        });
-      }
-    } else if (fieldName === 'artifactCommentType' || fieldName === 'endorserContactType') {
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string, value: string; }>, fieldName: keyof formData) => {
+    if (!e) {
+      console.error('undefined event in Approve form!');
+      return;
+    }
+    if ('label' in e) {
+      // this is a React Select component changeEvent
       setApprovalFormData({
         ...approvalFormData,
-        [fieldName]: e
+        [fieldName]: e.value
       });
     } else {
-      setApprovalFormData({
-        ...approvalFormData,
-        [fieldName]: e.target.value
-      });
+      // this is a regular input component changeEvent
+      if (fieldName === 'approvalDate') {
+        const newDate = new Date(e?.target?.value || "");
+        if (newDate.toString() !== 'Invalid Date') {
+          setApprovalFormData({
+            ...approvalFormData,
+            [fieldName]: newDate
+          });
+        }
+      } else {
+        setApprovalFormData({
+          ...approvalFormData,
+          [fieldName]: e.target.value
+        });
+      }
     }
   };
   const createParametersObj = (params: formData) => {
@@ -172,7 +180,7 @@ const ApproveInfoForm: NextPage = () => {
       </Row>
       <StyledDateInput
         value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
-        onChange={(e) => handleFieldChange(e, 'approvalDate')}/>
+        onChange={(e) => handleFieldChange(e, 'approvalDate')} />
       <GridContainer>
         <Col>
           <SubtitleRow>
@@ -180,7 +188,7 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            value={approvalFormData.endorserContactType}
+            defaultValue={{ value: "", label: "Please select Contact Type" }}
             onChange={(e) => handleFieldChange(e, 'endorserContactType')}
             options={Object.entries(contactOptions)
               .map(([key, value]) => ({ label: value.display, value: key }))}
@@ -189,12 +197,12 @@ const ApproveInfoForm: NextPage = () => {
             id='contact'
             label='Contact'
             value={approvalFormData.endorserContactValue}
-            onChange={(e) => handleFieldChange(e, 'endorserContactValue')}/>
+            onChange={(e) => handleFieldChange(e, 'endorserContactValue')} />
           <SearchInput
             id='Name'
             label='Name'
             value={approvalFormData.endorserName}
-            onChange={(e) => handleFieldChange(e, 'endorserName')}/>
+            onChange={(e) => handleFieldChange(e, 'endorserName')} />
         </Col>
         <Col>
           <SubtitleRow>
@@ -202,7 +210,7 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            value={approvalFormData.artifactCommentType}
+            defaultValue={{ value: "", label: "Please select Comment Type" }}
             onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
             placeholder='Select Type'
             options={Object.entries(artifactCommentTypes).map(([key, value]) => ({ value: key, label: value }))}
@@ -211,22 +219,22 @@ const ApproveInfoForm: NextPage = () => {
             id='Text'
             label='Text'
             value={approvalFormData.artifactCommentText}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}/>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentText')} />
           <SearchInput
             id='Target'
             label='Target'
             value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}/>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')} />
           <SearchInput
             id='Reference'
             label='Reference'
             value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}/>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')} />
           <SearchInput
             id='User'
             label='User'
             value={approvalFormData.artifactCommentUser}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}/>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')} />
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
