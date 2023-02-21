@@ -98,11 +98,6 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentUser: '',
   });
 
-  useEffect(() => {
-    console.log('comment type: ', approvalFormData.artifactCommentType);
-    
-  }, [approvalFormData.artifactCommentType])
-
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const parameterObj = createParametersObj(approvalFormData);
     const approveEndpoint = `/api/programs/${(programAndGrouperInfo.program as fhir4.Library).id}/approve`;
@@ -237,7 +232,6 @@ const ApproveInfoForm: NextPage = () => {
       <Row style={{ justifyContent: 'center' }}>
         <Button
           text='Submit'
-          // style={{ width: "100%" }}
           onClick={handleApprove}
         />
       </Row>
