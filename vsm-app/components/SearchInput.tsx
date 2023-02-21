@@ -1,13 +1,13 @@
-import styled from 'styled-components';
-import Image from 'next/image';
+import styled from 'styled-components'
+import Image from 'next/image'
 
 interface InputProps {
-  minWidth?: number;
-  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined;
+  minWidth?: number
+  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
 interface ReadOnlyContainerProps {
-  minWidth?: number;
+  minWidth?: number
 }
 
 const Input = styled.input<InputProps>`
@@ -16,24 +16,24 @@ const Input = styled.input<InputProps>`
   background-color: white;
   border: 2px solid transparent;
   border-bottom: 2px solid var(--theme-300);
-`;
+`
 
 export const StyledLabel = styled.label`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);
   display: inline-block;
-`;
+`
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-`;
+`
 
 const FlexRow = styled.div`
   display: flex;
   flex-direction: row;
-`;
+`
 
 const TooltipContainer = styled.div`
   position: absolute;
@@ -42,11 +42,11 @@ const TooltipContainer = styled.div`
   padding: 2px 8px;
   width: 150px;
   display: none;
-`;
+`
 
 export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
   min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
-`;
+`
 
 const InfoContainer = styled.div`
   position: relative;
@@ -57,27 +57,27 @@ const InfoContainer = styled.div`
   &:hover ${TooltipContainer} {
     display: unset;
   }
-`;
+`
 
 const ToolTipText = styled.p`
   font-size: 80%;
-`;
+`
 
 interface Props {
-  placeholder?: string;
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
-  label?: string;
-  id?: string;
-  value?: string;
-  def?: string;
-  minWidth?: number;
-  hasIcon?: boolean;
-  disabled?: boolean;
-  includeInfo?: boolean;
-  info?: string;
-  style?: React.CSSProperties;
-  readonly?: boolean;
-  required?: boolean;
+  placeholder?: string
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
+  label?: string
+  id?: string
+  value?: string
+  def?: string
+  minWidth?: number
+  hasIcon?: boolean
+  disabled?: boolean
+  includeInfo?: boolean
+  info?: string
+  style?: React.CSSProperties
+  readonly?: boolean
+  required?: boolean
 }
 
 const SearchInput = ({
@@ -132,7 +132,7 @@ const SearchInput = ({
         />
       )}
     </Container>
-  );
-};
+  )
+}
 
-export { SearchInput };
+export { SearchInput }
