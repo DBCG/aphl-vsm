@@ -3,7 +3,7 @@ import {
   getReleaseDescription,
   setReleaseDescription,
   progHasRequiredFields,
-  editComposeInclude
+  editRelatedArtifacts
 } from "./libraryHelpers";
 
 describe('libraryHelpers', () => {
@@ -66,7 +66,7 @@ describe('libraryHelpers', () => {
     })
   })
 
-  describe('editComposeInclude', () => {
+  describe('editRelatedArtifacts', () => {
     it('should delete relatedArtifact if base url matches (ignores version)', () => {
       const simple_lib = {
         resourceType: 'Library',
@@ -96,7 +96,7 @@ describe('libraryHelpers', () => {
         url: 'www.example.com'
       }
 
-      const editedRctc = editComposeInclude({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
+      const editedRctc = editRelatedArtifacts({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
 
       expect(editedRctc).toEqual(simple_lib_result)
     })
@@ -120,12 +120,81 @@ describe('libraryHelpers', () => {
         url: 'www.example.com'
       }
 
-      const editedRctc = editComposeInclude({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
+      const editedRctc = editRelatedArtifacts({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
 
       expect(editedRctc).toEqual(simple_lib_result)
     })
+
+    it('should add related artifacts if none already exist', () => {
+
+      const testRelatedArtifact = { url: 'www.test.com', version: '2' }
+
+      const result = editRelatedArtifacts({
+        grouperLib: testLibWithoutRA,
+        relatedArtifact: testRelatedArtifact,
+        action: 'add'
+      })
+
+      expect(result).toEqual({
+        resourceType: 'Library',
+        id: 'test-1',
+        relatedArtifact: [
+          { resource: 'www.test.com|2', type: 'composed-of' }
+        ]
+      })
+    })
+
+    it('should have right format if version not present', () => {
+      const testRelatedArtifact = { url: 'www.test.com' }
+      const result = editRelatedArtifacts({
+        grouperLib: testLibWithoutRA,
+        relatedArtifact: testRelatedArtifact,
+        action: 'add'
+      })
+
+      expect(result).toEqual({
+        resourceType: 'Library',
+        id: 'test-1',
+        relatedArtifact: [
+          { resource: 'www.test.com', type: 'composed-of' }
+        ]
+      })
+    })
+
+    it('should override other relatedArtifacts with the same url', () => {
+      const testRelatedArtifact = { url: 'www.test.com', version: '5' }
+      const result = editRelatedArtifacts({
+        grouperLib: testLibWithRA,
+        relatedArtifact: testRelatedArtifact,
+        action: 'add'
+      })
+
+      expect(result).toEqual({
+        resourceType: 'Library',
+        id: 'test-1',
+        relatedArtifact: [
+          { resource: 'www.test.com|5', type: 'composed-of' }
+        ]
+      })
+    })
   })
 })
+
+const testLibWithoutRA = {
+  resourceType: 'Library',
+  id: 'test-1',
+} as fhir4.Library
+
+const testLibWithRA = {
+  resourceType: 'Library',
+  id: 'test-1',
+  relatedArtifact: [
+    {
+      resource: 'www.test.com|3',
+      type: 'composed-of'
+    }
+  ]
+} as fhir4.Library
 
 const FIXTURE_PROGRAM = {
   "resourceType": "Library",

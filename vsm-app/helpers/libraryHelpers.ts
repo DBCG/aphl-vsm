@@ -5,7 +5,7 @@ interface RelatedArtifactItem {
   version?: string
 }
 
-interface EditComposeInclude {
+interface editRelatedArtifacts {
   grouperLib: fhir4.Library
   relatedArtifact: RelatedArtifactItem
   action: 'add' | 'remove'
@@ -55,19 +55,23 @@ const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredField
 
 // currently used just for groupers, could make more flexible
 // this doesn't specify deletion by version, deletes all by base url
-const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditComposeInclude): fhir4.Library => {
+const editRelatedArtifacts = ({ grouperLib, relatedArtifact, action }: editRelatedArtifacts): fhir4.Library => {
   const clonedGrouperLib = cloneDeep(grouperLib)
   if (action === 'add') {
+    const resourceUrl = `${relatedArtifact.url}`.concat(relatedArtifact.version ? `|${relatedArtifact.version}` : '')
     const resourceToAdd = {
       type: 'composed-of',
-      resource: `${relatedArtifact.url}|${relatedArtifact.version}`
+      resource: resourceUrl
     } as fhir4.RelatedArtifact
+
     if (!grouperLib.relatedArtifact) {
       clonedGrouperLib.relatedArtifact = [resourceToAdd]
     } else {
-      const updatedRelatedArtifacts = clonedGrouperLib.relatedArtifact?.filter(item => (
-        item?.resource?.startsWith(relatedArtifact.url)
-      )).push(resourceToAdd)
+      let updatedRelatedArtifacts = clonedGrouperLib.relatedArtifact?.filter(item => (
+        item?.resource?.split('|')?.[0] !== (relatedArtifact?.url)
+      ))
+
+      updatedRelatedArtifacts?.push(resourceToAdd)
 
       clonedGrouperLib.relatedArtifact = updatedRelatedArtifacts
     }
@@ -94,5 +98,5 @@ export {
   getReleaseDescription,
   setReleaseDescription,
   progHasRequiredFields,
-  editComposeInclude
+  editRelatedArtifacts
 }

@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
-import { editComposeInclude } from '@/helpers/libraryHelpers'
+import { editRelatedArtifacts } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 
@@ -34,7 +34,7 @@ const updateGrouperLibrary = async (
     })
 
     if (is.library(grouperLib) && editingInfo.action === 'remove') {
-      const updatedGrouperLib = editComposeInclude({
+      const updatedGrouperLib = editRelatedArtifacts({
         grouperLib,
         relatedArtifact: {
           url: editingInfo.vsCanonical
