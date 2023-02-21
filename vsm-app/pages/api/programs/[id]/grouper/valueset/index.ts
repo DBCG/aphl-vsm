@@ -30,7 +30,7 @@ const updateGroupers = async (
         }
       }) as fhir4.Bundle
 
-      // there is an issue in the sample data where grouper valuesets have the exact same url
+      // there is an issue in the sample data where several grouper valuesets have the exact same url
       const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
 
       if (grouperVsToUpdate) {
@@ -59,10 +59,11 @@ const addGrouper = async (
 ) => {
   try {
     const body = JSON.parse(req.body)
+    let savedGrouper
 
-    const { grouperVSets, grouperMetadata } = body
+    const { grouperVSets, grouperMetadata, grouperLibraryId } = body
 
-    // step 1, grab all full (non-subsetted) leaf valuesets from terminology server w/ Read operation
+    // step 1, grab all full (non-subsetted) leaf valuesets from term server w/ Read operation
     let leafs = []
     for (const vsInfo of grouperVSets) {
       let currentLeaf
@@ -135,8 +136,10 @@ const addGrouper = async (
 
     // step 2, create the grouper to be saved
     // ...rest is all info that is simply on the obj, author is an extension
+    // so not a simple obj merge there
     const { author, ...rest} = grouperMetadata
     let grouperClone = Object.assign(cloneDeep(grouperValueSetBase), rest)
+
     // add author extension
     grouperClone.extension = [
       {
@@ -149,12 +152,12 @@ const addGrouper = async (
 
     // create compose.include and add valuesets
     grouperClone.compose = { include: [] }
+
     const valueSetsToAdd = grouperVSets.map(vsGroup => (
       { valueSet: [ vsGroup.url ]}
     ))
     grouperClone.compose.include = valueSetsToAdd
 
-    let savedGrouper
     try {
       savedGrouper = await fhirCdrClient.create({
         resourceType: 'ValueSet',
@@ -164,16 +167,18 @@ const addGrouper = async (
       console.error('failed to save grouper clone')
     }
 
-    // step 2, add valueset info to compose.include within grouper valueset (add authoritative source?)
-    const fullGrouper = addValueSetToGrouper(grouperClone, vsCanonicals)
-    // step 3, save leaf valuesets to CQF (different API call)
     // step 4, update the grouper library to include the new grouper using updateGrouperLibrary
     let response = {}
     try {
-      response = fhirCdrClient.create({
-        resourceType: 'ValueSet',
-        body: fullGrouper
+      const grouperLibrary = await fhirCdrClient.read({
+        resourceType: 'Library',
+        id: grouperLibraryId
       })
+
+      if (is.library(grouperLibrary)) {
+        
+      }
+      
     } catch (e) {
       console.error('Grouper creation failed')
       res.status(400).send({ error: 'Grouper creation failed'})
