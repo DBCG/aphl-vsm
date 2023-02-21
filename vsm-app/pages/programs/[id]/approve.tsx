@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
+import Select from 'react-select';
 import { PageTitle } from '@/components/Typography';
 import { StyledSpan } from '.';
 import { Button } from '@/components/buttons/Button';
 import { SearchInput } from '@/components/SearchInput';
+import { StyledLabel } from '@/components/SearchInput';
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails';
 import type { NextPage } from 'next';
 
@@ -14,13 +16,6 @@ const GridContainer = styled.div`
   gap: 24px;
   max-width: 1200px;
   margin-bottom: 48px;
-`;
-
-const Input = styled.input`
-  padding: 4px 6px;
-  background-color: white;
-  border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-300);
 `;
 
 const StyledDateInput = styled.input.attrs({
@@ -39,6 +34,10 @@ const Row = styled.div`
 const SubtitleRow = styled(Row)`
   margin-bottom: 8px;
 `;
+
+const LabelStyled = styled(StyledLabel)`
+  margin-bottom: 0;
+`
 
 const Col = styled.div`
   display: flex;
@@ -63,11 +62,13 @@ const contactOptions = {
     validation: "email"
   }
 };
+
 const artifactCommentTypes = {
   documentation: 'Documentation',
   review: 'Review',
   guidance: 'Guidance',
 };
+
 interface formData {
   approvalDate: Date;
   endorserName: string;
@@ -80,6 +81,7 @@ interface formData {
   artifactCommentReference: string;
   artifactCommentUser: string;
 }
+
 const ApproveInfoForm: NextPage = () => {
   const router = useRouter();
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string);
@@ -95,6 +97,11 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentReference: '',
     artifactCommentUser: '',
   });
+
+  useEffect(() => {
+    console.log('comment type: ', approvalFormData.artifactCommentType);
+    
+  }, [approvalFormData.artifactCommentType])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const parameterObj = createParametersObj(approvalFormData);
@@ -113,6 +120,11 @@ const ApproveInfoForm: NextPage = () => {
           [fieldName]: newDate
         });
       }
+    } else if (fieldName === 'artifactCommentType' || fieldName === 'endorserContactType') {
+      setApprovalFormData({
+        ...approvalFormData,
+        [fieldName]: e
+      });
     } else {
       setApprovalFormData({
         ...approvalFormData,
@@ -161,7 +173,7 @@ const ApproveInfoForm: NextPage = () => {
         </PageTitle>
       </Row>
       <Row>
-        <StyledSpan>Approval Date</StyledSpan>
+        <LabelStyled>Approval Date</LabelStyled>
       </Row>
       <StyledDateInput
         value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
@@ -171,37 +183,35 @@ const ApproveInfoForm: NextPage = () => {
           <SubtitleRow>
             <StyledSpan>Endorser</StyledSpan>
           </SubtitleRow>
-          <SearchInput
-            id='Name'
-            label='Name'
-            value={approvalFormData.endorserName}
-            onChange={(e) => handleFieldChange(e, 'endorserName')}/>
+          <LabelStyled>Type</LabelStyled>
+          <Select
+            value={approvalFormData.endorserContactType}
+            onChange={(e) => handleFieldChange(e, 'endorserContactType')}
+            options={Object.entries(contactOptions)
+              .map(([key, value]) => ({ label: value.display, value: key }))}
+          />
           <SearchInput
             id='contact'
             label='Contact'
             value={approvalFormData.endorserContactValue}
             onChange={(e) => handleFieldChange(e, 'endorserContactValue')}/>
-          <label>Type</label>
-          <select
-            value={approvalFormData.endorserContactType}
-            onChange={(e) => handleFieldChange(e, 'endorserContactType')}>
-            <option disabled value={''}>Select Type</option>
-            {Object.entries(contactOptions)
-              .map(([key, value]) => <option key={key} value={key}>{value.display}</option>)}
-          </select>
+          <SearchInput
+            id='Name'
+            label='Name'
+            value={approvalFormData.endorserName}
+            onChange={(e) => handleFieldChange(e, 'endorserName')}/>
         </Col>
         <Col>
           <SubtitleRow>
             <StyledSpan>Artifact Comment</StyledSpan>
           </SubtitleRow>
-          <label>Type</label>
-          <select
+          <LabelStyled>Type</LabelStyled>
+          <Select
             value={approvalFormData.artifactCommentType}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentType')}>
-            <option disabled value={''}>Select Type</option>
-            {Object.entries(artifactCommentTypes)
-              .map(([key, value]) => <option key={key} value={key}>{value}</option>)}
-          </select>
+            onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
+            placeholder='Select Type'
+            options={Object.entries(artifactCommentTypes).map(([key, value]) => ({ value: key, label: value }))}
+          />
           <SearchInput
             id='Text'
             label='Text'
@@ -224,7 +234,6 @@ const ApproveInfoForm: NextPage = () => {
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}/>
         </Col>
       </GridContainer>
-
       <Row>
         <Button
           text='Submit'
