@@ -12,7 +12,7 @@ import type { NextPage } from 'next';
 
 const GridContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   max-width: 1200px;
   margin-bottom: 48px;
@@ -234,10 +234,10 @@ const ApproveInfoForm: NextPage = () => {
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}/>
         </Col>
       </GridContainer>
-      <Row>
+      <Row style={{ justifyContent: 'center' }}>
         <Button
           text='Submit'
-          style={{ width: "100%" }}
+          // style={{ width: "100%" }}
           onClick={handleApprove}
         />
       </Row>
