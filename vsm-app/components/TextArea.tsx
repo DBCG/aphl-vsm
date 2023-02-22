@@ -120,6 +120,7 @@ const TextArea = ({
       ): (
         <>
           <Input
+            id={id}
             name={id}
             placeholder={placeholder}
             value={value}

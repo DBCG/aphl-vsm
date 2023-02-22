@@ -131,6 +131,7 @@ const SearchInput = ({
       ) : (
         <>
           <Input
+            id={id}
             placeholder={placeholder}
             onChange={onChange}
             minWidth={minWidth}
