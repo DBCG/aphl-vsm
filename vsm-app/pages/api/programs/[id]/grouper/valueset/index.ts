@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import { terminologyServerEndpoints } from 'fhirClientOptions'
 import {
   removeValueSetFromGrouper,
   addValueSetToGrouper,
@@ -12,6 +13,7 @@ import handler from '@/helpers/server/handler'
 import { grouperValueSetBase } from '@/helpers/grouperValuesetBase'
 import cloneDeep from 'lodash.clonedeep'
 import { is } from '@/helpers/is'
+import { editRelatedArtifacts, getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
 const updateGroupers = async (
   req: NextApiRequest,
@@ -53,15 +55,93 @@ const updateGroupers = async (
   }
 }
 
+interface SelectedVS {
+  url: string,
+  id: string
+}
+
+type SelectedTerminologyServer = 'vsac' | 'ontoserverR4'
+
+interface SelectedConditionItem {
+  value: {
+    system: string,
+    version: string,
+    code: string,
+    text: string
+  },
+  label: string,
+  dataId: string
+}
+
+type SelectedConditions = [] | SelectedConditionItem[]
+
+interface GrouperMetadata {
+  title: string
+  name: string
+  publisher: string
+  author: string
+  description: string
+  purpose: string
+  version: string
+}
+
+interface SelectedItems {
+  selectedVS: SelectedVS
+  selectedTerminologyServer: SelectedTerminologyServer
+  selecctedConditinons: SelectedConditions
+}
+
+interface ReqBody {
+  grouperVSets: SelectedItems
+  grouperMetadata: GrouperMetadata
+  programId: string
+}
+
 const addGrouper = async (
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<fhir4.Library | { error: string }>
 ) => {
   try {
     const body = JSON.parse(req.body)
     let savedGrouper
 
-    const { grouperVSets, grouperMetadata, grouperLibraryId } = body
+    const { grouperVSets, grouperMetadata, programId } = body as ReqBody
+
+    const currentProgram = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: programId
+    })
+
+    console.log('current program: ', currentProgram)
+
+    const grouperLibCanonical = getGrouperLibraryCanonical(currentProgram)
+
+    const [url, version] = grouperLibCanonical?.split('|')
+
+    let searchParams = { url }
+
+    console.log('url: ', url)
+    if (version) {
+      searchParams.version = version
+    }
+    const grouperLibrary = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams
+    })
+
+    const libWithoutVersion = grouperLibrary?.entry
+      ?.map(e => e.resource)
+      ?.filter(lib => !lib.version)
+
+    console.log('lib: ', grouperLibrary)
+    console.log('libWithoutVersion: ', libWithoutVersion)
+
+    console.log('groouperVSets: ', grouperVSets)
+    console.log('library: ', grouperLibrary)
+    console.log('libraries: ', grouperLibrary?.entry?.map(e => e.resource))
+    console.log('grouperMetadata: ', grouperMetadata)
+
+    return res.status(400).send({ error: 'Failed to update grouper Library'})
 
     // step 1, grab all full (non-subsetted) leaf valuesets from term server w/ Read operation
     let leafs = []
@@ -135,7 +215,7 @@ const addGrouper = async (
 
 
     // step 2, create the grouper to be saved
-    // ...rest is all info that is simply on the obj, author is an extension
+    // ...rest is all info that is easily merged, author is an extension
     // so not a simple obj merge there
     const { author, ...rest} = grouperMetadata
     let grouperClone = Object.assign(cloneDeep(grouperValueSetBase), rest)
@@ -176,15 +256,34 @@ const addGrouper = async (
       })
 
       if (is.library(grouperLibrary)) {
-        
+        const updatedLibrary = editRelatedArtifacts({
+          grouperLib: grouperLibrary,
+          relatedArtifact: { url: savedGrouper.url, version: savedGrouper.version },
+          action: 'add'
+        })
+
+        try {
+          const updatedLibraryResult = await fhirCdrClient.update({
+            resourceType: 'Library',
+            body: updatedLibrary
+          })
+
+          if (is.library(updatedLibraryResult)) {
+            return res.status(200).send(updatedLibraryResult)
+          } else {
+            return res.status(400).send({ error: 'Update does not return FHIR Library'})
+          }
+
+        } catch (e) {
+          return res.status(400).send({ error: 'Failed to update grouper Library'})
+        }
+      } else {
+        return res.status(400).send({ error: 'Grouper Library does not exist'})
       }
-      
     } catch (e) {
       console.error('Grouper creation failed')
       res.status(400).send({ error: 'Grouper creation failed'})
     }
-
-    return res.status(200).send(response)
   } catch (e) {
     console.error('error: ', e)
     res.status(400).send({ error: 'Could not create grouper'})

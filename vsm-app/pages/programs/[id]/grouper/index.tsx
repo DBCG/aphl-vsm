@@ -111,8 +111,7 @@ const startsAlphabetically = (title: string) => {
   return Boolean(title?.trim().match(regex))
 }
 
-const AddGrouperModal = () => {
-  // const [grouperData, setGrouperData] = useState(defaultFormData)
+const AddGrouper = () => {
   const [grouperVSets, setGrouperVSets] = useState([])
   const [title, setTitle] = useState(defaultFormData.title)
   const [name, setName] = useState(defaultFormData.name)
@@ -146,15 +145,20 @@ const AddGrouperModal = () => {
       title, name, publisher, author, description, purpose, version
     }
 
+    // const grouperLibraryId
+
     const json = JSON.stringify({
       grouperVSets,
-      grouperMetadata
+      grouperMetadata,
+      programId
     })
 
     const res = await fetch(`/api/programs/${programId}/grouper/valueset`, {
       method: 'POST',
       body: json
     })
+
+    console.log('res: ', res)
 
     if (res.ok) {
       setLoading(false)
@@ -318,4 +322,4 @@ const AddGrouperModal = () => {
   )
 }
 
-export default AddGrouperModal
+export default AddGrouper
