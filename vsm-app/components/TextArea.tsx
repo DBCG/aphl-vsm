@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Image from 'next/image'
-import { StyledLabel as StyledInputLabel, ReadOnlyContainer, ErrorMessage } from './SearchInput'
+import { StyledLabel as StyledInputLabel, ReadOnlyContainer, ErrorMessage, Label } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -15,10 +15,6 @@ const Input = styled.textarea<InputProps>`
   border: 2px solid transparent;
   border-bottom: 2px solid var(--theme-300);
 `
-
-interface LabelProps {
-  children: string;
-}
 
 const Container = styled.div`
   display: flex;
@@ -95,23 +91,13 @@ const TextArea = ({
   return (
     <Container style={style}>
       <FlexRow>
-      {
-        (label !== undefined && id !== undefined) &&
-        <StyledInputLabel>
-          {label}
-          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
-        </StyledInputLabel>
-      }
-      { includeInfo && (
-        <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-          <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
-          </TooltipContainer>
-        </InfoContainer>
-      )}
+        <Label
+          id={id}
+          info={info}
+          label={label}
+          required={required}
+          readonly={readonly}
+        />
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>
