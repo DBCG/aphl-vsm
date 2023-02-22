@@ -159,7 +159,7 @@ const ProgramDetails: NextPage = () => {
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
         <Button text='View ValueSets'
-          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+          onClick={() => router.push(`/programs/${id}/valuesets`)}
         />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
@@ -172,15 +172,15 @@ const ProgramDetails: NextPage = () => {
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Program Manifest</StyledSpan>
           <Button text='Edit Manifest'
-            onClick={() => router.push(`/programs/${id}/manifest`)} // View Valuesets
+            onClick={() => router.push(`/programs/${id}/manifest`)}
           />
         </Row>
         <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        <Button text='Add Group'
-          onClick={() => router.push(`/programs/${id}/valuesets`)} // View Valuesets
+        <Button text='Create New Grouper'
+          onClick={() => { router.push(`/programs/${router.query.id}/grouper`) }}
         />
       </Row>
       <ProgramDetailTable
