@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import Image from 'next/image'
-import { StyledLabel as StyledInputLabel, ReadOnlyContainer } from './SearchInput'
+import { StyledLabel as StyledInputLabel, ReadOnlyContainer, ErrorMessage } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
@@ -68,7 +68,8 @@ interface Props {
   includeInfo?: boolean,
   info?: string,
   readonly?: boolean,
-  style?: React.CSSProperties
+  style?: React.CSSProperties,
+  errorMessage?: string | null
 }
 
 interface LabelProps {
@@ -88,7 +89,8 @@ const TextArea = ({
   includeInfo,
   info,
   readonly = false,
-  style={}
+  style={},
+  errorMessage = null
 }: Props) => {
   return (
     <Container style={style}>
@@ -116,15 +118,22 @@ const TextArea = ({
           {def || placeholder}
         </ReadOnlyContainer>
       ): (
-        <Input
-          name={id}
-          placeholder={placeholder}
-          value={value}
-          onChange={onChange}
-          minWidth={minWidth}
-          minHeight={minHeight}
-          defaultValue={def}
-        /> 
+        <>
+          <Input
+            name={id}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            minWidth={minWidth}
+            minHeight={minHeight}
+            defaultValue={def}
+          />
+          { errorMessage && (
+            <ErrorMessage>
+              {errorMessage}
+            </ErrorMessage>
+          )}
+        </>
       )}
     </Container>
   )

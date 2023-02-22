@@ -63,6 +63,12 @@ const ToolTipText = styled.p`
   font-size: 80%;
 `
 
+export const ErrorMessage = styled.p`
+  color: var(--accent);
+  margin: 0;
+  font-size: 80%;
+`
+
 interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
@@ -78,6 +84,7 @@ interface Props {
   style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
+  errorMessage?: string | null
 }
 
 const SearchInput = ({
@@ -93,7 +100,8 @@ const SearchInput = ({
   info,
   disabled = false,
   readonly = false,
-  required = false
+  required = false,
+  errorMessage = null
 }: Props) => {
   return (
     <Container>
@@ -121,16 +129,23 @@ const SearchInput = ({
           {def || placeholder}
         </ReadOnlyContainer>
       ) : (
-        <Input
-          placeholder={placeholder}
-          onChange={onChange}
-          minWidth={minWidth}
-          disabled={disabled}
-          value={value}
-          defaultValue={def}
-          style={style}
-        />
-      )}
+        <>
+          <Input
+            placeholder={placeholder}
+            onChange={onChange}
+            minWidth={minWidth}
+            disabled={disabled}
+            value={value}
+            defaultValue={def}
+            style={style}
+          />
+          { errorMessage && (
+            <ErrorMessage>
+              {errorMessage}
+            </ErrorMessage>
+          )}
+        </>
+      ) }
     </Container>
   )
 }
