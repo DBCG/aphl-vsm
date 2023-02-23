@@ -1,10 +1,10 @@
 import styled from 'styled-components'
-import Image from 'next/image'
-import { StyledLabel as StyledInputLabel, ReadOnlyContainer, ErrorMessage, Label } from './SearchInput'
+import { ReadOnlyContainer, ErrorMessage, Label } from './SearchInput'
 
 interface InputProps {
   minWidth?: number;
   minHeight?: number;
+  maxInputHeight?: number;
   onChange: React.ChangeEventHandler | undefined;
 }
 
@@ -26,30 +26,6 @@ const FlexRow = styled.div`
   flex-direction: row;
 `
 
-const TooltipContainer = styled.div`
-  position: absolute;
-  bottom: 18px;
-  background-color: white;
-  padding: 2px 8px;
-  width: 150px;
-  display: none;
-`
-
-const InfoContainer = styled.div`
-  position: relative;
-  transform: translateY(-8px);
-  &:hover {
-    cursor: pointer;
-  }
-  &:hover ${TooltipContainer} {
-    display: unset;
-  }
-`
-
-const ToolTipText = styled.p`
-  font-size: 80%;
-`
-
 interface Props {
   placeholder?: string,
   onChange?: React.ChangeEventHandler,
@@ -59,17 +35,12 @@ interface Props {
   id?: string,
   def?: string,
   minWidth?: number,
-  minHeight?: number,
+  maxInputHeight?: number,
   hasIcon?: boolean,
-  includeInfo?: boolean,
   info?: string,
   readonly?: boolean,
   style?: React.CSSProperties,
-  errorMessage?: string | null
-}
-
-interface LabelProps {
-  for: string
+  errorMessage?: string | JSX.Element | null
 }
 
 const TextArea = ({
@@ -81,8 +52,6 @@ const TextArea = ({
   id,
   def,
   minWidth,
-  minHeight,
-  includeInfo,
   info,
   readonly = false,
   style={},
@@ -111,8 +80,6 @@ const TextArea = ({
             placeholder={placeholder}
             value={value}
             onChange={onChange}
-            minWidth={minWidth}
-            minHeight={minHeight}
             defaultValue={def}
           />
           { errorMessage && (
