@@ -2,8 +2,8 @@ import styled from 'styled-components'
 import Image from 'next/image'
 
 interface InputProps {
-  minWidth?: number;
-  onChange: React.ChangeEventHandler | undefined;
+  minWidth?: number
+  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
 interface ReadOnlyContainerProps {
@@ -65,7 +65,7 @@ const ToolTipText = styled.p`
 
 interface Props {
   placeholder?: string
-  onChange?: React.ChangeEventHandler
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
   label?: string
   id?: string
   value?: string
@@ -98,25 +98,25 @@ const SearchInput = ({
   return (
     <Container>
       <FlexRow>
-      {
-        (label !== undefined && id !== undefined) &&
-        <StyledLabel>
-          {label}
-          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
-        </StyledLabel>
-      }
-      { includeInfo && (
-        <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-          <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
-          </TooltipContainer>
-        </InfoContainer>
-      )}
+        {
+          (label !== undefined && id !== undefined) &&
+          <StyledLabel>
+            {label}
+            {required && !readonly && <sup style={{ color: 'red' }}>*</sup>}
+          </StyledLabel>
+        }
+        {includeInfo && (
+          <InfoContainer>
+            <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
+            <TooltipContainer>
+              <ToolTipText>
+                {info}
+              </ToolTipText>
+            </TooltipContainer>
+          </InfoContainer>
+        )}
       </FlexRow>
-      { readonly ? (
+      {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>
           {def || placeholder}
         </ReadOnlyContainer>
@@ -130,7 +130,7 @@ const SearchInput = ({
           defaultValue={def}
           style={style}
         />
-      ) }
+      )}
     </Container>
   )
 }
