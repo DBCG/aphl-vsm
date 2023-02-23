@@ -1,0 +1,320 @@
+import { useEffect, useState } from 'react'
+import styled from 'styled-components'
+import { SearchInput } from '@/components/SearchInput'
+import { TextArea } from '@/components/TextArea'
+import { useRouter } from 'next/router'
+// import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
+import { Button } from '@/components/buttons/Button'
+import { VSReviewTable } from '@/components/VSReviewTable'
+
+const Form = styled.form`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
+  gap: 12px;
+  justify-content: center;
+`
+
+const FormTitle = styled.h1`
+  color: var(--theme-500);
+  margin-bottom: 24px;
+  font-size: 24px;
+  width: 100%;
+`
+
+const DirectionContainer = styled.div`
+  display: flex;
+  align-items: center;
+`
+
+const FormDirections = styled.p`
+  color: var(--theme-500);
+  font-size: 18px;
+  margin-bottom: 48px;
+  display: flex;
+  align-items: center;
+  margin-top: 64px;
+`
+
+const NumberItem = styled.div`
+  min-width: 50px;
+  min-height: 50px;
+  background-color: white;
+  color: var(--theme-500);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 150%;
+  margin-right: 12px;
+`
+
+const Col = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  min-width: 450px;
+`
+
+const Row = styled.div`
+  display: flex;
+`
+
+const MetadataContainer = styled.div`
+  background-color: white;
+  padding: 24px 36px;
+  padding-bottom: 64px;
+  display: flex;
+  margin-bottom: 24px;
+`
+
+const Subtitle = styled.p`
+  color: var(--theme-500)
+`
+
+const Asterisk = styled.p`
+  color: var(--accent);
+`
+
+interface FormData {
+  name: string
+  title: string
+  publisher: string
+  author: string
+  description: string
+  purpose: string
+  version: string
+}
+
+const defaultFormData = {
+  name: '',
+  title: '',
+  status: '',
+  author: process.env.NEXT_PUBLIC_DEFAULT_AUTHOR,
+  publisher: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER,
+  description: '',
+  purpose: ''
+}
+
+const stripFromName = (str: string) => {
+  const trimmed = str.trim()
+
+  if (trimmed === '') return trimmed
+
+  const cleaned = trimmed.replace(/[^a-zA-Z0-9\w]/g, '_')
+  return cleaned
+}
+
+const startsAlphabetically = (title: string) => {
+  const regex = /^[A-Za-z]/
+  return Boolean(title?.trim().match(regex))
+}
+
+const AddGrouper = () => {
+  const [grouperVSets, setGrouperVSets] = useState([])
+  const [title, setTitle] = useState(defaultFormData.title)
+  const [name, setName] = useState(defaultFormData.name)
+  const [publisher, setPublisher] = useState(defaultFormData.publisher)
+  const [author, setAuthor] = useState(defaultFormData.author)
+  const [description, setDescription] = useState(defaultFormData.description)
+  const [purpose, setPurpose] = useState(defaultFormData.purpose)
+  const [loading, setLoading] = useState(false)
+
+  const errorStates = {
+    missingInput: 'Missing metadata fields in step 1',
+    needsValueset: 'Please select at least 1 valueset',
+    titleStart: 'Title field must start with a letter',
+    fetchFailed: 'Could not save grouper to program'
+  }
+
+  const version = new Date().toISOString().substring(0,10)
+
+  useEffect(() => {
+    setName((stripFromName(title)))
+  }, [title])
+
+  const [error, setError] = useState(errorStates.missingInput)
+
+  const router = useRouter()
+  const programId = router.query.id as string
+
+  const addGrouper = async () => {
+    setLoading(true)
+    const grouperMetadata = {
+      title, name, publisher, author, description, purpose, version
+    }
+
+    const json = JSON.stringify({
+      grouperVSets,
+      grouperMetadata,
+      programId
+    })
+
+    const res = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+      method: 'POST',
+      body: json
+    })
+
+    if (res.ok) {
+      setLoading(false)
+      router.push(`/programs/${router.query.id}`)
+    } else {
+      setLoading(false)
+      setError(errorStates.fetchFailed)
+    }
+  }
+
+  const updateField = (e) => {
+    const targetKey = e.target.id
+    const targetValue = e.target.value
+    switch(targetKey) {
+      case 'title':
+        setTitle(targetValue)
+        break;
+      case 'author':
+        setAuthor(targetValue)
+        break;
+      case 'publisher':
+        setPublisher(targetValue)
+        break;
+      case 'description':
+        setDescription(targetValue)
+        break
+      case 'purpose':
+        setPurpose(targetValue)
+    }
+  }
+
+  const submitDisabled = 
+  !(grouperVSets.length && title && author && publisher && description && purpose)
+  || !startsAlphabetically(title)
+
+  return(
+  <>
+  <FormTitle>Add a Grouper</FormTitle>
+  <DirectionContainer>
+    <FormDirections>
+      <NumberItem>1</NumberItem> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)
+    </FormDirections>
+  </DirectionContainer>
+    <Form>
+      <SearchInput
+        label='Title'
+        id='title'
+        required={true}
+        onChange={(e) => 
+          updateField(e)
+        }
+        value={title}
+        errorMessage={
+          title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
+        }
+      />
+      <SearchInput
+        label='Author'
+        id='author'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={author}
+      />
+      <TextArea
+        label='Purpose'
+        id='purpose'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={purpose}
+      />
+      <SearchInput
+        label='Publisher/Steward'
+        id='publisher'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={publisher}
+      />
+      <TextArea
+        label='Description'
+        id='description'
+        required={true}
+        onChange={(e) => updateField(e)}
+        value={description}
+      />
+    </Form>
+    <DirectionContainer>
+      <FormDirections><NumberItem>2</NumberItem>Select at least one valueset to include in grouper</FormDirections>
+    </DirectionContainer>
+    {/* <ValueSetSearchTable setGrouperVSets={setGrouperVSets} grouperVSets={grouperVSets}/> */}
+
+    <DirectionContainer>
+      <FormDirections><NumberItem>3</NumberItem>Review draft grouper information</FormDirections>
+    </DirectionContainer>
+    <Subtitle>Grouper Metadata</Subtitle>
+    <MetadataContainer>
+      <Col>
+        <SearchInput
+          label='Title'
+          id='title'
+          readonly={true}
+          placeholder={title || '---'}
+        />
+        <SearchInput
+          label='Name (autogenerated from title)'
+          readonly={true}
+          id='name'
+          placeholder={name || '---'}
+        />
+        <SearchInput
+          readonly={true}
+          label='Publisher/Steward'
+          id='publisher'
+          placeholder={publisher || '---'}
+        />
+        <SearchInput
+          readonly={true}
+          label='Author'
+          id='author'
+          placeholder={author || '---'}
+        />
+        </Col>
+        <Col>
+        <TextArea
+          readonly={true}
+          label='Description'
+          id='description'
+          placeholder={description || '---'}
+        />
+        <TextArea
+          readonly={true}
+          label='Purpose'
+          id='purpose'
+          placeholder={purpose || '---'}
+        />
+        <SearchInput
+          readonly={true}
+          label='Version (autogenerated)'
+          id='version'
+          placeholder={version}
+        />
+      </Col>
+    </MetadataContainer>
+    <Subtitle>Valuesets in Grouper</Subtitle>
+    <VSReviewTable
+      vsToAdd={grouperVSets || []}
+      setGrouperVSets={setGrouperVSets}
+    />
+    <DirectionContainer>
+      <FormDirections><NumberItem>4</NumberItem>After completing the previous sections, submit to save</FormDirections>
+    </DirectionContainer>
+    <Button
+      style={{
+        fontSize: '150%',
+        margin: '0 auto'
+      }}
+      text='SUBMIT'
+      disabled={submitDisabled}
+      onClick={async () => await addGrouper()}
+      />
+  </>
+  )
+}
+
+export default AddGrouper
