@@ -3,7 +3,7 @@
 set -e
 
 CONTAINER_NAME="cqf-ruler-vsm"
-IMAGE_NAME="alphora/cqf-ruler:cqf-ruler-vsm-approve:latest"
+IMAGE_NAME="alphora/cqf-ruler:cqf-ruler-vsm-approve"
 MATCHING_CONTAINERS=$(docker container ls -a | grep "$CONTAINER_NAME" | wc -l)
 
 # if container does not already exist, make it
