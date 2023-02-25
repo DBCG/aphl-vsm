@@ -87,7 +87,6 @@ const ApprovalDetailList = ({ data }: { data: fhir4.Library }) => {
     <>
       <Toaster />
       <DataTable
-        progressPending={deleting}
         progressComponent={<LoadingIndicator />}
         columns={columns}
         data={data.extension?.filter(extension => extension.url.includes('artifactComment'))?.map(extension => {
