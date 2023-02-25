@@ -88,10 +88,6 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     }
   }, [error])
 
-  useEffect(() => {
-    {can(session, 'edit') && status === 'draft'}
-  })
-  
   const columns = useMemo(() => {
     const fields = [
       {

@@ -104,6 +104,8 @@ const ApproveInfoForm: NextPage = () => {
     return fetch(approveEndpoint, {
       method: 'POST',
       body: JSON.stringify(parameterObj)
+    }).then(() => {
+      router.push(`/programs/${router.query.id}`)
     })
   }
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>, fieldName: keyof formData) => {

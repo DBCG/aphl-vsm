@@ -14,6 +14,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
 import { ProgramMetadata } from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
+import { ApprovalDetailList } from '@/components/ApprovalDetailList'
 
 const Row = styled.div`
   display: flex;
@@ -188,6 +189,21 @@ const ProgramDetails: NextPage = () => {
         grouperLibId={programAndGrouperInfo?.grouperLibId}
         // @ts-ignore-next-line
         programStatus={programAndGrouperInfo?.program?.status || {}}
+      />
+      <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
+        <Col style={{ width: 'auto' }}>
+          <StyledSpan>Approvals</StyledSpan>
+          <StyledSpan>Last Approval</StyledSpan>
+          {program.approvalDate || '-'}
+        </Col>
+        <Col style={{ width: 'auto' }}>
+          <Button text='Approve Now!'
+            onClick={() => router.push(`/programs/${id}/approve`)}
+          />
+        </Col>
+      </Row>
+      <ApprovalDetailList
+        data={program}
       />
     </Col>
   )
