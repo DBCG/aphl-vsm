@@ -24,6 +24,7 @@ import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -271,8 +272,6 @@ const ValueSets = () => {
         previous: valueSetResponse?.previous || null,
         last: valueSetResponse?.last || null
       }
-
-      console.log('valuesetresponse.error: ', valueSetResponse)
 
       // @ts-expect-error
       setOffsets(newOffsets)
@@ -532,165 +531,14 @@ const ValueSets = () => {
 
   return (
     <Col>
-      <ReactModal isOpen={addedValueSetsLoading}>
-        <ModalContent>
-          <ModalColumn>
-            <LoadingIndicator size='large'/>
-            <ModalTitle>Saving Valuesets to Program</ModalTitle>
-          </ModalColumn>
-        </ModalContent>
-      </ReactModal>
-      <TitleRow>
-        <ToastContainer
-          closeOnClick={false}
-        />
-        <Col style={{ marginRight: '24px' }}>
-          <PageTitle>Add ValueSets: {programId}</PageTitle>
-          <DescriptionText>Valuesets added here will default to the most recent version available.
-            <br />After adding a valueset to the program, you may specify a different version on <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
-          </DescriptionText>
-        </Col>
-        <Row>
-          <StyledForm>
-            <div>
-              <InnerFormRow>
-                <div style={{ marginBottom: '12px' }}>
-                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                    Terminology Source
-                  </StyledLabel>
-                  <SelectInputContainer>
-                    <Select
-                      isMulti={false}
-                      // @ts-ignore-next-line
-                      options={terminologyServerEndpoints}
-                      value={selectedTerminologyServer}
-                      onChange={(e: any) => {
-                        return (setSelectedTerminologyServer(e))
-                      }
-                      }
-                    />
-                  </SelectInputContainer>
-                </div>
-              </InnerFormRow>
-              <InnerFormRow>
-                <div style={{ marginBottom: '16px' }}>
-                  <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                    Search By ValueSet
-                  </StyledLabel>
-                  <SelectInputContainer>
-                    <Select
-                      isMulti={false}
-                      // @ts-ignore-next-line
-                      options={searchTypes}
-                      value={searchType}
-                      onChange={(e: any) => {
-                        return (setsearchType(e))
-                      }}
-                    />
-                  </SelectInputContainer>
-                </div>
-              </InnerFormRow>
-              <InnerFormRow>
-                <TextArea
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
-                  id='vs-search'
-                  label='Search Text'
-                  hasIcon={true}
-                  // @ts-ignore-next-line
-                  info={searchInfoText[searchType.value]}
-                  minWidth={300}
-                />
-                <IconButton
-                  style={{ alignSelf: 'flex-end', marginTop: '12px', marginLeft: '12px' }}
-                  buttonContext='search'
-                  type='submit'
-                  onClick={(e) => submitVSetSearch(e)}
-                />
-              </InnerFormRow>
-              { vsNumExceedsFilterLimit &&
-                <ErrorText>
-                  {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
-                </ErrorText>
-              }
-              {
-                fetchError?.errorType === 'failed-oids'
-                  ? <ErrorBlock>
-                      <ErrorBlockText>Search for these OIDs failed:</ErrorBlockText>
-                      <ErrorBlockText>{fetchError?.data}</ErrorBlockText>
-                      <ErrorBlockText>They may be malformed or nonexistent.</ErrorBlockText>
-                      <CopyButton
-                        onClick={(e) => {
-                          e.preventDefault()
-                          toast.success('Copied failed OIDs to clipboard!')
-                          copyText(fetchError?.data || '')}
-                        }
-                        title='Copy Failed OIDs'>
-                        <Image src='/images/clipboard-outline.svg' alt='Copy' width={16} height={16}/>
-                      </CopyButton>
-                    </ErrorBlock>
-                  : null
-              }
-            </div>
-          </StyledForm>
-        </Row>
-      </TitleRow>
-      <SubmitSelectedForm hide={!selectedValueSets?.length}>
-        <Row>
-          <div>
-            <StyledLabel id="aria-label" htmlFor="conditions-selector">
-              Conditions
-            </StyledLabel>
-            <SelectInputContainer>
-              <Select
-                isMulti={true}
-                // @ts-ignore-next-line
-                options={buildConditionOptions(allConditions, selectedConditions)}
-                value={selectedConditions}
-                onChange={(e: any) => (setSelectedConditions(e))}
-              />
-            </SelectInputContainer>
-          </div>
-          <div>
-            <StyledLabel id="aria-label" htmlFor="conditions-selector">
-              Groups <GroupsRequired>(*required)</GroupsRequired>
-            </StyledLabel>
-            <SelectInputContainer>
-              <Select
-                isMulti={true}
-                // @ts-ignore-next-line
-                options={formattedGroups}
-                value={selectedGroupers}
-                onChange={(e: any) => {
-                  setSelectedGroupers(e)
-                }}
-              />
-            </SelectInputContainer>
-          </div>
-        <Button text='Add Selected To Program'
-          disabled={!selectedValueSets.length || !selectedGroupers.length}
-          style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
-          onClick={(e) => submitAddVSet(e)}
-        />
-        </Row>
-      </SubmitSelectedForm>
-      <SearchTable
-        searchType={searchType.value}
-        valueSets={!filterExists ? (valueSets || []) : filteredVSets}
-        setSelectedValueSets={setSelectedValueSets}
-        clearSelectedRows={toggledClearRows}
-        setClearSelectedRows={setToggledClearRows}
-        setFindInName={setFindInName}
-        setFindInSteward={setFindInSteward}
-        setFindInStatus={setFindInStatus}
-        setFindInOid={setFindInOid}
-        setFindInLastUpdated={setFindInLastUpdated}
-        showFilters={showFilters}
-        // handle this loader to make sure status doesn't move table
-        isLoading={isLoading}
-        resultsPerPage={resultsPerPage}
-        paginationTotalRows={searchTotal || 0}
-        handlePageChange={handlePageChange}
-        handlePerRowsChange={handlePerRowsChange}
+      <PageTitle>Add ValueSets: {programId}</PageTitle>
+      <DescriptionText>Valuesets added here will default to the most recent version available.
+        <br />After adding a valueset to the program, you may specify a different version on <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
+      </DescriptionText>
+      <ValueSetSearchTable
+        valueSets={valueSets}
+        setValueSets={setValueSets}
+        tableContext='search-page'
       />
     </Col>
   )

@@ -206,15 +206,18 @@ const defaultOffsets = {
 }
 
 interface ValueSetSearchTable {
-  setValueSets: React.Dispatch<React.SetStateAction<fhir4.ValueSet[] | undefined>>
-  valueSets: fhir4.ValueSet[] | [] | undefined
+  handleAddValueSets?: () => {}
+  tableContext: 'add-grouper' | 'search-page'
 }
 
-// props... context (grouper or program)
-const ValueSetSearchTable = ({ setValueSets, valueSets }: ValueSetSearchTable) => {
+const ValueSetSearchTable = ({
+  tableContext,
+  handleAddValueSets
+}: ValueSetSearchTable) => {
   const router = useRouter()
   const programId = router.query.id as string
 
+  const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -471,10 +474,10 @@ const ValueSetSearchTable = ({ setValueSets, valueSets }: ValueSetSearchTable) =
     setSelectedValueSets([])
   }
 
+
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
-    setAddedValueSetsLoading(true)
-
+    
     if (!selectedValueSets.length || !selectedGroupers.length) {
       const message = 'Select at least one valueset with an associated group. (Conditions optional)'
       toast.error(message)
@@ -482,36 +485,39 @@ const ValueSetSearchTable = ({ setValueSets, valueSets }: ValueSetSearchTable) =
       return
     }
 
-    const leafPutBody = JSON.stringify({
+    const leafsToAdd = {
       selectedTerminologyServer: selectedTerminologyServer?.value?.title,
       selectedValueSets,
       selectedConditions,
       selectedGroupers
-    })
-  
-    // needs some error handling down here
-    const leafsUpdated = await fetch('/api/valueset', {
-      method: 'PUT',
-      body: leafPutBody
-    })
-
-    if (leafsUpdated.ok) {
-      setSearchTerm('')
-      setSelectedConditions([])
-      setSelectedGroupers([])
-      toast.success('ValueSet Add Successful')
     }
-   
-    // why does this not work?
-    setSelectedValueSets([])
-    setAddedValueSetsLoading(false)
-    if (toggledClearRows === false) {
+    
+    // add grouper context needs to pass the info to the parent to submit
+    if (tableContext === 'add-grouper') {
+      handleAddValueSets(leafsToAdd)
       setToggledClearRows(true)
+    
+      // the search page submits from here
+    } else if (tableContext === 'search-page') {
+      setAddedValueSetsLoading(true)
+      const leafPutBody = JSON.stringify(leafsToAdd)
+    
+      // needs some error handling down here
+      const leafsUpdated = await fetch('/api/valueset', {
+        method: 'PUT',
+        body: leafPutBody
+      })
+  
+      if (leafsUpdated.ok) {
+        toast.success('ValueSet Add Successful')
+        router.push(`/programs/${programId}/valuesets`)
+      }
+      setAddedValueSetsLoading(false)
     }
-
-    if (leafsUpdated.ok) {
-      router.push(`/programs/${programId}/valuesets`)
-    }
+    setSelectedValueSets([])
+    setSearchTerm('')
+    setSelectedConditions([])
+    setSelectedGroupers([])
   }
 
   useEffect(() => {

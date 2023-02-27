@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useRouter } from 'next/router'
-// import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 import { Button } from '@/components/buttons/Button'
 import { VSReviewTable } from '@/components/VSReviewTable'
 
@@ -76,16 +76,6 @@ const Asterisk = styled.p`
   color: var(--accent);
 `
 
-interface FormData {
-  name: string
-  title: string
-  publisher: string
-  author: string
-  description: string
-  purpose: string
-  version: string
-}
-
 const defaultFormData = {
   name: '',
   title: '',
@@ -110,7 +100,21 @@ const startsAlphabetically = (title: string) => {
   return Boolean(title?.trim().match(regex))
 }
 
+interface Header {
+ itemNum: number
+ title: string | React.ReactElement
+}
+
+const FormSectionHeader = ({ itemNum, title }: Header) => (
+  <DirectionContainer>
+    <FormDirections>
+      <NumberItem>{itemNum}</NumberItem> {title}
+    </FormDirections>
+  </DirectionContainer>
+)
+
 const AddGrouper = () => {
+  const [searchedValueSets, setSearchedValueSets] = useState([])
   const [grouperVSets, setGrouperVSets] = useState([])
   const [title, setTitle] = useState(defaultFormData.title)
   const [name, setName] = useState(defaultFormData.name)
@@ -125,6 +129,26 @@ const AddGrouper = () => {
     needsValueset: 'Please select at least 1 valueset',
     titleStart: 'Title field must start with a letter',
     fetchFailed: 'Could not save grouper to program'
+  }
+
+  const handleAddValueSets = (newVsInfo) => {
+    const {
+      selectedValueSets,
+      selectedConditions,
+      selectedGroupers,
+      selectedTerminologyServer
+    } = newVsInfo
+
+    // flatten the format
+    const leafsToAdd = selectedValueSets.map(selectedValueSet => ({
+      selectedValueSet,
+      selectedGroupers,
+      selectedConditions,
+      selectedTerminologyServer
+    }))
+
+    const updated = [...grouperVSets, ...leafsToAdd]
+    setGrouperVSets(updated)
   }
 
   const version = new Date().toISOString().substring(0,10)
@@ -192,11 +216,10 @@ const AddGrouper = () => {
   return(
   <>
   <FormTitle>Add a Grouper</FormTitle>
-  <DirectionContainer>
-    <FormDirections>
-      <NumberItem>1</NumberItem> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)
-    </FormDirections>
-  </DirectionContainer>
+    <FormSectionHeader
+      itemNum={1}
+      title={(<> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)</>)}
+    />
     <Form>
       <SearchInput
         label='Title'
@@ -239,14 +262,18 @@ const AddGrouper = () => {
         value={description}
       />
     </Form>
-    <DirectionContainer>
-      <FormDirections><NumberItem>2</NumberItem>Select at least one valueset to include in grouper</FormDirections>
-    </DirectionContainer>
-    {/* <ValueSetSearchTable setGrouperVSets={setGrouperVSets} grouperVSets={grouperVSets}/> */}
-
-    <DirectionContainer>
-      <FormDirections><NumberItem>3</NumberItem>Review draft grouper information</FormDirections>
-    </DirectionContainer>
+    <FormSectionHeader
+      itemNum={2}
+      title='Search and add valuesets to grouper, conditions optional'
+    />
+    <ValueSetSearchTable
+      handleAddValueSets={handleAddValueSets}
+      tableContext='add-grouper'
+    />
+    <FormSectionHeader
+      itemNum={3}
+      title='Review draft grouper information'
+    />
     <Subtitle>Grouper Metadata</Subtitle>
     <MetadataContainer>
       <Col>
@@ -301,18 +328,20 @@ const AddGrouper = () => {
       vsToAdd={grouperVSets || []}
       setGrouperVSets={setGrouperVSets}
     />
-    <DirectionContainer>
-      <FormDirections><NumberItem>4</NumberItem>After completing the previous sections, submit to save</FormDirections>
-    </DirectionContainer>
-    <Button
-      style={{
-        fontSize: '150%',
-        margin: '0 auto'
-      }}
-      text='SUBMIT'
-      disabled={submitDisabled}
-      onClick={async () => await addGrouper()}
+    <FormSectionHeader
+      itemNum={4}
+      title='Submit to create grouper for this program'
+    />
+    <Row style={{ justifyContent: 'center' }}>
+      <Button
+        style={{
+          fontSize: '150%',
+        }}
+        text='SUBMIT'
+        disabled={submitDisabled}
+        onClick={async () => await addGrouper()}
       />
+    </Row>
   </>
   )
 }
