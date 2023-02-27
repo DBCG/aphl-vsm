@@ -26,7 +26,7 @@ const DirectionContainer = styled.div`
   align-items: center;
 `
 
-const FormDirections = styled.p`
+const FormDirections = styled.div`
   color: var(--theme-500);
   font-size: 18px;
   margin-bottom: 48px;
@@ -72,7 +72,7 @@ const Subtitle = styled.p`
   color: var(--theme-500)
 `
 
-const Asterisk = styled.p`
+const Asterisk = styled.span`
   color: var(--accent);
 `
 
@@ -113,9 +113,50 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
   </DirectionContainer>
 )
 
+interface ConditionValue {
+  system: string
+  version: string
+  code: string
+}
+
+interface SelectedCondition {
+  dataId: string
+  label: string
+  value: ConditionValue
+}
+
+interface SelectedValueSet {
+  id: string
+  lastUpdated: string
+  name: string
+  oid: string
+  status: string
+  steward: string
+  url: string
+  version: string
+  valueSet: fhir4.ValueSet
+}
+
+export interface GrouperVSets {
+  selectedValueSets: SelectedValueSet[]
+  selectedConditions: SelectedCondition[] | []
+  selectedGroupers: undefined
+  selectedTerminologyServer: string
+}
+
+interface FlatGrouperVSet {
+  selectedValueSet: SelectedValueSet
+  selectedConditions: SelectedCondition[] | []
+  selectedGroupers: undefined
+  selectedTerminologyServer: string
+}
+
+type HTMLElementEvent<T extends Element> = Event & {
+  value: string
+}
+
 const AddGrouper = () => {
-  const [searchedValueSets, setSearchedValueSets] = useState([])
-  const [grouperVSets, setGrouperVSets] = useState([])
+  const [grouperVSets, setGrouperVSets] = useState<FlatGrouperVSet[]>([])
   const [title, setTitle] = useState(defaultFormData.title)
   const [name, setName] = useState(defaultFormData.name)
   const [publisher, setPublisher] = useState(defaultFormData.publisher)
@@ -124,14 +165,7 @@ const AddGrouper = () => {
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [loading, setLoading] = useState(false)
 
-  const errorStates = {
-    missingInput: 'Missing metadata fields in step 1',
-    needsValueset: 'Please select at least 1 valueset',
-    titleStart: 'Title field must start with a letter',
-    fetchFailed: 'Could not save grouper to program'
-  }
-
-  const handleAddValueSets = (newVsInfo) => {
+  const handleAddValueSets = (newVsInfo: GrouperVSets) => {
     const {
       selectedValueSets,
       selectedConditions,
@@ -140,7 +174,7 @@ const AddGrouper = () => {
     } = newVsInfo
 
     // flatten the format
-    const leafsToAdd = selectedValueSets.map(selectedValueSet => ({
+    const leafsToAdd = selectedValueSets.map((selectedValueSet) => ({
       selectedValueSet,
       selectedGroupers,
       selectedConditions,
@@ -156,8 +190,6 @@ const AddGrouper = () => {
   useEffect(() => {
     setName((stripFromName(title)))
   }, [title])
-
-  const [error, setError] = useState(errorStates.missingInput)
 
   const router = useRouter()
   const programId = router.query.id as string
@@ -184,11 +216,10 @@ const AddGrouper = () => {
       router.push(`/programs/${router.query.id}`)
     } else {
       setLoading(false)
-      setError(errorStates.fetchFailed)
     }
   }
 
-  const updateField = (e) => {
+  const updateField = (e: React.BaseSyntheticEvent) => {
     const targetKey = e.target.id
     const targetValue = e.target.value
     switch(targetKey) {
@@ -225,9 +256,7 @@ const AddGrouper = () => {
         label='Title'
         id='title'
         required={true}
-        onChange={(e) => 
-          updateField(e)
-        }
+        onChange={(e) => updateField(e)}
         value={title}
         errorMessage={
           title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null

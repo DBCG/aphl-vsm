@@ -32,7 +32,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
 
-  const deleteVS = (idToDelete, versionToDelete) => {
+  const deleteVS = (idToDelete: string, versionToDelete: string) => {
 
     const filtered = vsToAdd.filter(vs => {
       const idInState = vs.selectedValueSet.id

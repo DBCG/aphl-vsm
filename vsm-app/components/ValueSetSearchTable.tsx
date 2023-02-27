@@ -24,6 +24,7 @@ import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { GrouperVSets } from 'pages/programs/[id]/grouper'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -209,8 +210,10 @@ const defaultOffsets = {
   last: null
 }
 
+type HandleAddVSets = (vsets: GrouperVSets) => void
+
 interface ValueSetSearchTable {
-  handleAddValueSets?: () => {}
+  handleAddValueSets?: HandleAddVSets
   tableContext: 'add-grouper' | 'search-page'
 }
 
@@ -490,24 +493,26 @@ const ValueSetSearchTable = ({
       toast.error(message)
       setAddedValueSetsLoading(false)
       return
+    } else if (!selectedValueSets.length) {
+      return
     }
 
     const leafsToAdd = {
       selectedTerminologyServer: selectedTerminologyServer?.value?.title,
       selectedValueSets,
-      selectedConditions
+      selectedConditions,
+      selectedGroupers
     }
     
     // add grouper context needs to pass the info to the parent to submit
     if (tableContext === 'add-grouper') {
+      // not sure how to handle this TS error
       handleAddValueSets(leafsToAdd)
       setToggledClearRows(true)
     
       // the search page submits from here
     } else if (tableContext === 'search-page') {
       setAddedValueSetsLoading(true)
-      // in this context, the groupers already exist and are required
-      leafsToAdd.selectedGroupers = selectedGroupers
       const leafPutBody = JSON.stringify(leafsToAdd)
     
       // needs some error handling down here
@@ -566,6 +571,7 @@ const ValueSetSearchTable = ({
               </StyledLabel>
               <SelectInputContainer>
                 <Select
+                  instanceId={`${tableContext}-termServer`}
                   isMulti={false}
                   // @ts-ignore-next-line
                   options={terminologyServerEndpoints}
@@ -582,6 +588,7 @@ const ValueSetSearchTable = ({
               </StyledLabel>
               <SelectInputContainer>
                 <Select
+                  instanceId={`${tableContext}-searchByVS`}
                   isMulti={false}
                   // @ts-ignore-next-line
                   options={searchTypes}
@@ -641,6 +648,7 @@ const ValueSetSearchTable = ({
             </StyledLabel>
             <SelectInputContainer>
               <Select
+                instanceId={`${tableContext}-conditions`}
                 isMulti={true}
                 // @ts-ignore-next-line
                 options={buildConditionOptions(allConditions, selectedConditions)}
@@ -655,6 +663,7 @@ const ValueSetSearchTable = ({
             </StyledLabel>
             <SelectInputContainer>
               <Select
+                instanceId={`${tableContext}-groups`}
                 isMulti={true}
                 // @ts-ignore-next-line
                 options={formattedGroups}
