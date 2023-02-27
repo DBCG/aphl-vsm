@@ -180,6 +180,10 @@ const columnSortMap = {
   5: 'publisher'
 }
 
+const SelectGrouperContainer = styled.div`
+  display: ${props => props.hidden ? 'none' : 'block'}
+`
+
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
@@ -478,7 +482,10 @@ const ValueSetSearchTable = ({
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     
-    if (!selectedValueSets.length || !selectedGroupers.length) {
+    if (
+      tableContext === 'search-page'
+      && (!selectedGroupers.length)
+    ) {
       const message = 'Select at least one valueset with an associated group. (Conditions optional)'
       toast.error(message)
       setAddedValueSetsLoading(false)
@@ -488,8 +495,7 @@ const ValueSetSearchTable = ({
     const leafsToAdd = {
       selectedTerminologyServer: selectedTerminologyServer?.value?.title,
       selectedValueSets,
-      selectedConditions,
-      selectedGroupers
+      selectedConditions
     }
     
     // add grouper context needs to pass the info to the parent to submit
@@ -500,6 +506,8 @@ const ValueSetSearchTable = ({
       // the search page submits from here
     } else if (tableContext === 'search-page') {
       setAddedValueSetsLoading(true)
+      // in this context, the groupers already exist and are required
+      leafsToAdd.selectedGroupers = selectedGroupers
       const leafPutBody = JSON.stringify(leafsToAdd)
     
       // needs some error handling down here
@@ -530,6 +538,11 @@ const ValueSetSearchTable = ({
     && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
 
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
+
+  // search page requires the target grouper to be selected, 'add-grouper' context does not
+  const buttonDisabled = tableContext === 'search-page'
+    ? !selectedValueSets.length || !selectedGroupers.length
+    : !selectedValueSets.length
 
   return (
     <Col>
@@ -636,7 +649,7 @@ const ValueSetSearchTable = ({
               />
             </SelectInputContainer>
           </div>
-          <div>
+          <SelectGrouperContainer hidden={tableContext === 'add-grouper'}>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Groups <GroupsRequired>(*required)</GroupsRequired>
             </StyledLabel>
@@ -651,9 +664,9 @@ const ValueSetSearchTable = ({
                 }}
               />
             </SelectInputContainer>
-          </div>
+          </SelectGrouperContainer>
         <Button text='Add Selected To Program'
-          disabled={!selectedValueSets.length || !selectedGroupers.length}
+          disabled={buttonDisabled}
           style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
           onClick={(e) => submitAddVSet(e)}
         />

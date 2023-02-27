@@ -42,28 +42,6 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
     setGrouperVSets(filtered)
   }
 
-  // this function currently only works to delete... also needs to add...
-  const updateConditions = ({ vsId, vsVersion, conditions }) => {
-    
-    // map over all the valuesets for the group
-    const filtered = vsToAdd.map(vs => {
-      const idInState = vs.selectedValueSet.id
-      const versionInState = vs.selectedValueSet.version
-      if(vsId === idInState && vsVersion === versionInState) {
-        if (!conditions) {
-          vs.selectedConditions = []
-        } else {
-          vs.selectedConditions = vs.selectedConditions.filter(c => {
-            return conditions.map(cond => cond.label).includes(c.label)
-          })
-        }
-      }
-      return vs
-    })
-
-    setGrouperVSets(filtered)
-  }
-
   const columns = [
     {
       name: 'Name',
