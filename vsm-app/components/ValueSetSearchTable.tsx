@@ -15,12 +15,10 @@ import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
-import { PageTitle } from '@/components/Typography'
 import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
-import { getSession, GetSessionParams } from 'next-auth/react'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
@@ -74,16 +72,6 @@ const StyledForm = styled.form`
   column-gap: 12px;
   margin-bottom: 1rem;
   flex-wrap: wrap;
-`
-
-const DescriptionText = styled.p`
-  color: var(--theme-500);
-  line-height: 160%;
-`
-
-const LinkText = styled.a`
-  text-decoration: underline;
-  cursor: pointer;
 `
 
 interface SubmitProps {
