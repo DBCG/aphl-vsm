@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import styled from 'styled-components'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -75,8 +74,9 @@ interface FlatGrouperVSet {
   selectedTerminologyServer: string
 }
 
-type HTMLElementEvent<T extends Element> = Event & {
-  value: string
+interface Error {
+  type: 'failed-grouper-add',
+  message: string
 }
 
 const AddGrouper = () => {
@@ -87,7 +87,7 @@ const AddGrouper = () => {
   const [author, setAuthor] = useState(defaultFormData.author)
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
-  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState({})
 
   const handleAddValueSets = (newVsInfo: GrouperVSets) => {
     const {
@@ -120,7 +120,7 @@ const AddGrouper = () => {
   const programId = router.query.id as string
 
   const addGrouper = async () => {
-    setLoading(true)
+    setError({})
     const grouperMetadata = {
       title, name, publisher, author, description, purpose, version
     }
@@ -137,10 +137,9 @@ const AddGrouper = () => {
     })
 
     if (res.ok) {
-      setLoading(false)
       router.push(`/programs/${router.query.id}`)
     } else {
-      setLoading(false)
+      setError({ type: 'failed-grouper-add', message: `Failed to add grouper '${name}'` })
     }
   }
 

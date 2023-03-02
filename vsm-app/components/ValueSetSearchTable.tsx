@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -28,7 +28,7 @@ const searchTypes = [
   { label: 'OID', value: 'oid' },
   { label: 'Name', value: 'name' },
   { label: 'URL', value: 'url'}
-]
+] as const
 
 const searchInfoText = {
   oid: 'OID search supports a comma-delimited list, max 100 OIDs',
@@ -84,11 +84,6 @@ export const SubmitSelectedForm = styled.form<SubmitProps>`
   max-height: ${props => props.hide ? '0' : '1000px'};
   padding: ${props => props.hide ? '0' : 'auto'};
   transition: all 0.3s;
-`
-
-const InnerFormRow = styled.div`
-  display: flex;
-  flex-direction: row;
 `
 
 const Col = styled.div`
@@ -170,7 +165,7 @@ const columnSortMap = {
 }
 
 const SelectGrouperContainer = styled.div`
-  display: ${props => props.hidden ? 'none' : 'block'}
+  display: ${props => props.hidden ? 'none' : 'block'};
 `
 
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
@@ -193,6 +188,7 @@ interface SearchReponseParams {
 
 const defaultOffsets = {
   first: '0',
+  self: '1',
   next: null,
   previous: null,
   last: null
@@ -203,6 +199,14 @@ type HandleAddVSets = (vsets: GrouperVSets) => void
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
   tableContext: 'add-grouper' | 'search-page'
+}
+
+interface GrouperItem {
+  id: string,
+  label: string,
+  url: string,
+  value: string,
+  version: string
 }
 
 const ValueSetSearchTable = ({
@@ -223,7 +227,7 @@ const ValueSetSearchTable = ({
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [offsets, setOffsets] = useState(defaultOffsets)
-  const [currentPage, setCurrentPage] = useState({ type: 'self', page: 1 })
+  const [currentPage, setCurrentPage] = useState<{type:keyof typeof offsets; page:number}>({ type: 'self', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
   // filters
@@ -298,6 +302,71 @@ const ValueSetSearchTable = ({
     || findInOid?.length
     || findInLastUpdated?.length
 
+      /**
+   *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
+   */
+  const submitVSetSearch = useCallback(async (e?: SyntheticEvent) => {
+    if (e) {
+      e.preventDefault()
+    }
+
+    setToggledClearRows(true)
+
+    let response
+    if (!searchTerm?.trim()) {
+      return
+    }
+
+    setIsLoading(true)
+    
+    let searchStr = ''
+    
+    if (searchType.value === 'oid') {
+      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term => term?.trim())
+      const dedupedOids = dedupeArray(trimmedWords)
+      // if more than 100 OIDs, exit with error
+      if (dedupedOids?.length > paginationMaximum) {
+        const message = `OID search maximum is ${paginationMaximum} at a time.`
+        setIsLoading(false)
+        toast.error(message)
+        return
+      }
+      searchStr = dedupedOids?.join(',')
+    } else if (searchType.value === 'name') {
+      searchStr = searchTerm.trim()
+    } else if (searchType.value === 'url') {
+      searchStr = searchTerm.trim()
+    }
+
+    const offset = offsets?.[currentPage?.type] || ''
+    let queryStringItems = {
+      searchType: searchType?.value,
+      count: resultsPerPage,
+      sortBy: sortParams?.column,
+      sortDirection: sortParams?.direction,
+      offset: offset,
+      terminologyServer: selectedTerminologyServer?.value?.title
+    }
+
+    let queryString = ''
+    
+    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`)
+
+    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+
+    response = await fetch(endpoint)
+
+    const searchContext = filterExists ? 'filter' : 'search'
+    await handleSearchResponse({ searchContext, response })
+    setToggledClearRows(false)
+    setSelectedValueSets([])
+  }, [
+    currentPage?.type, filterExists, offsets,
+    resultsPerPage, searchTerm, searchType.value,
+    selectedTerminologyServer?.value?.title,
+    sortParams?.column, sortParams?.direction
+  ])
+
   // handle filters
   useEffect(() => {
     if (!filterExists) {
@@ -356,7 +425,7 @@ const ValueSetSearchTable = ({
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated, currentPage,
-    resultsPerPage, sortParams
+    resultsPerPage, sortParams, filterExists, submitVSetSearch
   ])
 
 
@@ -372,7 +441,8 @@ const ValueSetSearchTable = ({
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer])
+  }, [currentPage, resultsPerPage, sortParams,
+  selectedTerminologyServer, searchTerm, submitVSetSearch])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -408,68 +478,6 @@ const ValueSetSearchTable = ({
     setResultsPerPage(rows)
   }
 
-  /**
-   *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
-   */
-  const submitVSetSearch = async (e?: SyntheticEvent) => {
-    if (e) {
-      e.preventDefault()
-    }
-
-    setToggledClearRows(true)
-
-    let response
-    if (!searchTerm?.trim()) {
-      return
-    }
-
-    setIsLoading(true)
-    
-    let searchStr = ''
-    
-    if (searchType.value === 'oid') {
-      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term => term?.trim())
-      const dedupedOids = dedupeArray(trimmedWords)
-      // if more than 100 OIDs, exit with error
-      if (dedupedOids?.length > paginationMaximum) {
-        const message = `OID search maximum is ${paginationMaximum} at a time.`
-        setIsLoading(false)
-        toast.error(message)
-        return
-      }
-      searchStr = dedupedOids?.join(',')
-    } else if (searchType.value === 'name') {
-      searchStr = searchTerm.trim()
-    } else if (searchType.value === 'url') {
-      searchStr = searchTerm.trim()
-    }
-
-    // @ts-ignore-next-line
-    let offset = offsets?.[currentPage?.type] || ''
-    let queryStringItems = {
-      searchType: searchType?.value,
-      count: resultsPerPage,
-      sortBy: sortParams?.column,
-      sortDirection: sortParams?.direction,
-      offset: offset,
-      terminologyServer: selectedTerminologyServer?.value?.title
-    }
-
-    let queryString = ''
-    
-    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`)
-
-    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
-
-    response = await fetch(endpoint)
-
-    const searchContext = filterExists ? 'filter' : 'search'
-    await handleSearchResponse({ searchContext, response })
-    setToggledClearRows(false)
-    setSelectedValueSets([])
-  }
-
-
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     
@@ -494,8 +502,9 @@ const ValueSetSearchTable = ({
     
     // add grouper context needs to pass the info to the parent to submit
     if (tableContext === 'add-grouper') {
-      // not sure how to handle this TS error
-      handleAddValueSets(leafsToAdd)
+      if (handleAddValueSets) {
+        handleAddValueSets(leafsToAdd)
+      }
       setToggledClearRows(true)
     
       // the search page submits from here
@@ -525,7 +534,7 @@ const ValueSetSearchTable = ({
     if (fetchError?.message && fetchError?.errorType !== 'failed-oids') {
       toast.error(fetchError.message)
     }
-  }, [fetchError?.message])
+  }, [fetchError?.message, fetchError?.errorType])
 
   const showFilters = Boolean(searchTotal)
     && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
@@ -561,7 +570,6 @@ const ValueSetSearchTable = ({
                 <Select
                   instanceId={`${tableContext}-termServer`}
                   isMulti={false}
-                  // @ts-ignore-next-line
                   options={terminologyServerEndpoints}
                   value={selectedTerminologyServer}
                   onChange={(e: any) => {
@@ -578,7 +586,6 @@ const ValueSetSearchTable = ({
                 <Select
                   instanceId={`${tableContext}-searchByVS`}
                   isMulti={false}
-                  // @ts-ignore-next-line
                   options={searchTypes}
                   value={searchType}
                   onChange={(e: any) => {
@@ -592,7 +599,6 @@ const ValueSetSearchTable = ({
               id='vs-search'
               label='Search Text'
               hasIcon={true}
-              // @ts-ignore-next-line
               info={searchInfoText[searchType.value]}
               minWidth={300}
               errorMessage={vsNumExceedsFilterLimit ? (
@@ -657,6 +663,7 @@ const ValueSetSearchTable = ({
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e: any) => {
+                  console.log('selected groupers: ', e)
                   setSelectedGroupers(e)
                 }}
               />

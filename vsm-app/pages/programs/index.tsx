@@ -11,6 +11,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
+import { ErrorMessage } from '@/components/SearchInput'
 
 const Col = styled.div`
   display: flex;
@@ -61,24 +62,6 @@ const customStyles = {
   }
 }
 
-interface ErrorProp {
-  error: string
-}
-
-const ErrorContainer = styled.div<ErrorProp>`
-  max-height: ${props => props.error ? '500px' : '0'};
-  background-color: white;
-  transition: max-height 1s ease;
-  padding-left: 18px;
-  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
-
-`
-
-const ErrorText = styled.p<ErrorProp>`
-  color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'};
-`
-
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
@@ -89,7 +72,7 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string>('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -291,7 +274,6 @@ const Programs: NextPage = () => {
         </PageTitle>
         <Button
           text='Publish'
-          // style={{ ba}}
         />
       </Row>
       <LoadingModal
@@ -302,9 +284,9 @@ const Programs: NextPage = () => {
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
       />
-      <ErrorContainer error={error}>
-        <ErrorText error={error}>{ error }</ErrorText>
-      </ErrorContainer>
+      <ErrorMessage
+        error={error}
+      />
       <DT
         data={programs}
         // @ts-expect-error
