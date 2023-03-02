@@ -89,7 +89,8 @@ const AddGrouper = () => {
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [error, setError] = useState({})
 
-  const handleAddValueSets = (newVsInfo: GrouperVSets) => {
+  const VSReviewTable = ({ vsToAdd, setGrouperVSets }: { vsToAdd: FlatGrouperVSet[], setGrouperVSets: React.Dispatch<React.SetStateAction<FlatGrouperVSet[]>>; }) => {
+
     const {
       selectedValueSets,
       selectedConditions,
