@@ -1,5 +1,4 @@
 import Table from 'react-data-table-component'
-import styled from 'styled-components'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
@@ -7,7 +6,6 @@ import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
-import { useEffect } from 'react'
 
 interface TableData {
   terminologyServer: string
