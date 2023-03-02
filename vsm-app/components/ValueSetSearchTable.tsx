@@ -377,7 +377,7 @@ const ValueSetSearchTable = ({
     if (!valueSets || !valueSets.length) return
     // if there are less than paginationMaximum, filter in FE synchronously
     if (valueSets.length < paginationMaximum) {
-      let filteredValueSets = valueSets as fhir4.ValueSet[]
+      let filteredValueSets:fhir4.ValueSet[] = valueSets 
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
           vs => {
