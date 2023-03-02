@@ -6,6 +6,7 @@ import { TextArea } from '@/components/TextArea'
 import { useRouter } from 'next/router'
 import { Button } from '@/components/buttons/Button'
 import { VSReviewTable } from '@/components/VSReviewTable'
+import { stripFromName, startsAlphabetically, capitalizeFirstLetter } from '@/helpers/stringHelpers'
 
 const Form = styled.form`
   display: grid;
@@ -84,20 +85,6 @@ const defaultFormData = {
   publisher: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER,
   description: '',
   purpose: ''
-}
-
-const stripFromName = (str: string) => {
-  const trimmed = str.trim()
-
-  if (trimmed === '') return trimmed
-
-  const cleaned = trimmed.replace(/[^a-zA-Z0-9\w]/g, '_')
-  return cleaned
-}
-
-const startsAlphabetically = (title: string) => {
-  const regex = /^[A-Za-z]/
-  return Boolean(title?.trim().match(regex))
 }
 
 interface Header {
@@ -188,7 +175,8 @@ const AddGrouper = () => {
   const version = new Date().toISOString().substring(0,10)
 
   useEffect(() => {
-    setName((stripFromName(title)))
+    const formattedName = capitalizeFirstLetter(stripFromName(title))
+    setName(formattedName)
   }, [title])
 
   const router = useRouter()
@@ -259,7 +247,7 @@ const AddGrouper = () => {
         onChange={(e) => updateField(e)}
         value={title}
         errorMessage={
-          title  && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
+          title && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
         }
       />
       <SearchInput
