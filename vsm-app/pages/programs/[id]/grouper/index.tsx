@@ -7,75 +7,12 @@ import { useRouter } from 'next/router'
 import { Button } from '@/components/buttons/Button'
 import { VSReviewTable } from '@/components/VSReviewTable'
 import { stripFromName, startsAlphabetically, capitalizeFirstLetter } from '@/helpers/stringHelpers'
-
-const Form = styled.form`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
-  gap: 12px;
-  justify-content: center;
-`
-
-const FormTitle = styled.h1`
-  color: var(--theme-500);
-  margin-bottom: 24px;
-  font-size: 24px;
-  width: 100%;
-`
-
-const DirectionContainer = styled.div`
-  display: flex;
-  align-items: center;
-`
-
-const FormDirections = styled.div`
-  color: var(--theme-500);
-  font-size: 18px;
-  margin-bottom: 48px;
-  display: flex;
-  align-items: center;
-  margin-top: 64px;
-`
-
-const NumberItem = styled.div`
-  min-width: 50px;
-  min-height: 50px;
-  background-color: white;
-  color: var(--theme-500);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: bold;
-  font-size: 150%;
-  margin-right: 12px;
-`
-
-const Col = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-  min-width: 450px;
-`
-
-const Row = styled.div`
-  display: flex;
-`
-
-const MetadataContainer = styled.div`
-  background-color: white;
-  padding: 24px 36px;
-  padding-bottom: 64px;
-  display: flex;
-  margin-bottom: 24px;
-`
-
-const Subtitle = styled.p`
-  color: var(--theme-500);
-`
-
-const Asterisk = styled.span`
-  color: var(--accent);
-`
+import {
+  Form, FormDirections, FormTitle,
+  DirectionContainer, Col, Row,
+  MetadataContainer, Subtitle,
+  Asterisk, NumberItem
+} from '@/components/forms/styled/formElements'
 
 const defaultFormData = {
   name: '',
