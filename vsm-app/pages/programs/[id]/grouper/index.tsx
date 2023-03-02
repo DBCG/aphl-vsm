@@ -69,7 +69,7 @@ const MetadataContainer = styled.div`
 `
 
 const Subtitle = styled.p`
-  color: var(--theme-500)
+  color: var(--theme-500);
 `
 
 const Asterisk = styled.span`
