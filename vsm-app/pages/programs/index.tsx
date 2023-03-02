@@ -11,7 +11,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { ErrorMessage } from '@/components/SearchInput'
+import { ErrorMessage, ErrorState } from '@/components/ErrorMessage'
 
 const Col = styled.div`
   display: flex;
@@ -72,7 +72,7 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState<string>('')
+  const [error, setError] = useState<ErrorState | null>(null)
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -167,7 +167,7 @@ const Programs: NextPage = () => {
           <IconButton
             disabled={row.status !== 'draft'}
             onClick={() => {
-              setError('')
+              setError(null)
               setProgramToRelease(row)
             }}
             buttonContext='release'
@@ -255,7 +255,10 @@ const Programs: NextPage = () => {
     })
 
     if (!result.ok) {
-      setError(`Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`)
+      setError({
+        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`,
+        type: `${actionType}-fail`
+      })
     } else {
       router.reload()
     }
@@ -263,7 +266,6 @@ const Programs: NextPage = () => {
     setLoading(false)
     setProgramToPublish(null)
     setProgramToRelease(null)
-
   }
 
   return (
@@ -285,7 +287,7 @@ const Programs: NextPage = () => {
         program={programToPublish || programToRelease}
       />
       <ErrorMessage
-        error={error}
+        error={error?.message || null}
       />
       <DT
         data={programs}

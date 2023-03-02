@@ -12,6 +12,7 @@ import {
   MetadataContainer, Subtitle,
   Asterisk, NumberItem
 } from '@/components/forms/styled/formElements'
+import { ErrorMessage } from '@/components/ErrorMessage'
 
 const defaultFormData = {
   name: '',
@@ -75,7 +76,7 @@ interface FlatGrouperVSet {
 }
 
 interface Error {
-  type: 'failed-grouper-add',
+  type: 'failed-grouper-add'
   message: string
 }
 
@@ -87,10 +88,9 @@ const AddGrouper = () => {
   const [author, setAuthor] = useState(defaultFormData.author)
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
-  const [error, setError] = useState({})
+  const [error, setError] = useState<Error | null>(null)
 
-  const VSReviewTable = ({ vsToAdd, setGrouperVSets }: { vsToAdd: FlatGrouperVSet[], setGrouperVSets: React.Dispatch<React.SetStateAction<FlatGrouperVSet[]>>; }) => {
-
+  const handleAddValueSets = (newVsInfo: GrouperVSets) => {
     const {
       selectedValueSets,
       selectedConditions,
@@ -121,7 +121,7 @@ const AddGrouper = () => {
   const programId = router.query.id as string
 
   const addGrouper = async () => {
-    setError({})
+    setError(null)
     const grouperMetadata = {
       title, name, publisher, author, description, purpose, version
     }
@@ -169,9 +169,9 @@ const AddGrouper = () => {
   !(grouperVSets.length && title && author && publisher && description && purpose)
   || !startsAlphabetically(title)
 
-  return(
+  return (
   <>
-  <FormTitle>Add a Grouper</FormTitle>
+    <FormTitle>Add a Grouper</FormTitle>
     <FormSectionHeader
       itemNum={1}
       title={(<> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)</>)}
@@ -286,7 +286,7 @@ const AddGrouper = () => {
       itemNum={4}
       title='Submit to create grouper for this program'
     />
-    <Row style={{ justifyContent: 'center' }}>
+    <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
       <Button
         style={{
           fontSize: '150%',
@@ -296,6 +296,9 @@ const AddGrouper = () => {
         onClick={async () => await addGrouper()}
       />
     </Row>
+    <ErrorMessage
+      error={error?.message || null}
+    />
   </>
   )
 }
