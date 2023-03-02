@@ -58,7 +58,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
-const authoritativeSourceExtensionUrl = 'https://hl7.org/fhir/extension-valueset-authoritativesource.html'
+const authoritativeSourceExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource'
 const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
 
 interface TerminologyResult {
