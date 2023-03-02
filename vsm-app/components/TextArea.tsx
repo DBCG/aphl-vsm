@@ -5,7 +5,7 @@ interface InputProps {
   minWidth?: number;
   minHeight?: number;
   maxInputHeight?: number;
-  onChange: React.ChangeEventHandler | undefined;
+  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined;
 }
 
 const Input = styled.textarea<InputProps>`
