@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
@@ -6,6 +7,8 @@ import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
+import { FlatGrouperVSet } from 'pages/programs/[id]/grouper'
+import { Dispatch, SetStateAction } from 'react'
 
 interface TableData {
   terminologyServer: string
@@ -25,10 +28,21 @@ const customStyles = {
   }
 }
 
-const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
+interface TableProps {
+  vsToAdd: FlatGrouperVSet[] | []
+  setGrouperVSets: Dispatch<SetStateAction<FlatGrouperVSet[]>>
+}
+
+const VSReviewTable = ({ vsToAdd, setGrouperVSets }: TableProps) => {
+  const [updatedConditions, setUpdatedConditions] = useState({})
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
+
+  // need to update conditions here
+  const updateSelectedConditions = ({ conditionInfo, vsId }) => {
+    const newData =
+  }
 
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
 
@@ -44,39 +58,40 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
     {
       name: 'Name',
       wrap: true,
-      selector: (row) => row?.selectedValueSet?.name
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name
     },
     {
       name: 'Steward',
       wrap: true,
-      selector: (row) => row?.selectedValueSet?.steward
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.steward
     },
     {
       name: 'ID',
       wrap: true,
-      selector: (row) => row?.selectedValueSet?.id
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id
     },
     {
       name: 'Terminology Server',
       wrap: true,
-      selector: (row) => row?.selectedTerminologyServer
+      selector: (row: FlatGrouperVSet) => row?.selectedTerminologyServer
     },
     {
       name: 'Conditions',
       wrap: true,
-      selector: (row) => row?.selectedConditions!,
+      selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map(c => c.label).join(),
       sortable: false,
       minWidth: '300px',
       style: {
         rowWrap: 'wrap'
       },
-      cell: (row) => {
+      cell: (row: FlatGrouperVSet) => {
         return (
           <Select
             options={buildConditionOptions(allConditions, row?.selectedConditions)}
             isMulti={true}
             defaultValue={row.selectedConditions}
             menuPortalTarget={document.body}
+            onChange={(e) => updateSelectedConditions(e)}
           />
         )
       }
@@ -84,12 +99,12 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }) => {
     {
       name: 'Remove from Grouper',
       wrap: true,
-      selector: (row: TableData) => row?.selectedValueSet?.id!,
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id!,
       sortable: false,
       style: {
         rowWrap: 'wrap'
       },
-      cell: (row) => {
+      cell: (row: FlatGrouperVSet) => {
         return (
           <IconButton
             type='button'

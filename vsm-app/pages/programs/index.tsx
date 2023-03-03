@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession, getSession, GetSessionParams } from 'next-auth/react'
-import { useMemo, useState, ChangeEvent } from 'react'
+import { useMemo, useState, ChangeEvent, useEffect } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
 import { useGetPrograms } from '@/hooks/useGetPrograms'

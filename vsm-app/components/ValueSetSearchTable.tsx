@@ -188,11 +188,19 @@ interface SearchReponseParams {
 
 const defaultOffsets = {
   first: '0',
-  self: '1',
   next: null,
   previous: null,
   last: null
 }
+
+type Offset = {
+  [key in keyof typeof defaultOffsets]: string | null
+}
+
+// type PageMapping = {
+//   page: number
+//   type: [keyof typeof defaultOffsets]
+// }
 
 type HandleAddVSets = (vsets: GrouperVSets) => void
 
@@ -201,12 +209,16 @@ interface ValueSetSearchTable {
   tableContext: 'add-grouper' | 'search-page'
 }
 
-interface GrouperItem {
-  id: string,
-  label: string,
-  url: string,
-  value: string,
-  version: string
+interface SelectedValueSet {
+  id: fhir4.ValueSet['id']
+  lastUpdated: fhir4.Meta['lastUpdated']
+  name: fhir4.ValueSet['name']
+  oid: fhir4.ValueSet['id']
+  status: fhir4.ValueSet['status']
+  steward: fhir4.ValueSet['publisher']
+  url: fhir4.ValueSet['url']
+  version: fhir4.ValueSet['version']
+  valueSet: fhir4.ValueSet
 }
 
 const ValueSetSearchTable = ({
@@ -217,17 +229,16 @@ const ValueSetSearchTable = ({
   const programId = router.query.id as string
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
-  const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[] | undefined>([])
-  const [selectedValueSets, setSelectedValueSets] = useState<fhir4.ValueSet[] | []>([])
+  const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[]>([])
+  const [selectedValueSets, setSelectedValueSets] = useState<SelectedValueSet[] | []>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
-  // set search term from input
   
   // Paging & search info
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
-  const [offsets, setOffsets] = useState(defaultOffsets)
-  const [currentPage, setCurrentPage] = useState<{type:keyof typeof offsets; page:number}>({ type: 'self', page: 1 })
+  const [offsets, setOffsets] = useState<Offset>(defaultOffsets)
+  const [currentPage, setCurrentPage] = useState({})
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
   // filters
@@ -271,8 +282,8 @@ const ValueSetSearchTable = ({
         last: valueSetResponse?.last || null
       }
 
-      // @ts-expect-error
       setOffsets(newOffsets)
+
       if (searchContext === 'filter') {
         setFilteredVSets(valueSetResponse.valueSets)
         setFetchError(valueSetResponse.error || null)
@@ -302,7 +313,7 @@ const ValueSetSearchTable = ({
     || findInOid?.length
     || findInLastUpdated?.length
 
-      /**
+   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = useCallback(async (e?: SyntheticEvent) => {
@@ -339,6 +350,7 @@ const ValueSetSearchTable = ({
     }
 
     const offset = offsets?.[currentPage?.type] || ''
+
     let queryStringItems = {
       searchType: searchType?.value,
       count: resultsPerPage,
@@ -375,8 +387,14 @@ const ValueSetSearchTable = ({
     }
     // if there are no valuesets, don't filter
     if (!valueSets || !valueSets.length) return
+
+    // if the number of valuesets are more than the max allowed,
+    // send out a request to the server to filter
+    if (valueSets.length > paginationMaximum) {
+      filter()
     // if there are less than paginationMaximum, filter in FE synchronously
-    if (valueSets.length < paginationMaximum) {
+    // this is not ideal, but VSAC does not allow us to combine multiple search params
+    } else {
       let filteredValueSets:fhir4.ValueSet[] = valueSets 
       if (findInOid.length) {
         filteredValueSets = filteredValueSets?.filter(
@@ -411,21 +429,17 @@ const ValueSetSearchTable = ({
             })
       }
       setFilteredVSets(filteredValueSets)
-      return
     }
 
-    let active = true
-    filter()
-    return () => { active = false }
 
     async function filter() {
       await submitVSetSearch()
-      if (!active) { return }
     }
   }, [
     valueSets, findInName, findInStatus,
     findInSteward, findInOid, findInLastUpdated, currentPage,
-    resultsPerPage, sortParams, filterExists, submitVSetSearch
+    resultsPerPage, sortParams, filterExists,
+    submitVSetSearch 
   ])
 
 

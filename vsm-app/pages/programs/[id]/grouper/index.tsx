@@ -13,6 +13,7 @@ import {
   Asterisk, NumberItem
 } from '@/components/forms/styled/formElements'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { SelectedCondition } from '@/helpers/conditionHelpers'
 
 const defaultFormData = {
   name: '',
@@ -37,18 +38,6 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
   </DirectionContainer>
 )
 
-interface ConditionValue {
-  system: string
-  version: string
-  code: string
-}
-
-interface SelectedCondition {
-  dataId: string
-  label: string
-  value: ConditionValue
-}
-
 interface SelectedValueSet {
   id: string
   lastUpdated: string
@@ -68,7 +57,7 @@ export interface GrouperVSets {
   selectedTerminologyServer: string
 }
 
-interface FlatGrouperVSet {
+export interface FlatGrouperVSet {
   selectedValueSet: SelectedValueSet
   selectedConditions: SelectedCondition[] | []
   selectedGroupers: undefined

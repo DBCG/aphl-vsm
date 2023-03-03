@@ -29,6 +29,18 @@ interface ConditionInfo {
   }
 }
 
+interface ConditionValue {
+  system: string
+  version: string
+  code: string
+}
+
+interface SelectedCondition {
+  dataId: string
+  label: string
+  value: ConditionValue
+}
+
 interface ConditionToUpdate {
   canonical: string,
   version: string,
@@ -108,7 +120,7 @@ const formatConditionsComposeInclude = (conditionsList: any) => {
   )
 }
 
-const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
+const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions?: ConditionInfo[] | [] | undefined) => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions?.map(c => (
@@ -133,5 +145,6 @@ export {
 export type {
   ConditionItem,
   ConditionInfo,
-  ConditionToUpdate
+  ConditionToUpdate,
+  SelectedCondition
 }
