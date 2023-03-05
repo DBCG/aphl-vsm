@@ -99,6 +99,18 @@ const AddGrouper = () => {
     setGrouperVSets(updated)
   }
 
+  const handleUpdateConditions = ({ conditionInfo, vsId }) => {
+    
+    const updatedVSets = grouperVSets.map(vs => {
+      if(vs.selectedValueSet.id === vsId) {
+        vs.selectedConditions = conditionInfo
+      }
+      return vs
+    })
+
+    setGrouperVSets(updatedVSets)
+  }
+
   const version = new Date().toISOString().substring(0,10)
 
   useEffect(() => {
@@ -270,6 +282,7 @@ const AddGrouper = () => {
     <VSReviewTable
       vsToAdd={grouperVSets || []}
       setGrouperVSets={setGrouperVSets}
+      handleUpdateConditions={handleUpdateConditions}
     />
     <FormSectionHeader
       itemNum={4}

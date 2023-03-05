@@ -33,16 +33,11 @@ interface TableProps {
   setGrouperVSets: Dispatch<SetStateAction<FlatGrouperVSet[]>>
 }
 
-const VSReviewTable = ({ vsToAdd, setGrouperVSets }: TableProps) => {
-  const [updatedConditions, setUpdatedConditions] = useState({})
+const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
 
-  // need to update conditions here
-  const updateSelectedConditions = ({ conditionInfo, vsId }) => {
-    const newData =
-  }
 
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
 
@@ -91,7 +86,8 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets }: TableProps) => {
             isMulti={true}
             defaultValue={row.selectedConditions}
             menuPortalTarget={document.body}
-            onChange={(e) => updateSelectedConditions(e)}
+            onChange={(e) => handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })}
+            getOptionValue={(option) => option.label}
           />
         )
       }
