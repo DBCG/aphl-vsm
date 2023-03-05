@@ -1,3 +1,5 @@
+import { MultiValue } from 'react-select'
+
 interface Condition {
   label: string,
   value: {
@@ -36,7 +38,6 @@ interface ConditionValue {
 }
 
 interface SelectedCondition {
-  dataId: string
   label: string
   value: ConditionValue
 }
@@ -44,7 +45,7 @@ interface SelectedCondition {
 interface ConditionToUpdate {
   canonical: string,
   version: string,
-  conditionInfo: ConditionInfo[]
+  conditionInfo: SelectedCondition[]
 }
 
 const buildConditionItem = (condition: Condition) => {
@@ -120,7 +121,10 @@ const formatConditionsComposeInclude = (conditionsList: any) => {
   )
 }
 
-const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions?: ConditionInfo[] | [] | undefined) => {
+const buildConditionOptions = (
+  conditions: ConditionItem[] | [],
+  selectedOptions?: MultiValue<SelectedCondition>[] | []
+) => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions?.map(c => (
@@ -132,7 +136,6 @@ const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions
         text: c.display
       },
       label: c.display,
-      dataId: `${c.system}${c.code}${c.display}`
     }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
   return result
 }
