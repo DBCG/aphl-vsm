@@ -197,10 +197,10 @@ type Offset = {
   [key in keyof typeof defaultOffsets]: string | null
 }
 
-// type PageMapping = {
-//   page: number
-//   type: [keyof typeof defaultOffsets]
-// }
+type PageMapping = {
+  page: number
+  type: keyof typeof defaultOffsets
+}
 
 type HandleAddVSets = (vsets: GrouperVSets) => void
 
@@ -470,10 +470,11 @@ const ValueSetSearchTable = ({
   const handlePageChange = (newPage: number) => {
     // don't call if same page
     if (newPage == currentPage.page) return
+
     const pageChangeState = {
-      type: 'self',
       page: newPage
-    }
+    } as PageMapping
+
     if (newPage == currentPage.page - 1) {
       pageChangeState.type = 'previous'
     } else if (newPage == currentPage.page + 1) {
