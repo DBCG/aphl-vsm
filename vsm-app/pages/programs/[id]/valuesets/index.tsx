@@ -16,7 +16,10 @@ import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetai
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
+import {
+  formatConditionsComposeInclude, ConditionItem, buildConditionOptions,
+  ConditionInfo, ConditionToUpdate, SelectedCondition
+} from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
@@ -122,23 +125,6 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
     label: g.title?.replace('_', ' '),
     id: g.id
   }))
-}
-
-const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
-  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
-  const flattenedConditions = conditions?.flat(2)
-  const result = flattenedConditions?.map(c => (
-    {
-      value: {
-        system: c.system,
-        version: c.version,
-        code: c.code,
-        text: c.display
-      },
-      label: c.display,
-      dataId: `${c.system}${c.code}${c.display}`
-    }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
-  return result
 }
 
 const ProgramValueSetDetails: NextPage = () => {
