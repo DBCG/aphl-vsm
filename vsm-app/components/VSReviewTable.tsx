@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
@@ -7,7 +6,7 @@ import {
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
-import { FlatGrouperVSet } from 'pages/programs/[id]/grouper'
+import { ConditionsHandler, FlatGrouperVSet } from 'pages/programs/[id]/grouper'
 import { Dispatch, SetStateAction } from 'react'
 
 interface TableData {
@@ -31,6 +30,7 @@ const customStyles = {
 interface TableProps {
   vsToAdd: FlatGrouperVSet[] | []
   setGrouperVSets: Dispatch<SetStateAction<FlatGrouperVSet[]>>
+  handleUpdateConditions: ({ conditionInfo, vsId }: ConditionsHandler) => void
 }
 
 const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {

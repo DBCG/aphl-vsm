@@ -69,6 +69,11 @@ interface Error {
   message: string
 }
 
+export interface ConditionsHandler {
+  conditionInfo: SelectedCondition[] | []
+  vsId: fhir4.ValueSet['id']
+}
+
 const AddGrouper = () => {
   const [grouperVSets, setGrouperVSets] = useState<FlatGrouperVSet[]>([])
   const [title, setTitle] = useState(defaultFormData.title)
@@ -99,7 +104,7 @@ const AddGrouper = () => {
     setGrouperVSets(updated)
   }
 
-  const handleUpdateConditions = ({ conditionInfo, vsId }) => {
+  const handleUpdateConditions = ({ conditionInfo, vsId }: ConditionsHandler) => {
     
     const updatedVSets = grouperVSets.map(vs => {
       if(vs.selectedValueSet.id === vsId) {
