@@ -74,13 +74,55 @@ const Programs: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState<ErrorState | null>(null)
 
+  // clone template
+  const [cloneLoading, setCloneLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [progIdToClone, setProgIdToClone] = useState('')
+  const [newCloneExists, setNewCloneExists] = useState(false)
+  const [cloneError, setCloneError] = useState('')
+
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription,
-    newProgram: `${router?.query?.new}`
+    newProgram: `${router?.query?.new}`,
+    refreshToggle: newCloneExists
   })
+
+  const handleClickClone = (programId: string) => {
+    setProgIdToClone(programId)
+    setModalOpen(true)
+  }
+
+  const cloneProgram = async (programId: string) => {
+    setCloneLoading(true)
+    setCloneError('')
+    let libraryData: any = ''
+    libraryData = programs.find(p => p.id === programId)
+    const json = JSON.stringify(libraryData)
+
+    try {
+      const res = await fetch('/api/template', {
+        method: 'POST',
+        body: json
+      })
+      if (res?.ok) {
+        setModalOpen(false)
+        setNewCloneExists(true)
+        router.push(`/programs`)
+      } else {
+        console.log('res failed: ', res)
+      }
+    } catch (e) {
+      console.log('err: ', e)
+    }
+
+      // if response is a failure, error message
+      setCloneLoading(false)
+      setModalOpen(false)
+      setCloneError(`Error cloning program ${programId}`)
+  }
 
   const columns = useMemo(() => [
     {
@@ -149,7 +191,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             disabled={row.status !== 'active'}
-            onClick={() => router.push(`/programs/template?id=${row.id}`)}
+            onClick={() => handleClickClone(row.id)}
             buttonContext='clone'
           />
         </ButtonWrapper>
@@ -270,6 +312,14 @@ const Programs: NextPage = () => {
 
   return (
     <Col>
+      <LoadingModal
+        actionType='clone'
+        isOpen={modalOpen}
+        handleModalAction={async () => cloneProgram(progIdToClone)}
+        program={null}
+        loading={cloneLoading}
+        handleCancelModal={() => setModalOpen(false)}
+      />
       <Row>
         <PageTitle>
           Programs

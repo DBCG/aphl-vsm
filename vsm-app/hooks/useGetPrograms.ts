@@ -6,6 +6,7 @@ export interface SearchFilters {
   title?: string,
   description?: string,
   newProgram?: string | undefined,
+  refreshToggle?: boolean
 }
 
 const buildQuery = (args: any): string => {
@@ -22,7 +23,7 @@ const buildQuery = (args: any): string => {
 
 const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
   const [libraries, setLibraries] = useState([])
-  const { id, name, title, description, newProgram } = fields
+  const { id, name, title, description, newProgram, refreshToggle } = fields
   useEffect(() => {
     async function getPrograms(): Promise<void> {
       let endpoint = '/api/programs'
@@ -51,7 +52,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
     void getPrograms()
     // disabled b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, name, title, description, newProgram])
+  }, [id, name, title, description, newProgram, refreshToggle])
 
   return libraries
 }
