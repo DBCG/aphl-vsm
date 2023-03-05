@@ -388,6 +388,10 @@ const ValueSetSearchTable = ({
     // if there are no valuesets, don't filter
     if (!valueSets || !valueSets.length) return
 
+    async function filter() {
+      await submitVSetSearch()
+    }
+
     // if the number of valuesets are more than the max allowed,
     // send out a request to the server to filter
     if (valueSets.length > paginationMaximum) {
@@ -429,11 +433,6 @@ const ValueSetSearchTable = ({
             })
       }
       setFilteredVSets(filteredValueSets)
-    }
-
-
-    async function filter() {
-      await submitVSetSearch()
     }
   }, [
     valueSets, findInName, findInStatus,
