@@ -73,7 +73,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Conditions',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map(c => c.label).join(),
+      selector: (row: FlatGrouperVSet) => row.selectedConditions?.map(c => c.label).join(),
       sortable: false,
       minWidth: '300px',
       style: {

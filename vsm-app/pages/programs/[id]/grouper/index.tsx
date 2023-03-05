@@ -14,6 +14,7 @@ import {
 } from '@/components/forms/styled/formElements'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { SelectedCondition } from '@/helpers/conditionHelpers'
+import { MultiValue } from 'react-select'
 
 const defaultFormData = {
   name: '',
@@ -70,7 +71,7 @@ interface Error {
 }
 
 export interface ConditionsHandler {
-  conditionInfo: SelectedCondition[] | []
+  conditionInfo: MultiValue<SelectedCondition> | []
   vsId: fhir4.ValueSet['id']
 }
 
