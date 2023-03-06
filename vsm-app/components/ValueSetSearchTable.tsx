@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import {
+  SelectedCondition,
   buildConditionOptions,
   formatConditionsComposeInclude
 } from '@/helpers/conditionHelpers'
@@ -198,8 +199,8 @@ type Offset = {
 }
 
 type PageMapping = {
-  page: number
-  type: keyof typeof defaultOffsets
+  page?: number | undefined
+  type?: keyof typeof defaultOffsets | undefined
 }
 
 type HandleAddVSets = (vsets: GrouperVSets) => void
@@ -230,7 +231,7 @@ const ValueSetSearchTable = ({
 
   const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
   const [filteredVSets, setFilteredVSets] = useState<fhir4.ValueSet[]>([])
-  const [selectedValueSets, setSelectedValueSets] = useState<SelectedValueSet[] | []>([])
+  const [selectedValueSets, setSelectedValueSets] = useState<SelectedValueSet[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
   
@@ -238,7 +239,7 @@ const ValueSetSearchTable = ({
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const [offsets, setOffsets] = useState<Offset>(defaultOffsets)
-  const [currentPage, setCurrentPage] = useState({})
+  const [currentPage, setCurrentPage] = useState({ type: 'first', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
   // filters
@@ -255,7 +256,7 @@ const ValueSetSearchTable = ({
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState([])
-  const [selectedConditions, setSelectedConditions] = useState([])
+  const [selectedConditions, setSelectedConditions] = useState<SelectedCondition[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
@@ -471,9 +472,7 @@ const ValueSetSearchTable = ({
     // don't call if same page
     if (newPage == currentPage.page) return
 
-    const pageChangeState = {
-      page: newPage
-    } as PageMapping
+    const pageChangeState = {} as PageMapping
 
     if (newPage == currentPage.page - 1) {
       pageChangeState.type = 'previous'
@@ -677,6 +676,7 @@ const ValueSetSearchTable = ({
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e: any) => {
+                  console.log('selectedgroupers: ', e)
                   setSelectedGroupers(e)
                 }}
               />
