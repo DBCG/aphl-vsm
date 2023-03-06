@@ -53,27 +53,27 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Name',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name!
     },
     {
       name: 'Steward',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.steward
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.steward!
     },
     {
       name: 'ID',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id!
     },
     {
       name: 'Terminology Server',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedTerminologyServer
+      selector: (row: FlatGrouperVSet) => row?.selectedTerminologyServer!
     },
     {
       name: 'Conditions',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row.selectedConditions?.map(c => c.label).join(),
+      selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map(c => c?.label)?.join() || '',
       sortable: false,
       minWidth: '300px',
       style: {
@@ -104,7 +104,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
         return (
           <IconButton
             type='button'
-            onClick={(e) => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
+            onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
             buttonContext='delete'
             style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
           />
