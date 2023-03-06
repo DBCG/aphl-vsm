@@ -48,7 +48,11 @@ const updateManifest = async (
     id: req.query.id as string
   }) as fhir4.Library
 
- const manifestLibraryUrl = getGrouperLibraryCanonical(grouperLibrary)
+  let manifestLibraryUrl = getGrouperLibraryCanonical(grouperLibrary)
+
+  if (manifestLibraryUrl?.includes('|')) {
+    manifestLibraryUrl = manifestLibraryUrl.split('|')[0]
+  }
 
   const manifestLibrary = await fhirCdrClient.search({
     resourceType: 'Library',
