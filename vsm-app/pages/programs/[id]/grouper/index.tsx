@@ -40,17 +40,10 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
   </DirectionContainer>
 )
 
-export interface GrouperVSets {
-  selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[]
-  selectedGroupers: undefined
-  selectedTerminologyServer: string
-}
-
 export interface FlatGrouperVSet {
   selectedValueSet: SelectedValueSet
-  selectedConditions: SelectedCondition[] | []
-  selectedGroupers: undefined
+  selectedConditions: SelectedCondition[]
+  selectedGroupers?: SelectedGrouper[]
   selectedTerminologyServer: string
 }
 
