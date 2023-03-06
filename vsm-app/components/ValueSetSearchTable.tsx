@@ -210,7 +210,7 @@ interface ValueSetSearchTable {
   tableContext: 'add-grouper' | 'search-page'
 }
 
-interface SelectedValueSet {
+export interface SelectedValueSet {
   id: fhir4.ValueSet['id']
   lastUpdated: fhir4.Meta['lastUpdated']
   name: fhir4.ValueSet['name']

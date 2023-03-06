@@ -15,6 +15,7 @@ import {
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { SelectedCondition } from '@/helpers/conditionHelpers'
 import { MultiValue } from 'react-select'
+import { SelectedValueSet } from '@/components/ValueSetSearchTable'
 
 const defaultFormData = {
   name: '',
@@ -38,18 +39,6 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
     </FormDirections>
   </DirectionContainer>
 )
-
-interface SelectedValueSet {
-  id: string
-  lastUpdated: string
-  name: string
-  oid: string
-  status: string
-  steward: string
-  url: string
-  version: string
-  valueSet: fhir4.ValueSet
-}
 
 export interface GrouperVSets {
   selectedValueSets: SelectedValueSet[]
