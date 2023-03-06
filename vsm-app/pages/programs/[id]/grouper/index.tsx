@@ -42,7 +42,7 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
 
 export interface GrouperVSets {
   selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[] | []
+  selectedConditions: SelectedCondition[]
   selectedGroupers: undefined
   selectedTerminologyServer: string
 }

@@ -195,7 +195,7 @@ const defaultOffsets = {
 }
 
 type Offset = {
-  [key in keyof typeof defaultOffsets]: string | null
+  [key: string]: string | null
 }
 
 type PageMapping = {
@@ -220,6 +220,14 @@ export interface SelectedValueSet {
   url: fhir4.ValueSet['url']
   version: fhir4.ValueSet['version']
   valueSet: fhir4.ValueSet
+}
+
+export interface SelectedGrouper {
+  id: fhir4.ValueSet['id']
+  label: fhir4.ValueSet['title']
+  url: fhir4.ValueSet['url']
+  value: fhir4.ValueSet['url']
+  version: fhir4.ValueSet['version']
 }
 
 const ValueSetSearchTable = ({
@@ -255,7 +263,7 @@ const ValueSetSearchTable = ({
   const [searchType, setsearchType] = useState(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
-  const [selectedGroupers, setSelectedGroupers] = useState([])
+  const [selectedGroupers, setSelectedGroupers] = useState<SelectedGrouper[]>([])
   const [selectedConditions, setSelectedConditions] = useState<SelectedCondition[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
