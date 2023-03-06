@@ -104,6 +104,8 @@ export default async function handler(
                   serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url
                 ) || null
 
+              } else {
+                console.error('no entry: ')
               }
             } catch (e) {
               console.error(e)
@@ -226,7 +228,6 @@ export default async function handler(
             }
           }
           break
-
       }
 
       res.status(200).send(responseInfo)

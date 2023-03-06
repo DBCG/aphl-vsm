@@ -23,7 +23,7 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
-import { GrouperVSets } from 'pages/programs/[id]/grouper'
+import { FlatGrouperVSet } from 'pages/programs/[id]/grouper'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -172,7 +172,7 @@ const SelectGrouperContainer = styled.div`
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
-    label: vSet?.title?.replace('_', ''),
+    label: vSet?.title?.replaceAll('_', ''),
     url: vSet?.url,
     version: vSet?.version,
     id: vSet?.id,
@@ -199,11 +199,11 @@ type Offset = {
 }
 
 type PageMapping = {
-  page?: number | undefined
+  page?: number
   type?: keyof typeof defaultOffsets
 }
 
-type HandleAddVSets = (vsets: GrouperVSets) => void
+type HandleAddVSets = (vsets: FlatGrouperVSet[]) => void
 
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
@@ -260,7 +260,7 @@ const ValueSetSearchTable = ({
 
   // set default terminology server for search
   const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
-  const [searchType, setsearchType] = useState(searchTypes[0])
+  const [searchType, setSearchType] = useState<typeof searchTypes[number]>(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState<SelectedGrouper[]>([])
@@ -334,6 +334,7 @@ const ValueSetSearchTable = ({
 
     let response
     if (!searchTerm?.trim()) {
+      setIsLoading(false)
       return
     }
 
@@ -479,18 +480,21 @@ const ValueSetSearchTable = ({
   const handlePageChange = (newPage: number) => {
     // don't call if same page
     if (newPage == currentPage.page) return
-
-    const pageChangeState = {} as PageMapping
-    pageChangeState.page = newPage
+    let type = 'first'
 
     if (newPage == currentPage.page - 1) {
-      pageChangeState.type = 'previous'
+      type = 'previous'
     } else if (newPage == currentPage.page + 1) {
-      pageChangeState.type = 'next'
+      type = 'next'
     } else if (newPage < currentPage.page) {
-      pageChangeState.type = 'first'
+      type = 'first'
     } else if (newPage > currentPage.page) {
-      pageChangeState.type = 'last'
+      type = 'last'
+    }
+
+    const pageChangeState = {
+      page: newPage,
+      type
     }
 
     setCurrentPage(pageChangeState)
@@ -607,7 +611,7 @@ const ValueSetSearchTable = ({
                   options={searchTypes}
                   value={searchType}
                   onChange={(e: any) => {
-                    return (setsearchType(e))
+                    return (setSearchType(e))
                   }}
                 />
               </SelectInputContainer>
@@ -681,7 +685,6 @@ const ValueSetSearchTable = ({
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e: any) => {
-                  console.log('selectedgroupers: ', e)
                   setSelectedGroupers(e)
                 }}
               />
