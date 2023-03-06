@@ -496,10 +496,6 @@ const ValueSetSearchTable = ({
     setCurrentPage(pageChangeState)
   }
 
-  const handlePerRowsChange = (rows: number) => {
-    setResultsPerPage(rows)
-  }
-
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
     
@@ -715,7 +711,7 @@ const ValueSetSearchTable = ({
         resultsPerPage={resultsPerPage}
         paginationTotalRows={searchTotal || 0}
         handlePageChange={handlePageChange}
-        handlePerRowsChange={handlePerRowsChange}
+        handlePerRowsChange={setResultsPerPage}
       />
     </Col>
   )
