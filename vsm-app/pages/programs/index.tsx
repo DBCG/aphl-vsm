@@ -35,6 +35,10 @@ export interface StatusProps {
   status: string
 }
 
+interface Error {
+  message?: string
+}
+
 const StatusTag = styled.div<StatusProps>`
   padding: 4px 6px;
   border-radius: 4px;
@@ -62,6 +66,20 @@ const customStyles = {
   }
 }
 
+const ErrorContainer = styled.div<Error>`
+  max-height: ${props => props.message ? '500px' : '0'};
+  background-color: white;
+  transition: max-height 1s ease;
+  padding-left: 18px;
+  border: ${props => props.message ? '1px solid var(--accent)' : 'none'}; 
+
+`
+
+const ErrorText = styled.p<Error>`
+  color: var(--accent);
+  display: ${props => props.message ? 'inherit' : 'none'};
+`
+
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
@@ -72,14 +90,13 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState<ErrorState | null>(null)
+  const [error, setError] = useState<Error>({})
 
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
   const [newCloneExists, setNewCloneExists] = useState(false)
-  const [cloneError, setCloneError] = useState('')
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -90,14 +107,15 @@ const Programs: NextPage = () => {
     refreshToggle: newCloneExists
   })
 
-  const handleClickClone = (programId: string) => {
+  const handleClickClone = (programId: string | undefined) => {
+    if (!programId) return
     setProgIdToClone(programId)
     setModalOpen(true)
   }
 
   const cloneProgram = async (programId: string) => {
     setCloneLoading(true)
-    setCloneError('')
+    setError({})
     let libraryData: any = ''
     libraryData = programs.find(p => p.id === programId)
     const json = JSON.stringify(libraryData)
@@ -110,18 +128,16 @@ const Programs: NextPage = () => {
       if (res?.ok) {
         setModalOpen(false)
         setNewCloneExists(true)
-        router.push(`/programs`)
       } else {
-        console.log('res failed: ', res)
+        const json = await res.json()
+        setError(json.message)
       }
     } catch (e) {
-      console.log('err: ', e)
+      setError({ message: `Error cloning program ${programId}` })
     }
 
-      // if response is a failure, error message
-      setCloneLoading(false)
-      setModalOpen(false)
-      setCloneError(`Error cloning program ${programId}`)
+    setCloneLoading(false)
+    setModalOpen(false)
   }
 
   const columns = useMemo(() => [
@@ -138,13 +154,6 @@ const Programs: NextPage = () => {
         )
       }
     },
-    // {
-    //   name: 'Updated',
-    //   selector: (row: fhir4.Library) => row.date,
-    //   sortable: true,
-    //   maxWidth: '100px',
-    //   wrap: true
-    // },
     {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
@@ -209,7 +218,7 @@ const Programs: NextPage = () => {
           <IconButton
             disabled={row.status !== 'draft'}
             onClick={() => {
-              setError(null)
+              setError({})
               setProgramToRelease(row)
             }}
             buttonContext='release'
@@ -234,46 +243,7 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     },
-    // {
-    //   name: 'Publish',
-    //   selector: (row: fhir4.Library) => row.name,
-    //   sortable: false,
-    //   wrap: true,
-    //   center: true,
-    //   cell: (row: fhir4.Library) => (
-    //     <ButtonWrapper>
-    //       <IconButton
-    //         disabled={row.status !== 'active'}
-    //         onClick={() => {
-    //           setError('')
-    //           setProgramToPublish(row)
-    //         }}
-    //         buttonContext='publish'
-    //       />
-    //     </ButtonWrapper>
-    //   )
-    // }
-  ], [router, router?.query?.new])
-
-  const onClickDownload = () => {
-    router.push('/programs/download')
-  }
-
-  const onClickNewVersion = () => {
-    router.push('/programs/template')
-  }
-
-  const onClickSearch = () => {
-    router.push('/api/programs')
-  }
-
-  const onClickValueSet = () => {
-    router.push('/programs/valueset')
-  }
-
-  const onClick = () => {
-    router.push('/programs/new')
-  }
+  ], [router, session])
 
   const handleCancelModal = () => {
     setProgramToPublish(null)
@@ -299,7 +269,6 @@ const Programs: NextPage = () => {
     if (!result.ok) {
       setError({
         message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`,
-        type: `${actionType}-fail`
       })
     } else {
       router.reload()

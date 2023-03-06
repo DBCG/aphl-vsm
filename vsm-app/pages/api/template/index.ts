@@ -28,16 +28,18 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (response.ok) {
       return res.send(response)
+    } else {
+      return res.status(400).json({ message: 'Could not create new Library.' })
     }
     
   } catch (e: any) {
     console.error('error:  ', e)
-    return res.status(400).json({ error: 'Creation of new library failed.' })
+    return res.status(400).json({ message: 'Creation of new Library failed.' })
   }
 
   // if response was NOT ok (not 200 from FHIR server, but did complete)
   console.error('Failure to perform $draft from FHIR server')
-  return res.status(422).json({ error: 'Creation of new library failed.' })
+  return res.status(422).json({ message: 'Creation of new library failed.' })
 }
 
 export default handler({ 
