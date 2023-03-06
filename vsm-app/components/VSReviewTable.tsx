@@ -9,13 +9,6 @@ import {
 import { ConditionsHandler, FlatGrouperVSet } from 'pages/programs/[id]/grouper'
 import { Dispatch, SetStateAction } from 'react'
 
-interface TableData {
-  terminologyServer: string
-  id: string
-  name: string
-  steward: string
-}
-
 const customStyles = {
   cells: {
     style: {
@@ -28,7 +21,7 @@ const customStyles = {
 }
 
 interface TableProps {
-  vsToAdd: FlatGrouperVSet[] | []
+  vsToAdd: FlatGrouperVSet[]
   setGrouperVSets: Dispatch<SetStateAction<FlatGrouperVSet[]>>
   handleUpdateConditions: ({ conditionInfo, vsId }: ConditionsHandler) => void
 }

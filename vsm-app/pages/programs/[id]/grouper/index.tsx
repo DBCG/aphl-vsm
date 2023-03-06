@@ -53,7 +53,7 @@ interface Error {
 }
 
 export interface ConditionsHandler {
-  conditionInfo: MultiValue<SelectedCondition> | []
+  conditionInfo: MultiValue<SelectedCondition> | SelectedCondition[]
   vsId: fhir4.ValueSet['id']
 }
 
@@ -91,7 +91,7 @@ const AddGrouper = () => {
     
     const updatedVSets = grouperVSets.map(vs => {
       if(vs.selectedValueSet.id === vsId) {
-        vs.selectedConditions = conditionInfo
+        vs.selectedConditions = conditionInfo as SelectedCondition[]
       }
       return vs
     })
