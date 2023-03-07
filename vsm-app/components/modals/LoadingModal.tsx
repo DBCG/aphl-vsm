@@ -111,11 +111,10 @@ const LoadingModal = ({
                 label='Description of Release'
                 id="releaseDescription"
                 required={true}
-                currentValue={currentInput}
+                value={currentInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const newValue = e?.target?.value
                   setCurrentInput(newValue)
-
                 }} />
             </>
             )
