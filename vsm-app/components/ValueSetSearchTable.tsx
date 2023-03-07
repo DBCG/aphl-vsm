@@ -198,12 +198,14 @@ type Offset = {
   [key: string]: string | null
 }
 
-type PageMapping = {
-  page?: number
-  type?: keyof typeof defaultOffsets
+interface LeafsToAdd {
+  selectedTerminologyServer: string
+  selectedValueSets: SelectedValueSet[]
+  selectedConditions: SelectedCondition[]
+  selectedGroupers: SelectedGrouper[]
 }
 
-type HandleAddVSets = (vsets: FlatGrouperVSet[]) => void
+type HandleAddVSets = (vsets: LeafsToAdd) => void
 
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
