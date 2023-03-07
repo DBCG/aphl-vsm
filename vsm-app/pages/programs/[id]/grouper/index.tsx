@@ -15,7 +15,7 @@ import {
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { SelectedCondition } from '@/helpers/conditionHelpers'
 import { MultiValue } from 'react-select'
-import { SelectedValueSet } from '@/components/ValueSetSearchTable'
+import { SelectedValueSet, SelectedGrouper } from '@/components/ValueSetSearchTable'
 
 const defaultFormData = {
   name: '',
@@ -47,6 +47,13 @@ export interface FlatGrouperVSet {
   selectedTerminologyServer: string
 }
 
+interface CombinedGrouperVSets {
+  selectedValueSets: SelectedValueSet[]
+  selectedConditions: SelectedCondition[]
+  selectedGroupers?: SelectedGrouper[]
+  selectedTerminologyServer: string
+}
+
 interface Error {
   type: 'failed-grouper-add'
   message: string
@@ -67,7 +74,7 @@ const AddGrouper = () => {
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [error, setError] = useState<Error | null>(null)
 
-  const handleAddValueSets = (newVsInfo: GrouperVSets) => {
+  const handleAddValueSets = (newVsInfo: CombinedGrouperVSets) => {
     const {
       selectedValueSets,
       selectedConditions,
