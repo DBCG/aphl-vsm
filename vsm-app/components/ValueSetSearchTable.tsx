@@ -454,12 +454,10 @@ const ValueSetSearchTable = ({
 
   useEffect(() => {
     if (!searchTerm) return
-    let loading = true
-    setIsLoading(loading)
+    setIsLoading(true)
     search()
     return () => {
-      loading = false
-      setIsLoading(loading)
+      setIsLoading(false)
     }
     async function search() {
       await submitVSetSearch()
