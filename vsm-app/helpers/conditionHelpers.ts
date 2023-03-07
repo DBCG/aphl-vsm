@@ -125,7 +125,7 @@ const buildConditionOptions = (
   conditions: ConditionItem[] | [],
   selectedOptions?: SelectedCondition[] | []
 ): MultiValue<SelectedCondition> => {
-  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
+  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => !!x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions?.map(c => (
     {
