@@ -681,7 +681,7 @@ const ValueSetSearchTable = ({
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e: any) => {
-                  setSelectedGroupers(e)
+                  setSelectedGroupers(e as SelectedGrouper[])
                 }}
               />
             </SelectInputContainer>
