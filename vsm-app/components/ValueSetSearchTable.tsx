@@ -666,7 +666,6 @@ const ValueSetSearchTable = ({
               <Select
                 instanceId={`${tableContext}-conditions`}
                 isMulti={true}
-                // @ts-ignore-next-line
                 options={buildConditionOptions(allConditions, selectedConditions)}
                 value={selectedConditions}
                 onChange={(e: any) => (setSelectedConditions(e))}
@@ -681,7 +680,6 @@ const ValueSetSearchTable = ({
               <Select
                 instanceId={`${tableContext}-groups`}
                 isMulti={true}
-                // @ts-ignore-next-line
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e: any) => {
