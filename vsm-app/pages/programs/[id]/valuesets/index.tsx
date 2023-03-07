@@ -17,8 +17,8 @@ import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import {
-  formatConditionsComposeInclude, ConditionItem, buildConditionOptions,
-  ConditionInfo, ConditionToUpdate, SelectedCondition
+  formatConditionsComposeInclude, buildConditionOptions,
+  ConditionInfo, ConditionToUpdate
 } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
