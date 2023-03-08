@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { generateErrorMessage } from '@/helpers/server/errorMessageGenerator'
+import { generateErrorMessage } from '@/helpers/server/generateErrorMessage'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {

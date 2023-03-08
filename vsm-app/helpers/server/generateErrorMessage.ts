@@ -11,9 +11,10 @@ const generateErrorMessage = ({
   defaultErrorMessage
 }: ErrorInfo) => {
   let errorMessage = defaultErrorMessage
+
   if(is.operationOutcome(serverResponse)) {
-    const hapiDiagnosticsMessage = serverResponse?.issue?.[0]?.diagnostics?.toUpperCase() || ''
-    let errorMessage = ''
+    const hapiDiagnosticsMessage = serverResponse?.issue?.[0]
+      ?.diagnostics?.toUpperCase() || ''
   
     const hapiErrCodeList = Object.keys(hapiErrorCodes) as Array<keyof typeof hapiErrorCodes>
   
@@ -23,11 +24,8 @@ const generateErrorMessage = ({
 
     if (matchingErrorCode) {
       errorMessage = hapiErrorCodes[matchingErrorCode].message
-    } else {
-      errorMessage = defaultErrorMessage
     }
   }
-
   return errorMessage
 }
 
