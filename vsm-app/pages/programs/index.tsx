@@ -66,20 +66,6 @@ const customStyles = {
   }
 }
 
-const ErrorContainer = styled.div<Error>`
-  max-height: ${props => props.message ? '500px' : '0'};
-  background-color: white;
-  transition: max-height 1s ease;
-  padding-left: 18px;
-  border: ${props => props.message ? '1px solid var(--accent)' : 'none'}; 
-
-`
-
-const ErrorText = styled.p<Error>`
-  color: var(--accent);
-  display: ${props => props.message ? 'inherit' : 'none'};
-`
-
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
@@ -130,7 +116,7 @@ const Programs: NextPage = () => {
         setNewCloneExists(true)
       } else {
         const json = await res.json()
-        setError(json.message)
+        setError({ message: json.message })
       }
     } catch (e) {
       setError({ message: `Error cloning program ${programId}` })
