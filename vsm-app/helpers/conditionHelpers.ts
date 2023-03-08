@@ -146,6 +146,7 @@ export {
   buildConditionOptions
 }
 export type {
+  Condition,
   ConditionItem,
   ConditionInfo,
   ConditionToUpdate,

@@ -214,7 +214,6 @@ const defaultOffsets = {
 const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const [valueSets, setValueSets] = useState<fhir4.ValueSet[] | undefined>([])
 
   return (
     <Col>
@@ -223,7 +222,6 @@ const ValueSets = () => {
         <br />After adding a valueset to the program, you may specify a different version on <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
       </DescriptionText>
       <ValueSetSearchTable
-        handleAddValueSets={setValueSets}
         tableContext='search-page'
       />
     </Col>

@@ -18,7 +18,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import {
   formatConditionsComposeInclude, buildConditionOptions,
-  ConditionInfo, ConditionToUpdate
+  ConditionInfo, ConditionToUpdate, Condition
 } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
@@ -379,11 +379,12 @@ const ProgramValueSetDetails: NextPage = () => {
               value: {
                 system: i?.valueCodeableConcept?.coding?.[0]?.system,
                 code: i?.valueCodeableConcept?.coding?.[0]?.code,
+                version: i?.valueCodeableConcept?.coding?.[0]?.version,
                 text: i?.valueCodeableConcept?.text
               }
             })
             }
-        }).filter(x => x) as ConditionInfo[]
+        }).filter(x => x) as Condition[]
         return row.programStatus === 'active' || !can(session, 'edit')
           ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
           : (

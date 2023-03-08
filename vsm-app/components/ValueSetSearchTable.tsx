@@ -23,7 +23,6 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
-import { FlatGrouperVSet } from 'pages/programs/[id]/grouper'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
