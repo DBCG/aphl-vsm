@@ -63,6 +63,12 @@ const ToolTipText = styled.p`
   font-size: 80%;
 `
 
+export const ErrorMessage = styled.p`
+  color: var(--accent);
+  margin: 0;
+  font-size: 80%;
+`
+
 interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
@@ -78,6 +84,39 @@ interface Props {
   style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
+  errorMessage?: string | null
+}
+
+interface LabelProps {
+  id?: string
+  label?: string
+  required?: boolean
+  readonly?: boolean
+  info?: string
+}
+
+export const Label = ({ id, label, required, readonly, info }: LabelProps) => {
+
+  return (
+    <>
+      {  (label !== undefined && id !== undefined) &&
+        <StyledLabel>
+          {label}
+          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
+        </StyledLabel>
+      }
+      { info && (
+        <InfoContainer>
+          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
+          <TooltipContainer>
+            <ToolTipText>
+              {info}
+            </ToolTipText>
+          </TooltipContainer>
+        </InfoContainer>
+      )}
+    </>
+  )
 }
 
 const SearchInput = ({
@@ -89,48 +128,46 @@ const SearchInput = ({
   id,
   style,
   minWidth,
-  includeInfo,
   info,
   disabled = false,
   readonly = false,
-  required = false
+  required = false,
+  errorMessage = null
 }: Props) => {
   return (
     <Container>
       <FlexRow>
-        {
-          (label !== undefined && id !== undefined) &&
-          <StyledLabel>
-            {label}
-            {required && !readonly && <sup style={{ color: 'red' }}>*</sup>}
-          </StyledLabel>
-        }
-        {includeInfo && (
-          <InfoContainer>
-            <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-            <TooltipContainer>
-              <ToolTipText>
-                {info}
-              </ToolTipText>
-            </TooltipContainer>
-          </InfoContainer>
-        )}
+      <Label
+          id={id}
+          info={info}
+          label={label}
+          required={required}
+          readonly={readonly}
+        />
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>
           {def || placeholder}
         </ReadOnlyContainer>
       ) : (
-        <Input
-          placeholder={placeholder}
-          onChange={onChange}
-          minWidth={minWidth}
-          disabled={disabled}
-          value={value}
-          defaultValue={def}
-          style={style}
-        />
-      )}
+        <>
+          <Input
+            id={id}
+            placeholder={placeholder}
+            onChange={onChange}
+            minWidth={minWidth}
+            disabled={disabled}
+            value={value}
+            defaultValue={def}
+            style={style}
+          />
+          { errorMessage && (
+            <ErrorMessage>
+              {errorMessage}
+            </ErrorMessage>
+          )}
+        </>
+      ) }
     </Container>
   )
 }

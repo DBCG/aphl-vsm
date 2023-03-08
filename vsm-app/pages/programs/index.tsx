@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession, getSession, GetSessionParams } from 'next-auth/react'
-import { useMemo, useState, ChangeEvent } from 'react'
+import { useMemo, useState, ChangeEvent, useEffect } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
@@ -11,6 +11,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
+import { ErrorMessage, ErrorState } from '@/components/ErrorMessage'
 
 const Col = styled.div`
   display: flex;
@@ -61,24 +62,6 @@ const customStyles = {
   }
 }
 
-interface ErrorProp {
-  error: string
-}
-
-const ErrorContainer = styled.div<ErrorProp>`
-  max-height: ${props => props.error ? '500px' : '0'};
-  background-color: white;
-  transition: max-height 1s ease;
-  padding-left: 18px;
-  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
-
-`
-
-const ErrorText = styled.p<ErrorProp>`
-  color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'};
-`
-
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession}
@@ -89,7 +72,7 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState('')
+  const [error, setError] = useState<ErrorState | null>(null)
 
   const programs = useGetPrograms({
     id: searchTermID,
@@ -184,7 +167,7 @@ const Programs: NextPage = () => {
           <IconButton
             disabled={row.status !== 'draft'}
             onClick={() => {
-              setError('')
+              setError(null)
               setProgramToRelease(row)
             }}
             buttonContext='release'
@@ -272,7 +255,10 @@ const Programs: NextPage = () => {
     })
 
     if (!result.ok) {
-      setError(`Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`)
+      setError({
+        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`,
+        type: `${actionType}-fail`
+      })
     } else {
       router.reload()
     }
@@ -280,7 +266,6 @@ const Programs: NextPage = () => {
     setLoading(false)
     setProgramToPublish(null)
     setProgramToRelease(null)
-
   }
 
   return (
@@ -291,7 +276,6 @@ const Programs: NextPage = () => {
         </PageTitle>
         <Button
           text='Publish'
-          // style={{ ba}}
         />
       </Row>
       <LoadingModal
@@ -302,9 +286,9 @@ const Programs: NextPage = () => {
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
       />
-      <ErrorContainer error={error}>
-        <ErrorText error={error}>{ error }</ErrorText>
-      </ErrorContainer>
+      <ErrorMessage
+        error={error?.message || null}
+      />
       <DT
         data={programs}
         // @ts-expect-error

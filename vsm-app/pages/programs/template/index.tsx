@@ -8,10 +8,7 @@ import { Button } from '@/components/buttons/Button'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { DataItem } from '@/hooks/useGetProgramValueSetDetails'
-
-interface ErrorProp {
-  error: string
-}
+import { ErrorMessage, ErrorState } from '@/components/ErrorMessage'
 
 const Row = styled.div`
   display: flex;
@@ -26,20 +23,6 @@ const Col = styled.div`
   display: flex;
   flex-direction: column;
   height: fit-content;
-`
-
-const ErrorContainer = styled.div<ErrorProp>`
-  max-height: ${props => props.error ? '500px' : '0'};
-  background-color: white;
-  transition: max-height 1s ease;
-  padding-left: 18px;
-  border: ${props => props.error ? '1px solid var(--accent)' : 'none'}; 
-
-`
-
-const ErrorText = styled.p<ErrorProp>`
-  color: var(--accent);
-  display: ${props => props.error ? 'inherit' : 'none'};
 `
 
 const customStyles = {
@@ -59,11 +42,11 @@ const Template = () => {
   const program = useGetPrograms({ id: `${programId}` })
   const [cloneLoading, setCloneLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [cloneError, setCloneError] = useState('')
+  const [cloneError, setCloneError] = useState<ErrorState | null>(null)
 
   const cloneProgram = async () => {
     setCloneLoading(true)
-    setCloneError('')
+    setCloneError(null)
     let libraryData: any = ''
     libraryData = program[0]
     const json = JSON.stringify(libraryData)
@@ -79,7 +62,10 @@ const Template = () => {
       // if response is a failure, error message
       setCloneLoading(false)
       setModalOpen(false)
-      setCloneError(`Error cloning program ${programId}`)
+      setCloneError({
+        message: `Error cloning program ${programId}`,
+        type: 'clone-failed'
+      })
     }
   }
 
@@ -129,9 +115,9 @@ const Template = () => {
             onClick={(() => setModalOpen(true))}
           />
         </Row>
-        <ErrorContainer error={cloneError}>
-          <ErrorText error={cloneError}>{ cloneError }</ErrorText>
-        </ErrorContainer>
+        <ErrorMessage
+          error={cloneError?.message || null}
+        />
         <DT
           // @ts-expect-error
           data={programDetails?.data || []}

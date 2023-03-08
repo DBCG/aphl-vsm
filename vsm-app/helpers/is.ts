@@ -75,3 +75,5 @@ const is = {
 }
 
 export { is }
+
+const test = 'test' as fhir4.BundleEntrySearch

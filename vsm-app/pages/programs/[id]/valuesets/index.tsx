@@ -16,7 +16,10 @@ import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetai
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatConditionsComposeInclude, ConditionItem, ConditionInfo, ConditionToUpdate } from '@/helpers/conditionHelpers'
+import {
+  formatConditionsComposeInclude, buildConditionOptions,
+  ConditionInfo, ConditionToUpdate, Condition
+} from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
@@ -122,23 +125,6 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
     label: g.title?.replace('_', ' '),
     id: g.id
   }))
-}
-
-const buildConditionOptions = (conditions: ConditionItem[], selectedOptions?: ConditionInfo[] | undefined) => {
-  const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter(x => x)
-  const flattenedConditions = conditions?.flat(2)
-  const result = flattenedConditions?.map(c => (
-    {
-      value: {
-        system: c.system,
-        version: c.version,
-        code: c.code,
-        text: c.display
-      },
-      label: c.display,
-      dataId: `${c.system}${c.code}${c.display}`
-    }))?.filter(option => !selectedCodes?.includes(option?.value?.code))
-  return result
 }
 
 const ProgramValueSetDetails: NextPage = () => {
@@ -393,11 +379,12 @@ const ProgramValueSetDetails: NextPage = () => {
               value: {
                 system: i?.valueCodeableConcept?.coding?.[0]?.system,
                 code: i?.valueCodeableConcept?.coding?.[0]?.code,
+                version: i?.valueCodeableConcept?.coding?.[0]?.version,
                 text: i?.valueCodeableConcept?.text
               }
             })
             }
-        }).filter(x => x) as ConditionInfo[]
+        }).filter(x => x) as Condition[]
         return row.programStatus === 'active' || !can(session, 'edit')
           ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
           : (

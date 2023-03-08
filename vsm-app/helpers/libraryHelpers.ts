@@ -12,8 +12,8 @@ interface EditComposeInclude {
 }
 
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
-  return program.relatedArtifact
-    ?.find(related => related.resource?.includes('/Library/'))
+  return program?.relatedArtifact
+    ?.find(related => related?.resource?.includes('/Library/'))
     ?.resource
 }
 
