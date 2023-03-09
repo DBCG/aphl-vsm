@@ -35,6 +35,10 @@ export interface StatusProps {
   status: string
 }
 
+interface Error {
+  message?: string
+}
+
 const StatusTag = styled.div<StatusProps>`
   padding: 4px 6px;
   border-radius: 4px;
@@ -72,15 +76,55 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState<ErrorState | null>(null)
+  const [error, setError] = useState<Error>({})
+
+  // clone template
+  const [cloneLoading, setCloneLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [progIdToClone, setProgIdToClone] = useState('')
+  const [newCloneExists, setNewCloneExists] = useState(false)
 
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
     title: searchTermTitle,
     description: searchTermDescription,
-    newProgram: `${router?.query?.new}`
+    newProgram: `${router?.query?.new}`,
+    refreshToggle: newCloneExists
   })
+
+  const handleClickClone = (programId: string | undefined) => {
+    if (!programId) return
+    setProgIdToClone(programId)
+    setModalOpen(true)
+  }
+
+  const cloneProgram = async (programId: string) => {
+    setCloneLoading(true)
+    setError({})
+    let libraryData: any = ''
+    libraryData = programs.find(p => p.id === programId)
+    const json = JSON.stringify(libraryData)
+
+    try {
+      const res = await fetch('/api/template', {
+        method: 'POST',
+        body: json
+      })
+      if (res?.ok) {
+        setModalOpen(false)
+        setNewCloneExists(true)
+      } else {
+        const json = await res.json()
+        setError({ message: json.message })
+      }
+    } catch (e) {
+      setError({ message: `Error cloning program ${programId}` })
+    }
+
+    setCloneLoading(false)
+    setModalOpen(false)
+  }
 
   const columns = useMemo(() => [
     {
@@ -96,13 +140,6 @@ const Programs: NextPage = () => {
         )
       }
     },
-    // {
-    //   name: 'Updated',
-    //   selector: (row: fhir4.Library) => row.date,
-    //   sortable: true,
-    //   maxWidth: '100px',
-    //   wrap: true
-    // },
     {
       name: 'ID',
       selector: (row: fhir4.Library) => row.id,
@@ -149,7 +186,7 @@ const Programs: NextPage = () => {
         <ButtonWrapper>
           <IconButton
             disabled={row.status !== 'active'}
-            onClick={() => router.push(`/programs/template?id=${row.id}`)}
+            onClick={() => handleClickClone(row.id)}
             buttonContext='clone'
           />
         </ButtonWrapper>
@@ -167,7 +204,7 @@ const Programs: NextPage = () => {
           <IconButton
             disabled={row.status !== 'draft'}
             onClick={() => {
-              setError(null)
+              setError({})
               setProgramToRelease(row)
             }}
             buttonContext='release'
@@ -192,46 +229,7 @@ const Programs: NextPage = () => {
         </ButtonWrapper>
       )
     },
-    // {
-    //   name: 'Publish',
-    //   selector: (row: fhir4.Library) => row.name,
-    //   sortable: false,
-    //   wrap: true,
-    //   center: true,
-    //   cell: (row: fhir4.Library) => (
-    //     <ButtonWrapper>
-    //       <IconButton
-    //         disabled={row.status !== 'active'}
-    //         onClick={() => {
-    //           setError('')
-    //           setProgramToPublish(row)
-    //         }}
-    //         buttonContext='publish'
-    //       />
-    //     </ButtonWrapper>
-    //   )
-    // }
-  ], [router, router?.query?.new])
-
-  const onClickDownload = () => {
-    router.push('/programs/download')
-  }
-
-  const onClickNewVersion = () => {
-    router.push('/programs/template')
-  }
-
-  const onClickSearch = () => {
-    router.push('/api/programs')
-  }
-
-  const onClickValueSet = () => {
-    router.push('/programs/valueset')
-  }
-
-  const onClick = () => {
-    router.push('/programs/new')
-  }
+  ], [router, session])
 
   const handleCancelModal = () => {
     setProgramToPublish(null)
@@ -257,7 +255,6 @@ const Programs: NextPage = () => {
     if (!result.ok) {
       setError({
         message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`,
-        type: `${actionType}-fail`
       })
     } else {
       router.reload()
@@ -270,6 +267,14 @@ const Programs: NextPage = () => {
 
   return (
     <Col>
+      <LoadingModal
+        actionType='clone'
+        isOpen={modalOpen}
+        handleModalAction={async () => cloneProgram(progIdToClone)}
+        program={null}
+        loading={cloneLoading}
+        handleCancelModal={() => setModalOpen(false)}
+      />
       <Row>
         <PageTitle>
           Programs

@@ -65,6 +65,10 @@ const customModalStyles = {
   }
 }
 
+if (typeof(window) !== 'undefined') {
+  ReactModal.setAppElement('body')
+}
+
 const LoadingModal = ({
   isOpen,
   actionType,
