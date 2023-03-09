@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
-import retry from 'helpers/retryRequest';
-import { SearchParams } from 'fhir-kit-client';
+import retry from 'helpers/retryRequest'
+import { SearchParams } from 'fhir-kit-client'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | '',
@@ -137,7 +137,7 @@ export default async function handler(
 
               responseInfo.valueSets = serverResponse
                 ?.map(item => item?.status === 'fulfilled' && item?.value)
-                ?.filter(x => x)
+                ?.filter(x => !!x)
                 // filter out inactive VS
                 // @ts-ignore-next-line
                 ?.filter((vs: fhir4.ValueSet) => vs.status === 'active') as fhir4.ValueSet[]

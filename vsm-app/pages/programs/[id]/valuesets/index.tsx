@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import type { NextPage } from 'next'
 import styled from 'styled-components'
 import Image from 'next/image'
@@ -18,27 +18,13 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import {
   formatConditionsComposeInclude, buildConditionOptions,
-  ConditionInfo, ConditionToUpdate, Condition
+  ConditionToUpdate, Condition
 } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-
-interface GroupItem {
-  id: string,
-  title: string,
-  url: string
-}
-
-interface TableRow {
-  programName: string
-  programId: string
-  programStatus: string
-  canonical: string
-  title: string
-  version: string
-  valueSet: fhir4.ValueSet
-  groups: GroupItem[]
-}
+import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets'
+import CircularProgressWithLabel from '@/components/CircularProgressWithLabel'
+import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 
 export const customStyles = {
   headCells: {
@@ -104,27 +90,29 @@ const ReadOnlyTag = styled.div`
   border-radius: 8px;
 `
 
-interface GroupInfoItem {
-  label: string,
-  value: string
-}
-
-interface GroupUpdateItem {
-  canonical?: string,
-  groupInfo?: GroupInfoItem[]
-}
-
-interface DeleteParams {
-  vsCanonical: string | undefined,
-  grouperCanonicals: string[] | undefined
-}
-
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map(g => ({
     value: g.id,
     label: g.title?.replace('_', ' '),
     id: g.id
   }))
+}
+
+const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
+  const jobStatus = await fetch(`/api/valueset/update?jobId=${jobId}`)
+    .then(response => response.json()) as UpdateValueSetsResponse & { progress: number }
+  // progress gets converted from a function to a number after being serialized
+  if (!('error' in jobStatus)) {
+    setJobStatus(jobStatus.progress)
+    if (jobStatus.progress < 100) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      await subscribe(setJobStatus, jobId)
+    } else {
+      setJobStatus(null) // No Job in progress
+    }
+  } else {
+    console.error(jobStatus.error)
+  }
 }
 
 const ProgramValueSetDetails: NextPage = () => {
@@ -144,8 +132,9 @@ const ProgramValueSetDetails: NextPage = () => {
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
+  const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
 
-  const { data: session } = useSession() as unknown as { data: VSMSession}
+  const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const defaultFilters = {
     findInVsName: '',
@@ -157,10 +146,10 @@ const ProgramValueSetDetails: NextPage = () => {
 
   // all available filters
   const [filters, setFilters] = useState(defaultFilters)
-  
+
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
-  
+
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
     if (!vsCanonical || !grouperCanonicals) {
       setIsDeleting(false)
@@ -194,18 +183,29 @@ const ProgramValueSetDetails: NextPage = () => {
     setIsDeleting(false)
   }
 
+  const handleUpdateValueSets = async () => {
+    const canonicalUrls: string[] = progValueSetDets?.data?.map((data) => {
+      return data.canonical
+    }) || []
+    const job = await fetch(`/api/valueset/update`, {
+      method: 'PUT',
+      body: JSON.stringify({ urls: canonicalUrls })
+    }).then(res => res.json())
+
+    subscribe(setJobInStatusProgress, job?.id)
+  }
+
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
         try {
-          let updatedVs = fetch(endpoint, {
+          let json = await fetch(endpoint, {
             method: 'PUT',
             body: JSON.stringify(conditionToUpdate)
           }).then(res => res.json())
-    
-          let json = await updatedVs
+
           setUpdatedValueSet(json)
         } catch (e) {
           console.error('error: ', e)
@@ -232,7 +232,7 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     }
     postUpdate()
-  }, [updateVsGroups.groupInfo, programId])
+  }, [updateVsGroups.groupInfo, programId, updateVsGroups])
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
@@ -241,7 +241,7 @@ const ProgramValueSetDetails: NextPage = () => {
     ...debouncedFilters
   })
 
-    // since query takes a while, expose loading state
+  // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
   }, [filters])
@@ -259,9 +259,8 @@ const ProgramValueSetDetails: NextPage = () => {
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
-  // @ts-expect-error
   let groupsInProgram = progValueSetDets?.groupsInProgram
-  
+
   const alphabetizedGroups = groupsInProgram?.sort(
     (firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
       if (typeof firstItem.title === 'string' && typeof secondItem.title === 'string') {
@@ -270,14 +269,13 @@ const ProgramValueSetDetails: NextPage = () => {
       // if not enough information to order, just keep as they are
       return 0
     }
-  )
+  ) || []
 
   const handleFilterChange = (e: string | React.ChangeEvent<HTMLInputElement>, type: string) => {
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
   }
 
-  // @ts-ignore-next-line
   const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
   const columns = useMemo(() => [
@@ -287,7 +285,6 @@ const ProgramValueSetDetails: NextPage = () => {
           <SelectInputTitle>Valueset Name</SelectInputTitle>
           <FilterInput
             onChange={(e) => {
-              // @ts-ignore-next-line
               handleFilterChange(e.target.value, 'findInVsName')
             }}
             style={{ height: '30px' }}
@@ -305,7 +302,6 @@ const ProgramValueSetDetails: NextPage = () => {
         <div>
           <SelectInputTitle>Version</SelectInputTitle>
           <FilterInput
-            // @ts-ignore-next-line
             onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')}
             style={{ height: '30px' }}
           />
@@ -320,9 +316,8 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div>
-         <SelectInputTitle>Steward</SelectInputTitle>
+          <SelectInputTitle>Steward</SelectInputTitle>
           <FilterInput
-            // @ts-ignore-next-line
             onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
             style={{ height: '30px' }}
           />
@@ -336,8 +331,8 @@ const ProgramValueSetDetails: NextPage = () => {
     {
       name: (
         <div style={{ marginTop: '20px' }}>
-         <SelectInputTitle>Source</SelectInputTitle>
-         <p style={{ fontSize: '90%' }}>* source inferred by url</p>
+          <SelectInputTitle>Source</SelectInputTitle>
+          <p style={{ fontSize: '90%' }}>* source inferred by url</p>
         </div>
       ),
       selector: (row: TableRow) => row.valueSet,
@@ -347,7 +342,7 @@ const ProgramValueSetDetails: NextPage = () => {
       cell: (row: TableRow) => {
         const terminologyInfo = getTerminologySource(row.valueSet)
         return (
-          <div>{terminologyInfo.value}{ terminologyInfo.hasExtension ? null : '*' }</div>
+          <div>{terminologyInfo.value}{terminologyInfo.hasExtension ? null : '*'}</div>
         )
       }
     },
@@ -362,8 +357,8 @@ const ProgramValueSetDetails: NextPage = () => {
             instanceId='conditions-selector'
             isMulti
             options={buildConditionOptions(allConditions)}
-            // @ts-ignore-next-line
-            onChange={(e) => {handleFilterChange(e, 'activeConditions')}}
+            // @ts-expect-error
+            onChange={(e) => { handleFilterChange(e, 'activeConditions') }}
           />
         </SelectInputContainer>
       ),
@@ -383,26 +378,28 @@ const ProgramValueSetDetails: NextPage = () => {
                 text: i?.valueCodeableConcept?.text
               }
             })
-            }
+          }
         }).filter(x => x) as Condition[]
         return row.programStatus === 'active' || !can(session, 'edit')
-          ? (selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{ o.label }</ReadOnlyTag>))
+          ? (selectedOptions?.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>))
           : (
-          <SelectInputContainer>
-            <Select
-              instanceId='condition-selector'
-              isMulti={true}
-              options={buildConditionOptions(allConditions, selectedOptions)}
-              value={selectedOptions}
-              isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
-              // TODO should block add if already exists
-              onChange={(conditionInfo) => conditionInfo && setConditionToUpdate({
-                // @ts-expect-error
-                canonical: row.canonical, version: row.version, conditionInfo
-              })}
-            />
-          </SelectInputContainer>
-        )
+            <SelectInputContainer>
+              <Select
+                instanceId='condition-selector'
+                isMulti={true}
+                options={buildConditionOptions(allConditions, selectedOptions)}
+                value={selectedOptions}
+                isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
+                // TODO should block add if already exists
+                onChange={(e) => {
+                  const conditionInfo = e as Condition[]
+                  conditionInfo && setConditionToUpdate({
+                    canonical: row.canonical, version: row.version, conditionInfo
+                  })
+                }}
+              />
+            </SelectInputContainer>
+          )
       }
     },
     {
@@ -417,7 +414,7 @@ const ProgramValueSetDetails: NextPage = () => {
             isMulti
             options={buildGroupOptions(alphabetizedGroups)}
             // @ts-ignore-next-line
-            onChange={(e) => {handleFilterChange(e, 'activeGroups')}}
+            onChange={(e) => { handleFilterChange(e, 'activeGroups') }}
           />
         </SelectInputContainer>
       ),
@@ -433,36 +430,36 @@ const ProgramValueSetDetails: NextPage = () => {
             <ReadOnlyContainer>
               {selectedOptions.map(o => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)}
             </ReadOnlyContainer>
-         ) : (
-          <SelectInputContainer>
-            <Toaster/>
-            <Select
-              isClearable={false}
-              classNamePrefix='groups'
-              inputId='groups-selector'
-              instanceId='groups-selector'
-              isMulti={true}
-              isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
-              // @ts-expect-error
-              options={buildGroupOptions(groupsInProgram)}
-              value={selectedOptions}
-              onChange={e => {
-                if (e.length === 0) {
-                  toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {
-                    id: `${row.canonical}`,
-                    position: 'top-right',
-                    style: {
-                      borderRadius: 0
-                    }
-                  })
-                  return
-                }
+          ) : (
+            <SelectInputContainer>
+              <Toaster />
+              <Select
+                isClearable={false}
+                classNamePrefix='groups'
+                inputId='groups-selector'
+                instanceId='groups-selector'
+                isMulti={true}
+                isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
                 // @ts-expect-error
-                setUpdateVsGroups({ canonical: row?.canonical, groupInfo: e })
-              }}
-            />
-          </SelectInputContainer>
-        )
+                options={buildGroupOptions(groupsInProgram)}
+                value={selectedOptions}
+                onChange={e => {
+                  if (e.length === 0) {
+                    toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {
+                      id: `${row.canonical}`,
+                      position: 'top-right',
+                      style: {
+                        borderRadius: 0
+                      }
+                    })
+                    return
+                  }
+                  const groupInfo = e as GroupInfoItem[]
+                  setUpdateVsGroups({ canonical: row?.canonical, groupInfo })
+                }}
+              />
+            </SelectInputContainer>
+          )
       }
     },
     {
@@ -509,9 +506,15 @@ const ProgramValueSetDetails: NextPage = () => {
           </Id>
         </FlexRow>
         {can(session, 'edit') && <Button text='Add Valuesets'
-          style={{ maxHeight: '60px', minWidth: '150px' }}
+          style={{ minHeight: '60px', minWidth: '150px' }}
           onClick={() => router.push(`${router.asPath}/search`)}
         />}
+        {typeof jobInProgressStatus === 'number' ? (<CircularProgressWithLabel value={jobInProgressStatus} />) : (
+          <Button text='Update Valuesets'
+            style={{ minHeight: '60px', marginLeft: '15px', minWidth: '150px' }}
+            onClick={() => handleUpdateValueSets()}
+          />
+        )}
       </Row>
       <DT
         // @ts-expect-error
@@ -525,7 +528,7 @@ const ProgramValueSetDetails: NextPage = () => {
         // @ts-expect-error
         customStyles={customStyles}
         progressPending={pageLoading || vSetsLoading}
-        progressComponent={<LoadingIndicator/>}
+        progressComponent={<LoadingIndicator />}
       />
     </>
   )

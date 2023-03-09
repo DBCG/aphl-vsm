@@ -60,9 +60,9 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
     } else {
       console.error(searchResult)
       res.status(404).send([])
-    } 
+    }
   } catch (e: any) {
-    console.error('error programs:  ', e.response.data.text)
+    console.error('error programs:  ', e?.response?.data?.text || e)
     res.status(400).json({ error: 'Search for program failed.' })
   }
 }
