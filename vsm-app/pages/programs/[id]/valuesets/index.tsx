@@ -106,6 +106,12 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await subscribe(setJobStatus, jobId);
     } else {
+      toast.success('ValueSet Update finished.', {
+        position: 'top-right',
+        style: {
+          borderRadius: 0
+        }
+      });
       setJobStatus(null); // No Job in progress
     }
   } else {
