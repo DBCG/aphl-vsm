@@ -3,7 +3,7 @@ import type { NextPage } from 'next';
 import styled from 'styled-components';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { getSession, GetSessionParams, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import Select, {MultiValue} from 'react-select';
 import DT from 'react-data-table-component';
 import toast, { Toaster } from 'react-hot-toast';
@@ -555,22 +555,5 @@ const ProgramValueSetDetails: NextPage = () => {
     </>
   );
 };
-
-export async function getServerSideProps(context: GetSessionParams) {
-  const session = await getSession(context);
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permanent: false
-      }
-    };
-  }
-
-  return {
-    props: { session }
-  };
-}
 
 export default ProgramValueSetDetails;
