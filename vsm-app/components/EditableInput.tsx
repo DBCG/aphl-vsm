@@ -11,7 +11,7 @@ interface EditableInputProps {
   allowEdit?: boolean
 }
 
-const EditableInput = ({value = "", onBlur, disabled = false, allowEdit = true} : EditableInputProps) => {
+const EditableInput = ({ value = '', onBlur, disabled = false, allowEdit = true }: EditableInputProps) => {
   const [currentValue, setCurrentValue] = useState(value)
   const [isEdit, setIsEdit] = useState(false)
 
@@ -24,7 +24,7 @@ const EditableInput = ({value = "", onBlur, disabled = false, allowEdit = true} 
     onBlur?.(currentValue, () => setCurrentValue(value))
   }
 
-  const onKeyPress = (e: React.KeyboardEvent) => {    
+  const onKeyPress = (e: React.KeyboardEvent) => {
     const key = e.keyCode || e.which
     if (key === 13) {
       submitEvent()
@@ -33,16 +33,11 @@ const EditableInput = ({value = "", onBlur, disabled = false, allowEdit = true} 
 
   return (
     <>
-      {isEdit && !disabled ? ( <textarea
-          onChange={onChange}
-          onKeyPress={onKeyPress}
-          onBlur={submitEvent}
-          value={currentValue}
-        />
+      {isEdit && !disabled ? (
+        <textarea onChange={onChange} onKeyPress={onKeyPress} onBlur={submitEvent} value={currentValue} />
       ) : (
         <FieldValue onClick={() => allowEdit && setIsEdit(true)}>{currentValue}</FieldValue>
-      )
-      }
+      )}
     </>
   )
 }

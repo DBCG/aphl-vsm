@@ -6,8 +6,8 @@ const StyledButton = styled.button`
   height: 36px;
   width: 36px;
   border-radius: 50%;
-  background-color: ${props => props.disabled ? 'lightgray' : 'var(--theme-300)'};
-  cursor: ${props => props.disabled ? 'not-allowed !important' : 'pointer'};
+  background-color: ${(props) => (props.disabled ? 'lightgray' : 'var(--theme-300)')};
+  cursor: ${(props) => (props.disabled ? 'not-allowed !important' : 'pointer')};
   cursor: pointer;
   box-shadow: none;
   border: none;
@@ -35,7 +35,7 @@ const btnTitleText = {
 
 type Key = keyof typeof btnTitleText
 
-const IconButton = ({ type, buttonContext, onClick, style, disabled=false }: IButtonProps) => {
+const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: IButtonProps) => {
   let image = 'missing'
 
   switch (buttonContext) {
@@ -65,17 +65,12 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled=false }: IBu
       disabled={disabled}
       type={type}
       style={style}
-      onClick={e => {
+      onClick={(e) => {
         !disabled ? onClick(e) : null
       }}
     >
       <ImageContainer>
-        <Image
-          src={`/images/${image}.svg`}
-          width={24}
-          height={24}
-          alt=''
-        />
+        <Image src={`/images/${image}.svg`} width={24} height={24} alt="" />
       </ImageContainer>
     </StyledButton>
   )

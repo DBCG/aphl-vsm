@@ -70,15 +70,4 @@ const Asterisk = styled.span`
   color: var(--accent);
 `
 
-export {
-  Form,
-  FormDirections,
-  FormTitle,
-  DirectionContainer,
-  Col,
-  Row,
-  MetadataContainer,
-  NumberItem,
-  Subtitle,
-  Asterisk
-}
+export { Form, FormDirections, FormTitle, DirectionContainer, Col, Row, MetadataContainer, NumberItem, Subtitle, Asterisk }

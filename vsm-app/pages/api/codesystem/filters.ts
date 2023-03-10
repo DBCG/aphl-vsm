@@ -1,6 +1,6 @@
-import { CapabilityStatement } from 'fhir/r4';
+import { CapabilityStatement } from 'fhir/r4'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from 'fhirClients';
+import { vsacFhirClient } from 'fhirClients'
 
 export interface CodeSystemFilters {
   valueUri: string
@@ -19,10 +19,7 @@ const parseCapabilityStatement = (capabilityStatement: CapabilityStatement): Cod
   return filters
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
     try {
       const response = await vsacFhirClient.capabilityStatement()

@@ -1,21 +1,21 @@
 export interface GroupInfoItem {
-  label: string,
+  label: string
   value: string
 }
 
 export interface GroupUpdateItem {
-  canonical?: string,
+  canonical?: string
   groupInfo?: GroupInfoItem[]
 }
 
 export interface DeleteParams {
-  vsCanonical: string | undefined,
+  vsCanonical: string | undefined
   grouperCanonicals: string[] | undefined
 }
 
 export interface GroupItem {
-  id: string,
-  title: string,
+  id: string
+  title: string
   url: string
 }
 

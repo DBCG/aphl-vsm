@@ -18,13 +18,13 @@ interface TableData {
 }
 
 interface DeleteGrouper {
-  grouperLibId: string,
+  grouperLibId: string
   grouperVsCanonicalToRemove: string | undefined
   grouperVsIdToRemove: string | undefined
 }
 
 interface Error {
-  type: 'delete_failed',
+  type: 'delete_failed'
   message: string
 }
 
@@ -38,7 +38,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
   const [error, setError] = useState<null | Error>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const [deleting, setDeleting] = useState(false)
-  
+
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
   const deleteGrouper = async ({ grouperLibId, grouperVsCanonicalToRemove, grouperVsIdToRemove }: DeleteGrouper) => {
@@ -89,9 +89,11 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
   }, [error])
 
   useEffect(() => {
-    {can(session, 'edit') && status === 'draft'}
+    {
+      can(session, 'edit') && status === 'draft'
+    }
   })
-  
+
   const columns = useMemo(() => {
     const fields = [
       {
@@ -134,7 +136,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
                     grouperVsIdToRemove: row?.id
                   })
                 }}
-                buttonContext='delete'
+                buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
               />
             </ButtonContainer>
@@ -144,15 +146,14 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     ]
 
     return fields
-  
   }, [data, grouperLibId])
 
   return (
     <>
-      <Toaster/>
+      <Toaster />
       <DataTable
         progressPending={deleting}
-        progressComponent={<LoadingIndicator/>}
+        progressComponent={<LoadingIndicator />}
         columns={columns}
         data={data}
         pagination
@@ -169,8 +170,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

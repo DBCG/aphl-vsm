@@ -3,11 +3,12 @@ const nextConfig = {
   reactStrictMode: true,
   compress: true,
   async redirects() {
-    return [{
-      source: '/',
-      destination: '/programs',
-      permanent: true
-    }
+    return [
+      {
+        source: '/',
+        destination: '/programs',
+        permanent: true
+      }
     ]
   }
 }

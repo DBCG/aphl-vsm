@@ -7,10 +7,16 @@ import { Button } from '@/components/buttons/Button'
 import { VSReviewTable } from '@/components/VSReviewTable'
 import { stripFromName, startsAlphabetically, capitalizeFirstLetter } from '@/helpers/stringHelpers'
 import {
-  Form, FormDirections, FormTitle,
-  DirectionContainer, Col, Row,
-  MetadataContainer, Subtitle,
-  Asterisk, NumberItem
+  Form,
+  FormDirections,
+  FormTitle,
+  DirectionContainer,
+  Col,
+  Row,
+  MetadataContainer,
+  Subtitle,
+  Asterisk,
+  NumberItem
 } from '@/components/forms/styled/formElements'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { SelectedCondition } from '@/helpers/conditionHelpers'
@@ -28,8 +34,8 @@ const defaultFormData = {
 }
 
 interface Header {
- itemNum: number
- title: string | React.ReactElement
+  itemNum: number
+  title: string | React.ReactElement
 }
 
 const FormSectionHeader = ({ itemNum, title }: Header) => (
@@ -75,12 +81,7 @@ const AddGrouper = () => {
   const [error, setError] = useState<Error | null>(null)
 
   const handleAddValueSets = (newVsInfo: CombinedGrouperVSets) => {
-    const {
-      selectedValueSets,
-      selectedConditions,
-      selectedGroupers,
-      selectedTerminologyServer
-    } = newVsInfo
+    const { selectedValueSets, selectedConditions, selectedGroupers, selectedTerminologyServer } = newVsInfo
 
     // flatten the format
     const leafsToAdd = selectedValueSets.map((selectedValueSet) => ({
@@ -95,9 +96,8 @@ const AddGrouper = () => {
   }
 
   const handleUpdateConditions = ({ conditionInfo, vsId }: ConditionsHandler) => {
-    
-    const updatedVSets = grouperVSets.map(vs => {
-      if(vs.selectedValueSet.id === vsId) {
+    const updatedVSets = grouperVSets.map((vs) => {
+      if (vs.selectedValueSet.id === vsId) {
         vs.selectedConditions = conditionInfo as SelectedCondition[]
       }
       return vs
@@ -106,7 +106,7 @@ const AddGrouper = () => {
     setGrouperVSets(updatedVSets)
   }
 
-  const version = new Date().toISOString().substring(0,10)
+  const version = new Date().toISOString().substring(0, 10)
 
   useEffect(() => {
     const formattedName = capitalizeFirstLetter(stripFromName(title))
@@ -119,7 +119,13 @@ const AddGrouper = () => {
   const addGrouper = async () => {
     setError(null)
     const grouperMetadata = {
-      title, name, publisher, author, description, purpose, version
+      title,
+      name,
+      publisher,
+      author,
+      description,
+      purpose,
+      version
     }
 
     const json = JSON.stringify({
@@ -143,16 +149,16 @@ const AddGrouper = () => {
   const updateField = (e: React.BaseSyntheticEvent) => {
     const targetKey = e.target.id
     const targetValue = e.target.value
-    switch(targetKey) {
+    switch (targetKey) {
       case 'title':
         setTitle(targetValue)
-        break;
+        break
       case 'author':
         setAuthor(targetValue)
-        break;
+        break
       case 'publisher':
         setPublisher(targetValue)
-        break;
+        break
       case 'description':
         setDescription(targetValue)
         break
@@ -161,142 +167,66 @@ const AddGrouper = () => {
     }
   }
 
-  const submitDisabled = 
-  !(grouperVSets.length && title && author && publisher && description && purpose)
-  || !startsAlphabetically(title)
+  const submitDisabled = !(grouperVSets.length && title && author && publisher && description && purpose) || !startsAlphabetically(title)
 
   return (
-  <>
-    <FormTitle>Add a Grouper</FormTitle>
-    <FormSectionHeader
-      itemNum={1}
-      title={(<> Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)</>)}
-    />
-    <Form>
-      <SearchInput
-        label='Title'
-        id='title'
-        required={true}
-        onChange={(e) => updateField(e)}
-        value={title}
-        errorMessage={
-          title && !startsAlphabetically(title) ? '* Field must start with a letter' :  null
+    <>
+      <FormTitle>Add a Grouper</FormTitle>
+      <FormSectionHeader
+        itemNum={1}
+        title={
+          <>
+            {' '}
+            Enter metadata for new grouper (all fields required<Asterisk>*</Asterisk>)
+          </>
         }
       />
-      <SearchInput
-        label='Author'
-        id='author'
-        required={true}
-        onChange={(e) => updateField(e)}
-        value={author}
-      />
-      <TextArea
-        label='Purpose'
-        id='purpose'
-        required={true}
-        onChange={(e) => updateField(e)}
-        value={purpose}
-      />
-      <SearchInput
-        label='Publisher/Steward'
-        id='publisher'
-        required={true}
-        onChange={(e) => updateField(e)}
-        value={publisher}
-      />
-      <TextArea
-        label='Description'
-        id='description'
-        required={true}
-        onChange={(e) => updateField(e)}
-        value={description}
-      />
-    </Form>
-    <FormSectionHeader
-      itemNum={2}
-      title='Search and add valuesets to grouper, conditions optional'
-    />
-    <ValueSetSearchTable
-      handleAddValueSets={handleAddValueSets}
-      tableContext='add-grouper'
-    />
-    <FormSectionHeader
-      itemNum={3}
-      title='Review draft grouper information'
-    />
-    <Subtitle>Grouper Metadata</Subtitle>
-    <MetadataContainer>
-      <Col>
+      <Form>
         <SearchInput
-          label='Title'
-          id='title'
-          readonly={true}
-          placeholder={title || '---'}
+          label="Title"
+          id="title"
+          required={true}
+          onChange={(e) => updateField(e)}
+          value={title}
+          errorMessage={title && !startsAlphabetically(title) ? '* Field must start with a letter' : null}
         />
-        <SearchInput
-          label='Name (autogenerated from title)'
-          readonly={true}
-          id='name'
-          placeholder={name || '---'}
-        />
-        <SearchInput
-          readonly={true}
-          label='Publisher/Steward'
-          id='publisher'
-          placeholder={publisher || '---'}
-        />
-        <SearchInput
-          readonly={true}
-          label='Author'
-          id='author'
-          placeholder={author || '---'}
-        />
+        <SearchInput label="Author" id="author" required={true} onChange={(e) => updateField(e)} value={author} />
+        <TextArea label="Purpose" id="purpose" required={true} onChange={(e) => updateField(e)} value={purpose} />
+        <SearchInput label="Publisher/Steward" id="publisher" required={true} onChange={(e) => updateField(e)} value={publisher} />
+        <TextArea label="Description" id="description" required={true} onChange={(e) => updateField(e)} value={description} />
+      </Form>
+      <FormSectionHeader itemNum={2} title="Search and add valuesets to grouper, conditions optional" />
+      <ValueSetSearchTable handleAddValueSets={handleAddValueSets} tableContext="add-grouper" />
+      <FormSectionHeader itemNum={3} title="Review draft grouper information" />
+      <Subtitle>Grouper Metadata</Subtitle>
+      <MetadataContainer>
+        <Col>
+          <SearchInput label="Title" id="title" readonly={true} placeholder={title || '---'} />
+          <SearchInput label="Name (autogenerated from title)" readonly={true} id="name" placeholder={name || '---'} />
+          <SearchInput readonly={true} label="Publisher/Steward" id="publisher" placeholder={publisher || '---'} />
+          <SearchInput readonly={true} label="Author" id="author" placeholder={author || '---'} />
         </Col>
         <Col>
-        <TextArea
-          readonly={true}
-          label='Description'
-          id='description'
-          placeholder={description || '---'}
+          <TextArea readonly={true} label="Description" id="description" placeholder={description || '---'} />
+          <TextArea readonly={true} label="Purpose" id="purpose" placeholder={purpose || '---'} />
+          <SearchInput readonly={true} label="Version (autogenerated)" id="version" placeholder={version} />
+        </Col>
+      </MetadataContainer>
+      <Subtitle>Valuesets in Grouper</Subtitle>
+      <VSReviewTable vsToAdd={grouperVSets || []} setGrouperVSets={setGrouperVSets} handleUpdateConditions={handleUpdateConditions} />
+      <FormSectionHeader itemNum={4} title="Submit to create grouper for this program" />
+      <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
+        <Button
+          style={{
+            fontSize: '150%'
+          }}
+          text="SUBMIT"
+          disabled={submitDisabled}
+          onClick={async () => await addGrouper()}
         />
-        <TextArea
-          readonly={true}
-          label='Purpose'
-          id='purpose'
-          placeholder={purpose || '---'}
-        />
-        <SearchInput
-          readonly={true}
-          label='Version (autogenerated)'
-          id='version'
-          placeholder={version}
-        />
-      </Col>
-    </MetadataContainer>
-    <Subtitle>Valuesets in Grouper</Subtitle>
-    <VSReviewTable
-      vsToAdd={grouperVSets || []}
-      setGrouperVSets={setGrouperVSets}
-      handleUpdateConditions={handleUpdateConditions}
-    />
-    <FormSectionHeader
-      itemNum={4}
-      title='Submit to create grouper for this program'
-    />
-    <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
-      <Button
-        style={{
-          fontSize: '150%',
-        }}
-        text='SUBMIT'
-        disabled={submitDisabled}
-        onClick={async () => await addGrouper()}
-      />
-    </Row>
-    <ErrorMessage
-      error={error?.message || null}
-    />
-  </>
+      </Row>
+      <ErrorMessage error={error?.message || null} />
+    </>
   )
 }
 

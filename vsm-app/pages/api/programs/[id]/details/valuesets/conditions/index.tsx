@@ -4,11 +4,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
 
-const handleConditionUpdate = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
-
+const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
   const body = JSON.parse(req.body)
   // need to identify by version, too... can do w/ read?
   // ISSUE to be fixed by cache... thihs isn't immediately available
@@ -37,10 +33,10 @@ const handleConditionUpdate = async (
     res.status(200).send(updated)
   } catch (e) {
     console.error('error: ', e)
-    res.status(400).send({ error: 'error'})
+    res.status(400).send({ error: 'error' })
   }
 }
 
 export default handler({
-  PUT: { action: handleConditionUpdate, access: ['admin', 'editor']}
+  PUT: { action: handleConditionUpdate, access: ['admin', 'editor'] }
 })

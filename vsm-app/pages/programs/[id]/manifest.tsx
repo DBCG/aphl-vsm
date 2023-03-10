@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { getSession, GetSessionParams } from 'next-auth/react'
-import Select from 'react-select';
+import Select from 'react-select'
 import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle } from '.'
@@ -16,8 +16,8 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 export const customStyles = {
   table: {
     style: {
-      minWidth: '600px', // override the row height
-    },
+      minWidth: '600px' // override the row height
+    }
   },
   headCells: {
     style: {
@@ -76,7 +76,7 @@ const CodesystemSelectContainer = styled.div`
 `
 
 interface ManifestDataMap {
-  [key: string]: string[];
+  [key: string]: string[]
 }
 
 // Removes already selected versions from the available list
@@ -93,7 +93,7 @@ const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
-  
+
   const [systemSelections, setSystemSelections] = useState([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
@@ -107,7 +107,7 @@ const EditManifestDetails = () => {
       setCurrentSelectedData(programAndGrouperInfo.manifestData)
     }
   }, [programAndGrouperInfo.manifestData])
-  
+
   useEffect(() => {
     const retrieveSystemVersionOptions = async () => {
       const manifestEndpoint = `/api/programs/${programId}/manifest`
@@ -130,116 +130,110 @@ const EditManifestDetails = () => {
 
   useEffect(() => {
     const retrieveSelectedSystemVersions = async () => {
-        setPageLoading(true)
-        const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
-        const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => res.json())
-        availableVersions[selectedSystem] = systemVersionData
-        setAvailableVersions(structuredClone(availableVersions))
-        setPageLoading(false)
+      setPageLoading(true)
+      const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
+      const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => res.json())
+      availableVersions[selectedSystem] = systemVersionData
+      setAvailableVersions(structuredClone(availableVersions))
+      setPageLoading(false)
     }
     if (selectedSystem && !availableVersions[selectedSystem]) {
       retrieveSelectedSystemVersions()
     }
   }, [selectedSystem, programId])
 
-
   const selectOptions = useMemo(() => {
-    return systemSelections?.map(({uri, name}) => ({value: uri, label: `${name}`}))
+    return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
 
-  const deleteFn  = ({system, version}: ManifestData) => {
+  const deleteFn = ({ system, version }: ManifestData) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
-    clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]
-      ?.filter((i: any) => i !== version) || []
+    clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     updateManifest(clonedcurrentSelectedData)
   }
 
   return (
     <>
       <Row>
-        <Button 
-          text="&#8592; Back to program"
-          onClick={() => router.push(`/programs/${programId}`)}
-        />
+        <Button text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
-        <Row>
-          <FlexRow>
-            <PageTitle>Program Manifest Details</PageTitle>
-            <Image width={24} height={24} alt='' src='/images/right-chevron.svg' />
-            <Id>
-              <FieldTitle>ID</FieldTitle>{programId}
-            </Id>
-          </FlexRow>
-        </Row>
-        <CodesystemSelectContainer>
-          <StyledLabel>Codesystem</StyledLabel>
-          <Select
-            isLoading={pageLoading}
-            styles={{
-              container: (baseStyle) => ({
-                ...baseStyle, width: '300px', zIndex: 2
-              })
-            }}
-            isSearchable={true}
-            onChange={({ value }: any) => setSelectedSystem(value)}
-            name="codesystems"
-            options={selectOptions}
-          />
-        </CodesystemSelectContainer>
-        <DataTableContainer>
-          <div>
-            <StyledLabel>Available Versions</StyledLabel>
-            <DT
-              data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
-              style={{width: '900px'}}
-              highlightOnHover
-              columns={[
-                {
-                  name: 'System',
-                  selector: () => selectedSystem,
-                  sortable: true,
-                  wrap: true
-                },
-                {
+      <Row>
+        <FlexRow>
+          <PageTitle>Program Manifest Details</PageTitle>
+          <Image width={24} height={24} alt="" src="/images/right-chevron.svg" />
+          <Id>
+            <FieldTitle>ID</FieldTitle>
+            {programId}
+          </Id>
+        </FlexRow>
+      </Row>
+      <CodesystemSelectContainer>
+        <StyledLabel>Codesystem</StyledLabel>
+        <Select
+          isLoading={pageLoading}
+          styles={{
+            container: (baseStyle) => ({
+              ...baseStyle,
+              width: '300px',
+              zIndex: 2
+            })
+          }}
+          isSearchable={true}
+          onChange={({ value }: any) => setSelectedSystem(value)}
+          name="codesystems"
+          options={selectOptions}
+        />
+      </CodesystemSelectContainer>
+      <DataTableContainer>
+        <div>
+          <StyledLabel>Available Versions</StyledLabel>
+          <DT
+            data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
+            style={{ width: '900px' }}
+            highlightOnHover
+            columns={[
+              {
+                name: 'System',
+                selector: () => selectedSystem,
+                sortable: true,
+                wrap: true
+              },
+              {
                 name: 'Versions',
                 selector: (row) => row,
                 sortable: true,
                 wrap: true
+              },
+              {
+                cell: (newVersion) => {
+                  return (
+                    <Button
+                      data-tag="allowRowEvents"
+                      text="Add"
+                      onClick={() => {
+                        const clonedcurrentSelectedData = structuredClone(currentSelectedData)
+                        clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
+                        updateManifest(clonedcurrentSelectedData)
+                      }}
+                    />
+                  )
                 },
-                {
-                  cell: (newVersion) => {
-                    return (
-                      <Button
-                        data-tag="allowRowEvents"
-                        text="Add"
-                        onClick={() => {
-                          const clonedcurrentSelectedData = structuredClone(currentSelectedData)
-                          clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
-                          updateManifest(clonedcurrentSelectedData)
-                        }}
-                      />
-                    );
-                  },
-                  sortable: true,
-                  wrap: true
-                }
+                sortable: true,
+                wrap: true
+              }
             ]}
-              theme='aphl'
-              fixedHeader
-              customStyles={customStyles}
-              progressPending={pageLoading}
-              progressComponent={<LoadingIndicator/>}
-            />
-          </div>
-          <div>
-            <StyledLabel>Current Manifest</StyledLabel>
-            <ManifestDetailTable 
-              customStyles={customStyles}
-              data={currentSelectedData}
-              deleteFn={deleteFn}
-            />
-          </div>
-        </DataTableContainer>
+            theme="aphl"
+            fixedHeader
+            customStyles={customStyles}
+            progressPending={pageLoading}
+            progressComponent={<LoadingIndicator />}
+          />
+        </div>
+        <div>
+          <StyledLabel>Current Manifest</StyledLabel>
+          <ManifestDetailTable customStyles={customStyles} data={currentSelectedData} deleteFn={deleteFn} />
+        </div>
+      </DataTableContainer>
     </>
   )
 }
@@ -251,8 +245,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

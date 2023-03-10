@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 
 interface EditingStatus {
-  editing: boolean,
+  editing: boolean
   programId?: string
 }
 
@@ -9,7 +9,7 @@ interface EditingStatus {
 const useIsEditing = (initialState: boolean = false): [boolean, any] => {
   const [editingStatus, setEditingStatus] = useState(initialState)
 
-  const toggle = useCallback((): void => setEditingStatus(state => !state), []);
+  const toggle = useCallback((): void => setEditingStatus((state) => !state), [])
 
   return [editingStatus, toggle]
 }

@@ -11,7 +11,7 @@ interface ReadOnlyContainerProps {
 }
 
 const Input = styled.input<InputProps>`
-  min-width: ${props => props.minWidth || 0}px;
+  min-width: ${(props) => props.minWidth || 0}px;
   padding: 4px 6px;
   background-color: white;
   border: 2px solid transparent;
@@ -45,7 +45,7 @@ const TooltipContainer = styled.div`
 `
 
 export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
-  min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
+  min-width: ${(props) => (props?.minWidth ? props.minWidth + 'px' : 'auto')};
 `
 
 const InfoContainer = styled.div`
@@ -96,22 +96,19 @@ interface LabelProps {
 }
 
 export const Label = ({ id, label, required, readonly, info }: LabelProps) => {
-
   return (
     <>
-      {  (label !== undefined && id !== undefined) &&
+      {label !== undefined && id !== undefined && (
         <StyledLabel>
           {label}
-          {required && !readonly && <sup style={{color: 'red'}}>*</sup>}
+          {required && !readonly && <sup style={{ color: 'red' }}>*</sup>}
         </StyledLabel>
-      }
-      { info && (
+      )}
+      {info && (
         <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
+          <Image width={16} height={16} alt="" src="/images/information-circle.svg" />
           <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
+            <ToolTipText>{info}</ToolTipText>
           </TooltipContainer>
         </InfoContainer>
       )}
@@ -137,18 +134,10 @@ const SearchInput = ({
   return (
     <Container>
       <FlexRow>
-      <Label
-          id={id}
-          info={info}
-          label={label}
-          required={required}
-          readonly={readonly}
-        />
+        <Label id={id} info={info} label={label} required={required} readonly={readonly} />
       </FlexRow>
       {readonly ? (
-        <ReadOnlyContainer minWidth={minWidth}>
-          {def || placeholder}
-        </ReadOnlyContainer>
+        <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
       ) : (
         <>
           <Input
@@ -161,13 +150,9 @@ const SearchInput = ({
             defaultValue={def}
             style={style}
           />
-          { errorMessage && (
-            <ErrorMessage>
-              {errorMessage}
-            </ErrorMessage>
-          )}
+          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         </>
-      ) }
+      )}
     </Container>
   )
 }

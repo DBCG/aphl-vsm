@@ -24,8 +24,8 @@ const ProgramCompare: NextPage = () => {
     <Col>
       <PageTitle>Program Compare</PageTitle>
       <Row>
-        <SearchInput placeholder='Search by ID, Name, Title' />
-        <Button onClick={(e: React.MouseEvent) => console.log(e)} text='Add New Program' />
+        <SearchInput placeholder="Search by ID, Name, Title" />
+        <Button onClick={(e: React.MouseEvent) => console.log(e)} text="Add New Program" />
       </Row>
     </Col>
   )
@@ -38,8 +38,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

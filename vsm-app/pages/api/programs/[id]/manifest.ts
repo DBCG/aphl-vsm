@@ -2,21 +2,18 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
-import { getExpansionParametersSystemVersion, setExpansionParameters } from '@/helpers/valueSetHelpers';
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers';
+import { getExpansionParametersSystemVersion, setExpansionParameters } from '@/helpers/valueSetHelpers'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
-const getManifestVersions = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
-    terminologyClient.setClient('vsac')
-    const activeTerminologyClient = terminologyClient.getClient()
+const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
+  terminologyClient.setClient('vsac')
+  const activeTerminologyClient = terminologyClient.getClient()
   try {
     if (req.query.url) {
       const results = await activeTerminologyClient?.search({
         resourceType: 'CodeSystem',
         searchParams: {
-          system: req.query.url,
+          system: req.query.url
         }
       })
 
@@ -26,11 +23,13 @@ const getManifestVersions = async (
     }
 
     const terminologyCapabilityStatement = await activeTerminologyClient?.capabilityStatement()
-    const availableCodeSystems = terminologyCapabilityStatement?.extension?.map((ext: fhir4.Extension) => {
-      const uri = ext?.extension?.find(({url}) => url === 'system')?.valueUri
-      const name = ext?.extension?.find(({url}) => url === 'name')?.valueString
-      return { uri, name }
-    }).filter((x: any) => x.uri && x.name)
+    const availableCodeSystems = terminologyCapabilityStatement?.extension
+      ?.map((ext: fhir4.Extension) => {
+        const uri = ext?.extension?.find(({ url }) => url === 'system')?.valueUri
+        const name = ext?.extension?.find(({ url }) => url === 'name')?.valueString
+        return { uri, name }
+      })
+      .filter((x: any) => x.uri && x.name)
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
@@ -39,14 +38,11 @@ const getManifestVersions = async (
   }
 }
 
-const updateManifest = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
-  const grouperLibrary = await fhirCdrClient.read({
+const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const grouperLibrary = (await fhirCdrClient.read({
     resourceType: 'Library',
     id: req.query.id as string
-  }) as fhir4.Library
+  })) as fhir4.Library
 
   let manifestLibraryUrl = getGrouperLibraryCanonical(grouperLibrary)
 
@@ -54,12 +50,14 @@ const updateManifest = async (
     manifestLibraryUrl = manifestLibraryUrl.split('|')[0]
   }
 
-  const manifestLibrary = await fhirCdrClient.search({
-    resourceType: 'Library',
-    searchParams: {
-      url: manifestLibraryUrl as string
-    }
-  }).then (res => res?.entry?.[0]?.resource)
+  const manifestLibrary = await fhirCdrClient
+    .search({
+      resourceType: 'Library',
+      searchParams: {
+        url: manifestLibraryUrl as string
+      }
+    })
+    .then((res) => res?.entry?.[0]?.resource)
 
   setExpansionParameters(manifestLibrary, req.body)
   const updatedExpansionParameters = getExpansionParametersSystemVersion(manifestLibrary)

@@ -54,18 +54,10 @@ const StatusTag = styled.div<StatusProps>`
   height: fit-content;
   margin-left: 8px;
   font-size: 80%;
-  color: ${
-    props => props.status === 'active'
-    ? 'white'
-    : '#ca9547'
-  };
+  color: ${(props) => (props.status === 'active' ? 'white' : '#ca9547')};
   font-weight: bold;
   text-transform: uppercase;
-  background-color: ${
-    props => props.status === 'active'
-    ? 'rgba(46, 192, 205, 1)'
-    : 'white'
-  };
+  background-color: ${(props) => (props.status === 'active' ? 'rgba(46, 192, 205, 1)' : 'white')};
 `
 
 export const ItemWrapper = styled.div`
@@ -106,7 +98,7 @@ export const FieldValue = styled.span`
 
 const ProgramDetails: NextPage = () => {
   const router = useRouter()
-  const { data: session } = useSession() as unknown as { data: VSMSession}
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
 
@@ -127,7 +119,7 @@ const ProgramDetails: NextPage = () => {
     const response = await fetch(`/api/programs/${router.query.id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(toUpdateProgram)
     })
@@ -145,12 +137,12 @@ const ProgramDetails: NextPage = () => {
   if (!is.library(program)) {
     return (
       <IndicatorContainer>
-        <LoadingIndicator size='large'/>
+        <LoadingIndicator size="large" />
       </IndicatorContainer>
     )
   }
 
-  const { id='', status } = program
+  const { id = '', status } = program
   return (
     <Col>
       <Row style={{ justifyContent: 'space-between' }}>
@@ -158,29 +150,24 @@ const ProgramDetails: NextPage = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        <Button text='View ValueSets'
-          onClick={() => router.push(`/programs/${id}/valuesets`)}
-        />
+        <Button text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata
-        program={program}
-        handleSubmit={handleSubmit}
-        editable={can(session, 'edit') && status === 'draft'}
-      />
+      <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={can(session, 'edit') && status === 'draft'} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
-        <StyledSpan>Program Manifest</StyledSpan>
-          <Button text='Edit Manifest'
-            onClick={() => router.push(`/programs/${id}/manifest`)}
-          />
+          <StyledSpan>Program Manifest</StyledSpan>
+          <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable data={programAndGrouperInfo?.manifestData}/>
+        <ManifestDetailTable data={programAndGrouperInfo?.manifestData} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        <Button text='Create New Grouper'
-          onClick={() => { router.push(`/programs/${router.query.id}/grouper`) }}
+        <Button
+          text="Create New Grouper"
+          onClick={() => {
+            router.push(`/programs/${router.query.id}/grouper`)
+          }}
         />
       </Row>
       <ProgramDetailTable
@@ -200,8 +187,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

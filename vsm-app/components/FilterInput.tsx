@@ -19,25 +19,17 @@ const Container = styled.div`
 `
 
 interface Props {
-  placeholder?: string,
-  onChange?: React.ChangeEventHandler<HTMLInputElement>,
-  value?: string,
-  def?: string,
-  minWidth?: number,
-  hasIcon?: boolean,
-  disabled?: boolean,
+  placeholder?: string
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
+  value?: string
+  def?: string
+  minWidth?: number
+  hasIcon?: boolean
+  disabled?: boolean
   style?: React.CSSProperties
 }
 
-const FilterInput = ({
-  placeholder,
-  onChange,
-  value,
-  def,
-  style,
-  minWidth,
-  disabled = false
-}: Props) => {
+const FilterInput = ({ placeholder, onChange, value, def, style, minWidth, disabled = false }: Props) => {
   return (
     <Container>
       <Input

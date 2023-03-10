@@ -31,7 +31,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.send(response)
     } else {
       const json = await response.json()
-      
+
       const errorMessage = generateErrorMessage({
         serverResponse: json,
         defaultErrorMessage: `Could not clone Library ${body.id}`
@@ -44,7 +44,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-export default handler({ 
+export default handler({
   POST: {
     action: setDraft,
     access: ['admin', 'editor']
