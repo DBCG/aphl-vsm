@@ -225,7 +225,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   }
   const maxIterations = Math.floor(clonedUrls.length / MAX_JOB_SIZE) + 1
   let iteration = 0
-  console.log(`Starting job: ${job.id} with ${maxIterations} batches`)
+  console.log(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
   while (clonedUrls.length > 0) {
     await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
     iteration += 1

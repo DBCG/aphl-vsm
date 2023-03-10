@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { getSession, GetSessionParams, useSession } from 'next-auth/react';
-import Select from 'react-select';
+import Select, {MultiValue} from 'react-select';
 import DT from 'react-data-table-component';
 import toast, { Toaster } from 'react-hot-toast';
 import { PageTitle } from '@/components/Typography';
@@ -119,23 +119,6 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
   }
 };
 
-const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
-  const jobStatus = await fetch(`/api/valueset/update?jobId=${jobId}`)
-    .then(response => response.json()) as UpdateValueSetsResponse & { progress: number }
-  // progress gets converted from a function to a number after being serialized
-  if (!('error' in jobStatus)) {
-    setJobStatus(jobStatus.progress)
-    if (jobStatus.progress < 100) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      await subscribe(setJobStatus, jobId)
-    } else {
-      setJobStatus(null) // No Job in progress
-    }
-  } else {
-    console.error(jobStatus.error)
-  }
-}
-
 const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter();
   const programId = router.query.id as string;
@@ -202,19 +185,6 @@ const ProgramValueSetDetails: NextPage = () => {
       console.error(e);
     }
     setIsDeleting(false);
-  };
-
-  const handleUpdateValueSets = async () => {
-    const canonicalUrls: string[] =
-      progValueSetDets?.data?.map((data) => {
-        return data.canonical;
-      }) || [];
-    const job = await fetch(`/api/valueset/update`, {
-      method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls })
-    }).then((res) => res.json());
-
-    subscribe(setJobInStatusProgress, job?.id);
   };
 
   const handleUpdateValueSets = async () => {
@@ -304,7 +274,7 @@ const ProgramValueSetDetails: NextPage = () => {
       return 0;
     }) || [];
 
-  const handleFilterChange = (e: string | React.ChangeEvent<HTMLInputElement>, type: string) => {
+  const handleFilterChange = (e: string | MultiValue<any> | React.ChangeEvent<HTMLInputElement>, type: string) => {
     const updatedFilters = { ...filters, [type]: e };
     setFilters(updatedFilters);
   };
@@ -388,7 +358,6 @@ const ProgramValueSetDetails: NextPage = () => {
               instanceId="conditions-selector"
               isMulti
               options={buildConditionOptions(allConditions)}
-              // @ts-expect-error
               onChange={(e) => {
                 handleFilterChange(e, 'activeConditions');
               }}
