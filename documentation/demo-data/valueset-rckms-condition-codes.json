@@ -11,7 +11,7 @@
       "resource": {
         "resourceType": "ValueSet",
         "id": "rckms-condition-codes",
-        "url": "http://hl7.org/fhir/us/ecr/ValueSet/rckms-condition-codes",
+        "url": "http://ersd.aimsplatform.org/fhir/ValueSet/rckms-condition-codes",
         "version": "20210609",
         "name": "RCKMSContentCodes",
         "title": "RCKMS Content Codes",
