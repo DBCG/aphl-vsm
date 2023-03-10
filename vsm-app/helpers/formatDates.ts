@@ -1,8 +1,7 @@
-
 import { format } from 'date-fns'
 
 interface FormatVs {
-  valueSet: fhir4.ValueSet,
+  valueSet: fhir4.ValueSet
   dateType: string
 }
 const formatDate = (dateStr: string) => format(new Date(dateStr), 'YYY-M-d')

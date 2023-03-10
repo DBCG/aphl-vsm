@@ -16,8 +16,4 @@ const capitalizeFirstLetter = (title: string) => {
   return title.charAt(0).toUpperCase() + title.slice(1)
 }
 
-export {
-  stripFromName,
-  startsAlphabetically,
-  capitalizeFirstLetter
-}
+export { stripFromName, startsAlphabetically, capitalizeFirstLetter }

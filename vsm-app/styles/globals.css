@@ -198,9 +198,9 @@ select {
  */
 
 button,
-[type="button"],
-[type="reset"],
-[type="submit"] {
+[type='button'],
+[type='reset'],
+[type='submit'] {
   -webkit-appearance: button;
 }
 
@@ -209,9 +209,9 @@ button,
  */
 
 button::-moz-focus-inner,
-[type="button"]::-moz-focus-inner,
-[type="reset"]::-moz-focus-inner,
-[type="submit"]::-moz-focus-inner {
+[type='button']::-moz-focus-inner,
+[type='reset']::-moz-focus-inner,
+[type='submit']::-moz-focus-inner {
   border-style: none;
   padding: 0;
 }
@@ -221,9 +221,9 @@ button::-moz-focus-inner,
  */
 
 button:-moz-focusring,
-[type="button"]:-moz-focusring,
-[type="reset"]:-moz-focusring,
-[type="submit"]:-moz-focusring {
+[type='button']:-moz-focusring,
+[type='reset']:-moz-focusring,
+[type='submit']:-moz-focusring {
   outline: 1px dotted ButtonText;
 }
 
@@ -272,8 +272,8 @@ textarea {
  * 2. Remove the padding in IE 10.
  */
 
-[type="checkbox"],
-[type="radio"] {
+[type='checkbox'],
+[type='radio'] {
   box-sizing: border-box; /* 1 */
   padding: 0; /* 2 */
 }
@@ -282,8 +282,8 @@ textarea {
  * Correct the cursor style of increment and decrement buttons in Chrome.
  */
 
-[type="number"]::-webkit-inner-spin-button,
-[type="number"]::-webkit-outer-spin-button {
+[type='number']::-webkit-inner-spin-button,
+[type='number']::-webkit-outer-spin-button {
   height: auto;
 }
 
@@ -292,7 +292,7 @@ textarea {
  * 2. Correct the outline style in Safari.
  */
 
-[type="search"] {
+[type='search'] {
   -webkit-appearance: textfield; /* 1 */
   outline-offset: -2px; /* 2 */
 }
@@ -301,7 +301,7 @@ textarea {
  * Remove the inner padding in Chrome and Safari on macOS.
  */
 
-[type="search"]::-webkit-search-decoration {
+[type='search']::-webkit-search-decoration {
   -webkit-appearance: none;
 }
 
@@ -378,26 +378,26 @@ template {
 
 html,
 body {
-  --theme-500: rgba(0,91,99,1);
-	--theme-400: rgba(5,117,128,1);
-	--theme-300: rgba(1,161,175,1);
-	--theme-200: rgba(81,189,201,1);
-	--theme-100: rgba(237,248,249,1);
-	--accent: rgba(181,45,52,1);
-  --warning-light: #F4CB92;
+  --theme-500: rgba(0, 91, 99, 1);
+  --theme-400: rgba(5, 117, 128, 1);
+  --theme-300: rgba(1, 161, 175, 1);
+  --theme-200: rgba(81, 189, 201, 1);
+  --theme-100: rgba(237, 248, 249, 1);
+  --accent: rgba(181, 45, 52, 1);
+  --warning-light: #f4cb92;
   --warning-medium: rgb(250, 160, 36);
-	--neutral-300: rgba(147,144,137,1);
-	--neutral-200: rgba(241,245,248,1);
-	--neutral-100: rgba(179,172,166,1);
+  --neutral-300: rgba(147, 144, 137, 1);
+  --neutral-200: rgba(241, 245, 248, 1);
+  --neutral-100: rgba(179, 172, 166, 1);
   --theme-color-transparent: rgba(0, 128, 141, 0.05);
-  --white: #FFF;
+  --white: #fff;
   box-sizing: border-box;
   padding: 0;
   margin: 0;
   background-image: url('/images/background.svg');
   background-size: cover;
-  font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
-    Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif !important;
+  font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
+    Helvetica Neue, sans-serif !important;
 }
 
 a {

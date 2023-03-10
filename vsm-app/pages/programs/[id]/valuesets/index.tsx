@@ -1,27 +1,27 @@
-import React, { SetStateAction, useEffect, useMemo, useState } from 'react';
-import type { NextPage } from 'next';
-import styled from 'styled-components';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
-import Select, {MultiValue} from 'react-select';
-import DT from 'react-data-table-component';
-import toast, { Toaster } from 'react-hot-toast';
-import { PageTitle } from '@/components/Typography';
-import { FilterInput } from '@/components/FilterInput';
-import { IconButton } from '@/components/buttons/IconButton';
-import { Button } from '@/components/buttons/Button';
-import { FieldTitle } from '..';
-import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails';
-import { useGetConditions } from '@/hooks/useGetConditions';
-import { getTerminologySource } from '@/helpers/valueSetHelpers';
-import { useDebounce } from '@/hooks/useDebounce';
-import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers';
-import LoadingIndicator from '@/components/LoadingIndicator';
-import { can, VSMSession } from '@/helpers/rolesHelper';
-import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets';
-import LinearProgressWithLabel from '@/components/LinearProgressWithLabel';
-import { UpdateValueSetsResponse } from 'pages/api/valueset/update';
+import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
+import type { NextPage } from 'next'
+import styled from 'styled-components'
+import Image from 'next/image'
+import { useRouter } from 'next/router'
+import { useSession } from 'next-auth/react'
+import Select, { MultiValue } from 'react-select'
+import DT from 'react-data-table-component'
+import toast, { Toaster } from 'react-hot-toast'
+import { PageTitle } from '@/components/Typography'
+import { FilterInput } from '@/components/FilterInput'
+import { IconButton } from '@/components/buttons/IconButton'
+import { Button } from '@/components/buttons/Button'
+import { FieldTitle } from '..'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetConditions } from '@/hooks/useGetConditions'
+import { getTerminologySource } from '@/helpers/valueSetHelpers'
+import { useDebounce } from '@/hooks/useDebounce'
+import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import { can, VSMSession } from '@/helpers/rolesHelper'
+import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets'
+import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
+import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 
 export const customStyles = {
   headCells: {
@@ -38,107 +38,107 @@ export const customStyles = {
       overflow: 'visible'
     }
   }
-};
+}
 
 const Row = styled.div`
   display: flex;
   justify-content: space-between;
-`;
+`
 
 export const SelectInputContainer = styled.div`
   width: 100%;
-`;
+`
 
 export const SelectInputTitle = styled.p`
   padding-bottom: 8px;
   margin: 0;
   margin-right: 12px;
-`;
+`
 
 const Id = styled(PageTitle).attrs({
   as: 'span'
 })`
   font-size: 20px;
-`;
+`
 
 const FlexRow = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   width: 100%;
-`;
+`
 
 const FlexCol = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-`;
+`
 
 const ReadOnlyContainer = styled.div`
   display: flex;
   flex: 1;
   gap: 6px;
   flex-wrap: wrap;
-`;
+`
 
 const ReadOnlyTag = styled.div`
   background-color: var(--theme-color-transparent);
   padding: 6px 8px;
   border-radius: 8px;
-`;
+`
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
     value: g.id,
     label: g.title?.replace('_', ' '),
     id: g.id
-  }));
-};
+  }))
+}
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
-    progress: number;
-  };
+    progress: number
+  }
   // progress gets converted from a function to a number after being serialized
   if (!('error' in jobStatus)) {
-    setJobStatus(jobStatus.progress);
+    setJobStatus(jobStatus.progress)
     if (jobStatus.progress < 100) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await subscribe(setJobStatus, jobId);
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await subscribe(setJobStatus, jobId)
     } else {
       toast.success('ValueSet Update finished.', {
         position: 'top-right',
         style: {
           borderRadius: 0
         }
-      });
-      setJobStatus(null); // No Job in progress
+      })
+      setJobStatus(null) // No Job in progress
     }
   } else {
-    console.error(jobStatus.error);
+    console.error(jobStatus.error)
   }
-};
+}
 
 const ProgramValueSetDetails: NextPage = () => {
-  const router = useRouter();
-  const programId = router.query.id as string;
+  const router = useRouter()
+  const programId = router.query.id as string
 
   // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate);
-  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem);
+  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
+  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   // returned data from PUT operations
-  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([]);
-  const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>();
+  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
+  const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
 
   // loading states
-  const [pageLoading, setPageLoading] = useState(true);
-  const [grouperLoading, setGrouperLoading] = useState(false);
-  const [conditionLoading, setConditionLoading] = useState(false);
-  const [vSetsLoading, setVSetsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState<boolean | string>(false);
-  const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null);
+  const [pageLoading, setPageLoading] = useState(true)
+  const [grouperLoading, setGrouperLoading] = useState(false)
+  const [conditionLoading, setConditionLoading] = useState(false)
+  const [vSetsLoading, setVSetsLoading] = useState(true)
+  const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
+  const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
 
-  const { data: session } = useSession() as unknown as { data: VSMSession };
+  const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const defaultFilters = {
     findInVsName: '',
@@ -146,140 +146,141 @@ const ProgramValueSetDetails: NextPage = () => {
     findInVersion: '',
     activeConditions: [],
     activeGroups: []
-  };
+  }
 
   // all available filters
-  const [filters, setFilters] = useState(defaultFilters);
+  const [filters, setFilters] = useState(defaultFilters)
 
   // debounce changes to avoid extra server reqs
-  const debouncedFilters = useDebounce(filters, 300);
+  const debouncedFilters = useDebounce(filters, 300)
 
   const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
     if (!vsCanonical || !grouperCanonicals) {
-      setIsDeleting(false);
-      return;
+      setIsDeleting(false)
+      return
     } else {
-      setIsDeleting(vsCanonical);
+      setIsDeleting(vsCanonical)
     }
 
     try {
       const body = {
         vsCanonical,
         grouperCanonicals
-      };
+      }
 
       const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
         method: 'PUT',
         body: JSON.stringify(body)
-      }).then((res) => res.json());
+      }).then((res) => res.json())
 
-      const json = await result;
+      const json = await result
 
       if (!json) {
-        console.error('failure result: ', json);
+        console.error('failure result: ', json)
       } else {
-        setIsDeleting(false);
-        window.location.reload();
+        setIsDeleting(false)
+        window.location.reload()
       }
     } catch (e) {
-      console.error(e);
+      console.error(e)
     }
-    setIsDeleting(false);
-  };
+    setIsDeleting(false)
+  }
 
   const handleUpdateValueSets = async () => {
-    const canonicalUrls: string[] = progValueSetDets?.data?.map((data) => {
-      return data.canonical
-    }) || []
+    const canonicalUrls: string[] =
+      progValueSetDets?.data?.map((data) => {
+        return data.canonical
+      }) || []
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
       body: JSON.stringify({ urls: canonicalUrls })
-    }).then(res => res.json())
+    }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
   }
 
   useEffect(() => {
-    let endpoint = `/api/programs/${programId}/details/valuesets/conditions`;
+    let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
-        setConditionLoading(true);
+        setConditionLoading(true)
         try {
           let json = await fetch(endpoint, {
             method: 'PUT',
             body: JSON.stringify(conditionToUpdate)
-          }).then(res => res.json())
+          }).then((res) => res.json())
 
           setUpdatedValueSet(json)
         } catch (e) {
-          console.error('error: ', e);
+          console.error('error: ', e)
         }
-        setConditionLoading(false);
+        setConditionLoading(false)
       }
-    };
-    setUpdatedGrouperValueSets([]);
-    postUpdate();
-  }, [conditionToUpdate, programId]);
+    }
+    setUpdatedGrouperValueSets([])
+    postUpdate()
+  }, [conditionToUpdate, programId])
 
   useEffect(() => {
-    const endpoint = `/api/programs/${programId}/details/valuesets/groups`;
+    const endpoint = `/api/programs/${programId}/details/valuesets/groups`
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
-        setGrouperLoading(true);
+        setGrouperLoading(true)
         const updatedVs = await fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(updateVsGroups)
-        }).then((res) => res.json());
+        }).then((res) => res.json())
 
-        setUpdatedGrouperValueSets(updatedVs);
-        setGrouperLoading(false);
+        setUpdatedGrouperValueSets(updatedVs)
+        setGrouperLoading(false)
       }
-    };
-    postUpdate();
-  }, [updateVsGroups.groupInfo, programId, updateVsGroups]);
+    }
+    postUpdate()
+  }, [updateVsGroups.groupInfo, programId, updateVsGroups])
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     ...debouncedFilters
-  });
+  })
 
   // since query takes a while, expose loading state
   useEffect(() => {
-    setVSetsLoading(true);
-  }, [filters]);
+    setVSetsLoading(true)
+  }, [filters])
 
   useEffect(() => {
-    setVSetsLoading(false);
-  }, [progValueSetDets]);
+    setVSetsLoading(false)
+  }, [progValueSetDets])
 
   useEffect(() => {
-    const keys = Object.keys(progValueSetDets);
+    const keys = Object.keys(progValueSetDets)
     if (keys.length) {
-      setPageLoading(false);
+      setPageLoading(false)
     }
-  }, [progValueSetDets]);
+  }, [progValueSetDets])
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
   let groupsInProgram = progValueSetDets?.groupsInProgram
 
-  const alphabetizedGroups = groupsInProgram?.sort(
-    (firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
+  const alphabetizedGroups =
+    groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
       if (typeof firstItem.title === 'string' && typeof secondItem.title === 'string') {
-        return firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase());
+        return firstItem.title.toUpperCase().localeCompare(secondItem.title.toUpperCase())
       }
       // if not enough information to order, just keep as they are
-      return 0;
-    }) || [];
+      return 0
+    }) || []
 
   const handleFilterChange = (e: string | MultiValue<any> | React.ChangeEvent<HTMLInputElement>, type: string) => {
-    const updatedFilters = { ...filters, [type]: e };
-    setFilters(updatedFilters);
-  };
+    const updatedFilters = { ...filters, [type]: e }
+    setFilters(updatedFilters)
+  }
 
-  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit');
+  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
   const columns = useMemo(
     () => [
@@ -289,7 +290,7 @@ const ProgramValueSetDetails: NextPage = () => {
             <SelectInputTitle>Valueset Name</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
-                handleFilterChange(e.target.value, 'findInVsName');
+                handleFilterChange(e.target.value, 'findInVsName')
               }}
               style={{ height: '30px' }}
             />
@@ -338,13 +339,13 @@ const ProgramValueSetDetails: NextPage = () => {
         maxWidth: '120px',
         wrap: true,
         cell: (row: TableRow) => {
-          const terminologyInfo = getTerminologySource(row.valueSet);
+          const terminologyInfo = getTerminologySource(row.valueSet)
           return (
             <div>
               {terminologyInfo.value}
               {terminologyInfo.hasExtension ? null : '*'}
             </div>
-          );
+          )
         }
       },
       {
@@ -359,7 +360,7 @@ const ProgramValueSetDetails: NextPage = () => {
               isMulti
               options={buildConditionOptions(allConditions)}
               onChange={(e) => {
-                handleFilterChange(e, 'activeConditions');
+                handleFilterChange(e, 'activeConditions')
               }}
             />
           </SelectInputContainer>
@@ -380,10 +381,10 @@ const ProgramValueSetDetails: NextPage = () => {
                     version: i?.valueCodeableConcept?.coding?.[0]?.version,
                     text: i?.valueCodeableConcept?.text
                   }
-                };
+                }
               }
             })
-            .filter((x) => x) as Condition[];
+            .filter((x) => x) as Condition[]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             selectedOptions?.map((o) => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)
           ) : (
@@ -396,17 +397,17 @@ const ProgramValueSetDetails: NextPage = () => {
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
                 onChange={(e) => {
-                  const conditionInfo = e as Condition[];
+                  const conditionInfo = e as Condition[]
                   conditionInfo &&
                     setConditionToUpdate({
                       canonical: row.canonical,
                       version: row.version,
                       conditionInfo
-                    });
+                    })
                 }}
               />
             </SelectInputContainer>
-          );
+          )
         }
       },
       {
@@ -422,7 +423,7 @@ const ProgramValueSetDetails: NextPage = () => {
               options={buildGroupOptions(alphabetizedGroups)}
               // @ts-ignore-next-line
               onChange={(e) => {
-                handleFilterChange(e, 'activeGroups');
+                handleFilterChange(e, 'activeGroups')
               }}
             />
           </SelectInputContainer>
@@ -433,7 +434,7 @@ const ProgramValueSetDetails: NextPage = () => {
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow) => {
-          const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replace('_', ' '), value: i?.id }));
+          const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
               {selectedOptions.map((o) => (
@@ -461,15 +462,15 @@ const ProgramValueSetDetails: NextPage = () => {
                       style: {
                         borderRadius: 0
                       }
-                    });
-                    return;
+                    })
+                    return
                   }
-                  const groupInfo = e as GroupInfoItem[];
-                  setUpdateVsGroups({ canonical: row?.canonical, groupInfo });
+                  const groupInfo = e as GroupInfoItem[]
+                  setUpdateVsGroups({ canonical: row?.canonical, groupInfo })
                 }}
               />
             </SelectInputContainer>
-          );
+          )
         }
       },
       {
@@ -491,8 +492,8 @@ const ProgramValueSetDetails: NextPage = () => {
                   await handleDelete({
                     vsCanonical: row?.valueSet?.url,
                     grouperCanonicals: row.groups.map((g) => g.url)
-                  });
-                  window.location.reload();
+                  })
+                  window.location.reload()
                 }}
                 buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
@@ -508,7 +509,7 @@ const ProgramValueSetDetails: NextPage = () => {
       }
     ],
     [router, groupsInProgram, allConditions]
-  );
+  )
 
   return (
     <>
@@ -553,7 +554,7 @@ const ProgramValueSetDetails: NextPage = () => {
         progressComponent={<LoadingIndicator />}
       />
     </>
-  );
-};
+  )
+}
 
-export default ProgramValueSetDetails;
+export default ProgramValueSetDetails

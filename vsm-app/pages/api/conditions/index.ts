@@ -3,11 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 
 // this only gets the program library
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
     try {
       const data = await fhirCdrClient.search({

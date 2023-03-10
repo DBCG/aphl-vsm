@@ -3,22 +3,19 @@ import handler from '@/helpers/server/handler'
 import appCache from 'cache'
 import { fhirCdrClient } from 'fhirClients'
 
-// this sets approvalDate and date and optionally 
+// this sets approvalDate and date and optionally
 // creates an artifactCommentExtension
-const approve = async (
-  req: NextApiRequest,
-  res: NextApiResponse<fhir4.Library | { error: string }>
-): Promise<void> => {
+const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>): Promise<void> => {
   const cache = appCache?.getInstance()
   if (req.method === 'POST') {
     try {
-      const response = await fhirCdrClient.operation({
+      const response = (await fhirCdrClient.operation({
         name: '$approve',
         resourceType: 'Library',
         id: req.query.id as string,
         method: 'POST',
         input: req.body
-      }) as fhir4.Library
+      })) as fhir4.Library
       res.send(response)
     } catch (error: any) {
       const outcome = error.response.data as fhir4.OperationOutcome

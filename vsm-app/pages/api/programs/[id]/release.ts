@@ -3,10 +3,7 @@ import handler from '@/helpers/server/handler'
 import appCache from 'cache'
 
 // this only gets the program library
-const release = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> => {
+const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const cache = appCache?.getInstance()
 
   if (req.method === 'POST') {

@@ -6,21 +6,15 @@ interface ErrorInfo {
   defaultErrorMessage: string
 }
 
-const generateErrorMessage = ({
-  serverResponse,
-  defaultErrorMessage
-}: ErrorInfo) => {
+const generateErrorMessage = ({ serverResponse, defaultErrorMessage }: ErrorInfo) => {
   let errorMessage = defaultErrorMessage
 
-  if(is.operationOutcome(serverResponse)) {
-    const hapiDiagnosticsMessage = serverResponse?.issue?.[0]
-      ?.diagnostics?.toUpperCase() || ''
-  
+  if (is.operationOutcome(serverResponse)) {
+    const hapiDiagnosticsMessage = serverResponse?.issue?.[0]?.diagnostics?.toUpperCase() || ''
+
     const hapiErrCodeList = Object.keys(hapiErrorCodes) as Array<keyof typeof hapiErrorCodes>
-  
-    const matchingErrorCode = hapiErrCodeList?.find(code => (
-      hapiDiagnosticsMessage?.includes(code)
-    ))
+
+    const matchingErrorCode = hapiErrCodeList?.find((code) => hapiDiagnosticsMessage?.includes(code))
 
     if (matchingErrorCode) {
       errorMessage = hapiErrorCodes[matchingErrorCode].message

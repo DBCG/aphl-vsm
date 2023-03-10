@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 
 export interface SearchFilters {
-  id?: string,
-  name?: string,
-  title?: string,
-  description?: string,
-  newProgram?: string | undefined,
+  id?: string
+  name?: string
+  title?: string
+  description?: string
+  newProgram?: string | undefined
   refreshToggle?: boolean
 }
 

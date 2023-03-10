@@ -20,7 +20,6 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
   }
 }
 
-
 const getJobStatus = async (req: NextApiRequest, res: NextApiResponse<Job<{ urls: string[] }> | { error: any } | null>): Promise<void> => {
   try {
     const jobId = req.query.jobId as string

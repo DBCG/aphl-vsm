@@ -7,10 +7,7 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import {
-  buildConditionOptions,
-  formatConditionsComposeInclude
-} from '@/helpers/conditionHelpers'
+import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -29,7 +26,7 @@ import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 const searchTypes = [
   { label: 'OID', value: 'oid' },
   { label: 'Name', value: 'name' },
-  { label: 'URL', value: 'url'}
+  { label: 'URL', value: 'url' }
 ]
 
 const searchInfoText = {
@@ -38,15 +35,15 @@ const searchInfoText = {
   url: 'URL search requires a full URL'
 }
 
-const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+const oidRegex = new RegExp('^([0-2])((.0)|(.[1-9][0-9]*))*$')
 
 interface QueryStringItems {
-  searchType: string;
-  count: string;
-  sortBy:  string;
-  sortDirection: string;
-  offset: string;
-  terminologyServer: string;
+  searchType: string
+  count: string
+  sortBy: string
+  sortDirection: string
+  offset: string
+  terminologyServer: string
 }
 const TitleRow = styled.div`
   display: flex;
@@ -93,8 +90,8 @@ interface SubmitProps {
 export const SubmitSelectedForm = styled.form<SubmitProps>`
   padding: 12px 18px;
   background-color: var(--theme-100);
-  max-height: ${props => props.hide ? '0' : '1000px'};
-  padding: ${props => props.hide ? '0' : 'auto'};
+  max-height: ${(props) => (props.hide ? '0' : '1000px')};
+  padding: ${(props) => (props.hide ? '0' : 'auto')};
   transition: all 0.3s;
 `
 
@@ -120,7 +117,7 @@ const SelectInputContainer = styled.div`
   min-width: 300px;
 `
 
-const ModalContent = styled.div`  
+const ModalContent = styled.div`
   display: flex;
   height: 80%;
   flex-direction: row;
@@ -138,9 +135,7 @@ const ModalColumn = styled.div`
   text-align: center;
 `
 
-const ModalTitle = styled.h1`
-`
-
+const ModalTitle = styled.h1``
 
 const ErrorBlock = styled.div`
   background-color: white;
@@ -182,7 +177,7 @@ const columnSortMap = {
 }
 
 interface Error {
-  type: 'invalid-oid' | 'missing-data' | 'oid-not-found' 
+  type: 'invalid-oid' | 'missing-data' | 'oid-not-found'
   message: string
 }
 
@@ -197,10 +192,10 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   }))
 }
 
-const copyText = (txt: string) => navigator.clipboard.writeText(txt);
+const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 interface SearchReponseParams {
-  searchContext: 'filter' | 'search',
+  searchContext: 'filter' | 'search'
   response: Response | undefined
 }
 
@@ -218,12 +213,13 @@ const ValueSets = () => {
   return (
     <Col>
       <PageTitle>Add ValueSets: {programId}</PageTitle>
-      <DescriptionText>Valuesets added here will default to the most recent version available.
-        <br />After adding a valueset to the program, you may specify a different version on <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
+      <DescriptionText>
+        Valuesets added here will default to the most recent version available.
+        <br />
+        After adding a valueset to the program, you may specify a different version on{' '}
+        <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
       </DescriptionText>
-      <ValueSetSearchTable
-        tableContext='search-page'
-      />
+      <ValueSetSearchTable tableContext="search-page" />
     </Col>
   )
 }
@@ -235,8 +231,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

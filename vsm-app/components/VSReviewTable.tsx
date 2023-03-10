@@ -2,10 +2,7 @@ import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
-import {
-  buildConditionOptions,
-  formatConditionsComposeInclude
-} from '@/helpers/conditionHelpers'
+import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { ConditionsHandler, FlatGrouperVSet } from 'pages/programs/[id]/grouper'
 import { Dispatch, SetStateAction } from 'react'
 
@@ -15,7 +12,7 @@ const customStyles = {
       paddingRight: '18px',
       paddingLeft: '18px',
       paddingTop: '12px',
-      paddingBottom: '12px',
+      paddingBottom: '12px'
     }
   }
 }
@@ -27,14 +24,11 @@ interface TableProps {
 }
 
 const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {
-
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
 
-
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
-
-    const filtered = vsToAdd.filter(vs => {
+    const filtered = vsToAdd.filter((vs) => {
       const idInState = vs.selectedValueSet.id
       const versionInState = vs.selectedValueSet.version
       return !(idInState === idToDelete && versionInState === versionToDelete)
@@ -66,7 +60,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Conditions',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map(c => c?.label)?.join() || '',
+      selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map((c) => c?.label)?.join() || '',
       sortable: false,
       minWidth: '300px',
       style: {
@@ -96,23 +90,17 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       cell: (row: FlatGrouperVSet) => {
         return (
           <IconButton
-            type='button'
+            type="button"
             onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
-            buttonContext='delete'
+            buttonContext="delete"
             style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
           />
         )
       }
-    },
+    }
   ]
 
-  return (
-    <Table
-      data={vsToAdd}
-      columns={columns}
-      customStyles={customStyles}
-    />
-  )
+  return <Table data={vsToAdd} columns={columns} customStyles={customStyles} />
 }
 
 export { VSReviewTable }

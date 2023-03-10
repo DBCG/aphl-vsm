@@ -16,17 +16,14 @@ const FileBody = styled.div`
   backdrop-filter: blur(8px);
 `
 
-interface FileContainerProps  {
+interface FileContainerProps {
   children: React.ReactNode
 }
 
 const FileContainer = ({ children }: FileContainerProps) => {
-
   return (
     <Container>
-      <FileBody>
-        { children }
-      </FileBody>
+      <FileBody>{children}</FileBody>
     </Container>
   )
 }

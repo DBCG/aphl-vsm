@@ -42,11 +42,7 @@ interface Error {
 const StatusTag = styled.div<StatusProps>`
   padding: 4px 6px;
   border-radius: 4px;
-  background-color: ${
-    props => props.status === 'active'
-    ? 'rgba(46, 192, 205, 0.3)'
-    : 'rgba(252, 186, 3, 0.3)'
-  };
+  background-color: ${(props) => (props.status === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'rgba(252, 186, 3, 0.3)')};
 `
 
 const customStyles = {
@@ -58,7 +54,7 @@ const customStyles = {
   },
   rows: {
     style: {
-      cursor: 'pointer',
+      cursor: 'pointer'
     },
     highlightOnHoverStyle: {
       backgroundColor: '#DBF0F3'
@@ -68,7 +64,7 @@ const customStyles = {
 
 const Programs: NextPage = () => {
   const router = useRouter()
-  const { data: session } = useSession() as unknown as { data: VSMSession}
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   const [searchTermID, setSearchTermID] = useState('')
   const [searchTermName, setSearchTermName] = useState('')
   const [searchTermTitle, setSearchTermTitle] = useState('')
@@ -103,7 +99,7 @@ const Programs: NextPage = () => {
     setCloneLoading(true)
     setError({})
     let libraryData: any = ''
-    libraryData = programs.find(p => p.id === programId)
+    libraryData = programs.find((p) => p.id === programId)
     const json = JSON.stringify(libraryData)
 
     try {
@@ -126,110 +122,107 @@ const Programs: NextPage = () => {
     setModalOpen(false)
   }
 
-  const columns = useMemo(() => [
-    {
-      name: 'Status',
-      selector: (row: fhir4.Library) => row.status,
-      sortable: true,
-      maxWidth: '150px',
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => {
-        return (
-          <StatusTag status={row.status}>{ row.status }</StatusTag>
+  const columns = useMemo(
+    () => [
+      {
+        name: 'Status',
+        selector: (row: fhir4.Library) => row.status,
+        sortable: true,
+        maxWidth: '150px',
+        wrap: true,
+        center: true,
+        cell: (row: fhir4.Library) => {
+          return <StatusTag status={row.status}>{row.status}</StatusTag>
+        }
+      },
+      {
+        name: 'ID',
+        selector: (row: fhir4.Library) => row.id,
+        sortable: true,
+        maxWidth: '250px',
+        wrap: true
+      },
+      {
+        name: 'Name',
+        selector: (row: fhir4.Library) => row.name,
+        sortable: true,
+        maxWidth: '300px',
+        wrap: true
+      },
+      {
+        name: 'Title',
+        selector: (row: fhir4.Library) => row.title,
+        sortable: true,
+        maxWidth: '200px',
+        wrap: true
+      },
+      {
+        name: 'Description',
+        selector: (row: fhir4.Library) => row.description,
+        sortable: false,
+        maxWidth: '300px',
+        minWidth: '300px',
+        wrap: true
+      },
+      {
+        name: 'Version',
+        selector: (row: fhir4.Library) => row.version,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Clone',
+        selector: (row: fhir4.Library) => row.name,
+        sortable: false,
+        omit: !can(session, 'clone'),
+        wrap: true,
+        center: true,
+        cell: (row: fhir4.Library) => (
+          <ButtonWrapper>
+            <IconButton disabled={row.status !== 'active'} onClick={() => handleClickClone(row.id)} buttonContext="clone" />
+          </ButtonWrapper>
+        )
+      },
+      {
+        name: 'Release',
+        selector: (row: fhir4.Library) => row.name,
+        sortable: false,
+        omit: !can(session, 'release'),
+        wrap: true,
+        center: true,
+        cell: (row: fhir4.Library) => (
+          <ButtonWrapper>
+            <IconButton
+              disabled={row.status !== 'draft'}
+              onClick={() => {
+                setError({})
+                setProgramToRelease(row)
+              }}
+              buttonContext="release"
+            />
+          </ButtonWrapper>
+        )
+      },
+      {
+        name: 'Approve',
+        selector: (row: fhir4.Library) => row.name,
+        sortable: false,
+        omit: !can(session, 'approve'),
+        wrap: true,
+        center: true,
+        cell: (row: fhir4.Library) => (
+          <ButtonWrapper>
+            <IconButton
+              disabled={row.status !== 'active'}
+              onClick={() => router.push(`/programs/${row.id}/approve`)}
+              buttonContext="approve"
+            />
+          </ButtonWrapper>
         )
       }
-    },
-    {
-      name: 'ID',
-      selector: (row: fhir4.Library) => row.id,
-      sortable: true,
-      maxWidth: '250px',
-      wrap: true
-    },
-    {
-      name: 'Name',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: true,
-      maxWidth: '300px',
-      wrap: true
-    },
-    {
-      name: 'Title',
-      selector: (row: fhir4.Library) => row.title,
-      sortable: true,
-      maxWidth: '200px',
-      wrap: true
-    },
-    {
-      name: 'Description',
-      selector: (row: fhir4.Library) => row.description,
-      sortable: false,
-      maxWidth: '300px',
-      minWidth: '300px',
-      wrap: true
-    },
-    {
-      name: 'Version',
-      selector: (row: fhir4.Library) => row.version,
-      sortable: true,
-      wrap: true
-    },
-    {
-      name: 'Clone',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: false,
-      omit: !can(session, 'clone'),
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => (
-        <ButtonWrapper>
-          <IconButton
-            disabled={row.status !== 'active'}
-            onClick={() => handleClickClone(row.id)}
-            buttonContext='clone'
-          />
-        </ButtonWrapper>
-      )
-    },
-    {
-      name: 'Release',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: false,
-      omit: !can(session, 'release'),
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => (
-        <ButtonWrapper>
-          <IconButton
-            disabled={row.status !== 'draft'}
-            onClick={() => {
-              setError({})
-              setProgramToRelease(row)
-            }}
-            buttonContext='release'
-          />
-        </ButtonWrapper>
-      )
-    },
-    {
-      name: 'Approve',
-      selector: (row: fhir4.Library) => row.name,
-      sortable: false,
-      omit: !can(session, 'approve'),
-      wrap: true,
-      center: true,
-      cell: (row: fhir4.Library) => (
-        <ButtonWrapper>
-          <IconButton
-            disabled={row.status !== 'active'}
-            onClick={() => router.push(`/programs/${row.id}/approve`)}
-            buttonContext='approve'
-          />
-        </ButtonWrapper>
-      )
-    },
-  ], [router, session])
+    ],
+    [router, session]
+  )
 
   const handleCancelModal = () => {
     setProgramToPublish(null)
@@ -254,7 +247,7 @@ const Programs: NextPage = () => {
 
     if (!result.ok) {
       setError({
-        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`,
+        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`
       })
     } else {
       router.reload()
@@ -268,7 +261,7 @@ const Programs: NextPage = () => {
   return (
     <Col>
       <LoadingModal
-        actionType='clone'
+        actionType="clone"
         isOpen={modalOpen}
         handleModalAction={async () => cloneProgram(progIdToClone)}
         program={null}
@@ -276,12 +269,8 @@ const Programs: NextPage = () => {
         handleCancelModal={() => setModalOpen(false)}
       />
       <Row>
-        <PageTitle>
-          Programs
-        </PageTitle>
-        <Button
-          text='Publish'
-        />
+        <PageTitle>Programs</PageTitle>
+        <Button text="Publish" />
       </Row>
       <LoadingModal
         isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
@@ -291,22 +280,20 @@ const Programs: NextPage = () => {
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
       />
-      <ErrorMessage
-        error={error?.message || null}
-      />
+      <ErrorMessage error={error?.message || null} />
       <DT
         data={programs}
         // @ts-expect-error
         columns={columns}
-        theme='aphl'
+        theme="aphl"
         pagination
         fixedHeader
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
         customStyles={customStyles}
         progressPending={!programs.length}
-        progressComponent={<LoadingIndicator/>}
-        />
+        progressComponent={<LoadingIndicator />}
+      />
     </Col>
   )
 }
@@ -318,8 +305,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

@@ -4,9 +4,9 @@ import handler from '@/helpers/server/handler'
 import appCache from 'cache'
 
 interface Query {
-  '_id:contains'?: string,
-  'name:contains'?: string,
-  'description:contains'?: string,
+  '_id:contains'?: string
+  'name:contains'?: string
+  'description:contains'?: string
   'title:contains'?: string
 }
 
@@ -28,11 +28,14 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       }
       queries['_id:contains'] = req.query['id'] as string
-    } if (req.query['name']) {
+    }
+    if (req.query['name']) {
       queries['name:contains'] = req.query['name'] as string
-    } if (req.query['description']) {
+    }
+    if (req.query['description']) {
       queries['description:contains'] = req.query['description'] as string
-    } if (req.query['title']) {
+    }
+    if (req.query['title']) {
       queries['title:contains'] = req.query['title'] as string
     }
     const searchResult = await fhirCdrClient.search({
@@ -40,7 +43,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
       options: {
         headers: {
           'Cache-control': 'no-cache, no-store, must-revalidate'
-        },
+        }
       },
       searchParams: {
         context: 'program',

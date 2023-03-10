@@ -2,13 +2,13 @@ import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { useState, useEffect } from 'react'
 
 interface GrouperItem {
-  id: string,
-  name: string,
-  title: string,
+  id: string
+  name: string
+  title: string
   url: string
 }
 interface ManifestDataMap {
-  [key: string]: string[];
+  [key: string]: string[]
 }
 
 export interface Result {
@@ -25,14 +25,12 @@ export interface Result {
 // 3. manifest data
 const useGetProgramDetails = (id: string): Result => {
   // this is undefined
-  const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>(
-    {
-      program: {},
-      grouperData: [],
-      manifestData: {},
-      grouperLibId: null
-    }
-  )
+  const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>({
+    program: {},
+    grouperData: [],
+    manifestData: {},
+    grouperLibId: null
+  })
 
   useEffect(() => {
     let result: Result = {

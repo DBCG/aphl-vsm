@@ -15,17 +15,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   style?: React.CSSProperties
 }
 
-const TagButton = ({
-  text,
-  style,
-  onClick=() => {},
-}: ButtonProps) => {
+const TagButton = ({ text, style, onClick = () => {} }: ButtonProps) => {
   return (
-    <StyledButton
-      style={style}
-      onClick={(e) => onClick(e)}
-    >
-      { text }
+    <StyledButton style={style} onClick={(e) => onClick(e)}>
+      {text}
     </StyledButton>
   )
 }

@@ -16,17 +16,11 @@ interface BodyInfo {
   editingInfo: EditingInfo
 }
 
-const updateGrouperLibrary = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-) => {
+const updateGrouperLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
 
-    const {
-      libraryId,
-      editingInfo
-    }: BodyInfo = body
+    const { libraryId, editingInfo }: BodyInfo = body
 
     const grouperLib = await fhirCdrClient.read({
       resourceType: 'Library',
@@ -54,20 +48,20 @@ const updateGrouperLibrary = async (
       // as these only exist in the context of the program
       const deleted = await fhirCdrClient.delete({
         resourceType: 'ValueSet',
-        id: editingInfo.vsId,
+        id: editingInfo.vsId
       })
 
       if (is.library(updated)) {
         // if deletion of the actual ValueSet failed, doesn't matter from FE perspective
         // because the connection is severed at the Library level, but still warn
         // as this will create orphaned ValueSets in the data
-        if(!deleted?.ok) {
+        if (!deleted?.ok) {
           console.error(`Failed to delete ValueSet ${editingInfo.vsId}`)
         }
         return res.status(200).send(updated)
       } else {
         console.error(`Failed to update grouper lib ${grouperLib.name}`)
-        return res.status(400).send({ error: 'Update failed'})
+        return res.status(400).send({ error: 'Update failed' })
       }
     }
   } catch (e) {

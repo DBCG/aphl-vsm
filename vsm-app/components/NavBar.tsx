@@ -34,11 +34,14 @@ const NavBar = () => {
   return (
     <BarWrapper>
       <Bar>
-        <BreadCrumbs/>
-        <Button text='Sign Out' onClick={() => {          
-          signOut({ redirect: false })
-          router.push('/api/auth/logout')
-        }}/>
+        <BreadCrumbs />
+        <Button
+          text="Sign Out"
+          onClick={() => {
+            signOut({ redirect: false })
+            router.push('/api/auth/logout')
+          }}
+        />
       </Bar>
     </BarWrapper>
   )

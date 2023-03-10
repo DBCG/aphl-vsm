@@ -7,12 +7,12 @@ import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryH
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone',
-  isOpen: boolean,
-  handleCancelModal: () => void,
-  handleModalAction: Function,
-  loading: boolean,
-  program:  fhir4.Library | null
+  actionType: 'release' | 'publish' | 'clone'
+  isOpen: boolean
+  handleCancelModal: () => void
+  handleModalAction: Function
+  loading: boolean
+  program: fhir4.Library | null
 }
 
 const LoadingText = styled.p`
@@ -27,8 +27,10 @@ const modalText = {
     actionText: 'Would you like to continue?',
     modalLoadingText: (
       <LoadingText>
-        Publishing may take up to a minute.<br/>Please keep this window open until it completes.
-      </LoadingText> 
+        Publishing may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
     )
   },
   release: {
@@ -37,8 +39,10 @@ const modalText = {
     actionText: 'Would you like to continue?',
     modalLoadingText: (
       <LoadingText>
-        Releasing may take up to a minute.<br/>Please keep this window open until it completes.
-      </LoadingText> 
+        Releasing may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
     )
   },
   clone: {
@@ -47,15 +51,17 @@ const modalText = {
     actionText: 'Would you like to continue?',
     modalLoadingText: (
       <LoadingText>
-        Cloning may take up to a minute.<br/>Please keep this window open until it completes.
-      </LoadingText> 
+        Cloning may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
     )
-  }, 
+  }
 }
 
 const customModalStyles = {
   overlay: {
-    zIndex: 2,
+    zIndex: 2
   },
   content: {
     maxWidth: '500px',
@@ -65,34 +71,27 @@ const customModalStyles = {
   }
 }
 
-if (typeof(window) !== 'undefined') {
+if (typeof window !== 'undefined') {
   ReactModal.setAppElement('body')
 }
 
-const LoadingModal = ({
-  isOpen,
-  actionType,
-  loading,
-  handleCancelModal,
-  handleModalAction,
-  program
-}: ModalInfo) => {
+const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, handleModalAction, program }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
-  
+
   const [currentProgram, setProgram] = useState(program)
   const [currentInput, setCurrentInput] = useState('')
   const [disableSubmission, setDisableSubmission] = useState(false)
 
   useEffect(() => {
     // Need to set here because async
-    if(program != null) {
+    if (program != null) {
       setProgram(program)
       setCurrentInput(getReleaseDescription(program))
     }
   }, [program])
 
   useEffect(() => {
-    if(actionType === 'release' && currentInput.length === 0) {
+    if (actionType === 'release' && currentInput.length === 0) {
       setDisableSubmission(true)
     } else {
       setDisableSubmission(false)
@@ -100,35 +99,28 @@ const LoadingModal = ({
   }, [actionType, currentInput.length])
 
   return (
-    <ReactModal
-      isOpen={isOpen}
-      style={customModalStyles}
-    >
+    <ReactModal isOpen={isOpen} style={customModalStyles}>
       <ModalContent>
         <div>
-          <ModalTitle>{ title }</ModalTitle>
-          <ModalText>{ text }</ModalText>
-          <ModalText>{ actionText }</ModalText>
+          <ModalTitle>{title}</ModalTitle>
+          <ModalText>{text}</ModalText>
+          <ModalText>{actionText}</ModalText>
           {actionType === 'release' && (
             <>
               <TextArea
-                label='Description of Release'
+                label="Description of Release"
                 id="releaseDescription"
                 required={true}
                 value={currentInput}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const newValue = e?.target?.value
                   setCurrentInput(newValue)
-                }} />
-            </>
-            )
-          }
-          <ButtonGroup>
-            <Button
-              text='Cancel'
-              onClick={() => handleCancelModal()}
-              style={{ backgroundColor: 'var(--neutral-300)' }}
+                }}
               />
+            </>
+          )}
+          <ButtonGroup>
+            <Button text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
             <Button
               text={`YES, ${actionType}`}
               disabled={disableSubmission}
@@ -141,17 +133,16 @@ const LoadingModal = ({
                 }
                 handleModalAction(actionType, currProgram)
               }}
-              />
+            />
           </ButtonGroup>
-          {
-            loading &&
+          {loading && (
             <ModalOverlay>
-                <LoadingContainer>
-                  {modalLoadingText}
-                  <LoadingIndicator size='large' />
-                </LoadingContainer>
+              <LoadingContainer>
+                {modalLoadingText}
+                <LoadingIndicator size="large" />
+              </LoadingContainer>
             </ModalOverlay>
-          }
+          )}
         </div>
       </ModalContent>
     </ReactModal>
@@ -166,7 +157,6 @@ const ModalOverlay = styled.div`
   height: 100%;
   background-color: var(--theme-color);
   backdrop-filter: blur(20px);
-
 `
 
 const ModalContent = styled.div`

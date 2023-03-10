@@ -7,11 +7,7 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import {
-  SelectedCondition,
-  buildConditionOptions,
-  formatConditionsComposeInclude
-} from '@/helpers/conditionHelpers'
+import { SelectedCondition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/SearchInput'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -27,7 +23,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 const searchTypes = [
   { label: 'OID', value: 'oid' },
   { label: 'Name', value: 'name' },
-  { label: 'URL', value: 'url'}
+  { label: 'URL', value: 'url' }
 ] as const
 
 const searchInfoText = {
@@ -36,15 +32,15 @@ const searchInfoText = {
   url: 'URL search requires a full URL'
 }
 
-const oidRegex = new RegExp('^([0-2])((\.0)|(\.[1-9][0-9]*))*$')
+const oidRegex = new RegExp('^([0-2])((.0)|(.[1-9][0-9]*))*$')
 
 interface QueryStringItems {
-  searchType: string;
-  count: string;
-  sortBy:  string;
-  sortDirection: string;
-  offset: string;
-  terminologyServer: string;
+  searchType: string
+  count: string
+  sortBy: string
+  sortDirection: string
+  offset: string
+  terminologyServer: string
 }
 const TitleRow = styled.div`
   display: flex;
@@ -81,8 +77,8 @@ interface SubmitProps {
 export const SubmitSelectedForm = styled.form<SubmitProps>`
   padding: 12px 18px;
   background-color: var(--theme-100);
-  max-height: ${props => props.hide ? '0' : '1000px'};
-  padding: ${props => props.hide ? '0' : 'auto'};
+  max-height: ${(props) => (props.hide ? '0' : '1000px')};
+  padding: ${(props) => (props.hide ? '0' : 'auto')};
   transition: all 0.3s;
 `
 
@@ -103,7 +99,7 @@ const SelectInputContainer = styled.div`
   min-width: 300px;
 `
 
-const ModalContent = styled.div`  
+const ModalContent = styled.div`
   display: flex;
   height: 80%;
   flex-direction: row;
@@ -121,9 +117,7 @@ const ModalColumn = styled.div`
   text-align: center;
 `
 
-const ModalTitle = styled.h1`
-`
-
+const ModalTitle = styled.h1``
 
 const ErrorBlock = styled.div`
   background-color: white;
@@ -165,7 +159,7 @@ const columnSortMap = {
 }
 
 const SelectGrouperContainer = styled.div`
-  display: ${props => props.hidden ? 'none' : 'block'};
+  display: ${(props) => (props.hidden ? 'none' : 'block')};
 `
 
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
@@ -179,10 +173,10 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   }))
 }
 
-const copyText = (txt: string) => navigator.clipboard.writeText(txt);
+const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 interface SearchReponseParams {
-  searchContext: 'filter' | 'search',
+  searchContext: 'filter' | 'search'
   response: Response | undefined
 }
 
@@ -231,10 +225,7 @@ export interface SelectedGrouper {
   version: fhir4.ValueSet['version']
 }
 
-const ValueSetSearchTable = ({
-  tableContext,
-  handleAddValueSets
-}: ValueSetSearchTable) => {
+const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearchTable) => {
   const router = useRouter()
   const programId = router.query.id as string
 
@@ -243,7 +234,7 @@ const ValueSetSearchTable = ({
   const [selectedValueSets, setSelectedValueSets] = useState<SelectedValueSet[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
-  
+
   // Paging & search info
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
@@ -283,8 +274,8 @@ const ValueSetSearchTable = ({
   // take the response from the server and parse the important data
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
-      const valueSetResponse = await response.json() as SearchResponse
-      
+      const valueSetResponse = (await response.json()) as SearchResponse
+
       const newOffsets = {
         first: valueSetResponse?.first || null,
         next: valueSetResponse?.next || null,
@@ -317,78 +308,85 @@ const ValueSetSearchTable = ({
     setIsLoading(false)
   }
 
-  const filterExists = findInName?.length
-    || findInStatus?.length
-    || findInSteward?.length
-    || findInOid?.length
-    || findInLastUpdated?.length
+  const filterExists = findInName?.length || findInStatus?.length || findInSteward?.length || findInOid?.length || findInLastUpdated?.length
 
-   /**
+  /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
-  const submitVSetSearch = useCallback(async (e?: SyntheticEvent) => {
-    if (e) {
-      e.preventDefault()
-    }
+  const submitVSetSearch = useCallback(
+    async (e?: SyntheticEvent) => {
+      if (e) {
+        e.preventDefault()
+      }
 
-    setToggledClearRows(true)
+      setToggledClearRows(true)
 
-    let response
-    if (!searchTerm?.trim()) {
-      setIsLoading(false)
-      return
-    }
-
-    setIsLoading(true)
-    
-    let searchStr = ''
-    
-    if (searchType.value === 'oid') {
-      const trimmedWords = searchTerm?.trim()?.split(',')?.map(term => term?.trim())
-      const dedupedOids = dedupeArray(trimmedWords)
-      // if more than 100 OIDs, exit with error
-      if (dedupedOids?.length > paginationMaximum) {
-        const message = `OID search maximum is ${paginationMaximum} at a time.`
+      let response
+      if (!searchTerm?.trim()) {
         setIsLoading(false)
-        toast.error(message)
         return
       }
-      searchStr = dedupedOids?.join(',')
-    } else if (searchType.value === 'name') {
-      searchStr = searchTerm.trim()
-    } else if (searchType.value === 'url') {
-      searchStr = searchTerm.trim()
-    }
 
-    const offset = offsets?.[currentPage?.type] || ''
+      setIsLoading(true)
 
-    let queryStringItems = {
-      searchType: searchType?.value,
-      count: resultsPerPage,
-      sortBy: sortParams?.column,
-      sortDirection: sortParams?.direction,
-      offset: offset,
-      terminologyServer: selectedTerminologyServer?.value?.title
-    }
+      let searchStr = ''
 
-    let queryString = ''
-    
-    Object.keys(queryStringItems).forEach(key => queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`)
+      if (searchType.value === 'oid') {
+        const trimmedWords = searchTerm
+          ?.trim()
+          ?.split(',')
+          ?.map((term) => term?.trim())
+        const dedupedOids = dedupeArray(trimmedWords)
+        // if more than 100 OIDs, exit with error
+        if (dedupedOids?.length > paginationMaximum) {
+          const message = `OID search maximum is ${paginationMaximum} at a time.`
+          setIsLoading(false)
+          toast.error(message)
+          return
+        }
+        searchStr = dedupedOids?.join(',')
+      } else if (searchType.value === 'name') {
+        searchStr = searchTerm.trim()
+      } else if (searchType.value === 'url') {
+        searchStr = searchTerm.trim()
+      }
 
-    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+      const offset = offsets?.[currentPage?.type] || ''
 
-    response = await fetch(endpoint)
+      let queryStringItems = {
+        searchType: searchType?.value,
+        count: resultsPerPage,
+        sortBy: sortParams?.column,
+        sortDirection: sortParams?.direction,
+        offset: offset,
+        terminologyServer: selectedTerminologyServer?.value?.title
+      }
 
-    const searchContext = filterExists ? 'filter' : 'search'
-    await handleSearchResponse({ searchContext, response })
-    setToggledClearRows(false)
-    setSelectedValueSets([])
-  }, [
-    currentPage?.type, filterExists, offsets,
-    resultsPerPage, searchTerm, searchType.value,
-    selectedTerminologyServer?.value?.title,
-    sortParams?.column, sortParams?.direction
-  ])
+      let queryString = ''
+
+      Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
+
+      const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+
+      response = await fetch(endpoint)
+
+      const searchContext = filterExists ? 'filter' : 'search'
+      await handleSearchResponse({ searchContext, response })
+      setToggledClearRows(false)
+      setSelectedValueSets([])
+    },
+    [
+      currentPage?.type,
+      filterExists,
+      offsets,
+      resultsPerPage,
+      searchTerm,
+      searchType.value,
+      selectedTerminologyServer?.value?.title,
+      sortParams?.column,
+      sortParams?.direction
+    ]
+  )
 
   // handle filters
   useEffect(() => {
@@ -407,51 +405,46 @@ const ValueSetSearchTable = ({
     // send out a request to the server to filter
     if (valueSets.length > paginationMaximum) {
       filter()
-    // if there are less than paginationMaximum, filter in FE synchronously
-    // this is not ideal, but VSAC does not allow us to combine multiple search params
+      // if there are less than paginationMaximum, filter in FE synchronously
+      // this is not ideal, but VSAC does not allow us to combine multiple search params
     } else {
-      let filteredValueSets:fhir4.ValueSet[] = valueSets 
+      let filteredValueSets: fhir4.ValueSet[] = valueSets
       if (findInOid.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          vs => {
-            const oid = vs?.id?.split('|')?.[0]
-            return oid?.includes(findInOid)
-          }
-        )
+        filteredValueSets = filteredValueSets?.filter((vs) => {
+          const oid = vs?.id?.split('|')?.[0]
+          return oid?.includes(findInOid)
+        })
       }
       if (findInName?.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          vs => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase())
-          )
+        filteredValueSets = filteredValueSets?.filter((vs) => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       }
       if (findInStatus?.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          vs => vs?.status === findInStatus
-        )
+        filteredValueSets = filteredValueSets?.filter((vs) => vs?.status === findInStatus)
       }
       if (findInSteward?.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          vs => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase())
-        )
+        filteredValueSets = filteredValueSets?.filter((vs) => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       }
       if (findInLastUpdated?.length) {
-        filteredValueSets = filteredValueSets?.filter(
-          (vs: fhir4.ValueSet) => {
-            const lastUpdateDate = formatValuesetDate(
-              { valueSet: vs, dateType: 'lastUpdated' }
-            ) 
-            return lastUpdateDate?.includes(findInLastUpdated)
-            })
+        filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
+          const lastUpdateDate = formatValuesetDate({ valueSet: vs, dateType: 'lastUpdated' })
+          return lastUpdateDate?.includes(findInLastUpdated)
+        })
       }
       setFilteredVSets(filteredValueSets)
     }
   }, [
-    valueSets, findInName, findInStatus,
-    findInSteward, findInOid, findInLastUpdated, currentPage,
-    resultsPerPage, sortParams, filterExists,
-    submitVSetSearch 
+    valueSets,
+    findInName,
+    findInStatus,
+    findInSteward,
+    findInOid,
+    findInLastUpdated,
+    currentPage,
+    resultsPerPage,
+    sortParams,
+    filterExists,
+    submitVSetSearch
   ])
-
 
   useEffect(() => {
     if (!searchTerm) return
@@ -463,8 +456,7 @@ const ValueSetSearchTable = ({
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams,
-  selectedTerminologyServer, searchTerm, submitVSetSearch])
+  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer, searchTerm, submitVSetSearch])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -501,11 +493,8 @@ const ValueSetSearchTable = ({
 
   const submitAddVSet = async (e: SyntheticEvent) => {
     e.preventDefault()
-    
-    if (
-      tableContext === 'search-page'
-      && (!selectedGroupers.length)
-    ) {
+
+    if (tableContext === 'search-page' && !selectedGroupers.length) {
       const message = 'Select at least one valueset with an associated group. (Conditions optional)'
       toast.error(message)
       setAddedValueSetsLoading(false)
@@ -520,25 +509,25 @@ const ValueSetSearchTable = ({
       selectedConditions,
       selectedGroupers
     }
-    
+
     // add grouper context needs to pass the info to the parent to submit
     if (tableContext === 'add-grouper') {
       if (handleAddValueSets) {
         handleAddValueSets(leafsToAdd)
       }
       setToggledClearRows(true)
-    
+
       // the search page submits from here
     } else if (tableContext === 'search-page') {
       setAddedValueSetsLoading(true)
       const leafPutBody = JSON.stringify(leafsToAdd)
-    
+
       // needs some error handling down here
       const leafsUpdated = await fetch('/api/valueset', {
         method: 'PUT',
         body: leafPutBody
       })
-  
+
       if (leafsUpdated.ok) {
         toast.success('ValueSet Add Successful')
         router.push(`/programs/${programId}/valuesets`)
@@ -557,30 +546,25 @@ const ValueSetSearchTable = ({
     }
   }, [fetchError?.message, fetchError?.errorType])
 
-  const showFilters = Boolean(searchTotal)
-    && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
+  const showFilters = Boolean(searchTotal) && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
 
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
   // search page requires the target grouper to be selected, 'add-grouper' context does not
-  const buttonDisabled = tableContext === 'search-page'
-    ? !selectedValueSets.length || !selectedGroupers.length
-    : !selectedValueSets.length
+  const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length
 
   return (
     <Col>
       <ReactModal isOpen={addedValueSetsLoading}>
         <ModalContent>
           <ModalColumn>
-            <LoadingIndicator size='large'/>
+            <LoadingIndicator size="large" />
             <ModalTitle>Saving Valuesets to Program</ModalTitle>
           </ModalColumn>
         </ModalContent>
       </ReactModal>
       <TitleRow>
-        <ToastContainer
-          closeOnClick={false}
-        />
+        <ToastContainer closeOnClick={false} />
         <Row>
           <StyledForm>
             <div style={{ marginBottom: '15px', alignSelf: 'flex-start' }}>
@@ -594,7 +578,7 @@ const ValueSetSearchTable = ({
                   options={terminologyServerEndpoints}
                   value={selectedTerminologyServer}
                   onChange={(e: any) => {
-                    return (setSelectedTerminologyServer(e))
+                    return setSelectedTerminologyServer(e)
                   }}
                 />
               </SelectInputContainer>
@@ -610,48 +594,51 @@ const ValueSetSearchTable = ({
                   options={searchTypes}
                   value={searchType}
                   onChange={(e: any) => {
-                    return (setSearchType(e))
+                    return setSearchType(e)
                   }}
                 />
               </SelectInputContainer>
             </div>
             <TextArea
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value) }
-              id='vs-search'
-              label='Search Text'
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              id="vs-search"
+              label="Search Text"
               hasIcon={true}
               info={searchInfoText[searchType.value]}
               minWidth={300}
-              errorMessage={vsNumExceedsFilterLimit ? (
-                <ErrorText>
-                  {searchTotal} results<br/>Refine search to enable filters (max {paginationMaximum} results)
-                </ErrorText>
-              ) : null}
+              errorMessage={
+                vsNumExceedsFilterLimit ? (
+                  <ErrorText>
+                    {searchTotal} results
+                    <br />
+                    Refine search to enable filters (max {paginationMaximum} results)
+                  </ErrorText>
+                ) : null
+              }
             />
             <IconButton
               style={{ alignSelf: 'center', marginTop: '12px' }}
-              buttonContext='search'
-              type='submit'
+              buttonContext="search"
+              type="submit"
               onClick={(e) => submitVSetSearch(e)}
             />
-          {
-            fetchError?.errorType === 'failed-oids'
-              ? <ErrorBlock>
-                  <ErrorBlockText>Search for these OIDs failed:</ErrorBlockText>
-                  <ErrorBlockText>{fetchError?.data}</ErrorBlockText>
-                  <ErrorBlockText>They may be malformed or nonexistent.</ErrorBlockText>
-                  <CopyButton
-                    onClick={(e) => {
-                      e.preventDefault()
-                      toast.success('Copied failed OIDs to clipboard!')
-                      copyText(fetchError?.data || '')}
-                    }
-                    title='Copy Failed OIDs'>
-                    <Image src='/images/clipboard-outline.svg' alt='Copy' width={16} height={16}/>
-                  </CopyButton>
-                </ErrorBlock>
-              : null
-            }
+            {fetchError?.errorType === 'failed-oids' ? (
+              <ErrorBlock>
+                <ErrorBlockText>Search for these OIDs failed:</ErrorBlockText>
+                <ErrorBlockText>{fetchError?.data}</ErrorBlockText>
+                <ErrorBlockText>They may be malformed or nonexistent.</ErrorBlockText>
+                <CopyButton
+                  onClick={(e) => {
+                    e.preventDefault()
+                    toast.success('Copied failed OIDs to clipboard!')
+                    copyText(fetchError?.data || '')
+                  }}
+                  title="Copy Failed OIDs"
+                >
+                  <Image src="/images/clipboard-outline.svg" alt="Copy" width={16} height={16} />
+                </CopyButton>
+              </ErrorBlock>
+            ) : null}
           </StyledForm>
         </Row>
       </TitleRow>
@@ -667,7 +654,7 @@ const ValueSetSearchTable = ({
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedConditions)}
                 value={selectedConditions}
-                onChange={(e: any) => (setSelectedConditions(e))}
+                onChange={(e: any) => setSelectedConditions(e)}
               />
             </SelectInputContainer>
           </div>
@@ -687,16 +674,17 @@ const ValueSetSearchTable = ({
               />
             </SelectInputContainer>
           </SelectGrouperContainer>
-        <Button text='Add Selected To Program'
-          disabled={buttonDisabled}
-          style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
-          onClick={(e) => submitAddVSet(e)}
-        />
+          <Button
+            text="Add Selected To Program"
+            disabled={buttonDisabled}
+            style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
+            onClick={(e) => submitAddVSet(e)}
+          />
         </Row>
       </SubmitSelectedForm>
       <SearchTable
         searchType={searchType.value}
-        valueSets={!filterExists ? (valueSets || []) : filteredVSets}
+        valueSets={!filterExists ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         clearSelectedRows={toggledClearRows}
         setClearSelectedRows={setToggledClearRows}

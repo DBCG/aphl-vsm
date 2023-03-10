@@ -10,7 +10,7 @@ const is = {
   },
   codeableConcept: (resource: fhir4.CodeableConcept | any): resource is fhir4.CodeableConcept => {
     const codeableConceptKeys = ['coding', 'text']
-    const subsetOfSpec = Object.keys(resource).every(k => codeableConceptKeys.includes(k))
+    const subsetOfSpec = Object.keys(resource).every((k) => codeableConceptKeys.includes(k))
     if (resource.coding) {
       return subsetOfSpec && is.coding(resource.coding)
     } else {
@@ -19,7 +19,7 @@ const is = {
   },
   coding: (resource: fhir4.Coding | any): resource is fhir4.Coding => {
     const codingKeys = ['system', 'version', 'code', 'display', 'userSelected']
-    return Object.keys(resource).every(k => codingKeys.includes(k))
+    return Object.keys(resource).every((k) => codingKeys.includes(k))
   },
   condition: (resource: fhir4.Condition | any): resource is fhir4.Condition => {
     return resource?.resourceType === 'Condition'
@@ -36,8 +36,7 @@ const is = {
   isRootLibrary: (resource: fhir4.Library | any): resource is fhir4.Library => {
     // All three constitutes a root library
     const type = resource.type.coding?.[0]?.code === 'asset-collection'
-    const usageContext = resource.useContext
-      .find((i: fhir4.UsageContext) => i?.code?.code === 'specification-type')
+    const usageContext = resource.useContext.find((i: fhir4.UsageContext) => i?.code?.code === 'specification-type')
     const usageContextProgram = usageContext.valueCodeableConcept?.[0]?.code === 'program'
 
     return type && usageContextProgram && usageContext

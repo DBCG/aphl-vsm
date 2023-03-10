@@ -5,13 +5,9 @@ import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 
 // this only gets the program library
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
-
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
-    if(is.string(req?.query?.id)) {
+    if (is.string(req?.query?.id)) {
       try {
         const data = await fhirCdrClient.search({
           resourceType: 'Library',
@@ -23,7 +19,6 @@ export default async function handler(
 
         const lib = data?.entry?.map((e: any) => e?.resource)
         res.status(200).send(lib)
-
       } catch (e: any) {
         console.error('error: ', e?.response?.data?.text)
         res.status(400).json({ error: 'Search for program by id failed.' })
@@ -45,46 +40,48 @@ export default async function handler(
         const response = await fhirCdrClient.update({
           resourceType: 'Library',
           id: req.query['id'] as string,
-          body: req.body,
+          body: req.body
         })
         res.send(response)
       } else {
         // if the user wants to change the id of the Library (hence non-matching ids),
         // create a new Library with that name, then delete the original one
         const body = await JSON.parse(req.body)
-        await fhirCdrClient.update({
-          resourceType: 'Library',
-          id: body.id as string,
-          body: req.body,
-        }).then(async (newLibraryData) => {
-          const { response: newLibraryResponse } = Client.httpFor(newLibraryData)
-          // return response
-          if (newLibraryResponse.ok) {
-            await fhirCdrClient.delete({
-              resourceType: 'Library',
-              id: req.query['id'] as string
-            }).then((data) => {
-              const { response: deleteResponse } = Client.httpFor(data as any)
-              if (deleteResponse.ok) {
-                res.send(newLibraryData)
-              }
-            })
-          } else {
-            console.error('failed to create new program');
-          }
-        })
+        await fhirCdrClient
+          .update({
+            resourceType: 'Library',
+            id: body.id as string,
+            body: req.body
+          })
+          .then(async (newLibraryData) => {
+            const { response: newLibraryResponse } = Client.httpFor(newLibraryData)
+            // return response
+            if (newLibraryResponse.ok) {
+              await fhirCdrClient
+                .delete({
+                  resourceType: 'Library',
+                  id: req.query['id'] as string
+                })
+                .then((data) => {
+                  const { response: deleteResponse } = Client.httpFor(data as any)
+                  if (deleteResponse.ok) {
+                    res.send(newLibraryData)
+                  }
+                })
+            } else {
+              console.error('failed to create new program')
+            }
+          })
       }
-
     } catch (e) {
       console.error('ERROR: ', e)
     }
-
   } else if (req.method === 'POST') {
     // update the program by id
     const response = await fhirCdrClient.update({
       resourceType: 'Library',
       id: req.query['id'] as string,
-      body: req.body,
+      body: req.body
     })
 
     res.send(response)
