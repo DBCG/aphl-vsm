@@ -106,6 +106,7 @@ const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
   setFindInName,
+  setFindInStatus,
   setFindInSteward,
   setFindInOid,
   setFindInLastUpdated,
@@ -152,7 +153,7 @@ const SearchTable = ({
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
-                setFindInName(target.value.trim())
+                setFindInStatus(target.value.trim())
               }}
               style={{ height: '30px' }}
             />
