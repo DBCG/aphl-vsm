@@ -380,11 +380,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       filterExists,
       offsets,
       resultsPerPage,
-      searchTerm,
       searchType.value,
       selectedTerminologyServer?.value?.title,
       sortParams?.column,
-      sortParams?.direction
+      sortParams?.direction,
+      searchTerm
     ]
   )
 
@@ -419,7 +419,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         filteredValueSets = filteredValueSets?.filter((vs) => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
       }
       if (findInStatus?.length) {
-        filteredValueSets = filteredValueSets?.filter((vs) => vs?.status === findInStatus)
+        filteredValueSets = filteredValueSets?.filter((vs) => {
+          return vs?.status?.toLowerCase()?.includes(findInStatus.toLowerCase())
+        })
       }
       if (findInSteward?.length) {
         filteredValueSets = filteredValueSets?.filter((vs) => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
@@ -442,8 +444,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
     currentPage,
     resultsPerPage,
     sortParams,
-    filterExists,
-    submitVSetSearch
+    filterExists
+    // below will cause infinite loop
+    // submitVSetSearch
   ])
 
   useEffect(() => {
@@ -456,7 +459,15 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
     async function search() {
       await submitVSetSearch()
     }
-  }, [currentPage, resultsPerPage, sortParams, selectedTerminologyServer, searchTerm, submitVSetSearch])
+  }, [
+    currentPage,
+    resultsPerPage,
+    sortParams,
+    selectedTerminologyServer
+    // below will cause infinite loop
+    // searchTerm,
+    // submitVSetSearch
+  ])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {

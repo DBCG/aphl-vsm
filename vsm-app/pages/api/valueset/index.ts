@@ -71,8 +71,6 @@ export default async function handler(
             })
 
             if (allAvailableMatches.entry) {
-              console.log('found matches in vsac:', allAvailableMatches.entry);
-
               // sorting here because we cannot use _sort on VSAC server -- not supported
               const orderedMatchingVSets = allAvailableMatches.entry
                 .map((e: fhir4.BundleEntry) => e.resource)
