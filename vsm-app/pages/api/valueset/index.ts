@@ -34,7 +34,7 @@ export default async function handler(
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: item.url,
+          url: item.url.split('-')[0],
           version: item.version
         }
       })
@@ -46,11 +46,11 @@ export default async function handler(
       ?.filter(x => x) as fhir4.Bundle[]
 
     const filteredVSets = existingVSetBundles
-      ?.filter(x => x)
-      ?.map(item => item?.entry?.[0]?.resource) as fhir4.ValueSet[]
+      ?.map(item => item?.entry?.[0]?.resource)
+      ?.filter(z => Boolean(z)) as fhir4.ValueSet[]
 
     for (const selectedVS of bodyJson.selectedValueSets) {
-      const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url && vs?.version === selectedVS?.version)
+      const matchingValueSetInCQF = filteredVSets?.find(vs => vs?.url === selectedVS?.url?.split('-')?.[0] && vs?.version === selectedVS?.version)
       // valueset already exists in our server, don't need to call other terminology server
       if (matchingValueSetInCQF) {
         vsToUpdate = matchingValueSetInCQF
@@ -60,13 +60,13 @@ export default async function handler(
           terminologyClient.setClient(bodyJson.selectedTerminologyServer)
           const terminologyClientInstance = terminologyClient.getClient()
           if (terminologyClientInstance) {
-
+            let url = selectedVS.url.split('-')[0]
             // get all matching valuesets
             // vsac doesn't support _sort so doing this broader search + sorting below
             const allAvailableMatches = await terminologyClientInstance.search({
               resourceType: 'ValueSet',
               searchParams: {
-                url: selectedVS.url.split('-')[0]
+                url
               }
             })
 
@@ -102,15 +102,18 @@ export default async function handler(
                 console.error('no match found')
               }
             } else {
-              console.log('no matches in terminology server:', allAvailableMatches.entry);
+              res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
+              return
             }
 
           } else {
-            throw new Error('Terminology client is not defined')
+            res.status(500).json({ error: `Could not access terminology server` })
+            return
           }
 
         } catch (e) {
-          console.error('error 2: ', e)
+          res.status(400).json({ error: `Error adding ValueSet with url ${selectedVS.url}` })
+          return
         }
       }
     }
@@ -129,6 +132,7 @@ export default async function handler(
     try {
       const performedUpdate = await Promise.allSettled(valueSetItemsToUpdate.map(async (item) => {
         if (item.method === 'PUT') {
+
           await fhirCdrClient.update({
             resourceType: 'ValueSet',
             id: item.valueSet.id,
@@ -143,7 +147,7 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-      console.error('failed updates: ', failedUpdates)
+      console.error('failed updates: ', failedUpdates?.map(update => update?.reason?.response?.data?.text))
 
     } catch (e) {
       console.error('error 3', e)

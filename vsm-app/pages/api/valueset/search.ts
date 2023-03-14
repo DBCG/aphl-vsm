@@ -98,7 +98,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'previous')?.url) || null
                 responseInfo.last = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url) || null
               } else {
-                console.error('no entry: ')
+                // nothing found for that search, not an error
+                // will just fallback to the default responseInfo {}
               }
             } catch (e) {
               console.error(e)

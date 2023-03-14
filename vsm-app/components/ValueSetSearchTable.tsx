@@ -695,7 +695,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         </Row>
       </SubmitSelectedForm>
       <SearchTable
-        onEnter={submitVSetSearch}
         searchType={searchType.value}
         valueSets={!filterExists ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}

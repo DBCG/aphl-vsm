@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import Select, { MultiValue } from 'react-select'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
+import uniqBy from 'lodash.uniqby'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
@@ -90,7 +91,7 @@ const ReadOnlyTag = styled.div`
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
     value: g.id,
-    label: g.title?.replace('_', ' '),
+    label: g.title?.replaceAll('_', ' '),
     id: g.id
   }))
 }
@@ -386,7 +387,7 @@ const ProgramValueSetDetails: NextPage = () => {
             })
             .filter((x) => x) as Condition[]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
-            selectedOptions?.map((o) => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)
+            selectedOptions?.map((o) => <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>)
           ) : (
             <SelectInputContainer>
               <Select
@@ -434,11 +435,14 @@ const ProgramValueSetDetails: NextPage = () => {
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow) => {
-          const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replace('_', ' '), value: i?.id }))
+          const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replaceAll('_', ' '), value: i?.id }))
+
+          const dedupedSelectedOptions = uniqBy(selectedOptions, 'label')
+
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
-              {selectedOptions.map((o) => (
-                <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>
+              {dedupedSelectedOptions.map((o) => (
+                <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>
               ))}
             </ReadOnlyContainer>
           ) : (
@@ -453,7 +457,7 @@ const ProgramValueSetDetails: NextPage = () => {
                 isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
                 // @ts-expect-error
                 options={buildGroupOptions(groupsInProgram)}
-                value={selectedOptions}
+                value={dedupedSelectedOptions}
                 onChange={(e) => {
                   if (e.length === 0) {
                     toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {

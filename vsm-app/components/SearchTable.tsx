@@ -86,7 +86,6 @@ interface Input {
   setFindInLastUpdated: (eventItem: any) => void
   handlePageChange: (eventItem: any) => void
   handlePerRowsChange: (eventItem: any) => void
-  submitVSetSearch: (eventItem: any) => void
   clearSelectedRows: boolean
   searchType: string
   paginationTotalRows: number
@@ -94,14 +93,6 @@ interface Input {
   showFilters: boolean
   resultsPerPage: number
 }
-
-const vsStatuses = ['draft', 'active', 'retired', 'unknown']
-
-const statusOptions = vsStatuses.map((s) => ({
-  value: s,
-  label: s,
-  id: s
-}))
 
 const SearchTable = ({
   valueSets = [],
@@ -119,8 +110,7 @@ const SearchTable = ({
   searchType,
   clearSelectedRows,
   setClearSelectedRows,
-  resultsPerPage,
-  submitVSetSearch
+  resultsPerPage
 }: Input) => {
   const tableData = parseValueSets(valueSets)
 
