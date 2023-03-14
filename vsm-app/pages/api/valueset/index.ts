@@ -89,7 +89,11 @@ export default async function handler(
                 if (vsUrl) {
                   // add authoritativeSource extension
                   // this allows us to keep track of where valuesets come from
-                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, vsUrl)
+                  matchingVSetFromRemoteServer = addExtensionToVs(
+                    matchingVSetFromRemoteServer,
+                    authoritativeSourceExtensionUrl,
+                    vsUrl
+                  )
                 }
 
                 vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
@@ -98,7 +102,7 @@ export default async function handler(
                 console.error('no match found')
               }
             } else {
-              console.log('no matches in vsac:', allAvailableMatches.entry);
+              console.log('no matches in terminology server:', allAvailableMatches.entry);
             }
 
           } else {

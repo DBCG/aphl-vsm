@@ -612,6 +612,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
             </div>
             <TextArea
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              onKeyPress={submitVSetSearch}
               id="vs-search"
               label="Search Text"
               hasIcon={true}
@@ -694,6 +695,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         </Row>
       </SubmitSelectedForm>
       <SearchTable
+        onEnter={submitVSetSearch}
         searchType={searchType.value}
         valueSets={!filterExists ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}

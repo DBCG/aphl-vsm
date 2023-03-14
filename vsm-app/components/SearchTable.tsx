@@ -86,6 +86,7 @@ interface Input {
   setFindInLastUpdated: (eventItem: any) => void
   handlePageChange: (eventItem: any) => void
   handlePerRowsChange: (eventItem: any) => void
+  submitVSetSearch: (eventItem: any) => void
   clearSelectedRows: boolean
   searchType: string
   paginationTotalRows: number
@@ -118,7 +119,8 @@ const SearchTable = ({
   searchType,
   clearSelectedRows,
   setClearSelectedRows,
-  resultsPerPage
+  resultsPerPage,
+  submitVSetSearch
 }: Input) => {
   const tableData = parseValueSets(valueSets)
 
