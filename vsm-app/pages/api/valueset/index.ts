@@ -6,6 +6,7 @@ import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/val
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
+import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 
 export default async function handler(
   req: NextApiRequest,
@@ -24,7 +25,7 @@ export default async function handler(
     }
   } if (req.method === 'PUT') {
     const body = await req.body
-    const bodyJson = JSON.parse(body)
+    const bodyJson: LeafsToAdd = JSON.parse(body)
 
     let vSetsToUpdate = []
     let vsToUpdate
@@ -60,52 +61,57 @@ export default async function handler(
           terminologyClient.setClient(bodyJson.selectedTerminologyServer)
           const terminologyClientInstance = terminologyClient.getClient()
           if (terminologyClientInstance) {
-            let url = selectedVS.url.split('-')[0]
-            // get all matching valuesets
-            // vsac doesn't support _sort so doing this broader search + sorting below
-            const allAvailableMatches = await terminologyClientInstance.search({
-              resourceType: 'ValueSet',
-              searchParams: {
-                url
-              }
-            })
+            let url = selectedVS?.url?.split('-')[0]
+            if (is.string(url)) {
 
-            if (allAvailableMatches.entry) {
-              // sorting here because we cannot use _sort on VSAC server -- not supported
-              const orderedMatchingVSets = allAvailableMatches.entry
-                .map((e: fhir4.BundleEntry) => e.resource)
-                // @ts-ignore-next-line
-                .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version.localeCompare(a.version))
-              let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+              // get all matching valuesets
+              // vsac doesn't support _sort so doing this broader search + sorting below
+              const allAvailableMatches = await terminologyClientInstance.search({
                 resourceType: 'ValueSet',
-                id: orderedMatchingVSets[0].id
+                searchParams: {
+                  url
+                }
               })
 
-              if (is.valueSet(matchingVSetFromRemoteServer)) {
-                const vsUrl = terminologyServerEndpoints
-                  ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
-                  ?.value?.url
+              if (allAvailableMatches.entry) {
+                // sorting here because we cannot use _sort on VSAC server -- not supported
+                const orderedMatchingVSets = allAvailableMatches.entry
+                  .map((e: fhir4.BundleEntry) => e.resource)
+                  // @ts-ignore-next-line
+                  .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version.localeCompare(a.version))
+                let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+                  resourceType: 'ValueSet',
+                  id: orderedMatchingVSets[0].id
+                })
 
-                if (vsUrl) {
-                  // add authoritativeSource extension
-                  // this allows us to keep track of where valuesets come from
-                  matchingVSetFromRemoteServer = addExtensionToVs(
-                    matchingVSetFromRemoteServer,
-                    authoritativeSourceExtensionUrl,
-                    vsUrl
-                  )
+                if (is.valueSet(matchingVSetFromRemoteServer)) {
+                  const vsUrl = terminologyServerEndpoints
+                    ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
+                    ?.value?.url
+
+                  if (vsUrl) {
+                    // add authoritativeSource extension
+                    // this allows us to keep track of where valuesets come from
+                    matchingVSetFromRemoteServer = addExtensionToVs(
+                      matchingVSetFromRemoteServer,
+                      authoritativeSourceExtensionUrl,
+                      vsUrl
+                    )
+                  }
+
+                  vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
+
+                } else {
+                  console.error('no match found')
                 }
-
-                vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
-
               } else {
-                console.error('no match found')
+                res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
+                return
               }
             } else {
-              res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
+              res.status(400).json({ error: `Could not find url: ${url}` })
               return
             }
-
           } else {
             res.status(500).json({ error: `Could not access terminology server` })
             return
@@ -147,7 +153,7 @@ export default async function handler(
       }))
 
       const failedUpdates = performedUpdate?.filter(promiseItem => promiseItem.status === 'rejected')
-      console.error('failed updates: ', failedUpdates?.map(update => update?.reason?.response?.data?.text))
+      console.error('failed updates: ', failedUpdates)
 
     } catch (e) {
       console.error('error 3', e)
@@ -165,7 +171,7 @@ export default async function handler(
       // this assumes grouper already has a compose/include block, will need to be updated
       // when we allow users to create groupers
       await Promise.all(groupersToUpdate.map(async (grouperVs) => {
-        const originalComposeInclude = grouperVs.compose.include
+        const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs.compose.include
 
         const newValueSetCanonicals = bodyJson.selectedValueSets.map((item: any) => item.url.split('-')[0])
           .filter(canonical => originalComposeInclude?.find(item => item?.valueSet?.[0] !== canonical))

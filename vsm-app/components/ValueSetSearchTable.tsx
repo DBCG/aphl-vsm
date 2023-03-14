@@ -191,8 +191,8 @@ type Offset = {
   [key: string]: string | null
 }
 
-interface LeafsToAdd {
-  selectedTerminologyServer: string
+export interface LeafsToAdd {
+  selectedTerminologyServer: 'vsac' | 'ontoserverR4'
   selectedValueSets: SelectedValueSet[]
   selectedConditions: SelectedCondition[]
   selectedGroupers: SelectedGrouper[]
@@ -515,11 +515,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
     }
 
     const leafsToAdd = {
-      selectedTerminologyServer: selectedTerminologyServer?.value?.title,
+      selectedTerminologyServer: selectedTerminologyServer.value.title,
       selectedValueSets,
       selectedConditions,
       selectedGroupers
-    }
+    } as LeafsToAdd
 
     // add grouper context needs to pass the info to the parent to submit
     if (tableContext === 'add-grouper') {
