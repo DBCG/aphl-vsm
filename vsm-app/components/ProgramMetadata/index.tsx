@@ -133,6 +133,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 ]}
                 onChange={(e) => {
                   const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value)
+                  setFormTouched(true)
                   setEditedProgram(updatedProgram)
                 }}
               />
