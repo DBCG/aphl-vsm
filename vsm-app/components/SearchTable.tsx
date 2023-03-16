@@ -94,18 +94,11 @@ interface Input {
   resultsPerPage: number
 }
 
-const vsStatuses = ['draft', 'active', 'retired', 'unknown']
-
-const statusOptions = vsStatuses.map((s) => ({
-  value: s,
-  label: s,
-  id: s
-}))
-
 const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
   setFindInName,
+  setFindInStatus,
   setFindInSteward,
   setFindInOid,
   setFindInLastUpdated,
@@ -152,7 +145,7 @@ const SearchTable = ({
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
-                setFindInName(target.value.trim())
+                setFindInStatus(target.value.trim())
               }}
               style={{ height: '30px' }}
             />

@@ -41,6 +41,7 @@ interface Props {
   readonly?: boolean
   style?: React.CSSProperties
   errorMessage?: string | JSX.Element | null
+  onKeyPress?: React.KeyboardEventHandler
 }
 
 const TextArea = ({
@@ -55,7 +56,8 @@ const TextArea = ({
   info,
   readonly = false,
   style = {},
-  errorMessage = null
+  errorMessage = null,
+  onKeyPress
 }: Props) => {
   return (
     <Container style={style}>
@@ -66,7 +68,19 @@ const TextArea = ({
         <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
       ) : (
         <>
-          <Input id={id} name={id} placeholder={placeholder} value={value} onChange={onChange} defaultValue={def} />
+          <Input
+            id={id}
+            name={id}
+            placeholder={placeholder}
+            value={value}
+            onChange={onChange}
+            defaultValue={def}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
+                return onKeyPress(e)
+              }
+            }}
+          />
           {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         </>
       )}

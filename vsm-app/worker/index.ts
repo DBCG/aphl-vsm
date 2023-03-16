@@ -49,7 +49,7 @@ const buildValueSetEntry = (bundleWithVersions: fhir4.Resource[], useContext: Us
           }
         } as BundleEntry
       } else {
-        console.log('No updated required for url', url)
+        console.log('No update required for url', url)
         return null
       }
     })
