@@ -112,7 +112,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, handleMo
                 id="releaseDescription"
                 required={true}
                 value={currentInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                onChange={(e) => {
                   const newValue = e?.target?.value
                   setCurrentInput(newValue)
                 }}
