@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'

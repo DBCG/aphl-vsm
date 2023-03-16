@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Select from 'react-select'
+import Select, { OptionsOrGroups } from 'react-select'
 import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
@@ -23,6 +23,18 @@ interface ProgramEditModalContentProps {
 }
 
 const requiredFields = ['name', 'description', 'title']
+
+
+
+interface OptionType { 
+  label: string, value: string
+}
+
+const emergentConditionOptions: OptionsOrGroups<string, any> = [
+  {label: 'Emergent', value: 'emergent'},
+  {label: 'Priority', value: 'priority'},
+  {label: 'Routine', value: 'routine' }
+]
 
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEditModalContentProps) => {
@@ -125,12 +137,9 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 placeholder="Select Emergent Condition"
                 classNamePrefix="emergent-condition-selector"
                 inputId="emergent-conditions-selector"
+                defaultValue={emergentConditionOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
                 instanceId="emergent-conditions-selector"
-                options={[
-                  {label: 'Emergent', value: 'emergent'},
-                  {label: 'Priority', value: 'priority'},
-                  {label: 'Routine', value: 'routine' }
-                ]}
+                options={emergentConditionOptions}
                 onChange={(e) => {
                   const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value)
                   setFormTouched(true)
@@ -143,7 +152,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 label="Emergent Condition"
                 readonly={true}
                 minWidth={200}
-                def={releaseDescription}
+                def={getVSPriorityUsageContext(editedProgram)}
                 placeholder={'No Condition set'}
                 style={{ flexBasis: '100%', maxWidth: '624px' }}
               />)
