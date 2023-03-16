@@ -3,6 +3,8 @@ import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
+import { fetchLeafValueSetsByProgramCanonical } from '@/helpers/server/serverValueSetHelper'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -47,6 +49,12 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) =
       res.status(405).send('Not allowed')
     }
     if (req.body.id === req.query['id']) {
+      const grouperLibraryCanonical = getGrouperLibraryCanonical(req.body)
+      if (grouperLibraryCanonical == null) {
+        return res.status(400).json({ error: 'Grouper Library Canonical Not Found' })
+      }
+      const leafValueSets = await fetchLeafValueSetsByProgramCanonical(grouperLibraryCanonical)
+      console.log(leafValueSets)
       // update the program by id
       const response = await fhirCdrClient.update({
         resourceType: 'Library',
