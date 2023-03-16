@@ -12,7 +12,7 @@ import { is } from '@/helpers/is'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { StatusProps } from '..'
-import { ProgramMetadata } from '@/components/ProgramMetadata'
+import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 
 const Row = styled.div`

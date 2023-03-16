@@ -11,10 +11,60 @@ interface EditComposeInclude {
   action: 'add' | 'remove'
 }
 
+enum USHealthVSPriority {
+  'Emergent' = 'emergent',
+  'Priority' = 'priority',
+  'Routine' = 'routine'
+}
+
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program?.relatedArtifact?.find((related) => related?.resource?.includes('/Library/'))?.resource
 }
 
+const setVSPriorityUsageContext = (library: fhir4.Library, code: USHealthVSPriority) => {
+  const clonedLibrary = cloneDeep(library)
+  const newUsageContextEntry: fhir4.UsageContext = {
+    code: {
+      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+      code: 'priority'
+    },
+    valueCodeableConcept: {
+      coding: [
+        {
+          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+          code
+        }
+      ]
+    }
+  }
+  let newUsageContextIndex = 0
+  if (clonedLibrary.useContext) {
+    newUsageContextIndex = Math.max(
+      clonedLibrary.useContext.findIndex((ctx) => {
+        const { system, code } = ctx?.code
+        if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
+          return ctx
+        }
+      }),
+      0
+    )
+    clonedLibrary.useContext[newUsageContextIndex] = newUsageContextEntry
+  } else {
+    clonedLibrary.useContext = [newUsageContextEntry]
+  }
+
+  return clonedLibrary
+}
+
+const getVSPriorityUsageContext = (library: fhir4.Library) => {
+  const context = library?.useContext?.find((ctx) => {
+    const { system, code } = ctx?.code
+    if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
+      return ctx
+    }
+  })
+  return context?.valueCodeableConcept?.coding?.[0]?.code
+}
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
   return program?.extension?.find((ext) => ext?.url?.endsWith('us-ph-specification-release-description-extension'))?.valueString || ''
@@ -72,4 +122,12 @@ const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditCompose
   return clonedGrouperLib
 }
 
-export { getGrouperLibraryCanonical, getReleaseDescription, setReleaseDescription, progHasRequiredFields, editComposeInclude }
+export {
+  getGrouperLibraryCanonical,
+  setVSPriorityUsageContext,
+  getVSPriorityUsageContext,
+  getReleaseDescription,
+  setReleaseDescription,
+  progHasRequiredFields,
+  editComposeInclude
+}

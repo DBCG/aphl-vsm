@@ -1,64 +1,20 @@
 import { useState } from 'react'
-import styled from 'styled-components'
+import Select from 'react-select'
+import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { getReleaseDescription, setReleaseDescription, progHasRequiredFields } from '@/helpers/libraryHelpers'
-
-const Form = styled.form`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 24px;
-  margin-bottom: 32px;
-  padding: 16px;
-  padding-bottom: 24px;
-  background-color: var(--theme-100);
-`
-
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  flex-basis: 100%;
-  gap: 12px;
-`
-
-const TextAreaRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-  gap: 16px 12px;
-`
-
-const Col = styled.div`
-  display: flex;
-  flex: 3;
-  flex-direction: column;
-`
-
-const ButtonCol = styled(Col)`
-  flex: 1;
-`
-
-const RequiredWarning = styled.p`
-  color: red;
-  font-style: italic;
-  margin-top: 0;
-  text-align: right;
-`
-
-const InputRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 12px;
-`
-
-const buttonStyles = {
-  width: '150px',
-  backgroundColor: '#ca9547',
-  marginTop: '20px'
-}
+import { getReleaseDescription, setReleaseDescription, progHasRequiredFields, setVSPriorityUsageContext, getVSPriorityUsageContext } from '@/helpers/libraryHelpers'
+import {
+  Form,
+  ButtonContainer,
+  TextAreaRow,
+  Col,
+  ButtonCol,
+  RequiredWarning,
+  InputRow,
+  buttonStyles
+} from './styles'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -159,6 +115,38 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               placeholder={'No release description set'}
               style={{ flexBasis: '100%', maxWidth: '624px' }}
             />
+            {enableEditing ? (
+              <div style={{
+                flexBasis: '100%',
+                maxWidth: '624px'
+              }}>
+              <Label id='emergent-conditions-selector-label'label="Emergent Condition" required={true} readonly={true} />
+              <Select
+                placeholder="Select Emergent Condition"
+                classNamePrefix="emergent-condition-selector"
+                inputId="emergent-conditions-selector"
+                instanceId="emergent-conditions-selector"
+                options={[
+                  {label: 'Emergent', value: 'emergent'},
+                  {label: 'Priority', value: 'priority'},
+                  {label: 'Routine', value: 'routine' }
+                ]}
+                onChange={(e) => {
+                  const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value)
+                  setEditedProgram(updatedProgram)
+                }}
+              />
+              </div>) : (
+              <TextArea
+                id="emergent-condition"
+                label="Emergent Condition"
+                readonly={true}
+                minWidth={200}
+                def={releaseDescription}
+                placeholder={'No Condition set'}
+                style={{ flexBasis: '100%', maxWidth: '624px' }}
+              />)
+            }
           </TextAreaRow>
         </InputRow>
       </Col>
@@ -200,4 +188,4 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   )
 }
 
-export { ProgramMetadata }
+export default ProgramMetadata
