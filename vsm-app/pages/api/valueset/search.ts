@@ -76,6 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   resourceType: 'ValueSet',
                   searchParams,
                   options: {
+                    // @ts-ignore
                     signal: AbortSignal.timeout(30000)
                   }
                 }) as Promise<fhir4.Bundle>
