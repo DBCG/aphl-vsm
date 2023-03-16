@@ -5,6 +5,7 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
+import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
 
 interface TableData {
   name: ValueSet['name']
@@ -79,12 +80,17 @@ interface Input {
   valueSets: ValueSet[] | undefined
   setSelectedValueSets: (eventItem: any) => void
   setClearSelectedRows: (eventItem: any) => void
+  findInName: string
   setFindInName: (eventItem: any) => void
+  findInSteward: string
   setFindInSteward: (eventItem: any) => void
+  findInStatus: string
   setFindInStatus: (eventItem: any) => void
+  findInOid: string
   setFindInOid: (eventItem: any) => void
+  findInLastUpdated: string
   setFindInLastUpdated: (eventItem: any) => void
-  handlePageChange: (eventItem: any) => void
+  handlePageChange: PaginationChangePage
   handlePerRowsChange: (eventItem: any) => void
   clearSelectedRows: boolean
   searchType: string
@@ -97,10 +103,15 @@ interface Input {
 const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
+  findInName,
   setFindInName,
+  findInStatus,
   setFindInStatus,
+  findInSteward,
   setFindInSteward,
+  findInOid,
   setFindInOid,
+  findInLastUpdated,
   setFindInLastUpdated,
   isLoading = false,
   showFilters,
@@ -126,6 +137,7 @@ const SearchTable = ({
                 setFindInName(target.value.trim())
               }}
               style={{ height: '30px' }}
+              value={findInName}
             />
           )}
         </div>
@@ -148,6 +160,7 @@ const SearchTable = ({
                 setFindInStatus(target.value.trim())
               }}
               style={{ height: '30px' }}
+              value={findInStatus}
             />
           )}
         </div>
@@ -183,6 +196,7 @@ const SearchTable = ({
                 setFindInLastUpdated(target.value.trim())
               }}
               style={{ height: '30px' }}
+              value={findInLastUpdated}
             />
           )}
         </div>
@@ -204,6 +218,7 @@ const SearchTable = ({
               style={{
                 height: '30px'
               }}
+              value={findInSteward}
             />
           )}
         </div>
@@ -225,6 +240,7 @@ const SearchTable = ({
               style={{
                 height: '30px'
               }}
+              value={findInOid}
             />
           )}
         </div>
@@ -242,7 +258,7 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationServer={searchType == 'name'}
-      paginationPerPage={10}
+      paginationPerPage={resultsPerPage}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator />}
       onSelectedRowsChange={(e) => {
