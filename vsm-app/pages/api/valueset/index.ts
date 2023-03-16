@@ -10,13 +10,13 @@ import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
+  res: NextApiResponse<fhir4.Bundle | number | { error: string }>
+): Promise<void> {
 
   // get ValueSets by id
   if (req.method === 'GET') {
     try {
-      const response = await vsacFhirClient.search({ resourceType: 'ValueSet' })
+      const response = await vsacFhirClient.search({ resourceType: 'ValueSet' }) as fhir4.Bundle
 
       res.status(200).send(response)
     } catch (e) {
@@ -27,16 +27,16 @@ export default async function handler(
     const body = await req.body
     const bodyJson: LeafsToAdd = JSON.parse(body)
 
-    let vSetsToUpdate = []
+    let vSetsToUpdate:{method:'PUT' | 'POST', valueSet:fhir4.ValueSet}[] = []
     let vsToUpdate
 
     // check fhir server first to see if we already have the selected valueSets
-    const serverResponses = await Promise.allSettled(bodyJson?.selectedValueSets?.map((item: any) => (
+    const serverResponses = await Promise.allSettled(bodyJson?.selectedValueSets?.map((item) => (
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: item.url.split('-')[0],
-          version: item.version
+          url: item.url?.split('-')?.[0] || '',
+          version: item.version || ''
         }
       })
     )
@@ -77,12 +77,11 @@ export default async function handler(
                 // sorting here because we cannot use _sort on VSAC server -- not supported
                 const orderedMatchingVSets = allAvailableMatches.entry
                   .map((e: fhir4.BundleEntry) => e.resource)
-                  // @ts-ignore-next-line
-                  .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version.localeCompare(a.version))
-                let matchingVSetFromRemoteServer = await terminologyClientInstance.read({
+                  .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version?.localeCompare(a.version || '') || '')
+                let matchingVSetFromRemoteServer:fhir4.ValueSet = await terminologyClientInstance.read({
                   resourceType: 'ValueSet',
                   id: orderedMatchingVSets[0].id
-                })
+                }) as fhir4.ValueSet
 
                 if (is.valueSet(matchingVSetFromRemoteServer)) {
                   const vsUrl = terminologyServerEndpoints
@@ -127,7 +126,6 @@ export default async function handler(
     // handle if no vsets to update, too
     // add conditions to valueSet
     const valueSetItemsToUpdate = vSetsToUpdate?.map((vs) => {
-      // @ts-ignore-next-line
       const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
       return ({
         valueSet: updatedVs,
@@ -193,6 +191,6 @@ export default async function handler(
       console.error('error 4: ', e)
     }
 
-    res.send(200)
+    res.status(200).send(200)
   }
 }
