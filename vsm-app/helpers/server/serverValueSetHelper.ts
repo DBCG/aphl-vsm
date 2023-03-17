@@ -52,7 +52,8 @@ export const fetchLeafValueSetsByProgramCanonical = async (programUrl: string) =
         })
 
         if (leafValueSetCanonicals.length) {
-          return fetchLeafValueSets(leafValueSetCanonicals)
+          const res = await fetchLeafValueSets(leafValueSetCanonicals)
+          return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values
         }
       }
     }

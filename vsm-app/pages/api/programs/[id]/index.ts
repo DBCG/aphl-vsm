@@ -4,7 +4,12 @@ import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import { fetchLeafValueSetsByProgramCanonical } from '@/helpers/server/serverValueSetHelper'
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import {
+  getGrouperLibraryCanonical,
+  getVSPriorityUsageContext,
+  setVSPriorityUsageContext,
+  USHealthVSPriority
+} from '@/helpers/libraryHelpers'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -54,14 +59,41 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) =
         return res.status(400).json({ error: 'Grouper Library Canonical Not Found' })
       }
       const leafValueSets = await fetchLeafValueSetsByProgramCanonical(grouperLibraryCanonical)
-      console.log(leafValueSets)
-      // update the program by id
-      const response = await fhirCdrClient.update({
-        resourceType: 'Library',
-        id: req.query['id'] as string,
-        body: req.body
+
+      const programConditionPriority = getVSPriorityUsageContext(req.body) // APHL-502 program sets priority for leaf valuesets
+      const batchBundle = []
+      if (programConditionPriority) {
+        leafValueSets?.forEach((vs) => {
+          const updatedVs = setVSPriorityUsageContext(vs, programConditionPriority as USHealthVSPriority)
+          batchBundle.push({
+            resource: updatedVs,
+            request: {
+              method: 'PUT',
+              url: `/ValueSet/${updatedVs.id}`
+            }
+          })
+        })
+      }
+
+      batchBundle.push({
+        resource: req.body,
+        request: {
+          method: 'PUT',
+          url: `/Library/${req.body.id}`
+        }
       })
-      res.send(response)
+
+      // update the program by id
+
+      await fhirCdrClient.batch({
+        body: {
+          resourceType: 'Bundle',
+          type: 'batch',
+          entry: batchBundle
+        }
+      })
+
+      res.send(req.body) // UI is expecting the updated library as a response
     } else {
       // if the user wants to change the id of the Library (hence non-matching ids),
       // create a new Library with that name, then delete the original one
