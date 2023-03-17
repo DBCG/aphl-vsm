@@ -1,6 +1,8 @@
 import set from 'lodash.set'
-import { terminologyServerEndpoints } from '../fhirClientOptions'
 import cloneDeep from 'lodash.clonedeep'
+import { terminologyServerEndpoints } from '../fhirClientOptions'
+import { grouperValueSetBase } from '@/helpers/server/grouperValueSetBase'
+import { GrouperMetadata } from '@/types/grouperTypes'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
   let leafVSetsInGroup = vs?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
@@ -192,7 +194,9 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
 
   vsCopy!.compose!.include = composeInclude
   return vsCopy
-  // }
+}
+const addMetadataToGrouper = (metadata: GrouperMetadata) => {
+
 }
 
 export {
@@ -204,5 +208,6 @@ export {
   removeValueSetFromGrouper,
   setExpansionParameters,
   valuesetDataForDisplay,
-  updateLeafVsVersion
+  updateLeafVsVersion,
+  addMetadataToGrouper
 }

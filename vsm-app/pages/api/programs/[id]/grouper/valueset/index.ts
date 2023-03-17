@@ -43,9 +43,60 @@ const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
+// POST a grouper that has never existed before
+const addGrouperValueSet = async (
+  req: NextApiRequest,
+  res: NextApiResponse
+): Promise<any> => {
+  const body = JSON.parse(req.body)
+  const { id: programId } = req.query
+
+  const {
+    grouperVSets,
+    grouperMetadata
+  } = body
+
+
+  const {
+    title, name, status,
+    publisher, version,
+    purpose, description
+  } = body
+
+  let fieldsToAdd = {
+    title, name, status, publisher,
+    version, purpose, description
+  }
+
+  // will this copy deeply nested fields?
+  const newGrouper = Object.assign(
+    grouperValueSetBase,
+    fieldsToAdd
+  )
+
+  try {
+    const newVs = await fhirCdrClient.create({
+      resourceType: 'ValueSet',
+      body: newGrouper
+    })
+
+    res.status(200).send(newVs)
+    return
+  } catch (e) {
+    console.error('Saving grouper valueset failed')
+  }
+  res.status(400).send({ error: 'failed to save grouper vs' })
+}
+
+
+
 export default handler({
   PUT: {
     action: updateGroupers,
+    access: ['admin', 'editor']
+  },
+  POST: {
+    action: addGrouperValueSet,
     access: ['admin', 'editor']
   }
 })

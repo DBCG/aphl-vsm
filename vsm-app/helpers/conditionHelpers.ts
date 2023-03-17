@@ -1,3 +1,4 @@
+import { SelectedCondition } from '@/types/grouperTypes'
 import { MultiValue } from 'react-select'
 
 interface Condition {
@@ -20,17 +21,6 @@ interface ConditionItem {
 interface UsageContextItem {
   code: fhir4.Coding
   valueCodeableConcept: fhir4.CodeableConcept
-}
-
-interface ConditionValue {
-  system: string
-  version: string
-  code: string
-}
-
-interface SelectedCondition {
-  label: string
-  value: ConditionValue
 }
 
 interface ConditionToUpdate {
@@ -135,4 +125,4 @@ const buildConditionOptions = (
 }
 
 export { updateConditions, formatConditionsComposeInclude, buildConditionOptions }
-export type { Condition, ConditionItem, ConditionToUpdate, SelectedCondition }
+export type { Condition, ConditionItem, ConditionToUpdate }

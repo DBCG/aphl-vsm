@@ -19,9 +19,8 @@ import {
   NumberItem
 } from '@/components/forms/styled/formElements'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { SelectedCondition } from '@/helpers/conditionHelpers'
 import { MultiValue } from 'react-select'
-import { SelectedValueSet, SelectedGrouper } from '@/components/ValueSetSearchTable'
+import { CombinedGrouperVSets, FlatGrouperVSet, SelectedCondition } from '@/types/grouperTypes'
 
 const defaultFormData = {
   name: '',
@@ -45,20 +44,6 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
     </FormDirections>
   </DirectionContainer>
 )
-
-export interface FlatGrouperVSet {
-  selectedValueSet: SelectedValueSet
-  selectedConditions: SelectedCondition[]
-  selectedGroupers?: SelectedGrouper[]
-  selectedTerminologyServer: string
-}
-
-interface CombinedGrouperVSets {
-  selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[]
-  selectedGroupers?: SelectedGrouper[]
-  selectedTerminologyServer: string
-}
 
 interface Error {
   type: 'failed-grouper-add'
@@ -130,8 +115,7 @@ const AddGrouper = () => {
 
     const json = JSON.stringify({
       grouperVSets,
-      grouperMetadata,
-      programId
+      grouperMetadata
     })
 
     const res = await fetch(`/api/programs/${programId}/grouper/valueset`, {
