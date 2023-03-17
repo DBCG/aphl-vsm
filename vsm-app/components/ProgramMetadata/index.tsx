@@ -152,7 +152,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 label="Emergent Condition"
                 readonly={true}
                 minWidth={200}
-                def={getVSPriorityUsageContext(editedProgram)}
+                def={emergentConditionOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
                 placeholder={'No Condition set'}
                 style={{ flexBasis: '100%', maxWidth: '624px' }}
               />)
@@ -176,9 +176,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 style={buttonStyles}
                 text={'Cancel'}
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault()
                   setFormTouched(false)
                   setEditedProgram(program)
+                  setEnableEditing(false)
                 }}
               />
               <Button
@@ -186,7 +188,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 style={buttonStyles}
                 text={'Save Changes'}
                 type="submit"
-                onClick={() => handleSubmit(editedProgram)}
+                onClick={async (e) => {
+                  e.preventDefault()
+                  await handleSubmit(editedProgram)
+                  setEnableEditing(false)
+                }}
               />
             </ButtonContainer>
           </ButtonCol>
