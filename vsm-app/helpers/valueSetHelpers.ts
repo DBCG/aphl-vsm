@@ -1,7 +1,7 @@
 import set from 'lodash.set'
 import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
-import { grouperValueSetBase } from '@/helpers/server/grouperValueSetBase'
+import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
@@ -195,8 +195,25 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
   vsCopy!.compose!.include = composeInclude
   return vsCopy
 }
-const addMetadataToGrouper = (metadata: GrouperMetadata) => {
 
+// const addMetadataToGrouper = (metadata: GrouperMetadata) => {
+const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
+  const templateVS = cloneDeep(grouperValueSetBase) as fhir4.ValueSet
+
+  const { author, ...rest } = metadata
+
+  // apply all fields that are flat
+  const vs = Object.assign(templateVS, rest)
+  // apply extension
+  vs.extension = [
+    {
+      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBILISHING_URL}/StructureDefinition/valueset-author`,
+      valueContactDetail: {
+        name: author
+      }
+    }
+  ]
+  return vs
 }
 
 export {
@@ -209,5 +226,6 @@ export {
   setExpansionParameters,
   valuesetDataForDisplay,
   updateLeafVsVersion,
-  addMetadataToGrouper
+  // addMetadataToGrouper
+  createGrouperWithMetadata
 }

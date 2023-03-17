@@ -1,5 +1,11 @@
 import { cloneDeep } from "lodash";
-import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from "./valueSetHelpers";
+import {
+  addValueSetToGrouper,
+  removeValueSetFromGrouper,
+  updateLeafVsVersion,
+  createGrouperWithMetadata
+} from "./valueSetHelpers";
+
 
 const testUrl = 'www.test.com'
 const testUrl2 = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082'
@@ -156,6 +162,36 @@ describe('valueSetHelpers', () => {
     it('Should remove the version if latest version is specified', () => {
       const newValueSet = updateLeafVsVersion(testValueSet1, 'www.example.com/hello', 'latest')
       expect(newValueSet).toMatchObject(testValueSetUpdatedLatest)
+    })
+  })
+
+  describe('createGrouperWithMetadata', () => {
+    it('should add all flat fields', () => {
+      const noAuthor = {
+        title: 'test title',
+        name: 'test_name',
+        publisher: 'test publisher',
+        description: 'test description',
+        purpose: 'test purpose',
+        version: 'test version',
+      }
+
+      const metadataWithAuthor = Object.assign({}, noAuthor, { author: 'test author' })
+
+      const expectedExtension = {
+        url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
+        valueContactDetail: {
+          name: 'test author'
+        }
+      }
+
+      const result = createGrouperWithMetadata(metadataWithAuthor)
+
+      // check that all the flat object properties are there
+      expect(result).toMatchObject(noAuthor)
+      // check that extension is there
+      expect(result?.extension?.[0]).toMatchObject(expectedExtension)
+
     })
   })
 })
