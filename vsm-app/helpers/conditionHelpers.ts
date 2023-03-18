@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash.clonedeep'
 import { SelectedCondition } from '@/types/grouperTypes'
 import { MultiValue } from 'react-select'
 
@@ -54,7 +55,8 @@ const buildConditionItem = (condition: Condition) => {
 // VALUESETS PAGE: you want to keep any existing conditions that you have added before
 // TODO there should be no useContext if it is an empty array
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
-  let vs = valueSet
+  let vs = cloneDeep(valueSet)
+
   if (vs?.useContext) {
     const nonConditionContexts = vs?.useContext?.filter(
       (ctx) => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus')
