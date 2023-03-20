@@ -7,7 +7,7 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/InputLabel'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -194,7 +194,7 @@ type Offset = {
 export interface LeafsToAdd {
   selectedTerminologyServer: 'vsac' | 'ontoserverR4'
   selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[]
+  selectedConditions: Condition[]
   selectedGroupers: SelectedGrouper[]
 }
 
@@ -238,7 +238,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState<SelectedGrouper[]>([])
-  const [selectedConditions, setSelectedConditions] = useState<SelectedCondition[]>([])
+  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)

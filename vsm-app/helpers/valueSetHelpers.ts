@@ -4,23 +4,40 @@ import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 
-const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
-  const valueToAdd = [vsCanonical]
-  // if no compose include & no leaf valuesets
-  if (!vs?.compose?.include && !leafVSetsInGroup) {
-    // need to make a new path
-    const path = 'compose.include[0].valueSet' // make this more flexible?
-    // what if something in compose.include that isn't valueset in the future
-    set(vs, path, valueToAdd)
-    // if some vsets exist, but not
-  } else if (vs?.compose?.include) {
-    if (leafVSetsInGroup && !leafVSetsInGroup?.includes(vsCanonical)) {
-      leafVSetsInGroup.push(vsCanonical)
-      vs.compose.include.push({ valueSet: valueToAdd })
+const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
+  const valueSetToUpdate = cloneDeep(vs)
+  let leafVSetsAlreadyInGroup = valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
+  const inputType = typeof vsCanonical
+  if (inputType === 'string') {
+    const valueToAdd = [vsCanonical]
+    // if no compose include & no leaf valuesets
+    if (!valueSetToUpdate?.compose?.include && !leafVSetsAlreadyInGroup) {
+      // need to make a new path
+      const path = 'compose.include[0].valueSet' // make this more flexible?
+      // what if something in compose.include that isn't valueset in the future
+      set(valueSetToUpdate, path, valueToAdd)
+      // if some vsets exist, but not
+    } else if (valueSetToUpdate?.compose?.include) {
+      if (leafVSetsAlreadyInGroup && !leafVSetsAlreadyInGroup?.includes(vsCanonical)) {
+        leafVSetsAlreadyInGroup.push(vsCanonical)
+        valueSetToUpdate.compose.include.push({ valueSet: valueToAdd })
+      }
     }
+  } else if (Array.isArray(vsCanonical)) {
+    const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
+    console.log('svs canonical: ', vsCanonical);
+
+    vsCanonical.forEach(url => {
+      console.log('url: ', url);
+
+      if (!leafVSetsAlreadyInGroup?.includes(url)) {
+        composeIncludeToAdd.push({ valueSet: url })
+      }
+    })
+
+    set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
   }
-  return vs
+  return valueSetToUpdate
 }
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
@@ -99,6 +116,15 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
       }
     }
   }
+}
+
+interface AuthSrcExtensionParams {
+  vs: fhir4.ValueSet
+  termServer: 'vsac' | 'ontoserverR4'
+}
+// make this its own function?
+const addAuthoritativeSourceExtension = ({ vs, termServer }) => {
+
 }
 
 // can't pass through whole valuesets -- node will error if data too large
@@ -196,18 +222,25 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
   return vsCopy
 }
 
-// const addMetadataToGrouper = (metadata: GrouperMetadata) => {
 const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
   const templateVS = cloneDeep(grouperValueSetBase) as fhir4.ValueSet
 
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign(templateVS, rest)
+  const vs = Object.assign(
+    {},
+    templateVS,
+    rest,
+    { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` }
+  )
+
+  console.log('vs here: ', vs);
+
   // apply extension
   vs.extension = [
     {
-      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBILISHING_URL}/StructureDefinition/valueset-author`,
+      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
       valueContactDetail: {
         name: author
       }
@@ -215,6 +248,9 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
   ]
   return vs
 }
+
+// VSAC appends versions to valueset ids and urls with hyphen
+const stringWithoutVersion = (str: string) => str.split('-')[0]
 
 export {
   addExtensionToVs,
@@ -226,6 +262,6 @@ export {
   setExpansionParameters,
   valuesetDataForDisplay,
   updateLeafVsVersion,
-  // addMetadataToGrouper
-  createGrouperWithMetadata
+  createGrouperWithMetadata,
+  stringWithoutVersion
 }

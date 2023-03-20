@@ -1,5 +1,4 @@
 import cloneDeep from 'lodash.clonedeep'
-import { SelectedCondition } from '@/types/grouperTypes'
 import { MultiValue } from 'react-select'
 
 interface Condition {
@@ -27,7 +26,7 @@ interface UsageContextItem {
 interface ConditionToUpdate {
   canonical: string
   version: string
-  conditionInfo: SelectedCondition[]
+  conditionInfo: Condition[]
 }
 
 const buildConditionItem = (condition: Condition) => {
@@ -108,8 +107,8 @@ const formatConditionsComposeInclude = (conditionsList: any) => {
 
 const buildConditionOptions = (
   conditions: ConditionItem[] | [],
-  selectedOptions?: SelectedCondition[] | []
-): MultiValue<SelectedCondition> => {
+  selectedOptions?: Condition[] | []
+): MultiValue<Condition> => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter((x) => !!x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions

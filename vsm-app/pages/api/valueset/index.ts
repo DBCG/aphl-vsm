@@ -84,17 +84,17 @@ export default async function handler(
                 }) as fhir4.ValueSet
 
                 if (is.valueSet(matchingVSetFromRemoteServer)) {
-                  const vsUrl = terminologyServerEndpoints
+                  const authSrcUrl = terminologyServerEndpoints
                     ?.find(grp => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase())
                     ?.value?.url
 
-                  if (vsUrl) {
+                  if (authSrcUrl) {
                     // add authoritativeSource extension
                     // this allows us to keep track of where valuesets come from
                     matchingVSetFromRemoteServer = addExtensionToVs(
                       matchingVSetFromRemoteServer,
                       authoritativeSourceExtensionUrl,
-                      vsUrl
+                      authSrcUrl
                     )
                   }
 
