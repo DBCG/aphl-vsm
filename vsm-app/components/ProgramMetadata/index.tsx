@@ -4,7 +4,7 @@ import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { getReleaseDescription, setReleaseDescription, progHasRequiredFields, setVSPriorityUsageContext, getVSPriorityUsageContext } from '@/helpers/libraryHelpers'
+import { getReleaseDescription, setReleaseDescription, progHasRequiredFields, setVSPriorityUsageContext, getVSPriorityUsageContext, USHealthVSPriority } from '@/helpers/libraryHelpers'
 import {
   Form,
   ButtonContainer,
@@ -139,7 +139,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 instanceId="priority-level-selector"
                 options={priorityLevelOptions}
                 onChange={(e) => {
-                  const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value) as fhir4.Library
+                  const newPriority = e?.value as USHealthVSPriority
+                  const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
                   setFormTouched(true)
                   setEditedProgram(updatedProgram)
                 }}
