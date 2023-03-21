@@ -1,64 +1,20 @@
 import { useState } from 'react'
-import styled from 'styled-components'
+import Select, { Options } from 'react-select'
+import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { getReleaseDescription, setReleaseDescription, progHasRequiredFields } from '@/helpers/libraryHelpers'
-
-const Form = styled.form`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 24px;
-  margin-bottom: 32px;
-  padding: 16px;
-  padding-bottom: 24px;
-  background-color: var(--theme-100);
-`
-
-const ButtonContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  flex-basis: 100%;
-  gap: 12px;
-`
-
-const TextAreaRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-  gap: 16px 12px;
-`
-
-const Col = styled.div`
-  display: flex;
-  flex: 3;
-  flex-direction: column;
-`
-
-const ButtonCol = styled(Col)`
-  flex: 1;
-`
-
-const RequiredWarning = styled.p`
-  color: red;
-  font-style: italic;
-  margin-top: 0;
-  text-align: right;
-`
-
-const InputRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 12px;
-`
-
-const buttonStyles = {
-  width: '150px',
-  backgroundColor: '#ca9547',
-  marginTop: '20px'
-}
+import { getReleaseDescription, setReleaseDescription, progHasRequiredFields, setVSPriorityUsageContext, getVSPriorityUsageContext, USHealthVSPriority } from '@/helpers/libraryHelpers'
+import {
+  Form,
+  ButtonContainer,
+  TextAreaRow,
+  Col,
+  ButtonCol,
+  RequiredWarning,
+  InputRow,
+  buttonStyles
+} from './styles'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -67,6 +23,16 @@ interface ProgramEditModalContentProps {
 }
 
 const requiredFields = ['name', 'description', 'title']
+
+interface OptionType { 
+  label: string, value: string
+}
+
+const priorityLevelOptions: Options<OptionType> = [
+  { label: 'Emergent', value: 'emergent' },
+  { label: 'Priority', value: 'priority' },
+  { label: 'Routine', value: 'routine' }
+] as const
 
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEditModalContentProps) => {
@@ -159,6 +125,37 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               placeholder={'No release description set'}
               style={{ flexBasis: '100%', maxWidth: '624px' }}
             />
+            {enableEditing ? (
+              <div style={{
+                flexBasis: '100%',
+                maxWidth: '624px'
+              }}>
+              <Label id='priority-level-selector-label'label="Priority Level" required={true} readonly={true} />
+              <Select
+                placeholder="Select Priority Level"
+                classNamePrefix="priority-level-selector"
+                inputId="priority-level-selector"
+                defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
+                instanceId="priority-level-selector"
+                options={priorityLevelOptions}
+                onChange={(e) => {
+                  const newPriority = e?.value as USHealthVSPriority
+                  const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
+                  setFormTouched(true)
+                  setEditedProgram(updatedProgram)
+                }}
+              />
+              </div>) : (
+              <TextArea
+                id="priority-level"
+                label="Priority Level"
+                readonly={true}
+                minWidth={200}
+                def={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
+                placeholder={'No Priority set'}
+                style={{ flexBasis: '100%', maxWidth: '624px' }}
+              />)
+            }
           </TextAreaRow>
         </InputRow>
       </Col>
@@ -178,9 +175,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 style={buttonStyles}
                 text={'Cancel'}
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault()
                   setFormTouched(false)
                   setEditedProgram(program)
+                  setEnableEditing(false)
                 }}
               />
               <Button
@@ -188,7 +187,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 style={buttonStyles}
                 text={'Save Changes'}
                 type="submit"
-                onClick={() => handleSubmit(editedProgram)}
+                onClick={async (e) => {
+                  e.preventDefault()
+                  await handleSubmit(editedProgram)
+                  setEnableEditing(false)
+                }}
               />
             </ButtonContainer>
           </ButtonCol>
@@ -200,4 +203,4 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   )
 }
 
-export { ProgramMetadata }
+export default ProgramMetadata

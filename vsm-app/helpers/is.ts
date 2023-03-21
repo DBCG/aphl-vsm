@@ -24,6 +24,9 @@ const is = {
   condition: (resource: fhir4.Condition | any): resource is fhir4.Condition => {
     return resource?.resourceType === 'Condition'
   },
+  definedString: (item: any): item is string => {
+    return !!item && typeof item === 'string'
+  },
   deviceDefinition: (resource: fhir4.DeviceDefinition | any): resource is fhir4.DeviceDefinition => {
     return resource?.resourceType === 'DeviceDefinition'
   },

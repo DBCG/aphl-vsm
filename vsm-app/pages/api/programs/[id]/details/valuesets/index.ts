@@ -1,10 +1,9 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { DataItem, Result } from '@/hooks/useGetProgramValueSetDetails'
+import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 
 // Items in the table
 interface Group {
@@ -29,90 +28,6 @@ const WHITELIST_VALUESET_FIELDS = [
   'purpose',
   'compose'
 ]
-
-// vsac limits queries
-// see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, whitelistFields?: string[]) => {
-  const [url, version] = canonical.split('|')
-  const searchParams: Record<string, string> = { url }
-  if (version) {
-    searchParams.version = version
-  }
-  if (whitelistFields) {
-    searchParams['_elements'] = whitelistFields.join(',')
-  }
-  const result = client.search({ resourceType, searchParams })
-  return result
-}
-
-const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
-  return fetchByCanonical(client, 'Library', canonical)
-}
-
-const fetchGrouperValueSets = (canonicals: string[]) => {
-  return Promise.all(canonicals.map((canonical) => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, WHITELIST_VALUESET_FIELDS)))
-}
-
-const fetchLeafValueSets = async (
-  canonicals: string[],
-  nameStr: string | undefined,
-  stewardStr: string | undefined,
-  versionStr: string | undefined
-) => {
-  let searchParams = {} as any
-
-  if (is.string(nameStr)) {
-    searchParams['name:contains'] = nameStr
-  }
-
-  if (is.string(stewardStr)) {
-    searchParams['publisher:contains'] = stewardStr
-  }
-
-  if (is.string(versionStr)) {
-    searchParams['version:contains'] = versionStr
-  }
-  searchParams['_elements'] = WHITELIST_VALUESET_FIELDS.join(',')
-  try {
-    const result = await Promise.all(
-      canonicals.map((canonical) =>
-        fhirCdrClient.search({
-          resourceType: 'ValueSet',
-          searchParams: {
-            url: canonical,
-            status: 'active',
-            ...searchParams
-          }
-        })
-      )
-    )
-
-    const valueSets = result
-      ?.map((e) => {
-        if (e.entry) {
-          return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {
-            const resource = entry?.resource as fhir4.ValueSet
-            if (resource) {
-              // instead of returning whole valuesets, just return a portion of the data
-              return resource
-            }
-          })
-        }
-      })
-      ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter(
-        (value, index, self) =>
-          // filter out multiple ids
-          self.findIndex((v2) => v2?.id === value?.id) === index
-      ) as fhir4.ValueSet[]
-
-    return valueSets
-  } catch (e) {
-    // TODO: handle
-    console.error('error here a', e)
-  }
-}
 
 const isDefinedString = (item: any): item is string => {
   return !!item
@@ -186,7 +101,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 const stewardToFind = req.query.findInSteward as string | undefined
                 const versionToFind = req.query.findInVersion as string | undefined
 
-                leafValueSets = await fetchLeafValueSets(leafValueSetCanonicals, stringToFind, stewardToFind, versionToFind)
+                leafValueSets = await fetchLeafValueSets(
+                  leafValueSetCanonicals,
+                  stringToFind,
+                  stewardToFind,
+                  versionToFind,
+                  WHITELIST_VALUESET_FIELDS
+                )
               }
             }
           }

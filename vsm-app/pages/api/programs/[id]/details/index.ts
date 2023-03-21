@@ -4,6 +4,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { splitCanonical } from '@/helpers/splitCanonical'
 import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion } from '@/helpers/valueSetHelpers'
+import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
@@ -33,35 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const grouperUrls = grouperLibrary?.relatedArtifact?.map((i: any) => i?.resource)
 
-      const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
-
-      let grouperValueSets = []
-
-      if (grouperUrls) {
-        for (const canonical of grouperUrls) {
-          const [url, version] = splitCanonical(canonical)
-
-          let searchParams = {
-            url
-          } as SearchParams
-
-          // tag on version if exists in the grouper
-          // TODO: maybe should error out instead?
-          if (version) {
-            searchParams.version = version
-          }
-
-          const grouperVS = await fhirCdrClient.search({
-            resourceType: 'ValueSet',
-            searchParams
-          })
-
-          const resource = grouperVS?.entry?.[0]?.resource
-          if (resource) {
-            grouperValueSets.push(resource)
-          }
-        }
-      }
+      const grouperValueSets = await fetchGrouperValueSets(grouperUrls).then((bundles) =>
+        bundles.map((bundle) => bundle.entry?.[0]?.resource as fhir4.ValueSet)
+      )
 
       const formattedValueSets = grouperValueSets?.map((vs) => ({
         id: vs.id,
@@ -70,6 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         url: vs.url,
         version: vs.version
       }))
+      const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
 
       res.status(200).send({
         grouperLibId: grouperLibrary.id,
