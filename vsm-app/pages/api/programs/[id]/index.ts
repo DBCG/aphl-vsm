@@ -3,7 +3,7 @@ import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import { fetchLeafValueSetsByProgramCanonical } from '@/helpers/server/serverValueSetHelper'
+import { fetchLeafValueSetsByGrouperCanonical } from '@/helpers/server/serverValueSetHelper'
 import {
   getGrouperLibraryCanonical,
   getVSPriorityUsageContext,
@@ -15,15 +15,11 @@ import {
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
   if (is.string(req?.query?.id)) {
     try {
-      const data = await fhirCdrClient.search({
+      const lib = await fhirCdrClient.read({
         resourceType: 'Library',
-        searchParams: {
-          context: 'triggering-valueset-library',
-          id: req.query.id
-        }
+        id: req.query.id as string
       })
 
-      const lib = data?.entry?.map((e: any) => e?.resource)
       res.status(200).send(lib)
     } catch (e: any) {
       console.error('error: ', e?.response?.data?.text)
@@ -58,7 +54,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) =
       if (grouperLibraryCanonical == null) {
         return res.status(400).json({ error: 'Grouper Library Canonical Not Found' })
       }
-      const leafValueSets = await fetchLeafValueSetsByProgramCanonical(grouperLibraryCanonical)
+      const leafValueSets = await fetchLeafValueSetsByGrouperCanonical(grouperLibraryCanonical)
 
       const programConditionPriority = getVSPriorityUsageContext(req.body) // APHL-502 program sets priority for leaf valuesets
       const batchBundle = []

@@ -10,22 +10,18 @@ export const fetchGrouperValueSets = (canonicals: string[], whitelistFields?: st
   return Promise.all(canonicals.map((canonical) => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, whitelistFields)))
 }
 
-const isDefinedString = (item: any): item is string => {
-  return !!item
-}
-
-export const fetchLeafValueSetsByProgramCanonical = async (programUrl: string) => {
-  if (programUrl) {
-    const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, programUrl)
+export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string) => {
+  if (grouperLibUrl) {
+    const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibUrl)
 
     // get all grouperValueSet canonicals
     if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
       const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
       const grouperValueSetCanonicals = grouper.relatedArtifact
-        ?.filter((a) => a.type == 'composed-of')
+        ?.filter((a) => a.type === 'composed-of')
         .map((res) => res.resource)
-        .filter(isDefinedString)
+        .filter(is.definedString)
 
       if (grouperValueSetCanonicals) {
         const allGrouperVSets = (
@@ -42,15 +38,12 @@ export const fetchLeafValueSetsByProgramCanonical = async (programUrl: string) =
           const leafUrlsInGrouper = (grouperVs?.compose?.include
             ?.map((item) => item?.valueSet)
             ?.filter((x) => !!x) // filter out undefined
-            ?.flat() || []) as string[]
+            ?.flat()
+            ?.filter((x) => !!x) || []) as string[] // filter out undefined urls
 
           // add groups to the leaf URLs
-          leafUrlsInGrouper?.forEach((url) => {
-            if (!url) return
-            leafValueSetCanonicals.push(url)
-          })
+          leafValueSetCanonicals.push(...leafUrlsInGrouper)
         })
-
         if (leafValueSetCanonicals.length) {
           const res = await fetchLeafValueSets(leafValueSetCanonicals)
           return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values

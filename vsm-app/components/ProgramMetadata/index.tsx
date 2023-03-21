@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Select, { OptionsOrGroups } from 'react-select'
+import Select, { Options } from 'react-select'
 import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
@@ -24,17 +24,15 @@ interface ProgramEditModalContentProps {
 
 const requiredFields = ['name', 'description', 'title']
 
-
-
 interface OptionType { 
   label: string, value: string
 }
 
-const emergentConditionOptions: OptionsOrGroups<string, any> = [
-  {label: 'Emergent', value: 'emergent'},
-  {label: 'Priority', value: 'priority'},
-  {label: 'Routine', value: 'routine' }
-]
+const priorityLevelOptions: Options<OptionType> = [
+  { label: 'Emergent', value: 'emergent' },
+  { label: 'Priority', value: 'priority' },
+  { label: 'Routine', value: 'routine' }
+] as const
 
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEditModalContentProps) => {
@@ -132,28 +130,28 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 flexBasis: '100%',
                 maxWidth: '624px'
               }}>
-              <Label id='emergent-conditions-selector-label'label="Emergent Condition" required={true} readonly={true} />
+              <Label id='priority-level-selector-label'label="Priority Level" required={true} readonly={true} />
               <Select
-                placeholder="Select Emergent Condition"
-                classNamePrefix="emergent-condition-selector"
-                inputId="emergent-conditions-selector"
-                defaultValue={emergentConditionOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
-                instanceId="emergent-conditions-selector"
-                options={emergentConditionOptions}
+                placeholder="Select Priority Level"
+                classNamePrefix="priority-level-selector"
+                inputId="priority-level-selector"
+                defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
+                instanceId="priority-level-selector"
+                options={priorityLevelOptions}
                 onChange={(e) => {
-                  const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value)
+                  const updatedProgram = setVSPriorityUsageContext(editedProgram, e?.value) as fhir4.Library
                   setFormTouched(true)
                   setEditedProgram(updatedProgram)
                 }}
               />
               </div>) : (
               <TextArea
-                id="emergent-condition"
-                label="Emergent Condition"
+                id="priority-level"
+                label="Priority Level"
                 readonly={true}
                 minWidth={200}
-                def={emergentConditionOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
-                placeholder={'No Condition set'}
+                def={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
+                placeholder={'No Priority set'}
                 style={{ flexBasis: '100%', maxWidth: '624px' }}
               />)
             }

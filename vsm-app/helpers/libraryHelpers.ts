@@ -37,9 +37,9 @@ const setVSPriorityUsageContext = (target: fhir4.Library | fhir4.ValueSet, code:
       ]
     }
   }
-  let newUsageContextIndex = 0
+
   if (clonedTarget.useContext) {
-    newUsageContextIndex = Math.max(
+    const newUsageContextIndex = Math.max(
       clonedTarget.useContext.findIndex((ctx) => {
         const { system, code } = ctx?.code
         if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
