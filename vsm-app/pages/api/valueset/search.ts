@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import retry from 'helpers/retryRequest'
 import { SearchParams } from 'fhir-kit-client'
+import { is } from '@/helpers/is';
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
@@ -10,7 +11,7 @@ export interface FetchError {
 }
 
 export interface SearchResponse {
-  valueSets: fhir4.ValueSet[] | []
+  valueSets: fhir4.ValueSet[]
   error?: FetchError
   total: number | null
   first: string | null
@@ -28,10 +29,9 @@ const offsetRegexStandard = /&_offset=\d+/
 // ontoserver has what looks like a non-standard-FHIR way of declaring offsets in the link array
 const offsetRegexOntoserver = /&_getpagesoffset=\d+/
 
-const getOffsetFromUrl = (str: string) =>
+const getOffsetFromUrl = (str?: string) =>
   str?.match(offsetRegexStandard)?.[0]?.split('_offset=')?.[1] || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === 'GET') {
     // @ts-ignore-next-line
     const {
@@ -47,38 +47,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       offset?: string
       terminologyServer: 'vsac' | 'ontoserverR4'
     } = req.query
-    let responseInfo = {
+    const responseInfo:SearchResponse = {
       valueSets: [],
-      total: null
-    } as SearchResponse
+      total: null,
+      first:null,
+      next:null,
+      previous:null,
+      last:null
+    } 
     try {
       // set the terminology client to be VSAC or other
       terminologyClient.setClient(terminologyServer)
       const activeTerminologyClient = terminologyClient.getClient()
-      let serverResponse
       let searchParams: SearchParams
       switch (searchType) {
         case 'name':
           searchParams = {
             'name:contains': search,
             status: 'active',
-            _count: count
+            _count: count,
+            _offset: typeof offset === 'string' && offset
           }
 
-          if (typeof offset === 'string') {
-            searchParams._offset = offset
-          }
           if (activeTerminologyClient) {
             try {
-              serverResponse = await retry(() =>
+              const serverResponse = await retry(() =>
                 activeTerminologyClient.search({
                   resourceType: 'ValueSet',
                   searchParams,
                   options: {
-                    // @ts-ignore-next-line no idea why this is a TS fail, timeout is on the AbortSignal obj
+                    // @ts-ignore
                     signal: AbortSignal.timeout(30000)
                   }
-                })
+                }) as Promise<fhir4.Bundle>
               )
 
               if (serverResponse.entry) {
@@ -91,7 +92,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                   return item.resource
                 })
                 // TODO need this for OID search too
-                responseInfo.total = serverResponse.total
+                responseInfo.total = serverResponse.total || null
                 responseInfo.first = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url) || null
                 responseInfo.next = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url) || null
                 responseInfo.previous =
@@ -118,25 +119,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case 'oid':
           // pagination is not going to work the same for the OID list because each is a separate query
           // OID is actually kindof search by canonical
-          // @ts-ignore-next-line
           const oidList: string[] = search?.split(',')
           if (activeTerminologyClient) {
             try {
-              serverResponse = await Promise.allSettled(
+              responseInfo.valueSets = (await Promise.allSettled(
                 oidList.map((oid: string) =>
                   activeTerminologyClient.read({
                     resourceType: 'ValueSet',
                     id: oid
-                  })
+                  }) as Promise<fhir4.ValueSet>
                 )
-              )
-
-              responseInfo.valueSets = serverResponse
-                ?.map((item) => item?.status === 'fulfilled' && item?.value)
-                ?.filter((x) => !!x)
-                // filter out inactive VS
-                // @ts-ignore-next-line
-                ?.filter((vs: fhir4.ValueSet) => vs.status === 'active') as fhir4.ValueSet[]
+              ))
+              ?.filter(is.promiseFulfilled) 
+              ?.map(val => val.value)
+              ?.filter((vs) => vs.status === 'active')
 
               const successfulOIDs = responseInfo?.valueSets?.map((v) => v?.id)
               responseInfo.total = successfulOIDs.length
@@ -183,17 +179,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           if (activeTerminologyClient) {
             try {
-              serverResponse = await activeTerminologyClient.search({
+              const serverResponse = await activeTerminologyClient.search({
                 resourceType: 'ValueSet',
                 searchParams
-              })
+              }) as fhir4.Bundle
 
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
                   return item.resource
                 })
                 // TODO need this for OID search too
-                responseInfo.total = serverResponse.total
+                responseInfo.total = serverResponse.total || null
                 responseInfo.first = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'first')?.url) || null
                 responseInfo.next = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'next')?.url) || null
                 responseInfo.previous =

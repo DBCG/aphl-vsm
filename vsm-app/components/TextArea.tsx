@@ -5,7 +5,7 @@ interface InputProps {
   minWidth?: number
   minHeight?: number
   maxInputHeight?: number
-  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
+  onChange: Props['onChange']
 }
 
 const Input = styled.textarea<InputProps>`
@@ -28,7 +28,7 @@ const FlexRow = styled.div`
 
 interface Props {
   placeholder?: string
-  onChange?: React.ChangeEventHandler
+  onChange?: (React.ChangeEventHandler<HTMLInputElement> & React.ChangeEventHandler<HTMLTextAreaElement>)
   required?: boolean
   value?: string
   label?: string

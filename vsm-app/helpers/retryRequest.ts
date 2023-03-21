@@ -16,7 +16,7 @@ const wait = (ms: number) => {
  * @param delay
  * @returns
  */
-const retry = async (apiCall: Function, maxRetries = 3, delay = 500) => {
+const retry = async <T>(apiCall: () => Promise<T>, maxRetries = 3, delay = 500) => {
   let error: ErrorOptions | undefined
   for (let i = 0; i < maxRetries; i++) {
     try {

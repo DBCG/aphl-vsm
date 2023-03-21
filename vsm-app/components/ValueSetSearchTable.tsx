@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -19,6 +19,7 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { shallowEqual } from 'utils'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -236,9 +237,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
 
   // Paging & search info
-  const [searchTerm, setSearchTerm] = useState<string>('')
+  const searchTerm = useRef<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
-  const [offsets, setOffsets] = useState<Offset>(defaultOffsets)
+  const offsets = useRef<Offset>(defaultOffsets)
   const [currentPage, setCurrentPage] = useState({ type: 'first', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
@@ -272,57 +273,22 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   }, [groups])
 
   // take the response from the server and parse the important data
-  const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
-    if (response?.ok) {
-      const valueSetResponse = (await response.json()) as SearchResponse
 
-      const newOffsets = {
-        first: valueSetResponse?.first || null,
-        next: valueSetResponse?.next || null,
-        previous: valueSetResponse?.previous || null,
-        last: valueSetResponse?.last || null
-      }
-
-      setOffsets(newOffsets)
-
-      if (searchContext === 'filter') {
-        setFilteredVSets(valueSetResponse.valueSets)
-        setFetchError(valueSetResponse.error || null)
-        // what to do with total when filtered? probably fine
-      } else {
-        setValueSets(valueSetResponse.valueSets)
-        setSearchTotal(valueSetResponse.total)
-        setFetchError(valueSetResponse.error || null)
-      }
-    } else if (response && !response?.ok) {
-      const valueSetResponse = await response.json()
-      setValueSets([])
-      setFetchError(valueSetResponse)
-    } else {
-      setValueSets([])
-      setFetchError({
-        errorType: 'fetch-error',
-        message: 'No response for search'
-      })
-    }
-    setIsLoading(false)
-  }
-
-  const filterExists = findInName?.length || findInStatus?.length || findInSteward?.length || findInOid?.length || findInLastUpdated?.length
+  const filterExists = useMemo(
+    () => findInName?.length || findInStatus?.length || findInSteward?.length || findInOid?.length || findInLastUpdated?.length,
+    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInSteward?.length]
+  )
+  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = useCallback(
-    async (e?: SyntheticEvent) => {
-      if (e) {
-        e.preventDefault()
-      }
-
+    async (searchContext: 'filter' | 'search' = 'search') => {
       setToggledClearRows(true)
 
       let response
-      if (!searchTerm?.trim()) {
+      if (!searchTerm.current?.trim()) {
         setIsLoading(false)
         return
       }
@@ -332,7 +298,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       let searchStr = ''
 
       if (searchType.value === 'oid') {
-        const trimmedWords = searchTerm
+        const trimmedWords = searchTerm.current
           ?.trim()
           ?.split(',')
           ?.map((term) => term?.trim())
@@ -346,12 +312,12 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         }
         searchStr = dedupedOids?.join(',')
       } else if (searchType.value === 'name') {
-        searchStr = searchTerm.trim()
+        searchStr = searchTerm.current.trim()
       } else if (searchType.value === 'url') {
-        searchStr = searchTerm.trim()
+        searchStr = searchTerm.current.trim()
       }
 
-      const offset = offsets?.[currentPage?.type] || ''
+      const offset = offsets.current?.[currentPage?.type] || ''
 
       let queryStringItems = {
         searchType: searchType?.value,
@@ -369,22 +335,52 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 
       response = await fetch(endpoint)
-
-      const searchContext = filterExists ? 'filter' : 'search'
       await handleSearchResponse({ searchContext, response })
       setToggledClearRows(false)
       setSelectedValueSets([])
+      async function handleSearchResponse({ searchContext, response }: SearchReponseParams) {
+        if (response?.ok) {
+          const valueSetResponse = (await response.json()) as SearchResponse
+          const newOffsets = {
+            first: valueSetResponse?.first || null,
+            next: valueSetResponse?.next || null,
+            previous: valueSetResponse?.previous || null,
+            last: valueSetResponse?.last || null
+          }
+          if (!shallowEqual(offsets.current, newOffsets)) {
+            offsets.current = newOffsets
+          }
+
+          if (searchContext === 'filter') {
+            setFilteredVSets(valueSetResponse.valueSets)
+            setFetchError(valueSetResponse.error || null)
+            // what to do with total when filtered? probably fine
+          } else {
+            setValueSets(valueSetResponse.valueSets)
+            setSearchTotal(valueSetResponse.total)
+            setFetchError(valueSetResponse.error || null)
+          }
+        } else if (response && !response?.ok) {
+          const valueSetResponse = await response.json()
+          setValueSets([])
+          setFetchError(valueSetResponse)
+        } else {
+          setValueSets([])
+          setFetchError({
+            errorType: 'fetch-error',
+            message: 'No response for search'
+          })
+        }
+        setIsLoading(false)
+      }
     },
     [
       currentPage?.type,
-      filterExists,
-      offsets,
       resultsPerPage,
       searchType.value,
       selectedTerminologyServer?.value?.title,
       sortParams?.column,
-      sortParams?.direction,
-      searchTerm
+      sortParams?.direction
     ]
   )
 
@@ -397,14 +393,10 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
     // if there are no valuesets, don't filter
     if (!valueSets || !valueSets.length) return
 
-    async function filter() {
-      await submitVSetSearch()
-    }
-
     // if the number of valuesets are more than the max allowed,
     // send out a request to the server to filter
     if (valueSets.length > paginationMaximum) {
-      filter()
+      submitVSetSearch('filter')
       // if there are less than paginationMaximum, filter in FE synchronously
       // this is not ideal, but VSAC does not allow us to combine multiple search params
     } else {
@@ -434,40 +426,15 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       }
       setFilteredVSets(filteredValueSets)
     }
-  }, [
-    valueSets,
-    findInName,
-    findInStatus,
-    findInSteward,
-    findInOid,
-    findInLastUpdated,
-    currentPage,
-    resultsPerPage,
-    sortParams,
-    filterExists
-    // below will cause infinite loop
-    // submitVSetSearch
-  ])
+  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
 
   useEffect(() => {
-    if (!searchTerm) return
     setIsLoading(true)
-    search()
+    submitVSetSearch()
     return () => {
       setIsLoading(false)
     }
-    async function search() {
-      await submitVSetSearch()
-    }
-  }, [
-    currentPage,
-    resultsPerPage,
-    sortParams,
-    selectedTerminologyServer
-    // below will cause infinite loop
-    // searchTerm,
-    // submitVSetSearch
-  ])
+  }, [submitVSetSearch])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -546,7 +513,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       setAddedValueSetsLoading(false)
     }
     setSelectedValueSets([])
-    setSearchTerm('')
+    searchTerm.current = ''
     setSelectedConditions([])
     setSelectedGroupers([])
   }
@@ -556,11 +523,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       toast.error(fetchError.message)
     }
   }, [fetchError?.message, fetchError?.errorType])
-
-  const showFilters = Boolean(searchTotal) && Boolean(searchTotal && searchTotal > -1 && searchTotal <= paginationMaximum)
-
-  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
-
   // search page requires the target grouper to be selected, 'add-grouper' context does not
   const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length
 
@@ -588,8 +550,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
                   isMulti={false}
                   options={terminologyServerEndpoints}
                   value={selectedTerminologyServer}
-                  onChange={(e: any) => {
-                    return setSelectedTerminologyServer(e)
+                  onChange={(e) => {
+                    return setSelectedTerminologyServer(e!)
                   }}
                 />
               </SelectInputContainer>
@@ -604,15 +566,18 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
                   isMulti={false}
                   options={searchTypes}
                   value={searchType}
-                  onChange={(e: any) => {
-                    return setSearchType(e)
+                  onChange={(e) => {
+                    return setSearchType(e!)
                   }}
                 />
               </SelectInputContainer>
             </div>
             <TextArea
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              onKeyPress={submitVSetSearch}
+              onChange={(e) => (searchTerm.current = e.target.value)}
+              onKeyPress={(e) => {
+                e.preventDefault()
+                submitVSetSearch()
+              }}
               id="vs-search"
               label="Search Text"
               hasIcon={true}
@@ -632,7 +597,10 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
               style={{ alignSelf: 'center', marginTop: '12px' }}
               buttonContext="search"
               type="submit"
-              onClick={(e) => submitVSetSearch(e)}
+              onClick={(e) => {
+                e.preventDefault()
+                submitVSetSearch()
+              }}
             />
             {fetchError?.errorType === 'failed-oids' ? (
               <ErrorBlock>
@@ -666,7 +634,10 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedConditions)}
                 value={selectedConditions}
-                onChange={(e: any) => setSelectedConditions(e)}
+                onChange={(e) => {
+                  // create new array since e is readonly
+                  setSelectedConditions([...e])
+                }}
               />
             </SelectInputContainer>
           </div>
@@ -680,8 +651,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
                 isMulti={true}
                 options={formattedGroups}
                 value={selectedGroupers}
-                onChange={(e: any) => {
-                  setSelectedGroupers(e as SelectedGrouper[])
+                onChange={(e) => {
+                  // create new array since e is readonly
+                  setSelectedGroupers([...e])
                 }}
               />
             </SelectInputContainer>
@@ -696,16 +668,21 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       </SubmitSelectedForm>
       <SearchTable
         searchType={searchType.value}
-        valueSets={!filterExists ? valueSets || [] : filteredVSets}
+        valueSets={!filterExists || vsNumExceedsFilterLimit ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
         clearSelectedRows={toggledClearRows}
         setClearSelectedRows={setToggledClearRows}
+        findInName={findInName}
         setFindInName={setFindInName}
+        findInSteward={findInSteward}
         setFindInSteward={setFindInSteward}
+        findInStatus={findInStatus}
         setFindInStatus={setFindInStatus}
+        findInOid={findInOid}
         setFindInOid={setFindInOid}
+        findInLastUpdated={findInLastUpdated}
         setFindInLastUpdated={setFindInLastUpdated}
-        showFilters={showFilters}
+        showFilters={!vsNumExceedsFilterLimit}
         // handle this loader to make sure status doesn't move table
         isLoading={isLoading}
         resultsPerPage={resultsPerPage}
