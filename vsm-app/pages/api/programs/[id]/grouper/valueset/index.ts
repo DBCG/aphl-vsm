@@ -81,7 +81,7 @@ const createGrouperValueSet = async (
   try {
     program = await fhirCdrClient.read({
       resourceType: 'Library',
-      id: 'abc'//programId
+      id: programId
     })
 
     if (program.status !== 'draft') {
