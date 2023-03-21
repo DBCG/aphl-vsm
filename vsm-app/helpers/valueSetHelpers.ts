@@ -11,7 +11,7 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]
   if (inputType === 'string') {
     const valueToAdd = [vsCanonical]
     // if no compose include & no leaf valuesets
-    if (!valueSetToUpdate?.compose?.include && !leafVSetsAlreadyInGroup) {
+    if (!valueSetToUpdate?.compose?.include && !leafVSetsAlreadyInGroup?.length) {
       // need to make a new path
       const path = 'compose.include[0].valueSet' // make this more flexible?
       // what if something in compose.include that isn't valueset in the future
