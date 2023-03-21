@@ -75,6 +75,21 @@ const createGrouperValueSet = async (
     grouperMetadata
   } = body
 
+  let program
+
+  try {
+    program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: programId
+    })
+
+    if (program.status !== 'draft') {
+      return res.status(405).send({ error: 'Only programs with draft status may be edited' })
+    }
+  } catch (e) {
+    return res.status(404).send({ error: `Program with id ${programId} not found.` })
+  }
+
   // check to make sure no vset exists with user-entered ID
   try {
     const existingVS = await fhirCdrClient.read({
@@ -255,10 +270,6 @@ const createGrouperValueSet = async (
   // first, get the VS library associated with this program
   // is there a more streamlined way to do this in one query? need url and version
   try {
-    const program = await fhirCdrClient.read({
-      resourceType: 'Library',
-      id: programId
-    })
 
     // only one relatedArtifact will be the vs library
     // this must always exist
