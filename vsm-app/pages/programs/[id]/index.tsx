@@ -162,12 +162,14 @@ const ProgramDetails: NextPage = () => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        <Button
-          text="Create New Grouper"
-          onClick={() => {
-            router.push(`/programs/${router.query.id}/grouper`)
-          }}
-        />
+        {can(session, 'edit') && status === 'draft' && (
+          <Button
+            text="Create New Grouper"
+            onClick={() => {
+              router.push(`/programs/${router.query.id}/grouper`)
+            }}
+          />
+        )}
       </Row>
       <ProgramDetailTable
         data={programAndGrouperInfo?.grouperData}
