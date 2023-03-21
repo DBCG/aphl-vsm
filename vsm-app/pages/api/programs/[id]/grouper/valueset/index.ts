@@ -7,6 +7,7 @@ import { HapiError } from '@/types/hapiError'
 import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
+import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 
 const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
   return vsets.map(vs => ({
@@ -80,13 +81,14 @@ const createGrouperValueSet = async (
   try {
     program = await fhirCdrClient.read({
       resourceType: 'Library',
-      id: programId
+      id: 'abc'//programId
     })
 
     if (program.status !== 'draft') {
       return res.status(405).send({ error: 'Only programs with draft status may be edited' })
     }
   } catch (e) {
+    logSimpleHapiError(e)
     return res.status(404).send({ error: `Program with id ${programId} not found.` })
   }
 
@@ -187,6 +189,7 @@ const createGrouperValueSet = async (
     // updated with the proper conditions added, or error out
 
   } catch (e) {
+    logSimpleHapiError(e)
     return res.status(400).send({ error: 'Could not update ValueSets with new conditions' })
   }
 
@@ -237,7 +240,7 @@ const createGrouperValueSet = async (
         }
 
       } catch (e) {
-        console.error('e: ', e)
+        logSimpleHapiError(e)
         return res.status(400).send({ error: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}` })
       }
     }
@@ -263,6 +266,7 @@ const createGrouperValueSet = async (
     grouperReference = `${createdGrouper.url}|${createdGrouper.version}`
 
   } catch (e) {
+    logSimpleHapiError(e)
     return res.status(400).send({ error: `Error saving Grouper ${grouperMetadata.id}` })
   }
 
@@ -312,6 +316,7 @@ const createGrouperValueSet = async (
 
 
   } catch (e) {
+    logSimpleHapiError(e)
     return res.status(400).send({ error: `Failed to save changes to Program ${programId}` })
   }
 }
