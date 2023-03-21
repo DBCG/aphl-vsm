@@ -284,7 +284,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
    */
   const submitVSetSearch = useCallback(
-    async (searchContext?: 'filter' | 'search') => {
+    async (searchContext: 'filter' | 'search' = 'search') => {
       setToggledClearRows(true)
 
       let response
@@ -335,7 +335,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
       const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 
       response = await fetch(endpoint)
-      searchContext ??= 'search'
       await handleSearchResponse({ searchContext, response })
       setToggledClearRows(false)
       setSelectedValueSets([])
