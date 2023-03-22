@@ -63,10 +63,18 @@ const contactOptions = {
   }
 }
 
-const artifactCommentTypes = {
-  documentation: 'Documentation',
-  review: 'Review',
-  guidance: 'Guidance',
+const artifactAssessmentInfoTypes = {
+  comment: 'Comment',
+  classifier: 'Classifier',
+  rating: 'Rating',
+  response: 'Response',
+  "change-request": 'Change Request',
+  // technically container is
+  // a valid response but disabling
+  // it since it doesn't make
+  // sense in the context
+  // of an approval
+  // container: 'Container',
 }
 
 interface formData {
@@ -75,11 +83,11 @@ interface formData {
   endorserContact: string
   endorserContactType: keyof typeof contactOptions | ''
   endorserContactValue: string
-  artifactCommentType: keyof typeof artifactCommentTypes | ''
-  artifactCommentText: string
-  artifactCommentTarget: string
-  artifactCommentReference: string
-  artifactCommentUser: string
+  artifactAssessmentInfoType: keyof typeof artifactAssessmentInfoTypes | ''
+  artifactAssessmentText: string
+  artifactAssessmentTarget: string
+  artifactAssessmentReference: string
+  artifactAssessmentAuthor: string
 }
 
 const ApproveInfoForm: NextPage = () => {
@@ -91,11 +99,11 @@ const ApproveInfoForm: NextPage = () => {
     endorserContact: '',
     endorserContactType: '',
     endorserContactValue: '',
-    artifactCommentType: '',
-    artifactCommentText: '',
-    artifactCommentTarget: '',
-    artifactCommentReference: '',
-    artifactCommentUser: '',
+    artifactAssessmentInfoType: '',
+    artifactAssessmentText: '',
+    artifactAssessmentTarget: '',
+    artifactAssessmentReference: '',
+    artifactAssessmentAuthor: '',
   })
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -212,31 +220,32 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            defaultValue={{ value: "", label: "Please select Comment Type" }}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
+            defaultValue={{ value: "", label: "Please select Information Type" }}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentInfoType')}
             placeholder='Select Type'
-            options={Object.entries(artifactCommentTypes).map(([key, value]) => ({ value: key, label: value }))}
+            options={Object.entries(artifactAssessmentInfoTypes).map(([key, value]) => ({ value: key, label: value }))}
           />
           <SearchInput
             id='Text'
             label='Text'
-            value={approvalFormData.artifactCommentText}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')} />
+            value={approvalFormData.artifactAssessmentText}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentText')} />
           <SearchInput
             id='Target'
             label='Target'
-            value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')} />
+            placeholder={programAndGrouperInfo.program.id}
+            value={approvalFormData.artifactAssessmentTarget}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentTarget')} />
           <SearchInput
             id='Reference'
             label='Reference'
-            value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')} />
+            value={approvalFormData.artifactAssessmentReference}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentReference')} />
           <SearchInput
             id='User'
             label='User'
-            value={approvalFormData.artifactCommentUser}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')} />
+            value={approvalFormData.artifactAssessmentAuthor}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentAuthor')} />
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
