@@ -15,16 +15,6 @@ export type ErrorResponse = {
   resStatus: number
 }
 
-const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
-  return vsets.map(vs => ({
-    resource: vs,
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${vs.id}`
-    }
-  }))
-}
-
 const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
@@ -82,301 +72,32 @@ const createGrouperValueSet = async (
     grouperMetadata
   } = body
 
-  // set program equal to this
-  const getProgram = async (): Promise<fhir4.Library | ErrorResponse> => {
-    try {
-      const program = await fhirCdrClient.read({
-        resourceType: 'Library',
-        id: programId
-      })
-
-      if (program.status !== 'draft') {
-        return ({ errorMessage: 'Only programs with draft status may be edited', resStatus: 405 })
-      } else if (!is.library(program)) {
-        return ({ errorMessage: `Could not find program with id ${programId}`, resStatus: 404 })
-      } else {
-        return program
-      }
-    } catch (e: HapiError) {
-      logSimpleHapiError(e)
-      return ({
-        errorMessage: `Program with id ${programId} not found.`,
-        resStatus: 404
-      })
-    }
-  }
-
-  const checkForUniqueID = async (): Promise<void | ErrorResponse> => {
-    // check to make sure no vset exists with user-entered ID
-    try {
-      const existingVS = await fhirCdrClient.read({
-        resourceType: 'ValueSet',
-        id: grouperMetadata.id!
-      })
-
-      // if vs with id already exists, error out
-      if (existingVS) {
-        return ({ resStatus: 409, errorMessage: `ValueSet with ID ${grouperMetadata.id} already exists. Please enter a unique ID.` })
-      }
-    } catch (e: HapiError) {
-      // handle any error that is not a 404
-      if (e?.response?.status !== 404) {
-        return ({ resStatus: 409, errorMessage: `Server error occurred while checking existence of ValueSet with ID ${grouperMetadata.id}.` })
-      }
-    }
-  }
-
-  const buildBatchSearchEntries = (): fhir4.BundleEntry[] => {
-    return grouperVSets.map(vs => {
-      const unversionedUrl = stringWithoutVersion(vs.selectedValueSet.url!)
-      return ({
-        request: {
-          method: 'GET',
-          url: `ValueSet?url=${unversionedUrl}&_sort=-version`
-        }
-      })
-    })
-  }
-
-  const getMatchingLeafsFromCQF = async (): Promise<fhir4.ValueSet[] | undefined | ErrorResponse> => {
-    try {
-      const getRequestBundle: fhir4.Bundle & { type: 'batch' } = {
-        resourceType: 'Bundle',
-        type: 'batch',
-        entry: buildBatchSearchEntries()
-      }
-
-      const responsesFromCdrGet = await fhirCdrClient.batch({
-        body: getRequestBundle
-      })
-      // only get the first resource in each nested array, should be ordered by version
-      // so first is most recent
-      return responsesFromCdrGet?.entry
-        ?.map(i => i?.resource?.entry?.[0]?.resource)?.filter(x => Boolean(x))
-
-    } catch (e: HapiError) {
-      logSimpleHapiError(e)
-      return ({ resStatus: 400, errorMessage: 'Could not update ValueSets with new conditions' })
-    }
-  }
-
-  const addConditionsToCachedLeafs = (cqfMatches: fhir4.ValueSet[] | undefined): fhir4.ValueSet[] | undefined => {
-    if (!cqfMatches) return
-
-    return cqfMatches.map(cachedVS => {
-
-      const conditionsToAdd = grouperVSets
-        .find(item => stringWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
-        ?.selectedConditions
-        ?.filter(x => Boolean(x))
-      // if user does not include conditions, just return unchanged vs
-      if (!conditionsToAdd?.length) {
-        return cachedVS
-      }
-      const vsWithConditions = updateConditions(cachedVS, conditionsToAdd, false)
-      return vsWithConditions
-    })
-  }
-
-  const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefined, matchesInCqf: fhir4.ValueSet[] | undefined): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
-    try {
-      if (!updatedVS || !matchesInCqf) {
-        return []
-      }
-      const batchEntries = buildBatchVSPut(updatedVS)
-
-      const putRequestBundle: fhir4.Bundle & { type: 'batch' } = {
-        resourceType: 'Bundle',
-        type: 'batch',
-        entry: batchEntries
-      }
-
-      const responsesFromCdrPut = await fhirCdrClient.batch({
-        body: putRequestBundle
-      })
-
-      // match everything until the 2nd slash for error readout
-      const regex = new RegExp('^[^/]+/[^/]+')
-
-      const failedPuts = responsesFromCdrPut.entry
-        ?.filter((res) => res.response.status !== '200 OK')
-        ?.map(failure => failure.response.location.match(regex))
-
-      // fail out if there  was an error in one of the PUTs
-      if (failedPuts?.length) {
-        return ({ resStatus: 400, errorMessage: `Could not update ValueSets: ${failedPuts.join(', ')}` })
-      } else {
-        // if no failures, track all urls of added leafs
-        const urlsOfSuccessfulCQFUpdates = matchesInCqf.map(vs => vs.url)
-        return urlsOfSuccessfulCQFUpdates
-      }
-    } catch (e: HapiError) {
-      return ({ resStatus: 400, errorMessage: 'Error occurred while updating cached leaf valuesets' })
-    }
-  }
-
-  const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[], matchesInCqf): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
-    // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
-    const urlsToAddFromRemote = grouperVSets
-      ?.map(vs => stringWithoutVersion(vs.selectedValueSet.url!))
-      ?.filter(url => !matchesInCqf?.includes(url))
-      ?.filter(item => Boolean(item))
-
-    // handle case where there might be no need to grab leafs from term servers
-    if (!urlsToAddFromRemote.length) {
-      return []
-    }
-
-    const vsToAddFromTermServer = grouperVSets.filter(flatVs => urlsToAddFromRemote.includes(flatVs.selectedValueSet.url!))
-
-    if (vsToAddFromTermServer) {
-      for (const flatGrouperItem of vsToAddFromTermServer) {
-        try {
-          terminologyClient.setClient(flatGrouperItem.selectedTerminologyServer)
-          const terminologyClientInstance = terminologyClient.getClient()
-          // vsac appends version to the id, search by unversioned
-          // must do a read operation to get whole valueset instead of subsetted
-          const idWithoutVersion = stringWithoutVersion(flatGrouperItem.selectedValueSet.id!)
-          const valueSetToAdd = await terminologyClientInstance.read({
-            resourceType: 'ValueSet',
-            id: idWithoutVersion
-          })
-
-          // add optional conditions to valueset from term server (VSAC)
-          const vsWithConditions = updateConditions(valueSetToAdd, flatGrouperItem.selectedConditions, false)
-
-          // add authoritativeSource to valueset
-          // TODO should make this a helper now used in 2 files
-          const authSrcUrl = terminologyServerEndpoints
-            ?.find(grp => grp.value.title.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase())
-            ?.value?.url
-
-          const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl)
-
-          const vsAddedToCache = await fhirCdrClient.create({
-            resourceType: 'ValueSet',
-            body: vsWithAuthSource
-          })
-
-          if (!vsAddedToCache) {
-            return ({ resStatus: 400, errorMessage: `Error saving ValueSet: '${flatGrouperItem.selectedValueSet.name}'` })
-          }
-
-        } catch (e: HapiError) {
-          logSimpleHapiError(e)
-          return ({ resStatus: 400, errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}` })
-        }
-      }
-    }
-    // if all the updates were successful, return the urls updated
-    return urlsToAddFromRemote
-  }
-
-  const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][]): Promise<fhir4.ValueSet['url'] | ErrorResponse> => {
-    const newGrouper = createGrouperWithMetadata(grouperMetadata)
-    const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd)
-
-    try {
-      const createdGrouper = await fhirCdrClient.update({
-        resourceType: 'ValueSet',
-        id: grouperMetadata.id,
-        body: grouperWithLeafRefs
-      })
-
-      // return versioned grouper reference if successful
-      return `${createdGrouper.url}|${createdGrouper.version}`
-
-    } catch (e: HapiError) {
-      logSimpleHapiError(e)
-      return ({ resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id}` })
-    }
-  }
-
-  const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, grouperRef: fhir4.ValueSet['url']): Promise<string | ErrorResponse> => {
-    try {
-      // only one relatedArtifact will be the vs library
-      // this must always exist
-      const vsLibUrlToUpdate = program?.relatedArtifact?.find(artifact => {
-        return artifact?.type === 'composed-of' && artifact?.resource?.includes('/Library/')
-      })?.resource
-
-      if (!is.string(vsLibUrlToUpdate) || !vsLibUrlToUpdate.length) {
-        return ({ resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id} to Program ${program.id}` })
-      }
-
-      // there is currently no version on the grouper library after clone...
-      // how do we identify which is the right one if this is the case?
-      const [url, version] = vsLibUrlToUpdate.split('|')
-
-      // currently there will only be ONE vs library with this url with draft status
-      // this will be changed in the future with updates to how CQF $draft works
-      // for now have to use this uniqueness to target the right library, will need to update
-      const vsLib: fhir4.Bundle & { type: 'searchset' } = await fhirCdrClient.search({
-        resourceType: 'Library',
-        searchParams: {
-          url,
-          version,
-          status: 'draft'
-        }
-      })
-
-      if (!vsLib.entry) {
-        return ({ resStatus: 404, errorMessage: `Could not find Library with urll ${url}` })
-      }
-
-      // there will only be one result because only one draft allowed currently
-      const libResource = vsLib.entry[0].resource as fhir4.Library
-
-      if (!libResource.relatedArtifact) {
-        libResource.relatedArtifact = []
-      }
-
-      libResource.relatedArtifact.push({
-        type: 'composed-of',
-        resource: grouperRef.split('|')[0] // should this be verisoned or unversioned
-      })
-
-      // at this point, the grouper's valueset library is updated, save & return 200 if success
-      await fhirCdrClient.update({
-        resourceType: 'Library',
-        id: libResource.id,
-        body: libResource
-      })
-
-      return `Saved new grouper to Program ${programId}`
-
-
-    } catch (e: HapiError) {
-      logSimpleHapiError(e)
-      return ({ resStatus: 400, errorMessage: `Failed to save changes to Program ${programId}` })
-    }
-  }
-
   // fn to return out of API with error
-  const sendError = ({ resStatus, errorMessage }: ErrorResponse): void => {
+  const sendError = (error: ErrorResponse): void => {
+    const { resStatus, errorMessage } = error
     return res.status(resStatus).send({ error: errorMessage })
   }
 
   // get program
-  const program = await getProgram()
+  const program = await getProgram(programId)
   if (is.errorResponse(program)) {
     sendError(program)
   }
   // ensure user-entered grouper VS ID is unique
-  const isIdUnique = checkForUniqueID()
+  const isIdUnique = checkForUniqueID(grouperMetadata.id)
   if (is.errorResponse(isIdUnique)) {
     sendError(isIdUnique)
   }
 
   // find any leaf matches that exist in our HAPI server
-  // these may or may not exist
-  const matchesInCqf = await getMatchingLeafsFromCQF()
+  // (these may or may not exist)
+  const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
   if (is.errorResponse(matchesInCqf)) {
     sendError(matchesInCqf)
   }
 
-  // update those leafs with newly added conditions (if any)
-  // an ErrorResponse shouldn't reach here because of return... why this TS error?
+  // update those cached leafs with newly added conditions (if any)
+  // an ErrorResponse shouldn't reach here because of return in sendError... why this TS error?
   const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf)
 
   const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS(updatedValueSetsFromCache, matchesInCqf)
@@ -391,7 +112,7 @@ const createGrouperValueSet = async (
 
   const leafUrlsToAdd = [].concat(successfulUpdatesFromTermServers, successfulUpdatesToCQFCachedVS)
 
-  const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd)
+  const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd, grouperMetadata)
   if (is.errorResponse(grouperSubmitted)) {
     sendError(grouperSubmitted)
   }
@@ -404,6 +125,289 @@ const createGrouperValueSet = async (
   }
 }
 
+// ---------------------------------------------------------------------------------
+// ---------------------- HELPER FUNCTIONS USED IN ROUTES --------------------------
+// ---------------------------------------------------------------------------------
+const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
+  return vsets.map(vs => ({
+    resource: vs,
+    request: {
+      method: 'PUT',
+      url: `ValueSet/${vs.id}`
+    }
+  }))
+}
+
+const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library | ErrorResponse> => {
+  try {
+    const program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: programId!
+    })
+
+    if (program.status !== 'draft') {
+      return ({ errorMessage: 'Only programs with draft status may be edited', resStatus: 405 })
+    } else if (!is.library(program)) {
+      return ({ errorMessage: `Could not find program with id ${programId}`, resStatus: 404 })
+    } else {
+      return program
+    }
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    return ({
+      errorMessage: `Program with id ${programId} not found.`,
+      resStatus: 404
+    })
+  }
+}
+
+const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<void | ErrorResponse> => {
+  // check to make sure no vset exists with user-entered ID
+  try {
+    const existingVS = await fhirCdrClient.read({
+      resourceType: 'ValueSet',
+      id: grouperId!
+    })
+
+    // if vs with id already exists, error out
+    if (existingVS) {
+      return ({ resStatus: 409, errorMessage: `ValueSet with ID ${grouperId} already exists. Please enter a unique ID.` })
+    }
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    // handle any error that is not a 404
+    if (e?.response?.status !== 404) {
+      return ({ resStatus: 409, errorMessage: `Server error occurred while checking existence of ValueSet with ID ${grouperId}.` })
+    }
+  }
+}
+
+const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleEntry[] => {
+  return grouperVSets.map(vs => {
+    const unversionedUrl = stringWithoutVersion(vs.selectedValueSet.url!)
+    return ({
+      request: {
+        method: 'GET',
+        url: `ValueSet?url=${unversionedUrl}&_sort=-version`
+      }
+    })
+  })
+}
+
+const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise<fhir4.ValueSet[] | undefined | ErrorResponse> => {
+  try {
+    const getRequestBundle: fhir4.Bundle & { type: 'batch' } = {
+      resourceType: 'Bundle',
+      type: 'batch',
+      entry: buildBatchSearchEntries(grouperVSets)
+    }
+
+    const responsesFromCdrGet = await fhirCdrClient.batch({
+      body: getRequestBundle
+    })
+    // only get the first resource in each nested array, should be ordered by version
+    // so first is most recent
+    return responsesFromCdrGet?.entry
+      ?.map(i => i?.resource?.entry?.[0]?.resource)?.filter(x => Boolean(x))
+
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    return ({ resStatus: 400, errorMessage: 'Could not update ValueSets with new conditions' })
+  }
+}
+
+const addConditionsToCachedLeafs = (cqfMatches: fhir4.ValueSet[] | undefined): fhir4.ValueSet[] | undefined => {
+  if (!cqfMatches) return
+
+  return cqfMatches.map(cachedVS => {
+
+    const conditionsToAdd = grouperVSets
+      .find(item => stringWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
+      ?.selectedConditions
+      ?.filter(x => Boolean(x))
+    // if user does not include conditions, just return unchanged vs
+    if (!conditionsToAdd?.length) {
+      return cachedVS
+    }
+    const vsWithConditions = updateConditions(cachedVS, conditionsToAdd, false)
+    return vsWithConditions
+  })
+}
+
+const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefined, matchesInCqf: fhir4.ValueSet[] | undefined): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+  try {
+    if (!updatedVS || !matchesInCqf) {
+      return []
+    }
+    const batchEntries = buildBatchVSPut(updatedVS)
+
+    const putRequestBundle: fhir4.Bundle & { type: 'batch' } = {
+      resourceType: 'Bundle',
+      type: 'batch',
+      entry: batchEntries
+    }
+
+    const responsesFromCdrPut = await fhirCdrClient.batch({
+      body: putRequestBundle
+    })
+
+    // match everything until the 2nd slash for error readout
+    const regex = new RegExp('^[^/]+/[^/]+')
+
+    const failedPuts = responsesFromCdrPut.entry
+      ?.filter((res) => res.response.status !== '200 OK')
+      ?.map(failure => failure.response.location.match(regex))
+
+    // fail out if there  was an error in one of the PUTs
+    if (failedPuts?.length) {
+      return ({ resStatus: 400, errorMessage: `Could not update ValueSets: ${failedPuts.join(', ')}` })
+    } else {
+      // if no failures, track all urls of added leafs
+      const urlsOfSuccessfulCQFUpdates = matchesInCqf.map(vs => vs.url)
+      return urlsOfSuccessfulCQFUpdates
+    }
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    return ({ resStatus: 400, errorMessage: 'Error occurred while updating cached leaf valuesets' })
+  }
+}
+
+const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[], matchesInCqf): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+  // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
+  const urlsToAddFromRemote = grouperVSets
+    ?.map(vs => stringWithoutVersion(vs.selectedValueSet.url!))
+    ?.filter(url => !matchesInCqf?.includes(url))
+    ?.filter(item => Boolean(item))
+
+  // handle case where there might be no need to grab leafs from term servers
+  if (!urlsToAddFromRemote.length) {
+    return []
+  }
+
+  const vsToAddFromTermServer = grouperVSets.filter(flatVs => urlsToAddFromRemote.includes(flatVs.selectedValueSet.url!))
+
+  if (vsToAddFromTermServer) {
+    for (const flatGrouperItem of vsToAddFromTermServer) {
+      try {
+        terminologyClient.setClient(flatGrouperItem.selectedTerminologyServer)
+        const terminologyClientInstance = terminologyClient.getClient()
+        // vsac appends version to the id, search by unversioned
+        // must do a read operation to get whole valueset instead of subsetted
+        const idWithoutVersion = stringWithoutVersion(flatGrouperItem.selectedValueSet.id!)
+        const valueSetToAdd = await terminologyClientInstance.read({
+          resourceType: 'ValueSet',
+          id: idWithoutVersion
+        })
+
+        // add optional conditions to valueset from term server (VSAC)
+        const vsWithConditions = updateConditions(valueSetToAdd, flatGrouperItem.selectedConditions, false)
+
+        // add authoritativeSource to valueset
+        // TODO should make this a helper now used in 2 files
+        const authSrcUrl = terminologyServerEndpoints
+          ?.find(grp => grp.value.title.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase())
+          ?.value?.url
+
+        const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl)
+
+        const vsAddedToCache = await fhirCdrClient.create({
+          resourceType: 'ValueSet',
+          body: vsWithAuthSource
+        })
+
+        if (!vsAddedToCache) {
+          return ({ resStatus: 400, errorMessage: `Error saving ValueSet: '${flatGrouperItem.selectedValueSet.name}'` })
+        }
+
+      } catch (e: HapiError | any) {
+        logSimpleHapiError(e)
+        return ({ resStatus: 400, errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}` })
+      }
+    }
+  }
+  // if all the updates were successful, return the urls updated
+  return urlsToAddFromRemote
+}
+
+const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata): Promise<fhir4.ValueSet['url'] | ErrorResponse> => {
+  const newGrouper = createGrouperWithMetadata(grouperMetadata)
+  const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd)
+
+  try {
+    const createdGrouper = await fhirCdrClient.update({
+      resourceType: 'ValueSet',
+      id: grouperMetadata.id,
+      body: grouperWithLeafRefs
+    })
+
+    // return versioned grouper reference if successful
+    return `${createdGrouper.url}|${createdGrouper.version}`
+
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    return ({ resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id}` })
+  }
+}
+
+const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, grouperRef: fhir4.ValueSet['url']): Promise<string | ErrorResponse> => {
+  try {
+    // only one relatedArtifact will be the vs library
+    // this must always exist
+    const vsLibUrlToUpdate = program?.relatedArtifact?.find(artifact => {
+      return artifact?.type === 'composed-of' && artifact?.resource?.includes('/Library/')
+    })?.resource
+
+    if (!is.string(vsLibUrlToUpdate) || !vsLibUrlToUpdate.length) {
+      return ({ resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id} to Program ${program.id}` })
+    }
+
+    // there is currently no version on the grouper library after clone...
+    // how do we identify which is the right one if this is the case?
+    const [url, version] = vsLibUrlToUpdate.split('|')
+
+    // currently there will only be ONE vs library with this url with draft status
+    // this will be changed in the future with updates to how CQF $draft works
+    // for now have to use this uniqueness to target the right library, will need to update
+    const vsLib: fhir4.Bundle & { type: 'searchset' } = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams: {
+        url,
+        version,
+        status: 'draft'
+      }
+    })
+
+    if (!vsLib.entry) {
+      return ({ resStatus: 404, errorMessage: `Could not find Library with urll ${url}` })
+    }
+
+    // there will only be one result because only one draft allowed currently
+    const libResource = vsLib.entry[0].resource as fhir4.Library
+
+    if (!libResource.relatedArtifact) {
+      libResource.relatedArtifact = []
+    }
+
+    libResource.relatedArtifact.push({
+      type: 'composed-of',
+      resource: grouperRef.split('|')[0] // should this be verisoned or unversioned
+    })
+
+    // at this point, the grouper's valueset library is updated, save & return 200 if success
+    await fhirCdrClient.update({
+      resourceType: 'Library',
+      id: libResource.id,
+      body: libResource
+    })
+
+    return `Saved new grouper to Program ${programId}`
+
+
+  } catch (e: HapiError | any) {
+    logSimpleHapiError(e)
+    return ({ resStatus: 400, errorMessage: `Failed to save changes to Program ${programId}` })
+  }
+}
 
 export default handler({
   PUT: {
