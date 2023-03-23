@@ -22,6 +22,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { MultiValue } from 'react-select'
 import { CombinedGrouperVSets, FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { Condition } from '@/helpers/conditionHelpers'
+import { LoadingModal } from '@/components/modals/LoadingModal'
 
 const defaultFormData = {
   id: '',
@@ -67,6 +68,7 @@ const AddGrouper = () => {
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [error, setError] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleAddValueSets = (newVsInfo: CombinedGrouperVSets) => {
     const { selectedValueSets, selectedConditions, selectedGroupers, selectedTerminologyServer } = newVsInfo
@@ -106,6 +108,7 @@ const AddGrouper = () => {
 
   const addGrouper = async () => {
     setError(null)
+    setLoading(true)
 
     const grouperMetadata: GrouperMetadata = {
       id,
@@ -132,7 +135,7 @@ const AddGrouper = () => {
       router.push(`/programs/${router.query.id}`)
     } else {
       const json = await res.json()
-
+      setLoading(false)
       setError({ type: 'failed-grouper-add', message: json.error || `Failed to add grouper '${name}'` })
     }
   }
@@ -166,6 +169,14 @@ const AddGrouper = () => {
 
   return (
     <>
+      <LoadingModal
+        isOpen={loading}
+        actionType="grouper-add"
+        program={null}
+        handleCancelModal={() => {}}
+        loading={loading}
+        handleModalAction={() => {}}
+      />
       <FormTitle>Add a Grouper</FormTitle>
       <FormSectionHeader
         itemNum={1}

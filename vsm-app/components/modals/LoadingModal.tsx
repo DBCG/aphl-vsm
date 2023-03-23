@@ -7,12 +7,13 @@ import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryH
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone'
+  actionType: 'release' | 'publish' | 'clone' | 'grouper-add'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
   loading: boolean
   program: fhir4.Library | null
+  cancellable?: boolean
 }
 
 const LoadingText = styled.p`
@@ -56,6 +57,18 @@ const modalText = {
         Please keep this window open until it completes.
       </LoadingText>
     )
+  },
+  'grouper-add': {
+    title: 'Save your Grouper',
+    text: 'Saving your updated grouper ValueSet',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Saving a grouper may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
   }
 }
 
@@ -75,7 +88,7 @@ if (typeof window !== 'undefined') {
   ReactModal.setAppElement('body')
 }
 
-const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, handleModalAction, program }: ModalInfo) => {
+const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancellable = true, handleModalAction, program }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   const [currentProgram, setProgram] = useState(program)
