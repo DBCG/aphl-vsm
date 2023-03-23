@@ -1,3 +1,4 @@
+import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from "pages/api/programs/[id]/grouper/valueset"
 
 const is = {
@@ -37,6 +38,15 @@ const is = {
   },
   errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
     return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
+  },
+  hapiError: (resource: any): resource is HapiError => {
+    return (
+      typeof resource.response.status === 'number' &&
+      resource.response.data.resourcetype === 'OperationOutcome' &&
+      typeof resource.config.method === 'string' &&
+      typeof resource.config.url === 'string' &&
+      typeof resource.config.url === 'string'
+    )
   },
   library: (resource: fhir4.Library | any): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
