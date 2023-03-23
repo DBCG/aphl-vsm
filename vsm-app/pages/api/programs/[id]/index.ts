@@ -10,44 +10,58 @@ import {
   setVSPriorityUsageContext,
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
+import { error } from '@/types/fhirClient'
 
 // this only gets the program library
-const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
+const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
   if (is.string(req?.query?.id)) {
     try {
       const lib = await fhirCdrClient.read({
         resourceType: 'Library',
         id: req.query.id as string
-      })
+      }) as fhir4.Library
 
       res.status(200).send(lib)
+      return
     } catch (e: any) {
-      console.error('error: ', e?.response?.data?.text)
-      res.status(400).json({ error: 'Search for program by id failed.' })
+      const error = e as error
+      console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+      res.status(error.response?.status).json({ error: 'Search for program by id failed.' })
+      return
     }
   } else {
     console.error('error: Invalid program ID')
     res.status(400).json({ error: 'Search for program by id failed.' })
+    return
   }
 }
 
-const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
-  // update the program by id
-  const response = await fhirCdrClient.update({
-    resourceType: 'Library',
-    id: req.query['id'] as string,
-    body: req.body
-  })
-  res.send(response)
+const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
+  try {
+    // update the program by id
+    const response = await fhirCdrClient.update<fhir4.Library>({
+      resourceType: 'Library',
+      id: req.query['id'] as string,
+      body: req.body
+    }) as fhir4.Library
+    res.send(response)
+    return
+  } catch (e: any) {
+    const error = e as error
+    console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    res.status(error.response?.status).json({ error: `Error updating program by ID` })
+    return
+  }
 }
 
-const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
+const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | fhir4.Resource | { error: string }>) => {
   try {
     // if the user does not want to change the id of the FHIR Library
     // simply update the values in the existing resource
     if (req.body.status === 'active') {
       console.error('Cannot edit an active Program Library')
-      res.status(405).send('Not allowed')
+      res.status(405).send({ error: 'Not allowed' })
+      return
     }
     if (req.body.id === req.query['id']) {
       const grouperLibraryCanonical = getGrouperLibraryCanonical(req.body)
@@ -89,39 +103,35 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) =
         }
       })
 
-      res.send(req.body) // UI is expecting the updated library as a response
+      res.send(req.body as fhir4.Library) // UI is expecting the updated library as a response
+      return
     } else {
       // if the user wants to change the id of the Library (hence non-matching ids),
       // create a new Library with that name, then delete the original one
       const body = await JSON.parse(req.body)
       await fhirCdrClient
-        .update({
+        .update<fhir4.Library>({
           resourceType: 'Library',
           id: body.id as string,
           body: req.body
         })
-        .then(async (newLibraryData) => {
-          const { response: newLibraryResponse } = Client.httpFor(newLibraryData)
-          // return response
-          if (newLibraryResponse.ok) {
-            await fhirCdrClient
-              .delete({
-                resourceType: 'Library',
-                id: req.query['id'] as string
-              })
-              .then((data) => {
-                const { response: deleteResponse } = Client.httpFor(data as any)
-                if (deleteResponse.ok) {
-                  res.send(newLibraryData)
-                }
-              })
-          } else {
-            console.error('failed to create new program')
-          }
+        .then((newLibraryData) => {
+          return fhirCdrClient
+            .delete({
+              resourceType: 'Library',
+              id: req.query.id as string
+            })
         })
+        .then((data) => {
+          res.send(data)
+        })
+      return
     }
-  } catch (e) {
-    console.error('ERROR: ', e)
+  } catch (e: any) {
+    const error = e as error
+    console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    res.status(error.response?.status).json({ error: `Error changing ID` })
+    return
   }
 }
 
