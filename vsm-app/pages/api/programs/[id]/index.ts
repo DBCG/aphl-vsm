@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import Client from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
@@ -10,7 +9,7 @@ import {
   setVSPriorityUsageContext,
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
-import { error } from '@/types/fhirClient'
+import { HapiError } from '@/types/hapiError'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
@@ -24,7 +23,7 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
       res.status(200).send(lib)
       return
     } catch (e: any) {
-      const error = e as error
+      const error = e as HapiError
       console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
       res.status(error.response?.status).json({ error: 'Search for program by id failed.' })
       return
@@ -47,7 +46,7 @@ const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
     res.send(response)
     return
   } catch (e: any) {
-    const error = e as error
+    const error = e as HapiError
     console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
     res.status(error.response?.status).json({ error: `Error updating program by ID` })
     return
@@ -128,7 +127,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
       return
     }
   } catch (e: any) {
-    const error = e as error
+    const error = e as HapiError
     console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
     res.status(error.response?.status).json({ error: `Error changing ID` })
     return
