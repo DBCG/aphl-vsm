@@ -4,17 +4,15 @@ import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { getReleaseDescription, setReleaseDescription, progHasRequiredFields, setVSPriorityUsageContext, getVSPriorityUsageContext, USHealthVSPriority } from '@/helpers/libraryHelpers'
 import {
-  Form,
-  ButtonContainer,
-  TextAreaRow,
-  Col,
-  ButtonCol,
-  RequiredWarning,
-  InputRow,
-  buttonStyles
-} from './styles'
+  getReleaseDescription,
+  setReleaseDescription,
+  progHasRequiredFields,
+  setVSPriorityUsageContext,
+  getVSPriorityUsageContext,
+  USHealthVSPriority
+} from '@/helpers/libraryHelpers'
+import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, InputRow, buttonStyles } from './styles'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -24,8 +22,9 @@ interface ProgramEditModalContentProps {
 
 const requiredFields = ['name', 'description', 'title']
 
-interface OptionType { 
-  label: string, value: string
+interface OptionType {
+  label: string
+  value: string
 }
 
 const priorityLevelOptions: Options<OptionType> = [
@@ -126,36 +125,39 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               style={{ flexBasis: '100%', maxWidth: '624px' }}
             />
             {enableEditing ? (
-              <div style={{
-                flexBasis: '100%',
-                maxWidth: '624px'
-              }}>
-              <Label id='priority-level-selector-label'label="Priority Level" required={true} readonly={true} />
-              <Select
-                placeholder="Select Priority Level"
-                classNamePrefix="priority-level-selector"
-                inputId="priority-level-selector"
-                defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
-                instanceId="priority-level-selector"
-                options={priorityLevelOptions}
-                onChange={(e) => {
-                  const newPriority = e?.value as USHealthVSPriority
-                  const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
-                  setFormTouched(true)
-                  setEditedProgram(updatedProgram)
+              <div
+                style={{
+                  flexBasis: '100%',
+                  maxWidth: '624px'
                 }}
-              />
-              </div>) : (
+              >
+                <Label id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
+                <Select
+                  placeholder="Select Priority Level"
+                  classNamePrefix="priority-level-selector"
+                  inputId="priority-level-selector"
+                  defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))}
+                  instanceId="priority-level-selector"
+                  options={priorityLevelOptions}
+                  onChange={(e) => {
+                    const newPriority = e?.value as USHealthVSPriority
+                    const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
+                    setFormTouched(true)
+                    setEditedProgram(updatedProgram)
+                  }}
+                />
+              </div>
+            ) : (
               <TextArea
                 id="priority-level"
                 label="Priority Level"
                 readonly={true}
                 minWidth={200}
-                def={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
+                def={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
                 placeholder={'No Priority set'}
                 style={{ flexBasis: '100%', maxWidth: '624px' }}
-              />)
-            }
+              />
+            )}
           </TextAreaRow>
         </InputRow>
       </Col>
