@@ -1,3 +1,5 @@
+import { ErrorResponse } from "pages/api/programs/[id]/grouper/valueset"
+
 const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
@@ -32,6 +34,9 @@ const is = {
   },
   episodeOfCare: (resource: fhir4.EpisodeOfCare | any): resource is fhir4.EpisodeOfCare => {
     return resource?.resourceType === 'EpisodeOfCare'
+  },
+  errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
+    return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
   },
   library: (resource: fhir4.Library | any): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
