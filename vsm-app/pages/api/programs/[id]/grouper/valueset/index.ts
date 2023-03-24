@@ -62,6 +62,7 @@ interface BodyInfo {
   grouperMetadata: GrouperMetadata
 }
 
+
 // ---------------------------------------------------------------------------------
 // -------------------------- ROUTE TO ADD NEW GROUPER -----------------------------
 // ---------------------------------------------------------------------------------
@@ -70,63 +71,71 @@ const createGrouperValueSet = async (
   res: NextApiResponse
 ): Promise<any> => {
   const body: BodyInfo = JSON.parse(req.body)
-  const { id: programId } = req.query // this will always be a string
+
+  // programId will always be a string
+  const programId = req.query.id as string
 
   const {
     grouperVSets,
     grouperMetadata
   } = body
 
-  // fn to return out of API with error
-  const sendError = (error: ErrorResponse): void => {
-    const { resStatus, errorMessage } = error
-    return res.status(resStatus).send({ error: errorMessage })
-  }
+  try {
+    // fn to return out of API with error
+    const sendError = (error: ErrorResponse) => {
+      const { errorMessage } = error
+      console.error(`Error found at location ${location}`)
+      throw new Error(errorMessage)
+    }
 
-  // get program
-  const program = await getProgram(programId)
-  if (is.errorResponse(program)) {
-    sendError(program)
-  }
-  // ensure user-entered grouper VS ID is unique
-  const isIdUnique = checkForUniqueID(grouperMetadata.id)
-  if (is.errorResponse(isIdUnique)) {
-    sendError(isIdUnique)
-  }
+    // get program
+    const program = await getProgram(programId)
+    if (is.errorResponse(program)) {
+      sendError(program)
+    }
 
-  // find any leaf matches that exist in our HAPI server
-  // (these may or may not exist)
-  const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
-  if (is.errorResponse(matchesInCqf)) {
-    sendError(matchesInCqf)
-  }
+    // ensure user-entered grouper VS ID is unique
+    const isIdUnique = checkForUniqueID(grouperMetadata.id)
+    if (is.errorResponse(isIdUnique)) {
+      sendError(isIdUnique)
+    }
 
-  // update those cached leafs with newly added conditions (if any)
-  // an ErrorResponse shouldn't reach here because of return in sendError... why this TS error?
-  const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf)
+    // find any leaf matches that exist in our HAPI server
+    // (these may or may not exist)
+    const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
+    if (is.errorResponse(matchesInCqf)) {
+      sendError(matchesInCqf)
+    }
 
-  const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS(updatedValueSetsFromCache, matchesInCqf)
-  if (is.errorResponse(successfulUpdatesToCQFCachedVS)) {
-    sendError(successfulUpdatesToCQFCachedVS)
-  }
+    // update those cached leafs with newly added conditions (if any)
+    // an ErrorResponse shouldn't reach here because of return in sendError... why this TS error?
+    const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
 
-  const successfulUpdatesFromTermServers = await submitLeafUpdatesFromTermServers(grouperVSets, matchesInCqf)
-  if (is.errorResponse(successfulUpdatesFromTermServers)) {
-    sendError(successfulUpdatesFromTermServers)
-  }
+    const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS(updatedValueSetsFromCache, matchesInCqf)
+    if (is.errorResponse(successfulUpdatesToCQFCachedVS)) {
+      sendError(successfulUpdatesToCQFCachedVS)
+    }
 
-  const leafUrlsToAdd = [].concat(successfulUpdatesFromTermServers, successfulUpdatesToCQFCachedVS)
+    const successfulUpdatesFromTermServers = await submitLeafUpdatesFromTermServers(grouperVSets, matchesInCqf)
+    if (is.errorResponse(successfulUpdatesFromTermServers)) {
+      sendError(successfulUpdatesFromTermServers)
+    }
 
-  const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd, grouperMetadata)
-  if (is.errorResponse(grouperSubmitted)) {
-    sendError(grouperSubmitted)
-  }
+    const leafUrlsToAdd = [].concat(successfulUpdatesFromTermServers, successfulUpdatesToCQFCachedVS)
 
-  const programLibUpdate = updateProgramLibraryWithGrouperRef(program, grouperSubmitted)
-  if (is.errorResponse(programLibUpdate)) {
-    sendError(programLibUpdate)
-  } else {
-    return res.status(200).send({ message: programLibUpdate })
+    const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd, grouperMetadata)
+    if (is.errorResponse(grouperSubmitted)) {
+      sendError(grouperSubmitted)
+    }
+
+    const programLibUpdate = await updateProgramLibraryWithGrouperRef(program, grouperSubmitted, grouperMetadata)
+    if (is.errorResponse(programLibUpdate)) {
+      sendError(programLibUpdate)
+    } else {
+      return res.status(200).send({ message: programLibUpdate })
+    }
+  } catch (e: ErrorResponse | any) {
+    return res.status(400).send(`${e?.errorMessage} | 'Failed to create Grouper ValueSet'`)
   }
 }
 
@@ -158,7 +167,7 @@ const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library
       return program
     }
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
+    logSimpleHapiError(e, 'getProgram')
     return ({
       errorMessage: `Program with id ${programId} not found.`,
       resStatus: 404
@@ -166,7 +175,7 @@ const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library
   }
 }
 
-const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<void | ErrorResponse> => {
+const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<Boolean | ErrorResponse> => {
   // check to make sure no vset exists with user-entered ID
   try {
     const existingVS = await fhirCdrClient.read({
@@ -179,12 +188,14 @@ const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<void |
       return ({ resStatus: 409, errorMessage: `ValueSet with ID ${grouperId} already exists. Please enter a unique ID.` })
     }
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
-    // handle any error that is not a 404
-    if (e?.response?.status !== 404) {
-      return ({ resStatus: 409, errorMessage: `Server error occurred while checking existence of ValueSet with ID ${grouperId}.` })
+    // 404 is what we want -- no existing resource with that ID
+    if (e?.response?.status === 404) {
+      return true
+    } else {
+      logSimpleHapiError(e, 'checkForUniqueId')
     }
   }
+  return ({ resStatus: 409, errorMessage: `Server error occurred while checking existence of ValueSet with ID ${grouperId}.` })
 }
 
 const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleEntry[] => {
@@ -199,7 +210,9 @@ const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleE
   })
 }
 
-const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise<fhir4.ValueSet[] | undefined | ErrorResponse> => {
+type MatchesInCQF = fhir4.ValueSet[] | undefined | ErrorResponse
+
+const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise<MatchesInCQF> => {
   try {
     const getRequestBundle: fhir4.Bundle & { type: 'batch' } = {
       resourceType: 'Bundle',
@@ -213,18 +226,18 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
     // only get the first resource in each nested array, should be ordered by version
     // so first is most recent
     return responsesFromCdrGet?.entry
-      ?.map(i => i?.resource?.entry?.[0]?.resource)?.filter(x => Boolean(x))
+      ?.map((i) => i?.resource?.entry?.[0]?.resource)?.filter((x: fhir4.ValueSet | undefined) => Boolean(x))
 
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
+    logSimpleHapiError(e, 'getMatchingLeafsFromCQF')
     return ({ resStatus: 400, errorMessage: 'Could not update ValueSets with new conditions' })
   }
 }
 
-const addConditionsToCachedLeafs = (cqfMatches: fhir4.ValueSet[] | undefined): fhir4.ValueSet[] | undefined => {
-  if (!cqfMatches) return
+const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: FlatGrouperVSet[]): fhir4.ValueSet[] | undefined => {
+  if (!matchesInCqf || is.errorResponse(matchesInCqf)) return
 
-  return cqfMatches.map(cachedVS => {
+  return matchesInCqf.map(cachedVS => {
 
     const conditionsToAdd = grouperVSets
       .find(item => stringWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
@@ -239,7 +252,7 @@ const addConditionsToCachedLeafs = (cqfMatches: fhir4.ValueSet[] | undefined): f
   })
 }
 
-const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefined, matchesInCqf: fhir4.ValueSet[] | undefined): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefined, matchesInCqf: MatchesInCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
   try {
     if (!updatedVS || !matchesInCqf) {
       return []
@@ -272,12 +285,12 @@ const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefine
       return urlsOfSuccessfulCQFUpdates
     }
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
+    logSimpleHapiError(e, 'submitUpdatesToCachedCQFVS')
     return ({ resStatus: 400, errorMessage: 'Error occurred while updating cached leaf valuesets' })
   }
 }
 
-const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[], matchesInCqf): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[], matchesInCqf: MatchesInCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
     ?.map(vs => stringWithoutVersion(vs.selectedValueSet.url!))
@@ -313,6 +326,8 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
           ?.find(grp => grp.value.title.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase())
           ?.value?.url
 
+        // handle if no matching authoritativeSource url
+
         const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl)
 
         const vsAddedToCache = await fhirCdrClient.create({
@@ -325,7 +340,7 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
         }
 
       } catch (e: HapiError | any) {
-        logSimpleHapiError(e)
+        logSimpleHapiError(e, 'submitLeafUpdatesFromTermServers')
         return ({ resStatus: 400, errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}` })
       }
     }
@@ -334,7 +349,7 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
   return urlsToAddFromRemote
 }
 
-const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata): Promise<fhir4.ValueSet['url'] | ErrorResponse> => {
+const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata): Promise<fhir4.ValueSet['url'] | ErrorResponse> => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd)
 
@@ -345,16 +360,18 @@ const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url']
       body: grouperWithLeafRefs
     })
 
+    console.log('createdGrouper: ', createdGrouper);
+
     // return versioned grouper reference if successful
     return `${createdGrouper.url}|${createdGrouper.version}`
 
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
+    logSimpleHapiError(e, 'createAndSubmitGrouper')
     return ({ resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id}` })
   }
 }
 
-const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, grouperRef: fhir4.ValueSet['url']): Promise<string | ErrorResponse> => {
+const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, grouperRef: fhir4.ValueSet['url'], grouperMetadata: GrouperMetadata): Promise<string | ErrorResponse> => {
   try {
     // only one relatedArtifact will be the vs library
     // this must always exist
@@ -383,7 +400,7 @@ const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, groupe
     })
 
     if (!vsLib.entry) {
-      return ({ resStatus: 404, errorMessage: `Could not find Library with urll ${url}` })
+      return ({ resStatus: 404, errorMessage: `Could not find Library with url ${url}` })
     }
 
     // there will only be one result because only one draft allowed currently
@@ -405,12 +422,12 @@ const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, groupe
       body: libResource
     })
 
-    return `Saved new grouper to Program ${programId}`
+    return `Saved new grouper to Program ${program.id}`
 
 
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e)
-    return ({ resStatus: 400, errorMessage: `Failed to save changes to Program ${programId}` })
+    logSimpleHapiError(e, 'updateProgramLibraryWithGrouperRef')
+    return ({ resStatus: 400, errorMessage: `Failed to save changes to Program ${program.id}` })
   }
 }
 
