@@ -39,13 +39,12 @@ const is = {
   errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
     return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
   },
-  hapiError: (resource: any): resource is HapiError => {
+  hapiError: (error: any): error is HapiError => {
     return (
-      typeof resource.response.status === 'number' &&
-      resource.response.data.resourcetype === 'OperationOutcome' &&
-      typeof resource.config.method === 'string' &&
-      typeof resource.config.url === 'string' &&
-      typeof resource.config.url === 'string'
+      typeof error.response.status === 'number' &&
+      error.response.data.resourceType === 'OperationOutcome' &&
+      typeof error.config.method === 'string' &&
+      typeof error.config.url === 'string'
     )
   },
   library: (resource: fhir4.Library | any): resource is fhir4.Library => {
