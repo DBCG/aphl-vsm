@@ -15,6 +15,9 @@ export type ErrorResponse = {
   resStatus: number
 }
 
+// ---------------------------------------------------------------------------------
+// --------------------- ROUTE TO UPDATE EXISTING GROUPERS -------------------------
+// ---------------------------------------------------------------------------------
 const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
@@ -59,7 +62,9 @@ interface BodyInfo {
   grouperMetadata: GrouperMetadata
 }
 
-// POST a grouper that has never existed before
+// ---------------------------------------------------------------------------------
+// -------------------------- ROUTE TO ADD NEW GROUPER -----------------------------
+// ---------------------------------------------------------------------------------
 const createGrouperValueSet = async (
   req: NextApiRequest,
   res: NextApiResponse
