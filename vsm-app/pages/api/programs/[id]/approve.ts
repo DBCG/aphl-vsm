@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import appCache from 'cache'
 import { fhirCdrClient } from 'fhirClients'
+import { HapiError } from '@/types/hapiError'
 
 // this sets approvalDate and date and optionally
 // creates an artifactCommentExtension
@@ -17,10 +18,10 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
         input: req.body
       })) as fhir4.Library
       res.send(response)
-    } catch (error: any) {
-      const outcome = error.response.data as fhir4.OperationOutcome
-      console.error('error with $approve operation', outcome?.issue?.[0]?.code, outcome?.issue?.[0]?.diagnostics)
-      res.status(400).json({ error: outcome?.issue?.[0]?.diagnostics || 'unknown' })
+    } catch (e: any) {
+      const error = e as HapiError
+      console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+      res.status(error.response?.status).json({ error: error.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
     }
   } else {
     console.error('GET is not defined for this operation')
