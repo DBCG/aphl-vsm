@@ -45,12 +45,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         url: vs.url,
         version: vs.version
       }))
+
       const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
 
       res.status(200).send({
         grouperLibId: grouperLibrary.id,
         valueSets: formattedValueSets,
-        expansionParameters
+        expansionParameters,
+        grouperLibrary
       })
     } catch (e: any) {
       console.error('error:  ', e)

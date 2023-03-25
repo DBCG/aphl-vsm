@@ -14,6 +14,7 @@ interface ManifestDataMap {
 export interface Result {
   program: fhir4.Library | {}
   grouperData: GrouperItem[] | []
+  grouperLibrary: Library | null
   manifestData: ManifestDataMap
   grouperLibId: string | null
 }
@@ -29,6 +30,7 @@ const useGetProgramDetails = (id: string): Result => {
     program: {},
     grouperData: [],
     manifestData: {},
+    grouperLibrary: null,
     grouperLibId: null
   })
 
@@ -37,10 +39,12 @@ const useGetProgramDetails = (id: string): Result => {
       program: {},
       grouperData: [],
       manifestData: {},
+      grouperLibrary: null,
       grouperLibId: null
     }
 
     async function getProgram(): Promise<void> {
+      if (!id) return
       const programEndpoint = `/api/programs?id=${id}`
 
       try {
@@ -65,6 +69,7 @@ const useGetProgramDetails = (id: string): Result => {
           result.grouperData = grouperData.valueSets
           result.grouperLibId = grouperData.grouperLibId
           result.manifestData = grouperData?.expansionParameters
+          result.grouperLibrary = grouperData?.grouperLibrary
         }
 
         setProgramAndGrouperData(result)
