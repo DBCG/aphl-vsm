@@ -18,7 +18,7 @@ const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
     console.error(error)
   } else {
     console.error('Error not from HAPI: ', e)
-    console.error(`Location: ${location}`, e)
+    console.error(`Location: ${location}`)
   }
 }
 

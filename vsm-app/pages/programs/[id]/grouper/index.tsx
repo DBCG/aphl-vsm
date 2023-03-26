@@ -54,7 +54,7 @@ interface Error {
 }
 
 export interface ConditionsHandler {
-  conditionInfo: MultiValue<Condition[]>
+  conditionInfo: MultiValue<Condition>
   vsId: fhir4.ValueSet['id']
 }
 

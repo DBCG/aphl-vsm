@@ -6,37 +6,42 @@ import { GrouperMetadata } from '@/types/grouperTypes'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
   const valueSetToUpdate = cloneDeep(vs)
-  let leafVSetsAlreadyInGroup = valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
-  const inputType = typeof vsCanonical
-  if (inputType === 'string') {
-    const valueToAdd = [vsCanonical]
-    // if no compose include & no leaf valuesets
-    if (!valueSetToUpdate?.compose?.include && !leafVSetsAlreadyInGroup?.length) {
-      // need to make a new path
-      const path = 'compose.include[0].valueSet' // make this more flexible?
-      // what if something in compose.include that isn't valueset in the future
-      set(valueSetToUpdate, path, valueToAdd)
-      // if some vsets exist, but not
-    } else if (valueSetToUpdate?.compose?.include) {
-      if (leafVSetsAlreadyInGroup && !leafVSetsAlreadyInGroup?.includes(vsCanonical)) {
-        leafVSetsAlreadyInGroup.push(vsCanonical)
-        valueSetToUpdate.compose.include.push({ valueSet: valueToAdd })
-      }
-    }
-  } else if (Array.isArray(vsCanonical)) {
-    const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
-    console.log('svs canonical: ', vsCanonical);
-
-    vsCanonical.forEach(url => {
-      console.log('url: ', url);
-
-      if (!leafVSetsAlreadyInGroup?.includes(url)) {
-        composeIncludeToAdd.push({ valueSet: url })
-      }
-    })
-
-    set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
+  if (typeof vsCanonical === 'string') {
+    vsCanonical = [vsCanonical]
   }
+
+  // get all of the leafs currently within the grouper
+  let leafVSetsAlreadyInGroup = valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
+  // const inputType = typeof vsCanonical
+  // if (inputType === 'string') {
+  //   const valueToAdd = [vsCanonical]
+  //   // if no compose include & no leaf valuesets
+  //   if (!valueSetToUpdate?.compose?.include && !leafVSetsAlreadyInGroup?.length) {
+  //     // need to make a new path
+  //     const path = 'compose.include[0].valueSet' // make this more flexible?
+  //     // what if something in compose.include that isn't valueset in the future
+  //     set(valueSetToUpdate, path, valueToAdd)
+  //     // if some vsets exist, but not
+  //   } else if (valueSetToUpdate?.compose?.include) {
+  //     if (leafVSetsAlreadyInGroup && !leafVSetsAlreadyInGroup?.includes(vsCanonical)) {
+  //       leafVSetsAlreadyInGroup.push(vsCanonical)
+  //       valueSetToUpdate.compose.include.push({ valueSet: valueToAdd })
+  //     }
+  //   }
+  // } else if (Array.isArray(vsCanonical)) {
+  const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
+  console.log('svs canonical: ', vsCanonical);
+
+  vsCanonical.forEach(url => {
+    console.log('url: ', url);
+
+    if (!leafVSetsAlreadyInGroup?.includes(url)) {
+      composeIncludeToAdd.push({ valueSet: url })
+    }
+  })
+
+  set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
+  // }
   return valueSetToUpdate
 }
 

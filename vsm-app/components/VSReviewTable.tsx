@@ -3,7 +3,8 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
 import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
-import { ConditionsHandler, FlatGrouperVSet } from 'pages/programs/[id]/grouper'
+import { ConditionsHandler } from 'pages/programs/[id]/grouper'
+import { FlatGrouperVSet } from '../types/grouperTypes'
 import { Dispatch, SetStateAction } from 'react'
 
 const customStyles = {
@@ -67,13 +68,19 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
         rowWrap: 'wrap'
       },
       cell: (row: FlatGrouperVSet) => {
+
+        
         return (
           <Select
             options={buildConditionOptions(allConditions, row?.selectedConditions)}
             isMulti={true}
             defaultValue={row.selectedConditions}
             menuPortalTarget={document.body}
-            onChange={(e) => handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })}
+            onChange={(e) => {
+              console.log('e in here: ', e);
+              
+              handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })}
+            }
             getOptionValue={(option) => option.label}
           />
         )
