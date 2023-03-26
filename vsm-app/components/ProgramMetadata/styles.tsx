@@ -43,12 +43,6 @@ export const RequiredWarning = styled.p`
   text-align: right;
 `
 
-export const InputRow = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 12px;
-`
-
 export const buttonStyles = {
   width: '150px',
   backgroundColor: '#ca9547',

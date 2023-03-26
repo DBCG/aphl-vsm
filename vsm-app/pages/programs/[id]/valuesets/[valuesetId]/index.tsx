@@ -1,13 +1,12 @@
-import { useGetProgramDetails } from "@/hooks/useGetProgramDetails"
-import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import ValueSetContents from '@/components/ValueSetContents'
 
-const ValueSetPageView =  () => {
-  const router = useRouter();
+const ValueSetPageView = () => {
+  const router = useRouter()
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
-  const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet| null>()
-  
+  const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>()
 
   useEffect(() => {
     const fetchValueSet = async () => {
@@ -19,8 +18,12 @@ const ValueSetPageView =  () => {
   }, [router.query.valuesetId])
 
   return (
-    <ValueSetContents grouperLibrary={programAndGrouperInfo.grouperLibrary} valueSet={currentValueSet} />
-    )
+    <ValueSetContents
+      programId={programAndGrouperInfo.program.id}
+      grouperLibrary={programAndGrouperInfo.grouperLibrary}
+      valueSet={currentValueSet}
+    />
+  )
 }
 
 export default ValueSetPageView

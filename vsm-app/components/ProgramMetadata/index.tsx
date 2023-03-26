@@ -12,7 +12,8 @@ import {
   getVSPriorityUsageContext,
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
-import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, InputRow, buttonStyles } from './styles'
+import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, buttonStyles } from './styles'
+import { InputRow } from '@/styles'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -136,7 +137,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   placeholder="Select Priority Level"
                   classNamePrefix="priority-level-selector"
                   inputId="priority-level-selector"
-                  defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))}
+                  defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
                   instanceId="priority-level-selector"
                   options={priorityLevelOptions}
                   onChange={(e) => {
