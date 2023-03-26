@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -32,8 +32,6 @@ const searchInfoText = {
   name: 'Name search finds full or partial matches within VS name',
   url: 'URL search requires a full URL'
 }
-
-const oidRegex = new RegExp('^([0-2])((.0)|(.[1-9][0-9]*))*$')
 
 interface QueryStringItems {
   searchType: string

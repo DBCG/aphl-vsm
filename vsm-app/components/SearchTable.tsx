@@ -166,6 +166,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
+      maxWidth: '100px',
       selector: (row: TableData) => row.status,
       cell: (row: TableData) => {
         return (
@@ -188,6 +189,28 @@ const SearchTable = ({
     {
       name: (
         <div>
+          <SelectInputTitle>Version</SelectInputTitle>
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInSteward(target.value.trim())
+              }}
+              style={{
+                height: '30px'
+              }}
+              value={findInSteward}
+            />
+          )}
+        </div>
+      ),
+      selector: (row: TableData) => row.version!,
+      sortable: false,
+      wrap: true
+    },
+    {
+      name: (
+        <div>
           <SelectInputTitle>Last Updated</SelectInputTitle>
           {showFilters && (
             <FilterInput
@@ -203,6 +226,7 @@ const SearchTable = ({
       ),
       sortable: false,
       wrap: true,
+      maxWidth: '120px',
       selector: (row: TableData) => row.lastUpdated!
     },
     {
