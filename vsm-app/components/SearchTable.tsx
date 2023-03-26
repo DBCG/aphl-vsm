@@ -90,6 +90,8 @@ interface Input {
   setFindInOid: (eventItem: any) => void
   findInLastUpdated: string
   setFindInLastUpdated: (eventItem: any) => void
+  findInVersion: string
+  setFindInVersion: (eventItem: any) => void
   handlePageChange: PaginationChangePage
   handlePerRowsChange: (eventItem: any) => void
   clearSelectedRows: boolean
@@ -113,6 +115,8 @@ const SearchTable = ({
   setFindInOid,
   findInLastUpdated,
   setFindInLastUpdated,
+  findInVersion,
+  setFindInVersion,
   isLoading = false,
   showFilters,
   handlePageChange,
@@ -194,12 +198,12 @@ const SearchTable = ({
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
-                setFindInSteward(target.value.trim())
+                setFindInVersion(target.value.trim())
               }}
               style={{
                 height: '30px'
               }}
-              value={findInSteward}
+              value={findInVersion}
             />
           )}
         </div>

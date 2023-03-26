@@ -247,6 +247,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
+  const [findInVersion, setFindInVersion] = useState('')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set default terminology server for search
@@ -273,8 +274,14 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   // take the response from the server and parse the important data
 
   const filterExists = useMemo(
-    () => findInName?.length || findInStatus?.length || findInSteward?.length || findInOid?.length || findInLastUpdated?.length,
-    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInSteward?.length]
+    () =>
+      findInName?.length ||
+      findInStatus?.length ||
+      findInSteward?.length ||
+      findInVersion?.length ||
+      findInOid?.length ||
+      findInLastUpdated?.length,
+    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInVersion?.length, findInSteward?.length]
   )
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
@@ -422,9 +429,14 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
           return lastUpdateDate?.includes(findInLastUpdated)
         })
       }
+      if (findInVersion?.length) {
+        filteredValueSets = filteredValueSets?.filter((vs) => {
+          return vs?.version?.toLowerCase()?.includes(findInVersion.toLowerCase())
+        })
+      }
       setFilteredVSets(filteredValueSets)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
+  }, [valueSets, findInName, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
 
   useEffect(() => {
     setIsLoading(true)
@@ -676,6 +688,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         setFindInSteward={setFindInSteward}
         findInStatus={findInStatus}
         setFindInStatus={setFindInStatus}
+        findInVersion={findInVersion}
+        setFindInVersion={setFindInVersion}
         findInOid={findInOid}
         setFindInOid={setFindInOid}
         findInLastUpdated={findInLastUpdated}
