@@ -108,7 +108,6 @@ const createGrouperValueSet = async (
     }
 
     // update those cached leafs with newly added conditions (if any)
-    // an ErrorResponse shouldn't reach here because of return in sendError... why this TS error?
     const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
 
     const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS(updatedValueSetsFromCache, matchesInCqf)
@@ -345,6 +344,7 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
       }
     }
   }
+
   // if all the updates were successful, return the urls updated
   return urlsToAddFromRemote
 }
