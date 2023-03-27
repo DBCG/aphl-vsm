@@ -618,6 +618,23 @@ const ProgramValueSetDetails: NextPage = () => {
     [router, groupsInProgram, allConditions]
   )
 
+  const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
+
+  const updateVSetsButton = (() => {
+    if (typeof jobInProgressStatus === 'number') {
+      return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', ml: '15px', minWidth: '150px' }} />
+    } else if (allowToEdit) {
+      return (
+        <Button
+          text="Update Valuesets"
+          style={{ minHeight: '60px', marginLeft: '15px', minWidth: '150px' }}
+          onClick={() => handleUpdateValueSets()}
+        />
+      )
+    }
+    return null
+  })()
+
   return (
     <>
       <Row>
@@ -629,22 +646,7 @@ const ProgramValueSetDetails: NextPage = () => {
             {programId}
           </Id>
         </FlexRow>
-        {can(session, 'edit') && progValueSetDets?.programStatus === 'draft' && (
-          <Button
-            text="Add Valuesets"
-            style={{ minHeight: '60px', minWidth: '150px' }}
-            onClick={() => router.push(`${router.asPath}/search`)}
-          />
-        )}
-        {typeof jobInProgressStatus === 'number' ? (
-          <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', ml: '15px', minWidth: '150px' }} />
-        ) : (
-          <Button
-            text="Update Valuesets"
-            style={{ minHeight: '60px', marginLeft: '15px', minWidth: '150px' }}
-            onClick={() => handleUpdateValueSets()}
-          />
-        )}
+        {updateVSetsButton}
       </Row>
       <DT
         // @ts-expect-error
