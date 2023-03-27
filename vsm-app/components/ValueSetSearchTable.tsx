@@ -1,4 +1,4 @@
-import { ChangeEvent, SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
@@ -32,8 +32,6 @@ const searchInfoText = {
   name: 'Name search finds full or partial matches within VS name',
   url: 'URL search requires a full URL'
 }
-
-const oidRegex = new RegExp('^([0-2])((.0)|(.[1-9][0-9]*))*$')
 
 interface QueryStringItems {
   searchType: string
@@ -200,10 +198,11 @@ export interface LeafsToAdd {
 }
 
 type HandleAddVSets = (vsets: LeafsToAdd) => void
+export type TableContextType = 'add-grouper' | 'search-page'
 
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
-  tableContext: 'add-grouper' | 'search-page'
+  tableContext: TableContextType
 }
 
 export interface SelectedValueSet {
@@ -249,6 +248,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
+  const [findInVersion, setFindInVersion] = useState('')
   const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
 
   // set default terminology server for search
@@ -275,8 +275,14 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   // take the response from the server and parse the important data
 
   const filterExists = useMemo(
-    () => findInName?.length || findInStatus?.length || findInSteward?.length || findInOid?.length || findInLastUpdated?.length,
-    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInSteward?.length]
+    () =>
+      findInName?.length ||
+      findInStatus?.length ||
+      findInSteward?.length ||
+      findInVersion?.length ||
+      findInOid?.length ||
+      findInLastUpdated?.length,
+    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInVersion?.length, findInSteward?.length]
   )
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
@@ -424,9 +430,14 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
           return lastUpdateDate?.includes(findInLastUpdated)
         })
       }
+      if (findInVersion?.length) {
+        filteredValueSets = filteredValueSets?.filter((vs) => {
+          return vs?.version?.toLowerCase()?.includes(findInVersion.toLowerCase())
+        })
+      }
       setFilteredVSets(filteredValueSets)
     }
-  }, [valueSets, findInName, findInStatus, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
+  }, [valueSets, findInName, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
 
   useEffect(() => {
     setIsLoading(true)
@@ -667,6 +678,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         </Row>
       </SubmitSelectedForm>
       <SearchTable
+        tableContext={tableContext}
         searchType={searchType.value}
         valueSets={!filterExists || vsNumExceedsFilterLimit ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
@@ -678,6 +690,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         setFindInSteward={setFindInSteward}
         findInStatus={findInStatus}
         setFindInStatus={setFindInStatus}
+        findInVersion={findInVersion}
+        setFindInVersion={setFindInVersion}
         findInOid={findInOid}
         setFindInOid={setFindInOid}
         findInLastUpdated={findInLastUpdated}

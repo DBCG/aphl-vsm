@@ -6,6 +6,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
+import { TableContextType } from './ValueSetSearchTable'
 
 interface TableData {
   name: ValueSet['name']
@@ -90,6 +91,8 @@ interface Input {
   setFindInOid: (eventItem: any) => void
   findInLastUpdated: string
   setFindInLastUpdated: (eventItem: any) => void
+  findInVersion: string
+  setFindInVersion: (eventItem: any) => void
   handlePageChange: PaginationChangePage
   handlePerRowsChange: (eventItem: any) => void
   clearSelectedRows: boolean
@@ -98,6 +101,7 @@ interface Input {
   isLoading: boolean
   showFilters: boolean
   resultsPerPage: number
+  tableContext: TableContextType
 }
 
 const SearchTable = ({
@@ -113,6 +117,8 @@ const SearchTable = ({
   setFindInOid,
   findInLastUpdated,
   setFindInLastUpdated,
+  findInVersion,
+  setFindInVersion,
   isLoading = false,
   showFilters,
   handlePageChange,
@@ -121,7 +127,8 @@ const SearchTable = ({
   searchType,
   clearSelectedRows,
   setClearSelectedRows,
-  resultsPerPage
+  resultsPerPage,
+  tableContext
 }: Input) => {
   const tableData = parseValueSets(valueSets)
 
@@ -166,6 +173,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
+      maxWidth: '100px',
       selector: (row: TableData) => row.status,
       cell: (row: TableData) => {
         return (
@@ -188,6 +196,28 @@ const SearchTable = ({
     {
       name: (
         <div>
+          <SelectInputTitle>{tableContext === 'search-page' && 'Latest'} Version</SelectInputTitle>
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInVersion(target.value.trim())
+              }}
+              style={{
+                height: '30px'
+              }}
+              value={findInVersion}
+            />
+          )}
+        </div>
+      ),
+      selector: (row: TableData) => row.version!,
+      sortable: false,
+      wrap: true
+    },
+    {
+      name: (
+        <div>
           <SelectInputTitle>Last Updated</SelectInputTitle>
           {showFilters && (
             <FilterInput
@@ -203,6 +233,7 @@ const SearchTable = ({
       ),
       sortable: false,
       wrap: true,
+      maxWidth: '120px',
       selector: (row: TableData) => row.lastUpdated!
     },
     {
@@ -246,7 +277,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
-      selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
+      selector: (row: TableData) => row?.oid?.split?.('-')?.[0]! || ''
     }
   ]
 
