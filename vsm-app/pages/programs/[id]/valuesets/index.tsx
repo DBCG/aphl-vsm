@@ -94,21 +94,6 @@ const LoadingMessage = styled.p`
   color: blue;
 `
 
-interface GroupInfoItem {
-  label: string
-  value: string
-}
-
-interface GroupUpdateItem {
-  canonical?: string
-  groupInfo?: GroupInfoItem[]
-}
-
-interface DeleteParams {
-  vsCanonical: string | undefined
-  grouperCanonicals: string[] | undefined
-}
-
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
     value: g.id,
@@ -469,6 +454,22 @@ const ProgramValueSetDetails: NextPage = () => {
         }
       },
       {
+        name: (
+          <SelectInputContainer>
+            Conditions
+            <Select
+              placeholder="Filter conditions"
+              classNamePrefix="conditions"
+              inputId="conditions-selector"
+              instanceId="conditions-selector"
+              isMulti
+              options={buildConditionOptions(allConditions)}
+              onChange={(e) => {
+                handleFilterChange(e, 'activeConditions')
+              }}
+            />
+          </SelectInputContainer>
+        ),
         id: 'value-set-conditions',
         selector: (row: TableRow) => row.valueSet,
         sortable: false,
@@ -481,29 +482,33 @@ const ProgramValueSetDetails: NextPage = () => {
                   label: i?.valueCodeableConcept?.text,
                   value: {
                     system: i?.valueCodeableConcept?.coding?.[0]?.system,
-                    version: i?.valueCodeableConcept?.coding?.[0]?.version,
                     code: i?.valueCodeableConcept?.coding?.[0]?.code,
+                    version: i?.valueCodeableConcept?.coding?.[0]?.version,
                     text: i?.valueCodeableConcept?.text
                   }
                 }
               }
             })
-            .filter((x) => x) as ConditionInfo[]
-
+            .filter((x) => x) as Condition[]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
-            selectedOptions.map((o) => <ReadOnlyTag key={o.label.replace(' ', '')}>{o.label}</ReadOnlyTag>)
+            selectedOptions?.map((o) => <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>)
           ) : (
             <SelectInputContainer>
-              Conditions
               <Select
-                placeholder="Filter conditions"
-                classNamePrefix="conditions"
-                inputId="conditions-selector"
-                instanceId="conditions-selector"
-                isMulti
-                options={buildConditionOptions(allConditions)}
+                instanceId="condition-selector"
+                isMulti={true}
+                options={buildConditionOptions(allConditions, selectedOptions)}
+                value={selectedOptions}
+                isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
+                // TODO should block add if already exists
                 onChange={(e) => {
-                  handleFilterChange(e, 'activeConditions')
+                  const conditionInfo = e as Condition[]
+                  conditionInfo &&
+                    setConditionToUpdate({
+                      canonical: row.canonical,
+                      version: row.version,
+                      conditionInfo
+                    })
                 }}
               />
             </SelectInputContainer>
