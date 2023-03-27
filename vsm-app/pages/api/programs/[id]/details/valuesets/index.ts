@@ -152,6 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               title: valueSet?.name || 'Undefined',
               canonical: valueSet.url || 'Undefined',
               version: valueSet.version || '',
+              valueSetPinnedVersion,
               valueSet: valueSet,
               groups: groupsVsBelongsTo
             }
@@ -205,9 +206,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
         res.status(200).send(composedResponse)
 
-      } catch (e: any) {
-        console.error('error:  ', e)
-        res.status(400).json({ error: 'Search for leaf valueset details failed.' })
       }
+    } catch (e: any) {
+      console.error('error:  ', e)
+      res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
+  }
 }

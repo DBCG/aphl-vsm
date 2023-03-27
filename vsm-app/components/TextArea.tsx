@@ -1,8 +1,5 @@
 import styled from 'styled-components'
-import { ReadOnlyContainer, ErrorMessage, Label } from './SearchInput'
-import Image from 'next/image'
-import { StyledLabel as StyledInputLabel, ReadOnlyContainer } from './SearchInput'
-import { Tooltip } from './Tooltip'
+import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
 
 interface InputProps {
   minWidth?: number
@@ -65,8 +62,7 @@ const TextArea = ({
   return (
     <Container style={style}>
       <FlexRow>
-        <Label id={id} info={info} label={label} required={required} readonly={readonly} />
-        {includeInfo && <Tooltip info={info} />}
+        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>

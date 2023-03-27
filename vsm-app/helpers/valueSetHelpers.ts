@@ -1,5 +1,6 @@
 import set from 'lodash.set'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
+import cloneDeep from 'lodash.clonedeep'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
   let leafVSetsInGroup = vs?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
@@ -175,22 +176,27 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
 
 // update grouper valueset with proper version
 const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
-  // ensure canonical doesn't have attached version
-  const canonicalWithoutVersion = canonicalToUpdate?.split('|')?.[0]
-  // need to deep copy?
-  const composeInclude = vs.compose.include
-  const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
+  if (vs?.compose?.include) {
+    console.error('No existing versions to update')
+    return vs
+  } else {
+    const vsCopy = cloneDeep(vs)
+    // ensure canonical doesn't have attached version
+    const canonicalWithoutVersion = canonicalToUpdate?.split('|')?.[0]
+    // need to deep copy?
+    const composeInclude = vs.compose!.include!
+    const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
 
-  composeInclude?.forEach(item => {
-    const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
-    if (match) {
-      item.valueSet = [newCanonical]
-    }
-  })
+    composeInclude?.forEach(item => {
+      const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
+      if (match) {
+        item.valueSet = [newCanonical]
+      }
+    })
 
-  vs.compose.include = composeInclude
-
-  return vs
+    vsCopy!.compose!.include = composeInclude
+    return vsCopy
+  }
 }
 
 export {
