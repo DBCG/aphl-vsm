@@ -16,10 +16,7 @@ const updateLeafValueSetVersions = async (
   const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
-  console.log('term: ', terminologyInfo)
-  console.log('vs canonical: ', vsCanonical)
-  console.log('version: ', vsVersion)
-  
+
   // steps:
   // 1. get the existing latest valueset
   // 2. set the terminology server to the correct endpoint
@@ -38,11 +35,9 @@ const updateLeafValueSetVersions = async (
 
     if (!latestValueSetBundle?.entry) {
       // there was no result, return
-      console.log('no entry')
+      console.error('no entry')
+      return res.status(404).json({ message: `Could not find ValueSet with url ${vsCanonical}` })
     } else {
-      console.log('here');
-      
-      const latestVs = latestValueSetBundle.entry[0]
 
       terminologyClient.setClient(terminologyInfo.value.toLowerCase())
 
@@ -77,8 +72,6 @@ const updateLeafValueSetVersions = async (
           // need to get the whole valueset, not just subset
         }
       }
-
-      console.log('latest or versioned: ',  latestOrVersionedVset?.entry?.map(i => i.resource))
     }
 
 

@@ -69,11 +69,6 @@ export default async function handler(
       versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
         ?.filter(x => x)
 
-      console.log('');
-
-      console.log('versions here: ', versions);
-
-
       return res.status(200).json(versions)
     } catch (e) {
       console.error(e)
@@ -93,8 +88,6 @@ export default async function handler(
       )))
 
       const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
-
-      console.log('groupers updated: ', updatedGroupers);
 
       await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
         fhirCdrClient.update({

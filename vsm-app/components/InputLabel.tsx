@@ -21,6 +21,7 @@ const TooltipContainer = styled.div`
 const InfoContainer = styled.div`
   position: relative;
   transform: translateY(-8px);
+  z-index: 1000;
   &:hover {
     cursor: pointer;
   }
@@ -53,7 +54,6 @@ interface ReadOnlyContainerProps {
 export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
   min-width: ${(props) => (props?.minWidth ? props.minWidth + 'px' : 'auto')};
 `
-
 
 const InputLabel = ({ id, label, required, readonly, info }: LabelProps) => {
   return (

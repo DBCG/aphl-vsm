@@ -317,7 +317,7 @@ const ProgramValueSetDetails: NextPage = () => {
   // versionInput
   const handleVersionChange = (selectedVersion, vsCanonical, grouperIds, terminologyInfo) => {
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
-    console.log('data: ', data)
+
     // update the grouper canonical version
     setVersionToUpdate(data)
   }
@@ -381,7 +381,6 @@ const ProgramValueSetDetails: NextPage = () => {
         name: (
           <div style={{ display: 'flex', flexDirection: 'row' }}>
             <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Version</SelectInputTitle>
-            <Tooltip info="Valueset version that will be included in the published Program. " />
           </div>
         ),
         id: 'vs-version-search',
@@ -399,7 +398,7 @@ const ProgramValueSetDetails: NextPage = () => {
 
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
           return (
-            <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
+            <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
                 instanceId="version-selector"
                 onChange={(e) => {
@@ -409,7 +408,7 @@ const ProgramValueSetDetails: NextPage = () => {
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                 isMulti={false}
-                options={versions?.[row?.valueSet?.id] || [{ label: 'latest', value: 'latest' }]}
+                options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
                 defaultValue={defaultOption}
               />
             </SelectInputContainer>
