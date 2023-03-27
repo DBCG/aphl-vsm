@@ -274,7 +274,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
-      selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
+      selector: (row: TableData) => row?.oid?.split?.('-')?.[0]! || ''
     }
   ]
 
