@@ -8,6 +8,7 @@ import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 const DescriptionText = styled.p`
   color: var(--theme-500);
   line-height: 160%;
+  margin-bottom: 48px;
 `
 
 const LinkText = styled.a`
