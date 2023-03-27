@@ -390,7 +390,7 @@ const ProgramValueSetDetails: NextPage = () => {
         wrap: true,
         cell: (row: TableRow) => {
           if (progValueSetDets.programStatus === 'active') {
-            return 'Active'
+            return row?.valueSetPinnedVersion || 'latest'
           }
           const terminologyInfo = getTerminologySource(row.valueSet)
           const inputValue = 'Retrieving all versions'
@@ -413,7 +413,6 @@ const ProgramValueSetDetails: NextPage = () => {
               />
             </SelectInputContainer>
           )
-          // <div onClick={async () => await setVersionInfo(row.valueSet.id)}>{versions[row.valueSet.id] || 'none'}</div>
         }
       },
       {
