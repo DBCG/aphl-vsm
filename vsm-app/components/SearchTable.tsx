@@ -6,6 +6,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
+import { TableContextType } from './ValueSetSearchTable'
 
 interface TableData {
   name: ValueSet['name']
@@ -100,6 +101,7 @@ interface Input {
   isLoading: boolean
   showFilters: boolean
   resultsPerPage: number
+  tableContext: TableContextType
 }
 
 const SearchTable = ({
@@ -125,7 +127,8 @@ const SearchTable = ({
   searchType,
   clearSelectedRows,
   setClearSelectedRows,
-  resultsPerPage
+  resultsPerPage,
+  tableContext
 }: Input) => {
   const tableData = parseValueSets(valueSets)
 
@@ -193,7 +196,7 @@ const SearchTable = ({
     {
       name: (
         <div>
-          <SelectInputTitle>Version</SelectInputTitle>
+          <SelectInputTitle>{tableContext === 'search-page' && 'Latest'} Version</SelectInputTitle>
           {showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {

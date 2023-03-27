@@ -198,10 +198,11 @@ export interface LeafsToAdd {
 }
 
 type HandleAddVSets = (vsets: LeafsToAdd) => void
+export type TableContextType = 'add-grouper' | 'search-page'
 
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
-  tableContext: 'add-grouper' | 'search-page'
+  tableContext: TableContextType
 }
 
 export interface SelectedValueSet {
@@ -677,6 +678,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         </Row>
       </SubmitSelectedForm>
       <SearchTable
+        tableContext={tableContext}
         searchType={searchType.value}
         valueSets={!filterExists || vsNumExceedsFilterLimit ? valueSets || [] : filteredVSets}
         setSelectedValueSets={setSelectedValueSets}
