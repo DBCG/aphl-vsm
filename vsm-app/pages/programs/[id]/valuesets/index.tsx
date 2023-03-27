@@ -296,7 +296,7 @@ const ProgramValueSetDetails: NextPage = () => {
     setFilters(updatedFilters)
   }
 
-  // versionOptions
+  // fetch options for Version field
   const fetchVersionOptions = async (vsId: string) => {
     // if already cached in component, use that version
     if (versions?.[vsId]) {
@@ -316,8 +316,10 @@ const ProgramValueSetDetails: NextPage = () => {
 
   // versionInput
   const handleVersionChange = (selectedVersion, vsCanonical, grouperIds, terminologyInfo) => {
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+    console.log('data: ', data)
     // update the grouper canonical version
-    setVersionToUpdate({ vsCanonical, version: selectedVersion, grouperIds, terminologyInfo })
+    setVersionToUpdate(data)
   }
 
   useEffect(() => {
@@ -396,7 +398,6 @@ const ProgramValueSetDetails: NextPage = () => {
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
 
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
-          console.log('term info: ', terminologyInfo)
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id)}>
               <Select

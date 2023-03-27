@@ -176,27 +176,23 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
 
 // update grouper valueset with proper version
 const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
-  if (vs?.compose?.include) {
-    console.error('No existing versions to update')
-    return vs
-  } else {
-    const vsCopy = cloneDeep(vs)
-    // ensure canonical doesn't have attached version
-    const canonicalWithoutVersion = canonicalToUpdate?.split('|')?.[0]
-    // need to deep copy?
-    const composeInclude = vs.compose!.include!
-    const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
+  const vsCopy = cloneDeep(vs)
+  // ensure canonical doesn't have attached version
+  const canonicalWithoutVersion = canonicalToUpdate?.split('|')?.[0]
 
-    composeInclude?.forEach(item => {
-      const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
-      if (match) {
-        item.valueSet = [newCanonical]
-      }
-    })
+  const composeInclude = vs.compose!.include!
+  const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
 
-    vsCopy!.compose!.include = composeInclude
-    return vsCopy
-  }
+  composeInclude?.forEach(item => {
+    const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
+    if (match) {
+      item.valueSet = [newCanonical]
+    }
+  })
+
+  vsCopy!.compose!.include = composeInclude
+  return vsCopy
+  // }
 }
 
 export {

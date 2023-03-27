@@ -120,6 +120,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 })
               })
 
+              console.log('leaf canonicalls: ', leafValueSetCanonicals);
+
+
               if (leafValueSetCanonicals.length) {
                 const stringToFind = req.query.findInVsName as string | undefined
                 const stewardToFind = req.query.findInSteward as string | undefined
@@ -144,6 +147,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find((k) => k === valueSet.url)
             const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
             const valueSetPinnedVersion = groupsVsBelongsTo?.[0]?.defaultValueSetVersion
+
+            console.log('valueSetPinnedersion: ', valueSetPinnedVersion);
+
 
             let result = {
               programName: program?.name || 'Undefined',
