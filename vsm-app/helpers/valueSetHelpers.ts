@@ -18,7 +18,7 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]
   vsCanonical.forEach(url => {
 
     if (!leafVSetsAlreadyInGroup?.includes(url)) {
-      composeIncludeToAdd.push({ valueSet: url })
+      composeIncludeToAdd.push({ valueSet: [url] })
     }
   })
 

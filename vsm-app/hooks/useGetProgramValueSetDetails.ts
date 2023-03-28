@@ -61,6 +61,8 @@ const useGetProgramValueSetDetails = ({
   const [data, setData] = useState<{} | Result>({})
 
   useEffect(() => {
+    console.log('get these again');
+    
     async function getData(): Promise<void> {
       if (!id) {
         setData({})

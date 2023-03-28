@@ -72,9 +72,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-            const grouper = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
+            console.log('grouperSearchRes.entry: ', grouperSearchResult.entry);
 
-            const grouperValueSetCanonicals = grouper.relatedArtifact
+            // this is not right... results in 2 groupers
+            // take the one that is in draft?
+            const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
+            console.log('grouper lib: ', grouperLib);
+
+            const grouperValueSetCanonicals = grouperLib.relatedArtifact
               ?.filter((a) => a.type == 'composed-of')
               .map((res) => res.resource)
               .filter(isDefinedString)
@@ -88,6 +93,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               ) // filter out undefined
                 .filter(is.valueSet)
 
+              console.log('al groupers: ', allGrouperVSets);
+
+
               const leafValueSetCanonicals: string[] = []
 
               allGrouperVSets.forEach((grouperVs) => {
@@ -96,6 +104,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   ?.map((item) => item?.valueSet)
                   ?.filter((x) => !!x) // filter out undefined
                   ?.flat() || []) as string[]
+                console.log('group titlle: ', groupTitle);
+
+                console.log('leafUrlsInGrouper: ', leafUrlsInGrouper);
+
 
                 // add groups to the leaf URLs
                 leafUrlsInGrouper?.forEach((url) => {
@@ -134,6 +146,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 )
               }
             }
+          } else {
+            console.log('failed here');
+
           }
         }
 
