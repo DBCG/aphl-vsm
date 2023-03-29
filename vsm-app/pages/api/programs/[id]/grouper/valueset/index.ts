@@ -120,6 +120,10 @@ const createGrouperValueSet = async (
       sendError(successfulUpdatesFromTermServers)
     }
 
+    console.log('success cached: ', successfulUpdatesToCQFCachedVS);
+    console.log('success term: ', successfulUpdatesFromTermServers);
+
+
     const leafUrlsToAdd = [].concat(successfulUpdatesFromTermServers, successfulUpdatesToCQFCachedVS)
 
     const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd, grouperMetadata)
@@ -129,7 +133,6 @@ const createGrouperValueSet = async (
 
     const programLibUpdate = await updateProgramLibraryWithGrouperRef(program, grouperSubmitted, grouperMetadata)
 
-    debugger
     if (is.errorResponse(programLibUpdate)) {
       sendError(programLibUpdate)
     } else {
@@ -298,6 +301,12 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
     ?.filter(url => !matchesInCqf?.includes(url))
     ?.filter(item => Boolean(item))
 
+  // console.log('in submit leaf updates');
+  // console.log('grouper v sets: ', grouperVSets);
+  // console.log('matches in CQF', matchesInCqf);
+  console.log('urls to add from remote', urlsToAddFromRemote);
+
+
   // debugger
 
   // handle case where there might be no need to grab leafs from term servers
@@ -305,8 +314,10 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
     return []
   }
 
-  const vsToAddFromTermServer = grouperVSets.filter(flatVs => urlsToAddFromRemote.includes(flatVs.selectedValueSet.url!))
-  console.log('vs to add from term: ', vsToAddFromTermServer);
+  const vsToAddFromTermServer = grouperVSets.filter(flatVs => {
+
+    return urlsToAddFromRemote.includes(flatVs.selectedValueSet.url.split('-')[0]!)
+  })
 
   if (vsToAddFromTermServer) {
     for (const flatGrouperItem of vsToAddFromTermServer) {
