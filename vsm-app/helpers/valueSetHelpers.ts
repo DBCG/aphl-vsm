@@ -222,8 +222,6 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
     { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` }
   )
 
-  console.log('vs here: ', vs);
-
   // apply extension
   vs.extension = [
     {

@@ -95,7 +95,7 @@ const createGrouperValueSet = async (
     }
 
     // ensure user-entered grouper VS ID is unique
-    const isIdUnique = checkForUniqueID(grouperMetadata.id)
+    const isIdUnique = await checkForUniqueID(grouperMetadata.id)
     if (is.errorResponse(isIdUnique)) {
       sendError(isIdUnique)
     }
@@ -128,6 +128,8 @@ const createGrouperValueSet = async (
     }
 
     const programLibUpdate = await updateProgramLibraryWithGrouperRef(program, grouperSubmitted, grouperMetadata)
+
+    // debugger
     if (is.errorResponse(programLibUpdate)) {
       sendError(programLibUpdate)
     } else {
@@ -296,6 +298,8 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
     ?.filter(url => !matchesInCqf?.includes(url))
     ?.filter(item => Boolean(item))
 
+  // debugger
+
   // handle case where there might be no need to grab leafs from term servers
   if (!urlsToAddFromRemote.length) {
     return []
@@ -360,8 +364,6 @@ const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url']
       body: grouperWithLeafRefs
     })
 
-    console.log('createdGrouper: ', createdGrouper);
-
     // return versioned grouper reference if successful
     return `${createdGrouper.url}|${createdGrouper.version}`
 
@@ -422,7 +424,7 @@ const updateProgramLibraryWithGrouperRef = async (program: fhir4.Library, groupe
       body: libResource
     })
 
-    return `Saved new grouper to Program ${program.id}`
+    return `Saved new grouper ${libResource.id} to Program ${program.id}`
 
 
   } catch (e: HapiError | any) {

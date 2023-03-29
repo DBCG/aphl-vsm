@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import FhirKitClient from 'fhir-kit-client'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { DataItem, Result } from '@/hooks/useGetProgramValueSetDetails'
-import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
+// import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 
 // Items in the table
 interface Group {
@@ -50,6 +51,105 @@ const WHITELIST_VALUESET_FIELDS = [
   'compose'
 ]
 
+interface FetchCanonical {
+  client: FhirKitClient
+  resourceType: string
+  canonical: string,
+  whitelistFields?: string[]
+  status?: fhir4.ValueSet['status']
+}
+// vsac limits queries
+// see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
+const fetchByCanonical = ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
+  const [url, version] = canonical.split('|')
+  const searchParams: Record<string, string> = { url }
+  if (version) {
+    searchParams.version = version
+  }
+  if (status) {
+    searchParams.status = status
+  }
+  if (whitelistFields) {
+    searchParams['_elements'] = whitelistFields.join(',')
+  }
+  const result = client.search({ resourceType, searchParams })
+  return result
+}
+
+const fetchGrouperLibrary = (client: FhirKitClient, canonical: string, grouperStatus?: fhir4.ValueSet['status']) => {
+  return fetchByCanonical({ client, resourceType: 'Library', canonical, status: grouperStatus })
+}
+
+const fetchGrouperValueSets = (canonicals: string[]) => {
+  return Promise.all(canonicals.map((canonical) => fetchByCanonical({
+    client: fhirCdrClient,
+    resourceType: 'ValueSet',
+    canonical,
+    whitelistFields: WHITELIST_VALUESET_FIELDS
+  })))
+}
+
+const fetchLeafValueSets = async (
+  canonicals: string[],
+  nameStr: string | undefined,
+  stewardStr: string | undefined,
+  versionStr: string | undefined
+) => {
+  let searchParams = {} as any
+
+  if (is.string(nameStr)) {
+    searchParams['name:contains'] = nameStr
+  }
+
+  if (is.string(stewardStr)) {
+    searchParams['publisher:contains'] = stewardStr
+  }
+
+  if (is.string(versionStr)) {
+    searchParams['version:contains'] = versionStr
+  }
+  searchParams['_elements'] = WHITELIST_VALUESET_FIELDS.join(',')
+  try {
+    const result = await Promise.all(
+      canonicals.map((canonical) =>
+        fhirCdrClient.search({
+          resourceType: 'ValueSet',
+          searchParams: {
+            url: canonical,
+            status: 'active',
+            ...searchParams
+          }
+        })
+      )
+    )
+
+    const valueSets = result
+      ?.map((e) => {
+        if (e.entry) {
+          return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {
+            const resource = entry?.resource as fhir4.ValueSet
+            if (resource) {
+              // instead of returning whole valuesets, just return a portion of the data
+              return resource
+            }
+          })
+        }
+      })
+      ?.flat()
+      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.filter(
+        (value, index, self) =>
+          // filter out multiple ids
+          self.findIndex((v2) => v2?.id === value?.id) === index
+      ) as fhir4.ValueSet[]
+
+    return valueSets
+  } catch (e) {
+    // TODO: handle
+    console.error('error here a', e)
+  }
+}
+
 const isDefinedString = (item: any): item is string => {
   return !!item
 }
@@ -66,18 +166,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         // get the grouper canonical, which is a Library resource
         // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
         const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
+        const grouperStatus = program.status // active programs get active groupers, draft get draft groupers
+        // there is still going to be a bug here until we fix the fact that groupers are unversioned after draft
 
         if (grouperLibraryCanonical) {
-          const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical)
+          const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibraryCanonical, grouperStatus)
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-            console.log('grouperSearchRes.entry: ', grouperSearchResult.entry);
-
             // this is not right... results in 2 groupers
             // take the one that is in draft?
             const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
-            console.log('grouper lib: ', grouperLib);
 
             const grouperValueSetCanonicals = grouperLib.relatedArtifact
               ?.filter((a) => a.type == 'composed-of')
@@ -93,9 +192,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               ) // filter out undefined
                 .filter(is.valueSet)
 
-              console.log('al groupers: ', allGrouperVSets);
-
-
               const leafValueSetCanonicals: string[] = []
 
               allGrouperVSets.forEach((grouperVs) => {
@@ -104,10 +200,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   ?.map((item) => item?.valueSet)
                   ?.filter((x) => !!x) // filter out undefined
                   ?.flat() || []) as string[]
-                console.log('group titlle: ', groupTitle);
-
-                console.log('leafUrlsInGrouper: ', leafUrlsInGrouper);
-
 
                 // add groups to the leaf URLs
                 leafUrlsInGrouper?.forEach((url) => {
@@ -147,8 +239,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               }
             }
           } else {
+            // TODO fix this
             console.log('failed here');
-
           }
         }
 

@@ -77,8 +77,6 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
             defaultValue={row.selectedConditions}
             menuPortalTarget={document.body}
             onChange={(e) => {
-              console.log('e in here: ', e);
-              
               handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })}
             }
             getOptionValue={(option) => option.label}
