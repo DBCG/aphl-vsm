@@ -2,12 +2,21 @@ import { fhirCdrClient } from 'fhirClients'
 import FhirKitClient from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 
-export const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
-  return fetchByCanonical(client, 'Library', canonical)
+export const fetchGrouperLibrary = (client: FhirKitClient, canonical: string, grouperStatus?: fhir4.ValueSet['status']) => {
+  return fetchByCanonical({ client, resourceType: 'Library', canonical, status: grouperStatus })
 }
 
+// export const fetchGrouperValueSets = (canonicals: string[], whitelistFields?: string[]) => {
+//   return Promise.all(canonicals.map((canonical) => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, whitelistFields)))
+// }
+
 export const fetchGrouperValueSets = (canonicals: string[], whitelistFields?: string[]) => {
-  return Promise.all(canonicals.map((canonical) => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, whitelistFields)))
+  return Promise.all(canonicals.map((canonical) => fetchByCanonical({
+    client: fhirCdrClient,
+    resourceType: 'ValueSet',
+    canonical,
+    whitelistFields
+  })))
 }
 
 export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string) => {
@@ -119,15 +128,18 @@ export const fetchLeafValueSets = async (
 
 // vsac limits queries
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-export const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, whitelistFields?: string[]) => {
+export const fetchByCanonical = ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
   if (version) {
     searchParams.version = version
   }
+  if (status) {
+    searchParams.status = status
+  }
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
   const result = client.search({ resourceType, searchParams })
-  return result as Promise<fhir4.Bundle>
+  return result
 }
