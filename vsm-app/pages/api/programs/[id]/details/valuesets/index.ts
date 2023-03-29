@@ -51,14 +51,6 @@ const WHITELIST_VALUESET_FIELDS = [
   'compose'
 ]
 
-interface FetchCanonical {
-  client: FhirKitClient
-  resourceType: string
-  canonical: string,
-  whitelistFields?: string[]
-  status?: fhir4.ValueSet['status']
-}
-
 const isDefinedString = (item: any): item is string => {
   return !!item
 }
