@@ -8,8 +8,8 @@ interface FetchGrouperLib {
   grouperStatus?: fhir4.ValueSet['status']
 }
 
-export const fetchGrouperLibrary = ({ client, canonical, grouperStatus }: FetchGrouperLib) => {
-  return fetchByCanonical({ client, resourceType: 'Library', canonical, status: grouperStatus })
+export const fetchGrouperLibrary = async ({ client, canonical, grouperStatus }: FetchGrouperLib) => {
+  return await fetchByCanonical({ client, resourceType: 'Library', canonical, status: grouperStatus })
 }
 
 interface FetchGrouperVsets {
@@ -18,7 +18,7 @@ interface FetchGrouperVsets {
 }
 
 export const fetchGrouperValueSets = ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
-  return Promise.all(canonicals.map((canonical) => fetchByCanonical({
+  return Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
     client: fhirCdrClient,
     resourceType: 'ValueSet',
     canonical,
@@ -143,7 +143,7 @@ interface FetchCanonical {
 
 // vsac limits queries
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-export const fetchByCanonical = ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
+export const fetchByCanonical = async ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
   if (version) {
@@ -155,6 +155,6 @@ export const fetchByCanonical = ({ client, resourceType, canonical, whitelistFie
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
-  const result = client.search({ resourceType, searchParams })
+  const result = await client.search({ resourceType, searchParams })
   return result
 }
