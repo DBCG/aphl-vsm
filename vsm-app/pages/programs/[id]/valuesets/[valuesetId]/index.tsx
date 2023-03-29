@@ -2,6 +2,7 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import ValueSetContents from '@/components/ValueSetContents'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 const ValueSetPageView = () => {
   const router = useRouter()
@@ -18,11 +19,15 @@ const ValueSetPageView = () => {
       fetchValueSet()
     }
   }, [router.query.valuesetId])
+  if (!currentValueSet) {
+    return <LoadingIndicator />
+  }
 
   return (
     <ValueSetContents
       programId={programAndGrouperInfo.program.id}
       grouperLibrary={programAndGrouperInfo.grouperLibrary}
+      isDraftProgram={programAndGrouperInfo.program.status === 'draft'}
       valueSet={currentValueSet}
     />
   )
