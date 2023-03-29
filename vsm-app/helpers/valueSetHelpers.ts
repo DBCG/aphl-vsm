@@ -23,7 +23,6 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]
   })
 
   set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
-  // }
   return valueSetToUpdate
 }
 
