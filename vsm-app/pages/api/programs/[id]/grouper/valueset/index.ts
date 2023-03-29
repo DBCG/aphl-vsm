@@ -129,7 +129,7 @@ const createGrouperValueSet = async (
 
     const programLibUpdate = await updateProgramLibraryWithGrouperRef(program, grouperSubmitted, grouperMetadata)
 
-    // debugger
+    debugger
     if (is.errorResponse(programLibUpdate)) {
       sendError(programLibUpdate)
     } else {
@@ -306,6 +306,7 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
   }
 
   const vsToAddFromTermServer = grouperVSets.filter(flatVs => urlsToAddFromRemote.includes(flatVs.selectedValueSet.url!))
+  console.log('vs to add from term: ', vsToAddFromTermServer);
 
   if (vsToAddFromTermServer) {
     for (const flatGrouperItem of vsToAddFromTermServer) {
