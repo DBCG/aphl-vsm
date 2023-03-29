@@ -91,7 +91,7 @@ const ProgramDetails = () => {
       </Row>
       <ProgramDetailTable
         data={programAndGrouperInfo?.grouperData}
-        grouperLibId={programAndGrouperInfo?.grouperLibId}
+        grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
         // @ts-ignore-next-line
         programStatus={programAndGrouperInfo?.program?.status || {}}
       />

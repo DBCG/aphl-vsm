@@ -49,7 +49,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
 
       res.status(200).send({
-        grouperLibId: grouperLibrary.id,
         valueSets: formattedValueSets,
         expansionParameters,
         grouperLibrary
