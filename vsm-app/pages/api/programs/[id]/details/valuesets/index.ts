@@ -83,8 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-            // this is not right... results in 2 groupers
-            // take the one that is in draft?
+
             const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
             const grouperValueSetCanonicals = grouperLib.relatedArtifact

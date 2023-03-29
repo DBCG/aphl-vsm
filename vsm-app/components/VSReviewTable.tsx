@@ -67,22 +67,18 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       style: {
         rowWrap: 'wrap'
       },
-      cell: (row: FlatGrouperVSet) => {
-
-        
-        return (
-          <Select
-            options={buildConditionOptions(allConditions, row?.selectedConditions)}
-            isMulti={true}
-            defaultValue={row.selectedConditions}
-            menuPortalTarget={document.body}
-            onChange={(e) => {
-              handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })}
-            }
-            getOptionValue={(option) => option.label}
-          />
-        )
-      }
+      cell: (row: FlatGrouperVSet) => (
+        <Select
+          options={buildConditionOptions(allConditions, row?.selectedConditions)}
+          isMulti={true}
+          defaultValue={row.selectedConditions}
+          menuPortalTarget={document.body}
+          onChange={(e) => {
+            handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })
+          }}
+          getOptionValue={(option) => option.label}
+        />
+      )
     },
     {
       name: 'Remove from Grouper',

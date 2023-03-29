@@ -105,15 +105,6 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   }
 }
 
-interface AuthSrcExtensionParams {
-  vs: fhir4.ValueSet
-  termServer: 'vsac' | 'ontoserverR4'
-}
-// make this its own function?
-const addAuthoritativeSourceExtension = ({ vs, termServer }) => {
-
-}
-
 // can't pass through whole valuesets -- node will error if data too large
 // this fn pares down to a set of keys needed for display
 const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
