@@ -39,7 +39,7 @@ const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
         const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
 
         groupersToUpdate.push(updatedGrouper)
-        const result = await Promise.all(
+        await Promise.all(
           groupersToUpdate.map((grouperVs) =>
             fhirCdrClient.update({
               resourceType: 'ValueSet',
