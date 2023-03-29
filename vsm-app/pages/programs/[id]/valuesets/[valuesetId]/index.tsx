@@ -14,7 +14,9 @@ const ValueSetPageView = () => {
       const json = await response.json()
       setCurrentValueSet(json)
     }
-    fetchValueSet()
+    if (router.query.valuesetId) {
+      fetchValueSet()
+    }
   }, [router.query.valuesetId])
 
   return (

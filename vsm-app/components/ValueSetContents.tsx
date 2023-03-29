@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Tabs, Box, Tab, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
+import { PageTitle } from '@/components/Typography'
+
 import LoadingIndicator from './LoadingIndicator'
 import DataTable from 'react-data-table-component'
 import { Form } from './ProgramMetadata/styles'
@@ -13,10 +15,44 @@ interface TabPanelProps {
   value: number
 }
 
-interface TableData {
-  code: string
-  display: string
+interface GrouperVSTableData {
+  valueSet: string[]
 }
+
+interface ExpansionTableData {
+  system: string
+  version: string
+  code: string
+  timestamp?: string
+}
+
+interface ValueSetContentsProps {
+  grouperLibrary: fhir4.Library
+  valueSet: fhir4.ValueSet
+  programId: string
+  isDraftProgram?: boolean
+}
+
+const EXPANSION_COLUMNS = [
+  {
+    name: 'System',
+    selector: (row: ExpansionTableData) => row?.system!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'Version',
+    selector: (row: ExpansionTableData) => row?.version!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'Code',
+    selector: (row: ExpansionTableData) => row?.code!,
+    sortable: true,
+    wrap: true
+  }
+]
 
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
@@ -39,32 +75,9 @@ function a11yProps(index: number) {
   }
 }
 
-interface ValueSetContentsProps {
-  grouperLibrary: fhir4.Library
-}
-
-export default function ValueSetContents({ grouperLibrary, valueSet, programId }: any) {
+export default function ValueSetContents({ grouperLibrary, valueSet, isDraftProgram = false, programId }: ValueSetContentsProps) {
   const [value, setValue] = useState(0)
   const router = useRouter()
-
-  const columns = useMemo(() => {
-    const fields = [
-      {
-        name: 'Member Code',
-        selector: (row: TableData) => row.code!,
-        sortable: true,
-        wrap: true
-      },
-      {
-        name: 'Description',
-        selector: (row: TableData) => row.display!,
-        sortable: true,
-        wrap: true
-      }
-    ]
-
-    return fields
-  }, [])
 
   if (valueSet == null || grouperLibrary == null) {
     return <LoadingIndicator />
@@ -75,16 +88,90 @@ export default function ValueSetContents({ grouperLibrary, valueSet, programId }
   }
 
   const [programUrl, programVersion] = grouperLibrary?.url?.split('|') || []
+  const memberSet = valueSet?.compose?.include
+  const isGrouperValueSet = memberSet?.[0]?.valueSet?.[0] != null
 
-  const memberSet = valueSet?.compose?.include?.[0]
-  const data = memberSet.concept
+  let definitionColumns, definitionData
+  let expansionColumns, expansionData
+  const expansion = valueSet?.expansion
+  const timeStamp = expansion?.timestamp
+  if (isGrouperValueSet) {
+    definitionData = memberSet
+    expansionData = expansion?.contains
+    definitionColumns = [
+      {
+        name: 'ValueSets',
+        selector: (row: GrouperVSTableData) => row?.valueSet?.[0]!,
+        sortable: true,
+        wrap: true
+      }
+    ]
+
+    expansionColumns = EXPANSION_COLUMNS
+  } else {
+    definitionData = memberSet?.[0]?.concept
+    expansionData = expansion?.contains
+
+    definitionColumns = [
+      {
+        name: 'Code',
+        selector: (row: any) => row?.code!,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Display',
+        selector: (row: any) => row?.display!,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Version',
+        selector: (row: any) => memberSet?.[0]?.version,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'System',
+        selector: (row: any) => memberSet?.[0]?.system,
+        sortable: true,
+        wrap: true
+      }
+    ]
+    expansionColumns = EXPANSION_COLUMNS
+  }
+
+  if (timeStamp && !expansionColumns.find((i) => i.name === 'Timestamp')) {
+    expansionColumns?.push({
+      name: 'Timestamp',
+      selector: (row: ExpansionTableData) => timeStamp!,
+      sortable: true,
+      wrap: true
+    })
+  }
 
   return (
-    <Box sx={{ mt: 4 }}>
+    <Box>
       <Box sx={{ width: '100%', background: 'white' }}>
         <Form>
-          <InputRow style={{ width: '100%' }}>
+          <PageTitle>{valueSet.id}</PageTitle>
+          <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
             <SearchInput id="prog-name" label="Title" readonly={true} def={valueSet.title} placeholder={'No valueset title set'} />
+            {isDraftProgram && (
+              <Typography
+                style={{
+                  background: 'orange',
+                  color: 'white',
+                  position: 'absolute',
+                  padding: '10px',
+                  borderRadius: '20px',
+                  right: '50px',
+                  top: '50px'
+                }}
+              >
+                Program in Draft state
+              </Typography>
+            )}
           </InputRow>
 
           <InputRow style={{ width: '100%' }}>
@@ -98,19 +185,52 @@ export default function ValueSetContents({ grouperLibrary, valueSet, programId }
             />
             <SearchInput id="vs-title" label="Version" readonly={true} def={valueSet.version} placeholder={'No valueset version set'} />
           </InputRow>
-          <Typography variant="h6" sx={{ mt: 1, mb: 0 }}>
-            Grouper Program
-          </Typography>
+          <InputRow style={{ width: '100%' }}>
+            <SearchInput
+              id="vs-description"
+              label="Description"
+              minWidth={650}
+              readonly={true}
+              def={valueSet.description}
+              placeholder={'No valueset description set'}
+            />
+          </InputRow>
+          <InputRow style={{ width: '100%' }}>
+            <SearchInput
+              id="vs-publisher"
+              label="Publisher"
+              minWidth={650}
+              readonly={true}
+              def={valueSet.publisher}
+              placeholder={'No valueset publisher set'}
+            />
+          </InputRow>
+          <InputRow style={{ width: '100%' }}>
+            <SearchInput
+              id="vs-purpose"
+              label="Purpose"
+              minWidth={650}
+              readonly={true}
+              def={valueSet.purpose}
+              placeholder={'No valueset purpose set'}
+            />
+          </InputRow>
           <InputRow style={{ width: '100%' }}>
             <SearchInput
               id="prog-url"
-              label="URL"
+              label="Grouper URL"
               minWidth={650}
               readonly={true}
               def={programUrl}
               placeholder={'No program canonical set'}
             />
-            <SearchInput id="prog-version" label="Version" readonly={true} def={programVersion} placeholder={'No program version set'} />
+            <SearchInput
+              id="prog-version"
+              label="Grouper Version"
+              readonly={true}
+              def={programVersion}
+              placeholder={'No program version set'}
+            />
           </InputRow>
         </Form>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -120,10 +240,10 @@ export default function ValueSetContents({ grouperLibrary, valueSet, programId }
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <DataTable columns={columns} highlightOnHover={true} data={data} pagination paginationPerPage={10} />
+          <DataTable columns={definitionColumns} data={definitionData} pagination paginationPerPage={10} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          Item Two
+          <DataTable columns={expansionColumns} data={expansionData} pagination paginationPerPage={10} />
         </TabPanel>
       </Box>
     </Box>
