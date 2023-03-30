@@ -110,25 +110,16 @@ const createGrouperValueSet = async (
     // update those cached leafs with newly added conditions (if any)
     const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
 
-    const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS({
+    const successfulUpdatesToCQF = await submitUpdatesToCQF({
       updatedVS: updatedValueSetsFromCache,
-      matchesInCqf
-    })
-    if (is.errorResponse(successfulUpdatesToCQFCachedVS)) {
-      sendError(successfulUpdatesToCQFCachedVS)
-    }
-
-    const successfulUpdatesFromTermServers = await submitLeafUpdatesFromTermServers({
       grouperVSets,
-      matchesInCqf
+      matchesInCqfs
     })
-    if (is.errorResponse(successfulUpdatesFromTermServers)) {
-      sendError(successfulUpdatesFromTermServers)
+    if (is.errorResponse(successfulUpdatesToCQF)) {
+      sendError(successfulUpdatesToCQF)
     }
 
-    const leafUrlsToAdd = [].concat(successfulUpdatesFromTermServers, successfulUpdatesToCQFCachedVS)
-
-    const grouperSubmitted = await createAndSubmitGrouper(leafUrlsToAdd, grouperMetadata)
+    const grouperSubmitted = await createAndSubmitGrouper(successfulUpdatesToCQF, grouperMetadata)
     if (is.errorResponse(grouperSubmitted)) {
       sendError(grouperSubmitted)
     }
@@ -260,13 +251,16 @@ const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: Fl
 
 interface SubmitUpdatesToCQF {
   updatedVS: fhir4.ValueSet[] | undefined
-  matchesInCqf: MatchesInCQF
+  matchesInCqf: MatchesInCQF,
+  grouperVSets: FlatGrouperVSet[]
 }
 
-const submitUpdatesToCachedCQFVS = async ({
+const submitUpdatesToCQF = async ({
   updatedVS,
-  matchesInCqf
+  matchesInCqf,
+  grouperVSets
 }: SubmitUpdatesToCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+  let successfulUpdates = []
   try {
     if (!updatedVS || !matchesInCqf) {
       return []
@@ -294,25 +288,16 @@ const submitUpdatesToCachedCQFVS = async ({
     if (failedPuts?.length) {
       return ({ resStatus: 400, errorMessage: `Could not update ValueSets: ${failedPuts.join(', ')}` })
     } else {
+      const successfulUrls = updatedVS?.map(vs => vs.url)
       // if no failures, track all urls of added leafs
-      const urlsOfSuccessfulCQFUpdates = matchesInCqf.map(vs => vs.url)
-      return urlsOfSuccessfulCQFUpdates
+      successfulUpdates = successfulUrls
     }
   } catch (e: HapiError | any) {
     logSimpleHapiError(e, 'submitUpdatesToCachedCQFVS')
     return ({ resStatus: 400, errorMessage: 'Error occurred while updating cached leaf valuesets' })
   }
-}
 
-interface SubmitLeafUpdatesFromTrmSrv {
-  grouperVSets: FlatGrouperVSet[]
-  matchesInCqf: MatchesInCQF
-}
-
-const submitLeafUpdatesFromTermServers = async ({
-  grouperVSets,
-  matchesInCqf
-}: SubmitLeafUpdatesFromTrmSrv): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+  // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
     ?.map(vs => stringWithoutVersion(vs.selectedValueSet.url!))
@@ -325,7 +310,6 @@ const submitLeafUpdatesFromTermServers = async ({
   }
 
   const vsToAddFromTermServer = grouperVSets.filter(flatVs => {
-
     return urlsToAddFromRemote.includes(flatVs.selectedValueSet.url.split('-')[0]!)
   })
 
@@ -361,6 +345,8 @@ const submitLeafUpdatesFromTermServers = async ({
 
         if (!vsAddedToCache) {
           return ({ resStatus: 400, errorMessage: `Error saving ValueSet: '${flatGrouperItem.selectedValueSet.name}'` })
+        } else {
+          successfulUpdates.push(vsWithAuthSource.url!)
         }
 
       } catch (e: HapiError | any) {
@@ -369,9 +355,8 @@ const submitLeafUpdatesFromTermServers = async ({
       }
     }
   }
-
   // if all the updates were successful, return the urls updated
-  return urlsToAddFromRemote
+  return successfulUpdates
 }
 
 const createAndSubmitGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata): Promise<fhir4.ValueSet['url'] | ErrorResponse> => {
