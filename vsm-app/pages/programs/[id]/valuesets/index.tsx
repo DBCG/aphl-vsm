@@ -3,8 +3,9 @@ import type { NextPage } from 'next'
 import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
 import Select, { MultiValue } from 'react-select'
+import { getSession, GetSessionParams, useSession } from 'next-auth/react'
+import AsyncSelect from 'react-select/async'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import uniqBy from 'lodash.uniqby'
@@ -23,6 +24,7 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
+import { Tooltip } from '@/components/Tooltip'
 
 export const customStyles = {
   headCells: {
@@ -88,6 +90,10 @@ const ReadOnlyTag = styled.div`
   border-radius: 8px;
 `
 
+const LoadingMessage = styled.p`
+  color: blue;
+`
+
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
     value: g.id,
@@ -124,12 +130,18 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
+  const [versions, setVersions] = useState({})
+
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
+  const [versionToUpdate, setVersionToUpdate] = useState({})
+  const [versionUpdated, setVersionUpdated] = useState([])
+
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
+  const [updatedGrouper, setUpdatedGrouper] = useState(null)
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
@@ -138,6 +150,7 @@ const ProgramValueSetDetails: NextPage = () => {
   const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
+  const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
@@ -244,6 +257,8 @@ const ProgramValueSetDetails: NextPage = () => {
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
+    updatedGrouper,
+    versionUpdated,
     ...debouncedFilters
   })
 
@@ -281,6 +296,64 @@ const ProgramValueSetDetails: NextPage = () => {
     setFilters(updatedFilters)
   }
 
+  // fetch options for Version field
+  const fetchVersionOptions = async (vsId: string) => {
+    // if already cached in component, use that version
+    if (versions?.[vsId]) {
+      return
+    }
+    // otherwise, loading states and fetch
+    setLoadingVersionsForVs(vsId)
+    const defaultVersion = 'latest'
+    // const existingVersion = '' // get existing version from grouper if set
+    const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
+      .then((res) => res.json())
+      .then((versions) => [defaultVersion, ...versions].map((item) => ({ value: item, label: item })))
+
+    setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
+    setLoadingVersionsForVs(null)
+  }
+
+  // versionInput
+  const handleVersionChange = (selectedVersion, vsCanonical, grouperIds, terminologyInfo) => {
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+
+    // update the grouper canonical version
+    setVersionToUpdate(data)
+  }
+
+  useEffect(() => {
+    if (!versionToUpdate.grouperIds) {
+      return
+    }
+    let result
+
+    const body = JSON.stringify({
+      vsCanonical: versionToUpdate.vsCanonical,
+      vsVersion: versionToUpdate.version,
+      grouperIds: versionToUpdate.grouperIds,
+      terminologyInfo: versionToUpdate.terminologyInfo
+    })
+    // you want to update the associated grouper valuesets, adding or removing versions
+    async function updateVersions() {
+      result = await fetch(`/api/valueset/versions`, {
+        method: 'PUT',
+        body
+      }).then((res) => res.json())
+      if (result) {
+        setUpdatedGrouper(result)
+      }
+    }
+
+    try {
+      updateVersions()
+    } catch (e) {
+      console.error('error: ', e)
+    }
+    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
+  }, [versionToUpdate])
+
+  // @ts-ignore-next-line
   const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
   const columns = useMemo(
@@ -291,6 +364,7 @@ const ProgramValueSetDetails: NextPage = () => {
             <SelectInputTitle>Valueset Name</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
+                // @ts-ignore-next-line
                 handleFilterChange(e.target.value, 'findInVsName')
               }}
               style={{ height: '30px' }}
@@ -305,27 +379,56 @@ const ProgramValueSetDetails: NextPage = () => {
       },
       {
         name: (
-          <div>
-            <SelectInputTitle>Version</SelectInputTitle>
-            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInVersion')} style={{ height: '30px' }} />
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Version</SelectInputTitle>
           </div>
         ),
         id: 'vs-version-search',
         selector: (row: TableRow) => row.version,
         sortable: false,
-        maxWidth: '80px',
-        wrap: true
+        maxWidth: '180px',
+        wrap: true,
+        cell: (row: TableRow) => {
+          if (progValueSetDets.programStatus === 'active') {
+            return row?.valueSetPinnedVersion || 'latest'
+          }
+          const terminologyInfo = getTerminologySource(row.valueSet)
+          const inputValue = 'Retrieving all versions'
+          const defaultValue = row?.valueSetPinnedVersion || 'latest'
+
+          const defaultOption = [{ label: defaultValue, value: defaultValue }]
+          return (
+            <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
+              <Select
+                instanceId="version-selector"
+                onChange={(e) => {
+                  const grouperIds = row?.groups?.map((g) => g.id)
+                  handleVersionChange(e.value, row.valueSet.url, grouperIds, terminologyInfo)
+                }}
+                isLoading={loadingVersionsForVs === row?.valueSet?.id}
+                loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
+                isMulti={false}
+                options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
+                defaultValue={defaultOption}
+              />
+            </SelectInputContainer>
+          )
+        }
       },
       {
         name: (
           <div>
             <SelectInputTitle>Steward</SelectInputTitle>
-            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
+            <FilterInput
+              // @ts-ignore-next-line
+              onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
+              style={{ height: '30px' }}
+            />
           </div>
         ),
         selector: (row: TableRow) => row.valueSet.publisher,
         sortable: true,
-        maxWidth: '80px',
+        maxWidth: '120px',
         wrap: true
       },
       {
@@ -515,6 +618,23 @@ const ProgramValueSetDetails: NextPage = () => {
     [router, groupsInProgram, allConditions]
   )
 
+  const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
+
+  const updateVSetsButton = (() => {
+    if (typeof jobInProgressStatus === 'number') {
+      return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', ml: '15px', minWidth: '150px' }} />
+    } else if (allowToEdit) {
+      return (
+        <Button
+          text="Update Valuesets"
+          style={{ minHeight: '60px', marginLeft: '15px', minWidth: '150px' }}
+          onClick={() => handleUpdateValueSets()}
+        />
+      )
+    }
+    return null
+  })()
+
   return (
     <>
       <Row>
@@ -526,22 +646,7 @@ const ProgramValueSetDetails: NextPage = () => {
             {programId}
           </Id>
         </FlexRow>
-        {can(session, 'edit') && (
-          <Button
-            text="Add Valuesets"
-            style={{ minHeight: '60px', minWidth: '150px' }}
-            onClick={() => router.push(`${router.asPath}/search`)}
-          />
-        )}
-        {typeof jobInProgressStatus === 'number' ? (
-          <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', ml: '15px', minWidth: '150px' }} />
-        ) : (
-          <Button
-            text="Update Valuesets"
-            style={{ minHeight: '60px', marginLeft: '15px', minWidth: '150px' }}
-            onClick={() => handleUpdateValueSets()}
-          />
-        )}
+        {updateVSetsButton}
       </Row>
       <DT
         // @ts-expect-error

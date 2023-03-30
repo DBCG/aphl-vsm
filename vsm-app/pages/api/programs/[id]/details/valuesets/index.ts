@@ -12,6 +12,27 @@ interface Group {
   url: string
 }
 
+interface FormattedVSItem {
+  system: string
+  version: string
+  code: string
+  display?: string
+}
+
+
+interface ValueSetTableEntry {
+  programName: string
+  programId: string
+  programStatus: string
+  title: string
+  canonical: string
+  version: string
+  valueSetPinnedVersion: string
+  valueSet?: fhir4.ValueSet | undefined
+  conditions: FormattedVSItem[]
+  groups: Group[]
+}
+
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
 // as it could be quite large and slow down the application
 const WHITELIST_VALUESET_FIELDS = [
@@ -80,18 +101,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 leafUrlsInGrouper?.forEach((url) => {
                   if (!url) return
 
-                  leafValueSetCanonicals.push(url)
+                  // only adding unversioned to the array
+                  const [urlNoVersion, version] = url.split('|')
 
+                  leafValueSetCanonicals.push(urlNoVersion)
                   const groupToAdd = {
                     id: grouperVs.id || 'Undefined',
                     url: grouperVs.url || 'Undefined',
+                    defaultValueSetVersion: version,
                     title: groupTitle
                   }
-
-                  if (groupsByValueSetCanonical[url]) {
-                    groupsByValueSetCanonical[url].push(groupToAdd)
+                  // should also handle if version exists... is that its own key? or just within the object
+                  if (groupsByValueSetCanonical[urlNoVersion]) {
+                    groupsByValueSetCanonical[urlNoVersion].push(groupToAdd)
                   } else {
-                    groupsByValueSetCanonical[url] = [groupToAdd]
+                    groupsByValueSetCanonical[urlNoVersion] = [groupToAdd]
                   }
                 })
               })
@@ -119,6 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           .map((valueSet) => {
             const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find((k) => k === valueSet.url)
             const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+            const valueSetPinnedVersion = groupsVsBelongsTo?.[0]?.defaultValueSetVersion
 
             let result = {
               programName: program?.name || 'Undefined',
@@ -127,6 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               title: valueSet?.name || 'Undefined',
               canonical: valueSet.url || 'Undefined',
               version: valueSet.version || '',
+              valueSetPinnedVersion,
               valueSet: valueSet,
               groups: groupsVsBelongsTo
             }
@@ -173,11 +199,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
           .filter((x) => !!x) as DataItem[] // filter out any undefined items
 
         const composedResponse = {
+          programStatus: program.status,
           data: response,
           groupsInProgram: allGrouperVSets
         }
 
         res.status(200).send(composedResponse)
+
       }
     } catch (e: any) {
       console.error('error:  ', e)

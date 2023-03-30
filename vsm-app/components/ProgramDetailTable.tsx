@@ -9,6 +9,32 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 
+const columns = [
+  {
+    name: 'Name',
+    selector: (row: TableData) => row.name!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'Title',
+    selector: (row: TableData) => row?.title?.replace('_', ' ')!,
+    wrap: true
+  },
+  { 
+    name: 'URL',
+    selector: (row: TableData) => row.url!,
+    wrap: true
+  },
+  {
+    name: 'Version',
+    selector: (row: TableData) => row.version!,
+    sortable: true,
+    wrap: true,
+    maxWidth: '150px'
+  }
+]
+
 interface TableData {
   name: ValueSet['name']
   title: ValueSet['title']

@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { ReadOnlyContainer, ErrorMessage, Label } from './SearchInput'
+import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
 
 interface InputProps {
   minWidth?: number
@@ -28,7 +28,7 @@ const FlexRow = styled.div`
 
 interface Props {
   placeholder?: string
-  onChange?: (React.ChangeEventHandler<HTMLInputElement> & React.ChangeEventHandler<HTMLTextAreaElement>)
+  onChange?: React.ChangeEventHandler<HTMLInputElement> & React.ChangeEventHandler<HTMLTextAreaElement>
   required?: boolean
   value?: string
   label?: string
@@ -62,7 +62,7 @@ const TextArea = ({
   return (
     <Container style={style}>
       <FlexRow>
-        <Label id={id} info={info} label={label} required={required} readonly={readonly} />
+        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>

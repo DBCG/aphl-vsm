@@ -77,7 +77,7 @@ const is = {
   valueSet: (resource: fhir4.ValueSet | any): resource is fhir4.ValueSet => {
     return resource?.resourceType === 'ValueSet'
   },
-  promiseFulfilled: <T>(PromiseSettledResult:PromiseSettledResult<T>): PromiseSettledResult is PromiseFulfilledResult<T> => PromiseSettledResult.status === 'fulfilled'
+  promiseFulfilled: <T>(PromiseSettledResult: PromiseSettledResult<T>): PromiseSettledResult is PromiseFulfilledResult<T> => PromiseSettledResult.status === 'fulfilled'
 }
 
 export { is }

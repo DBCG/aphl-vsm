@@ -30,7 +30,8 @@ const btnTitleText = {
   search: 'Search',
   clone: 'Make a new program based on this one (must have active status)',
   release: 'Promote this program from draft to active status',
-  publish: 'Publish this program'
+  publish: 'Publish this program',
+  retire: 'Convert program from active to retired status'
 }
 
 type Key = keyof typeof btnTitleText
@@ -57,6 +58,9 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: I
     case 'release':
       image = 'release'
       break
+    case 'retire':
+      image = 'retire'
+      break
   }
 
   return (
@@ -64,6 +68,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: I
       title={btnTitleText[buttonContext as Key]}
       disabled={disabled}
       type={type}
+      buttonContext={buttonContext}
       style={style}
       onClick={(e) => {
         !disabled ? onClick(e) : null
