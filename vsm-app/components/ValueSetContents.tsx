@@ -154,9 +154,9 @@ export default function ValueSetContents({ grouperLibrary, valueSet, isDraftProg
     <Box>
       <Box sx={{ width: '100%', background: 'white' }}>
         <Form>
-          <PageTitle>{valueSet.id}</PageTitle>
+          <PageTitle>{valueSet.title}</PageTitle>
           <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput id="prog-name" label="Title" readonly={true} def={valueSet.title} placeholder={'No valueset title set'} />
+            <SearchInput id="prog-name" label="ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
             {isDraftProgram && (
               <Typography
                 style={{
@@ -183,7 +183,7 @@ export default function ValueSetContents({ grouperLibrary, valueSet, isDraftProg
               def={valueSet.url}
               placeholder={'No valueset canonical set'}
             />
-            <SearchInput id="vs-title" label="Version" readonly={true} def={valueSet.version} placeholder={'No valueset version set'} />
+            <SearchInput id="vs-version" label="Version" readonly={true} def={valueSet.version} placeholder={'No valueset version set'} />
           </InputRow>
           <InputRow style={{ width: '100%' }}>
             <SearchInput
