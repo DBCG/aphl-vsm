@@ -18,6 +18,7 @@ interface FetchGrouperVsets {
 }
 
 export const fetchGrouperValueSets = ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
+
   return Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
     client: fhirCdrClient,
     resourceType: 'ValueSet',

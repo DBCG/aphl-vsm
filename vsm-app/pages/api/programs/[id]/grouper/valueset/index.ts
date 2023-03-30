@@ -113,7 +113,7 @@ const createGrouperValueSet = async (
     const successfulUpdatesToCQF = await submitUpdatesToCQF({
       updatedVS: updatedValueSetsFromCache,
       grouperVSets,
-      matchesInCqfs
+      matchesInCqf
     })
     if (is.errorResponse(successfulUpdatesToCQF)) {
       sendError(successfulUpdatesToCQF)
