@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const grouperUrls = grouperLibrary?.relatedArtifact?.map((i: any) => i?.resource)
 
-      const grouperValueSets = await fetchGrouperValueSets(grouperUrls).then((bundles) =>
+      const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls }).then((bundles) =>
         bundles.map((bundle) => bundle.entry?.[0]?.resource as fhir4.ValueSet)
       )
 

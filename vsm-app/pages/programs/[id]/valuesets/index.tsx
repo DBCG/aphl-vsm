@@ -490,7 +490,11 @@ const ProgramValueSetDetails: NextPage = () => {
             })
             .filter((x) => x) as Condition[]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
-            selectedOptions?.map((o) => <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>)
+            <ReadOnlyContainer>
+              {selectedOptions?.map((o) => (
+                <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>
+              ))}
+            </ReadOnlyContainer>
           ) : (
             <SelectInputContainer>
               <Select

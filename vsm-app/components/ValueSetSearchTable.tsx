@@ -7,7 +7,7 @@ import ReactModal from 'react-modal'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { SelectedCondition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/InputLabel'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -20,6 +20,7 @@ import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
+import { SelectedValueSet, SelectedGrouper, SelectedCondition } from '@/types/grouperTypes'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -193,7 +194,7 @@ type Offset = {
 export interface LeafsToAdd {
   selectedTerminologyServer: 'vsac' | 'ontoserverR4'
   selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[]
+  selectedConditions: Condition[]
   selectedGroupers: SelectedGrouper[]
 }
 
@@ -203,26 +204,6 @@ export type TableContextType = 'add-grouper' | 'search-page'
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
   tableContext: TableContextType
-}
-
-export interface SelectedValueSet {
-  id: fhir4.ValueSet['id']
-  lastUpdated: fhir4.Meta['lastUpdated']
-  name: fhir4.ValueSet['name']
-  oid: fhir4.ValueSet['id']
-  status: fhir4.ValueSet['status']
-  steward: fhir4.ValueSet['publisher']
-  url: fhir4.ValueSet['url']
-  version: fhir4.ValueSet['version']
-  valueSet: fhir4.ValueSet
-}
-
-export interface SelectedGrouper {
-  id: fhir4.ValueSet['id']
-  label: fhir4.ValueSet['title']
-  url: fhir4.ValueSet['url']
-  value: fhir4.ValueSet['url']
-  version: fhir4.ValueSet['version']
 }
 
 const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearchTable) => {
@@ -257,7 +238,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
 
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState<SelectedGrouper[]>([])
-  const [selectedConditions, setSelectedConditions] = useState<SelectedCondition[]>([])
+  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)

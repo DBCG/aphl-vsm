@@ -1,18 +1,35 @@
 import { fhirCdrClient } from 'fhirClients'
-import FhirKitClient from 'fhir-kit-client'
+import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 
-export const fetchGrouperLibrary = (client: FhirKitClient, canonical: string) => {
-  return fetchByCanonical(client, 'Library', canonical)
+interface FetchGrouperLib {
+  client: FhirKitClient
+  canonical: string
+  grouperStatus?: fhir4.ValueSet['status']
 }
 
-export const fetchGrouperValueSets = (canonicals: string[], whitelistFields?: string[]) => {
-  return Promise.all(canonicals.map((canonical) => fetchByCanonical(fhirCdrClient, 'ValueSet', canonical, whitelistFields)))
+export const fetchGrouperLibrary = async ({ client, canonical, grouperStatus }: FetchGrouperLib) => {
+  return await fetchByCanonical({ client, resourceType: 'Library', canonical, status: grouperStatus })
+}
+
+interface FetchGrouperVsets {
+  canonicals: string[],
+  whitelistFields?: string[]
+}
+
+export const fetchGrouperValueSets = ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
+
+  return Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
+    client: fhirCdrClient,
+    resourceType: 'ValueSet',
+    canonical,
+    whitelistFields
+  })))
 }
 
 export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string) => {
   if (grouperLibUrl) {
-    const grouperSearchResult = await fetchGrouperLibrary(fhirCdrClient, grouperLibUrl)
+    const grouperSearchResult = await fetchGrouperLibrary({ client: fhirCdrClient, canonical: grouperLibUrl })
 
     // get all grouperValueSet canonicals
     if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
@@ -25,7 +42,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
 
       if (grouperValueSetCanonicals) {
         const allGrouperVSets = (
-          (await fetchGrouperValueSets(grouperValueSetCanonicals))
+          (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
             .filter(is.bundle)
             .flatMap((bundle) => bundle.entry?.map((e) => e.resource!))
             .filter((x) => !!x) as fhir4.Resource[]
@@ -117,17 +134,28 @@ export const fetchLeafValueSets = async (
   }
 }
 
+interface FetchCanonical {
+  client: FhirKitClient
+  resourceType: ResourceType
+  canonical: string
+  whitelistFields?: string[]
+  status?: string
+}
+
 // vsac limits queries
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
-export const fetchByCanonical = (client: FhirKitClient, resourceType: string, canonical: string, whitelistFields?: string[]) => {
+export const fetchByCanonical = async ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
   const [url, version] = canonical.split('|')
   const searchParams: Record<string, string> = { url }
   if (version) {
     searchParams.version = version
   }
+  if (status) {
+    searchParams.status = status
+  }
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
-  const result = client.search({ resourceType, searchParams })
-  return result as Promise<fhir4.Bundle>
+  const result = await client.search({ resourceType, searchParams })
+  return result
 }

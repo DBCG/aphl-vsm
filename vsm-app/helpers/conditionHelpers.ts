@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash.clonedeep'
 import { MultiValue } from 'react-select'
 
 interface Condition {
@@ -22,21 +23,10 @@ interface UsageContextItem {
   valueCodeableConcept: fhir4.CodeableConcept
 }
 
-interface ConditionValue {
-  system: string
-  version: string
-  code: string
-}
-
-interface SelectedCondition {
-  label: string
-  value: ConditionValue
-}
-
 interface ConditionToUpdate {
   canonical: string
   version: string
-  conditionInfo: SelectedCondition[]
+  conditionInfo: Condition[]
 }
 
 const buildConditionItem = (condition: Condition) => {
@@ -64,7 +54,8 @@ const buildConditionItem = (condition: Condition) => {
 // VALUESETS PAGE: you want to keep any existing conditions that you have added before
 // TODO there should be no useContext if it is an empty array
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
-  let vs = valueSet
+  let vs = cloneDeep(valueSet)
+
   if (vs?.useContext) {
     const nonConditionContexts = vs?.useContext?.filter(
       (ctx) => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus')
@@ -116,8 +107,8 @@ const formatConditionsComposeInclude = (conditionsList: any) => {
 
 const buildConditionOptions = (
   conditions: ConditionItem[] | [],
-  selectedOptions?: SelectedCondition[] | []
-): MultiValue<SelectedCondition> => {
+  selectedOptions?: Condition[] | []
+): MultiValue<Condition> => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter((x) => !!x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions
@@ -135,4 +126,4 @@ const buildConditionOptions = (
 }
 
 export { updateConditions, formatConditionsComposeInclude, buildConditionOptions }
-export type { Condition, ConditionItem, ConditionToUpdate, SelectedCondition }
+export type { Condition, ConditionItem, ConditionToUpdate }

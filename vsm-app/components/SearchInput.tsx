@@ -61,12 +61,6 @@ const SearchInput = ({
     <Container>
       <FlexRow>
         <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
-        {label !== undefined && id !== undefined && (
-          <StyledLabel>
-            {label}
-            {required && <sup style={{ color: 'red' }}>*</sup>}
-          </StyledLabel>
-        )}
       </FlexRow>
       {readonly ? (
         <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>

@@ -19,16 +19,18 @@ import {
   NumberItem
 } from '@/components/forms/styled/formElements'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { SelectedCondition } from '@/helpers/conditionHelpers'
 import { MultiValue } from 'react-select'
-import { SelectedValueSet, SelectedGrouper } from '@/components/ValueSetSearchTable'
+import { CombinedGrouperVSets, FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
+import { Condition } from '@/helpers/conditionHelpers'
+import { LoadingModal } from '@/components/modals/LoadingModal'
 
 const defaultFormData = {
+  id: '',
   name: '',
   title: '',
   status: '',
-  author: process.env.NEXT_PUBLIC_DEFAULT_AUTHOR,
-  publisher: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER,
+  author: process.env.NEXT_PUBLIC_DEFAULT_AUTHOR || '',
+  publisher: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHER || '',
   description: '',
   purpose: ''
 }
@@ -46,32 +48,19 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
   </DirectionContainer>
 )
 
-export interface FlatGrouperVSet {
-  selectedValueSet: SelectedValueSet
-  selectedConditions: SelectedCondition[]
-  selectedGroupers?: SelectedGrouper[]
-  selectedTerminologyServer: string
-}
-
-interface CombinedGrouperVSets {
-  selectedValueSets: SelectedValueSet[]
-  selectedConditions: SelectedCondition[]
-  selectedGroupers?: SelectedGrouper[]
-  selectedTerminologyServer: string
-}
-
 interface Error {
   type: 'failed-grouper-add'
   message: string
 }
 
 export interface ConditionsHandler {
-  conditionInfo: MultiValue<SelectedCondition> | SelectedCondition[]
+  conditionInfo: MultiValue<Condition>
   vsId: fhir4.ValueSet['id']
 }
 
 const AddGrouper = () => {
   const [grouperVSets, setGrouperVSets] = useState<FlatGrouperVSet[]>([])
+  const [id, setId] = useState(defaultFormData.id)
   const [title, setTitle] = useState(defaultFormData.title)
   const [name, setName] = useState(defaultFormData.name)
   const [publisher, setPublisher] = useState(defaultFormData.publisher)
@@ -79,6 +68,7 @@ const AddGrouper = () => {
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [error, setError] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleAddValueSets = (newVsInfo: CombinedGrouperVSets) => {
     const { selectedValueSets, selectedConditions, selectedGroupers, selectedTerminologyServer } = newVsInfo
@@ -98,7 +88,7 @@ const AddGrouper = () => {
   const handleUpdateConditions = ({ conditionInfo, vsId }: ConditionsHandler) => {
     const updatedVSets = grouperVSets.map((vs) => {
       if (vs.selectedValueSet.id === vsId) {
-        vs.selectedConditions = conditionInfo as SelectedCondition[]
+        vs.selectedConditions = conditionInfo as Condition[]
       }
       return vs
     })
@@ -118,7 +108,10 @@ const AddGrouper = () => {
 
   const addGrouper = async () => {
     setError(null)
-    const grouperMetadata = {
+    setLoading(true)
+
+    const grouperMetadata: GrouperMetadata = {
+      id,
       title,
       name,
       publisher,
@@ -130,8 +123,7 @@ const AddGrouper = () => {
 
     const json = JSON.stringify({
       grouperVSets,
-      grouperMetadata,
-      programId
+      grouperMetadata
     })
 
     const res = await fetch(`/api/programs/${programId}/grouper/valueset`, {
@@ -142,7 +134,9 @@ const AddGrouper = () => {
     if (res.ok) {
       router.push(`/programs/${router.query.id}`)
     } else {
-      setError({ type: 'failed-grouper-add', message: `Failed to add grouper '${name}'` })
+      const json = await res.json()
+      setLoading(false)
+      setError({ type: 'failed-grouper-add', message: json.error || `Failed to add grouper '${name}'` })
     }
   }
 
@@ -164,13 +158,25 @@ const AddGrouper = () => {
         break
       case 'purpose':
         setPurpose(targetValue)
+        break
+      case 'id':
+        setId(targetValue)
     }
   }
 
-  const submitDisabled = !(grouperVSets.length && title && author && publisher && description && purpose) || !startsAlphabetically(title)
+  const submitDisabled =
+    !(grouperVSets.length && title && id && author && publisher && description && purpose) || !startsAlphabetically(title)
 
   return (
     <>
+      <LoadingModal
+        isOpen={loading}
+        actionType="grouper-add"
+        program={null}
+        handleCancelModal={() => {}}
+        loading={loading}
+        handleModalAction={() => {}}
+      />
       <FormTitle>Add a Grouper</FormTitle>
       <FormSectionHeader
         itemNum={1}
@@ -182,6 +188,9 @@ const AddGrouper = () => {
         }
       />
       <Form>
+        <SearchInput label="ID" id="id" required={true} onChange={(e) => updateField(e)} value={id} />
+        <SearchInput label="Author" id="author" required={true} onChange={(e) => updateField(e)} value={author} />
+        <SearchInput label="Publisher/Steward" id="publisher" required={true} onChange={(e) => updateField(e)} value={publisher} />
         <SearchInput
           label="Title"
           id="title"
@@ -190,9 +199,7 @@ const AddGrouper = () => {
           value={title}
           errorMessage={title && !startsAlphabetically(title) ? '* Field must start with a letter' : null}
         />
-        <SearchInput label="Author" id="author" required={true} onChange={(e) => updateField(e)} value={author} />
         <TextArea label="Purpose" id="purpose" required={true} onChange={(e) => updateField(e)} value={purpose} />
-        <SearchInput label="Publisher/Steward" id="publisher" required={true} onChange={(e) => updateField(e)} value={publisher} />
         <TextArea label="Description" id="description" required={true} onChange={(e) => updateField(e)} value={description} />
       </Form>
       <FormSectionHeader itemNum={2} title="Search and add valuesets to grouper, conditions optional" />
@@ -201,6 +208,7 @@ const AddGrouper = () => {
       <Subtitle>Grouper Metadata</Subtitle>
       <MetadataContainer>
         <Col>
+          <SearchInput label="ID" id="id" readonly={true} placeholder={id || '---'} />
           <SearchInput label="Title" id="title" readonly={true} placeholder={title || '---'} />
           <SearchInput label="Name (autogenerated from title)" readonly={true} id="name" placeholder={name || '---'} />
           <SearchInput readonly={true} label="Publisher/Steward" id="publisher" placeholder={publisher || '---'} />

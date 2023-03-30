@@ -1,24 +1,29 @@
 import set from 'lodash.set'
-import { terminologyServerEndpoints } from '../fhirClientOptions'
 import cloneDeep from 'lodash.clonedeep'
+import { terminologyServerEndpoints } from '../fhirClientOptions'
+import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
+import { GrouperMetadata } from '@/types/grouperTypes'
 
-const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
-  let leafVSetsInGroup = vs?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)
-  const valueToAdd = [vsCanonical]
-  // if no compose include & no leaf valuesets
-  if (!vs?.compose?.include && !leafVSetsInGroup) {
-    // need to make a new path
-    const path = 'compose.include[0].valueSet' // make this more flexible?
-    // what if something in compose.include that isn't valueset in the future
-    set(vs, path, valueToAdd)
-    // if some vsets exist, but not
-  } else if (vs?.compose?.include) {
-    if (leafVSetsInGroup && !leafVSetsInGroup?.includes(vsCanonical)) {
-      leafVSetsInGroup.push(vsCanonical)
-      vs.compose.include.push({ valueSet: valueToAdd })
-    }
+const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
+  const valueSetToUpdate = cloneDeep(vs)
+  if (typeof vsCanonical === 'string') {
+    vsCanonical = [vsCanonical]
   }
-  return vs
+
+  // get all of the leafs currently within the grouper
+  let leafVSetsAlreadyInGroup = Array.from(new Set(valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)))
+
+  const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
+
+  vsCanonical.forEach(url => {
+
+    if (!leafVSetsAlreadyInGroup?.includes(url)) {
+      composeIncludeToAdd.push({ valueSet: [url] })
+    }
+  })
+
+  set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
+  return valueSetToUpdate
 }
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
@@ -192,8 +197,35 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
 
   vsCopy!.compose!.include = composeInclude
   return vsCopy
-  // }
 }
+
+const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
+  const templateVS = cloneDeep(grouperValueSetBase) as fhir4.ValueSet
+
+  const { author, ...rest } = metadata
+
+  // apply all fields that are flat
+  const vs = Object.assign(
+    {},
+    templateVS,
+    rest,
+    { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` }
+  )
+
+  // apply extension
+  vs.extension = [
+    {
+      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
+      valueContactDetail: {
+        name: author
+      }
+    }
+  ]
+  return vs
+}
+
+// VSAC appends versions to valueset ids and urls with hyphen
+const stringWithoutVersion = (str: string) => str.split('-')[0]
 
 export {
   addExtensionToVs,
@@ -204,5 +236,7 @@ export {
   removeValueSetFromGrouper,
   setExpansionParameters,
   valuesetDataForDisplay,
-  updateLeafVsVersion
+  updateLeafVsVersion,
+  createGrouperWithMetadata,
+  stringWithoutVersion
 }
