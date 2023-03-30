@@ -98,6 +98,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
                   vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
                 } else {
                   console.error('no match found')
+                  res.status(400).json({ error: `no match found` })
                 }
               } else {
                 res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
@@ -148,6 +149,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
       const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
       console.error('failed updates: ', failedUpdates)
+      res.status(400).json({ error: 'failed to update valueSet' })
     } catch (e) {
       console.error('error 3', e)
     }
@@ -188,6 +190,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       )
     } catch (e) {
       console.error('error 4: ', e)
+      res.status(400).json({ error: 'failed to update valueSet' })
     }
 
     res.status(200).send(200)
