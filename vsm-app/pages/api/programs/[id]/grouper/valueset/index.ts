@@ -330,7 +330,6 @@ const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[],
           ?.value?.url
 
         // handle if no matching authoritativeSource url
-
         const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl)
 
         const vsAddedToCache = await fhirCdrClient.create({

@@ -39,7 +39,3 @@ const testErr = {
     headers: {}
   }
 }
-
-
-
-const test = is.hapiError(testErr)
