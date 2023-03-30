@@ -110,12 +110,18 @@ const createGrouperValueSet = async (
     // update those cached leafs with newly added conditions (if any)
     const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
 
-    const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS(updatedValueSetsFromCache, matchesInCqf)
+    const successfulUpdatesToCQFCachedVS = await submitUpdatesToCachedCQFVS({
+      updatedVS: updatedValueSetsFromCache,
+      matchesInCqf
+    })
     if (is.errorResponse(successfulUpdatesToCQFCachedVS)) {
       sendError(successfulUpdatesToCQFCachedVS)
     }
 
-    const successfulUpdatesFromTermServers = await submitLeafUpdatesFromTermServers(grouperVSets, matchesInCqf)
+    const successfulUpdatesFromTermServers = await submitLeafUpdatesFromTermServers({
+      grouperVSets,
+      matchesInCqf
+    })
     if (is.errorResponse(successfulUpdatesFromTermServers)) {
       sendError(successfulUpdatesFromTermServers)
     }
@@ -252,7 +258,15 @@ const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: Fl
   })
 }
 
-const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefined, matchesInCqf: MatchesInCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+interface SubmitUpdatesToCQF {
+  updatedVS: fhir4.ValueSet[] | undefined
+  matchesInCqf: MatchesInCQF
+}
+
+const submitUpdatesToCachedCQFVS = async ({
+  updatedVS,
+  matchesInCqf
+}: SubmitUpdatesToCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
   try {
     if (!updatedVS || !matchesInCqf) {
       return []
@@ -290,7 +304,15 @@ const submitUpdatesToCachedCQFVS = async (updatedVS: fhir4.ValueSet[] | undefine
   }
 }
 
-const submitLeafUpdatesFromTermServers = async (grouperVSets: FlatGrouperVSet[], matchesInCqf: MatchesInCQF): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
+interface SubmitLeafUpdatesFromTrmSrv {
+  grouperVSets: FlatGrouperVSet[]
+  matchesInCqf: MatchesInCQF
+}
+
+const submitLeafUpdatesFromTermServers = async ({
+  grouperVSets,
+  matchesInCqf
+}: SubmitLeafUpdatesFromTrmSrv): Promise<fhir4.ValueSet['url'][] | [] | ErrorResponse> => {
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
     ?.map(vs => stringWithoutVersion(vs.selectedValueSet.url!))
