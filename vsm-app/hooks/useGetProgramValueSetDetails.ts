@@ -1,48 +1,49 @@
 import { useState, useEffect } from 'react'
 
 interface Group {
-  label: string,
+  label: string
   value: string
 }
 
 interface GroupItem {
-  url: string,
-  id: string,
+  url: string
+  id: string
   title: string
 }
 
 interface ConditionItem {
-  label: string,
+  label: string
   value: {
-    system: string,
-    code: string,
-    text: string,
+    system: string
+    code: string
+    text: string
     version: string
   }
 }
 
 export interface DataItem {
-  canonical: string,
-  programName: string,
-  programId: string,
-  groups: GroupItem[],
-  title: string,
-  version: string,
+  canonical: string
+  programName: string
+  programId: string
+  groups: GroupItem[]
+  title: string
+  version: string
   valueSet: fhir4.ValueSet
+  programStatus: fhir4.Library['status']
 }
 
-interface Result {
-  data: DataItem,
-  groupsInProgram: fhir4.ValueSet[]
+export interface Result {
+  data?: DataItem[]
+  groupsInProgram?: fhir4.ValueSet[]
 }
 
 interface Args {
-  id: string,
-  findInVsName?: string,
-  findInVersion?: string,
-  findInSteward?: string,
-  activeGroups?: [] | Group[],
-  activeConditions?: [] | ConditionItem[],
+  id: string
+  findInVsName?: string
+  findInVersion?: string
+  findInSteward?: string
+  activeGroups?: [] | Group[]
+  activeConditions?: [] | ConditionItem[]
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
 }
 // gets data necessary to build the program valueset details page
@@ -53,7 +54,9 @@ const useGetProgramValueSetDetails = ({
   findInSteward,
   activeGroups,
   activeConditions,
-  updatedGrouperValueSets
+  updatedGrouperValueSets,
+  updatedGrouper,
+  versionToUpdate
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
 
@@ -80,13 +83,13 @@ const useGetProgramValueSetDetails = ({
       }
 
       if (activeGroups?.length) {
-        const canonicals = activeGroups.map(g => g.value)
+        const canonicals = activeGroups.map((g) => g.value)
         const result = canonicals.join(',')
         queries.push(`groups=${encodeURIComponent(result)}`)
       }
 
       if (activeConditions?.length) {
-        const codes = activeConditions.map(g => g.value.code)
+        const codes = activeConditions.map((g) => g.value.code)
         const result = codes.join(',')
         queries.push(`conditions=${encodeURIComponent(result)}`)
       }
@@ -130,7 +133,9 @@ const useGetProgramValueSetDetails = ({
     findInSteward,
     activeGroups,
     activeConditions,
-    updatedGrouperValueSets
+    updatedGrouperValueSets,
+    updatedGrouper,
+    versionToUpdate
   ])
 
   return data

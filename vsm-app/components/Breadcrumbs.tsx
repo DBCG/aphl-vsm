@@ -44,7 +44,7 @@ const BreadCrumbs = () => {
   useEffect(() => {
     if (router) {
       const crumbs = router.asPath.split('/')
-      const withoutQueryStrings = crumbs?.map(crumb => crumb?.split('?')?.[0])
+      const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
       setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])
@@ -57,19 +57,15 @@ const BreadCrumbs = () => {
     if (c !== '') {
       return (
         <NavItem alpha={index / 0.1} key={c}>
-          <Link href={composePath(router.asPath, c)}>
-            {`${c.replace('?id=', ' ')}`} 
-          </Link>
+          <Link href={composePath(router.asPath, c)}>{`${c.replace('?id=', ' ')}`}</Link>
         </NavItem>
       )
     }
   })
 
   return (
-    <nav aria-label='breadcrumbs'>
-      <NavList>
-        {items}
-      </NavList>
+    <nav aria-label="breadcrumbs">
+      <NavList>{items}</NavList>
     </nav>
   )
 }

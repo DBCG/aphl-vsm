@@ -10,8 +10,8 @@ const ScaffoldWrapper = styled.div`
   flex: 1;
   justify-content: space-between;
 `
-  
-  const StyledMain = styled.main`
+
+const StyledMain = styled.main`
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -42,21 +42,11 @@ const Scaffold = ({ children }: Props) => {
       </Head>
       <StyledMain>
         <Row>
-          <NavBar/>
+          <NavBar />
         </Row>
-        <Content>
-          { router.pathname.includes('login') ?
-            children :
-            (
-              <FileContainer>
-                { children }
-              </FileContainer>
-            )
-          }
-        </Content>
+        <Content>{router.pathname.includes('login') ? children : <FileContainer>{children}</FileContainer>}</Content>
       </StyledMain>
-      <footer>
-      </footer>
+      <footer></footer>
     </ScaffoldWrapper>
   )
 }

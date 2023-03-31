@@ -5,6 +5,8 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle, customStyles } from 'pages/programs/[id]/valuesets'
 import { formatValuesetDate } from '@/helpers/formatDates'
+import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
+import { TableContextType } from './ValueSetSearchTable'
 
 interface TableData {
   name: ValueSet['name']
@@ -29,8 +31,9 @@ interface StatusProps {
 const StatusTag = styled.div<StatusProps>`
   padding: 4px 8px;
   border-radius: 8px;
-  background-color: ${ props => props.status === 'draft' ? 'var(--warning-light)' : props.status === 'active' ? 'var(--theme-200)' : 'var(--warning-light)' };
-  color: ${ props => props.status === 'active' ? 'white' : 'inherit' };
+  background-color: ${(props) =>
+    props.status === 'draft' ? 'var(--warning-light)' : props.status === 'active' ? 'var(--theme-200)' : 'var(--warning-light)'};
+  color: ${(props) => (props.status === 'active' ? 'white' : 'inherit')};
   width: max-content;
   display: inline-block;
 `
@@ -45,7 +48,9 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
     return []
   }
 
-  if (!valueSets || valueSets.length < 1) { return [] }
+  if (!valueSets || valueSets.length < 1) {
+    return []
+  }
 
   const data = valueSets.map((vs: fhir4.ValueSet) => {
     const { id, name, publisher, url, status, meta, date, version } = vs
@@ -73,42 +78,48 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
 }
 
 interface Input {
-  valueSets: ValueSet[] | undefined,
-  setSelectedValueSets: (eventItem: any) => void,
-  setClearSelectedRows: (eventItem: any) => void,
-  setFindInName: (eventItem: any) => void,
-  setFindInSteward: (eventItem: any) => void,
-  setFindInStatus: (eventItem: any) => void,
-  setFindInOid: (eventItem: any) => void,
-  setFindInLastUpdated: (eventItem: any) => void,
-  handlePageChange: (eventItem: any) => void,
-  handlePerRowsChange: (eventItem: any) => void,
-  clearSelectedRows: boolean,
-  searchType: string,
-  paginationTotalRows: number,
-  isLoading: boolean,
-  showFilters: boolean,
+  valueSets: ValueSet[] | undefined
+  setSelectedValueSets: (eventItem: any) => void
+  setClearSelectedRows: (eventItem: any) => void
+  findInName: string
+  setFindInName: (eventItem: any) => void
+  findInSteward: string
+  setFindInSteward: (eventItem: any) => void
+  findInStatus: string
+  setFindInStatus: (eventItem: any) => void
+  findInOid: string
+  setFindInOid: (eventItem: any) => void
+  findInLastUpdated: string
+  setFindInLastUpdated: (eventItem: any) => void
+  findInVersion: string
+  setFindInVersion: (eventItem: any) => void
+  handlePageChange: PaginationChangePage
+  handlePerRowsChange: (eventItem: any) => void
+  clearSelectedRows: boolean
+  searchType: string
+  paginationTotalRows: number
+  isLoading: boolean
+  showFilters: boolean
   resultsPerPage: number
+  tableContext: TableContextType
 }
-
-const vsStatuses = [
-  'draft', 'active', 'retired', 'unknown'
-]
-
-const statusOptions = vsStatuses.map(s => ({
-  value: s,
-  label: s,
-  id: s
-}))
 
 const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
+  findInName,
   setFindInName,
+  findInStatus,
+  setFindInStatus,
+  findInSteward,
   setFindInSteward,
+  findInOid,
   setFindInOid,
+  findInLastUpdated,
   setFindInLastUpdated,
-  isLoading=false,
+  findInVersion,
+  setFindInVersion,
+  isLoading = false,
   showFilters,
   handlePageChange,
   handlePerRowsChange,
@@ -117,8 +128,8 @@ const SearchTable = ({
   clearSelectedRows,
   setClearSelectedRows,
   resultsPerPage,
+  tableContext
 }: Input) => {
-
   const tableData = parseValueSets(valueSets)
 
   const columns = [
@@ -126,15 +137,16 @@ const SearchTable = ({
       name: (
         <div>
           <SelectInputTitle>Name</SelectInputTitle>
-            { showFilters && (
-              <FilterInput
-                onChange={(e: React.ChangeEvent<Element>) => {
-                  const target = e.target as HTMLInputElement
-                  setFindInName(target.value.trim())
-                }}
-                style={{ height: '30px' }}
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInName(target.value.trim())
+              }}
+              style={{ height: '30px' }}
+              value={findInName}
             />
-            )}
+          )}
         </div>
       ),
       wrap: true,
@@ -148,28 +160,34 @@ const SearchTable = ({
       name: (
         <div>
           <SelectInputTitle>Status</SelectInputTitle>
-            { showFilters && (
-              <FilterInput
-                onChange={(e: React.ChangeEvent<Element>) => {
-                  const target = e.target as HTMLInputElement
-                  setFindInName(target.value.trim())
-                }}
-                style={{ height: '30px' }}
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInStatus(target.value.trim())
+              }}
+              style={{ height: '30px' }}
+              value={findInStatus}
             />
-            )}
+          )}
         </div>
       ),
       wrap: true,
-      selector: (row: TableData) => (row.status),
-      cell : (row: TableData) => {
+      maxWidth: '100px',
+      selector: (row: TableData) => row.status,
+      cell: (row: TableData) => {
         return (
           <div>
             <StatusTag status={row.status}>{row.status!}</StatusTag>
-            { row.status !== 'active' && (<><br/><StatusWarning>* only active ValueSets can be added to program</StatusWarning></>)} 
+            {row.status !== 'active' && (
+              <>
+                <br />
+                <StatusWarning>* only active ValueSets can be added to program</StatusWarning>
+              </>
+            )}
           </div>
-          
         )
-      }, 
+      },
       sortable: false,
       style: {
         rowWrap: 'wrap'
@@ -178,27 +196,51 @@ const SearchTable = ({
     {
       name: (
         <div>
-          <SelectInputTitle>Last Updated</SelectInputTitle>
-            { showFilters && (
-              <FilterInput
-                onChange={(e: React.ChangeEvent<Element>) => {
-                  const target = e.target as HTMLInputElement
-                  setFindInLastUpdated(target.value.trim())
-                }}
-                style={{ height: '30px' }}
+          <SelectInputTitle>{tableContext === 'search-page' && 'Latest'} Version</SelectInputTitle>
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInVersion(target.value.trim())
+              }}
+              style={{
+                height: '30px'
+              }}
+              value={findInVersion}
             />
-            )}
+          )}
+        </div>
+      ),
+      selector: (row: TableData) => row.version!,
+      sortable: false,
+      wrap: true
+    },
+    {
+      name: (
+        <div>
+          <SelectInputTitle>Last Updated</SelectInputTitle>
+          {showFilters && (
+            <FilterInput
+              onChange={(e: React.ChangeEvent<Element>) => {
+                const target = e.target as HTMLInputElement
+                setFindInLastUpdated(target.value.trim())
+              }}
+              style={{ height: '30px' }}
+              value={findInLastUpdated}
+            />
+          )}
         </div>
       ),
       sortable: false,
       wrap: true,
+      maxWidth: '120px',
       selector: (row: TableData) => row.lastUpdated!
     },
     {
       name: (
         <div>
-        <SelectInputTitle>Steward</SelectInputTitle>
-          { showFilters && (
+          <SelectInputTitle>Steward</SelectInputTitle>
+          {showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
@@ -207,19 +249,20 @@ const SearchTable = ({
               style={{
                 height: '30px'
               }}
+              value={findInSteward}
             />
           )}
         </div>
       ),
       selector: (row: TableData) => row.steward!,
       sortable: false,
-      wrap: true,
+      wrap: true
     },
     {
       name: (
         <div>
-        <SelectInputTitle>ID</SelectInputTitle>
-          { showFilters && (
+          <SelectInputTitle>ID</SelectInputTitle>
+          {showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
@@ -228,12 +271,13 @@ const SearchTable = ({
               style={{
                 height: '30px'
               }}
+              value={findInOid}
             />
           )}
         </div>
       ),
       wrap: true,
-      selector: (row: TableData) => row?.oid?.split?.('|')?.[0]! || ''
+      selector: (row: TableData) => row?.oid?.split?.('-')?.[0]! || ''
     }
   ]
 
@@ -245,9 +289,9 @@ const SearchTable = ({
       selectableRows
       pagination
       paginationServer={searchType == 'name'}
-      paginationPerPage={10}
+      paginationPerPage={resultsPerPage}
       progressPending={isLoading}
-      progressComponent={<LoadingIndicator/>}
+      progressComponent={<LoadingIndicator />}
       onSelectedRowsChange={(e) => {
         setSelectedValueSets(e.selectedRows)
         if (clearSelectedRows === true) {

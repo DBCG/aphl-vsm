@@ -9,6 +9,32 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 
+const columns = [
+  {
+    name: 'Name',
+    selector: (row: TableData) => row.name!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'Title',
+    selector: (row: TableData) => row?.title?.replace('_', ' ')!,
+    wrap: true
+  },
+  {
+    name: 'URL',
+    selector: (row: TableData) => row.url!,
+    wrap: true
+  },
+  {
+    name: 'Version',
+    selector: (row: TableData) => row.version!,
+    sortable: true,
+    wrap: true,
+    maxWidth: '150px'
+  }
+]
+
 interface TableData {
   name: ValueSet['name']
   title: ValueSet['title']
@@ -18,13 +44,13 @@ interface TableData {
 }
 
 interface DeleteGrouper {
-  grouperLibId: string,
+  grouperLibId: string
   grouperVsCanonicalToRemove: string | undefined
   grouperVsIdToRemove: string | undefined
 }
 
 interface Error {
-  type: 'delete_failed',
+  type: 'delete_failed'
   message: string
 }
 
@@ -32,13 +58,13 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
+const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValueSet }: any) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const [deleting, setDeleting] = useState(false)
-  
+
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
   const deleteGrouper = async ({ grouperLibId, grouperVsCanonicalToRemove, grouperVsIdToRemove }: DeleteGrouper) => {
@@ -88,6 +114,12 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     }
   }, [error])
 
+  useEffect(() => {
+    {
+      can(session, 'edit') && status === 'draft'
+    }
+  })
+
   const columns = useMemo(() => {
     const fields = [
       {
@@ -130,7 +162,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
                     grouperVsIdToRemove: row?.id
                   })
                 }}
-                buttonContext='delete'
+                buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
               />
             </ButtonContainer>
@@ -140,16 +172,29 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
     ]
 
     return fields
-  
   }, [data, grouperLibId])
 
   return (
     <>
-      <Toaster/>
+      <Toaster />
       <DataTable
         progressPending={deleting}
-        progressComponent={<LoadingIndicator/>}
+        progressComponent={<LoadingIndicator />}
         columns={columns}
+        customStyles={{
+          rows: {
+            style: {
+              cursor: 'pointer'
+            },
+            highlightOnHoverStyle: {
+              backgroundColor: '#DBF0F3'
+            }
+          }
+        }}
+        highlightOnHover={true}
+        onRowClicked={(row: TableData) => {
+          router.push(`/programs/${programId}/valuesets/${row.id}`)
+        }}
         data={data}
         pagination
         paginationPerPage={10}
@@ -165,8 +210,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

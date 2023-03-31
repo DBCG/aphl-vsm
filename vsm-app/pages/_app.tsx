@@ -3,8 +3,7 @@ import { SessionProvider } from 'next-auth/react'
 import { Scaffold } from '@/components/Scaffold'
 import '../styles/globals.css'
 
-function MyApp({ Component, pageProps: { session, ...pageProps },
-}: AppProps) {
+function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   return (
     <SessionProvider
       session={session}

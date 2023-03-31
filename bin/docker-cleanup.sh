@@ -11,7 +11,7 @@ case "$choice" in
   y|Y ) docker-compose down \
     && docker volume prune -f \
     && docker rm -f $ALL_CONTAINERS \
-    && docker prune -f;;
+    && docker system prune -f;;
   n|N ) echo "cancelled";;
   * ) echo "invalid option";;
 esac

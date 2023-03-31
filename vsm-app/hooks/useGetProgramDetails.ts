@@ -4,9 +4,9 @@ import { approvalFormParams } from 'pages/programs/[id]/approve'
 import { useState, useEffect } from 'react'
 
 interface GrouperItem {
-  id: string,
-  name: string,
-  title: string,
+  id: string
+  name: string
+  title: string
   url: string
 }
 
@@ -17,8 +17,8 @@ interface ManifestDataMap {
 export interface Result {
   program?: fhir4.Library
   grouperData: GrouperItem[] | []
+  grouperLibrary: fhir4.Library | null
   manifestData: ManifestDataMap
-  grouperLibId: string | null
   artifactAssessments: ToString<Partial<approvalFormParams>>[]
 }
 export type ToString<T> = { [k in keyof T]: string }
@@ -32,7 +32,7 @@ const emptyResult: Result =
 {
   grouperData: [],
   manifestData: {},
-  grouperLibId: null,
+  grouperLibrary: null,
   artifactAssessments: []
 }
 const useGetProgramDetails = (id: string): Result => {
@@ -43,6 +43,7 @@ const useGetProgramDetails = (id: string): Result => {
     let result: Result = emptyResult
 
     async function getProgram(): Promise<void> {
+      if (!id) return
       const programEndpoint = `/api/programs?id=${id}`
 
       try {

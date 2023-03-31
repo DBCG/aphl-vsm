@@ -1,8 +1,8 @@
 import styled from 'styled-components'
 
 interface InputProps {
-  minWidth?: number;
-  onChange: React.ChangeEventHandler | undefined;
+  minWidth?: number
+  onChange: React.ChangeEventHandler | undefined
 }
 
 const Input = styled.textarea<InputProps>`
@@ -19,25 +19,17 @@ const Container = styled.div`
 `
 
 interface Props {
-  placeholder?: string,
-  onChange?: React.ChangeEventHandler,
-  value?: string,
-  def?: string,
-  minWidth?: number,
-  hasIcon?: boolean,
-  disabled?: boolean,
+  placeholder?: string
+  onChange?: React.ChangeEventHandler
+  value?: string
+  def?: string
+  minWidth?: number
+  hasIcon?: boolean
+  disabled?: boolean
   style?: React.CSSProperties
 }
 
-const FilterTextArea = ({
-  placeholder,
-  onChange,
-  value,
-  def,
-  style,
-  minWidth,
-  disabled = false
-}: Props) => {
+const FilterTextArea = ({ placeholder, onChange, value, def, style, minWidth, disabled = false }: Props) => {
   return (
     <Container>
       <Input

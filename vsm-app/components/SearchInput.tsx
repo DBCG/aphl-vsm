@@ -1,28 +1,17 @@
 import styled from 'styled-components'
-import Image from 'next/image'
+import { InputLabel, StyledLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
 
 interface InputProps {
   minWidth?: number
   onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
-interface ReadOnlyContainerProps {
-  minWidth?: number
-}
-
 const Input = styled.input<InputProps>`
-  min-width: ${props => props.minWidth || 0}px;
+  min-width: ${(props) => props.minWidth || 0}px;
   padding: 4px 6px;
   background-color: white;
   border: 2px solid transparent;
   border-bottom: 2px solid var(--theme-300);
-`
-
-export const StyledLabel = styled.label`
-  margin-bottom: 6px;
-  font-size: 14px;
-  color: var(--theme-500);
-  display: inline-block;
 `
 
 const Container = styled.div`
@@ -33,34 +22,6 @@ const Container = styled.div`
 const FlexRow = styled.div`
   display: flex;
   flex-direction: row;
-`
-
-const TooltipContainer = styled.div`
-  position: absolute;
-  bottom: 18px;
-  background-color: white;
-  padding: 2px 8px;
-  width: 150px;
-  display: none;
-`
-
-export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
-  min-width: ${props => props?.minWidth ? props.minWidth + 'px' : 'auto'};
-`
-
-const InfoContainer = styled.div`
-  position: relative;
-  transform: translateY(-8px);
-  &:hover {
-    cursor: pointer;
-  }
-  &:hover ${TooltipContainer} {
-    display: unset;
-  }
-`
-
-const ToolTipText = styled.p`
-  font-size: 80%;
 `
 
 interface Props {
@@ -78,6 +39,7 @@ interface Props {
   style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
+  errorMessage?: string | null
 }
 
 const SearchInput = ({
@@ -89,47 +51,33 @@ const SearchInput = ({
   id,
   style,
   minWidth,
-  includeInfo,
   info,
   disabled = false,
   readonly = false,
-  required = false
+  required = false,
+  errorMessage = null
 }: Props) => {
   return (
     <Container>
       <FlexRow>
-        {
-          (label !== undefined && id !== undefined) &&
-          <StyledLabel>
-            {label}
-            {required && !readonly && <sup style={{ color: 'red' }}>*</sup>}
-          </StyledLabel>
-        }
-        {includeInfo && (
-          <InfoContainer>
-            <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-            <TooltipContainer>
-              <ToolTipText>
-                {info}
-              </ToolTipText>
-            </TooltipContainer>
-          </InfoContainer>
-        )}
+        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
       </FlexRow>
       {readonly ? (
-        <ReadOnlyContainer minWidth={minWidth}>
-          {def || placeholder}
-        </ReadOnlyContainer>
+        <ReadOnlyContainer minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
       ) : (
-        <Input
-          placeholder={placeholder}
-          onChange={onChange}
-          minWidth={minWidth}
-          disabled={disabled}
-          value={value}
-          defaultValue={def}
-          style={style}
-        />
+        <>
+          <Input
+            id={id}
+            placeholder={placeholder}
+            onChange={onChange}
+            minWidth={minWidth}
+            disabled={disabled}
+            value={value}
+            defaultValue={def}
+            style={style}
+          />
+          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+        </>
       )}
     </Container>
   )

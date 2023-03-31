@@ -1,6 +1,6 @@
-import Redis, { RedisOptions } from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis'
 
-export default (function(){
+export default (function () {
   function Cache() {
     try {
       const options: RedisOptions = {
@@ -12,33 +12,33 @@ export default (function(){
         maxRetriesPerRequest: 0,
         retryStrategy: (times: number) => {
           if (times > 3) {
-            throw new Error(`[Redis] Could not connect after ${times} attempts`);
+            throw new Error(`[Redis] Could not connect after ${times} attempts`)
           }
-  
-          return Math.min(times * 200, 1000);
-        },
-      };
-  
-      const instance = new Redis(options);
-  
+
+          return Math.min(times * 200, 1000)
+        }
+      }
+
+      const instance = new Redis(options)
+
       instance.on('error', (error: unknown) => {
-        console.error('[Redis] Error connecting', error);
-      });
+        console.error('[Redis] Error connecting', error)
+      })
       console.log('Redis Instance Created')
-      return instance;
+      return instance
     } catch (e) {
       console.error('[Redis] Could not create a Redis instance')
-      return null;
+      return null
     }
   }
-  let instance: Redis | null;
+  let instance: Redis | null
   return {
-      getInstance: function(){
-          if (instance == null && process.env.ENABLE_CACHE === 'true') {
-            console.log('Creating Redis Instance')
-            instance = Cache();
-          }
-          return instance;
+    getInstance: function () {
+      if (instance == null && process.env.ENABLE_CACHE === 'true') {
+        console.log('Creating Redis Instance')
+        instance = Cache()
       }
- };
-})();
+      return instance
+    }
+  }
+})()

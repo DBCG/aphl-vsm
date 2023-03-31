@@ -11,10 +11,10 @@ describe('retry', () => {
     const testApiFunc = () => {
       return new Promise((resolve, reject) => {
         if (currentIteration === successOnIteration) {
-          return resolve("success")
+          return resolve('success')
         } else {
           currentIteration = currentIteration + 1
-          reject("failure")
+          reject('failure')
         }
       })
     }
@@ -25,8 +25,8 @@ describe('retry', () => {
   })
 
   it('should error out when max retried reached', async () => {
-    const failureApiFunc = () => new Promise((_resolve, reject) => reject("failure"))
+    const failureApiFunc = () => new Promise((_resolve, reject) => reject('failure'))
 
-    await expect(retry(() => failureApiFunc(), maxRetries, delay)).rejects.toThrow("Max retry reached")
-  });
+    await expect(retry(() => failureApiFunc(), maxRetries, delay)).rejects.toThrow('Max retry reached')
+  })
 })

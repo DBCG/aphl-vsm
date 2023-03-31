@@ -5,21 +5,18 @@ import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/value
 import handler from '@/helpers/server/handler'
 
 interface GroupInfoItem {
-  label: string,
+  label: string
   value: string
 }
 
-const retrieveGroupSets = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> => {
+const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   let result = []
   // get all grouper valueSets from within a program
   const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
-  const grouperLibraryCanonical = programLibrary?.relatedArtifact
-    ?.find((art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))
-    ?.resource
+  const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
+    (art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
+  )?.resource
 
   const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
 
@@ -33,27 +30,25 @@ const retrieveGroupSets = async (
 
   const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
 
-  const grouperValueSetCanonicals = library
-    ?.relatedArtifact
+  const grouperValueSetCanonicals = library?.relatedArtifact
     ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
-    ?.map(item => item?.resource) as string[]
+    ?.map((item) => item?.resource) as string[]
 
   if (grouperValueSetCanonicals?.length) {
-    const grouperValueSetSearchSets = await Promise.all(grouperValueSetCanonicals?.map((canonical: string) => {
-      const [url, version] = canonical.split('|')
-      return (
-        fhirCdrClient.search({
+    const grouperValueSetSearchSets = await Promise.all(
+      grouperValueSetCanonicals?.map((canonical: string) => {
+        const [url, version] = canonical.split('|')
+        return fhirCdrClient.search({
           resourceType: 'ValueSet',
           searchParams: {
             url: url,
             version: version
           }
         })
-      )
-    }
-    ))
+      })
+    )
 
-    const grouperVSets = grouperValueSetSearchSets?.map(bundle => bundle?.entry?.[0]?.resource)
+    const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
     result = grouperVSets
     res.status(200).send(result)
     return
@@ -61,19 +56,16 @@ const retrieveGroupSets = async (
   res.status(400).send({ error: 'get groupers failed' })
 }
 
-const updateGroupSets = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> => {
+const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = JSON.parse(req.body)
   const { groupInfo } = body
   const leafValuesetId = body?.canonical?.split('/ValueSet/')?.[1]
 
   const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
-  const grouperLibraryCanonical = programLibrary?.relatedArtifact
-    ?.find((art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/'))
-    ?.resource
+  const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
+    (art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
+  )?.resource
 
   const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
 
@@ -87,31 +79,30 @@ const updateGroupSets = async (
 
   const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
 
-  const grouperValueSetCanonicals = library
-    ?.relatedArtifact
+  const grouperValueSetCanonicals = library?.relatedArtifact
     ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
-    ?.map(item => item?.resource) as string[]
+    ?.map((item) => item?.resource) as string[]
 
   if (grouperValueSetCanonicals?.length) {
-    const grouperValueSetSearchSets = await Promise.all(grouperValueSetCanonicals?.map((canonical: string) => {
-      const [url, version] = canonical.split('|')
-      return (
-        fhirCdrClient.search({
+    const grouperValueSetSearchSets = await Promise.all(
+      grouperValueSetCanonicals?.map((canonical: string) => {
+        const [url, version] = canonical.split('|')
+        return fhirCdrClient.search({
           resourceType: 'ValueSet',
           searchParams: {
             url: url,
             version: version
           }
         })
-      )
-    }
-    ))
+      })
+    )
 
-    const grouperVSets = grouperValueSetSearchSets?.map(bundle => bundle?.entry?.[0]?.resource)
+    const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
     const groupersToUpdate = []
 
     for (const grouperValueSet of grouperVSets) {
-      const leafVSetsInGroup = grouperValueSet?.compose?.include?.map((item: any) => item?.valueSet)
+      const leafVSetsInGroup = grouperValueSet?.compose?.include
+        ?.map((item: any) => item?.valueSet)
         ?.filter((x: string | undefined) => x)
         .flat()
 
@@ -128,13 +119,15 @@ const updateGroupSets = async (
       }
     }
 
-    const result = await Promise.all(groupersToUpdate.map(grouperVs => (
-      fhirCdrClient.update({
-        resourceType: 'ValueSet',
-        id: grouperVs.id,
-        body: grouperVs
-      })
-    )))
+    const result = await Promise.all(
+      groupersToUpdate.map((grouperVs) =>
+        fhirCdrClient.update({
+          resourceType: 'ValueSet',
+          id: grouperVs.id,
+          body: grouperVs
+        })
+      )
+    )
     return res.status(200).send(result)
   }
 }

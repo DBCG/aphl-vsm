@@ -42,7 +42,7 @@ spec:
         - name: ENABLE_CACHE
           value: "false"
         - name: REDIS_HOST
-          value: redis-cache.5hhpo0.ng.0001.use1.cache.amazonaws.com     
+          value: vsm-app.5hhpo0.ng.0001.use1.cache.amazonaws.com
         - name: VSAC_USERNAME
           value: apikey
         - name: NEXTAUTH_URL
@@ -50,7 +50,7 @@ spec:
         - name: KEYCLOAK_ID
           value: aphl_app
         - name: CONDITIONS_CANONICAL
-          value: http://hl7.org/fhir/us/ecr/ValueSet/rckms-condition-codes
+          value: http://ersd.aimsplatform.org/fhir/ValueSet/rckms-condition-codes
         - name: KEYCLOAK_SECRET
           valueFrom:  
             secretKeyRef:

@@ -49,20 +49,20 @@ const Col = styled.div`
 
 // http://hl7.org/fhir/R4/valueset-contact-point-system.html
 const contactTypes = {
-  '':{
-    display: "Please select a contact type"
+  '': {
+    display: 'Please select a contact type'
   },
   phone: {
-    display: "Phone",
-    validation: "number"
+    display: 'Phone',
+    validation: 'number'
   },
   fax: {
-    display: "Fax",
-    validation: "number"
+    display: 'Fax',
+    validation: 'number'
   },
   email: {
-    display: "Email",
-    validation: "email"
+    display: 'Email',
+    validation: 'email'
   }
 }
 
@@ -71,7 +71,7 @@ export const artifactAssessmentInfoTypes = {
   classifier: 'Classifier',
   rating: 'Rating',
   response: 'Response',
-  "change-request": 'Change Request',
+  'change-request': 'Change Request'
   // technically container is
   // a valid response but disabling
   // it since it doesn't make
@@ -79,8 +79,12 @@ export const artifactAssessmentInfoTypes = {
   // of an approval
   // container: 'Container',
 }
-const artifactAssessmentInfoTypeOptions:Options<{value:keyof typeof artifactAssessmentInfoTypes, label:string}> = Object.entries(artifactAssessmentInfoTypes).map(([key, value]) => ({ value: key, label: value })) as Options<{value:keyof typeof artifactAssessmentInfoTypes, label:string}>
-const contactTypeOptions:Options<{value:keyof typeof contactTypes, label:string}> = Object.entries(contactTypes).map(([key, value]) => ({ value: key, label: value.display })) as Options<{value:keyof typeof contactTypes, label:string}>
+const artifactAssessmentInfoTypeOptions: Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }> = Object.entries(
+  artifactAssessmentInfoTypes
+).map(([key, value]) => ({ value: key, label: value })) as Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }>
+const contactTypeOptions: Options<{ value: keyof typeof contactTypes; label: string }> = Object.entries(contactTypes).map(
+  ([key, value]) => ({ value: key, label: value.display })
+) as Options<{ value: keyof typeof contactTypes; label: string }>
 export interface approvalFormParams {
   approvalDate: Date
   endorserName: string
@@ -107,7 +111,7 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentText: '',
     artifactCommentTarget: programAndGrouperInfo?.program?.url || '',
     artifactCommentReference: '',
-    artifactCommentUser: '',
+    artifactCommentUser: ''
   })
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -117,11 +121,11 @@ const ApproveInfoForm: NextPage = () => {
       method: 'POST',
       body: JSON.stringify(parameterObj)
     }).then((res) => {
-      if(res.ok){
+      if (res.ok) {
         toast.dismiss()
         router.push(`/programs/${router.query.id}`)
       } else {
-        toast.error('Error approving artifact assessment',{
+        toast.error('Error approving artifact assessment', {
           position: 'bottom-right',
           style: {
             borderRadius: 0
@@ -131,7 +135,10 @@ const ApproveInfoForm: NextPage = () => {
       }
     })
   }
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>, fieldName: keyof approvalFormParams) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>,
+    fieldName: keyof approvalFormParams
+  ) => {
     if (!e) {
       console.error('undefined event in Approve form!')
       return
@@ -145,7 +152,7 @@ const ApproveInfoForm: NextPage = () => {
     } else {
       // this is a regular input component changeEvent
       if (fieldName === 'approvalDate') {
-        const newDate = new Date(e?.target?.value || "")
+        const newDate = new Date(e?.target?.value || '')
         if (newDate.toString() !== 'Invalid Date') {
           setApprovalFormData({
             ...approvalFormData,
@@ -161,36 +168,41 @@ const ApproveInfoForm: NextPage = () => {
     }
   }
   const createParametersObj = () => {
-    const parametersObj: fhir4.Parameters = { resourceType: "Parameters" }
+    const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
     parametersObj.parameter = []
     parametersObj.parameter.push({
       name: 'approvalDate',
       valueDate: approvalFormData.approvalDate.toISOString()
     })
     if (approvalFormData.endorserName) {
-    parametersObj.parameter.push({
-      name: 'endorser',
-      valueContactDetail: {
-        name: approvalFormData.endorserName,
-        telecom: approvalFormData.endorserContactValue ? [{
-          value: approvalFormData.endorserContactValue,
-          system: approvalFormData.endorserContactType || undefined
-        }] : undefined
-      }
-    })}
-    
+      parametersObj.parameter.push({
+        name: 'endorser',
+        valueContactDetail: {
+          name: approvalFormData.endorserName,
+          telecom: approvalFormData.endorserContactValue
+            ? [
+                {
+                  value: approvalFormData.endorserContactValue,
+                  system: approvalFormData.endorserContactType || undefined
+                }
+              ]
+            : undefined
+        }
+      })
+    }
+
     if (approvalFormData.artifactCommentTarget) {
       parametersObj.parameter.push({
         name: 'artifactCommentTarget',
         valueCanonical: approvalFormData.artifactCommentTarget
       })
     }
-    if ( approvalFormData.artifactCommentReference) {
+    if (approvalFormData.artifactCommentReference) {
       parametersObj.parameter.push({
         name: 'artifactCommentReference',
         valueCanonical: approvalFormData.artifactCommentReference
       })
-    } 
+    }
     if (approvalFormData.artifactCommentUser) {
       parametersObj.parameter.push({
         name: 'artifactCommentUser',
@@ -216,9 +228,7 @@ const ApproveInfoForm: NextPage = () => {
   return (
     <>
       <Row>
-        <PageTitle>
-          Approve
-        </PageTitle>
+        <PageTitle>Approve</PageTitle>
       </Row>
       <Row>
         <LabelStyled>Approval Date</LabelStyled>
@@ -226,7 +236,8 @@ const ApproveInfoForm: NextPage = () => {
       <StyledDateInput
         value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
         onChange={(e) => handleFieldChange(e, 'approvalDate')}
-        readOnly />
+        readOnly
+      />
       <GridContainer>
         <Col>
           <SubtitleRow>
@@ -234,20 +245,22 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            value={{value:approvalFormData.endorserContactType, label:contactTypes[approvalFormData.endorserContactType].display}}
+            value={{ value: approvalFormData.endorserContactType, label: contactTypes[approvalFormData.endorserContactType].display }}
             onChange={(e) => handleFieldChange(e, 'endorserContactType')}
             options={contactTypeOptions}
           />
           <SearchInput
-            id='contact'
-            label='Contact'
+            id="contact"
+            label="Contact"
             value={approvalFormData.endorserContactValue}
-            onChange={(e) => handleFieldChange(e, 'endorserContactValue')} />
+            onChange={(e) => handleFieldChange(e, 'endorserContactValue')}
+          />
           <SearchInput
-            id='Name'
-            label='Name'
+            id="Name"
+            label="Name"
             value={approvalFormData.endorserName}
-            onChange={(e) => handleFieldChange(e, 'endorserName')} />
+            onChange={(e) => handleFieldChange(e, 'endorserName')}
+          />
         </Col>
         <Col>
           <SubtitleRow>
@@ -255,40 +268,44 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            value={{value:approvalFormData.artifactCommentType, label:artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]}}
+            value={{
+              value: approvalFormData.artifactCommentType,
+              label: artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]
+            }}
             onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
-            placeholder='Select Type'
+            placeholder="Select Type"
             options={artifactAssessmentInfoTypeOptions}
           />
           <SearchInput
-            id='Text'
-            label='Text'
+            id="Text"
+            label="Text"
             value={approvalFormData.artifactCommentText}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
+          />
           <SearchInput
-            id='Target'
-            label='Target'
+            id="Target"
+            label="Target"
             placeholder={programAndGrouperInfo?.program?.id}
             value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}
+          />
           <SearchInput
-            id='Reference'
-            label='Reference'
+            id="Reference"
+            label="Reference"
             value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
+          />
           <SearchInput
-            id='User'
-            label='User'
+            id="User"
+            label="User"
             value={approvalFormData.artifactCommentUser}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}
+          />
         </Col>
       </GridContainer>
       <Toaster />
       <Row style={{ justifyContent: 'center' }}>
-        <Button
-          text='Submit'
-          onClick={handleApprove}
-        />
+        <Button text="Submit" onClick={handleApprove} />
       </Row>
     </>
   )

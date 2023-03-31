@@ -5,9 +5,9 @@ import appCache from 'cache'
 import { is } from '@/helpers/is'
 
 interface Query {
-  '_id:contains'?: string,
-  'name:contains'?: string,
-  'description:contains'?: string,
+  '_id:contains'?: string
+  'name:contains'?: string
+  'description:contains'?: string
   'title:contains'?: string
 }
 export type ProgramApiResponse = {
@@ -32,11 +32,14 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         }
       }
       queries['_id:contains'] = req.query['id'] as string
-    } if (req.query['name']) {
+    }
+    if (req.query['name']) {
       queries['name:contains'] = req.query['name'] as string
-    } if (req.query['description']) {
+    }
+    if (req.query['description']) {
       queries['description:contains'] = req.query['description'] as string
-    } if (req.query['title']) {
+    }
+    if (req.query['title']) {
       queries['title:contains'] = req.query['title'] as string
     }
     const searchResult = await fhirCdrClient.search({
@@ -44,7 +47,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       options: {
         headers: {
           'Cache-control': 'no-cache, no-store, must-revalidate'
-        },
+        }
       },
       searchParams: {
         context: 'program',
@@ -67,7 +70,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       res.status(404).send({ programs: [], assessments: [] })
     }
   } catch (e: any) {
-    console.error('error programs:  ', e.response.data.text)
+    console.error('error programs:  ', e?.response?.data?.text || e)
     res.status(400).json({ error: 'Search for program failed.' })
   }
 }
