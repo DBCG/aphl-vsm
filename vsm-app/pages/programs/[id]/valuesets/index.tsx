@@ -13,7 +13,7 @@ import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
-import { FieldTitle } from '..'
+import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
@@ -39,6 +39,14 @@ export const customStyles = {
       paddingBottom: '12px',
       whiteSpace: 'normal !important',
       overflow: 'visible'
+    }
+  },
+  rows: {
+    style: {
+      cursor: 'pointer',
+    },
+    highlightOnHoverStyle: {
+      backgroundColor: '#DBF0F3'
     }
   }
 }
@@ -660,7 +668,11 @@ const ProgramValueSetDetails: NextPage = () => {
         columns={columns}
         theme="aphl"
         pagination
-        fixedHeader
+        highlightOnHover={true}
+        onRowClicked={(row) => {
+          router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+        }}
+        fixedHeader // TODO: Should we remove? adds an additional scrollbar
         // @ts-expect-error
         customStyles={customStyles}
         progressPending={pageLoading || vSetsLoading}

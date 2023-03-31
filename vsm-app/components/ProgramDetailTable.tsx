@@ -58,7 +58,7 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
+const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValueSet  }: any) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -181,6 +181,20 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
         progressPending={deleting}
         progressComponent={<LoadingIndicator />}
         columns={columns}
+        customStyles={{
+          rows: {
+            style: {
+              cursor: 'pointer',
+            },
+            highlightOnHoverStyle: {
+              backgroundColor: '#DBF0F3'
+            }
+          }
+        }}
+        highlightOnHover={true}
+        onRowClicked={(row: TableData) => {
+          router.push(`/programs/${programId}/valuesets/${row.id}`)
+        }}
         data={data}
         pagination
         paginationPerPage={10}
