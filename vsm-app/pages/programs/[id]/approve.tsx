@@ -1,15 +1,15 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import Select, { Options, SingleValue } from 'react-select'
 import { PageTitle } from '@/components/Typography'
-import { StyledSpan } from '.'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
-import { StyledLabel } from '@/components/SearchInput'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
 import toast, { Toaster } from 'react-hot-toast'
+import { StyledLabel } from '@/components/InputLabel'
+import { StyledSpan } from '@/components/ProgramDetails/styles'
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -46,23 +46,25 @@ const Col = styled.div`
   height: fit-content;
   gap: 8px;
 `
-
+export const EmailPattern: RegExp = /^[^\W_]+([._-][^\W_]+)*@[^\W_]+([.-][^\W_]+)*\.[a-z]{2,4}$/
+const numberValidator = (val: string) => Number.isInteger(Number(val.replace(' ', '')))
 // http://hl7.org/fhir/R4/valueset-contact-point-system.html
 const contactTypes = {
   '': {
-    display: 'Please select a contact type'
+    display: 'Please select a contact type',
+    validation: () => true
   },
   phone: {
     display: 'Phone',
-    validation: 'number'
+    validation: numberValidator
   },
   fax: {
     display: 'Fax',
-    validation: 'number'
+    validation: numberValidator
   },
   email: {
     display: 'Email',
-    validation: 'email'
+    validation: (val: string) => val.match(EmailPattern)
   }
 }
 
@@ -109,10 +111,24 @@ const ApproveInfoForm: NextPage = () => {
     endorserContactValue: '',
     artifactCommentType: 'comment',
     artifactCommentText: '',
-    artifactCommentTarget: programAndGrouperInfo?.program?.url || '',
+    artifactCommentTarget: '',
     artifactCommentReference: '',
     artifactCommentUser: ''
   })
+  useEffect(() => {
+    setApprovalFormData({
+      approvalDate: new Date(),
+      endorserName: '',
+      endorserContact: '',
+      endorserContactType: '',
+      endorserContactValue: '',
+      artifactCommentType: 'comment',
+      artifactCommentText: '',
+      artifactCommentTarget: programAndGrouperInfo?.program?.url || '',
+      artifactCommentReference: '',
+      artifactCommentUser: ''
+    })
+  }, [programAndGrouperInfo?.program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const parameterObj = createParametersObj()
@@ -248,15 +264,21 @@ const ApproveInfoForm: NextPage = () => {
             value={{ value: approvalFormData.endorserContactType, label: contactTypes[approvalFormData.endorserContactType].display }}
             onChange={(e) => handleFieldChange(e, 'endorserContactType')}
             options={contactTypeOptions}
+            instanceId={'contactType'}
           />
           <SearchInput
             id="contact"
             label="Contact"
             value={approvalFormData.endorserContactValue}
             onChange={(e) => handleFieldChange(e, 'endorserContactValue')}
+            errorMessage={
+              contactTypes[approvalFormData.endorserContactType].validation(approvalFormData.endorserContactValue)
+                ? ''
+                : 'Please enter a valid contact'
+            }
           />
           <SearchInput
-            id="Name"
+            id="name"
             label="Name"
             value={approvalFormData.endorserName}
             onChange={(e) => handleFieldChange(e, 'endorserName')}
@@ -273,30 +295,30 @@ const ApproveInfoForm: NextPage = () => {
               label: artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]
             }}
             onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
-            placeholder="Select Type"
             options={artifactAssessmentInfoTypeOptions}
+            instanceId={'commentType'}
           />
           <SearchInput
-            id="Text"
+            id="text"
             label="Text"
             value={approvalFormData.artifactCommentText}
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
           <SearchInput
-            id="Target"
+            id="target"
             label="Target"
             placeholder={programAndGrouperInfo?.program?.id}
             value={approvalFormData.artifactCommentTarget}
             onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}
           />
           <SearchInput
-            id="Reference"
+            id="reference"
             label="Reference"
             value={approvalFormData.artifactCommentReference}
             onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
           />
           <SearchInput
-            id="User"
+            id="user"
             label="User"
             value={approvalFormData.artifactCommentUser}
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}
