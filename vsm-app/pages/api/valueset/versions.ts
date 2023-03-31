@@ -3,14 +3,12 @@ import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
+import { ValueSet } from 'fsh-sushi/dist/fhirtypes'
 
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
-const updateLeafValueSetVersions = async (
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> => {
+const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = await req.body
   const bodyJson = JSON.parse(body)
   const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
@@ -38,23 +36,19 @@ const updateLeafValueSetVersions = async (
       console.error('no entry')
       return res.status(404).json({ message: `Could not find ValueSet with url ${vsCanonical}` })
     } else {
-
       terminologyClient.setClient(terminologyInfo.value.toLowerCase())
 
       const searchParams = {
-        url: vsCanonical
+        url: vsCanonical,
+        // if a specific version is set and is NOT equal to the current version
+        // set that version in the searchParameters
+        ...(vsVersion !== 'latest' && { version: vsVersion })
       }
+      // TODO: else
+      // just get the latest one, sort + count = 1
+      // if version matches on both, don't do the search etc
 
-      // if a specific version is set and is NOT equal to the current version
-      // set that version in the searchParameters
-      if (vsVersion !== 'latest') {
-        searchParams.version = vsVersion
-      } else {
-        // just get the latest one, sort + count = 1
-        // if version matches on both, don't do the search etc
-      }
-
-      const terminologyClientInstance = terminologyClient.getClient()
+      const terminologyClientInstance = terminologyClient.getClient()!
 
       const latestOrVersionedVset = await terminologyClientInstance.search({
         resourceType: 'ValueSet',
@@ -67,37 +61,39 @@ const updateLeafValueSetVersions = async (
         // return, resource doesn't exist
       } else if (bundleEntry.length > 1) {
         // this is necessary because VSAC isn't respecting version searchParam
-        let matchingItem = bundleEntry?.filter(e => e?.resource?.version === vsVersion)
-        if (matchingItem?.meta?.tag?.contains(i => i?.code === 'SUBSETTED')) {
+        let matchingItem = bundleEntry?.filter((e: fhir4.BundleEntry) => {
+          const vs = e?.resource as fhir4.ValueSet
+          return vs.version === vsVersion
+        })
+        if (matchingItem?.meta?.tag?.contains((i: any) => i?.code === 'SUBSETTED')) {
           // need to get the whole valueset, not just subset
         }
       }
     }
-
-
-
   } catch (e) {
     console.error('error: ', e)
   }
-  // return 
-  const groupersToUpdate = await Promise.all(grouperIds.map((id: string) => (
-    fhirCdrClient.read({
-      resourceType: 'ValueSet',
-      id,
-    })
-  )))
-
-  const updatedGroupers = groupersToUpdate?.map(
-    (grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion)
+  // return
+  const groupersToUpdate = await Promise.all(
+    grouperIds.map((id: string) =>
+      fhirCdrClient.read({
+        resourceType: 'ValueSet',
+        id
+      })
+    )
   )
 
-  await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
-    fhirCdrClient.update({
-      resourceType: 'ValueSet',
-      id: grouperVs.id,
-      body: grouperVs
-    })
-  )))
+  const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+
+  await Promise.all(
+    updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
+      fhirCdrClient.update({
+        resourceType: 'ValueSet',
+        id: grouperVs.id,
+        body: grouperVs
+      })
+    )
+  )
 
   res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
 }

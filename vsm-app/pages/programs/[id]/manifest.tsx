@@ -10,7 +10,7 @@ import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
-import { StyledLabel } from '@/components/SearchInput'
+import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 export const customStyles = {

@@ -68,6 +68,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: I
       title={btnTitleText[buttonContext as Key]}
       disabled={disabled}
       type={type}
+      // @ts-ignore
       buttonContext={buttonContext}
       style={style}
       onClick={(e) => {

@@ -20,6 +20,11 @@ export const Row = styled.div`
   }
 `
 
+export const StyledSpan = styled.span`
+  color: var(--theme-500);
+  margin-top: 12px;
+`
+
 export const Col = styled.div`
   display: flex;
   width: 100%;
