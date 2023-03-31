@@ -2,6 +2,9 @@ const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | fhir4.Resource): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
+  basic: (resource?: fhir4.Resource): resource is fhir4.Basic => {
+    return resource?.resourceType === 'Basic'
+  },
   bundle: (resource: any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
@@ -30,16 +33,16 @@ const is = {
   episodeOfCare: (resource: fhir4.EpisodeOfCare | fhir4.Resource): resource is fhir4.EpisodeOfCare => {
     return resource?.resourceType === 'EpisodeOfCare'
   },
-  library: (resource: any): resource is fhir4.Library => {
+  library: (resource?: fhir4.Resource): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
   },
   isRootLibrary: (resource: any): resource is fhir4.Library => {
     // All three constitutes a root library
     const type = resource.type.coding?.[0]?.code === 'asset-collection'
-     const usageContext = resource.useContext
+    const usageContext = resource.useContext
       .find((i: fhir4.UsageContext) => i?.code?.code === 'specification-type')
-    const usageContextProgram = usageContext.valueCodeableConcept?.[0]?.code === 'program' 
-    
+    const usageContextProgram = usageContext.valueCodeableConcept?.[0]?.code === 'program'
+
     return type && usageContextProgram && usageContext
   },
   observation: (resource: fhir4.Observation | fhir4.Resource): resource is fhir4.Observation => {

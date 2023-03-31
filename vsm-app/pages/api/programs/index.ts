@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import appCache from 'cache'
+import { is } from '@/helpers/is'
 
 interface Query {
   '_id:contains'?: string,
@@ -9,8 +10,11 @@ interface Query {
   'description:contains'?: string,
   'title:contains'?: string
 }
-
-const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
+export type ProgramApiResponse = {
+  programs: fhir4.Library[]
+  assessments: fhir4.Basic[]
+} | { error: string }
+const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse>) => {
   const cache = appCache?.getInstance()
   try {
     // should program status only be draft here? or also active?
@@ -24,7 +28,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
         if (program) {
           console.log(`cache hit for ${programKey}`)
           //TODO: shoudln't be in this array, need to fixup the apis
-          return res.status(200).json([JSON.parse(program)])
+          return res.status(200).json({ programs: [JSON.parse(program)], assessments: [] })
         }
       }
       queries['_id:contains'] = req.query['id'] as string
@@ -45,22 +49,23 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
       searchParams: {
         context: 'program',
         _sort: ['-_lastUpdated'],
+        _revinclude: 'Basic:artifact',
         ...queries
       }
-    })
-
+    }) as fhir4.Bundle
     if (searchResult.entry) {
-      const programs = searchResult?.entry?.map((e: any) => e?.resource)
+      const resources = searchResult?.entry?.map((e) => e?.resource)
+      const programs = resources?.filter(is.library)
+      const assessments = resources?.filter(is.basic)
 
       // Cache the results
       programs.forEach((program: fhir4.Library) => program.id && cache?.set(`Library/${program.id}`, JSON.stringify(program)))
-      //
 
-      res.status(200).send(programs)
+      res.status(200).send({ programs, assessments })
     } else {
       console.error(searchResult)
-      res.status(404).send([])
-    } 
+      res.status(404).send({ programs: [], assessments: [] })
+    }
   } catch (e: any) {
     console.error('error programs:  ', e.response.data.text)
     res.status(400).json({ error: 'Search for program failed.' })

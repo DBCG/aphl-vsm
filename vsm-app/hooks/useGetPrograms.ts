@@ -1,3 +1,4 @@
+import { ProgramApiResponse } from 'pages/api/programs'
 import { useState, useEffect } from 'react'
 
 export interface SearchFilters {
@@ -21,7 +22,7 @@ const buildQuery = (args: any): string => {
 }
 
 const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
-  const [libraries, setLibraries] = useState([])
+  const [libraries, setLibraries] = useState<fhir4.Library[]>([])
   const { id, name, title, description, newProgram } = fields
   useEffect(() => {
     async function getPrograms(): Promise<void> {
@@ -36,11 +37,11 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
           console.error('not ok!')
           setLibraries([])
         } else {
-          const json = await response.json()
-          if (json.error) {
+          const json = await response.json() as ProgramApiResponse
+          if ('error' in json) {
             setLibraries([])
           } else {
-            setLibraries(json)
+            setLibraries(json.programs)
           }
         }
       } catch (e) {

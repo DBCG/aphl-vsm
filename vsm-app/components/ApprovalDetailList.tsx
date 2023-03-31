@@ -1,63 +1,43 @@
-import { useEffect, useMemo, useState } from 'react'
-import styled from 'styled-components'
+import { useMemo } from 'react'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
-import toast, { Toaster } from 'react-hot-toast'
 import DataTable from 'react-data-table-component'
 import LoadingIndicator from './LoadingIndicator'
+import { approvalFormParams } from 'pages/programs/[id]/approve'
+import { ToString } from '@/hooks/useGetProgramDetails'
 
 interface TableData {
+  date:string
   user: string
-  // type: 'documentation' | 'review' | 'guidance'
+  type: string
   text: string
   version: string
   reference: string
 }
 
-interface DeleteGrouper {
-  grouperLibId: string,
-  grouperVsCanonicalToRemove: string | undefined
-  grouperVsIdToRemove: string | undefined
-}
 
 interface Error {
   type: 'delete_failed',
   message: string
 }
 
-const ButtonContainer = styled.div`
-  margin: 16px 0;
-`
 
-const ApprovalDetailList = ({ data }: { data: fhir4.Library }) => {
-  const [error, setError] = useState<null | Error>(null)
+const ApprovalDetailList = ({ assessments }: {  assessments?:ToString<Partial<approvalFormParams>>[] }) => {
 
-  useEffect(() => {
-    if (error?.message) {
-      toast.error(error.message, {
-        position: 'top-right',
-        style: {
-          borderRadius: 0
-        }
-      })
-    } else {
-      toast.dismiss()
-    }
-  }, [error])
 
   const columns = useMemo(() => {
     const fields = [
       {
-        name: 'Endorser',
-        selector: (row: TableData) => row.user!,
+        name: 'Date',
+        selector: (row: TableData) => row.date!,
         sortable: true,
         wrap: true
       },
-      // {
-      //   name: 'Type',
-      //   selector: (row: TableData) => row.type!,
-      //   sortable: true,
-      //   wrap: true
-      // },
+      {
+        name: 'Type',
+        selector: (row: TableData) => row.type!,
+        sortable: true,
+        wrap: true
+      },
       {
         name: 'Text',
         selector: (row: TableData) => row.text!,
@@ -69,6 +49,12 @@ const ApprovalDetailList = ({ data }: { data: fhir4.Library }) => {
         sortable: true,
         wrap: true,
         maxWidth: '150px'
+      },
+      {
+        name: 'User',
+        selector: (row: TableData) => row.user!,
+        sortable: true,
+        wrap: true
       },
       {
         name: 'Reference',
@@ -85,17 +71,17 @@ const ApprovalDetailList = ({ data }: { data: fhir4.Library }) => {
 
   return (
     <>
-      <Toaster />
       <DataTable
         progressComponent={<LoadingIndicator />}
         columns={columns}
-        data={data.extension?.filter(extension => extension.url.includes('artifactComment'))?.map(extension => {
+        data={assessments?.map(dataObj => {
           return {
-            user: extension.extension?.find(extension => extension.url === 'user')?.valueString || "",
-            // type: extension.extension?.find(extension => extension.url === 'type')?.valueString || "",
-            text: extension.extension?.find(extension => extension.url === 'text')?.valueString || "",
-            reference: extension.extension?.find(extension => extension.url === 'reference')?.valueString || "",
-            version: extension.extension?.find(extension => extension.url === 'target')?.valueString?.split('|')?.[1] || ""
+            date: dataObj.approvalDate || '-',
+            user: dataObj.artifactCommentUser || "-",
+            type: dataObj.artifactCommentType || "",
+            text: dataObj.artifactCommentText || "-",
+            reference: dataObj.artifactCommentReference || "-",
+            version: dataObj.artifactCommentTarget?.split('|')?.pop() || "-"
           }
         }) || []}
         pagination

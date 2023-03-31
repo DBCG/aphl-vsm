@@ -5,7 +5,7 @@ import styled from 'styled-components'
 import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
+import { useGetProgramDetails, Result, ToString } from '@/hooks/useGetProgramDetails'
 import { ProgramDetailTable } from '@/components/ProgramDetailTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
@@ -15,6 +15,7 @@ import { StatusProps } from '..'
 import { ProgramMetadata } from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ApprovalDetailList } from '@/components/ApprovalDetailList'
+import { approvalFormParams } from './approve'
 
 const Row = styled.div`
   display: flex;
@@ -110,15 +111,19 @@ const ProgramDetails: NextPage = () => {
   const { data: session } = useSession() as unknown as { data: VSMSession}
   const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
   const [program, setProgram] = useState<fhir4.Library>()
+  const [assessments, setAssessments] = useState<ToString<Partial<approvalFormParams>>[]>([])
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperInfo?.program)) {
-      setProgram(programAndGrouperInfo?.program)
+      setProgram(programAndGrouperInfo.program)
     }
-  }, [programAndGrouperInfo.program])
+    if(programAndGrouperInfo?.artifactAssessments) {
+      setAssessments(programAndGrouperInfo.artifactAssessments)
+    }
+  }, [programAndGrouperInfo.program, programAndGrouperInfo.artifactAssessments])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
     await updateProgram(submittedProgram)
@@ -203,7 +208,7 @@ const ProgramDetails: NextPage = () => {
         </Col>
       </Row>
       <ApprovalDetailList
-        data={program}
+        assessments={assessments}
       />
     </Col>
   )
