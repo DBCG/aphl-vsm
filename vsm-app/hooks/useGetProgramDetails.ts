@@ -40,7 +40,7 @@ const useGetProgramDetails = (id: string): Result => {
   const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>(emptyResult)
 
   useEffect(() => {
-    let result: Result = emptyResult
+    let result: Result = { ...emptyResult }
 
     async function getProgram(): Promise<void> {
       if (!id) return
@@ -82,7 +82,7 @@ const useGetProgramDetails = (id: string): Result => {
 
           if (grouperData && !grouperData.error) {
             result.grouperData = grouperData.valueSets
-            result.grouperLibId = grouperData.grouperLibId
+            result.grouperLibrary = grouperData?.grouperLibrary
             result.manifestData = grouperData?.expansionParameters
           }
 
@@ -93,9 +93,8 @@ const useGetProgramDetails = (id: string): Result => {
         setProgramAndGrouperData(result)
       }
     }
-    void getProgram()
+    getProgram()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
   return programAndGrouperData
 }
