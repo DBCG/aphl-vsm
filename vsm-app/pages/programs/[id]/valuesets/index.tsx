@@ -4,8 +4,7 @@ import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import Select, { MultiValue } from 'react-select'
-import { getSession, GetSessionParams, useSession } from 'next-auth/react'
-import AsyncSelect from 'react-select/async'
+import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import toast, { Toaster } from 'react-hot-toast'
 import uniqBy from 'lodash.uniqby'
@@ -14,17 +13,16 @@ import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { FieldTitle } from '@/components/ProgramDetails/styles'
-import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem } from '@/types/valuesets'
+import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
-import { Tooltip } from '@/components/Tooltip'
 
 export const customStyles = {
   headCells: {
@@ -43,7 +41,7 @@ export const customStyles = {
   },
   rows: {
     style: {
-      cursor: 'pointer',
+      cursor: 'pointer'
     },
     highlightOnHoverStyle: {
       backgroundColor: '#DBF0F3'
@@ -138,12 +136,12 @@ const ProgramValueSetDetails: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
 
-  const [versions, setVersions] = useState({})
+  const [versions, setVersions] = useState({} as any)
 
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
-  const [versionToUpdate, setVersionToUpdate] = useState({})
+  const [versionToUpdate, setVersionToUpdate] = useState({} as any)
   const [versionUpdated, setVersionUpdated] = useState([])
 
   // returned data from PUT operations
@@ -268,7 +266,7 @@ const ProgramValueSetDetails: NextPage = () => {
     updatedGrouper,
     versionUpdated,
     ...debouncedFilters
-  })
+  }) as Result
 
   // since query takes a while, expose loading state
   useEffect(() => {
@@ -323,7 +321,12 @@ const ProgramValueSetDetails: NextPage = () => {
   }
 
   // versionInput
-  const handleVersionChange = (selectedVersion, vsCanonical, grouperIds, terminologyInfo) => {
+  const handleVersionChange = (
+    selectedVersion: string = '',
+    vsCanonical: string,
+    grouperIds: string[],
+    terminologyInfo: TerminologyResult
+  ) => {
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
 
     // update the grouper canonical version
@@ -411,7 +414,7 @@ const ProgramValueSetDetails: NextPage = () => {
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange(e.value, row.valueSet.url, grouperIds, terminologyInfo)
+                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}

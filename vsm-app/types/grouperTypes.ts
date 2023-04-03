@@ -1,4 +1,4 @@
-import { Condition } from "@/helpers/conditionHelpers"
+import { Condition } from '@/helpers/conditionHelpers'
 
 interface GrouperMetadata {
   id: fhir4.ValueSet['id']
@@ -45,10 +45,15 @@ interface CombinedGrouperVSets {
   selectedTerminologyServer: string
 }
 
-export type {
-  GrouperMetadata,
-  FlatGrouperVSet,
-  CombinedGrouperVSets,
-  SelectedGrouper,
-  SelectedValueSet
+interface ConditionValue {
+  system: string
+  version: string
+  code: string
 }
+
+interface SelectedCondition {
+  label: string
+  value: ConditionValue
+}
+
+export type { GrouperMetadata, FlatGrouperVSet, CombinedGrouperVSets, SelectedGrouper, SelectedValueSet, SelectedCondition }

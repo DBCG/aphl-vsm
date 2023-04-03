@@ -105,10 +105,7 @@ const formatConditionsComposeInclude = (conditionsList: any) => {
   )
 }
 
-const buildConditionOptions = (
-  conditions: ConditionItem[] | [],
-  selectedOptions?: Condition[] | []
-): MultiValue<Condition> => {
+const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions?: Condition[] | []): MultiValue<Condition> => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter((x) => !!x)
   const flattenedConditions = conditions?.flat(2)
   const result = flattenedConditions

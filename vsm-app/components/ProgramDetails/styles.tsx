@@ -60,11 +60,6 @@ export const FieldTitle = styled.div`
   border-radius: 4px;
 `
 
-export const StyledSpan = styled.span`
-  color: var(--theme-500);
-  margin-top: 12px;
-`
-
 export const ManifestContainer = styled.div`
   margin-bottom: 32px;
 `

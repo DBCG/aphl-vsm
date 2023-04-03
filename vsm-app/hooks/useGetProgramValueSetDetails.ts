@@ -35,6 +35,7 @@ export interface DataItem {
 export interface Result {
   data?: DataItem[]
   groupsInProgram?: fhir4.ValueSet[]
+  programStatus: fhir4.Library['status']
 }
 
 interface Args {
@@ -45,6 +46,8 @@ interface Args {
   activeGroups?: [] | Group[]
   activeConditions?: [] | ConditionItem[]
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
+  updatedGrouper?: fhir4.Library
+  versionToUpdate?: string
 }
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({

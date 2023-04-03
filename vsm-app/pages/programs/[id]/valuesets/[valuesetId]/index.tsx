@@ -6,7 +6,7 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 
 const ValueSetPageView = () => {
   const router = useRouter()
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
+  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>()
 
   useEffect(() => {
@@ -25,9 +25,8 @@ const ValueSetPageView = () => {
 
   return (
     <ValueSetContents
-      programId={programAndGrouperInfo.program.id}
-      grouperLibrary={programAndGrouperInfo.grouperLibrary}
-      isDraftProgram={programAndGrouperInfo.program.status === 'draft'}
+      program={programAndGrouperInfo?.program as fhir4.Library}
+      grouperLibrary={programAndGrouperInfo?.grouperLibrary as fhir4.Library}
       valueSet={currentValueSet}
     />
   )

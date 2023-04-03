@@ -65,7 +65,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       // get all grouperValueSet canonicals
       if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-
         const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
         const grouperValueSetCanonicals = grouperLib.relatedArtifact
@@ -119,7 +118,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-
             const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
             const grouperValueSetCanonicals = grouperLib.relatedArtifact
@@ -193,6 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         .map((valueSet) => {
           const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find((k) => k === valueSet.url)
           const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+          //@ts-ignore looks like a bug either in how this was originally typed or defaultValueSetVersion is wrong
           const valueSetPinnedVersion = groupsVsBelongsTo?.[0]?.defaultValueSetVersion
 
           let result = {
@@ -253,7 +252,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         data: response,
         groupsInProgram: allGrouperVSets
       }
-
 
       return res.status(200).send(composedResponse)
     } catch (e: any) {

@@ -11,7 +11,8 @@ import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { Row, Col, MetadataTitle, StatusTag, StyledSpan, ManifestContainer, IndicatorContainer } from './styles'
+import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
+import { StyledSpan } from '@/styles'
 
 const ProgramDetails = () => {
   const router = useRouter()

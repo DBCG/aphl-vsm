@@ -3,6 +3,7 @@ import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
+import { TerminologyResult } from '@/types/valuesets'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
   const valueSetToUpdate = cloneDeep(vs)
@@ -11,12 +12,13 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]
   }
 
   // get all of the leafs currently within the grouper
-  let leafVSetsAlreadyInGroup = Array.from(new Set(valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x)))
+  let leafVSetsAlreadyInGroup = Array.from(
+    new Set(valueSetToUpdate?.compose?.include?.map((item) => item?.valueSet?.[0]).filter((x) => !!x))
+  )
 
   const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
 
-  vsCanonical.forEach(url => {
-
+  vsCanonical.forEach((url) => {
     if (!leafVSetsAlreadyInGroup?.includes(url)) {
       composeIncludeToAdd.push({ valueSet: [url] })
     }
@@ -68,11 +70,6 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 
 const authoritativeSourceExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource'
 const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
-
-interface TerminologyResult {
-  value: string | undefined
-  hasExtension: boolean
-}
 
 const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === authoritativeSourceExtensionUrl)
@@ -178,7 +175,6 @@ const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
   return parameterMap
 }
 
-
 // update grouper valueset with proper version
 const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, version: string): fhir4.ValueSet => {
   const vsCopy = cloneDeep(vs)
@@ -188,8 +184,8 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
   const composeInclude = vs.compose!.include!
   const newCanonical = version === 'latest' ? canonicalWithoutVersion : `${canonicalWithoutVersion}|${version}`
 
-  composeInclude?.forEach(item => {
-    const match = item?.valueSet?.find(canonical => canonical?.includes(canonicalWithoutVersion))
+  composeInclude?.forEach((item) => {
+    const match = item?.valueSet?.find((canonical) => canonical?.includes(canonicalWithoutVersion))
     if (match) {
       item.valueSet = [newCanonical]
     }
@@ -205,12 +201,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign(
-    {},
-    templateVS,
-    rest,
-    { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` }
-  )
+  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` })
 
   // apply extension
   vs.extension = [

@@ -12,8 +12,8 @@ interface ManifestDataMap {
 }
 
 export interface Result {
-  program: fhir4.Library | {}
-  grouperData: GrouperItem[] | []
+  program: fhir4.Library | null
+  grouperData: GrouperItem[]
   grouperLibrary: fhir4.Library | null
   manifestData: ManifestDataMap
 }
@@ -26,7 +26,7 @@ export interface Result {
 const useGetProgramDetails = (id: string): Result => {
   // this is undefined
   const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>({
-    program: {},
+    program: null,
     grouperData: [],
     manifestData: {},
     grouperLibrary: null
@@ -34,7 +34,7 @@ const useGetProgramDetails = (id: string): Result => {
 
   useEffect(() => {
     let result: Result = {
-      program: {},
+      program: null,
       grouperData: [],
       manifestData: {},
       grouperLibrary: null

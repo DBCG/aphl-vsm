@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { InputLabel, StyledLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
+import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
 
 interface InputProps {
   minWidth?: number

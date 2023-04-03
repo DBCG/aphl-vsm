@@ -19,6 +19,11 @@ export interface GroupItem {
   url: string
 }
 
+export interface TerminologyResult {
+  value: string | undefined
+  hasExtension: boolean
+}
+
 export interface TableRow {
   programName: string
   programId: string
@@ -28,4 +33,5 @@ export interface TableRow {
   version: string
   valueSet: fhir4.ValueSet
   groups: GroupItem[]
+  valueSetPinnedVersion?: string
 }

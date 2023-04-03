@@ -29,8 +29,7 @@ interface ExpansionTableData {
 interface ValueSetContentsProps {
   grouperLibrary: fhir4.Library
   valueSet: fhir4.ValueSet
-  programId: string
-  isDraftProgram?: boolean
+  program: fhir4.Library
 }
 
 const EXPANSION_COLUMNS = [
@@ -75,9 +74,10 @@ function a11yProps(index: number) {
   }
 }
 
-export default function ValueSetContents({ grouperLibrary, valueSet, isDraftProgram = false, programId }: ValueSetContentsProps) {
+export default function ValueSetContents({ grouperLibrary, valueSet, program }: ValueSetContentsProps) {
   const [value, setValue] = useState(0)
   const router = useRouter()
+  const isDraftProgram = program.status === 'draft'
 
   if (valueSet == null || grouperLibrary == null) {
     return <LoadingIndicator />
@@ -240,10 +240,10 @@ export default function ValueSetContents({ grouperLibrary, valueSet, isDraftProg
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <DataTable columns={definitionColumns} data={definitionData} pagination paginationPerPage={10} />
+          <DataTable columns={definitionColumns} data={definitionData as GrouperVSTableData[]} pagination paginationPerPage={10} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <DataTable columns={expansionColumns} data={expansionData} pagination paginationPerPage={10} />
+          <DataTable columns={expansionColumns} data={expansionData as ExpansionTableData[]} pagination paginationPerPage={10} />
         </TabPanel>
       </Box>
     </Box>

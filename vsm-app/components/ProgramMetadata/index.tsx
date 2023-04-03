@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
-import { Label } from '../SearchInput'
+import { InputLabel } from '@/components/InputLabel'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -132,7 +132,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   maxWidth: '624px'
                 }}
               >
-                <Label id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
+                <InputLabel id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
                 <Select
                   placeholder="Select Priority Level"
                   classNamePrefix="priority-level-selector"
