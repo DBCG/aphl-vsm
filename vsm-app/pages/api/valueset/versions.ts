@@ -2,8 +2,6 @@ import { updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { is } from '@/helpers/is'
-import { ValueSet } from 'fsh-sushi/dist/fhirtypes'
 
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
