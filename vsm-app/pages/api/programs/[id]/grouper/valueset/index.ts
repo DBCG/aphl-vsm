@@ -23,9 +23,9 @@ export type ErrorResponse = {
 }
 
 // ---------------------------------------------------------------------------------
-// --------------------- ROUTE TO UPDATE EXISTING GROUPERS -------------------------
+// --------------------- ROUTE TO DELETE VSETS FROM EXISTING GROUPERS --------------
 // ---------------------------------------------------------------------------------
-const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
+const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
     const { vsCanonical, grouperCanonicals } = body
@@ -443,8 +443,8 @@ const updateProgramLibraryWithGrouperRef = async (
 }
 
 export default handler({
-  PUT: {
-    action: updateGroupers,
+  DELETE: {
+    action: deleteVSetsFromGroupers,
     access: ['admin', 'editor']
   },
   POST: {
