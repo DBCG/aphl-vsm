@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import Image from 'next/image'
 
-const StyledButton = styled.button`
+const StyledButton = styled.button<IButtonProps>`
   height: 36px;
   width: 36px;
   border-radius: 50%;
@@ -68,7 +68,6 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: I
       title={btnTitleText[buttonContext as Key]}
       disabled={disabled}
       type={type}
-      // @ts-ignore
       buttonContext={buttonContext}
       style={style}
       onClick={(e) => {
