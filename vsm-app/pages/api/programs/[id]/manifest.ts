@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
+import { splitCanonical } from '@/helpers/splitCanonical'
+import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
@@ -46,19 +48,27 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 
   let manifestLibraryUrl = getGrouperLibraryCanonical(grouperLibrary)
 
-  if (manifestLibraryUrl?.includes('|')) {
-    manifestLibraryUrl = manifestLibraryUrl.split('|')[0]
+  const [url, version] = splitCanonical(manifestLibraryUrl as string)
+
+  let searchParams = {
+    url
+  } as SearchParams
+
+  // tag on version if it exists in the url
+  if (version) {
+    searchParams.version = version
+  } else {
+    // if the version doesn't exist in the URL,
+    // the grouper library is in draft
+    searchParams.status = 'draft'
   }
 
   const manifestLibrary = await fhirCdrClient
     .search({
       resourceType: 'Library',
-      searchParams: {
-        url: manifestLibraryUrl as string
-      }
+      searchParams
     })
     .then((res) => res?.entry?.[0]?.resource)
-
   setExpansionParameters(manifestLibrary, req.body)
   const updatedExpansionParameters = getExpansionParametersSystemVersion(manifestLibrary)
 
