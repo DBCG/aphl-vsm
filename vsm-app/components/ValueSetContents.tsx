@@ -6,7 +6,7 @@ import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from './LoadingIndicator'
-import { Form } from './ProgramMetadata/styles'
+import { Form, TitleRow } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { InputRow } from '@/styles'
 import { Result } from '@/types/grouperTypes'
@@ -183,7 +183,7 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
 
   return (
     <Box>
-      <Box sx={{ width: '100%', background: 'white' }}>
+      <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px' }}>
         <Form>
           <PageTitle>{currentValueSet.title}</PageTitle>
           <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
@@ -193,21 +193,39 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
                 style={{
                   background: '#FAA024',
                   color: 'white',
-                  position: 'absolute',
                   padding: '10px',
                   borderRadius: '20px',
-                  right: '50px',
-                  top: '50px'
+                  height: 'max-content'
                 }}
               >
-                Program in Draft state
+                Draft
               </Typography>
             )}
+          </InputRow>
+          <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+            <SearchInput id="prog-name" label="Grouper ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
+          </InputRow>
+          <InputRow style={{ width: '100%', backgroundColor: 'white', paddingTop: '12px', paddingBottom: '12px' }}>
+            <SearchInput
+              id="prog-url"
+              label="Program URL"
+              minWidth={650}
+              readonly={true}
+              def={programUrl}
+              placeholder={'No program canonical set'}
+            />
+            <SearchInput
+              id="prog-version"
+              label="Program Version"
+              readonly={true}
+              def={programVersion}
+              placeholder={'No program version set'}
+            />
           </InputRow>
           <InputRow style={{ width: '100%' }}>
             <SearchInput
               id="vs-url"
-              label="URL"
+              label="Grouper URL"
               minWidth={650}
               readonly={true}
               def={currentValueSet.url}
@@ -215,7 +233,7 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
             />
             <SearchInput
               id="vs-version"
-              label="Version"
+              label="Grouper Version"
               readonly={true}
               def={currentValueSet.version}
               placeholder={'No valueset version set'}
@@ -249,23 +267,6 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
               readonly={true}
               def={currentValueSet.purpose}
               placeholder={'No valueset purpose set'}
-            />
-          </InputRow>
-          <InputRow style={{ width: '100%' }}>
-            <SearchInput
-              id="prog-url"
-              label="Grouper URL"
-              minWidth={650}
-              readonly={true}
-              def={programUrl}
-              placeholder={'No program canonical set'}
-            />
-            <SearchInput
-              id="prog-version"
-              label="Grouper Version"
-              readonly={true}
-              def={programVersion}
-              placeholder={'No program version set'}
             />
           </InputRow>
         </Form>

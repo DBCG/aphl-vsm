@@ -195,8 +195,9 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
   return vsCopy
 }
 
-const createGrouperWithMetadata = (metadata: GrouperMetadata) => {
-  const templateVS = cloneDeep(grouperValueSetBase) as fhir4.ValueSet
+const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.ValueSet) => {
+  const baseGrouper = template || grouperValueSetBase
+  const templateVS = cloneDeep(baseGrouper) as fhir4.ValueSet
 
   const { author, ...rest } = metadata
 
