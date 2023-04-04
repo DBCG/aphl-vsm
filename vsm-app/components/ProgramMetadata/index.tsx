@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
-import { Label } from '../SearchInput'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -14,6 +13,7 @@ import {
 } from '@/helpers/libraryHelpers'
 import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, buttonStyles } from './styles'
 import { InputRow } from '@/styles'
+import { InputLabel } from '../InputLabel'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -132,7 +132,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   maxWidth: '624px'
                 }}
               >
-                <Label id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
+                <InputLabel id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
                 <Select
                   placeholder="Select Priority Level"
                   classNamePrefix="priority-level-selector"
