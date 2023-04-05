@@ -77,7 +77,7 @@ function a11yProps(index: number) {
 export default function ValueSetContents({ grouperLibrary, valueSet, program }: ValueSetContentsProps) {
   const [value, setValue] = useState(0)
   const router = useRouter()
-  const isDraftProgram = program.status === 'draft'
+  const isDraftProgram = program?.status === 'draft'
 
   if (valueSet == null || grouperLibrary == null) {
     return <LoadingIndicator />
