@@ -269,7 +269,7 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
           <Tabs value={value} onChange={handleChange}>
             <Tab label="Definition" {...a11yProps(0)} />
             <Tab label="Expansion" {...a11yProps(1)} />
-            {value === 1 && (
+            {value === 1 && isDraftProgram && (
               <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
                 <Box sx={{ mt: 1, mr: 1 }}>
                   <Tooltip title="Subject to change, program is in draft state" placement="top" arrow>
