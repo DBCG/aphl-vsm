@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { Tabs, Box, Tab, Typography } from '@mui/material'
-import { useRouter } from 'next/router'
-import { PageTitle } from '@/components/Typography'
-
-import LoadingIndicator from './LoadingIndicator'
+import { Tabs, Box, Tab, Tooltip, Typography } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
+import { PageTitle } from '@/components/Typography'
+import LoadingIndicator from './LoadingIndicator'
 import { Form } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { InputRow } from '@/styles'
+import { Result } from '@/hooks/useGetProgramDetails'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -27,9 +29,8 @@ interface ExpansionTableData {
 }
 
 interface ValueSetContentsProps {
-  grouperLibrary: fhir4.Library
+  programAndGrouperInfo: Result
   valueSet: fhir4.ValueSet
-  program: fhir4.Library
 }
 
 const EXPANSION_COLUMNS = [
@@ -57,7 +58,7 @@ function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
 
   return (
-    <div role="tabpanel" hidden={value !== index} id={`simple-tabpanel-${index}`} aria-labelledby={`simple-tab-${index}`} {...other}>
+    <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`} {...other}>
       {value === index && (
         <Box sx={{ p: 3 }}>
           <Typography>{children}</Typography>
@@ -69,17 +70,18 @@ function TabPanel(props: TabPanelProps) {
 
 function a11yProps(index: number) {
   return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`
+    id: `tab-${index}`,
+    'aria-controls': `tabpanel-${index}`
   }
 }
 
-export default function ValueSetContents({ grouperLibrary, valueSet, program }: ValueSetContentsProps) {
+export default function ValueSetContents({ programAndGrouperInfo, valueSet }: ValueSetContentsProps) {
+  const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [value, setValue] = useState(0)
-  const router = useRouter()
-  const isDraftProgram = program?.status === 'draft'
+  const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
+  const [currentValueSet, setCurrentValueSet] = useState(valueSet)
 
-  if (valueSet == null || grouperLibrary == null) {
+  if (valueSet == null || programAndGrouperInfo?.grouperLibrary == null) {
     return <LoadingIndicator />
   }
 
@@ -87,13 +89,38 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
     setValue(newValue)
   }
 
-  const [programUrl, programVersion] = grouperLibrary?.url?.split('|') || []
-  const memberSet = valueSet?.compose?.include
+  const expandValueSet = async () => {
+    setIsLoadingExpansion(true)
+    try {
+      const updatedValueSet = await fetch(`/api/valueset/expand`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          valueSetId: currentValueSet.id,
+          expansionParameters: programAndGrouperInfo.manifestData
+        })
+      }).then((res) => res.json())
+      if (updatedValueSet?.error == null && updatedValueSet?.expansion) {
+        // update just the expansion
+        toast.success('Valueset expanded successfully')
+        setCurrentValueSet({ ...currentValueSet, expansion: updatedValueSet.expansion })
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error('Failed to expand valueset')
+    }
+    setIsLoadingExpansion(false)
+  }
+
+  const [programUrl, programVersion] = programAndGrouperInfo?.grouperLibrary?.url?.split('|') || []
+  const memberSet = currentValueSet?.compose?.include
   const isGrouperValueSet = memberSet?.[0]?.valueSet?.[0] != null
 
   let definitionColumns, definitionData
   let expansionColumns, expansionData
-  const expansion = valueSet?.expansion
+  const expansion = currentValueSet?.expansion
   const timeStamp = expansion?.timestamp
   if (isGrouperValueSet) {
     definitionData = memberSet
@@ -154,13 +181,13 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
     <Box>
       <Box sx={{ width: '100%', background: 'white' }}>
         <Form>
-          <PageTitle>{valueSet.title}</PageTitle>
+          <PageTitle>{currentValueSet.title}</PageTitle>
           <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput id="prog-name" label="ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
+            <SearchInput id="prog-name" label="ID" readonly={true} def={currentValueSet.id} placeholder={'No valueset id set'} />
             {isDraftProgram && (
               <Typography
                 style={{
-                  background: 'orange',
+                  background: '#FAA024',
                   color: 'white',
                   position: 'absolute',
                   padding: '10px',
@@ -173,17 +200,22 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
               </Typography>
             )}
           </InputRow>
-
           <InputRow style={{ width: '100%' }}>
             <SearchInput
               id="vs-url"
               label="URL"
               minWidth={650}
               readonly={true}
-              def={valueSet.url}
+              def={currentValueSet.url}
               placeholder={'No valueset canonical set'}
             />
-            <SearchInput id="vs-version" label="Version" readonly={true} def={valueSet.version} placeholder={'No valueset version set'} />
+            <SearchInput
+              id="vs-version"
+              label="Version"
+              readonly={true}
+              def={currentValueSet.version}
+              placeholder={'No valueset version set'}
+            />
           </InputRow>
           <InputRow style={{ width: '100%' }}>
             <SearchInput
@@ -191,7 +223,7 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
               label="Description"
               minWidth={650}
               readonly={true}
-              def={valueSet.description}
+              def={currentValueSet.description}
               placeholder={'No valueset description set'}
             />
           </InputRow>
@@ -201,7 +233,7 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
               label="Publisher"
               minWidth={650}
               readonly={true}
-              def={valueSet.publisher}
+              def={currentValueSet.publisher}
               placeholder={'No valueset publisher set'}
             />
           </InputRow>
@@ -211,7 +243,7 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
               label="Purpose"
               minWidth={650}
               readonly={true}
-              def={valueSet.purpose}
+              def={currentValueSet.purpose}
               placeholder={'No valueset purpose set'}
             />
           </InputRow>
@@ -237,6 +269,18 @@ export default function ValueSetContents({ grouperLibrary, valueSet, program }: 
           <Tabs value={value} onChange={handleChange}>
             <Tab label="Definition" {...a11yProps(0)} />
             <Tab label="Expansion" {...a11yProps(1)} />
+            {value === 1 && (
+              <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
+                <Box sx={{ mt: 1, mr: 1 }}>
+                  <Tooltip title="Subject to change, program is in draft state" placement="top" arrow>
+                    <WarningAmberIcon sx={{ color: '#FFA204' }} />
+                  </Tooltip>
+                </Box>
+                <LoadingButton loading={isLoadingExpansion} onClick={() => expandValueSet()}>
+                  Expand
+                </LoadingButton>
+              </Box>
+            )}
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
