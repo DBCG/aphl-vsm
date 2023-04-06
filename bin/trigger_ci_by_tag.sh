@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This is a script to trigger a CI build on Travis CI for a specific git tag.
+
 # Renders a text based list of options that can be selected by the
 # user using up, down and enter keys and returns the chosen option.
 #
