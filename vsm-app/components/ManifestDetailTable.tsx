@@ -1,5 +1,5 @@
 import DataTable from 'react-data-table-component'
-import { Button } from '@/components/buttons/Button'
+import { IconButton } from './buttons/IconButton'
 
 export interface ManifestData {
   system: string
@@ -22,10 +22,16 @@ const ManifestDetailTable = ({ deleteFn = false, data = {}, customStyles }: any)
   const preppedData = prepData(data)
   const columns = [
     {
-      name: 'Delete',
       omit: !deleteFn,
+      maxWidth: '50px',
       cell: (removeVersion: ManifestData) => {
-        return <Button data-tag="allowRowEvents" text="Delete" onClick={() => deleteFn(removeVersion)} />
+        return (
+          <IconButton
+            onClick={() => deleteFn(removeVersion)}
+            buttonContext="delete"
+            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+          />
+        )
       },
       sortable: true,
       wrap: true
@@ -37,7 +43,7 @@ const ManifestDetailTable = ({ deleteFn = false, data = {}, customStyles }: any)
       wrap: true
     },
     {
-      name: 'Version',
+      name: 'Versions',
       selector: (row: ManifestData) => row.version!,
       sortable: true,
       wrap: true

@@ -2,38 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import { ValueSet } from 'fhir/r4'
-import { getSession, GetSessionParams, useSession } from 'next-auth/react'
-import toast, { Toaster } from 'react-hot-toast'
+import { useSession } from 'next-auth/react'
+import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
-
-const columns = [
-  {
-    name: 'Name',
-    selector: (row: TableData) => row.name!,
-    sortable: true,
-    wrap: true
-  },
-  {
-    name: 'Title',
-    selector: (row: TableData) => row?.title?.replace('_', ' ')!,
-    wrap: true
-  },
-  { 
-    name: 'URL',
-    selector: (row: TableData) => row.url!,
-    wrap: true
-  },
-  {
-    name: 'Version',
-    selector: (row: TableData) => row.version!,
-    sortable: true,
-    wrap: true,
-    maxWidth: '150px'
-  }
-]
 
 interface TableData {
   name: ValueSet['name']
@@ -58,7 +32,7 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValueSet  }: any) => {
+const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -103,12 +77,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValu
 
   useEffect(() => {
     if (error?.message) {
-      toast.error(error.message, {
-        position: 'top-right',
-        style: {
-          borderRadius: 0
-        }
-      })
+      toast.error(error.message)
     } else {
       toast.dismiss()
     }
@@ -176,7 +145,6 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValu
 
   return (
     <>
-      <Toaster />
       <DataTable
         progressPending={deleting}
         progressComponent={<LoadingIndicator />}
@@ -184,7 +152,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValu
         customStyles={{
           rows: {
             style: {
-              cursor: 'pointer',
+              cursor: 'pointer'
             },
             highlightOnHoverStyle: {
               backgroundColor: '#DBF0F3'
@@ -201,23 +169,6 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, setSelectedValu
       />
     </>
   )
-}
-
-export async function getServerSideProps(context: GetSessionParams) {
-  const session = await getSession(context)
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permanent: false
-      }
-    }
-  }
-
-  return {
-    props: { session }
-  }
 }
 
 export { ProgramDetailTable }

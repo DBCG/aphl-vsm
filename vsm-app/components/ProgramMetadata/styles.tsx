@@ -45,6 +45,6 @@ export const RequiredWarning = styled.p`
 
 export const buttonStyles = {
   width: '150px',
-  backgroundColor: '#ca9547',
+  backgroundColor: 'var(--theme-300)',
   marginTop: '20px'
 }
