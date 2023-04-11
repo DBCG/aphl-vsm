@@ -1,3 +1,7 @@
+/**
+ * File for shared styles components
+ */
+import { PageTitle } from '@/components/Typography'
 import styled from 'styled-components'
 
 export const Row = styled.div`
@@ -36,4 +40,15 @@ export const InputRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 16px 12px;
+`
+export const Id = styled(PageTitle).attrs({
+  as: 'span'
+})`
+  font-size: 20px;
+`
+export const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 `
