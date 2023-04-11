@@ -1,5 +1,4 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
-import type { NextPage } from 'next'
 import Image from 'next/image'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
@@ -22,32 +21,8 @@ import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResu
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Id, Row, FlexRow } from '@/styles'
-import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
-
-export const customStyles = {
-  headCells: {
-    style: {
-      padding: '16px',
-      overflow: 'visible'
-    }
-  },
-  cells: {
-    style: {
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      whiteSpace: 'normal !important',
-      overflow: 'visible'
-    }
-  },
-  rows: {
-    style: {
-      cursor: 'pointer'
-    },
-    highlightOnHoverStyle: {
-      backgroundColor: '#DBF0F3'
-    }
-  }
-}
+import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, customStyles } from './styles'
+import { NextRouter } from 'next/router'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -77,6 +52,7 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
 }
 interface ProgramValueSetDetailsProps {
   programId: string
+  router: NextRouter
 }
 
 const DEFAULT_FILTERS = {
@@ -89,7 +65,6 @@ const DEFAULT_FILTERS = {
 
 const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
-
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
@@ -521,13 +496,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 value={dedupedSelectedOptions}
                 onChange={(e) => {
                   if (e.length === 0) {
-                    toast.error('ValueSets must belong to a group.\nPlease add one before deleting.', {
-                      id: `${row.canonical}`,
-                      position: 'top-right',
-                      style: {
-                        borderRadius: 0
-                      }
-                    })
+                    toast.error('ValueSets must belong to a group.\nPlease add one before deleting.')
                     return
                   }
                   const groupInfo = e as GroupInfoItem[]
