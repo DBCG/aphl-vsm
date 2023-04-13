@@ -75,7 +75,7 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(programId)
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
   const [systemSelections, setSystemSelections] = useState([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)

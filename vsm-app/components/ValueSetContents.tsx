@@ -81,6 +81,8 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
   const [value, setValue] = useState(0)
   const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
+  const router = useRouter()
+  const isDraftProgram = program?.status === 'draft'
 
   if (valueSet == null || programAndGrouperInfo?.grouperLibrary == null) {
     return <LoadingIndicator />

@@ -17,7 +17,8 @@ import { StyledSpan } from '@/styles'
 const ProgramDetails = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
+  const programId = router.query.id as string
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId }) as Result
   const [program, setProgram] = useState<fhir4.Library>()
 
   useEffect(() => Modal.setAppElement('#__next'), [])

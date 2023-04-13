@@ -18,12 +18,17 @@ export interface Result {
   manifestData: ManifestDataMap
 }
 
+interface UseGetProgramDetails {
+  id: string
+  toggleRefresh?: boolean
+}
+
 // gets data necessary to build the program details page
 // this includes:
 // 1. program metadata
 // 2. group metadata (name, canonical, title)
 // 3. manifest data
-const useGetProgramDetails = (id: string): Result => {
+const useGetProgramDetails = ({ id, toggleRefresh }: UseGetProgramDetails): Result => {
   // this is undefined
   const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>({
     program: null,
@@ -77,7 +82,7 @@ const useGetProgramDetails = (id: string): Result => {
     void getProgram()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id, toggleRefresh])
   return programAndGrouperData
 }
 
