@@ -64,14 +64,13 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
     }
 
     if (updated?.ok) {
-      setDeleting(false)
       toggleRefreshData()
     } else {
-      setDeleting(false)
       setError({
         type: 'delete_failed',
         message: 'Failed to delete grouper Value Set'
       })
+      setDeleting(false)
     }
   }
 
@@ -90,6 +89,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
   })
 
   const columns = useMemo(() => {
+    setDeleting(false)
     const fields = [
       {
         name: 'Name',
