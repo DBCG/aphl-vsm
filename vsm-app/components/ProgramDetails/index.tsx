@@ -18,10 +18,15 @@ const ProgramDetails = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails({ id: programId }) as Result
   const [program, setProgram] = useState<fhir4.Library>()
+  const [refreshData, setRefreshData] = useState(false)
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
 
   useEffect(() => Modal.setAppElement('#__next'), [])
+
+  const toggleRefreshData = () => {
+    setRefreshData(!refreshData)
+  }
 
   useEffect(() => {
     // Set initial program
@@ -92,6 +97,7 @@ const ProgramDetails = () => {
         )}
       </Row>
       <ProgramDetailTable
+        toggleRefreshData={toggleRefreshData}
         data={programAndGrouperInfo?.grouperData}
         grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
         // @ts-ignore-next-line

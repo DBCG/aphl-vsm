@@ -32,7 +32,7 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
+const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshData }: any) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -65,7 +65,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus }: any) => {
 
     if (updated?.ok) {
       setDeleting(false)
-      window.location.reload()
+      toggleRefreshData()
     } else {
       setDeleting(false)
       setError({
