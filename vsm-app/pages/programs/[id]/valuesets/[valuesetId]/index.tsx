@@ -1,14 +1,19 @@
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { Result, useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { useRouter } from 'next/router'
+import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import ValueSetContents from '@/components/ValueSetContents'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import { VSMSession, can } from '@/helpers/rolesHelper'
 
 const ValueSetPageView = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails({ id: programId })
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>()
+
+  const { data: session } = useSession() as unknown as { data: VSMSession }
+  const enableEditing = programAndGrouperInfo.program.status === 'active' || can(session, 'edit')
 
   useEffect(() => {
     const fetchValueSet = async () => {
@@ -28,6 +33,7 @@ const ValueSetPageView = () => {
     <ValueSetContents
       programAndGrouperInfo={programAndGrouperInfo}
       valueSet={currentValueSet}
+      enableEditing={enableEditing}
     />
   )
 }

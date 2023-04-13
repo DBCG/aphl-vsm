@@ -216,6 +216,49 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
   return vs
 }
 
+interface GrouperUpdateMetadata {
+  vsToUpdate: fhir4.ValueSet,
+  metadata: {
+    version?: string
+    publisher?: string
+    author?: string
+    purpose?: string
+    desription?: string
+  }
+}
+
+
+
+const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetadata) => {
+  const newVs = cloneDeep(vsToUpdate)
+  const { author, ...rest } = metadata
+
+  if (author) {
+    if (!newVs.extension) {
+      newVs.extension = []
+    }
+
+    const authorExtension = {
+      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
+      valueContactDetail: {
+        name: author
+      }
+    }
+
+    const existingIndex = newVs.extension.findIndex(ext => ext?.url?.endsWith('/StructureDefinition/valueset-author'))
+    // if the extension does not exist already
+    if (existingIndex === -1) {
+      newVs.extension.push(authorExtension)
+    } else {
+      newVs.extension[existingIndex] = authorExtension
+    }
+  }
+
+  // add all fields that are simple obj.assign
+  // if ...rest doesn't contain anything, it defaults to {}
+  return Object.assign(newVs, rest)
+}
+
 // VSAC appends versions to valueset ids and urls with hyphen
 const stringWithoutVersion = (str: string) => str.split('-')[0]
 
@@ -230,5 +273,6 @@ export {
   valuesetDataForDisplay,
   updateLeafVsVersion,
   createGrouperWithMetadata,
+  updateGrouperWithMetadata,
   stringWithoutVersion
 }

@@ -5,11 +5,15 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
+import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
 import { Form, TitleRow } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { InputRow } from '@/styles'
 import { Result } from '@/types/grouperTypes'
+import { InputRow, InputContainer, ButtonContainer } from '@/styles'
+import { TextArea } from './TextArea'
+import { useRouter } from 'next/router'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -31,6 +35,9 @@ interface ExpansionTableData {
 interface ValueSetContentsProps {
   programAndGrouperInfo: Result
   valueSet: fhir4.ValueSet
+  programId: string
+  enableEditing: boolean
+  isDraftProgram?: boolean
 }
 
 const EXPANSION_COLUMNS = [
@@ -76,17 +83,113 @@ function a11yProps(index: number) {
   }
 }
 
-export default function ValueSetContents({ programAndGrouperInfo, valueSet }: ValueSetContentsProps) {
-  const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
+interface Error {
+  type: string
+  message: string
+}
+
+export default function ValueSetContents({
+  grouperLibrary,
+  valueSet,
+  isDraftProgram = false,
+  programId,
+  enableEditing
+}: ValueSetContentsProps) {
   const [value, setValue] = useState(0)
-  const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
+  const [isEditing, setIsEditing] = useState(false)
+  const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
+  // const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
+
+  const {
+    version: defaultGrouperVersion,
+    description: defaultGrouperDescription,
+    publisher: defaultGrouperPublisher,
+    purpose: defaultGrouperPurpose
+  } = valueSet
+
+  // could be multiple authors... should handle this
+  const defaultGrouperAuthor =
+    valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StrutureDefinition/valueset-author'))?.valueContactDetail?.name || ''
+
+  const [updatedGrouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
+  const [updatedGrouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
+  const [updatedGrouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
+  const [updatedGrouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
+  const [updatedGrouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
+
+  const [error, setError] = useState<null | Error>(null)
+
+  const router = useRouter()
 
   if (valueSet == null || programAndGrouperInfo?.grouperLibrary == null) {
     return <LoadingIndicator />
   }
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const resetValues = () => {}
+
+  const submitGrouperUpdates = async () => {
+    const metadataItems = {
+      version: updatedGrouperVersion?.trim(),
+      description: updatedGrouperDescription?.trim(),
+      purpose: updatedGrouperPurpose?.trim(),
+      publisher: updatedGrouperPublisher?.trim(),
+      author: updatedGrouperAuthor.trim()
+    }
+
+    // check that no fields empty
+    const fieldIsEmpty = Object.values(metadataItems).find((val) => !Boolean(val))
+
+    if (fieldIsEmpty) {
+      setError({
+        type: 'no-data',
+        message: 'All fields required.'
+      })
+      return
+    }
+
+    const flatKeys = ['version', 'description', 'purpose', 'publisher']
+
+    // only send changed fields to the server for updating
+    flatKeys.forEach((key) => {
+      if (metadataItems[key] === valueSet[key]) {
+        delete metadataItems[key]
+      }
+    })
+
+    // author is an extension to check it separately
+    if (defaultGrouperAuthor === updatedGrouperAuthor) {
+      delete metadataItems['author']
+    }
+
+    // check that there are fields to change
+    if (!Object.keys(metadataItems).length) {
+      setError({
+        type: 'no-fields-changed',
+        message: 'No fields were changed, update cancelled.'
+      })
+      return
+    }
+
+    const body = {
+      metadata: metadataItems,
+      originalGrouperVersion: defaultGrouperVersion,
+      grouperId: valueSet.id
+    }
+
+    const submitResponse = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    })
+
+    if (submitResponse.ok) {
+      console.log('ok')
+    } else {
+      console.log('response: ', submitResponse)
+    }
+  }
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
   }
 
@@ -222,56 +325,100 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
               placeholder={'No program version set'}
             />
           </InputRow>
-          <InputRow style={{ width: '100%' }}>
-            <SearchInput
-              id="vs-url"
-              label="Grouper URL"
-              minWidth={650}
-              readonly={true}
-              def={currentValueSet.url}
-              placeholder={'No valueset canonical set'}
-            />
-            <SearchInput
-              id="vs-version"
-              label="Grouper Version"
-              readonly={true}
-              def={currentValueSet.version}
-              placeholder={'No valueset version set'}
-            />
-          </InputRow>
-          <InputRow style={{ width: '100%' }}>
-            <SearchInput
-              id="vs-description"
-              label="Description"
-              minWidth={650}
-              readonly={true}
-              def={currentValueSet.description}
-              placeholder={'No valueset description set'}
-            />
-          </InputRow>
-          <InputRow style={{ width: '100%' }}>
-            <SearchInput
-              id="vs-publisher"
-              label="Publisher"
-              minWidth={650}
-              readonly={true}
-              def={currentValueSet.publisher}
-              placeholder={'No valueset publisher set'}
-            />
-          </InputRow>
-          <InputRow style={{ width: '100%' }}>
-            <SearchInput
-              id="vs-purpose"
-              label="Purpose"
-              minWidth={650}
-              readonly={true}
-              def={currentValueSet.purpose}
-              placeholder={'No valueset purpose set'}
-            />
-          </InputRow>
+          <InputContainer>
+            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+              <SearchInput id="prog-name" label="Grouper ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
+              {enableEditing && !isEditing && (
+                <Button
+                  text="Edit Metadata"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsEditing(true)
+                  }}
+                />
+              )}
+              {enableEditing && isEditing && (
+                <ButtonContainer>
+                  <Button
+                    text="Cancel"
+                    style={{ backgroundColor: 'darkGray' }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsEditing(false)
+                      resetValues()
+                    }}
+                  />
+                  <Button
+                    text="Save Changes"
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      await submitGrouperUpdates()
+                    }}
+                  />
+                </ButtonContainer>
+              )}
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <SearchInput
+                id="vs-version"
+                label="Grouper Version"
+                readonly={!isEditing}
+                value={updatedGrouperVersion}
+                def={valueSet.version}
+                placeholder={'No valueset version set'}
+                onChange={(e) => setGrouperVersion(e.target.value)}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <SearchInput
+                id="vs-publisher"
+                label="Publisher"
+                minWidth={650}
+                readonly={!isEditing}
+                value={updatedGrouperPublisher}
+                def={valueSet.publisher}
+                placeholder={'No valueset publisher set'}
+                onChange={(e) => setGrouperPublisher(e.target.value)}
+              />
+              <SearchInput
+                id="vs-author"
+                label="Author"
+                minWidth={650}
+                readonly={!isEditing}
+                value={updatedGrouperAuthor}
+                def={valueSet.url}
+                placeholder={'No valueset author set'}
+                onChange={(e) => setGrouperAuthor(e.target.value)}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <TextArea
+                id="vs-purpose"
+                label="Purpose"
+                minWidth={650}
+                readonly={!isEditing}
+                value={updatedGrouperPurpose}
+                def={valueSet.purpose}
+                placeholder={'No valueset purpose set'}
+                onChange={(e) => setGrouperPurpose(e.target.value)}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <TextArea
+                id="vs-description"
+                label="Description"
+                minWidth={650}
+                readonly={!isEditing}
+                value={updatedGrouperDescription}
+                def={valueSet.description}
+                placeholder={'No valueset description set'}
+                onChange={(e) => setGrouperDescription(e.target.value)}
+              />
+            </InputRow>
+          </InputContainer>
         </Form>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange}>
+          <Tabs value={value} onChange={handleTabChange}>
             <Tab label="Definition" {...a11yProps(0)} />
             <Tab label="Expansion" {...a11yProps(1)} />
             {value === 1 && isDraftProgram && (

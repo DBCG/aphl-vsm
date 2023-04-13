@@ -5,6 +5,7 @@ import {
   addValueSetToGrouper,
   authoritativeSourceExtensionUrl,
   createGrouperWithMetadata,
+  updateGrouperWithMetadata,
   removeValueSetFromGrouper,
   stringWithoutVersion
 } from '@/helpers/valueSetHelpers'
@@ -16,6 +17,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -447,14 +449,89 @@ const updateProgramLibraryWithGrouperRef = async (
 // -------------------------- ROUTE TO UPDATE EXISTING GROUPER ---------------------
 // ---------------------------------------------------------------------------------
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
+
+  const programId = req.query.id as string
+
   try {
     const body = JSON.parse(req.body)
-    const { 
+    const { grouperId, originalGrouperVersion, metadata } = body
+
+    // there should only be one result here if any
+    // matching particular vs id and version
+    const originalVsBundle = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: {
+        _id: grouperId,
+        version: originalGrouperVersion
+      }
+    })
+
+    if (!originalVsBundle.entry) {
+      console.log('not found')
+      return res.status(404).send({ message: 'Grouper not found' })
+    }
+
+    const grouperToEdit = originalVsBundle.entry[0].resource
+
+    const grouperToSubmit = updateGrouperWithMetadata({ vsToUpdate: grouperToEdit, metadata })
+    console.log('grouper to submit: ', grouperToSubmit);
+
+    const grouperUpdated = await fhirCdrClient.update({
+      resourceType: 'ValueSet',
+      body: grouperToSubmit,
+      searchParams: {
+        _id: grouperId,
+      }
+    })
+
+    if (is.operationOutcome(grouperUpdated)) {
+      console.log('error here')
+      return res.status(500).send({ message: 'Error updating grouper' })
+    }
+
+    // if version wasn't changed, route is done
+    if (!metadata.version) {
+      console.log('no version')
+      return res.status(200).send({ message: `Grouper ${grouperId} updated` })
+    }
+
+    // if version was changed, need to update this in the program library
+    const program = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams: {
+        _id: programId,
+        status: 'draft'
+      }
+    })
+
+    console.log('program: ', program);
+
+
+    if (!is.library(program)) {
+      console.log('no library')
+      return res.status(500).send({ message: 'Could not find program' })
+    }
+
+    const grouperLibCanonical = getGrouperLibraryCanonical(program)
+
+
+
+    console.log('req: ', req);
+    console.log('body: ', body);
+    console.log('grouper canonical: ', grouperLibCanonical);
+
+    // if version isn't edited, just update the grouper
+
+    // if version is edited, you also need to update the program lib's references
+    // to the grouper valuesets
+    return res.status(200).send({})
+
+    const {
       description,
       version,
       publisher,
       purpose
-     } = body
+    } = body
 
     const groupersToUpdate = []
     for (const grouperC of grouperCanonicals) {
@@ -485,7 +562,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     }
     return res.status(200).send(groupersToUpdate)
   } catch (e) {
-    console.error('error: ', e)
+    logSimpleHapiError(e)
     res.status(400).send({ error: 'error' })
   }
 }
@@ -497,6 +574,10 @@ export default handler({
   },
   POST: {
     action: createGrouperValueSet,
+    access: ['admin', 'editor']
+  },
+  PUT: {
+    action: updateExistingGrouperMetadata,
     access: ['admin', 'editor']
   }
 })
