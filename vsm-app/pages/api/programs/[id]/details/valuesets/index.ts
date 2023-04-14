@@ -12,13 +12,6 @@ interface Group {
   url: string
 }
 
-interface FormattedVSItem {
-  system: string
-  version: string
-  code: string
-  display?: string
-}
-
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
 // as it could be quite large and slow down the application
 const WHITELIST_VALUESET_FIELDS = [
