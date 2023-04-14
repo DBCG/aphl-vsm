@@ -20,10 +20,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         resourceType: 'Parameters',
         parameter
       } as fhir4.Parameters
-      console.log(parameters)
-      const response = await vsacFhirClient.request(`ValueSet/${req.body.valueSetId}/$expand`, {
+
+      const response = await vsacFhirClient.operation({
+        name: '$expand',
+        id: req.body.valueSetId,
+        resourceType: 'ValueSet',
         method: 'POST',
-        body: JSON.stringify(parameters),
+        input: JSON.stringify(parameters),
         options: {
           headers: {
             'content-type': 'application/json'

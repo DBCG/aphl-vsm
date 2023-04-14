@@ -106,6 +106,8 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
         // update just the expansion
         toast.success('Valueset expanded successfully')
         setCurrentValueSet({ ...currentValueSet, expansion: updatedValueSet.expansion })
+      } else {
+        toast.error('Failed to expand valueset')
       }
     } catch (e) {
       console.error(e)
@@ -117,11 +119,11 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
   const [programUrl, programVersion] = programAndGrouperInfo?.grouperLibrary?.url?.split('|') || []
   const memberSet = currentValueSet?.compose?.include
   const isGrouperValueSet = memberSet?.[0]?.valueSet?.[0] != null
+  const expansion = currentValueSet?.expansion
+  const timeStamp = expansion?.timestamp
 
   let definitionColumns, definitionData
   let expansionColumns, expansionData
-  const expansion = currentValueSet?.expansion
-  const timeStamp = expansion?.timestamp
   if (isGrouperValueSet) {
     definitionData = memberSet
     expansionData = expansion?.contains

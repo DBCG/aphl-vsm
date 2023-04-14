@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
-import { ToastContainer, toast } from 'react-toastify'
+import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
@@ -529,7 +529,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
         </ModalContent>
       </ReactModal>
       <TitleRow>
-        <ToastContainer closeOnClick={false} />
         <Row>
           <StyledForm>
             <div style={{ marginBottom: '15px', alignSelf: 'flex-start' }}>
