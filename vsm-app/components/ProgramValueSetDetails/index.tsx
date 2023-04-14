@@ -56,6 +56,7 @@ interface ProgramValueSetDetailsProps {
 }
 
 const DEFAULT_FILTERS = {
+  findInOid: '',
   findInVsName: '',
   findInSteward: '',
   findInVersion: '',
@@ -187,6 +188,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     ...debouncedFilters
   }) as Result
 
+  console.log(progValueSetDets)
+
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
@@ -309,6 +312,25 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       },
       {
         name: (
+          <div>
+            <SelectInputTitle>OID</SelectInputTitle>
+            <FilterInput
+              onChange={(e) => {
+                // @ts-ignore-next-line
+                handleFilterChange(e.target.value, 'findInOid')
+              }}
+              style={{ height: '30px' }}
+            />
+          </div>
+        ),
+        id: 'vs-name-search',
+        selector: (row: TableRow) => row.valueSet.url.split('/ValueSet/')[1],
+        sortable: false,
+        maxWidth: '360px',
+        wrap: true
+      },
+      {
+        name: (
           <div style={{ display: 'flex', flexDirection: 'row' }}>
             <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Version</SelectInputTitle>
           </div>
@@ -316,7 +338,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         id: 'vs-version-search',
         selector: (row: TableRow) => row.version,
         sortable: false,
-        maxWidth: '180px',
+        maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
           if (progValueSetDets.programStatus === 'active') {

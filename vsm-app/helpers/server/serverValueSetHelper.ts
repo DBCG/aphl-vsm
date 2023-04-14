@@ -70,32 +70,42 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
   }
   return []
 }
-export const fetchLeafValueSets = async (
-  canonicals: string[],
-  nameStr?: string,
-  stewardStr?: string,
-  versionStr?: string,
-  whitelistFields?: string[]
-) => {
+
+interface FetchLeafs {
+  leafValueSetCanonicals: string[],
+  nameToFind?: string,
+  stewardToFind?: string,
+  versionToFind?: string,
+  whitelistFields?: string[],
+  oidToFind?: string[],
+}
+export const fetchLeafValueSets = async ({
+  leafValueSetCanonicals,
+  nameToFind,
+  stewardToFind,
+  versionToFind,
+  whitelistFields,
+  oidToFind,
+}) => {
   let searchParams = {} as any
 
-  if (is.string(nameStr)) {
-    searchParams['name:contains'] = nameStr
+  if (is.string(nameToFind)) {
+    searchParams['name:contains'] = nameToFind
   }
 
-  if (is.string(stewardStr)) {
-    searchParams['publisher:contains'] = stewardStr
+  if (is.string(stewardToFind)) {
+    searchParams['publisher:contains'] = stewardToFind
   }
 
-  if (is.string(versionStr)) {
-    searchParams['version:contains'] = versionStr
+  if (is.string(versionToFind)) {
+    searchParams['version:contains'] = versionToFind
   }
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
   try {
     const result = await Promise.all(
-      canonicals.map((canonical) =>
+      leafValueSetCanonicals.map((canonical) =>
         fhirCdrClient.search({
           resourceType: 'ValueSet',
           searchParams: {
