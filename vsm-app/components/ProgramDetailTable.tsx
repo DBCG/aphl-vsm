@@ -70,8 +70,8 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
         type: 'delete_failed',
         message: 'Failed to delete grouper Value Set'
       })
-      setDeleting(false)
     }
+    setDeleting(false)
   }
 
   useEffect(() => {
@@ -88,8 +88,16 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
     }
   })
 
+  // whenever data coming from props changes
+  //
+  useEffect(() => {
+    if (deleting) {
+      setDeleting(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data])
+
   const columns = useMemo(() => {
-    setDeleting(false)
     const fields = [
       {
         name: 'Name',
