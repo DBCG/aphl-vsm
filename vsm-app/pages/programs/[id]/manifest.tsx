@@ -19,6 +19,7 @@ import { Row, Id } from '@/styles'
 export const customStyles = {
   table: {
     style: {
+      minHeight: '100px',
       minWidth: '600px' // override the row height
     }
   },

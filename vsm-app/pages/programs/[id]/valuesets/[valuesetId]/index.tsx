@@ -25,8 +25,7 @@ const ValueSetPageView = () => {
 
   return (
     <ValueSetContents
-      program={programAndGrouperInfo?.program as fhir4.Library}
-      grouperLibrary={programAndGrouperInfo?.grouperLibrary as fhir4.Library}
+      programAndGrouperInfo={programAndGrouperInfo}
       valueSet={currentValueSet}
     />
   )
