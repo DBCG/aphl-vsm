@@ -47,6 +47,7 @@ const EXPANSION_COLUMNS = [
     wrap: true
   },
   {
+    id: 'code',
     name: 'Code',
     selector: (row: ExpansionTableData) => row?.code!,
     sortable: true,
@@ -143,14 +144,14 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
 
     definitionColumns = [
       {
-        name: 'Code',
-        selector: (row: any) => row?.code!,
+        name: 'Display',
+        selector: (row: any) => row?.display!,
         sortable: true,
         wrap: true
       },
       {
-        name: 'Display',
-        selector: (row: any) => row?.display!,
+        name: 'System',
+        selector: (row: any) => memberSet?.[0]?.system,
         sortable: true,
         wrap: true
       },
@@ -160,9 +161,10 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
         sortable: true,
         wrap: true
       },
+
       {
-        name: 'System',
-        selector: (row: any) => memberSet?.[0]?.system,
+        name: 'Code',
+        selector: (row: any) => row?.code!,
         sortable: true,
         wrap: true
       }
@@ -289,7 +291,13 @@ export default function ValueSetContents({ programAndGrouperInfo, valueSet }: Va
           <DataTable columns={definitionColumns} data={definitionData as GrouperVSTableData[]} pagination paginationPerPage={10} />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          <DataTable columns={expansionColumns} data={expansionData as ExpansionTableData[]} pagination paginationPerPage={10} />
+          <DataTable
+            columns={expansionColumns}
+            defaultSortFieldId={'code'}
+            data={expansionData as ExpansionTableData[]}
+            pagination
+            paginationPerPage={10}
+          />
         </TabPanel>
       </Box>
     </Box>
