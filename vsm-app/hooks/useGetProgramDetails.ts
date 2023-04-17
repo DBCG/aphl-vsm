@@ -1,17 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { GrouperItem } from '@/types/grouperTypes'
-
-interface ManifestDataMap {
-  [key: string]: string[]
-}
-
-export interface Result {
-  program: fhir4.Library | null
-  grouperData: GrouperItem[]
-  grouperLibrary: fhir4.Library | null
-  manifestData: ManifestDataMap
-}
+import { Result } from '@/types/grouperTypes'
 
 interface UseGetProgramDetails {
   id: string

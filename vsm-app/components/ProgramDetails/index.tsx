@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
@@ -11,8 +11,10 @@ import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
+import { Result } from '@/types/grouperTypes'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
+import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -21,6 +23,7 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
   const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
+  const manifestData = useGetProgramManifest({ programId })
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
@@ -83,7 +86,7 @@ const ProgramDetails = () => {
           <StyledSpan>Program Manifest</StyledSpan>
           <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable data={programAndGrouperInfo?.manifestData} />
+        <ManifestDetailTable data={manifestData} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>

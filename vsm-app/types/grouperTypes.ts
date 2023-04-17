@@ -70,6 +70,17 @@ interface DeleteGrouper {
   grouperVsIdToRemove: string | undefined
 }
 
+interface ManifestDataMap {
+  [key: string]: string[]
+}
+
+interface Result {
+  program: fhir4.Library | null
+  grouperData: GrouperItem[]
+  grouperLibrary: fhir4.Library | null
+  manifestData: ManifestDataMap
+}
+
 export type {
   GrouperMetadata,
   FlatGrouperVSet,
@@ -78,5 +89,7 @@ export type {
   SelectedValueSet,
   SelectedCondition,
   GrouperItem,
-  DeleteGrouper
+  DeleteGrouper,
+  ManifestDataMap,
+  Result
 }
