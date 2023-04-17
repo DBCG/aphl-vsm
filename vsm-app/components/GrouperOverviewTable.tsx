@@ -7,7 +7,7 @@ import DataTable from 'react-data-table-component'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
-import { GrouperItem, DeleteGrouper } from '@/types/grouperTypes'
+import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
 
 interface Error {
@@ -20,7 +20,7 @@ const ButtonContainer = styled.div`
 `
 
 interface GrouperTable {
-  data: GrouperItem[]
+  data: fhir4.ValueSet[]
   toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
   programStatus: fhir4.Library['status']
@@ -34,7 +34,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   const [deleting, setDeleting] = useState(false)
   const [toggleRefresh, setToggleRefresh] = useState(false)
 
-  const grouperData = useGetGroups({ programId, refreshToggle: toggleRefresh })
+  const { groups, groupsError, groupsLoading } = useGetGroups({ programId, refreshToggle: toggleRefresh })
 
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
@@ -82,12 +82,13 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   )
 
   useEffect(() => {
-    if (error?.message) {
-      toast.error(error.message)
+    const err = error?.message || groupsError
+    if (err) {
+      toast.error(err)
     } else {
       toast.dismiss()
     }
-  }, [error])
+  }, [error, groupsError])
 
   useEffect(() => {
     {
@@ -101,7 +102,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
       setDeleting(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grouperData])
+  }, [groups])
 
   const columns = useMemo(() => {
     const fields = [
@@ -160,7 +161,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   return (
     <>
       <DataTable
-        progressPending={deleting}
+        progressPending={deleting || groupsLoading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
         customStyles={{
@@ -177,7 +178,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         onRowClicked={(row: fhir4.ValueSet) => {
           router.push(`/programs/${programId}/valuesets/${row.id}`)
         }}
-        data={grouperData}
+        data={groups}
         pagination
         paginationPerPage={10}
       />

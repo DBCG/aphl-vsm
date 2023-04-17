@@ -14,7 +14,7 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { Result } from '@/types/grouperTypes'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
-import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { useGetProgramById } from '@/hooks/useGetProgramById'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -23,7 +23,7 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
   const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
-  const manifestData = useGetProgramManifest({ programId })
+  const fetchedProgram = useGetProgramById({ programId })
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
@@ -33,10 +33,10 @@ const ProgramDetails = () => {
 
   useEffect(() => {
     // Set initial program
-    if (is.library(programAndGrouperInfo?.program)) {
-      setProgram(programAndGrouperInfo?.program)
+    if (is.library(fetchedProgram)) {
+      setProgram(fetchedProgram)
     }
-  }, [programAndGrouperInfo.program])
+  }, [programId, fetchedProgram])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
     await updateProgram(submittedProgram)
@@ -86,7 +86,7 @@ const ProgramDetails = () => {
           <StyledSpan>Program Manifest</StyledSpan>
           <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable data={manifestData} />
+        <ManifestDetailTable programId={programId} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
@@ -101,7 +101,6 @@ const ProgramDetails = () => {
       </Row>
       <GrouperOverviewTable
         toggleRefreshData={toggleRefreshData}
-        data={programAndGrouperInfo?.grouperData}
         grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
         // @ts-ignore-next-line
         programStatus={programAndGrouperInfo?.program?.status}
