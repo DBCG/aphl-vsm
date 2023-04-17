@@ -21,8 +21,6 @@ const useGetGroups = ({ programId, refreshToggle }: GroupArgs): [] | fhir4.Value
           console.error(json.error)
           setGroups([])
         } else {
-          console.log('json: ', json);
-
           setGroups(json)
         }
       } catch (e) {

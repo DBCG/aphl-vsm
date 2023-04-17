@@ -20,15 +20,15 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
 
-  console.log('grouper lib canonial: ', grouperLibraryCanonical);
-
   let searchParams = {
     url: grouperLibUrl,
-    version: grouperLibVersion
+    version: grouperLibVersion,
+    status: 'active'
   }
 
-  if (programLibrary.status === 'draft') {
-    searchParams.status = 'draft'
+  // update status if it exists on resource, is required so should be there
+  if (programLibrary.status) {
+    searchParams.status = programLibrary.status
   }
 
 
@@ -42,9 +42,6 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
   const grouperValueSetCanonicals = library?.relatedArtifact
     ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
     ?.map((item) => item?.resource) as string[]
-
-  console.log('grouper vs canonicals: ', grouperValueSetCanonicals);
-
 
   if (grouperValueSetCanonicals?.length) {
     const grouperValueSetSearchSets = await Promise.all(
@@ -62,8 +59,6 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
 
     const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
     result = grouperVSets
-
-    console.log('result: ', result);
 
     res.status(200).send(result)
     return

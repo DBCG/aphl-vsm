@@ -1,29 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import { ValueSet } from 'fhir/r4'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
-import { GrouperItem } from '@/types/grouperTypes'
+import { GrouperItem, DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
-
-interface TableData {
-  name: ValueSet['name']
-  title: ValueSet['title']
-  url: ValueSet['url']
-  version: ValueSet['version']
-  id: ValueSet['id']
-}
-
-interface DeleteGrouper {
-  grouperLibId: string | undefined
-  grouperVsCanonicalToRemove: string | undefined
-  grouperVsIdToRemove: string | undefined
-}
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id'
@@ -171,8 +156,6 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
 
     return fields
   }, [deleteGrouper, grouperLibId, programStatus, session])
-
-  console.log('data: ', grouperData)
 
   return (
     <>

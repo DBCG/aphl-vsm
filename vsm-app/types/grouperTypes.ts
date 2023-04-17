@@ -64,6 +64,12 @@ interface GrouperItem {
   version: string
 }
 
+interface DeleteGrouper {
+  grouperLibId: string | undefined
+  grouperVsCanonicalToRemove: string | undefined
+  grouperVsIdToRemove: string | undefined
+}
+
 export type {
   GrouperMetadata,
   FlatGrouperVSet,
@@ -71,5 +77,6 @@ export type {
   SelectedGrouper,
   SelectedValueSet,
   SelectedCondition,
-  GrouperItem
+  GrouperItem,
+  DeleteGrouper
 }
