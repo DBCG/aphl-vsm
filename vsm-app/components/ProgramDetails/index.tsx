@@ -15,6 +15,7 @@ import { Result } from '@/types/grouperTypes'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
+import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -23,6 +24,7 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
   const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
+  const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
   const fetchedProgram = useGetProgramById({ programId })
 
   useEffect(() => Modal.setAppElement('#__next'), [])
@@ -86,7 +88,7 @@ const ProgramDetails = () => {
           <StyledSpan>Program Manifest</StyledSpan>
           <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable programId={programId} />
+        <ManifestDetailTable programId={programId} data={manifestData} loading={manifestLoading} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
