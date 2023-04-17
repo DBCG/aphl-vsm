@@ -11,7 +11,7 @@ import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
 
 interface Error {
-  type: 'delete_failed' | 'missing_grouper_id'
+  type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
   message: string
 }
 
@@ -65,7 +65,10 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           body
         })
       } catch (e) {
-        console.error('error: ', e)
+        setError({
+          type: 'server_failure',
+          message: `Error attempting to delete grouper with ID ${grouperLibId}`
+        })
       }
 
       if (updated?.ok) {
