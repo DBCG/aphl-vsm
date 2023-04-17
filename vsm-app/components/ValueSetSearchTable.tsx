@@ -245,7 +245,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
   const [fetchError, setFetchError] = useState<FetchError | null>(null)
 
   const conditions = useGetConditions()
-  const groups = useGetGroups(programId)
+  const { groups } = useGetGroups({ programId })
   const allConditions = formatConditionsComposeInclude(conditions)
 
   const formattedGroups = useMemo(() => {

@@ -20,12 +20,21 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
 
+  let searchParams = {
+    url: grouperLibUrl,
+    version: grouperLibVersion,
+    status: 'active'
+  }
+
+  // update status if it exists on resource, is required so should be there
+  if (programLibrary.status) {
+    searchParams.status = programLibrary.status
+  }
+
+
   const grouperLibrarySearchBundle = await fhirCdrClient.search({
     resourceType: 'Library',
-    searchParams: {
-      url: grouperLibUrl,
-      version: grouperLibVersion
-    }
+    searchParams
   })
 
   const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
@@ -50,6 +59,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
 
     const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
     result = grouperVSets
+
     res.status(200).send(result)
     return
   }

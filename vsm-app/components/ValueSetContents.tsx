@@ -9,7 +9,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { Form } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { InputRow } from '@/styles'
-import { Result } from '@/hooks/useGetProgramDetails'
+import { Result } from '@/types/grouperTypes'
 
 interface TabPanelProps {
   children?: React.ReactNode

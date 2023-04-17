@@ -1,5 +1,6 @@
 import DataTable from 'react-data-table-component'
 import { IconButton } from './buttons/IconButton'
+import LoadingIndicator from './LoadingIndicator'
 
 export interface ManifestData {
   system: string
@@ -11,6 +12,7 @@ interface ManifestDataMap {
 }
 
 const prepData = (data: ManifestDataMap) => {
+  if (!data) return []
   const preparedData: ManifestData[] = []
   Object.entries(data).forEach(([system, value]) => {
     value?.forEach((version) => preparedData.push({ system, version }))
@@ -18,8 +20,8 @@ const prepData = (data: ManifestDataMap) => {
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, data = {}, customStyles }: any) => {
-  const preppedData = prepData(data)
+const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading }: any) => {
+  const preppedData = prepData(manifestData)
   const columns = [
     {
       omit: !deleteFn,
@@ -50,7 +52,18 @@ const ManifestDetailTable = ({ deleteFn = false, data = {}, customStyles }: any)
     }
   ]
 
-  return <DataTable columns={columns} highlightOnHover customStyles={customStyles} data={preppedData} pagination paginationPerPage={10} />
+  return (
+    <DataTable
+      progressComponent={<LoadingIndicator />}
+      progressPending={loading}
+      columns={columns}
+      highlightOnHover
+      customStyles={customStyles}
+      data={preppedData}
+      pagination
+      paginationPerPage={10}
+    />
+  )
 }
 
 export default ManifestDetailTable

@@ -13,6 +13,7 @@ import { HapiError } from '@/types/hapiError'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
+
   if (is.string(req?.query?.id)) {
     try {
       const lib = await fhirCdrClient.read({

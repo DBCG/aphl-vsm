@@ -15,6 +15,7 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
+import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 
 export const customStyles = {
   table: {
@@ -75,7 +76,7 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(programId)
+  const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
   const [systemSelections, setSystemSelections] = useState([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
@@ -88,27 +89,27 @@ const EditManifestDetails = () => {
   useEffect(() => {
     if (Object.keys(data).length > 0) {
       setSystemSelections(data)
-    } else if (error) {
-      toast.error('Error retrieving Code System data from VSAC')
+    } else if (error || manifestError) {
+      toast.error(manifestError || 'Error retrieving Code System data from VSAC')
     }
     setPageLoading(isLoading)
-  }, [isLoading, data, error])
+  }, [isLoading, data, error, manifestError])
 
   useEffect(() => {
-    if (Object.keys(programAndGrouperInfo.manifestData).length !== 0) {
-      setCurrentSelectedData(programAndGrouperInfo.manifestData)
+    if (Object.keys(manifestData).length !== 0) {
+      setCurrentSelectedData(manifestData)
     }
-  }, [programAndGrouperInfo.manifestData])
+  }, [programId, manifestData])
 
   const updateManifest = async (upToDateManifestData: any, didDelete?: boolean) => {
     const manifestEndpoint = `/api/programs/${programId}/manifest`
     try {
-      const manifestData = await fetch(manifestEndpoint, {
+      const mData = await fetch(manifestEndpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(upToDateManifestData)
       }).then((res) => res.json())
-      setCurrentSelectedData(manifestData)
+      setCurrentSelectedData(mData)
       if (didDelete) {
         toast.success('Deleted Manifest Program Version Successfully')
       } else {
@@ -220,13 +221,11 @@ const EditManifestDetails = () => {
             customStyles={customStyles}
             pagination
             paginationPerPage={10}
-            progressPending={pageLoading}
-            progressComponent={<LoadingIndicator />}
           />
         </div>
         <div>
           <StyledLabel>Current Manifest</StyledLabel>
-          <ManifestDetailTable customStyles={customStyles} data={currentSelectedData} deleteFn={deleteFn} />
+          <ManifestDetailTable customStyles={customStyles} data={currentSelectedData} loading={manifestLoading} deleteFn={deleteFn} />
         </div>
       </DataTableContainer>
     </>

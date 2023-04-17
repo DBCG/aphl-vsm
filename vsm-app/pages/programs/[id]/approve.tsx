@@ -84,7 +84,8 @@ interface formData {
 
 const ApproveInfoForm: NextPage = () => {
   const router = useRouter()
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
+  const programId = router.query.id as string
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
   const [approvalFormData, setApprovalFormData] = React.useState<formData>({
     approvalDate: new Date(),
     endorserName: '',

@@ -56,4 +56,40 @@ interface SelectedCondition {
   value: ConditionValue
 }
 
-export type { GrouperMetadata, FlatGrouperVSet, CombinedGrouperVSets, SelectedGrouper, SelectedValueSet, SelectedCondition }
+interface GrouperItem {
+  id: string
+  name: string
+  title: string
+  url: string
+  version: string
+}
+
+interface DeleteGrouper {
+  grouperLibId: string | undefined
+  grouperVsCanonicalToRemove: string | undefined
+  grouperVsIdToRemove: string | undefined
+}
+
+interface ManifestDataMap {
+  [key: string]: string[]
+}
+
+interface Result {
+  program: fhir4.Library | null
+  grouperData: GrouperItem[]
+  grouperLibrary: fhir4.Library | null
+  manifestData: ManifestDataMap
+}
+
+export type {
+  GrouperMetadata,
+  FlatGrouperVSet,
+  CombinedGrouperVSets,
+  SelectedGrouper,
+  SelectedValueSet,
+  SelectedCondition,
+  GrouperItem,
+  DeleteGrouper,
+  ManifestDataMap,
+  Result
+}

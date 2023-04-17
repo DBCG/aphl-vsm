@@ -1,21 +1,10 @@
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { useState, useEffect } from 'react'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { Result } from '@/types/grouperTypes'
 
-interface GrouperItem {
+interface UseGetProgramDetails {
   id: string
-  name: string
-  title: string
-  url: string
-}
-interface ManifestDataMap {
-  [key: string]: string[]
-}
-
-export interface Result {
-  program: fhir4.Library | null
-  grouperData: GrouperItem[]
-  grouperLibrary: fhir4.Library | null
-  manifestData: ManifestDataMap
+  toggleRefresh?: boolean
 }
 
 // gets data necessary to build the program details page
@@ -23,7 +12,7 @@ export interface Result {
 // 1. program metadata
 // 2. group metadata (name, canonical, title)
 // 3. manifest data
-const useGetProgramDetails = (id: string): Result => {
+const useGetProgramDetails = ({ id, toggleRefresh }: UseGetProgramDetails): Result => {
   // this is undefined
   const [programAndGrouperData, setProgramAndGrouperData] = useState<Result>({
     program: null,
@@ -77,7 +66,7 @@ const useGetProgramDetails = (id: string): Result => {
     void getProgram()
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id])
+  }, [id, toggleRefresh])
   return programAndGrouperData
 }
 
