@@ -101,7 +101,7 @@ const ProgramDetails = () => {
         data={programAndGrouperInfo?.grouperData}
         grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
         // @ts-ignore-next-line
-        programStatus={programAndGrouperInfo?.program?.status || {}}
+        programStatus={programAndGrouperInfo?.program?.status}
       />
     </Col>
   )

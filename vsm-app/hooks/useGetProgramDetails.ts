@@ -1,12 +1,7 @@
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { useState, useEffect } from 'react'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { GrouperItem } from '@/types/grouperTypes'
 
-interface GrouperItem {
-  id: string
-  name: string
-  title: string
-  url: string
-}
 interface ManifestDataMap {
   [key: string]: string[]
 }

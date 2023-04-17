@@ -56,4 +56,20 @@ interface SelectedCondition {
   value: ConditionValue
 }
 
-export type { GrouperMetadata, FlatGrouperVSet, CombinedGrouperVSets, SelectedGrouper, SelectedValueSet, SelectedCondition }
+interface GrouperItem {
+  id: string
+  name: string
+  title: string
+  url: string
+  version: string
+}
+
+export type {
+  GrouperMetadata,
+  FlatGrouperVSet,
+  CombinedGrouperVSets,
+  SelectedGrouper,
+  SelectedValueSet,
+  SelectedCondition,
+  GrouperItem
+}

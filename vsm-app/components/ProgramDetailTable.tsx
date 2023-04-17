@@ -8,6 +8,7 @@ import DataTable from 'react-data-table-component'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
+import { GrouperItem } from '@/types/grouperTypes'
 
 interface TableData {
   name: ValueSet['name']
@@ -18,13 +19,13 @@ interface TableData {
 }
 
 interface DeleteGrouper {
-  grouperLibId: string
+  grouperLibId: string | undefined
   grouperVsCanonicalToRemove: string | undefined
   grouperVsIdToRemove: string | undefined
 }
 
 interface Error {
-  type: 'delete_failed'
+  type: 'delete_failed' | 'missing_grouper_id'
   message: string
 }
 
@@ -32,7 +33,14 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshData }: any) => {
+interface ProgramDetTable {
+  data: GrouperItem[]
+  toggleRefreshData: () => void
+  grouperLibId: fhir4.Library['id']
+  programStatus: fhir4.Library['status']
+}
+
+const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshData }: ProgramDetTable) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -42,6 +50,13 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
   const deleteGrouper = async ({ grouperLibId, grouperVsCanonicalToRemove, grouperVsIdToRemove }: DeleteGrouper) => {
+    if (!grouperLibId) {
+      setError({
+        type: 'missing_grouper_id',
+        message: 'Grouper Library is missing an ID'
+      })
+      return
+    }
     setDeleting(true)
     let endpoint = `/api/programs/${programId}/grouper/library`
     let updated
@@ -94,7 +109,7 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
     if (deleting) {
       setDeleting(false)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
   const columns = useMemo(() => {
@@ -150,6 +165,8 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
 
     return fields
   }, [data, grouperLibId])
+
+  console.log('data: ', data)
 
   return (
     <>
