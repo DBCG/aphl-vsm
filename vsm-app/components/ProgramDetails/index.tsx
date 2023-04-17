@@ -4,7 +4,7 @@ import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails, Result } from '@/hooks/useGetProgramDetails'
-import { ProgramDetailTable } from '@/components/ProgramDetailTable'
+import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
 import { useSession } from 'next-auth/react'
@@ -96,7 +96,7 @@ const ProgramDetails = () => {
           />
         )}
       </Row>
-      <ProgramDetailTable
+      <GrouperOverviewTable
         toggleRefreshData={toggleRefreshData}
         data={programAndGrouperInfo?.grouperData}
         grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}

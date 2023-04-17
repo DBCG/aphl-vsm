@@ -33,14 +33,14 @@ const ButtonContainer = styled.div`
   margin: 16px 0;
 `
 
-interface ProgramDetTable {
+interface GrouperTable {
   data: GrouperItem[]
   toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
   programStatus: fhir4.Library['status']
 }
 
-const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshData }: ProgramDetTable) => {
+const GrouperOverviewTable = ({ data, grouperLibId, programStatus, toggleRefreshData }: GrouperTable) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -195,4 +195,4 @@ const ProgramDetailTable = ({ data, grouperLibId, programStatus, toggleRefreshDa
   )
 }
 
-export { ProgramDetailTable }
+export { GrouperOverviewTable }
