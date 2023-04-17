@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 
-const useGetGroups = (programId: string): [] | fhir4.ValueSet[] => {
+interface GroupArgs {
+  programId: string
+  refreshToggle?: Boolean
+}
+
+const useGetGroups = ({ programId, refreshToggle }: GroupArgs): [] | fhir4.ValueSet[] => {
   const [groups, setGroups] = useState([])
 
   useEffect(() => {
@@ -16,6 +21,8 @@ const useGetGroups = (programId: string): [] | fhir4.ValueSet[] => {
           console.error(json.error)
           setGroups([])
         } else {
+          console.log('json: ', json);
+
           setGroups(json)
         }
       } catch (e) {
@@ -24,7 +31,7 @@ const useGetGroups = (programId: string): [] | fhir4.ValueSet[] => {
       }
     }
     void getGroups()
-  }, [programId])
+  }, [programId, refreshToggle])
 
   return groups
 }
