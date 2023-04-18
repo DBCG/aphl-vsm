@@ -1,4 +1,3 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
@@ -30,7 +29,6 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
   if (programLibrary.status) {
     searchParams.status = programLibrary.status
   }
-
 
   const grouperLibrarySearchBundle = await fhirCdrClient.search({
     resourceType: 'Library',
