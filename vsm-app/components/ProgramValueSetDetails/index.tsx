@@ -23,6 +23,7 @@ import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Id, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, customStyles } from './styles'
 import { NextRouter } from 'next/router'
+import { Tooltip } from '../Tooltip'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -313,7 +314,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       {
         name: (
           <div>
-            <SelectInputTitle>OID</SelectInputTitle>
+            <SelectInputTitle>OID<Tooltip info="Must search by entire oid"/></SelectInputTitle>
             <FilterInput
               onChange={(e) => {
                 // @ts-ignore-next-line
@@ -323,8 +324,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             />
           </div>
         ),
-        id: 'vs-name-search',
-        selector: (row: TableRow) => row.valueSet.url.split('/ValueSet/')[1],
+        id: 'vs-oid-search',
+        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
         sortable: false,
         maxWidth: '360px',
         wrap: true

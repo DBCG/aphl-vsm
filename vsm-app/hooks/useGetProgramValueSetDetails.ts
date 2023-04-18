@@ -65,6 +65,8 @@ const useGetProgramValueSetDetails = ({
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
 
+  console.log('find in oid: ', findInOid);
+
   useEffect(() => {
     async function getData(): Promise<void> {
       if (!id) {
@@ -140,6 +142,7 @@ const useGetProgramValueSetDetails = ({
     findInVsName,
     findInVersion,
     findInSteward,
+    findInOid,
     activeGroups,
     activeConditions,
     updatedGrouperValueSets,
