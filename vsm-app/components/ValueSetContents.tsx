@@ -9,11 +9,11 @@ import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
 import { Form, TitleRow } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
-import { InputRow } from '@/styles'
 import { Result } from '@/types/grouperTypes'
 import { InputRow, InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
 import { useRouter } from 'next/router'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -100,6 +100,7 @@ export default function ValueSetContents({
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   // const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
 
   const {
     version: defaultGrouperVersion,

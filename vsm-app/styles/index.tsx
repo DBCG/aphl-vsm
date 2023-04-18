@@ -51,6 +51,7 @@ export const FlexRow = styled.div`
   flex-direction: row;
   align-items: center;
   width: 100%;
+`
 
 export const InputContainer = styled.div`
   display: flex;
