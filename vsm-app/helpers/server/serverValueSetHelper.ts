@@ -158,7 +158,6 @@ export const fetchLeafValueSets = async ({
             self.findIndex((v2) => v2?.id === value?.id) === index
         ) as fhir4.ValueSet[]
     }
-    console.log('valuesets: ', valueSets);
 
     return valueSets
   } catch (e) {
