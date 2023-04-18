@@ -315,10 +315,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       {
         name: (
           <div>
-            <SelectInputTitle>
-              OID
-              <Tooltip info="Must search by entire oid. This will override other filters." />
-            </SelectInputTitle>
+            <SelectInputTitle>OID</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
                 // @ts-ignore-next-line
