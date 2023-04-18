@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
+import logger from '@/helpers/server/logger'
 
 const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
   const body = JSON.parse(req.body)
@@ -31,7 +32,7 @@ const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) 
     })
     res.status(200).send(updated)
   } catch (e) {
-    console.error('error: ', e)
+    logger.error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
 }

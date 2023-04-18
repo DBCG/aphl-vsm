@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import appCache from 'cache'
+import logger from '@/helpers/server/logger'
 
 interface Query {
   '_id:contains'?: string
@@ -22,7 +23,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
       if (cache?.status === 'ready') {
         const program = await cache?.get(programKey)
         if (program) {
-          console.log(`cache hit for ${programKey}`)
+          logger.debug(`cache hit for ${programKey}`)
           //TODO: shoudln't be in this array, need to fixup the apis
           return res.status(200).json([JSON.parse(program)])
         }
@@ -61,11 +62,11 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse) => {
 
       res.status(200).send(programs)
     } else {
-      console.error(searchResult)
+      logger.error(searchResult)
       res.status(404).send([])
     }
   } catch (e: any) {
-    console.error('error programs:  ', e?.response?.data?.text || e)
+    logger.error('error programs:  ', e?.response?.data?.text || e)
     res.status(400).json({ error: 'Search for program failed.' })
   }
 }

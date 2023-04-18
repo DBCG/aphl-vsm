@@ -4,6 +4,7 @@ import { splitCanonical } from '@/helpers/splitCanonical'
 import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion } from '@/helpers/valueSetHelpers'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
+import logger from '@/helpers/server/logger'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
@@ -53,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         grouperLibrary
       })
     } catch (e: any) {
-      console.error('error:  ', e)
+      logger.error('error:  ', e)
       res.status(400).json({ error: 'Search for grouper libraries failed.' })
     }
   }

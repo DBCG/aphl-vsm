@@ -6,6 +6,7 @@ import { splitCanonical } from '@/helpers/splitCanonical'
 import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import logger from '@/helpers/server/logger'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -35,7 +36,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    console.error('error:  ', e)
+    logger.error('error:  ', e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }

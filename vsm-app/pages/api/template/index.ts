@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { generateErrorMessage } from '@/helpers/server/generateErrorMessage'
+import logger from '@/helpers/server/logger'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -39,7 +40,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(response.status).json({ message: errorMessage })
     }
   } catch (e: any) {
-    console.error('error:  ', e)
+    logger.error('error:  ', e)
     return res.status(400).json({ message: 'Creation of new Library failed.' })
   }
 }

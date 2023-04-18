@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
+import logger from '@/helpers/server/logger'
 
 // this only gets the program library
 const expandProgram = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -36,7 +37,7 @@ const expandProgram = async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.status(200).send(response)
   } catch (e: any) {
-    console.error('error:  ', JSON.stringify(e, null, 2))
+    logger.error('error:  ', JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }
