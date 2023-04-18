@@ -77,8 +77,9 @@ interface FetchLeafs {
   stewardToFind?: string,
   versionToFind?: string,
   whitelistFields?: string[],
-  oidToFind?: string[],
+  oidToFind?: string,
 }
+
 export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
   nameToFind,
@@ -86,25 +87,38 @@ export const fetchLeafValueSets = async ({
   versionToFind,
   whitelistFields,
   oidToFind,
-}) => {
+}: FetchLeafs) => {
   let searchParams = {} as any
 
-  if (is.string(nameToFind)) {
-    searchParams['name:contains'] = nameToFind
-  }
+  let result = []
+  // searching by oid takes precedence over all other filters
+  // because you cannot search by a partial oid
+  if (oidToFind) {
+    const found = await fhirCdrClient.read({
+      resourceType: 'ValueSet',
+      id: oidToFind
+    })
 
-  if (is.string(stewardToFind)) {
-    searchParams['publisher:contains'] = stewardToFind
-  }
 
-  if (is.string(versionToFind)) {
-    searchParams['version:contains'] = versionToFind
-  }
-  if (whitelistFields) {
-    searchParams['_elements'] = whitelistFields.join(',')
-  }
-  try {
-    const result = await Promise.all(
+    result.push(found)
+
+  } else {
+    if (is.string(nameToFind)) {
+      searchParams['name:contains'] = nameToFind
+    }
+
+    if (is.string(stewardToFind)) {
+      searchParams['publisher:contains'] = stewardToFind
+    }
+
+    if (is.string(versionToFind)) {
+      searchParams['version:contains'] = versionToFind
+    }
+    if (whitelistFields) {
+      searchParams['_elements'] = whitelistFields.join(',')
+    }
+
+    result = await Promise.all(
       leafValueSetCanonicals.map((canonical) =>
         fhirCdrClient.search({
           resourceType: 'ValueSet',
@@ -116,26 +130,35 @@ export const fetchLeafValueSets = async ({
         })
       )
     )
+  }
 
-    const valueSets = result
-      ?.map((e) => {
-        if (e.entry) {
-          return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {
-            const resource = entry?.resource as fhir4.ValueSet
-            if (resource) {
-              // instead of returning whole valuesets, just return a portion of the data
-              return resource
-            }
-          })
-        }
-      })
-      ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter(
-        (value, index, self) =>
-          // filter out multiple ids
-          self.findIndex((v2) => v2?.id === value?.id) === index
-      ) as fhir4.ValueSet[]
+  try {
+    let valueSets
+
+    if (result.length === 1 && is.valueSet(result[0])) {
+      valueSets = result
+    } else {
+      valueSets = result
+        ?.map((e) => {
+          if (e.entry) {
+            return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {
+              const resource = entry?.resource as fhir4.ValueSet
+              if (resource) {
+                // instead of returning whole valuesets, just return a portion of the data
+                return resource
+              }
+            })
+          }
+        })
+        ?.flat()
+        ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+        ?.filter(
+          (value, index, self) =>
+            // filter out multiple ids
+            self.findIndex((v2) => v2?.id === value?.id) === index
+        ) as fhir4.ValueSet[]
+    }
+    console.log('valuesets: ', valueSets);
 
     return valueSets
   } catch (e) {

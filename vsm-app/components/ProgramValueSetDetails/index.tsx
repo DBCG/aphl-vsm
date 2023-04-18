@@ -221,6 +221,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }) || []
 
   const handleFilterChange = (e: string | MultiValue<any> | React.ChangeEvent<HTMLInputElement>, type: string) => {
+    if (typeof e === 'string') {
+      e = e.trim()
+    }
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
   }
@@ -314,7 +317,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       {
         name: (
           <div>
-            <SelectInputTitle>OID<Tooltip info="Must search by entire oid"/></SelectInputTitle>
+            <SelectInputTitle>
+              OID
+              <Tooltip info="Must search by entire oid. This will override other filters." />
+            </SelectInputTitle>
             <FilterInput
               onChange={(e) => {
                 // @ts-ignore-next-line

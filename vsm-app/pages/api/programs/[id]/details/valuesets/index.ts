@@ -171,6 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   nameToFind,
                   stewardToFind,
                   versionToFind,
+                  oidToFind,
                   whitelistFields: WHITELIST_VALUESET_FIELDS
                 }
                 )
