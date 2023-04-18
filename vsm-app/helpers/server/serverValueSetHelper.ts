@@ -62,7 +62,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
           leafValueSetCanonicals.push(...leafUrlsInGrouper)
         })
         if (leafValueSetCanonicals.length) {
-          const res = await fetchLeafValueSets(leafValueSetCanonicals)
+          const res = await fetchLeafValueSets({ leafValueSetCanonicals })
           return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values
         }
       }

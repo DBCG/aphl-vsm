@@ -158,7 +158,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   }
                 })
               })
-              // })
 
               if (leafValueSetCanonicals.length) {
                 const nameToFind = req.query.findInVsName as string | undefined
