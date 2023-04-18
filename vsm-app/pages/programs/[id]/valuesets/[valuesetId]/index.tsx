@@ -10,7 +10,7 @@ const ValueSetPageView = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
-  const { programAndGrouperData } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>(null)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -30,7 +30,7 @@ const ValueSetPageView = () => {
       fetchValueSet()
     }
   }, [router.query.valuesetId, toggleUpdateData])
-  if (!currentValueSet) {
+  if (!currentValueSet || programAndGrouperDataLoading) {
     return <LoadingIndicator />
   }
 

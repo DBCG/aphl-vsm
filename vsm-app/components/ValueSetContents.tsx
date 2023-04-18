@@ -7,7 +7,7 @@ import DataTable from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
-import { Form, TitleRow } from './ProgramMetadata/styles'
+import { Form } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
 import { InputRow, InputContainer, ButtonContainer } from '@/styles'
@@ -102,8 +102,6 @@ export default function ValueSetContents({
   const [fieldsUpdated, setFieldsUpdated] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
 
-  console.log('program and grouper info: ', programAndGrouperInfo)
-
   const {
     version: defaultGrouperVersion,
     description: defaultGrouperDescription,
@@ -114,9 +112,6 @@ export default function ValueSetContents({
   // could be multiple authors maybe?
   const defaultGrouperAuthor =
     valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))?.valueContactDetail?.name || ''
-
-  console.log('default author ', defaultGrouperAuthor)
-  console.log('valueset.extension', valueSet.extension)
 
   const [updatedGrouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
   const [updatedGrouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
@@ -220,10 +215,9 @@ export default function ValueSetContents({
     })
 
     if (submitResponse.ok) {
-      console.log('ok')
       setToggleUpdateData((t: boolean) => !t)
     } else {
-      console.log('response: ', submitResponse)
+      toast.error('Failed to update grouper')
     }
     setIsEditing(false)
   }

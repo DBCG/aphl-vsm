@@ -18,6 +18,7 @@ import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import cloneDeep from 'lodash.clonedeep'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -467,14 +468,12 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (!originalVsBundle.entry) {
-      console.log('not found')
       return res.status(404).send({ message: 'Grouper not found' })
     }
 
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     const grouperToSubmit = updateGrouperWithMetadata({ vsToUpdate: grouperToEdit, metadata })
-    console.log('grouper to submit: ', grouperToSubmit.extension);
 
     const grouperUpdated = await fhirCdrClient.update({
       resourceType: 'ValueSet',
@@ -485,18 +484,16 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (is.operationOutcome(grouperUpdated)) {
-      console.log('error here')
       return res.status(500).send({ message: 'Error updating grouper' })
     }
 
     // if version wasn't changed, route is done
     if (!metadata.version) {
-      console.log('no version')
       return res.status(200).send({ message: `Grouper ${grouperId} updated` })
     }
 
     // if version was changed, need to update this in the program library
-    const program = await fhirCdrClient.search({
+    const programSearchResult = await fhirCdrClient.search({
       resourceType: 'Library',
       searchParams: {
         _id: programId,
@@ -504,63 +501,52 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
       }
     })
 
-    console.log('program: ', program);
-
+    const program = programSearchResult?.entry?.[0]?.resource
 
     if (!is.library(program)) {
-      console.log('no library')
       return res.status(500).send({ message: 'Could not find program' })
     }
 
     const grouperLibCanonical = getGrouperLibraryCanonical(program)
 
+    if (!grouperLibCanonical) {
+      return res.status(500).send({ message: 'Could not find grouper library' })
+    }
 
+    const grouperLibraryResult = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams: {
+        url: grouperLibCanonical,
+        status: 'draft'
+      }
+    })
 
-    console.log('req: ', req);
-    console.log('body: ', body);
-    console.log('grouper canonical: ', grouperLibCanonical);
+    const grouperLib = grouperLibraryResult?.entry?.[0]?.resource
 
-    // if version isn't edited, just update the grouper
+    if (!is.library(grouperLib)) {
+      console.error('Grouper library not found')
+      return res.status(500).send({ message: 'Could not find grouper library' })
+    }
 
-    // if version is edited, you also need to update the program lib's references
-    // to the grouper valuesets
+    const clonedGrouper = cloneDeep(grouperLib)
+
+    const resourceCanonicalToAdd = grouperToEdit.url.split('|')[0].concat(`|${metadata.version}`)
+    // remove this grouper's canonical
+    const filteredRelatedArtifact = clonedGrouper?.relatedArtifact
+      ?.filter(art => !(art.type === 'composed-of' && art.resource?.includes(grouperLibCanonical))) || []
+
+    const updatedComposeInclude = [...filteredRelatedArtifact, resourceCanonicalToAdd]
+
+    clonedGrouper.relatedArtifact = updatedComposeInclude
+
+    const submitGrouperLibrary = await fhirCdrClient.update({
+      resourceType: 'Library',
+      id: clonedGrouper.id,
+      body: clonedGrouper
+    })
+
     return res.status(200).send({})
 
-    const {
-      description,
-      version,
-      publisher,
-      purpose
-    } = body
-
-    const groupersToUpdate = []
-    for (const grouperC of grouperCanonicals) {
-      const grouperValueSetBundle = (await fhirCdrClient.search({
-        resourceType: 'ValueSet',
-        searchParams: {
-          url: grouperC
-        }
-      })) as fhir4.Bundle
-
-      // there is an issue in the sample data where grouper valuesets have the exact same url
-      const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
-
-      if (grouperVsToUpdate) {
-        const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
-
-        groupersToUpdate.push(updatedGrouper)
-        await Promise.all(
-          groupersToUpdate.map((grouperVs) =>
-            fhirCdrClient.update({
-              resourceType: 'ValueSet',
-              id: grouperVs.id,
-              body: grouperVs
-            })
-          )
-        )
-      }
-    }
-    return res.status(200).send(groupersToUpdate)
   } catch (e) {
     logSimpleHapiError(e)
     res.status(400).send({ error: 'error' })
