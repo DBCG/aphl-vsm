@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
+import logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
 
 const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse) => {
   const session = <VSMSession>await getSession(res)
-
   const methodFn = methodHandlers[req.method as string]
+  logger.info(`Request: ${req?.url} ${req?.method}}`)
   if (methodFn == null) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
