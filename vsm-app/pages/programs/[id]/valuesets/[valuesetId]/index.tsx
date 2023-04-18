@@ -9,11 +9,16 @@ import { VSMSession, can } from '@/helpers/rolesHelper'
 const ValueSetPageView = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
-  const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>()
+  const [toggleUpdateData, setToggleUpdateData] = useState(false)
+  const { programAndGrouperData } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+  const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>(null)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const enableEditing = programAndGrouperInfo?.program?.status === 'active' || can(session, 'edit')
+  const enableEditing = programAndGrouperData?.program?.status === 'active' || can(session, 'edit')
+
+  const handleToggleUpdateData = () => {
+    setToggleUpdateData((t) => !t)
+  }
 
   useEffect(() => {
     const fetchValueSet = async () => {
@@ -24,15 +29,16 @@ const ValueSetPageView = () => {
     if (router.query.valuesetId) {
       fetchValueSet()
     }
-  }, [router.query.valuesetId])
+  }, [router.query.valuesetId, toggleUpdateData])
   if (!currentValueSet) {
     return <LoadingIndicator />
   }
 
   return (
     <ValueSetContents
+      setToggleUpdateData={handleToggleUpdateData}
       programId={programId}
-      programAndGrouperInfo={programAndGrouperInfo}
+      programAndGrouperInfo={programAndGrouperData}
       valueSet={currentValueSet}
       enableEditing={enableEditing}
     />

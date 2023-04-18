@@ -474,7 +474,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     const grouperToSubmit = updateGrouperWithMetadata({ vsToUpdate: grouperToEdit, metadata })
-    console.log('grouper to submit: ', grouperToSubmit);
+    console.log('grouper to submit: ', grouperToSubmit.extension);
 
     const grouperUpdated = await fhirCdrClient.update({
       resourceType: 'ValueSet',

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, Box, Tab, Tooltip, Typography } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
@@ -9,11 +9,10 @@ import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
 import { Form, TitleRow } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
-import { Result } from '@/types/grouperTypes'
+import { ProgramDetails } from '@/types/grouperTypes'
 import { InputRow, InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
 import { useRouter } from 'next/router'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -33,7 +32,8 @@ interface ExpansionTableData {
 }
 
 interface ValueSetContentsProps {
-  programAndGrouperInfo: Result
+  programAndGrouperInfo: ProgramDetails
+  setToggleUpdateData: () => void
   valueSet: fhir4.ValueSet
   programId: string
   enableEditing: boolean
@@ -89,7 +89,8 @@ interface Error {
 }
 
 export default function ValueSetContents({
-  grouperLibrary,
+  programAndGrouperInfo,
+  setToggleUpdateData,
   valueSet,
   isDraftProgram = false,
   programId,
@@ -98,9 +99,10 @@ export default function ValueSetContents({
   const [value, setValue] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
-  // const isDraftProgram = programAndGrouperInfo?.program?.status === 'draft'
+  const [fieldsUpdated, setFieldsUpdated] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
-  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
+
+  console.log('program and grouper info: ', programAndGrouperInfo)
 
   const {
     version: defaultGrouperVersion,
@@ -109,15 +111,43 @@ export default function ValueSetContents({
     purpose: defaultGrouperPurpose
   } = valueSet
 
-  // could be multiple authors... should handle this
+  // could be multiple authors maybe?
   const defaultGrouperAuthor =
-    valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StrutureDefinition/valueset-author'))?.valueContactDetail?.name || ''
+    valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))?.valueContactDetail?.name || ''
+
+  console.log('default author ', defaultGrouperAuthor)
+  console.log('valueset.extension', valueSet.extension)
 
   const [updatedGrouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
   const [updatedGrouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
   const [updatedGrouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
   const [updatedGrouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
   const [updatedGrouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
+
+  useEffect(() => {
+    if (
+      defaultGrouperVersion?.trim() !== updatedGrouperVersion?.trim() ||
+      defaultGrouperDescription?.trim() !== updatedGrouperDescription?.trim() ||
+      defaultGrouperPurpose?.trim() !== updatedGrouperPurpose?.trim() ||
+      defaultGrouperPublisher?.trim() !== updatedGrouperPublisher?.trim() ||
+      defaultGrouperAuthor?.trim() !== updatedGrouperAuthor?.trim()
+    ) {
+      setFieldsUpdated(true)
+    } else {
+      setFieldsUpdated(false)
+    }
+  }, [
+    updatedGrouperVersion,
+    updatedGrouperDescription,
+    updatedGrouperPurpose,
+    updatedGrouperPublisher,
+    updatedGrouperAuthor,
+    defaultGrouperVersion,
+    defaultGrouperDescription,
+    defaultGrouperPurpose,
+    defaultGrouperPublisher,
+    defaultGrouperAuthor
+  ])
 
   const [error, setError] = useState<null | Error>(null)
 
@@ -127,7 +157,13 @@ export default function ValueSetContents({
     return <LoadingIndicator />
   }
 
-  const resetValues = () => {}
+  const resetValues = () => {
+    setGrouperVersion(defaultGrouperVersion)
+    setGrouperDescription(defaultGrouperDescription)
+    setGrouperPurpose(defaultGrouperPurpose)
+    setGrouperPublisher(defaultGrouperPublisher)
+    setGrouperAuthor(defaultGrouperAuthor)
+  }
 
   const submitGrouperUpdates = async () => {
     const metadataItems = {
@@ -185,9 +221,11 @@ export default function ValueSetContents({
 
     if (submitResponse.ok) {
       console.log('ok')
+      setToggleUpdateData((t: boolean) => !t)
     } else {
       console.log('response: ', submitResponse)
     }
+    setIsEditing(false)
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -265,7 +303,6 @@ export default function ValueSetContents({
         sortable: true,
         wrap: true
       },
-
       {
         name: 'Code',
         selector: (row: any) => row?.code!,
@@ -291,7 +328,13 @@ export default function ValueSetContents({
         <Form>
           <PageTitle>{currentValueSet.title}</PageTitle>
           <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput id="prog-name" label="ID" readonly={true} def={currentValueSet.id} placeholder={'No valueset id set'} />
+            <SearchInput
+              id="prog-id"
+              label="Program ID"
+              readonly={true}
+              def={programAndGrouperInfo?.program?.id || 'No ID found'}
+              placeholder={'No valueset id set'}
+            />
             {isDraftProgram && (
               <Typography
                 style={{
@@ -307,7 +350,13 @@ export default function ValueSetContents({
             )}
           </InputRow>
           <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput id="prog-name" label="Grouper ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
+            <SearchInput
+              id="prog-name"
+              label="Program Name"
+              readonly={true}
+              def={programAndGrouperInfo?.program?.name || 'No name found'}
+              placeholder={'No valueset id set'}
+            />
           </InputRow>
           <InputRow style={{ width: '100%', backgroundColor: 'white', paddingTop: '12px', paddingBottom: '12px' }}>
             <SearchInput
@@ -344,12 +393,13 @@ export default function ValueSetContents({
                     text="Cancel"
                     style={{ backgroundColor: 'darkGray' }}
                     onClick={(e) => {
+                      resetValues()
                       e.preventDefault()
                       setIsEditing(false)
-                      resetValues()
                     }}
                   />
                   <Button
+                    disabled={!fieldsUpdated}
                     text="Save Changes"
                     onClick={async (e) => {
                       e.preventDefault()
@@ -365,7 +415,7 @@ export default function ValueSetContents({
                 label="Grouper Version"
                 readonly={!isEditing}
                 value={updatedGrouperVersion}
-                def={valueSet.version}
+                def={defaultGrouperVersion}
                 placeholder={'No valueset version set'}
                 onChange={(e) => setGrouperVersion(e.target.value)}
               />
@@ -377,7 +427,7 @@ export default function ValueSetContents({
                 minWidth={650}
                 readonly={!isEditing}
                 value={updatedGrouperPublisher}
-                def={valueSet.publisher}
+                def={defaultGrouperPublisher}
                 placeholder={'No valueset publisher set'}
                 onChange={(e) => setGrouperPublisher(e.target.value)}
               />
@@ -387,7 +437,7 @@ export default function ValueSetContents({
                 minWidth={650}
                 readonly={!isEditing}
                 value={updatedGrouperAuthor}
-                def={valueSet.url}
+                def={defaultGrouperAuthor}
                 placeholder={'No valueset author set'}
                 onChange={(e) => setGrouperAuthor(e.target.value)}
               />
@@ -399,7 +449,7 @@ export default function ValueSetContents({
                 minWidth={650}
                 readonly={!isEditing}
                 value={updatedGrouperPurpose}
-                def={valueSet.purpose}
+                def={defaultGrouperPurpose}
                 placeholder={'No valueset purpose set'}
                 onChange={(e) => setGrouperPurpose(e.target.value)}
               />
@@ -411,7 +461,7 @@ export default function ValueSetContents({
                 minWidth={650}
                 readonly={!isEditing}
                 value={updatedGrouperDescription}
-                def={valueSet.description}
+                def={defaultGrouperDescription}
                 placeholder={'No valueset description set'}
                 onChange={(e) => setGrouperDescription(e.target.value)}
               />
