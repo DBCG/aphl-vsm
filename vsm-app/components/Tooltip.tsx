@@ -1,48 +1,20 @@
-import styled from 'styled-components'
+import React from 'react'
 import Image from 'next/image'
-
-const TooltipContainer = styled.div`
-  position: absolute;
-  bottom: 18px;
-  background-color: white;
-  padding: 2px 8px;
-  width: 150px;
-  display: none;
-  z-index: 9000;
-`
-
-const InfoContainer = styled.div`
-  position: relative;
-  transform: translateY(-8px);
-  &:hover {
-    cursor: pointer;
-  }
-  &:hover ${TooltipContainer} {
-    display: unset;
-  }
-`
-
-const ToolTipText = styled.p`
-  font-size: 12px;
-`
+import Tt from '@mui/material/Tooltip'
+import { IconButton } from '@mui/material'
 
 interface Props {
-  info?: string,
+  info?: string
 }
 
-const Tooltip = ({
-  info,
-}: Props) => {
+const Tooltip = ({ info }: Props) => {
   return (
-        <InfoContainer>
-          <Image width={16} height={16} alt='' src='/images/information-circle.svg' />
-          <TooltipContainer>
-            <ToolTipText>
-              {info}
-            </ToolTipText>
-          </TooltipContainer>
-        </InfoContainer>
-      )}
-
+    <Tt placement="right" title={info}>
+      <IconButton style={{ margin: '-24px 0 0 -10px' }}>
+        <Image width={16} height={16} alt="" src="/images/information-circle.svg" />
+      </IconButton>
+    </Tt>
+  )
+}
 
 export { Tooltip }

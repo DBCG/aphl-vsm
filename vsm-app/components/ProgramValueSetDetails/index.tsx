@@ -23,6 +23,7 @@ import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Id, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, customStyles } from './styles'
 import { NextRouter } from 'next/router'
+import { Tooltip } from '../Tooltip'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -56,6 +57,7 @@ interface ProgramValueSetDetailsProps {
 }
 
 const DEFAULT_FILTERS = {
+  findInOid: '',
   findInVsName: '',
   findInSteward: '',
   findInVersion: '',
@@ -217,6 +219,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }) || []
 
   const handleFilterChange = (e: string | MultiValue<any> | React.ChangeEvent<HTMLInputElement>, type: string) => {
+    if (typeof e === 'string') {
+      e = e.trim()
+    }
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
   }
@@ -309,6 +314,25 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       },
       {
         name: (
+          <div>
+            <SelectInputTitle>OID</SelectInputTitle>
+            <FilterInput
+              onChange={(e) => {
+                // @ts-ignore-next-line
+                handleFilterChange(e.target.value, 'findInOid')
+              }}
+              style={{ height: '30px' }}
+            />
+          </div>
+        ),
+        id: 'vs-oid-search',
+        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
+        sortable: false,
+        maxWidth: '360px',
+        wrap: true
+      },
+      {
+        name: (
           <div style={{ display: 'flex', flexDirection: 'row' }}>
             <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Version</SelectInputTitle>
           </div>
@@ -316,7 +340,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         id: 'vs-version-search',
         selector: (row: TableRow) => row.version,
         sortable: false,
-        maxWidth: '180px',
+        maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
           if (progValueSetDets.programStatus === 'active') {

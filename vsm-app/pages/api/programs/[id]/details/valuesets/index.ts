@@ -158,19 +158,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   }
                 })
               })
-              // })
 
               if (leafValueSetCanonicals.length) {
-                const stringToFind = req.query.findInVsName as string | undefined
+                const nameToFind = req.query.findInVsName as string | undefined
                 const stewardToFind = req.query.findInSteward as string | undefined
                 const versionToFind = req.query.findInVersion as string | undefined
+                const oidToFind = req.query.findInOid as string | undefined
 
-                leafValueSets = await fetchLeafValueSets(
+                leafValueSets = await fetchLeafValueSets({
                   leafValueSetCanonicals,
-                  stringToFind,
+                  nameToFind,
                   stewardToFind,
                   versionToFind,
-                  WHITELIST_VALUESET_FIELDS
+                  oidToFind,
+                  whitelistFields: WHITELIST_VALUESET_FIELDS
+                }
                 )
               }
             }

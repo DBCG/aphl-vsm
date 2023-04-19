@@ -62,7 +62,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
           leafValueSetCanonicals.push(...leafUrlsInGrouper)
         })
         if (leafValueSetCanonicals.length) {
-          const res = await fetchLeafValueSets(leafValueSetCanonicals)
+          const res = await fetchLeafValueSets({ leafValueSetCanonicals })
           return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values
         }
       }
@@ -70,44 +70,65 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
   }
   return []
 }
-export const fetchLeafValueSets = async (
-  canonicals: string[],
-  nameStr?: string,
-  stewardStr?: string,
-  versionStr?: string,
-  whitelistFields?: string[]
-) => {
+
+interface FetchLeafs {
+  leafValueSetCanonicals: string[],
+  nameToFind?: string,
+  stewardToFind?: string,
+  versionToFind?: string,
+  whitelistFields?: string[],
+  oidToFind?: string,
+}
+
+export const fetchLeafValueSets = async ({
+  leafValueSetCanonicals,
+  nameToFind,
+  stewardToFind,
+  versionToFind,
+  whitelistFields,
+  oidToFind,
+}: FetchLeafs) => {
   let searchParams = {} as any
 
-  if (is.string(nameStr)) {
-    searchParams['name:contains'] = nameStr
+  let result = []
+
+  if (is.string(nameToFind)) {
+    searchParams['name:contains'] = nameToFind
   }
 
-  if (is.string(stewardStr)) {
-    searchParams['publisher:contains'] = stewardStr
+  if (is.string(stewardToFind)) {
+    searchParams['publisher:contains'] = stewardToFind
   }
 
-  if (is.string(versionStr)) {
-    searchParams['version:contains'] = versionStr
+  if (is.string(versionToFind)) {
+    searchParams['version:contains'] = versionToFind
   }
+
+  if (is.string(oidToFind)) {
+    searchParams['_url:contains'] = oidToFind
+  }
+
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
-  try {
-    const result = await Promise.all(
-      canonicals.map((canonical) =>
-        fhirCdrClient.search({
-          resourceType: 'ValueSet',
-          searchParams: {
-            url: canonical,
-            status: 'active',
-            ...searchParams
-          }
-        })
-      )
-    )
 
-    const valueSets = result
+  result = await Promise.all(
+    leafValueSetCanonicals.map((canonical) =>
+      fhirCdrClient.search({
+        resourceType: 'ValueSet',
+        searchParams: {
+          url: canonical,
+          status: 'active',
+          ...searchParams
+        }
+      })
+    )
+  )
+
+  try {
+    let valueSets
+
+    valueSets = result
       ?.map((e) => {
         if (e.entry) {
           return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {

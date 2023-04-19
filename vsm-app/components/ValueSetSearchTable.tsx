@@ -20,7 +20,7 @@ import { formatValuesetDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
-import { SelectedValueSet, SelectedGrouper, SelectedCondition } from '@/types/grouperTypes'
+import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 
 const searchTypes = [
   { label: 'OID', value: 'oid' },
@@ -29,7 +29,7 @@ const searchTypes = [
 ] as const
 
 const searchInfoText = {
-  oid: 'OID search supports a comma-delimited list, max 100 OIDs',
+  oid: 'OID search supports a comma-delimited list, max 100 OIDs. Search here requires an entire OID instead of partial.',
   name: 'Name search finds full or partial matches within VS name',
   url: 'URL search requires a full URL'
 }

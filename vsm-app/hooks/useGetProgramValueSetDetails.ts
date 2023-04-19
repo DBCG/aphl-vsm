@@ -42,6 +42,7 @@ interface Args {
   id: string
   findInVsName?: string
   findInVersion?: string
+  findInOid?: string
   findInSteward?: string
   activeGroups?: [] | Group[]
   activeConditions?: [] | ConditionItem[]
@@ -53,6 +54,7 @@ interface Args {
 const useGetProgramValueSetDetails = ({
   id,
   findInVsName,
+  findInOid,
   findInVersion,
   findInSteward,
   activeGroups,
@@ -83,6 +85,10 @@ const useGetProgramValueSetDetails = ({
 
       if (findInSteward?.length) {
         queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
+      }
+
+      if (findInOid?.length) {
+        queries.push(`findInOid=${encodeURIComponent(findInOid)}`)
       }
 
       if (activeGroups?.length) {
@@ -134,6 +140,7 @@ const useGetProgramValueSetDetails = ({
     findInVsName,
     findInVersion,
     findInSteward,
+    findInOid,
     activeGroups,
     activeConditions,
     updatedGrouperValueSets,
