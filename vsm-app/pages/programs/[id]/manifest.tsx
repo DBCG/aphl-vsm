@@ -73,6 +73,17 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
   return availableVersionOptions
 }
 
+interface UpdateManifest {
+  currentSelectedData: any
+  action: 'add' | 'delete'
+  id?: string
+  version?: string
+}
+
+const getIdFromSystem = (system: string): string => {
+  return system?.split?.('/')?.slice?.(-1)?.[0] || ''
+}
+
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
@@ -101,20 +112,19 @@ const EditManifestDetails = () => {
     }
   }, [programId, manifestData])
 
-  const updateManifest = async (upToDateManifestData: any, didDelete?: boolean) => {
+  const updateManifest = async ({ currentSelectedData, action, id, version }: UpdateManifest) => {
+    console.log('current selected data: ', currentSelectedData)
+
     const manifestEndpoint = `/api/programs/${programId}/manifest`
     try {
       const mData = await fetch(manifestEndpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(upToDateManifestData)
+        body: JSON.stringify(currentSelectedData)
       }).then((res) => res.json())
       setCurrentSelectedData(mData)
-      if (didDelete) {
-        toast.success('Deleted Manifest Program Version Successfully')
-      } else {
-        toast.success('Added Manifest Program Version Successfully')
-      }
+      const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
+      toast.success(notificationTxt)
     } catch (err) {
       console.error(err)
       toast.error('Error adding manifest program version')
@@ -142,7 +152,8 @@ const EditManifestDetails = () => {
   const deleteFn = ({ system, version }: ManifestData) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
-    updateManifest(clonedcurrentSelectedData, true)
+    const deletedId = getIdFromSystem(system)
+    updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
   }
 
   return (
@@ -206,7 +217,13 @@ const EditManifestDetails = () => {
                       onClick={() => {
                         const clonedcurrentSelectedData = structuredClone(currentSelectedData)
                         clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
-                        updateManifest(clonedcurrentSelectedData)
+
+                        updateManifest({
+                          currentSelectedData: clonedcurrentSelectedData,
+                          action: 'add',
+                          id: getIdFromSystem(selectedSystem),
+                          version: newVersion
+                        })
                       }}
                     />
                   )
