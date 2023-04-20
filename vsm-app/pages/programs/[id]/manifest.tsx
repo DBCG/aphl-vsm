@@ -8,10 +8,8 @@ import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
-import LoadingIndicator from '@/components/LoadingIndicator'
 import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
@@ -74,7 +72,7 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
 }
 
 interface UpdateManifest {
-  currentSelectedData: any
+  currentSelectedData: ManifestDataMap
   action: 'add' | 'delete'
   id?: string
   version?: string
@@ -113,8 +111,6 @@ const EditManifestDetails = () => {
   }, [programId, manifestData])
 
   const updateManifest = async ({ currentSelectedData, action, id, version }: UpdateManifest) => {
-    console.log('current selected data: ', currentSelectedData)
-
     const manifestEndpoint = `/api/programs/${programId}/manifest`
     try {
       const mData = await fetch(manifestEndpoint, {
