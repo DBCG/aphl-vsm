@@ -185,9 +185,13 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   setEnableEditing(false)
                 }}
               />
+
               <Button
                 disabled={!formTouched || Boolean(error)}
-                style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
+                style={{
+                  ...buttonStyles,
+                  backgroundColor: 'var(--theme-300)'
+                }}
                 text={'Save Changes'}
                 type="submit"
                 onClick={async (e) => {
