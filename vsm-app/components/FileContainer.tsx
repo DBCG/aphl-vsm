@@ -10,10 +10,10 @@ const Container = styled.div`
 const FileBody = styled.div`
   width: 100%;
   background-color: rgba(255, 255, 255, 0.6);
-  min-height: 500px;
   padding: 32px 36px;
   position: relative;
   backdrop-filter: blur(8px);
+  min-height: calc(100vh - 150px);
 `
 
 interface FileContainerProps {
