@@ -17,11 +17,12 @@ import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 
+const endWrapPx = 900
+
 export const customStyles = {
   table: {
     style: {
-      minHeight: '100px',
-      minWidth: '600px' // override the row height
+      minHeight: '100px'
     }
   },
   headCells: {
@@ -51,8 +52,17 @@ const FlexRow = styled.div`
 const DataTableContainer = styled.div`
   display: flex;
   justify-content: flex-start;
-  flex-wrap: wrap;
   gap: 36px;
+  @media (max-width: ${endWrapPx}px) {
+    flex-wrap: wrap;
+  }
+`
+
+const MaxWidthContainer = styled.div`
+  min-width: 300px;
+  @media (max-width: ${endWrapPx}px) {
+    min-width: 100%;
+  }
 `
 
 const CodesystemSelectContainer = styled.div`
@@ -178,11 +188,10 @@ const EditManifestDetails = () => {
         />
       </CodesystemSelectContainer>
       <DataTableContainer>
-        <div>
+        <MaxWidthContainer>
           <StyledLabel>Available Versions</StyledLabel>
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
-            style={{ width: '500px' }}
             highlightOnHover
             columns={[
               {
@@ -193,6 +202,7 @@ const EditManifestDetails = () => {
               },
               {
                 name: 'Versions',
+                maxWidth: '120px',
                 selector: (row) => row,
                 sortable: true,
                 wrap: true
@@ -221,12 +231,19 @@ const EditManifestDetails = () => {
             customStyles={customStyles}
             pagination
             paginationPerPage={10}
+            className="detail-table"
           />
-        </div>
-        <div>
+        </MaxWidthContainer>
+        <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
-          <ManifestDetailTable customStyles={customStyles} data={currentSelectedData} loading={manifestLoading} deleteFn={deleteFn} />
-        </div>
+          <ManifestDetailTable
+            className="detail-table"
+            customStyles={customStyles}
+            data={currentSelectedData}
+            loading={manifestLoading}
+            deleteFn={deleteFn}
+          />
+        </MaxWidthContainer>
       </DataTableContainer>
     </>
   )
