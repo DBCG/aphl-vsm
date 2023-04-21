@@ -116,6 +116,18 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentUser: ''
   })
   useEffect(() => {
+    let target: string = ''
+    const url = programAndGrouperInfo?.program?.url
+    const version = programAndGrouperInfo?.program?.version
+    if (!!url) {
+      target += url
+    }
+    if (!!version) {
+      if (!!url) {
+        target += '|'
+      }
+      target += version
+    }
     setApprovalFormData({
       approvalDate: new Date(),
       endorserName: '',
@@ -124,7 +136,7 @@ const ApproveInfoForm: NextPage = () => {
       endorserContactValue: '',
       artifactCommentType: 'comment',
       artifactCommentText: '',
-      artifactCommentTarget: programAndGrouperInfo?.program?.url || '',
+      artifactCommentTarget: target || '',
       artifactCommentReference: '',
       artifactCommentUser: ''
     })
@@ -304,13 +316,7 @@ const ApproveInfoForm: NextPage = () => {
             value={approvalFormData.artifactCommentText}
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
-          <SearchInput
-            id="target"
-            label="Target"
-            placeholder={programAndGrouperInfo?.program?.id}
-            value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}
-          />
+          <SearchInput id="target" label="Target" def={approvalFormData.artifactCommentTarget} readonly={true} />
           <SearchInput
             id="reference"
             label="Reference"
