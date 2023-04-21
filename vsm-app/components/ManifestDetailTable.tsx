@@ -1,6 +1,7 @@
-import DataTable from 'react-data-table-component'
+import DataTable, { TableStyles } from 'react-data-table-component'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
+import { NameRecord } from '@/pages/programs/[id]/manifest'
 
 export interface ManifestData {
   system: string
@@ -20,9 +21,24 @@ const prepData = (data: ManifestDataMap) => {
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading }: any) => {
+interface Props {
+  deleteFn: (arg0: ManifestData) => void
+  customStyles: TableStyles
+  data: ManifestDataMap
+  loading: boolean
+  memoizedNames: NameRecord
+}
+
+const ManifestDetailTable = ({ deleteFn, customStyles, data: manifestData, loading, memoizedNames }: Props) => {
   const preppedData = prepData(manifestData)
   const columns = [
+    {
+      name: 'Name',
+      maxWidth: '200px',
+      selector: (row: ManifestData) => memoizedNames[row.system!],
+      sortable: true,
+      wrap: true
+    },
     {
       omit: !deleteFn,
       maxWidth: '50px',

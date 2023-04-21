@@ -67,7 +67,7 @@ const CodesystemSelectContainer = styled.div`
   margin-bottom: 36px;
 `
 
-interface ManifestDataMap {
+export interface ManifestDataMap {
   [key: string]: string[]
 }
 
@@ -88,6 +88,15 @@ interface UpdateManifest {
   version?: string
 }
 
+interface SysSelectItem {
+  uri: string
+  name: string
+}
+
+export interface NameRecord {
+  [key: string]: string
+}
+
 const getIdFromSystem = (system: string): string => {
   return system?.split?.('/')?.slice?.(-1)?.[0] || ''
 }
@@ -96,7 +105,7 @@ const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
-  const [systemSelections, setSystemSelections] = useState([])
+  const [systemSelections, setSystemSelections] = useState<SysSelectItem[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
@@ -155,6 +164,16 @@ const EditManifestDetails = () => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
 
+  const systemNameByUri = useMemo(() => {
+    const namesByUri: NameRecord = {}
+    if (systemSelections.length) {
+      systemSelections.forEach((e) => {
+        namesByUri[e.uri] = e.name
+      })
+    }
+    return namesByUri
+  }, [systemSelections])
+
   const deleteFn = ({ system, version }: ManifestData) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
@@ -201,6 +220,12 @@ const EditManifestDetails = () => {
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
             highlightOnHover
             columns={[
+              {
+                name: 'Name',
+                selector: () => systemNameByUri[selectedSystem],
+                sortable: true,
+                wrap: true
+              },
               {
                 name: 'System',
                 selector: () => selectedSystem,
@@ -250,6 +275,7 @@ const EditManifestDetails = () => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           <ManifestDetailTable
+            memoizedNames={systemNameByUri}
             className="detail-table"
             customStyles={customStyles}
             data={currentSelectedData}
