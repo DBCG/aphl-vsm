@@ -22,11 +22,11 @@ const prepData = (data: ManifestDataMap) => {
 }
 
 interface Props {
-  deleteFn: (arg0: ManifestData) => void
-  customStyles: TableStyles
   data: ManifestDataMap
   loading: boolean
-  memoizedNames: NameRecord
+  deleteFn?: (arg0: ManifestData) => void
+  customStyles?: TableStyles
+  memoizedNames?: NameRecord
 }
 
 const ManifestDetailTable = ({ deleteFn, customStyles, data: manifestData, loading, memoizedNames }: Props) => {
@@ -35,9 +35,10 @@ const ManifestDetailTable = ({ deleteFn, customStyles, data: manifestData, loadi
     {
       name: 'Name',
       maxWidth: '200px',
-      selector: (row: ManifestData) => memoizedNames[row.system!],
+      selector: (row: ManifestData) => memoizedNames && memoizedNames[row.system!],
       sortable: true,
       wrap: true
+      // omit: Boolean(manifestData)
     },
     {
       omit: !deleteFn,

@@ -276,7 +276,6 @@ const EditManifestDetails = () => {
           <StyledLabel>Current Manifest</StyledLabel>
           <ManifestDetailTable
             memoizedNames={systemNameByUri}
-            className="detail-table"
             customStyles={customStyles}
             data={currentSelectedData}
             loading={manifestLoading}
