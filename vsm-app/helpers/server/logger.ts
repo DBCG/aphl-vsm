@@ -4,16 +4,16 @@ import pretty from 'pino-pretty'
 import fs from 'fs'
 
 let logger: Pino.Logger
-const logPath = process.env.LOG_PATH || '/var/log/containers/middleware.log'
-if (process.env.ENABLE_LOGGING?.toLowerCase() === 'true') {
+
+if (process.env.LOG_PATH) {
+  // Deployed environment should be something like this '/var/log/containers'
   // Check if directory is present, if not create it
-  const logDir = logPath.substring(0, logPath.lastIndexOf('/'))
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true })
+  const logPath = process.env.LOG_PATH
+  if (!fs.existsSync(logPath)) {
+    fs.mkdirSync(logPath, { recursive: true })
   }
-  const streams = [{ stream: process.stdout }, { stream: fs.createWriteStream(logPath, { flags: 'a' }) }]
+  const streams = [{ stream: process.stdout }, { stream: fs.createWriteStream(logPath + '/output.log', { flags: 'a' }) }]
   logger = Pino.pino({}, Pino.multistream(streams))
-  logger.level = process.env.LOG_LEVEL || 'debug'
 } else {
   logger = Pino.pino(pretty())
 }
