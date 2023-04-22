@@ -8,6 +8,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
   const methodFn = methodHandlers[req.method as string]
   logger.info(`Request: ${req?.method} ${req?.url}`)
   if (methodFn == null) {
+    logger.error(`${req.method} not allowed for ${req.url}`)
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
