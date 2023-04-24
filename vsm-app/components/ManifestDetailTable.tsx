@@ -49,7 +49,8 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       name: 'Name',
       selector: (row: ManifestData) => getNameByUri(row.system!, allSystemNamesByUri),
       sortable: true,
-      wrap: true
+      wrap: true,
+      maxWidth: '200px'
     },
     {
       name: 'System',
