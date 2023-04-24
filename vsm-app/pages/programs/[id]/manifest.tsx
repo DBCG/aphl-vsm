@@ -8,12 +8,13 @@ import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
-import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
+import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
 
 const endWrapPx = 900
 
@@ -67,10 +68,6 @@ const CodesystemSelectContainer = styled.div`
   margin-bottom: 36px;
 `
 
-interface ManifestDataMap {
-  [key: string]: string[]
-}
-
 // Removes already selected versions from the available list
 const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelectedData: ManifestDataMap, selectedSystem: string) => {
   const availableVersionOptions = availableVersions[selectedSystem]
@@ -81,38 +78,54 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
   return availableVersionOptions
 }
 
-interface UpdateManifest {
-  currentSelectedData: ManifestDataMap
-  action: 'add' | 'delete'
-  id?: string
-  version?: string
-}
-
 const getIdFromSystem = (system: string): string => {
   return system?.split?.('/')?.slice?.(-1)?.[0] || ''
+}
+
+export const namesByUri = (systemVersionData: SystemSelection[]) => {
+  const result = {} as ResultMap
+  if (systemVersionData.length) {
+    systemVersionData.forEach((item) => {
+      result[item.uri] = item.name
+    })
+  }
+  return result
+}
+
+export const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
+  const match = namesByUri[uri]
+  return match || ''
 }
 
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
-  const [systemSelections, setSystemSelections] = useState([])
+  const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
-  const { data = {}, isLoading, error } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
+  const [systemNamesByUri, setSystemNamesByUri] = useState({})
+  const {
+    data: systemAndVersionData = [],
+    isLoading,
+    error
+  } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
 
   useEffect(() => {
-    if (Object.keys(data).length > 0) {
-      setSystemSelections(data)
+    if (systemAndVersionData.length > 0) {
+      setSystemSelections(systemAndVersionData)
+      const sysNamesByUri = namesByUri(systemAndVersionData)
+
+      setSystemNamesByUri(sysNamesByUri)
     } else if (error || manifestError) {
       toast.error(manifestError || 'Error retrieving Code System data from VSAC')
     }
     setPageLoading(isLoading)
-  }, [isLoading, data, error, manifestError])
+  }, [isLoading, systemAndVersionData, error, manifestError])
 
   useEffect(() => {
     if (Object.keys(manifestData).length !== 0) {
@@ -155,7 +168,7 @@ const EditManifestDetails = () => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
 
-  const deleteFn = ({ system, version }: ManifestData) => {
+  const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
@@ -201,6 +214,12 @@ const EditManifestDetails = () => {
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
             highlightOnHover
             columns={[
+              {
+                name: 'Name',
+                selector: () => getNameByUri(selectedSystem, systemNamesByUri),
+                sortable: true,
+                wrap: true
+              },
               {
                 name: 'System',
                 selector: () => selectedSystem,
@@ -250,6 +269,7 @@ const EditManifestDetails = () => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           <ManifestDetailTable
+            programId={programId}
             className="detail-table"
             customStyles={customStyles}
             data={currentSelectedData}
