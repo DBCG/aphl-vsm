@@ -138,7 +138,6 @@ const EditManifestDetails = () => {
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
-      console.log('sys names by uri: ', sysNamesByUri)
 
       setSystemNamesByUri(sysNamesByUri)
     } else if (error || manifestError) {
