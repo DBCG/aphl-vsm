@@ -8,13 +8,13 @@ import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
-import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
+import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
-import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest } from '@/types/manifestTypes'
+import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
 
 const endWrapPx = 900
 
@@ -168,7 +168,7 @@ const EditManifestDetails = () => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
 
-  const deleteFn = ({ system, version }: ManifestData) => {
+  const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)

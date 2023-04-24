@@ -25,7 +25,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
     {
       omit: !deleteFn,
       maxWidth: '50px',
-      cell: (removeVersion: ManifestData) => {
+      cell: (removeVersion: ManifestSystemVersionPair) => {
         return (
           <IconButton
             onClick={() => deleteFn(removeVersion)}
@@ -39,20 +39,20 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
     },
     {
       name: 'Name',
-      selector: (row: ManifestData) => getNameByUri(row.system!, allSystemNamesByUri),
+      selector: (row: ManifestSystemVersionPair) => getNameByUri(row.system!, allSystemNamesByUri),
       sortable: true,
       wrap: true,
       maxWidth: '200px'
     },
     {
       name: 'System',
-      selector: (row: ManifestData) => row.system!,
+      selector: (row: ManifestSystemVersionPair) => row.system!,
       sortable: true,
       wrap: true
     },
     {
       name: 'Version',
-      selector: (row: ManifestData) => row.version!,
+      selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
       wrap: true
     }
