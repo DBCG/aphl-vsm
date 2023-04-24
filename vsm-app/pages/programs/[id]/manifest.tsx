@@ -14,6 +14,7 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row, Id } from '@/styles'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest } from '@/types/manifestTypes'
 
 const endWrapPx = 900
 
@@ -67,10 +68,6 @@ const CodesystemSelectContainer = styled.div`
   margin-bottom: 36px;
 `
 
-interface ManifestDataMap {
-  [key: string]: string[]
-}
-
 // Removes already selected versions from the available list
 const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelectedData: ManifestDataMap, selectedSystem: string) => {
   const availableVersionOptions = availableVersions[selectedSystem]
@@ -81,24 +78,8 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
   return availableVersionOptions
 }
 
-interface UpdateManifest {
-  currentSelectedData: ManifestDataMap
-  action: 'add' | 'delete'
-  id?: string
-  version?: string
-}
-
 const getIdFromSystem = (system: string): string => {
   return system?.split?.('/')?.slice?.(-1)?.[0] || ''
-}
-
-interface SystemSelection {
-  name: string
-  uri: string
-}
-
-interface ResultMap {
-  [key: string]: string
 }
 
 export const namesByUri = (systemVersionData: SystemSelection[]) => {
