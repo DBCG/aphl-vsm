@@ -97,6 +97,25 @@ interface SystemSelection {
   uri: string
 }
 
+interface ResultMap {
+  [key: string]: string
+}
+
+export const namesByUri = (systemVersionData: SystemSelection[]) => {
+  const result = {} as ResultMap
+  if (systemVersionData.length) {
+    systemVersionData.forEach((item) => {
+      result[item.uri] = item.name
+    })
+  }
+  return result
+}
+
+export const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
+  const match = namesByUri[uri]
+  return match || ''
+}
+
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
@@ -105,6 +124,7 @@ const EditManifestDetails = () => {
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
+  const [systemNamesByUri, setSystemNamesByUri] = useState({})
   const {
     data: systemAndVersionData = [],
     isLoading,
@@ -117,6 +137,10 @@ const EditManifestDetails = () => {
   useEffect(() => {
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
+      const sysNamesByUri = namesByUri(systemAndVersionData)
+      console.log('sys names by uri: ', sysNamesByUri)
+
+      setSystemNamesByUri(sysNamesByUri)
     } else if (error || manifestError) {
       toast.error(manifestError || 'Error retrieving Code System data from VSAC')
     }
@@ -211,6 +235,12 @@ const EditManifestDetails = () => {
             highlightOnHover
             columns={[
               {
+                name: 'Name',
+                selector: () => getNameByUri(selectedSystem, systemNamesByUri),
+                sortable: true,
+                wrap: true
+              },
+              {
                 name: 'System',
                 selector: () => selectedSystem,
                 sortable: true,
@@ -259,6 +289,7 @@ const EditManifestDetails = () => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           <ManifestDetailTable
+            programId={programId}
             className="detail-table"
             customStyles={customStyles}
             data={currentSelectedData}
