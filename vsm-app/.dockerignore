@@ -1,6 +1,30 @@
-node_modules
-.next
-.swc
-README.MD
-.gitignore
-.env.local
+# Ignore everything
+*
+
+# Allow files and directories
+!/helpers
+!/components
+!/hooks
+!/pages
+!/public
+!/styles
+!/worker
+!/types
+!.babelrc
+!cache.ts
+!fhirClientOptions.ts
+!fhirClients.ts
+!middleware.ts
+!next-env.d.ts
+!next.config.js
+!tsconfig.json
+!utils.ts
+!package.json
+!package-lock.json
+
+# Ignore unnecessary files inside allowed directories
+# This should go after the allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db

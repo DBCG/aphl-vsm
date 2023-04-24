@@ -7,6 +7,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
 import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 import handler from '@/helpers/server/handler'
+import logger from '@/helpers/server/logger'
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
@@ -14,7 +15,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 
     res.status(200).send(response)
   } catch (e) {
-    console.error(e)
+    logger.error(e)
     res.status(400).json({ error: 'Loading ValueSets failed' })
   }
 }
@@ -97,7 +98,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
                   vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
                 } else {
-                  console.error('no match found')
+                  logger.error('no match found')
                   res.status(400).json({ error: `no match found` })
                 }
               } else {
@@ -148,10 +149,10 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       )
 
       const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
-      console.error('failed updates: ', failedUpdates)
+      logger.error('failed updates: ', failedUpdates)
       res.status(400).json({ error: 'failed to update valueSet' })
     } catch (e) {
-      console.error('error 3', e)
+      logger.error('error 3', e)
     }
 
     // get groupers
@@ -189,7 +190,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
         })
       )
     } catch (e) {
-      console.error('error 4: ', e)
+      logger.error('error 4: ', e)
       res.status(400).json({ error: 'failed to update valueSet' })
     }
 

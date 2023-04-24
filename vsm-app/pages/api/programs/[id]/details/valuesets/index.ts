@@ -4,6 +4,7 @@ import { is } from '@/helpers/is'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { DataItem, Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
+import logger from '@/helpers/server/logger'
 
 // Items in the table
 interface Group {
@@ -250,7 +251,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       return res.status(200).send(composedResponse)
     } catch (e: any) {
-      console.error('error:  ', e)
+      logger.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
   }

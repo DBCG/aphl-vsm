@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import appCache from 'cache'
+import logger from '@/helpers/server/logger'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
@@ -17,7 +18,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     }).then((res) => res?.json())
 
     if (!libraryUpdateResponse) {
-      console.error('error updating library', libraryUpdateResponse)
+      logger.error('error updating library', libraryUpdateResponse)
       return res.status(400).json(libraryUpdateResponse)
     }
     cache?.set(`Library/${libraryUpdateResponse.id}`, JSON.stringify(libraryUpdateResponse))
@@ -31,7 +32,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     })
 
     if (!response.ok) {
-      console.error('error', response.status, response.statusText)
+      logger.error('error', response.status, response.statusText)
       return res.status(response.status).json({ error: response.statusText })
     }
     return res.send(response)

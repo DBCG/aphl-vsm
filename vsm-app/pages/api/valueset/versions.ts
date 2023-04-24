@@ -2,6 +2,7 @@ import { updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
+import logger from '@/helpers/server/logger'
 
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
@@ -31,7 +32,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
     if (!latestValueSetBundle?.entry) {
       // there was no result, return
-      console.error('no entry')
+      logger.error('no entry')
       return res.status(404).json({ message: `Could not find ValueSet with url ${vsCanonical}` })
     } else {
       terminologyClient.setClient(terminologyInfo.value.toLowerCase())
@@ -69,7 +70,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       }
     }
   } catch (e) {
-    console.error('error: ', e)
+    logger.error('error: ', e)
   }
   // return
   const groupersToUpdate = await Promise.all(

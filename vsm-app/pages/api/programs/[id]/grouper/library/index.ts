@@ -1,9 +1,9 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { editComposeInclude } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
+import logger from '@/helpers/server/logger'
 
 interface EditingInfo {
   action: 'remove' | 'add'
@@ -56,16 +56,16 @@ const updateGrouperLibrary = async (req: NextApiRequest, res: NextApiResponse) =
         // because the connection is severed at the Library level, but still warn
         // as this will create orphaned ValueSets in the data
         if (!deleted?.ok) {
-          console.error(`Failed to delete ValueSet ${editingInfo.vsId}`)
+          logger.error(`Failed to delete ValueSet ${editingInfo.vsId}`)
         }
         return res.status(200).send(updated)
       } else {
-        console.error(`Failed to update grouper lib ${grouperLib.name}`)
+        logger.error(`Failed to update grouper lib ${grouperLib.name}`)
         return res.status(400).send({ error: 'Update failed' })
       }
     }
   } catch (e) {
-    console.error('error: ', e)
+    logger.error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
 }

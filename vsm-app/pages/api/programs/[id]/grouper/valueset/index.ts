@@ -15,6 +15,7 @@ import { updateConditions } from '@/helpers/conditionHelpers'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
+import logger from '@/helpers/server/logger'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -58,7 +59,7 @@ const updateGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     return res.status(200).send(groupersToUpdate)
   } catch (e) {
-    console.error('error: ', e)
+    logger.error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
 }
@@ -83,7 +84,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
       const { errorMessage } = error
-      console.error(`Error found at location ${location}`)
+      logger.error(`Error found at location ${location}`)
       throw new Error(errorMessage)
     }
 

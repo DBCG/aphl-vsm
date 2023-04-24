@@ -2,6 +2,7 @@ import { is } from '@/helpers/is'
 import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import logger from '@/helpers/server/logger'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
@@ -25,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: id
       })
     } catch (e) {
-      console.error('error here is: ', e)
+      logger.error('error here is: ', e)
       // if error thrown, return
       return res.status(401).json({ error: `Error finding ValueSet with id ${id}.` })
     }
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json(versions)
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       return res.status(405).json({ error: `Error: ${id}.` })
     }
   } else if (req.method === 'PUT') {
@@ -102,10 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ message: 'Update valueset versions completed' })
     } catch (e) {
-      console.error(e)
+      logger.error(e)
     }
   } else {
-    console.error(`Method '${req.method} not supported.'`)
+    logger.error(`Method '${req.method} not supported.'`)
     res.status(405).json({ error: 'Method not allowed.' })
   }
 }

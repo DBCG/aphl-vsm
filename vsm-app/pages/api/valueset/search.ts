@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import retry from 'helpers/retryRequest'
 import { SearchParams } from 'fhir-kit-client'
-import { is } from '@/helpers/is';
+import { is } from '@/helpers/is'
+import logger from '@/helpers/server/logger'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
@@ -47,14 +48,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       offset?: string
       terminologyServer: 'vsac' | 'ontoserverR4'
     } = req.query
-    const responseInfo:SearchResponse = {
+    const responseInfo: SearchResponse = {
       valueSets: [],
       total: null,
-      first:null,
-      next:null,
-      previous:null,
-      last:null
-    } 
+      first: null,
+      next: null,
+      previous: null,
+      last: null
+    }
     try {
       // set the terminology client to be VSAC or other
       terminologyClient.setClient(terminologyServer)
@@ -71,15 +72,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
           if (activeTerminologyClient) {
             try {
-              const serverResponse = await retry(() =>
-                activeTerminologyClient.search({
-                  resourceType: 'ValueSet',
-                  searchParams,
-                  options: {
-                    // @ts-ignore
-                    signal: AbortSignal.timeout(30000)
-                  }
-                }) as Promise<fhir4.Bundle>
+              const serverResponse = await retry(
+                () =>
+                  activeTerminologyClient.search({
+                    resourceType: 'ValueSet',
+                    searchParams,
+                    options: {
+                      // @ts-ignore
+                      signal: AbortSignal.timeout(30000)
+                    }
+                  }) as Promise<fhir4.Bundle>
               )
 
               if (serverResponse.entry) {
@@ -103,7 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 // will just fallback to the default responseInfo {}
               }
             } catch (e) {
-              console.error(e)
+              logger.error(e)
               responseInfo.error = {
                 errorType: 'server-error',
                 message: `Search for '${search}' failed.`
@@ -122,17 +124,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const oidList: string[] = search?.split(',')
           if (activeTerminologyClient) {
             try {
-              responseInfo.valueSets = (await Promise.allSettled(
-                oidList.map((oid: string) =>
-                  activeTerminologyClient.read({
-                    resourceType: 'ValueSet',
-                    id: oid
-                  }) as Promise<fhir4.ValueSet>
+              responseInfo.valueSets = (
+                await Promise.allSettled(
+                  oidList.map(
+                    (oid: string) =>
+                      activeTerminologyClient.read({
+                        resourceType: 'ValueSet',
+                        id: oid
+                      }) as Promise<fhir4.ValueSet>
+                  )
                 )
-              ))
-              ?.filter(is.promiseFulfilled) 
-              ?.map(val => val.value)
-              ?.filter((vs) => vs.status === 'active')
+              )
+                ?.filter(is.promiseFulfilled)
+                ?.map((val) => val.value)
+                ?.filter((vs) => vs.status === 'active')
 
               const successfulOIDs = responseInfo?.valueSets?.map((v) => v?.id)
               responseInfo.total = successfulOIDs.length
@@ -152,7 +157,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 }
               }
             } catch (e) {
-              console.error(e)
+              logger.error(e)
               responseInfo.error = {
                 errorType: 'oid-error',
                 message: `Search by OID failed.`
@@ -179,10 +184,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
           if (activeTerminologyClient) {
             try {
-              const serverResponse = await activeTerminologyClient.search({
+              const serverResponse = (await activeTerminologyClient.search({
                 resourceType: 'ValueSet',
                 searchParams
-              }) as fhir4.Bundle
+              })) as fhir4.Bundle
 
               if (serverResponse.entry) {
                 responseInfo.valueSets = serverResponse.entry.map((item: any) => {
@@ -197,7 +202,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 responseInfo.last = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url) || null
               }
             } catch (e) {
-              console.error(e)
+              logger.error(e)
               responseInfo.error = {
                 errorType: 'server-error',
                 message: `Search for '${search}' in url failed.`
@@ -215,7 +220,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).send(responseInfo)
       return
     } catch (e) {
-      console.error('error:  ', e)
+      logger.error('error:  ', e)
       res.status(400).json({ 'server-error': 'ValueSet search failed.' })
       return
     }

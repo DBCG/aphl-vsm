@@ -10,27 +10,27 @@ import {
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
 import { HapiError } from '@/types/hapiError'
+import logger from '@/helpers/server/logger'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
-
   if (is.string(req?.query?.id)) {
     try {
-      const lib = await fhirCdrClient.read({
+      const lib = (await fhirCdrClient.read({
         resourceType: 'Library',
         id: req.query.id as string
-      }) as fhir4.Library
+      })) as fhir4.Library
 
       res.status(200).send(lib)
       return
     } catch (e: any) {
       const error = e as HapiError
-      console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+      logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
       res.status(error.response?.status).json({ error: 'Search for program by id failed.' })
       return
     }
   } else {
-    console.error('error: Invalid program ID')
+    logger.error('error: Invalid program ID')
     res.status(400).json({ error: 'Search for program by id failed.' })
     return
   }
@@ -39,16 +39,16 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
 const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
   try {
     // update the program by id
-    const response = await fhirCdrClient.update<fhir4.Library>({
+    const response = (await fhirCdrClient.update<fhir4.Library>({
       resourceType: 'Library',
       id: req.query['id'] as string,
       body: req.body
-    }) as fhir4.Library
+    })) as fhir4.Library
     res.send(response)
     return
   } catch (e: any) {
     const error = e as HapiError
-    console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
     res.status(error.response?.status).json({ error: `Error updating program by ID` })
     return
   }
@@ -59,7 +59,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
     // if the user does not want to change the id of the FHIR Library
     // simply update the values in the existing resource
     if (req.body.status === 'active') {
-      console.error('Cannot edit an active Program Library')
+      logger.error('Cannot edit an active Program Library')
       res.status(405).send({ error: 'Not allowed' })
       return
     }
@@ -116,11 +116,10 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
           body: req.body
         })
         .then((newLibraryData) => {
-          return fhirCdrClient
-            .delete({
-              resourceType: 'Library',
-              id: req.query.id as string
-            })
+          return fhirCdrClient.delete({
+            resourceType: 'Library',
+            id: req.query.id as string
+          })
         })
         .then((data) => {
           res.send(data)
@@ -129,7 +128,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
     }
   } catch (e: any) {
     const error = e as HapiError
-    console.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
     res.status(error.response?.status).json({ error: `Error changing ID` })
     return
   }
