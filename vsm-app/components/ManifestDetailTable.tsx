@@ -58,7 +58,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       wrap: true
     },
     {
-      name: 'Versions',
+      name: 'Version',
       selector: (row: ManifestData) => row.version!,
       sortable: true,
       wrap: true
