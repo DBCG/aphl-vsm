@@ -18,9 +18,15 @@ interface UpdateManifest {
   version?: string
 }
 
+interface ManifestSystemVersionPair {
+  system: string
+  version: string
+}
+
 export type {
   SystemSelection,
   ResultMap,
   ManifestDataMap,
-  UpdateManifest
+  UpdateManifest,
+  ManifestSystemVersionPair
 }

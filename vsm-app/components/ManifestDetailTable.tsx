@@ -4,19 +4,11 @@ import LoadingIndicator from './LoadingIndicator'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
-
-export interface ManifestData {
-  system: string
-  version: string
-}
-
-interface ManifestDataMap {
-  [key: string]: string[]
-}
+import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
-  const preparedData: ManifestData[] = []
+  const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {
     value?.forEach((version) => preparedData.push({ system, version }))
   })
