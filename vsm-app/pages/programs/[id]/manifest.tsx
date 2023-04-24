@@ -92,27 +92,36 @@ const getIdFromSystem = (system: string): string => {
   return system?.split?.('/')?.slice?.(-1)?.[0] || ''
 }
 
+interface SystemSelection {
+  name: string
+  uri: string
+}
+
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
-  const [systemSelections, setSystemSelections] = useState([])
+  const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
-  const { data = {}, isLoading, error } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
+  const {
+    data: systemAndVersionData = [],
+    isLoading,
+    error
+  } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
 
   useEffect(() => {
-    if (Object.keys(data).length > 0) {
-      setSystemSelections(data)
+    if (systemAndVersionData.length > 0) {
+      setSystemSelections(systemAndVersionData)
     } else if (error || manifestError) {
       toast.error(manifestError || 'Error retrieving Code System data from VSAC')
     }
     setPageLoading(isLoading)
-  }, [isLoading, data, error, manifestError])
+  }, [isLoading, systemAndVersionData, error, manifestError])
 
   useEffect(() => {
     if (Object.keys(manifestData).length !== 0) {
