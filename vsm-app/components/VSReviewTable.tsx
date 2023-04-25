@@ -91,6 +91,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       cell: (row: FlatGrouperVSet) => {
         return (
           <IconButton
+            deletedItemDescription={`valueset with id ${row.selectedValueSet.id} and version ${row.selectedValueSet.version}`}
             type="button"
             onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
             buttonContext="delete"

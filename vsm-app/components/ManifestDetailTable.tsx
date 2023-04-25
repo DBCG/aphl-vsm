@@ -25,10 +25,11 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
     {
       omit: !deleteFn,
       maxWidth: '50px',
-      cell: (removeVersion: ManifestSystemVersionPair) => {
+      cell: (row: ManifestSystemVersionPair) => {
         return (
           <IconButton
-            onClick={() => deleteFn(removeVersion)}
+            deletedItemDescription={`system "${row.system}" version ${row.version}`}
+            onClick={() => deleteFn(row)}
             buttonContext="delete"
             style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
           />

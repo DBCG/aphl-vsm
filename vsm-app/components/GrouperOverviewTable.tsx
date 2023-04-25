@@ -142,6 +142,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           return (
             <ButtonContainer>
               <IconButton
+                deletedItemDescription={`grouper "${row.title}" from Program ${programId}`}
                 onClick={async () => {
                   await deleteGrouper({
                     grouperLibId,
