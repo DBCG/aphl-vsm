@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
+import { InputLabel } from '@/components/InputLabel'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -165,7 +166,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
       <ButtonCol>
         {editable && !enableEditing && !formTouched ? (
           <ButtonContainer>
-            <Button style={{}} text={'Edit Metadata'} type="button" onClick={() => setEnableEditing(true)} />
+            <Button text={'Edit Metadata'} type="button" onClick={() => setEnableEditing(true)} />
           </ButtonContainer>
         ) : (
           <></>
@@ -175,7 +176,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             <RequiredWarning>* field required</RequiredWarning>
             <ButtonContainer style={{ alignItems: 'flex-end' }}>
               <Button
-                style={buttonStyles}
+                style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
                 text={'Cancel'}
                 type="button"
                 onClick={(e) => {
@@ -185,15 +186,20 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   setEnableEditing(false)
                 }}
               />
+
               <Button
                 disabled={!formTouched || Boolean(error)}
-                style={buttonStyles}
+                style={{
+                  ...buttonStyles,
+                  backgroundColor: 'var(--theme-300)'
+                }}
                 text={'Save Changes'}
                 type="submit"
                 onClick={async (e) => {
                   e.preventDefault()
                   await handleSubmit(editedProgram)
                   setEnableEditing(false)
+                  setFormTouched(false)
                 }}
               />
             </ButtonContainer>

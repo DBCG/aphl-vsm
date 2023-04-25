@@ -3,13 +3,13 @@ import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import Select, { Options, SingleValue } from 'react-select'
 import { PageTitle } from '@/components/Typography'
+import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
+import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
 import toast, { Toaster } from 'react-hot-toast'
-import { StyledLabel } from '@/components/InputLabel'
-import { StyledSpan } from '@/components/ProgramDetails/styles'
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -102,7 +102,8 @@ export interface approvalFormParams {
 
 const ApproveInfoForm: NextPage = () => {
   const router = useRouter()
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
+  const programId = router.query.id as string
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
   const [approvalFormData, setApprovalFormData] = React.useState<approvalFormParams>({
     approvalDate: new Date(),
     endorserName: '',

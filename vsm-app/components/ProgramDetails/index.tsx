@@ -3,39 +3,45 @@ import { useRouter } from 'next/router'
 import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { useGetProgramDetails, Result, ToString } from '@/hooks/useGetProgramDetails'
-import { ProgramDetailTable } from '@/components/ProgramDetailTable'
+import { ToString, useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
 import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { Row, Col, MetadataTitle, StatusTag, StyledSpan, ManifestContainer, IndicatorContainer } from './styles'
+import { Result } from '@/types/grouperTypes'
+import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
+import { StyledSpan } from '@/styles'
+import { useGetProgramById } from '@/hooks/useGetProgramById'
+import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { approvalFormParams } from '@/pages/programs/[id]/approve'
 import { ApprovalDetailList } from '../ApprovalDetailList'
-import { approvalFormParams } from 'pages/programs/[id]/approve'
 
 const ProgramDetails = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string) as Result
+  const programId = router.query.id as string
   const [program, setProgram] = useState<fhir4.Library>()
   const [assessments, setAssessments] = useState<ToString<Partial<approvalFormParams>>[]>([])
+  const [refreshData, setRefreshData] = useState(false)
+  const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
+  const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
+  const fetchedProgram = useGetProgramById({ programId })
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
+  const toggleRefreshData = () => {
+    setRefreshData(!refreshData)
+  }
+
   useEffect(() => {
     // Set initial program
-    if (is.library(programAndGrouperInfo?.program)) {
-      setProgram(programAndGrouperInfo?.program)
+    if (is.library(fetchedProgram)) {
+      setProgram(fetchedProgram)
     }
-  }, [programAndGrouperInfo.program])
-  useEffect(() => {
-    // Set initial assessments
-    if (programAndGrouperInfo?.artifactAssessments?.length) {
-      setAssessments(programAndGrouperInfo?.artifactAssessments)
-    }
-  }, [programAndGrouperInfo.artifactAssessments])
+  }, [programId, fetchedProgram])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
     await updateProgram(submittedProgram)
@@ -85,7 +91,7 @@ const ProgramDetails = () => {
           <StyledSpan>Program Manifest</StyledSpan>
           <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable data={programAndGrouperInfo?.manifestData} />
+        <ManifestDetailTable programId={programId} data={manifestData} loading={manifestLoading} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
@@ -98,11 +104,11 @@ const ProgramDetails = () => {
           />
         )}
       </Row>
-      <ProgramDetailTable
-        data={programAndGrouperInfo?.grouperData}
+      <GrouperOverviewTable
+        toggleRefreshData={toggleRefreshData}
         grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
         // @ts-ignore-next-line
-        programStatus={programAndGrouperInfo?.program?.status || {}}
+        programStatus={programAndGrouperInfo?.program?.status}
       />
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
         <Col style={{ width: 'auto' }}>

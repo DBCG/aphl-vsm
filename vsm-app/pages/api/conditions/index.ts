@@ -1,6 +1,6 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
+import logger from '@/helpers/server/logger'
 
 // this only gets the program library
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const valueSet = data?.entry?.[0]?.resource?.compose?.include
       res.status(200).send(valueSet)
     } catch (e: any) {
-      console.error('error:  ', e?.response?.data?.text)
+      logger.error('error:  ', e?.response?.data?.text)
       res.status(400).json({ error: 'Search for conditions valueset failed.' })
     }
   }

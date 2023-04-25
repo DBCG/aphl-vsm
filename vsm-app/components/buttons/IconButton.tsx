@@ -2,7 +2,7 @@ import React from 'react'
 import styled from 'styled-components'
 import Image from 'next/image'
 
-const StyledButton = styled.button`
+const StyledButton = styled.button<IButtonProps>`
   height: 36px;
   width: 36px;
   border-radius: 50%;

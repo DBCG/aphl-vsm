@@ -4,19 +4,13 @@ import { is } from '@/helpers/is'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { DataItem, Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
+import logger from '@/helpers/server/logger'
 
 // Items in the table
 interface Group {
   id: string
   title: string
   url: string
-}
-
-interface FormattedVSItem {
-  system: string
-  version: string
-  code: string
-  display?: string
 }
 
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
@@ -65,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       // get all grouperValueSet canonicals
       if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-
         const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
         const grouperValueSetCanonicals = grouperLib.relatedArtifact
@@ -119,7 +112,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
           // get all grouperValueSet canonicals
           if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
-
             const grouperLib = grouperSearchResult?.entry?.[0]?.resource as fhir4.Library
 
             const grouperValueSetCanonicals = grouperLib.relatedArtifact
@@ -167,19 +159,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                   }
                 })
               })
-              // })
 
               if (leafValueSetCanonicals.length) {
-                const stringToFind = req.query.findInVsName as string | undefined
+                const nameToFind = req.query.findInVsName as string | undefined
                 const stewardToFind = req.query.findInSteward as string | undefined
                 const versionToFind = req.query.findInVersion as string | undefined
+                const oidToFind = req.query.findInOid as string | undefined
 
-                leafValueSets = await fetchLeafValueSets(
+                leafValueSets = await fetchLeafValueSets({
                   leafValueSetCanonicals,
-                  stringToFind,
+                  nameToFind,
                   stewardToFind,
                   versionToFind,
-                  WHITELIST_VALUESET_FIELDS
+                  oidToFind,
+                  whitelistFields: WHITELIST_VALUESET_FIELDS
+                }
                 )
               }
             }
@@ -193,6 +187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         .map((valueSet) => {
           const leafVsCanonical = Object?.keys(groupsByValueSetCanonical)?.find((k) => k === valueSet.url)
           const groupsVsBelongsTo = groupsByValueSetCanonical[leafVsCanonical || 'Undefined']
+          //@ts-ignore looks like a bug either in how this was originally typed or defaultValueSetVersion is wrong
           const valueSetPinnedVersion = groupsVsBelongsTo?.[0]?.defaultValueSetVersion
 
           let result = {
@@ -254,10 +249,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         groupsInProgram: allGrouperVSets
       }
 
-
       return res.status(200).send(composedResponse)
     } catch (e: any) {
-      console.error('error:  ', e)
+      logger.error('error:  ', e)
       res.status(400).json({ error: 'Search for leaf valueset details failed.' })
     }
   }

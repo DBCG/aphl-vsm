@@ -281,21 +281,4 @@ const Programs: NextPage = () => {
   )
 }
 
-export async function getServerSideProps(context: GetSessionParams) {
-  const session = await getSession(context)
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permanent: false
-      }
-    }
-  }
-
-  return {
-    props: { session }
-  }
-}
-
 export default Programs

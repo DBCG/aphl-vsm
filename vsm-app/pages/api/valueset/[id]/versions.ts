@@ -2,11 +2,9 @@ import { is } from '@/helpers/is'
 import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import logger from '@/helpers/server/logger'
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-): Promise<any> {
+export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   if (req.method === 'GET') {
     // create library template
     let response
@@ -28,7 +26,7 @@ export default async function handler(
         id: id
       })
     } catch (e) {
-      console.error('error here is: ', e)
+      logger.error('error here is: ', e)
       // if error thrown, return
       return res.status(401).json({ error: `Error finding ValueSet with id ${id}.` })
     }
@@ -47,66 +45,68 @@ export default async function handler(
       return res.status(404).json({ error: `No maching terminology server found for query.` })
     }
 
-    terminologyClient.setClient(terminologySource)  // TS: at this point source's a string
+    terminologyClient.setClient(terminologySource as 'vsac' | 'ontoserverR4') // TS: at this point source's a string
     // if the terminology server exists, set the terminology server to use that data source
     const terminologyClientInstance = terminologyClient.getClient()
 
     let matchingVSetsFromTermServer
-    let versions
 
     try {
       // a FHIR search should yield all versions if given
       matchingVSetsFromTermServer = await terminologyClientInstance?.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: response?.url?.split('|')?.[0],
+          url: response?.url?.split('|')?.[0] as string,
           ...searchParams
         }
       })
 
       // map through each valueSet and if version exists, keep it in an array
       // filter out any undefined values
-      versions = matchingVSetsFromTermServer?.entry?.map((e: fhir4.BundleEntry) => e?.resource?.version)
-        ?.filter(x => x)
+      const versions = matchingVSetsFromTermServer?.entry
+        ?.map((e: fhir4.BundleEntry) => {
+          const vs = e?.resource as fhir4.ValueSet
+          return vs?.version
+        })
+        ?.filter((x: string | undefined) => x)
 
       return res.status(200).json(versions)
     } catch (e) {
-      console.error(e)
+      logger.error(e)
       return res.status(405).json({ error: `Error: ${id}.` })
     }
-
   } else if (req.method === 'PUT') {
     try {
       const body = await req.body
       const { vsCanonical, vsVersion, grouperIds } = body
 
-      const groupersToUpdate = await Promise.all(grouperIds.map((grouperVs: string) => (
-        fhirCdrClient.read({
-          resourceType: 'ValueSet',
-          id: grouperVs.id,
-        })
-      )))
+      const groupersToUpdate = await Promise.all(
+        grouperIds.map((grouperVsId: string) =>
+          fhirCdrClient.read({
+            resourceType: 'ValueSet',
+            id: grouperVsId
+          })
+        )
+      )
 
       const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
-      await Promise.all(updatedGroupers.map((grouperVs: fhir4.ValueSet) => (
-        fhirCdrClient.update({
-          resourceType: 'ValueSet',
-          id: grouperVs.id,
-          body: grouperVs
-        })
-      )))
+      await Promise.all(
+        updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
+          fhirCdrClient.update({
+            resourceType: 'ValueSet',
+            id: grouperVs.id,
+            body: grouperVs
+          })
+        )
+      )
 
       res.status(200).json({ message: 'Update valueset versions completed' })
-
     } catch (e) {
-      console.error(e)
+      logger.error(e)
     }
-
-
-
   } else {
-    console.error(`Method '${req.method} not supported.'`)
+    logger.error(`Method '${req.method} not supported.'`)
     res.status(405).json({ error: 'Method not allowed.' })
   }
 }

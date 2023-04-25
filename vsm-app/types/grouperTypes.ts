@@ -1,4 +1,4 @@
-import { Condition } from "@/helpers/conditionHelpers"
+import { Condition } from '@/helpers/conditionHelpers'
 
 interface GrouperMetadata {
   id: fhir4.ValueSet['id']
@@ -45,10 +45,51 @@ interface CombinedGrouperVSets {
   selectedTerminologyServer: string
 }
 
+interface ConditionValue {
+  system: string
+  version: string
+  code: string
+}
+
+interface SelectedCondition {
+  label: string
+  value: ConditionValue
+}
+
+interface GrouperItem {
+  id: string
+  name: string
+  title: string
+  url: string
+  version: string
+}
+
+interface DeleteGrouper {
+  grouperLibId: string | undefined
+  grouperVsCanonicalToRemove: string | undefined
+  grouperVsIdToRemove: string | undefined
+}
+
+interface ManifestDataMap {
+  [key: string]: string[]
+}
+
+interface Result {
+  program: fhir4.Library | null
+  grouperData: GrouperItem[]
+  grouperLibrary: fhir4.Library | null
+  manifestData: ManifestDataMap
+}
+
 export type {
   GrouperMetadata,
   FlatGrouperVSet,
   CombinedGrouperVSets,
   SelectedGrouper,
-  SelectedValueSet
+  SelectedValueSet,
+  SelectedCondition,
+  GrouperItem,
+  DeleteGrouper,
+  ManifestDataMap,
+  Result
 }

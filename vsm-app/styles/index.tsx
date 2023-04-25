@@ -1,3 +1,7 @@
+/**
+ * File for shared styles components
+ */
+import { PageTitle } from '@/components/Typography'
 import styled from 'styled-components'
 
 export const Row = styled.div`
@@ -20,6 +24,11 @@ export const Row = styled.div`
   }
 `
 
+export const StyledSpan = styled.span`
+  color: var(--theme-500);
+  margin-top: 12px;
+`
+
 export const Col = styled.div`
   display: flex;
   width: 100%;
@@ -31,4 +40,15 @@ export const InputRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 16px 12px;
+`
+export const Id = styled(PageTitle).attrs({
+  as: 'span'
+})`
+  font-size: 20px;
+`
+export const FlexRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 `

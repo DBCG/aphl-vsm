@@ -1,50 +1,75 @@
 import DataTable from 'react-data-table-component'
-import { Button } from '@/components/buttons/Button'
-
-export interface ManifestData {
-  system: string
-  version: string
-}
-
-interface ManifestDataMap {
-  [key: string]: string[]
-}
+import { IconButton } from './buttons/IconButton'
+import LoadingIndicator from './LoadingIndicator'
+import useSWR from 'swr'
+import { fetcher } from '@/utils'
+import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
+import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 
 const prepData = (data: ManifestDataMap) => {
-  const preparedData: ManifestData[] = []
+  if (!data) return []
+  const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {
     value?.forEach((version) => preparedData.push({ system, version }))
   })
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, data = {}, customStyles }: any) => {
-  const preppedData = prepData(data)
+const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading, programId }: any) => {
+  const preppedData = prepData(manifestData)
+  const { data: systemAndVersionData = [] } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
+
+  const allSystemNamesByUri = namesByUri(systemAndVersionData)
+
   const columns = [
     {
-      name: 'Delete',
       omit: !deleteFn,
-      cell: (removeVersion: ManifestData) => {
-        return <Button data-tag="allowRowEvents" text="Delete" onClick={() => deleteFn(removeVersion)} />
+      maxWidth: '50px',
+      cell: (removeVersion: ManifestSystemVersionPair) => {
+        return (
+          <IconButton
+            onClick={() => deleteFn(removeVersion)}
+            buttonContext="delete"
+            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+          />
+        )
       },
       sortable: true,
       wrap: true
     },
     {
+      name: 'Name',
+      selector: (row: ManifestSystemVersionPair) => getNameByUri(row.system!, allSystemNamesByUri),
+      sortable: true,
+      wrap: true,
+      maxWidth: '200px'
+    },
+    {
       name: 'System',
-      selector: (row: ManifestData) => row.system!,
+      selector: (row: ManifestSystemVersionPair) => row.system!,
       sortable: true,
       wrap: true
     },
     {
       name: 'Version',
-      selector: (row: ManifestData) => row.version!,
+      selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
       wrap: true
     }
   ]
 
-  return <DataTable columns={columns} highlightOnHover customStyles={customStyles} data={preppedData} pagination paginationPerPage={10} />
+  return (
+    <DataTable
+      progressComponent={<LoadingIndicator />}
+      progressPending={loading}
+      columns={columns}
+      highlightOnHover
+      customStyles={customStyles}
+      data={preppedData}
+      pagination
+      paginationPerPage={10}
+    />
+  )
 }
 
 export default ManifestDetailTable

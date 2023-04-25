@@ -2,21 +2,26 @@ import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
-import { getSession, GetSessionParams } from 'next-auth/react'
+import { toast } from 'react-toastify'
 import Select from 'react-select'
 import DT, { TableStyles } from 'react-data-table-component'
 import { PageTitle } from '@/components/Typography'
 import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
-import LoadingIndicator from '@/components/LoadingIndicator'
-import ManifestDetailTable, { ManifestData } from '@/components/ManifestDetailTable'
-import { StyledLabel } from '@/components/SearchInput'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import ManifestDetailTable from '@/components/ManifestDetailTable'
+import { StyledLabel } from '@/components/InputLabel'
+import useSWR from 'swr'
+import { fetcher } from '@/utils'
+import { Row, Id } from '@/styles'
+import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
+
+const endWrapPx = 900
 
 export const customStyles = {
   table: {
     style: {
-      minWidth: '600px' // override the row height
+      minHeight: '100px'
     }
   },
   headCells: {
@@ -36,27 +41,6 @@ export const customStyles = {
   }
 } as unknown as TableStyles
 
-const Row = styled.div`
-  display: flex;
-  justify-content: space-between;
-`
-
-export const SelectInputContainer = styled.div`
-  width: 100%;
-`
-
-export const SelectInputTitle = styled.p`
-  padding-bottom: 8px;
-  margin: 0;
-  margin-right: 12px;
-`
-
-const Id = styled(PageTitle).attrs({
-  as: 'span'
-})`
-  font-size: 20px;
-`
-
 const FlexRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -67,17 +51,22 @@ const FlexRow = styled.div`
 const DataTableContainer = styled.div`
   display: flex;
   justify-content: flex-start;
-  flex-wrap: wrap;
   gap: 36px;
+  @media (max-width: ${endWrapPx}px) {
+    flex-wrap: wrap;
+  }
+`
+
+const MaxWidthContainer = styled.div`
+  min-width: 300px;
+  @media (max-width: ${endWrapPx}px) {
+    min-width: 100%;
+  }
 `
 
 const CodesystemSelectContainer = styled.div`
   margin-bottom: 36px;
 `
-
-interface ManifestDataMap {
-  [key: string]: string[]
-}
 
 // Removes already selected versions from the available list
 const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelectedData: ManifestDataMap, selectedSystem: string) => {
@@ -89,43 +78,76 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
   return availableVersionOptions
 }
 
+const getIdFromSystem = (system: string): string => {
+  return system?.split?.('/')?.slice?.(-1)?.[0] || ''
+}
+
+export const namesByUri = (systemVersionData: SystemSelection[]) => {
+  const result = {} as ResultMap
+  if (systemVersionData.length) {
+    systemVersionData.forEach((item) => {
+      result[item.uri] = item.name
+    })
+  }
+  return result
+}
+
+export const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
+  const match = namesByUri[uri]
+  return match || ''
+}
+
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails(router.query.id as string)
-
-  const [systemSelections, setSystemSelections] = useState([])
+  const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
+  const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
+  const [systemNamesByUri, setSystemNamesByUri] = useState({})
+  const {
+    data: systemAndVersionData = [],
+    isLoading,
+    error
+  } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
 
   useEffect(() => {
-    if (Object.keys(programAndGrouperInfo.manifestData).length !== 0) {
-      setCurrentSelectedData(programAndGrouperInfo.manifestData)
+    if (systemAndVersionData.length > 0) {
+      setSystemSelections(systemAndVersionData)
+      const sysNamesByUri = namesByUri(systemAndVersionData)
+
+      setSystemNamesByUri(sysNamesByUri)
+    } else if (error || manifestError) {
+      toast.error(manifestError || 'Error retrieving Code System data from VSAC')
     }
-  }, [programAndGrouperInfo.manifestData])
+    setPageLoading(isLoading)
+  }, [isLoading, systemAndVersionData, error, manifestError])
 
   useEffect(() => {
-    const retrieveSystemVersionOptions = async () => {
-      const manifestEndpoint = `/api/programs/${programId}/manifest`
-      const manifestData = await fetch(manifestEndpoint).then((res) => res.json())
-      setSystemSelections(manifestData)
-      setPageLoading(false)
+    if (Object.keys(manifestData).length !== 0) {
+      setCurrentSelectedData(manifestData)
     }
-    retrieveSystemVersionOptions()
-  }, [programId])
+  }, [programId, manifestData])
 
-  const updateManifest = async (upToDateManifestData: any) => {
+  const updateManifest = async ({ currentSelectedData, action, id, version }: UpdateManifest) => {
     const manifestEndpoint = `/api/programs/${programId}/manifest`
-    const manifestData = await fetch(manifestEndpoint, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(upToDateManifestData)
-    }).then((res) => res.json())
-    setCurrentSelectedData(manifestData)
+    try {
+      const mData = await fetch(manifestEndpoint, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentSelectedData)
+      }).then((res) => res.json())
+      setCurrentSelectedData(mData)
+      const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
+      toast.success(notificationTxt)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error adding manifest program version')
+    }
   }
 
   useEffect(() => {
@@ -146,10 +168,11 @@ const EditManifestDetails = () => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [systemSelections])
 
-  const deleteFn = ({ system, version }: ManifestData) => {
+  const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
-    updateManifest(clonedcurrentSelectedData)
+    const deletedId = getIdFromSystem(system)
+    updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
   }
 
   return (
@@ -168,7 +191,7 @@ const EditManifestDetails = () => {
         </FlexRow>
       </Row>
       <CodesystemSelectContainer>
-        <StyledLabel>Codesystem</StyledLabel>
+        <StyledLabel>CodeSystem</StyledLabel>
         <Select
           isLoading={pageLoading}
           styles={{
@@ -185,13 +208,18 @@ const EditManifestDetails = () => {
         />
       </CodesystemSelectContainer>
       <DataTableContainer>
-        <div>
+        <MaxWidthContainer>
           <StyledLabel>Available Versions</StyledLabel>
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
-            style={{ width: '900px' }}
             highlightOnHover
             columns={[
+              {
+                name: 'Name',
+                selector: () => getNameByUri(selectedSystem, systemNamesByUri),
+                sortable: true,
+                wrap: true
+              },
               {
                 name: 'System',
                 selector: () => selectedSystem,
@@ -200,6 +228,7 @@ const EditManifestDetails = () => {
               },
               {
                 name: 'Versions',
+                maxWidth: '120px',
                 selector: (row) => row,
                 sortable: true,
                 wrap: true
@@ -213,11 +242,18 @@ const EditManifestDetails = () => {
                       onClick={() => {
                         const clonedcurrentSelectedData = structuredClone(currentSelectedData)
                         clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
-                        updateManifest(clonedcurrentSelectedData)
+
+                        updateManifest({
+                          currentSelectedData: clonedcurrentSelectedData,
+                          action: 'add',
+                          id: getIdFromSystem(selectedSystem),
+                          version: newVersion
+                        })
                       }}
                     />
                   )
                 },
+                maxWidth: '50px',
                 sortable: true,
                 wrap: true
               }
@@ -225,34 +261,25 @@ const EditManifestDetails = () => {
             theme="aphl"
             fixedHeader
             customStyles={customStyles}
-            progressPending={pageLoading}
-            progressComponent={<LoadingIndicator />}
+            pagination
+            paginationPerPage={10}
+            className="detail-table"
           />
-        </div>
-        <div>
+        </MaxWidthContainer>
+        <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
-          <ManifestDetailTable customStyles={customStyles} data={currentSelectedData} deleteFn={deleteFn} />
-        </div>
+          <ManifestDetailTable
+            programId={programId}
+            className="detail-table"
+            customStyles={customStyles}
+            data={currentSelectedData}
+            loading={manifestLoading}
+            deleteFn={deleteFn}
+          />
+        </MaxWidthContainer>
       </DataTableContainer>
     </>
   )
-}
-
-export async function getServerSideProps(context: GetSessionParams) {
-  const session = await getSession(context)
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permanent: false
-      }
-    }
-  }
-
-  return {
-    props: { session }
-  }
 }
 
 export default EditManifestDetails
