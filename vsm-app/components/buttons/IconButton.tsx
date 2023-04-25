@@ -21,7 +21,7 @@ const ImageContainer = styled.div`
 
 interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonContext: string
-  onClick: React.EventHandler<React.MouseEvent>
+  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   deletedItemDescription?: string
 }
@@ -41,10 +41,8 @@ type Key = keyof typeof btnTitleText
 const IconButton = ({ type, buttonContext, onClick, style, disabled = false, deletedItemDescription }: IButtonProps) => {
   const [modalOpen, setModalOpen] = useState(false)
 
-  const handleClickIconButton = (e) => {
+  const handleClickIconButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (buttonContext === 'delete') {
-      console.log('clicked delete')
-
       setModalOpen(true)
     } else {
       onClick(e)
@@ -96,7 +94,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         buttonContext={buttonContext}
         style={style}
         onClick={(e) => {
-          !disabled ? handleClickIconButton(e) : null
+          !disabled && e ? handleClickIconButton(e) : null
         }}
       >
         <ImageContainer>

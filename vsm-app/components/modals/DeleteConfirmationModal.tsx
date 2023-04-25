@@ -27,7 +27,7 @@ if (typeof window !== 'undefined') {
 }
 
 const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete, itemToDelete }: ModalInfo) => {
-  const handleCancel = (e) => {
+  const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
   }
@@ -46,7 +46,7 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
           <Button
             style={{ paddingLeft: '16px', paddingRight: '16px' }}
             text={`YES`}
-            onClick={(e) => {
+            onClick={() => {
               handleConfirmDelete()
               toggleModalOpen()
             }}
@@ -56,16 +56,6 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
     </ReactModal>
   )
 }
-
-const ModalOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--theme-color);
-  backdrop-filter: blur(20px);
-`
 
 const ModalContent = styled.div`
   justify-content: center;

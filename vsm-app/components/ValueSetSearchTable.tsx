@@ -589,7 +589,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
               buttonContext="search"
               type="submit"
               onClick={(e) => {
-                e.preventDefault()
+                e?.preventDefault()
                 submitVSetSearch()
               }}
             />
