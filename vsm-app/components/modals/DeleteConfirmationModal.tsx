@@ -44,7 +44,7 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
             style={{ backgroundColor: 'var(--neutral-300)', paddingLeft: '16px', paddingRight: '16px' }}
           />
           <Button
-            style={{ paddingLeft: '16px', paddingRight: '16px' }}
+            style={{ paddingLeft: '16px', paddingRight: '16px', backgroundColor: 'var(--accent)' }}
             text={`YES`}
             onClick={() => {
               handleConfirmDelete()
@@ -67,11 +67,9 @@ const ModalTitle = styled.h1`
 `
 
 const ModalText = styled.p`
-  max-width: 400px;
   line-height: 140%;
   margin: 0 auto;
   margin-bottom: 12px;
-  word-break: break-all;
 `
 
 const ButtonGroup = styled.div`
