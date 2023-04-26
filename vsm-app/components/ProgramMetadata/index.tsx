@@ -14,7 +14,6 @@ import {
 } from '@/helpers/libraryHelpers'
 import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, buttonStyles } from './styles'
 import { InputRow } from '@/styles'
-import { InputLabel } from '../InputLabel'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
