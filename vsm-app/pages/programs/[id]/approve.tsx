@@ -9,7 +9,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
-import toast, { Toaster } from 'react-hot-toast'
+import { toast } from 'react-toastify'
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -332,7 +332,6 @@ const ApproveInfoForm: NextPage = () => {
           />
         </Col>
       </GridContainer>
-      <Toaster />
       <Row style={{ justifyContent: 'center' }}>
         <Button text="Submit" onClick={handleApprove} />
       </Row>
