@@ -56,7 +56,9 @@ const MaxWidthContainer = styled.div`
 
 const CodesystemSelectContainer = styled.div`
   display: flex;
+  align-items: center;
   margin: 36px;
+  margin-left: 0;
 `
 
 // Removes already selected versions from the available list
@@ -176,7 +178,7 @@ const EditManifestDetails = () => {
         <Button text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
       <CodesystemSelectContainer>
-        <StyledLabel style={{ fontSize: '20px' }}>Available Version for CodeSystem: </StyledLabel>
+        <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
           isLoading={pageLoading}
           styles={{
