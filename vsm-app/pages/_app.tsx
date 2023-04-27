@@ -15,10 +15,10 @@ const theme = createTheme({
       styleOverrides: {
         // Name of the slot
         root: {
-          background: 'rgba(1, 161, 175, 1)',
-          color: 'white',
+          background: 'var(--theme-300)',
+          color: 'var(--white)',
           '&:hover': {
-            background: '#FAA024'
+            background: 'var(--hover-background)'
           }
         }
       }
@@ -26,6 +26,7 @@ const theme = createTheme({
   },
   palette: {
     primary: {
+      // for some reason, can't use a css var here but can above
       main: 'rgba(1, 161, 175, 1)'
     }
   }
