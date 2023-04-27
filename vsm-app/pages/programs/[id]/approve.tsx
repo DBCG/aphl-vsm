@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
-import Select, { SingleValue } from 'react-select'
+import Select, { Options, SingleValue } from 'react-select'
 import { PageTitle } from '@/components/Typography'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
@@ -9,7 +9,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
-
+import { toast } from 'react-toastify'
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -46,36 +46,54 @@ const Col = styled.div`
   height: fit-content;
   gap: 8px;
 `
-
+export const EmailPattern: RegExp = /^[^\W_]+([._-][^\W_]+)*@[^\W_]+([.-][^\W_]+)*\.[a-z]{2,4}$/
+const numberValidator = (val: string) => Number.isInteger(Number(val.replace(' ', '')))
 // http://hl7.org/fhir/R4/valueset-contact-point-system.html
-const contactOptions = {
+const contactTypes = {
+  '': {
+    display: 'Please select a contact type',
+    validation: () => true
+  },
   phone: {
     display: 'Phone',
-    validation: 'number'
+    validation: numberValidator
   },
   fax: {
     display: 'Fax',
-    validation: 'number'
+    validation: numberValidator
   },
   email: {
     display: 'Email',
-    validation: 'email'
+    validation: (val: string) => val.match(EmailPattern)
   }
 }
 
-const artifactCommentTypes = {
-  documentation: 'Documentation',
-  review: 'Review',
-  guidance: 'Guidance'
+export const artifactAssessmentInfoTypes = {
+  comment: 'Comment',
+  classifier: 'Classifier',
+  rating: 'Rating',
+  response: 'Response',
+  'change-request': 'Change Request'
+  // technically container is
+  // a valid response but disabling
+  // it since it doesn't make
+  // sense in the context
+  // of an approval
+  // container: 'Container',
 }
-
-interface formData {
+const artifactAssessmentInfoTypeOptions: Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }> = Object.entries(
+  artifactAssessmentInfoTypes
+).map(([key, value]) => ({ value: key, label: value })) as Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }>
+const contactTypeOptions: Options<{ value: keyof typeof contactTypes; label: string }> = Object.entries(contactTypes).map(
+  ([key, value]) => ({ value: key, label: value.display })
+) as Options<{ value: keyof typeof contactTypes; label: string }>
+export interface approvalFormParams {
   approvalDate: Date
   endorserName: string
   endorserContact: string
-  endorserContactType: keyof typeof contactOptions | ''
+  endorserContactType: keyof typeof contactTypes
   endorserContactValue: string
-  artifactCommentType: keyof typeof artifactCommentTypes | ''
+  artifactCommentType: keyof typeof artifactAssessmentInfoTypes
   artifactCommentText: string
   artifactCommentTarget: string
   artifactCommentReference: string
@@ -86,30 +104,69 @@ const ApproveInfoForm: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const programAndGrouperInfo = useGetProgramDetails({ id: programId })
-  const [approvalFormData, setApprovalFormData] = React.useState<formData>({
+  const [approvalFormData, setApprovalFormData] = React.useState<approvalFormParams>({
     approvalDate: new Date(),
     endorserName: '',
     endorserContact: '',
     endorserContactType: '',
     endorserContactValue: '',
-    artifactCommentType: '',
+    artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
     artifactCommentReference: '',
     artifactCommentUser: ''
   })
+  useEffect(() => {
+    let target: string = ''
+    const url = programAndGrouperInfo?.program?.url
+    const version = programAndGrouperInfo?.program?.version
+    if (!!url) {
+      target += url
+    }
+    if (!!version) {
+      if (!!url) {
+        target += '|'
+      }
+      target += version
+    }
+    setApprovalFormData({
+      approvalDate: new Date(),
+      endorserName: '',
+      endorserContact: '',
+      endorserContactType: '',
+      endorserContactValue: '',
+      artifactCommentType: 'comment',
+      artifactCommentText: '',
+      artifactCommentTarget: target || '',
+      artifactCommentReference: '',
+      artifactCommentUser: ''
+    })
+  }, [programAndGrouperInfo?.program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    const parameterObj = createParametersObj(approvalFormData)
+    const parameterObj = createParametersObj()
     const approveEndpoint = `/api/programs/${(programAndGrouperInfo.program as fhir4.Library).id}/approve`
     return fetch(approveEndpoint, {
       method: 'POST',
       body: JSON.stringify(parameterObj)
+    }).then((res) => {
+      if (res.ok) {
+        toast.dismiss()
+        router.push(`/programs/${router.query.id}`)
+      } else {
+        toast.error('Error approving artifact assessment', {
+          position: 'bottom-right',
+          style: {
+            borderRadius: 0
+          }
+        })
+        res.json().then((error) => console.error(error))
+      }
     })
   }
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>,
-    fieldName: keyof formData
+    fieldName: keyof approvalFormParams
   ) => {
     if (!e) {
       console.error('undefined event in Approve form!')
@@ -139,40 +196,61 @@ const ApproveInfoForm: NextPage = () => {
       }
     }
   }
-  const createParametersObj = (params: formData) => {
+  const createParametersObj = () => {
     const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
     parametersObj.parameter = []
-    for (const key in params) {
-      if (key === 'approvalDate') {
-        parametersObj.parameter.push({
-          name: 'approvalDate',
-          valueDate: approvalFormData.approvalDate.toISOString()
-        })
-      } else if (key === 'endorserName' && approvalFormData.endorserName) {
-        parametersObj.parameter.push({
-          name: 'endorser',
-          valueContactDetail: {
-            name: approvalFormData.endorserName,
-            telecom: approvalFormData.endorserContactValue
-              ? [
-                  {
-                    value: approvalFormData.endorserContactValue,
-                    system: approvalFormData.endorserContactType || undefined
-                  }
-                ]
-              : undefined
-          }
-        })
-      } else {
-        // stop TS worrying about approvalDate being a Date type
-        const val = params[key as keyof Omit<formData, 'approvalDate'>]
-        if (val) {
-          parametersObj.parameter.push({
-            name: key,
-            valueString: val
-          })
+    parametersObj.parameter.push({
+      name: 'approvalDate',
+      valueDate: approvalFormData.approvalDate.toISOString()
+    })
+    if (approvalFormData.endorserName) {
+      parametersObj.parameter.push({
+        name: 'endorser',
+        valueContactDetail: {
+          name: approvalFormData.endorserName,
+          telecom: approvalFormData.endorserContactValue
+            ? [
+                {
+                  value: approvalFormData.endorserContactValue,
+                  system: approvalFormData.endorserContactType || undefined
+                }
+              ]
+            : undefined
         }
-      }
+      })
+    }
+
+    if (approvalFormData.artifactCommentTarget) {
+      parametersObj.parameter.push({
+        name: 'artifactCommentTarget',
+        valueCanonical: approvalFormData.artifactCommentTarget
+      })
+    }
+    if (approvalFormData.artifactCommentReference) {
+      parametersObj.parameter.push({
+        name: 'artifactCommentReference',
+        valueCanonical: approvalFormData.artifactCommentReference
+      })
+    }
+    if (approvalFormData.artifactCommentUser) {
+      parametersObj.parameter.push({
+        name: 'artifactCommentUser',
+        valueReference: {
+          reference: approvalFormData.artifactCommentUser
+        }
+      })
+    }
+    if (approvalFormData.artifactCommentText) {
+      parametersObj.parameter.push({
+        name: 'artifactCommentText',
+        valueString: approvalFormData.artifactCommentText
+      })
+    }
+    if (approvalFormData.artifactCommentType) {
+      parametersObj.parameter.push({
+        name: 'artifactCommentType',
+        valueString: approvalFormData.artifactCommentType
+      })
     }
     return parametersObj
   }
@@ -187,6 +265,7 @@ const ApproveInfoForm: NextPage = () => {
       <StyledDateInput
         value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
         onChange={(e) => handleFieldChange(e, 'approvalDate')}
+        readOnly
       />
       <GridContainer>
         <Col>
@@ -195,18 +274,24 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            defaultValue={{ value: '', label: 'Please select Contact Type' }}
+            value={{ value: approvalFormData.endorserContactType, label: contactTypes[approvalFormData.endorserContactType].display }}
             onChange={(e) => handleFieldChange(e, 'endorserContactType')}
-            options={Object.entries(contactOptions).map(([key, value]) => ({ label: value.display, value: key }))}
+            options={contactTypeOptions}
+            instanceId={'contactType'}
           />
           <SearchInput
             id="contact"
             label="Contact"
             value={approvalFormData.endorserContactValue}
             onChange={(e) => handleFieldChange(e, 'endorserContactValue')}
+            errorMessage={
+              contactTypes[approvalFormData.endorserContactType].validation(approvalFormData.endorserContactValue)
+                ? ''
+                : 'Please enter a valid contact'
+            }
           />
           <SearchInput
-            id="Name"
+            id="name"
             label="Name"
             value={approvalFormData.endorserName}
             onChange={(e) => handleFieldChange(e, 'endorserName')}
@@ -218,31 +303,29 @@ const ApproveInfoForm: NextPage = () => {
           </SubtitleRow>
           <LabelStyled>Type</LabelStyled>
           <Select
-            defaultValue={{ value: '', label: 'Please select Comment Type' }}
+            value={{
+              value: approvalFormData.artifactCommentType,
+              label: artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]
+            }}
             onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
-            placeholder="Select Type"
-            options={Object.entries(artifactCommentTypes).map(([key, value]) => ({ value: key, label: value }))}
+            options={artifactAssessmentInfoTypeOptions}
+            instanceId={'commentType'}
           />
           <SearchInput
-            id="Text"
+            id="text"
             label="Text"
             value={approvalFormData.artifactCommentText}
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
+          <SearchInput id="target" label="Target" def={approvalFormData.artifactCommentTarget} readonly={true} />
           <SearchInput
-            id="Target"
-            label="Target"
-            value={approvalFormData.artifactCommentTarget}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentTarget')}
-          />
-          <SearchInput
-            id="Reference"
+            id="reference"
             label="Reference"
             value={approvalFormData.artifactCommentReference}
             onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
           />
           <SearchInput
-            id="User"
+            id="user"
             label="User"
             value={approvalFormData.artifactCommentUser}
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}

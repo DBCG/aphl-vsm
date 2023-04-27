@@ -1,0 +1,29 @@
+{
+  "resourceType": "Bundle",
+  "id": "search-parameter-bundle",
+  "type": "transaction",
+  "entry":
+  [
+      {
+          "fullUrl": "SearchParameter/ArtifactAssessmentArtifact",
+          "resource":
+          {
+              "resourceType": "SearchParameter",
+              "id": "ArtifactAssessmentArtifact",
+              "status": "active",
+              "code": "artifact",
+              "base": [
+                  "Basic"
+              ],
+              "type": "reference",
+              "description": "A reference to the artifact being assessed",
+              "expression": "Basic.extension.where(url.contains('crmi-artifactAssessmentArtifact')).value"
+          },
+          "request":
+          {
+              "method": "PUT",
+              "url": "SearchParameter/ArtifactAssessmentArtifact"
+          }
+      }
+    ]
+  }

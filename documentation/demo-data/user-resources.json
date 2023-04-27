@@ -1,0 +1,45 @@
+{
+  "resourceType": "Bundle",
+  "id": "user-bundle",
+  "type": "transaction",
+  "entry":
+  [
+      {
+          "fullUrl": "Practitioner/john",
+          "resource":
+          {
+            "resourceType":"Practitioner",
+            "id":"john"
+          },
+          "request":
+          {
+              "method": "PUT",
+              "url": "Practitioner/john"
+          }
+      },{
+        "fullUrl": "Practitioner/joy",
+        "resource":
+        {
+          "resourceType":"Practitioner",
+          "id":"joy"
+        },
+        "request":
+        {
+            "method": "PUT",
+            "url": "Practitioner/joy"
+        }
+    },{
+      "fullUrl": "Practitioner/gary",
+      "resource":
+      {
+        "resourceType":"Practitioner",
+        "id":"gary"
+      },
+      "request":
+      {
+          "method": "PUT",
+          "url": "Practitioner/gary"
+      }
+  }
+    ]
+  }

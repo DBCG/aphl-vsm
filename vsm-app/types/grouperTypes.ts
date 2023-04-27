@@ -1,4 +1,6 @@
 import { Condition } from '@/helpers/conditionHelpers'
+import { ToString } from '@/hooks/useGetProgramDetails'
+import { approvalFormParams } from '@/pages/programs/[id]/approve'
 
 interface GrouperMetadata {
   id: fhir4.ValueSet['id']
@@ -79,6 +81,7 @@ interface Result {
   grouperData: GrouperItem[]
   grouperLibrary: fhir4.Library | null
   manifestData: ManifestDataMap
+  artifactAssessments: ToString<Partial<approvalFormParams>>[]
 }
 
 export type {

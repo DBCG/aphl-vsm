@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { ToString, useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
@@ -16,12 +16,15 @@ import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContain
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
+import { approvalFormParams } from '@/pages/programs/[id]/approve'
+import { ApprovalDetailList } from '../ApprovalDetailList'
 
 const ProgramDetails = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const programId = router.query.id as string
   const [program, setProgram] = useState<fhir4.Library>()
+  const [assessments, setAssessments] = useState<ToString<Partial<approvalFormParams>>[]>([])
   const [refreshData, setRefreshData] = useState(false)
   const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
   const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
@@ -107,6 +110,17 @@ const ProgramDetails = () => {
         // @ts-ignore-next-line
         programStatus={programAndGrouperInfo?.program?.status}
       />
+      <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
+        <Col style={{ width: 'auto' }}>
+          <StyledSpan>Approvals</StyledSpan>
+          <StyledSpan>Last Approval</StyledSpan>
+          {program.approvalDate || '-'}
+        </Col>
+        <Col style={{ width: 'auto' }}>
+          <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+        </Col>
+      </Row>
+      <ApprovalDetailList assessments={assessments} />
     </Col>
   )
 }

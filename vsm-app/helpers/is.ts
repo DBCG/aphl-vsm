@@ -5,6 +5,9 @@ const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
   },
+  basic: (resource?: fhir4.Resource): resource is fhir4.Basic => {
+    return resource?.resourceType === 'Basic'
+  },
   bundle: (resource: fhir4.Bundle | any): resource is fhir4.Bundle => {
     return resource?.resourceType === 'Bundle'
   },
@@ -47,7 +50,7 @@ const is = {
       typeof error.config.url === 'string'
     )
   },
-  library: (resource: fhir4.Library | any): resource is fhir4.Library => {
+  library: (resource?: fhir4.Library | any): resource is fhir4.Library => {
     return resource?.resourceType === 'Library'
   },
   isRootLibrary: (resource: fhir4.Library | any): resource is fhir4.Library => {

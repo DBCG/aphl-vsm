@@ -202,26 +202,9 @@ const Programs: NextPage = () => {
             />
           </ButtonWrapper>
         )
-      },
-      {
-        name: 'Approve',
-        selector: (row: fhir4.Library) => row.name,
-        sortable: false,
-        omit: !can(session, 'approve'),
-        wrap: true,
-        center: true,
-        cell: (row: fhir4.Library) => (
-          <ButtonWrapper>
-            <IconButton
-              disabled={row.status !== 'active'}
-              onClick={() => router.push(`/programs/${row.id}/approve`)}
-              buttonContext="approve"
-            />
-          </ButtonWrapper>
-        )
       }
     ],
-    [router, session]
+    [session]
   )
 
   const handleCancelModal = () => {
