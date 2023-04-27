@@ -5,8 +5,20 @@ import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion } from '@/helpers/valueSetHelpers'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 import logger from '@/helpers/server/logger'
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
+import { is } from '@/helpers/is'
+import { ManifestDataMap } from '@/types/manifestTypes'
+export type programDetailsEndpointReturn = {
+  valueSets: {
+    id?: string
+    name?: string
+    title?: string
+    url?: string
+    version?: string
+  }[],
+  expansionParameters: ManifestDataMap,
+  grouperLibrary: fhir4.Library
+} | { error: string }
+export default async function handler(req: NextApiRequest, res: NextApiResponse<programDetailsEndpointReturn>): Promise<void> {
   if (req.method === 'GET') {
     try {
       // e.g. rctc
@@ -30,29 +42,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           resourceType: 'Library',
           searchParams
         })
+        .then((res) => res as fhir4.Bundle)
         .then((res) => res?.entry?.[0]?.resource)
+      if (is.library(grouperLibrary)) {
+        const grouperUrls = grouperLibrary?.relatedArtifact
+          ?.map((i) => i?.resource)
+          ?.filter((i) => !!i) as string[]
 
-      const grouperUrls = grouperLibrary?.relatedArtifact?.map((i: any) => i?.resource)
+        const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls }).then((bundles) =>
+          bundles.map((bundle) => bundle.entry?.[0]?.resource as fhir4.ValueSet)
+        )
 
-      const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls }).then((bundles) =>
-        bundles.map((bundle) => bundle.entry?.[0]?.resource as fhir4.ValueSet)
-      )
+        const formattedValueSets = grouperValueSets?.map((vs) => ({
+          id: vs.id,
+          name: vs.name,
+          title: vs.title,
+          url: vs.url,
+          version: vs.version
+        }))
 
-      const formattedValueSets = grouperValueSets?.map((vs) => ({
-        id: vs.id,
-        name: vs.name,
-        title: vs.title,
-        url: vs.url,
-        version: vs.version
-      }))
+        const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
 
-      const expansionParameters = getExpansionParametersSystemVersion(grouperLibrary)
-
-      res.status(200).send({
-        valueSets: formattedValueSets,
-        expansionParameters,
-        grouperLibrary
-      })
+        res.status(200).send({
+          valueSets: formattedValueSets,
+          expansionParameters,
+          grouperLibrary
+        })
+      } else {
+        throw new Error("returned resource was not Library")
+      }
     } catch (e: any) {
       logger.error('error:  ', e)
       res.status(400).json({ error: 'Search for grouper libraries failed.' })

@@ -1,6 +1,7 @@
 import { Condition } from '@/helpers/conditionHelpers'
 import { ToString } from '@/hooks/useGetProgramDetails'
 import { approvalFormParams } from '@/pages/programs/[id]/approve'
+import { ManifestDataMap } from './manifestTypes'
 
 interface GrouperMetadata {
   id: fhir4.ValueSet['id']
@@ -70,10 +71,6 @@ interface DeleteGrouper {
   grouperLibId: string | undefined
   grouperVsCanonicalToRemove: string | undefined
   grouperVsIdToRemove: string | undefined
-}
-
-interface ManifestDataMap {
-  [key: string]: string[]
 }
 
 interface Result {

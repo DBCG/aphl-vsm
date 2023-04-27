@@ -103,7 +103,7 @@ const EditManifestDetails = () => {
   const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
-  const [availableVersions, setAvailableVersions] = useState({} as ManifestDataMap)
+  const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
   const {
