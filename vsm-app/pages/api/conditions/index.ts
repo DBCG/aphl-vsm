@@ -1,25 +1,29 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
+import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 
-// this only gets the program library
-export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
-  if (req.method === 'GET') {
-    try {
-      const data = await fhirCdrClient.search({
-        resourceType: 'ValueSet',
-        searchParams: {
-          url: process.env.CONDITIONS_CANONICAL as string
-        }
-      })
+const getConditions = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const data = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: {
+        url: process.env.CONDITIONS_CANONICAL as string
+      }
+    })
 
-      // this will return a set of code/display pairs, along with their system info
-      // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
-      const valueSet = data?.entry?.[0]?.resource?.compose?.include
-      res.status(200).send(valueSet)
-    } catch (e: any) {
-      logger.error('error:  ', e?.response?.data?.text)
-      res.status(400).json({ error: 'Search for conditions valueset failed.' })
-    }
+    // this will return a set of code/display pairs, along with their system info
+    // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
+    const valueSet = data?.entry?.[0]?.resource?.compose?.include
+    res.status(200).send(valueSet)
+  } catch (e: any) {
+    logger.error('error:  ', e?.response?.data?.text)
+    res.status(400).json({ error: 'Search for conditions valueset failed.' })
   }
 }
+
+export default handler({
+  GET: {
+    action: getConditions
+  }
+})

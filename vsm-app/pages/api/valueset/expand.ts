@@ -43,5 +43,8 @@ const expandProgram = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  POST: { action: expandProgram }
+  POST: {
+    action: expandProgram,
+    access: ['admin', 'editor']
+  }
 })
