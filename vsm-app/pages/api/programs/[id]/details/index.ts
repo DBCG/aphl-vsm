@@ -4,6 +4,7 @@ import { splitCanonical } from '@/helpers/splitCanonical'
 import { SearchParams } from 'fhir-kit-client'
 import { getExpansionParametersSystemVersion } from '@/helpers/valueSetHelpers'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
+import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { ManifestDataMap } from '@/types/manifestTypes'
@@ -18,7 +19,7 @@ export type programDetailsEndpointReturn = {
   expansionParameters: ManifestDataMap,
   grouperLibrary: fhir4.Library
 } | { error: string }
-export default async function handler(req: NextApiRequest, res: NextApiResponse<programDetailsEndpointReturn>): Promise<void> {
+const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<programDetailsEndpointReturn>): Promise<void> => {
   if (req.method === 'GET') {
     try {
       // e.g. rctc
@@ -77,3 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
   }
 }
+
+export default handler({
+  GET: { action: getProgramDetails }
+})

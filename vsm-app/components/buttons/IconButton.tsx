@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import Image from 'next/image'
+import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
 const StyledButton = styled.button<IButtonProps>`
   height: 36px;
@@ -20,8 +21,9 @@ const ImageContainer = styled.div`
 
 interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonContext: string
-  onClick: React.EventHandler<React.MouseEvent>
+  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
+  deletedItemDescription?: string
 }
 
 const btnTitleText = {
@@ -36,7 +38,21 @@ const btnTitleText = {
 
 type Key = keyof typeof btnTitleText
 
-const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: IButtonProps) => {
+const IconButton = ({ type, buttonContext, onClick, style, disabled = false, deletedItemDescription }: IButtonProps) => {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  const handleClickIconButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (buttonContext === 'delete') {
+      setModalOpen(true)
+    } else {
+      onClick(e)
+    }
+  }
+
+  const handleToggleModalOpen = () => {
+    setModalOpen((o) => !o)
+  }
+
   let image = 'missing'
 
   switch (buttonContext) {
@@ -64,20 +80,28 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false }: I
   }
 
   return (
-    <StyledButton
-      title={btnTitleText[buttonContext as Key]}
-      disabled={disabled}
-      type={type}
-      buttonContext={buttonContext}
-      style={style}
-      onClick={(e) => {
-        !disabled ? onClick(e) : null
-      }}
-    >
-      <ImageContainer>
-        <Image src={`/images/${image}.svg`} width={24} height={24} alt="" />
-      </ImageContainer>
-    </StyledButton>
+    <div>
+      <DeleteConfirmationModal
+        isOpen={modalOpen}
+        toggleModalOpen={handleToggleModalOpen}
+        handleConfirmDelete={onClick}
+        itemToDelete={deletedItemDescription}
+      />
+      <StyledButton
+        title={btnTitleText[buttonContext as Key]}
+        disabled={disabled}
+        type={type}
+        buttonContext={buttonContext}
+        style={style}
+        onClick={(e) => {
+          !disabled && e ? handleClickIconButton(e) : null
+        }}
+      >
+        <ImageContainer>
+          <Image src={`/images/${image}.svg`} width={24} height={24} alt="" />
+        </ImageContainer>
+      </StyledButton>
+    </div>
   )
 }
 

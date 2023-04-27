@@ -546,6 +546,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <FlexRow style={{ justifyContent: 'center' }}>
             <FlexCol>
               <IconButton
+                deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
                 onClick={async () => {
                   await handleDelete({
                     vsCanonical: row?.valueSet?.url,
