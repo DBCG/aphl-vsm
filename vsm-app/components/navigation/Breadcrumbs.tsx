@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import styled from 'styled-components'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
 
 interface Props {
   alpha: number
@@ -75,8 +76,10 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
   })
 
   return (
-    <nav aria-label="breadcrumbs">
-      <NavList>{items}</NavList>
+    <nav>
+      <Breadcrumbs aria-label="breadcrumb">
+        <NavList>{items}</NavList>
+      </Breadcrumbs>
     </nav>
   )
 }
