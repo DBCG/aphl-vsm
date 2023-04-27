@@ -390,6 +390,7 @@ body {
   --accent: rgba(181, 45, 52, 1);
   --warning-light: #f4cb92;
   --warning-medium: rgb(250, 160, 36);
+  --hover-background: #FAA024;
   --neutral-300: rgba(147, 144, 137, 1);
   --neutral-200: rgba(241, 245, 248, 1);
   --neutral-100: rgba(179, 172, 166, 1);

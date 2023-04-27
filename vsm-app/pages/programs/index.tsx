@@ -11,7 +11,8 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { ErrorMessage, ErrorState } from '@/components/ErrorMessage'
+import { ErrorMessage } from '@/components/ErrorMessage'
+import { StatusChip } from '@/components/data-display/StatusChip'
 
 const Col = styled.div`
   display: flex;
@@ -38,12 +39,6 @@ export interface StatusProps {
 interface Error {
   message?: string
 }
-
-const StatusTag = styled.div<StatusProps>`
-  padding: 4px 6px;
-  border-radius: 4px;
-  background-color: ${(props) => (props.status === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'rgba(252, 186, 3, 0.3)')};
-`
 
 const customStyles = {
   cells: {
@@ -135,7 +130,7 @@ const Programs: NextPage = () => {
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
-          return <StatusTag status={row.status}>{row.status}</StatusTag>
+          return <StatusChip label={row.status} />
         }
       },
       {
