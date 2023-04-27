@@ -24,32 +24,30 @@ const useGetProgramManifest = ({ programId, toggleRefresh }: UseGetManifest): Re
   useEffect(() => {
     setManifestLoading(true)
     async function getManifestInfo(): Promise<void> {
-      if (!programId) {
-        setManifestError(`No program with ID ${programId} found`)
-      } else {
-        const programEndpoint = `/api/programs?id=${programId}`
-        try {
-          const response: Response = await fetch(programEndpoint)
-          const programJson = await response.json()
+      const programEndpoint = `/api/programs?id=${programId}`
+      try {
+        const response: Response = await fetch(programEndpoint)
+        const programJson = await response.json()
 
-          // Identify the valueset library within the program
-          // the program, by design, only has 2 relatedArtifacts, one of which is this library, other is a planDefinition
-          const grouperLibraryUrl = getGrouperLibraryCanonical(programJson?.[0])
-          const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibraryUrl}`
+        // Identify the valueset library within the program
+        // the program, by design, only has 2 relatedArtifacts, one of which is this library, other is a planDefinition
+        const grouperLibraryUrl = getGrouperLibraryCanonical(programJson?.[0])
+        const grouperEndpoint = `/api/programs/${programJson[0].id}/details?url=${grouperLibraryUrl}`
 
-          const grouperData = await fetch(grouperEndpoint).then((res) => res.json())
+        const grouperData = await fetch(grouperEndpoint).then((res) => res.json())
 
-          if (grouperData?.expansionParameters) {
-            setManifestData(grouperData.expansionParameters)
-          }
-        } catch (e) {
-          console.error(e)
-          setManifestError('Error finding manifest data')
+        if (grouperData?.expansionParameters) {
+          setManifestData(grouperData.expansionParameters)
         }
+      } catch (e) {
+        console.error(e)
+        setManifestError('Error finding manifest data')
       }
       setManifestLoading(false)
     }
-    void getManifestInfo()
+    if (programId) {
+      void getManifestInfo()
+    }
     // disabled eslint here b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [programId, toggleRefresh])

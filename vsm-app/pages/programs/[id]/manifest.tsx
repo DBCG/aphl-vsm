@@ -1,18 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
 import Select from 'react-select'
 import DT, { TableStyles } from 'react-data-table-component'
-import { PageTitle } from '@/components/Typography'
-import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Button } from '@/components/buttons/Button'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { Row, Id } from '@/styles'
+import { Row } from '@/styles'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
 
@@ -41,13 +38,6 @@ export const customStyles = {
   }
 } as unknown as TableStyles
 
-const FlexRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: 100%;
-`
-
 const DataTableContainer = styled.div`
   display: flex;
   justify-content: flex-start;
@@ -65,7 +55,10 @@ const MaxWidthContainer = styled.div`
 `
 
 const CodesystemSelectContainer = styled.div`
-  margin-bottom: 36px;
+  display: flex;
+  align-items: center;
+  margin: 36px;
+  margin-left: 0;
 `
 
 // Removes already selected versions from the available list
@@ -175,29 +168,25 @@ const EditManifestDetails = () => {
     updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
   }
 
+  if (selectOptions.length === 0) {
+    return null // Fixes a nextjs hydration error
+  }
+
   return (
     <>
       <Row>
         <Button text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
-      <Row>
-        <FlexRow>
-          <PageTitle>Program Manifest Details</PageTitle>
-          <Image width={24} height={24} alt="" src="/images/right-chevron.svg" />
-          <Id>
-            <FieldTitle>ID</FieldTitle>
-            {programId}
-          </Id>
-        </FlexRow>
-      </Row>
       <CodesystemSelectContainer>
-        <StyledLabel>CodeSystem</StyledLabel>
+        <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
           isLoading={pageLoading}
           styles={{
             container: (baseStyle) => ({
               ...baseStyle,
               width: '300px',
+              marginLeft: '10px',
+              marginTop: '-3px',
               zIndex: 2
             })
           }}
