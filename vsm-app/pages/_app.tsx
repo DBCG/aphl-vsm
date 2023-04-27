@@ -58,6 +58,7 @@ const theme = createTheme({
 
 const clientSideEmotionCache = createEmotionCache()
 
+// @ts-ignore-next-line
 function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache = clientSideEmotionCache }: AppProps) {
   return (
     <SessionProvider
