@@ -54,9 +54,6 @@ const useGetProgramManifest = ({ programId, toggleRefresh }: UseGetManifest): Re
           console.error(e)
           setManifestError('Error finding manifest data')
         }
-      } catch (e) {
-        console.error(e)
-        setManifestError('Error finding manifest data')
       }
       setManifestLoading(false)
     }
