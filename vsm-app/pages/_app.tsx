@@ -8,6 +8,14 @@ import { ToastContainer, Slide } from 'react-toastify'
 import type {} from '@mui/lab/themeAugmentation'
 import 'react-toastify/dist/ReactToastify.css'
 import { NavContextProvider } from '@/components/NavBar'
+import createEmotionCache from '../utils/createEmotionCache'
+import { CacheProvider } from '@emotion/react'
+// below: https://mui.com/material-ui/react-typography/
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
+
 const theme = createTheme({
   components: {
     // Name of the component
@@ -22,6 +30,22 @@ const theme = createTheme({
           }
         }
       }
+    },
+    MuiTypography: {
+      defaultProps: {
+        variantMapping: {
+          h1: 'h2',
+          h2: 'h3',
+          h3: 'h4',
+          h4: 'h4',
+          h5: 'h4',
+          h6: 'h4',
+          subtitle1: 'h4',
+          subtitle2: 'h4',
+          body1: 'span',
+          body2: 'span'
+        }
+      }
     }
   },
   palette: {
@@ -32,7 +56,9 @@ const theme = createTheme({
   }
 })
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
+const clientSideEmotionCache = createEmotionCache()
+
+function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache = clientSideEmotionCache }: AppProps) {
   return (
     <SessionProvider
       session={session}
@@ -41,24 +67,26 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
       // Re-fetches session when window is focused
       refetchOnWindowFocus={true}
     >
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        draggable={false}
-        pauseOnHover
-        transition={Slide}
-      />
+      <CacheProvider value={emotionCache}>
       <NavContextProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          draggable={false}
+          pauseOnHover
+          transition={Slide}
+        />
         <Scaffold>
           <ThemeProvider theme={theme}>
             <Component {...pageProps} />
           </ThemeProvider>
         </Scaffold>
       </NavContextProvider>
+      </CacheProvider>
     </SessionProvider>
   )
 }
