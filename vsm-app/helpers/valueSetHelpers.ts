@@ -4,6 +4,7 @@ import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
+import getConfigItem from '@/config'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
   const valueSetToUpdate = cloneDeep(vs)
@@ -202,12 +203,12 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` })
+  const vs = Object.assign({}, templateVS, rest, { url: `${getConfigItem('defaultPublishingUrl')}/ValueSet/${metadata.id}` })
 
   // apply extension
   vs.extension = [
     {
-      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
+      url: `${getConfigItem('defaultPublishingUrl')}/StructureDefinition/valueset-author`,
       valueContactDetail: {
         name: author
       }
@@ -239,7 +240,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
     }
 
     const authorExtension = {
-      url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/StructureDefinition/valueset-author`,
+      url: `${getConfigItem('defaultPublishingUrl')}/StructureDefinition/valueset-author`,
       valueContactDetail: {
         name: author
       }
