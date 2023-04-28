@@ -1,3 +1,4 @@
+import logger from '@/helpers/server/logger'
 import { HapiError } from '@/types/hapiError'
 import { is } from '@/helpers/is'
 
@@ -15,10 +16,10 @@ const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
       code,
       diagnostics
     })
-    console.error(error)
+    logger.error(error)
   } else {
-    console.error('Error not from HAPI: ', e)
-    console.error(`Location: ${location}`)
+    logger.error('Error not from HAPI: ', e)
+    logger.error(`Location: ${location}`)
   }
 }
 

@@ -463,17 +463,22 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
       resourceType: 'ValueSet',
       searchParams: {
         _id: grouperId,
-        version: originalGrouperVersion
+        version: originalGrouperVersion,
+        status: 'draft'
       }
     })
 
     if (!originalVsBundle.entry) {
+      logger.error(`Could not find grouper valueset with ID ${grouperId} and version ${originalGrouperVersion} to update.`)
       return res.status(404).send({ message: 'Grouper not found' })
     }
 
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     if (grouperToEdit.status !== 'draft') {
+      console.log('grouper to edit: ', grouperToEdit);
+
+      logger.error(`Edited resource must be a draft.`)
       return res.status(400).send({ message: 'Can only edit draft resources' })
     }
 
@@ -488,6 +493,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (is.operationOutcome(grouperUpdated)) {
+      logger.error(`Update failed for grouper with ID ${grouperId}`)
       return res.status(500).send({ message: 'Error updating grouper' })
     }
 
@@ -508,12 +514,14 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     const program = programSearchResult?.entry?.[0]?.resource
 
     if (!is.library(program)) {
+      logger.error(`Could not find program with id ${programId} and draft status`)
       return res.status(500).send({ message: 'Could not find program' })
     }
 
     const grouperLibCanonical = getGrouperLibraryCanonical(program)
 
     if (!grouperLibCanonical) {
+      logger.error(`No canonical to identify grouper library on program with id ${programId}`)
       return res.status(500).send({ message: 'Could not find grouper library' })
     }
 
@@ -528,7 +536,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     const grouperLib = grouperLibraryResult?.entry?.[0]?.resource
 
     if (!is.library(grouperLib)) {
-      console.error('Grouper library not found')
+      logger.error(`Grouper library with canonical ${grouperLibCanonical} and status 'draft' not found`)
       return res.status(500).send({ message: 'Could not find grouper library' })
     }
 
@@ -543,7 +551,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
 
     clonedGrouper.relatedArtifact = updatedComposeInclude
 
-    const submitGrouperLibrary = await fhirCdrClient.update({
+    await fhirCdrClient.update({
       resourceType: 'Library',
       id: clonedGrouper.id,
       body: clonedGrouper
