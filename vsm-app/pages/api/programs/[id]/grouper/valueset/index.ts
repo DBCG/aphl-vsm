@@ -473,6 +473,10 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
 
     const grouperToEdit = originalVsBundle.entry[0].resource
 
+    if (grouperToEdit.status !== 'draft') {
+      return res.status(400).send({ message: 'Can only edit draft resources' })
+    }
+
     const grouperToSubmit = updateGrouperWithMetadata({ vsToUpdate: grouperToEdit, metadata })
 
     const grouperUpdated = await fhirCdrClient.update({
