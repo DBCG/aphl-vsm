@@ -11,18 +11,21 @@ import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
-const StyledButton = styled(Icb).attrs(({ buttonContext }: IButtonProps) => ({
-  ariaLabel: buttonContext
+const StyledButton = styled(Icb).attrs(({ ariaLabel }: IButtonProps) => ({
+  ariaLabel: ariaLabel,
+  component: 'label'
 }))`
   height: 36px;
   width: 36px;
   border-radius: 50%;
   background-color: ${(props) => (props.disabled ? 'lightgray !important' : 'var(--theme-300)')};
   cursor: ${(props) => (props.disabled ? 'not-allowed !important' : 'pointer')};
-  cursor: pointer;
   box-shadow: none;
   border: none;
   padding-top: 4px;
+  &::hover {
+    pointer-events: ${(props) => (props.disabled ? 'unset' : 'pointer')};
+  }
 `
 
 const ImageContainer = styled.div`
@@ -34,6 +37,7 @@ interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   deletedItemDescription?: string
+  ariaLabel: string
 }
 
 const btnTitleText = {
@@ -41,7 +45,7 @@ const btnTitleText = {
   delete: 'Delete',
   search: 'Search',
   clone: 'Make a new program based on this one (must have active status)',
-  release: 'Promote this program from draft to active status',
+  release: 'Promote a program from draft to active status',
   publish: 'Publish this program',
   retire: 'Convert program from active to retired status'
 }
