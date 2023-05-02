@@ -1,13 +1,23 @@
 import React, { useState } from 'react'
+import { IconButton as Icb } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import PublishIcon from '@mui/icons-material/Publish'
+import NewReleasesIcon from '@mui/icons-material/NewReleases'
+import PsychologyAltIcon from '@mui/icons-material/PsychologyAlt'
+import DoNotTouchIcon from '@mui/icons-material/DoNotTouch'
+import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
-import Image from 'next/image'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
-const StyledButton = styled.button<IButtonProps>`
+const StyledButton = styled(Icb).attrs(({ buttonContext }: IButtonProps) => ({
+  ariaLabel: buttonContext
+}))`
   height: 36px;
   width: 36px;
   border-radius: 50%;
-  background-color: ${(props) => (props.disabled ? 'lightgray' : 'var(--theme-300)')};
+  background-color: ${(props) => (props.disabled ? 'lightgray !important' : 'var(--theme-300)')};
   cursor: ${(props) => (props.disabled ? 'not-allowed !important' : 'pointer')};
   cursor: pointer;
   box-shadow: none;
@@ -16,7 +26,7 @@ const StyledButton = styled.button<IButtonProps>`
 `
 
 const ImageContainer = styled.div`
-  padding-top: 3px;
+  padding-top: 8px;
 `
 
 interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -53,29 +63,29 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
     setModalOpen((o) => !o)
   }
 
-  let image = 'missing'
+  let image = <PsychologyAltIcon />
 
   switch (buttonContext) {
     case 'edit':
-      image = 'edit'
+      image = <EditIcon />
       break
     case 'delete':
-      image = 'delete'
+      image = <DeleteForeverIcon />
       break
     case 'search':
-      image = 'search'
+      image = <SearchIcon />
       break
     case 'clone':
-      image = 'clone'
+      image = <ContentCopyIcon />
       break
     case 'publish':
-      image = 'publish'
+      image = <PublishIcon />
       break
     case 'release':
-      image = 'release'
+      image = <NewReleasesIcon />
       break
     case 'retire':
-      image = 'retire'
+      image = <DoNotTouchIcon />
       break
   }
 
@@ -99,9 +109,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         }}
         {...props}
       >
-        <ImageContainer>
-          <Image src={`/images/${image}.svg`} width={24} height={24} alt="" />
-        </ImageContainer>
+        <ImageContainer>{image}</ImageContainer>
       </StyledButton>
     </div>
   )
