@@ -1,5 +1,3 @@
-import logger from './helpers/server/logger'
-
 interface ItemDetails {
   env: string | undefined
   default: string
@@ -33,11 +31,11 @@ const getConfigItem = (configTitle: ConfigName): string => {
   if (envItem) return envItem
 
   if (defaultItem) {
-    logger.error(`Missing ${configTitle} from .env, using default`)
+    console.error(`Missing ${configTitle} from .env, using default`)
     return defaultItem
   }
 
-  logger.error(`Missing .env and default value for ${configTitle}. Setting to empty string ''`)
+  console.error(`Missing .env and default value for ${configTitle}. Setting to empty string ''`)
   return ''
 }
 
