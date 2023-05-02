@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, SetStateAction, Dispatch } from 'react'
 import { Tabs, Box, Tab, Tooltip, Typography } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
@@ -12,7 +12,6 @@ import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
 import { InputRow, InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
-import { useRouter } from 'next/router'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -31,9 +30,13 @@ interface ExpansionTableData {
   timestamp?: string
 }
 
+interface StringMap {
+  [key: string]: string | undefined
+}
+
 interface ValueSetContentsProps {
   programAndGrouperInfo: ProgramDetails
-  setToggleUpdateData: () => void
+  setToggleUpdateData: Dispatch<SetStateAction<boolean>>
   valueSet: fhir4.ValueSet
   programId: string
   enableEditing: boolean
@@ -146,8 +149,6 @@ export default function ValueSetContents({
 
   const [error, setError] = useState<null | Error>(null)
 
-  const router = useRouter()
-
   if (valueSet == null || programAndGrouperInfo?.grouperLibrary == null) {
     return <LoadingIndicator />
   }
@@ -161,7 +162,7 @@ export default function ValueSetContents({
   }
 
   const submitGrouperUpdates = async () => {
-    const metadataItems = {
+    const metadataItems: StringMap = {
       version: updatedGrouperVersion?.trim(),
       description: updatedGrouperDescription?.trim(),
       purpose: updatedGrouperPurpose?.trim(),
@@ -184,6 +185,7 @@ export default function ValueSetContents({
 
     // only send changed fields to the server for updating
     flatKeys.forEach((key) => {
+      // @ts-ignore
       if (metadataItems[key] === valueSet[key]) {
         delete metadataItems[key]
       }
