@@ -11,8 +11,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
-const StyledButton = styled(Icb).attrs(({ ariaLabel }: IButtonProps) => ({
-  ariaLabel: ariaLabel,
+const StyledButton = styled(Icb).attrs(({ buttonContext }: IButtonProps) => ({
+  ariaLabel: buttonContext,
   component: 'label'
 }))`
   height: 36px;
