@@ -249,7 +249,7 @@ const Programs: NextPage = () => {
         loading={cloneLoading}
         handleCancelModal={() => setModalOpen(false)}
       />
-      <Row>
+      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
         <Button text="Publish" />
       </Row>
