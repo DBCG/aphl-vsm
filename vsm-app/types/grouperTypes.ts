@@ -76,12 +76,18 @@ interface ManifestDataMap {
   [key: string]: string[]
 }
 
-interface Result {
+interface ProgramDetails {
   program: fhir4.Library | null
   grouperData: GrouperItem[]
   grouperLibrary: fhir4.Library | null
   manifestData: ManifestDataMap
   artifactAssessments: ToString<Partial<approvalFormParams>>[]
+}
+
+interface ProgramDetailsEffect {
+  programAndGrouperDataLoading: boolean
+  programAndGrouperDataError: string | null
+  programAndGrouperData: ProgramDetails
 }
 
 export type {
@@ -94,5 +100,6 @@ export type {
   GrouperItem,
   DeleteGrouper,
   ManifestDataMap,
-  Result
+  ProgramDetails,
+  ProgramDetailsEffect
 }

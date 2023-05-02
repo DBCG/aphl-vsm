@@ -20,7 +20,6 @@ const ButtonContainer = styled.div`
 `
 
 interface GrouperTable {
-  data: fhir4.ValueSet[]
   toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
   programStatus: fhir4.Library['status']

@@ -52,3 +52,16 @@ export const FlexRow = styled.div`
   align-items: center;
   width: 100%;
 `
+
+export const InputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 12px 24px;
+  background-color: white;
+  gap: 16px 12px;
+`
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  gap: 12px;
+`

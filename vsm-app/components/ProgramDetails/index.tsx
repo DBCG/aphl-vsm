@@ -11,7 +11,6 @@ import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { Result } from '@/types/grouperTypes'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
@@ -26,7 +25,7 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [assessments, setAssessments] = useState<ToString<Partial<approvalFormParams>>[]>([])
   const [refreshData, setRefreshData] = useState(false)
-  const programAndGrouperInfo = useGetProgramDetails({ id: programId, toggleRefresh: refreshData }) as Result
+  const { programAndGrouperData } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
   const fetchedProgram = useGetProgramById({ programId })
 
@@ -106,9 +105,9 @@ const ProgramDetails = () => {
       </Row>
       <GrouperOverviewTable
         toggleRefreshData={toggleRefreshData}
-        grouperLibId={programAndGrouperInfo?.grouperLibrary?.id}
+        grouperLibId={programAndGrouperData?.grouperLibrary?.id}
         // @ts-ignore-next-line
-        programStatus={programAndGrouperInfo?.program?.status}
+        programStatus={programAndGrouperData?.program?.status}
       />
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
         <Col style={{ width: 'auto' }}>
