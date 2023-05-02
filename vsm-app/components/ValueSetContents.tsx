@@ -91,6 +91,14 @@ interface Error {
   message: string
 }
 
+interface MetadataResult {
+  version?: string
+  description?: string
+  publisher?: string
+  purpose?: string
+  author?: string
+}
+
 export default function ValueSetContents({
   programAndGrouperInfo,
   setToggleUpdateData,
@@ -102,7 +110,6 @@ export default function ValueSetContents({
   const [value, setValue] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
-  const [fieldsUpdated, setFieldsUpdated] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
 
   const {
@@ -116,30 +123,39 @@ export default function ValueSetContents({
   const defaultGrouperAuthor =
     valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))?.valueContactDetail?.name || ''
 
-  const [updatedGrouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
-  const [updatedGrouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
-  const [updatedGrouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
-  const [updatedGrouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
-  const [updatedGrouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
+  const [grouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
+  const [grouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
+  const [grouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
+  const [grouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
+  const [grouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
+  const [changedMetadataItems, setChangedMetadataItems] = useState({})
 
   useEffect(() => {
-    if (
-      defaultGrouperVersion?.trim() !== updatedGrouperVersion?.trim() ||
-      defaultGrouperDescription?.trim() !== updatedGrouperDescription?.trim() ||
-      defaultGrouperPurpose?.trim() !== updatedGrouperPurpose?.trim() ||
-      defaultGrouperPublisher?.trim() !== updatedGrouperPublisher?.trim() ||
-      defaultGrouperAuthor?.trim() !== updatedGrouperAuthor?.trim()
-    ) {
-      setFieldsUpdated(true)
-    } else {
-      setFieldsUpdated(false)
+    const metadataItemsChanged: MetadataResult = {}
+
+    if (defaultGrouperVersion?.trim() !== grouperVersion?.trim()) {
+      metadataItemsChanged.version = grouperVersion?.trim()
     }
+    if (defaultGrouperDescription?.trim() !== grouperDescription?.trim()) {
+      metadataItemsChanged.description = grouperDescription?.trim()
+    }
+    if (defaultGrouperPurpose?.trim() !== grouperPurpose?.trim()) {
+      metadataItemsChanged.purpose = grouperPurpose?.trim()
+    }
+    if (defaultGrouperPublisher?.trim() !== grouperPublisher?.trim()) {
+      metadataItemsChanged.publisher = grouperPublisher?.trim()
+    }
+    if (defaultGrouperAuthor?.trim() !== grouperAuthor?.trim()) {
+      metadataItemsChanged.author = grouperAuthor?.trim()
+    }
+
+    setChangedMetadataItems(metadataItemsChanged)
   }, [
-    updatedGrouperVersion,
-    updatedGrouperDescription,
-    updatedGrouperPurpose,
-    updatedGrouperPublisher,
-    updatedGrouperAuthor,
+    grouperVersion,
+    grouperDescription,
+    grouperPurpose,
+    grouperPublisher,
+    grouperAuthor,
     defaultGrouperVersion,
     defaultGrouperDescription,
     defaultGrouperPurpose,
@@ -163,11 +179,11 @@ export default function ValueSetContents({
 
   const submitGrouperUpdates = async () => {
     const metadataItems: StringMap = {
-      version: updatedGrouperVersion?.trim(),
-      description: updatedGrouperDescription?.trim(),
-      purpose: updatedGrouperPurpose?.trim(),
-      publisher: updatedGrouperPublisher?.trim(),
-      author: updatedGrouperAuthor.trim()
+      version: grouperVersion?.trim(),
+      description: grouperDescription?.trim(),
+      purpose: grouperPurpose?.trim(),
+      publisher: grouperPublisher?.trim(),
+      author: grouperAuthor.trim()
     }
 
     // check that no fields empty
@@ -181,23 +197,8 @@ export default function ValueSetContents({
       return
     }
 
-    const flatKeys = ['version', 'description', 'purpose', 'publisher']
-
-    // only send changed fields to the server for updating
-    flatKeys.forEach((key) => {
-      // @ts-ignore
-      if (metadataItems[key] === valueSet[key]) {
-        delete metadataItems[key]
-      }
-    })
-
-    // author is an extension to check it separately
-    if (defaultGrouperAuthor === updatedGrouperAuthor) {
-      delete metadataItems['author']
-    }
-
     // check that there are fields to change
-    if (!Object.keys(metadataItems).length) {
+    if (!Object.keys(changedMetadataItems).length) {
       setError({
         type: 'no-fields-changed',
         message: 'No fields were changed, update cancelled.'
@@ -206,7 +207,7 @@ export default function ValueSetContents({
     }
 
     const body = {
-      metadata: metadataItems,
+      metadata: changedMetadataItems,
       originalGrouperVersion: defaultGrouperVersion,
       grouperId: valueSet.id
     }
@@ -395,7 +396,7 @@ export default function ValueSetContents({
                     }}
                   />
                   <Button
-                    disabled={!fieldsUpdated}
+                    disabled={!Boolean(Object.keys(changedMetadataItems).length)}
                     text="Save Changes"
                     onClick={async (e) => {
                       e.preventDefault()
@@ -410,7 +411,7 @@ export default function ValueSetContents({
                 id="vs-version"
                 label="Grouper Version"
                 readonly={!isEditing}
-                value={updatedGrouperVersion}
+                value={grouperVersion}
                 def={defaultGrouperVersion}
                 placeholder={'No valueset version set'}
                 onChange={(e) => setGrouperVersion(e.target.value)}
@@ -422,7 +423,7 @@ export default function ValueSetContents({
                 label="Publisher"
                 minWidth={650}
                 readonly={!isEditing}
-                value={updatedGrouperPublisher}
+                value={grouperPublisher}
                 def={defaultGrouperPublisher}
                 placeholder={'No valueset publisher set'}
                 onChange={(e) => setGrouperPublisher(e.target.value)}
@@ -432,7 +433,7 @@ export default function ValueSetContents({
                 label="Author"
                 minWidth={650}
                 readonly={!isEditing}
-                value={updatedGrouperAuthor}
+                value={grouperAuthor}
                 def={defaultGrouperAuthor}
                 placeholder={'No valueset author set'}
                 onChange={(e) => setGrouperAuthor(e.target.value)}
@@ -444,7 +445,7 @@ export default function ValueSetContents({
                 label="Purpose"
                 minWidth={650}
                 readonly={!isEditing}
-                value={updatedGrouperPurpose}
+                value={grouperPurpose}
                 def={defaultGrouperPurpose}
                 placeholder={'No valueset purpose set'}
                 onChange={(e) => setGrouperPurpose(e.target.value)}
@@ -456,7 +457,7 @@ export default function ValueSetContents({
                 label="Description"
                 minWidth={650}
                 readonly={!isEditing}
-                value={updatedGrouperDescription}
+                value={grouperDescription}
                 def={defaultGrouperDescription}
                 placeholder={'No valueset description set'}
                 onChange={(e) => setGrouperDescription(e.target.value)}
