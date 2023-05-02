@@ -14,7 +14,7 @@ const ValueSetPageView = () => {
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>(null)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const enableEditing = programAndGrouperData?.program?.status === 'active' || can(session, 'edit')
+  const enableEditing = programAndGrouperData?.program?.status === 'draft' && can(session, 'edit')
 
   const handleToggleUpdateData = () => {
     setToggleUpdateData((t) => !t)
