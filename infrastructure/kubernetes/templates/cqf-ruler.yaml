@@ -30,7 +30,7 @@ spec:
         app: cqf-ruler-vsm
     spec:
       containers:
-      - image: alphora/cqf-ruler:vsm_draft_operation
+      - image: alphora/cqf-ruler:cqf-ruler-vsm
         imagePullPolicy: Always
         name: cqf-ruler-vsm
         env:
