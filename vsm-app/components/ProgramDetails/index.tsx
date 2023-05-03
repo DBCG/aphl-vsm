@@ -118,7 +118,7 @@ const ProgramDetails = () => {
           <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
         </Col>
       </Row>
-      <ApprovalDetailList assessments={programAndGrouperInfo?.artifactAssessments} />
+      <ApprovalDetailList assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
 }
