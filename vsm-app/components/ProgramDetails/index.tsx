@@ -23,7 +23,6 @@ const ProgramDetails = () => {
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const programId = router.query.id as string
   const [program, setProgram] = useState<fhir4.Library>()
-  const [assessments, setAssessments] = useState<ToString<Partial<approvalFormParams>>[]>([])
   const [refreshData, setRefreshData] = useState(false)
   const { programAndGrouperData } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
@@ -119,7 +118,7 @@ const ProgramDetails = () => {
           <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
         </Col>
       </Row>
-      <ApprovalDetailList assessments={assessments} />
+      <ApprovalDetailList assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
 }

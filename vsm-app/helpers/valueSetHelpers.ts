@@ -4,6 +4,7 @@ import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
+import { ManifestDataMap } from '@/types/manifestTypes'
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
   const valueSetToUpdate = cloneDeep(vs)
@@ -158,7 +159,7 @@ const setExpansionParameters = (library: fhir4.Library, manifestDataMap: any) =>
 }
 
 const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
-  const parameterMap = {} as any
+  const parameterMap: ManifestDataMap = {}
   const parameterResource = library?.contained?.find((resource) => resource.id === 'expansion-parameters-ecr') as fhir4.Parameters
   const systemVersion = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersion?.forEach((i) => {
