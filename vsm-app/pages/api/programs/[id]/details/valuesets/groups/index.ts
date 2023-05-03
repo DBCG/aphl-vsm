@@ -13,6 +13,8 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
   // get all grouper valueSets from within a program
   const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
+  const programStatus = programLibrary.status
+
   const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
     (art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
   )?.resource
@@ -22,12 +24,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
   let searchParams = {
     url: grouperLibUrl,
     version: grouperLibVersion,
-    status: 'active'
-  }
-
-  // update status if it exists on resource, is required so should be there
-  if (programLibrary.status) {
-    searchParams.status = programLibrary.status
+    status: programStatus
   }
 
   const grouperLibrarySearchBundle = await fhirCdrClient.search({
@@ -49,7 +46,8 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
           resourceType: 'ValueSet',
           searchParams: {
             url: url,
-            version: version
+            version: version,
+            status: programStatus
           }
         })
       })

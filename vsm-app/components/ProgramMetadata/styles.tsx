@@ -8,6 +8,7 @@ export const Form = styled.form`
   padding: 16px;
   padding-bottom: 24px;
   background-color: var(--theme-100);
+  max-width: 900px;
 `
 
 export const ButtonContainer = styled.div`
@@ -41,6 +42,12 @@ export const RequiredWarning = styled.p`
   font-style: italic;
   margin-top: 0;
   text-align: right;
+`
+
+export const TitleRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 `
 
 export const buttonStyles = {

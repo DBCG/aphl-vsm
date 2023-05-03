@@ -3,7 +3,8 @@ import {
   addValueSetToGrouper,
   removeValueSetFromGrouper,
   updateLeafVsVersion,
-  createGrouperWithMetadata
+  createGrouperWithMetadata,
+  updateGrouperWithMetadata
 } from "./valueSetHelpers";
 
 
@@ -192,6 +193,28 @@ describe('valueSetHelpers', () => {
       // check that extension is there
       expect(result?.extension?.[0]).toMatchObject(expectedExtension)
 
+    })
+  })
+
+  describe('updateGrouperWithMetadata', () => {
+    it('adds all metadata to existing grouper', () => {
+      const testMetaData = {
+        title: 'test title',
+        version: '5.4.3',
+        publisher: 'test publisher',
+        purpose: 'test purpose',
+        description: 'test description'
+      }
+
+      const testAuthorMetadata = { author: 'test author' }
+      const result = updateGrouperWithMetadata({ vsToUpdate: FIXTURE_GROUPER_VS, metadata: testMetaData })
+      expect(result).toMatchObject(testMetaData)
+
+      const resultWithAuthor = updateGrouperWithMetadata({ vsToUpdate: FIXTURE_GROUPER_VS, metadata: testAuthorMetadata })
+
+      const authorExtension = resultWithAuthor?.extension?.filter(ext => ext.url.endsWith('valueset-author'))
+      expect(authorExtension?.length).toBe(1)
+      expect(authorExtension?.[0]?.valueContactDetail?.name).toBe('test author')
     })
   })
 })

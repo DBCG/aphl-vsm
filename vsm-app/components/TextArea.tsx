@@ -75,6 +75,7 @@ const TextArea = ({
             value={value}
             onChange={onChange}
             defaultValue={def}
+            minWidth={minWidth}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
                 return onKeyPress(e)

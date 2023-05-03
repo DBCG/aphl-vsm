@@ -103,7 +103,7 @@ export interface approvalFormParams {
 const ApproveInfoForm: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const programAndGrouperInfo = useGetProgramDetails({ id: programId })
+  const { programAndGrouperData } = useGetProgramDetails({ id: programId })
   const [approvalFormData, setApprovalFormData] = React.useState<approvalFormParams>({
     approvalDate: new Date(),
     endorserName: '',
@@ -118,8 +118,8 @@ const ApproveInfoForm: NextPage = () => {
   })
   useEffect(() => {
     let target: string = ''
-    const url = programAndGrouperInfo?.program?.url
-    const version = programAndGrouperInfo?.program?.version
+    const url = programAndGrouperData?.program?.url
+    const version = programAndGrouperData?.program?.version
     if (!!url) {
       target += url
     }
@@ -141,11 +141,11 @@ const ApproveInfoForm: NextPage = () => {
       artifactCommentReference: '',
       artifactCommentUser: ''
     })
-  }, [programAndGrouperInfo?.program])
+  }, [programAndGrouperData?.program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const parameterObj = createParametersObj()
-    const approveEndpoint = `/api/programs/${(programAndGrouperInfo.program as fhir4.Library).id}/approve`
+    const approveEndpoint = `/api/programs/${(programAndGrouperData.program as fhir4.Library).id}/approve`
     return fetch(approveEndpoint, {
       method: 'POST',
       body: JSON.stringify(parameterObj)
