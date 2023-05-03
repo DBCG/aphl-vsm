@@ -73,10 +73,6 @@ interface DeleteGrouper {
   grouperVsIdToRemove: string | undefined;
 }
 
-interface ManifestDataMap {
-  [key: string]: string[];
-}
-
 interface ProgramDetails {
   program: fhir4.Library | null;
   grouperData: GrouperItem[];
@@ -100,7 +96,6 @@ export type {
   SelectedCondition,
   GrouperItem,
   DeleteGrouper,
-  ManifestDataMap,
   ProgramDetails,
   ProgramDetailsEffect
 };
