@@ -21,13 +21,26 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     return res.status(400).json(libraryUpdateResponse)
   }
   cache?.set(`Library/${libraryUpdateResponse.id}`, JSON.stringify(libraryUpdateResponse))
+  const releasePayload = {
+    resourceType: 'Parameters',
+    parameter: [
+      {
+        name: 'version',
+        valueString: libraryUpdateResponse.version
+      },
+      {
+        name: 'version-behavior',
+        valueCode: 'default'
+      }
+    ]
+  }
   const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}/$release`, {
     method: 'POST',
     headers: {
       'cache-control': 'no-cache',
       'content-type': 'application/json'
     },
-    body: req.body
+    body: JSON.stringify(releasePayload)
   })
 
   if (!response.ok) {
