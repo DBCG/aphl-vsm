@@ -21,7 +21,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     const parameter = [
       {
         name: 'version',
-        version: `${year}-${month}-${day}`
+        valueString: `${year}-${month}-${day}`
       }
     ]
 
