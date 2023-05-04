@@ -3,6 +3,7 @@ import handler from '@/helpers/server/handler'
 import { generateErrorMessage } from '@/helpers/server/generateErrorMessage'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
+import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -53,7 +54,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(response.status).json({ message: errorMessage })
     }
   } catch (e: any) {
-    logger.error(e)
+    logSimpleHapiError(e)
     return res.status(400).json({ message: 'Creation of new Library failed.' })
   }
 }

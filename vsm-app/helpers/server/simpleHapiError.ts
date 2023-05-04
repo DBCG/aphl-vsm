@@ -24,19 +24,3 @@ const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
 }
 
 export { logSimpleHapiError }
-
-const testErr = {
-  response: {
-    status: 404,
-    data: {
-      resourceType: 'OperationOutcome',
-      text: [Object],
-      issue: [Array]
-    }
-  },
-  config: {
-    method: 'GET',
-    url: 'http://localhost:8082/fhir/ValueSet/test-cat-123',
-    headers: {}
-  }
-}
