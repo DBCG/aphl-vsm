@@ -89,10 +89,6 @@ const contactTypeOptions: Options<{ value: keyof typeof contactTypes; label: str
 ) as Options<{ value: keyof typeof contactTypes; label: string }>
 export interface approvalFormParams {
   approvalDate: Date
-  endorserName: string
-  endorserContact: string
-  endorserContactType: keyof typeof contactTypes
-  endorserContactValue: string
   artifactCommentType: keyof typeof artifactAssessmentInfoTypes
   artifactCommentText: string
   artifactCommentTarget: string
@@ -106,10 +102,6 @@ const ApproveInfoForm: NextPage = () => {
   const { programAndGrouperData } = useGetProgramDetails({ id: programId })
   const [approvalFormData, setApprovalFormData] = React.useState<approvalFormParams>({
     approvalDate: new Date(),
-    endorserName: '',
-    endorserContact: '',
-    endorserContactType: '',
-    endorserContactValue: '',
     artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
@@ -131,10 +123,6 @@ const ApproveInfoForm: NextPage = () => {
     }
     setApprovalFormData({
       approvalDate: new Date(),
-      endorserName: '',
-      endorserContact: '',
-      endorserContactType: '',
-      endorserContactValue: '',
       artifactCommentType: 'comment',
       artifactCommentText: '',
       artifactCommentTarget: target || '',
@@ -203,23 +191,6 @@ const ApproveInfoForm: NextPage = () => {
       name: 'approvalDate',
       valueDate: approvalFormData.approvalDate.toISOString()
     })
-    if (approvalFormData.endorserName) {
-      parametersObj.parameter.push({
-        name: 'endorser',
-        valueContactDetail: {
-          name: approvalFormData.endorserName,
-          telecom: approvalFormData.endorserContactValue
-            ? [
-                {
-                  value: approvalFormData.endorserContactValue,
-                  system: approvalFormData.endorserContactType || undefined
-                }
-              ]
-            : undefined
-        }
-      })
-    }
-
     if (approvalFormData.artifactCommentTarget) {
       parametersObj.parameter.push({
         name: 'artifactCommentTarget',
@@ -268,35 +239,6 @@ const ApproveInfoForm: NextPage = () => {
         readOnly
       />
       <GridContainer>
-        <Col>
-          <SubtitleRow>
-            <StyledSpan>Endorser</StyledSpan>
-          </SubtitleRow>
-          <LabelStyled>Type</LabelStyled>
-          <Select
-            value={{ value: approvalFormData.endorserContactType, label: contactTypes[approvalFormData.endorserContactType].display }}
-            onChange={(e) => handleFieldChange(e, 'endorserContactType')}
-            options={contactTypeOptions}
-            instanceId={'contactType'}
-          />
-          <SearchInput
-            id="contact"
-            label="Contact"
-            value={approvalFormData.endorserContactValue}
-            onChange={(e) => handleFieldChange(e, 'endorserContactValue')}
-            errorMessage={
-              contactTypes[approvalFormData.endorserContactType].validation(approvalFormData.endorserContactValue)
-                ? ''
-                : 'Please enter a valid contact'
-            }
-          />
-          <SearchInput
-            id="name"
-            label="Name"
-            value={approvalFormData.endorserName}
-            onChange={(e) => handleFieldChange(e, 'endorserName')}
-          />
-        </Col>
         <Col>
           <SubtitleRow>
             <StyledSpan>Artifact Comment</StyledSpan>

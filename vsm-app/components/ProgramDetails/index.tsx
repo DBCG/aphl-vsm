@@ -114,9 +114,11 @@ const ProgramDetails = () => {
           <StyledSpan>Last Approval</StyledSpan>
           {program.approvalDate || '-'}
         </Col>
-        <Col style={{ width: 'auto' }}>
-          <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
-        </Col>
+        {status === 'draft' && (
+          <Col style={{ width: 'auto' }}>
+            <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+          </Col>
+        )}
       </Row>
       <ApprovalDetailList assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
