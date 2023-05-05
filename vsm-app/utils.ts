@@ -37,10 +37,13 @@ export const incrementSemver = ({
   // if not a string to begin with, return fallback default
   if (typeof valueToIncrement !== 'string') return fallbackValue
 
-  // if value is not semver format, return fallback
-  if (!is.semver(valueToIncrement)) return fallbackValue
+  // this will return whole string if '-draft' is not there
+  const semverWithoutTag = valueToIncrement.split('-')[0]
 
-  let [major, minor, patch] = valueToIncrement.split('.')
+  // if value is not semver format, return fallback
+  if (!is.semver(semverWithoutTag)) return fallbackValue
+
+  let [major, minor, patch] = semverWithoutTag.split('.')
 
   switch (incrementType) {
     case 'major':
