@@ -20,7 +20,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
     res.send(response)
   } catch (e: any) {
     const error = e as HapiError
-    logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    logger.error('ERROR: ' + error.response?.data?.issue?.[0]?.code + " : " + error.response?.data?.issue?.[0]?.diagnostics)
     res.status(error.response?.status).json({ error: error.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
   }
 }
