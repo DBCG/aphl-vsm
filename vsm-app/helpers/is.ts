@@ -1,6 +1,11 @@
 import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from "pages/api/programs/[id]/grouper/valueset"
 
+type SemverType = `${number}.${number}.${number}`
+// this regex is numeric only
+// matches values like 1.0.0, 20.1.10, 4000.29439.8198 etc
+const semverRegex = /^(\d+\.)(\d+\.)(\*|\d+)$/
+
 const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
@@ -81,6 +86,9 @@ const is = {
   },
   searchBundle: (resource: fhir4.Bundle | any): resource is fhir4.Bundle => {
     return is.bundle(resource) && resource?.type === 'searchset'
+  },
+  semver: (value: any): value is SemverType => {
+    return typeof value === 'string' && Boolean(value.match(semverRegex))
   },
   serviceRequest: (resource: fhir4.ServiceRequest | any): resource is fhir4.ServiceRequest => {
     return resource?.resourceType === 'ServiceRequest'

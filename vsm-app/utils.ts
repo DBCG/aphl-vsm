@@ -1,3 +1,5 @@
+import { is } from "./helpers/is"
+
 // Usage: await sleep(1000);
 export const sleep = (millis: number) => {
   return new Promise((resolve) => setTimeout(resolve, millis))
@@ -18,3 +20,37 @@ export const shallowEqual = (object1: any, object2: any) => {
 
 // @ts-ignore
 export const fetcher = (...args) => fetch(...args).then((res) => res.json())
+
+interface IncrementParams {
+  valueToIncrement: any
+  incrementType: 'major' | 'minor' | 'patch'
+  fallbackValue: string
+}
+
+const incrementStringValue = (str: string) => (parseInt(str) + 1).toString()
+
+export const incrementSemver = ({
+  valueToIncrement,
+  incrementType,
+  fallbackValue
+}: IncrementParams) => {
+  // if not a string to begin with, return fallback default
+  if (typeof valueToIncrement !== 'string') return fallbackValue
+
+  // if value is not semver format, return fallback
+  if (!is.semver(valueToIncrement)) return fallbackValue
+
+  let [major, minor, patch] = valueToIncrement.split('.')
+
+  switch (incrementType) {
+    case 'major':
+      major = incrementStringValue(major)
+      break
+    case 'minor':
+      minor = incrementStringValue(minor)
+      break
+    case 'patch':
+      patch = incrementStringValue(patch)
+  }
+  return `${major}.${minor}.${patch}`
+}
