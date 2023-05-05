@@ -123,7 +123,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     })
 
     if (is.errorResponse(cqfUpdatesPayload)) {
-      logger.error("Error found at location 'submitUpdatesToCQF'", JSON.stringify(cqfUpdatesPayload, null, 2))
+      logger.error(`Error found at location 'submitUpdatesToCQF':  ${JSON.stringify(cqfUpdatesPayload, null, 2)}`)
       res.status(400).send('Error with creating grouper valuesets')
     }
 
