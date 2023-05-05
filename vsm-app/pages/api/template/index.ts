@@ -2,20 +2,27 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { generateErrorMessage } from '@/helpers/server/generateErrorMessage'
 import logger from '@/helpers/server/logger'
+import { detectSemanticVersion } from '@/helpers/stringHelpers'
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
+
   try {
     let body = JSON.parse(req.body)
-
+    const version = detectSemanticVersion(body.version) ? body.version : '1.0.0'
     const postBody = JSON.stringify({
       resourceType: 'Parameters',
       parameter: [
         {
           name: 'specification',
           resource: body
+        },
+        {
+          name: 'version',
+          valueString: version
         }
+
       ]
     })
 
