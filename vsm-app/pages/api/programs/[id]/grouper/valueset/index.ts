@@ -403,7 +403,6 @@ const updateProgramLibraryWithGrouperRef = async (
         url: `Library/${libResource.id}`
       }
     } as fhir4.BundleEntry
-    // return `Saved new grouper ${libResource.id} to Program ${program.id}`
   } catch (e: HapiError | any) {
     logSimpleHapiError(e, 'updateProgramLibraryWithGrouperRef')
     return { resStatus: 400, errorMessage: `Failed to create transaction payload for Program ${program.id}` }
@@ -439,8 +438,6 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     if (grouperToEdit.status !== 'draft') {
-      console.log('grouper to edit: ', grouperToEdit)
-
       logger.error(`Edited resource must be a draft.`)
       return res.status(400).send({ message: 'Can only edit draft resources' })
     }
