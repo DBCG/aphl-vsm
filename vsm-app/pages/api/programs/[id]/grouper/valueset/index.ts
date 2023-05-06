@@ -87,7 +87,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
       const { errorMessage } = error
-      logger.error(`Error found at location ${location}`)
+      logger.error(`Error`, errorMessage)
       throw new Error(errorMessage)
     }
 
@@ -131,7 +131,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
     const systemCode = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
     const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, systemCode, grouperMetadata)
-
     if (is.errorResponse(programLibUpdatePayload)) {
       sendError(programLibUpdatePayload)
     } else {
@@ -143,8 +142,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
       return res.status(200).send({ message: responsesFromTransaction })
     }
-  } catch (e: ErrorResponse | any) {
-    return res.status(400).send(`${e?.errorMessage} | 'Failed to create Grouper ValueSet'`)
+  } catch (e: string | any) {
+    return res.status(400).send({ error: `${e} | 'Failed to create Grouper ValueSet'` })
   }
 }
 
