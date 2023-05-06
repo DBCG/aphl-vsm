@@ -158,7 +158,7 @@ const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
       method: 'PUT',
       url: `ValueSet/${vs.id}`
     }
-  })) as fhir4.BundleEntry[]
+  }))
 }
 
 const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library | ErrorResponse> => {
