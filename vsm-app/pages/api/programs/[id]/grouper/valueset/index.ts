@@ -124,10 +124,10 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
     if (is.errorResponse(cqfUpdatesPayload)) {
       logger.error(`Error found at location 'submitUpdatesToCQF':  ${JSON.stringify(cqfUpdatesPayload, null, 2)}`)
-      res.status(400).send('Error with creating grouper valuesets')
+      return res.status(400).send('Error with creating grouper valuesets')
     }
 
-    const leafReferencesToAdd = cqfUpdatesPayload?.map((i: fhir4.BundleEntry) => i?.resource?.url) || []
+    const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
     const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
     const systemCode = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
     const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, systemCode, grouperMetadata)
@@ -137,6 +137,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       const putRequestBundle: fhir4.Bundle & { type: 'transaction' } = {
         resourceType: 'Bundle',
         type: 'transaction',
+        // @ts-ignore
         entry: [...cqfUpdatesPayload, grouperToSubmitPayload, programLibUpdatePayload]
       }
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
@@ -343,7 +344,7 @@ const createAndSubmitGrouper = (leafReferencesToAdd: fhir4.ValueSet['url'][], gr
       method: 'PUT',
       url: `ValueSet/${grouperMetadata.id}`
     }
-  } as fhir4.BundleEntry
+  }
 }
 
 const updateProgramLibraryWithGrouperRef = async (
