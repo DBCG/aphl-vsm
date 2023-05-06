@@ -20,7 +20,7 @@ install:
 jobs:
   include:
     - stage: test
-      script: docker run --entrypoint npm vsm-app:$TRAVIS_COMMIT run test-ci
+      script: npm ci && npm run test-ci
       install: skip
     - stage: deploy
       if: branch IN (main, deployed)
