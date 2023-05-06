@@ -23,8 +23,8 @@ import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 
 const searchTypes = [
-  { label: 'OID', value: 'oid' },
   { label: 'Name', value: 'name' },
+  { label: 'OID', value: 'oid' },
   { label: 'URL', value: 'url' }
 ] as const
 
