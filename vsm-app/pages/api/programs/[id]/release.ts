@@ -2,31 +2,17 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import appCache from 'cache'
 import logger from '@/helpers/server/logger'
+import { fhirCdrClient } from '@/fhirClients'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const cache = appCache?.getInstance()
-
-  const libraryUpdateResponse = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}`, {
-    method: 'PUT',
-    headers: {
-      'cache-control': 'no-cache',
-      'content-type': 'application/json'
-    },
-    body: req.body
-  }).then((res) => res?.json())
-
-  if (!libraryUpdateResponse) {
-    logger.error('error updating library', libraryUpdateResponse)
-    return res.status(400).json(libraryUpdateResponse)
-  }
-  cache?.set(`Library/${libraryUpdateResponse.id}`, JSON.stringify(libraryUpdateResponse))
+  const toReleaseLibrary = JSON.parse(req?.body)
   const releasePayload = {
     resourceType: 'Parameters',
     parameter: [
       {
         name: 'version',
-        valueString: libraryUpdateResponse.version
+        valueString: toReleaseLibrary?.version
       },
       {
         name: 'version-behavior',
@@ -34,20 +20,32 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       }
     ]
   }
-  const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${req.query.id}/$release`, {
+
+  const response = await fhirCdrClient.operation({
+    name: '$release',
+    resourceType: 'Library',
+    id: req.query.id as string,
     method: 'POST',
-    headers: {
-      'cache-control': 'no-cache',
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify(releasePayload)
+    input: releasePayload
   })
 
   if (!response.ok) {
     logger.error('error', response.status, response.statusText)
     return res.status(response.status).json({ error: response.statusText })
   }
-  return res.send(response)
+
+  const libraryUpdateResponse = await fhirCdrClient.update({
+    resourceType: 'Library',
+    id: req.query.id as string,
+    body: req.body
+  })
+
+  if (!libraryUpdateResponse) {
+    logger.error('error updating library', libraryUpdateResponse)
+    return res.status(400).json(libraryUpdateResponse)
+  }
+
+  return res.send(libraryUpdateResponse)
 }
 
 export default handler({
