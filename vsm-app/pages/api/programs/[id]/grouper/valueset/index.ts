@@ -129,8 +129,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
     const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
     const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
-    const systemCode = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
-    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, systemCode, grouperMetadata)
+    const grouperVsUrl = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
+    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl, grouperMetadata)
     if (is.errorResponse(programLibUpdatePayload)) {
       sendError(programLibUpdatePayload)
     } else {
