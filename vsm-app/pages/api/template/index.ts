@@ -24,7 +24,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
 
     let previousVersion = body.version
 
-    // try to increment versions 5 times before failing out
+    // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
     const totalAttempts = 30
     let attempts = totalAttempts
