@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:18-alpine as Builder
 
 # Disable telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -23,5 +23,14 @@ RUN npm ci
 
 COPY ./ /opt/app
 RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /opt/app
+
+COPY --from=Builder /opt/app/node_modules /opt/app/node_modules
+COPY --from=Builder /opt/app/.next /opt/app/.next
+COPY --from=Builder /opt/app/public /opt/app/public
+COPY --from=Builder /opt/app/package.json /opt/app/package.json
+COPY --from=Builder /opt/app/package-lock.json /opt/app/package-lock.json
 
 CMD ["npm", "start"]

@@ -136,7 +136,7 @@ const AddGrouper = () => {
     } else {
       const json = await res.json()
       setLoading(false)
-      setError({ type: 'failed-grouper-add', message: json.error || `Failed to add grouper '${name}'` })
+      setError({ type: 'failed-grouper-add', message: json?.error || `Failed to add grouper '${name}'` })
     }
   }
 
