@@ -16,15 +16,4 @@ const capitalizeFirstLetter = (title: string) => {
   return title.charAt(0).toUpperCase() + title.slice(1)
 }
 
-function detectSemanticVersion(str: string) {
-  const pattern = /\b\d+\.\d+\.\d+\b/;  // Regex pattern to match semantic versioning
-  const match = str.match(pattern);
-
-  if (match) {
-    return match[0];
-  } else {
-    return null;
-  }
-}
-
-export { stripFromName, startsAlphabetically, capitalizeFirstLetter, detectSemanticVersion }
+export { stripFromName, startsAlphabetically, capitalizeFirstLetter }
