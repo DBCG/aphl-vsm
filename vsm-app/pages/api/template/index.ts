@@ -30,7 +30,6 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     let attempts = totalAttempts
 
     const createDraftWithNewVersion = async (): Promise<DraftCreateResponse> => {
-      logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft`)
 
       let response
 
@@ -39,6 +38,8 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         incrementType: 'minor',
         fallbackValue: '1.0.0'
       })
+
+      logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${newVersion}`)
 
       try {
         // update previousVersion in case you need to run again
