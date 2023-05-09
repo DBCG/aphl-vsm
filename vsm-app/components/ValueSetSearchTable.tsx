@@ -21,6 +21,7 @@ import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
+import uniqBy from 'lodash.uniqby'
 
 const searchTypes = [
   { label: 'Name', value: 'name' },
@@ -204,9 +205,10 @@ export type TableContextType = 'add-grouper' | 'search-page'
 interface ValueSetSearchTable {
   handleAddValueSets?: HandleAddVSets
   tableContext: TableContextType
+  currentSelectedVSId?: string[]
 }
 
-const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearchTable) => {
+const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelectedVSId }: ValueSetSearchTable) => {
   const router = useRouter()
   const programId = router.query.id as string
 
@@ -343,7 +345,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
             setFetchError(valueSetResponse.error || null)
             // what to do with total when filtered? probably fine
           } else {
-            setValueSets(valueSetResponse.valueSets)
+            setValueSets(valueSetResponse.valueSets?.filter((i) => !currentSelectedVSId?.includes(i?.id as string)))
             setSearchTotal(valueSetResponse.total)
             setFetchError(valueSetResponse.error || null)
           }
@@ -416,6 +418,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
           return vs?.version?.toLowerCase()?.includes(findInVersion.toLowerCase())
         })
       }
+      filteredValueSets = filteredValueSets.filter((i) => !currentSelectedVSId?.includes(i?.id as string))
       setFilteredVSets(filteredValueSets)
     }
   }, [valueSets, findInName, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
@@ -475,7 +478,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
 
     const leafsToAdd = {
       selectedTerminologyServer: selectedTerminologyServer.value.title,
-      selectedValueSets,
+      selectedValueSets: uniqBy(selectedValueSets, 'id'),
       selectedConditions,
       selectedGroupers
     } as LeafsToAdd
@@ -484,6 +487,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets }: ValueSetSearc
     if (tableContext === 'add-grouper') {
       if (handleAddValueSets) {
         handleAddValueSets(leafsToAdd)
+        const selectedVSIds = selectedValueSets.map(i => i.id)
+        setValueSets(valueSets?.filter((i) => !selectedVSIds?.includes(i?.id)))
       }
       setToggledClearRows(true)
 

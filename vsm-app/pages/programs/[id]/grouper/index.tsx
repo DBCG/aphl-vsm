@@ -163,6 +163,7 @@ const AddGrouper = () => {
         setId(targetValue)
     }
   }
+  const currentSelectedVSId: string[] = grouperVSets?.map((i) => i?.selectedValueSet?.id as string)?.filter(i => i)
 
   const submitDisabled =
     !(grouperVSets.length && title && id && author && publisher && description && purpose) || !startsAlphabetically(title)
@@ -203,7 +204,7 @@ const AddGrouper = () => {
         <TextArea label="Description" id="description" required={true} onChange={(e) => updateField(e)} value={description} />
       </Form>
       <FormSectionHeader itemNum={2} title="Search and add valuesets to grouper, conditions optional" />
-      <ValueSetSearchTable handleAddValueSets={handleAddValueSets} tableContext="add-grouper" />
+      <ValueSetSearchTable handleAddValueSets={handleAddValueSets} tableContext="add-grouper" currentSelectedVSId={currentSelectedVSId} />
       <FormSectionHeader itemNum={3} title="Review draft grouper information" />
       <Subtitle>Grouper Metadata</Subtitle>
       <MetadataContainer>
