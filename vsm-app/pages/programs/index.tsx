@@ -110,7 +110,6 @@ const Programs: NextPage = () => {
         body: json
       })
 
-      console.log('res: ', res)
       if (res?.ok) {
         setModalOpen(false)
         toggleNewCloneExists()

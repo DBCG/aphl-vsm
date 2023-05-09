@@ -44,16 +44,14 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         // update previousVersion in case you need to run again
         previousVersion = newVersion
 
-        const parameter = [
-          {
-            name: 'version',
-            valueString: newVersion
-          }
-        ]
-
         const parameters = {
           resourceType: 'Parameters',
-          parameter
+          parameter: [
+            {
+              name: 'version',
+              valueString: newVersion
+            }
+          ]
         } as fhir4.Parameters
 
         const clientResponse = await fhirCdrClient.operation({
