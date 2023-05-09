@@ -31,5 +31,11 @@ describe('incrementSemver', () => {
       incrementType: 'major',
       fallbackValue: '2.0.0'
     })).toBe('2.0.0')
+
+    expect(incrementSemver({
+      valueToIncrement: '123',
+      incrementType: 'major',
+      fallbackValue: '2.0.0'
+    })).toBe('2.0.0')
   })
 })
