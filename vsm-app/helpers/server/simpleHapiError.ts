@@ -6,8 +6,10 @@ const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
   console.log('e: ', JSON.stringify(e));
 
   if (is.hapiError(e)) {
-    const { status } = e.response
-    const { severity, code, diagnostics } = e.response.data.issue[0]
+    const status = e?.response?.status
+    const severity = e?.response?.data?.issue?.[0]?.severity
+    const code = e?.response?.data?.issue?.[0]?.code
+    const diagnostics = e?.response?.data?.issue?.[0]?.diagnostics
 
     const error = ({
       location,
@@ -18,25 +20,9 @@ const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
     })
     logger.error(error)
   } else {
-    logger.error('Error not from HAPI: ', e)
+    logger.error(`Error not from HAPI: , ${e}`)
     logger.error(`Location: ${location}`)
   }
 }
 
 export { logSimpleHapiError }
-
-const testErr = {
-  response: {
-    status: 404,
-    data: {
-      resourceType: 'OperationOutcome',
-      text: [Object],
-      issue: [Array]
-    }
-  },
-  config: {
-    method: 'GET',
-    url: 'http://localhost:8082/fhir/ValueSet/test-cat-123',
-    headers: {}
-  }
-}

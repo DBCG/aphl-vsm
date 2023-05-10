@@ -80,6 +80,8 @@ const Programs: NextPage = () => {
   const [progIdToClone, setProgIdToClone] = useState('')
   const [newCloneExists, setNewCloneExists] = useState(false)
 
+  const toggleNewCloneExists = () => setNewCloneExists((exists) => !exists)
+
   const programs = useGetPrograms({
     id: searchTermID,
     name: searchTermName,
@@ -107,9 +109,10 @@ const Programs: NextPage = () => {
         method: 'POST',
         body: json
       })
+
       if (res?.ok) {
         setModalOpen(false)
-        setNewCloneExists(true)
+        toggleNewCloneExists()
       } else {
         const json = await res.json()
         setError({ message: json.message })

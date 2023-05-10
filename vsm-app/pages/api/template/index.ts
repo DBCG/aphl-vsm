@@ -1,7 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { generateErrorMessage } from '@/helpers/server/generateErrorMessage'
 import logger from '@/helpers/server/logger'
+import { fhirCdrClient } from '@/fhirClients'
+import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
+import { incrementSemver } from '@/utils'
+import { HapiError } from '@/types/hapiError'
+import { is } from '@/helpers/is'
+
+interface ResponseItem {
+  status: string
+  location: string
+  etag: string
+  lastModified: string
+}
+
+type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | null
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -9,40 +22,83 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     let body = JSON.parse(req.body)
 
-    const postBody = JSON.stringify({
-      resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'specification',
-          resource: body
-        }
-      ]
-    })
+    let previousVersion = body.version
 
-    const response = await fetch(`${process.env.FHIR_CDR_URL}/Library/${body.id}/$draft`, {
-      method: 'POST',
-      headers: {
-        'cache-control': 'no-cache',
-        'content-type': 'application/json'
-      },
-      body: postBody
-    })
+    // try to increment versions totalAttempts times before failing out
+    // in case there are 422 (already exist collisions)
+    const totalAttempts = 30
+    let attempts = totalAttempts
 
-    if (response.ok) {
-      return res.send(response)
-    } else {
-      const json = await response.json()
+    const createDraftWithNewVersion = async (): Promise<DraftCreateResponse> => {
 
-      const errorMessage = generateErrorMessage({
-        serverResponse: json,
-        defaultErrorMessage: `Could not clone Library ${body.id}`
+      let response
+
+      const newVersion = incrementSemver({
+        valueToIncrement: previousVersion,
+        incrementType: 'minor',
+        fallbackValue: '1.0.0'
       })
-      return res.status(response.status).json({ message: errorMessage })
+
+      logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${newVersion}`)
+
+      try {
+        // update previousVersion in case you need to run again
+        previousVersion = newVersion
+
+        const parameters = {
+          resourceType: 'Parameters',
+          parameter: [
+            {
+              name: 'version',
+              valueString: newVersion
+            }
+          ]
+        } as fhir4.Parameters
+
+        const clientResponse = await fhirCdrClient.operation({
+          name: '$draft',
+          method: 'POST',
+          id: `Library/${body.id}`,
+          options: {
+            headers: {
+              'content-type': 'application/json'
+            }
+          },
+          input: JSON.stringify(parameters)
+        })
+
+        if (!clientResponse?.entry?.length && attempts > 0) {
+          logger.error(`Error: could not $draft Library/${body.id} with version ${newVersion}. Attempt #${attempts}/5.`)
+          attempts = attempts - 1
+          await createDraftWithNewVersion()
+        } else {
+          response = clientResponse
+        }
+      } catch (e: HapiError | any) {
+        if (e?.response?.status === 422 && attempts > 0) {
+          attempts = attempts - 1
+          return await createDraftWithNewVersion()
+        } else {
+          logSimpleHapiError(e)
+          return null
+        }
+      }
+      // final return of response if nothing catches
+      return response
     }
-  } catch (e: any) {
-    logger.error('error:  ', e)
-    return res.status(400).json({ message: 'Creation of new Library failed.' })
+
+    const draftResponse = await createDraftWithNewVersion() // either null or a response
+
+    if (!is.operationOutcome(draftResponse) && draftResponse?.entry?.length) {
+      return res.status(200).json({ message: 'Successfully drafted' })
+    } else {
+      return res.status(400).json({ message: 'Failed to clone Library.' })
+    }
+  } catch (e) {
+    logSimpleHapiError(e)
+    return res.status(400).json({ message: 'Creation of new Library failed here.' })
   }
+
 }
 
 export default handler({
