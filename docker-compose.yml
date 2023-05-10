@@ -59,3 +59,11 @@ services:
         - 8080:8080
       depends_on:
         - postgres
+  # vsm-app:
+  #   build:
+  #     context: ./vsm-app
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - 3000:3000
+  #   env_file:
+  #     - ./vsm-app/.env.local
