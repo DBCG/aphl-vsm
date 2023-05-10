@@ -246,9 +246,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     selectedVersion: string = '',
     vsCanonical: string,
     grouperIds: string[],
-    terminologyInfo: TerminologyResult
+    terminologyInfo: TerminologyResult,
+    originalVsVersion: string
   ) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, originalVsVersion }
 
     // update the grouper canonical version
     setVersionToUpdate(data)
@@ -268,7 +269,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      result = await fetch(`/api/valueset/versions`, {
+      result = await fetch(`/api/valueset/${versionToUpdate.originalVsVersion}/versions`, {
         method: 'PUT',
         body
       }).then((res) => res.json())
@@ -282,7 +283,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } catch (e) {
       console.error('error: ', e)
     }
-    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
+    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version, versionToUpdate.originalVersion])
   }, [versionToUpdate])
 
   // @ts-ignore-next-line
@@ -354,7 +355,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo)
+                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo, defaultValue)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}

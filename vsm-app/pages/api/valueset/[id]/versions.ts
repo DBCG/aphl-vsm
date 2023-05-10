@@ -78,10 +78,12 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
+  console.log('attempt')
   try {
     const body = await req.body
     const { vsCanonical, vsVersion, grouperIds } = body
 
+    console.log('body: ', body)
     const groupersToUpdate = await Promise.all(
       grouperIds.map((grouperVsId: string) =>
         fhirCdrClient.read({
