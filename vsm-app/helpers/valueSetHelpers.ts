@@ -73,6 +73,7 @@ const authoritativeSourceExtensionUrl = 'http://hl7.org/fhir/StructureDefinition
 const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
 
 const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
+
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === authoritativeSourceExtensionUrl)
   if (terminologyExt) {
     const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
@@ -88,7 +89,11 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
     const valuesetServerBase = valueSet?.url?.split('/fhir/')?.[0]?.split('//')[1]
 
     if (valuesetServerBase) {
-      const terminologyItem = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
+      const terminologyItem = terminologyServerEndpoints?.find((endpoint) => {
+
+        return endpoint?.value?.url?.includes(valuesetServerBase)
+      })
+
       return {
         value: terminologyItem?.label,
         hasExtension: false
