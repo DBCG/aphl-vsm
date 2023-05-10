@@ -43,7 +43,7 @@ const isDefinedString = (item: any): item is string => {
 }
 
 const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> => {
-  const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId as string })
+  const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId })
   // disabling proto-cache because it causes problems with updating groupers
   if (!is.library(program)) {
     return ({ error: `Program ${programId} must be a FHIR Library` })
@@ -161,8 +161,6 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
       // arrange by unversioned grouper url
       const [urlNoVersion, version] = leafUrl.split('|')
 
-      // there is a tension here between url and versioned url that might be breaking
-      // TODO what is wrong here?
       const groupToAdd = {
         id: grouperVs?.id || 'Undefined',
         url: grouperVs?.url || 'Undefined',
@@ -278,14 +276,14 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
       return res.status(400).json({ error: program.error })
     }
 
-    const grouperLibrary = await getGrouperLibrary(program as fhir4.Library) // we know Program is a Library from typeguard above
+    const grouperLibrary = await getGrouperLibrary(program)
 
-    if (!is.library(grouperLibrary) && grouperLibrary.error) {
+    if (isError(grouperLibrary)) {
       logger.error(`Problem encountered getting grouper library for Program ${req.query.id}`)
       return res.status(400).json({ error: grouperLibrary.error })
     }
 
-    const grouperValueSets = await getGrouperValuesets(grouperLibrary as fhir4.Library)
+    const grouperValueSets = await getGrouperValuesets(grouperLibrary)
 
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
       logger.error(`Problem encountered getting grouper valuesets for Program ${req.query.id}`)
@@ -294,7 +292,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
 
     // filters here (<x>.toFind strings) are applied on the server side
     const leafVsetResponse = await getLeafValueSets({
-      allGrouperVSets: grouperValueSets as fhir4.ValueSet[],
+      allGrouperVSets: grouperValueSets,
       oidToFind: req.query.findInOid || '',
       stewardToFind: req.query.findInSteward || '',
       versionToFind: req.query.findInVersion || '',
@@ -311,8 +309,8 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
     // these filters are performed here
-    const filterGroups = req?.query?.groups?.split(',') as string[] | undefined
-    const filterConditions = req?.query?.conditions?.split(',') as string[] | undefined
+    const filterGroups = req?.query?.groups?.split(',')
+    const filterConditions = req?.query?.conditions?.split(',')
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter((vs) => (
@@ -326,7 +324,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
         )
       )).filter(x => !!x)
 
-    const formattedVsets = formatValuesetData(program as fhir4.Library, groupInfoByVsCanonical, filteredLeafVSets)
+    const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets)
 
     const composedResponse = {
       programStatus: program.status,
