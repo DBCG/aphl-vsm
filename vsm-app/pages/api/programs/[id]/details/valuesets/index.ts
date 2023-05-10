@@ -88,7 +88,7 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
-      .flatMap((bundle) => bundle.entry?.map((e) => e.resource!))
+      .flatMap((bundle) => bundle?.entry?.map((e) => e?.resource!))
       .filter((x) => !!x) as fhir4.Resource[]
   )
     .filter(is.valueSet)

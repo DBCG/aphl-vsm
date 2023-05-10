@@ -51,7 +51,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
           ?.filter((i) => !!i) as string[]
 
         const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls }).then((bundles) =>
-          bundles.map((bundle) => bundle.entry?.[0]?.resource as fhir4.ValueSet)
+          bundles.map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)
         )
 
         const formattedValueSets = grouperValueSets?.map((vs) => ({
