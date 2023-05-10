@@ -273,7 +273,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
   try {
     const program = await getProgram(req.query.id as string)
 
-    if (!is.library(program) && program.error) {
+    if (isError(program)) {
       logger.error(`Problem encountered getting program with ID ${req.query.id}`)
       return res.status(400).json({ error: program.error })
     }
