@@ -84,6 +84,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
+  // toggle data update
+  const [toggleUpdate, setToggleUpdate] = useState(false)
+
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
   // all available filters
@@ -183,6 +186,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
     versionUpdated,
+    toggleUpdate,
     ...debouncedFilters
   }) as Result
 
@@ -242,7 +246,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   // versionInput
-  const handleVersionChange = (
+  const handleVersionChange = async (
     selectedVersion: string = '',
     vsCanonical: string,
     grouperIds: string[],
@@ -252,39 +256,67 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, originalVsVersion }
 
     // update the grouper canonical version
-    setVersionToUpdate(data)
-  }
+    // setVersionToUpdate(data)
 
-  useEffect(() => {
-    if (!versionToUpdate.grouperIds) {
-      return
-    }
     let result
 
     const body = JSON.stringify({
-      vsCanonical: versionToUpdate.vsCanonical,
-      vsVersion: versionToUpdate.version,
-      grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo
+      vsCanonical,
+      vsVersion: selectedVersion,
+      grouperIds,
+      terminologyInfo
     })
+
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      result = await fetch(`/api/valueset/${versionToUpdate.originalVsVersion}/versions`, {
+      // TODO where error is happening... not updating version
+      result = await fetch(`/api/valueset/${'test'}/versions`, {
         method: 'PUT',
         body
       }).then((res) => res.json())
-      if (result) {
-        setUpdatedGrouper(result)
+      if (result && !result.error) {
+        console.log('result: ', result)
+        setToggleUpdate((t) => !t)
+      } else {
+        console.error('error')
       }
     }
 
-    try {
-      updateVersions()
-    } catch (e) {
-      console.error('error: ', e)
-    }
-    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version, versionToUpdate.originalVersion])
-  }, [versionToUpdate])
+    await updateVersions()
+  }
+
+  // useEffect(() => {
+  //   console.log('versionToUpdate 1: ', versionToUpdate)
+  //   if (!versionToUpdate.grouperIds) {
+  //     return
+  //   }
+  //   let result
+
+  //   const body = JSON.stringify({
+  //     vsCanonical: versionToUpdate.vsCanonical,
+  //     vsVersion: versionToUpdate.version,
+  //     grouperIds: versionToUpdate.grouperIds,
+  //     terminologyInfo: versionToUpdate.terminologyInfo
+  //   })
+  //   // you want to update the associated grouper valuesets, adding or removing versions
+  //   async function updateVersions() {
+  //     result = await fetch(`/api/valueset/${versionToUpdate.originalVsVersion}/versions`, {
+  //       method: 'PUT',
+  //       body
+  //     }).then((res) => res.json())
+  //     if (result) {
+  //       setUpdatedGrouper(result)
+  //     }
+  //   }
+
+  //   try {
+  //     updateVersions()
+  //   } catch (e) {
+  //     console.error('error: ', e)
+  //   }
+  //   // this is wrong... this shouldn't be an array
+  //   setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version, versionToUpdate.originalVersion])
+  // }, [versionToUpdate])
 
   // @ts-ignore-next-line
   const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
@@ -355,6 +387,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
+                  console.log('row: ', row)
                   handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo, defaultValue)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}

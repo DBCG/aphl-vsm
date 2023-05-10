@@ -48,7 +48,8 @@ interface Args {
   activeConditions?: [] | ConditionItem[]
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
-  versionToUpdate?: string
+  versionToUpdate?: string,
+  toggleUpdate?: boolean
 }
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({
@@ -61,7 +62,8 @@ const useGetProgramValueSetDetails = ({
   activeConditions,
   updatedGrouperValueSets,
   updatedGrouper,
-  versionToUpdate
+  versionToUpdate,
+  toggleUpdate
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
 
@@ -145,7 +147,8 @@ const useGetProgramValueSetDetails = ({
     activeConditions,
     updatedGrouperValueSets,
     updatedGrouper,
-    versionToUpdate
+    versionToUpdate,
+    toggleUpdate
   ])
 
   return data
