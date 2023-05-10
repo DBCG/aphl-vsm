@@ -7,7 +7,7 @@ let terminologyServerEndpoints = [
 if (process.env.NEXT_PUBLIC_SHOW_TEST_TERMINOLOGY_SERVER) {
   terminologyServerEndpoints.push({
     label: 'Ontoserver (R4)',
-    value: { title: 'ontoserverR4', url: process.env.ONTOSERVER_R4_BASE_URL }
+    value: { title: 'ontoserverR4', url: process.env.NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL }
   })
 }
 

@@ -1,7 +1,7 @@
 import Client from 'fhir-kit-client'
 import FhirKitClient from 'fhir-kit-client'
 
-const { FHIR_CDR_URL, VSAC_USERNAME, VSAC_API_KEY, NEXT_PUBLIC_VSAC_BASE_URL, ONTOSERVER_R4_BASE_URL } = process.env as Record<
+const { FHIR_CDR_URL, VSAC_USERNAME, VSAC_API_KEY, NEXT_PUBLIC_VSAC_BASE_URL, NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL } = process.env as Record<
   string,
   string
 >
@@ -42,7 +42,7 @@ class PrivateTerminologyClient {
     })
     // also supports this open test terminology server
     if (newClient === 'ontoserverR4') {
-      client = new FhirKitClient({ baseUrl: ONTOSERVER_R4_BASE_URL })
+      client = new FhirKitClient({ baseUrl: NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL })
     }
     this.clientName = newClient
     this.client = client
