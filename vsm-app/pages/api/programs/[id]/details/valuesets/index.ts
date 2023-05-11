@@ -84,7 +84,7 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .filter(isDefinedString)
 
   if (!grouperValueSetCanonicals) return ({ error: `No Grouper Valuesets linked to Library ${grouperLib.id}` })
-
+  console.log('grouper vset canonicals: ', grouperValueSetCanonicals)
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
@@ -176,10 +176,10 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
         title: grouperVs.title || ''
       }
 
-      if (groupsByValueSetCanonical[leafUrl]) {
-        groupsByValueSetCanonical[leafUrl].push(groupToAdd)
+      if (groupsByValueSetCanonical[urlNoVersion]) {
+        groupsByValueSetCanonical[urlNoVersion].push(groupToAdd)
       } else {
-        groupsByValueSetCanonical[leafUrl] = [groupToAdd]
+        groupsByValueSetCanonical[urlNoVersion] = [groupToAdd]
       }
     })
   })
@@ -341,7 +341,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const composedResponse = {
       programStatus: program.status,
       data: formattedVsets,
-      groupsInProgram: allGrouperVSets
+      groupsInProgram: grouperValueSets
     }
     return res.status(200).send(composedResponse)
   }

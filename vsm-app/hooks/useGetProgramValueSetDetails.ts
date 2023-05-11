@@ -121,6 +121,9 @@ const useGetProgramValueSetDetails = ({
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
         if (!programJson.error) {
+          console.log('leaf in labOrderTestTriggers lib, change to 20210528: ', '2.16.840.1.113762.1.4.1146.1223');
+
+          console.log('programJSon: ', programJson)
           setData(programJson)
         } else {
           console.error(programJson.error)

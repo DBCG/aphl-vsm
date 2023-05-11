@@ -285,39 +285,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     await updateVersions()
   }
 
-  // useEffect(() => {
-  //   console.log('versionToUpdate 1: ', versionToUpdate)
-  //   if (!versionToUpdate.grouperIds) {
-  //     return
-  //   }
-  //   let result
-
-  //   const body = JSON.stringify({
-  //     vsCanonical: versionToUpdate.vsCanonical,
-  //     vsVersion: versionToUpdate.version,
-  //     grouperIds: versionToUpdate.grouperIds,
-  //     terminologyInfo: versionToUpdate.terminologyInfo
-  //   })
-  //   // you want to update the associated grouper valuesets, adding or removing versions
-  //   async function updateVersions() {
-  //     result = await fetch(`/api/valueset/${versionToUpdate.originalVsVersion}/versions`, {
-  //       method: 'PUT',
-  //       body
-  //     }).then((res) => res.json())
-  //     if (result) {
-  //       setUpdatedGrouper(result)
-  //     }
-  //   }
-
-  //   try {
-  //     updateVersions()
-  //   } catch (e) {
-  //     console.error('error: ', e)
-  //   }
-  //   // this is wrong... this shouldn't be an array
-  //   setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version, versionToUpdate.originalVersion])
-  // }, [versionToUpdate])
-
   // @ts-ignore-next-line
   const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
