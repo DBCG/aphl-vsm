@@ -94,7 +94,6 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .filter(is.valueSet)
 
   if (!allGrouperVSets) return ({ error: `No Grouper Valuesets found for Library ${grouperLib.id}` })
-
   return allGrouperVSets
 }
 
@@ -106,8 +105,10 @@ interface GetLeafs {
   oidToFind: string
 }
 
+type LeafVersionsByUrl = Record<string, string>
+
 interface GetLeafsReturn {
-  leafValueSetCanonicals: string[]
+  leafVersionsByCanonical: LeafVersionsByUrl
   leafValueSets: fhir4.ValueSet[]
 }
 
@@ -141,9 +142,16 @@ const getLeafValueSets = async (
     return ({ error: 'Could not fetch Leaf Valuesets' })
   }
 
+  const leafVersionsByCanonical = leafValueSetCanonicals
+    ?.filter(canonical => canonical?.includes('|'))
+    ?.reduce((acc, can) => {
+      let [baseCanonical, version] = can.split('|')
+      return { ...acc, [baseCanonical]: version }
+    }, {})
+
   const result = {
-    leafValueSetCanonicals,
-    leafValueSets
+    leafValueSets,
+    leafVersionsByCanonical
   }
 
   return result
@@ -224,14 +232,18 @@ const vsHasRequiredCondition = ({ valueSet, conditionCodesToFilterBy }: VsHasCon
   )
 }
 
-const formatValuesetData = (program: fhir4.Library, groupsByValueSetCanonical: GroupsByCanonical, leafValueSets: fhir4.ValueSet[]) => {
+const formatValuesetData = (
+  program: fhir4.Library,
+  groupsByValueSetCanonical: GroupsByCanonical,
+  leafValueSets: fhir4.ValueSet[],
+  leafVersionsByCanonical: LeafVersionsByUrl
+) => {
   const formattedVsets = leafValueSets
     .filter((x) => !!x)
     .map((valueSet) => {
       const leafCanonical = valueSet.url!
       const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical]
-      // I don't think this is right ???
-      const valueSetPinnedVersion = groupsVsBelongsTo?.[0]?.defaultValueSetVersion
+      const valueSetPinnedVersion = leafVersionsByCanonical[leafCanonical]
 
       return ({
         programName: program?.name || 'Undefined',
@@ -304,7 +316,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
       return res.status(400).json({ error: leafVsetResponse.error })
     }
 
-    const { leafValueSets } = leafVsetResponse
+    const { leafValueSets, leafVersionsByCanonical } = leafVsetResponse
 
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
@@ -324,7 +336,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
         )
       )).filter(x => !!x)
 
-    const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets)
+    const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
       programStatus: program.status,
