@@ -81,21 +81,23 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
   console.log('attempt')
   try {
     const body = await req.body
-    const { vsCanonical, vsVersion, grouperIds } = body
+    const bodyJson = JSON.parse(body)
+    const { vsCanonical, vsVersion, grouperIds } = bodyJson
 
-    console.log('body: ', body)
     const groupersToUpdate = await Promise.all(
-      grouperIds.map((grouperVsId: string) =>
+      grouperIds.map((grouperVsId: string) => (
         fhirCdrClient.read({
           resourceType: 'ValueSet',
           id: grouperVsId
-        })
+        }))
       )
     )
 
+    console.log('groupers to update: ', groupersToUpdate)
+
     const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
-    await Promise.all(
+    const result = await Promise.all(
       updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
         fhirCdrClient.update({
           resourceType: 'ValueSet',
@@ -105,6 +107,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       )
     )
 
+    console.log('result compose include: ', result[0].compose.include)
     res.status(200).json({ message: 'Update valueset versions completed' })
   } catch (e) {
     logger.error(e)

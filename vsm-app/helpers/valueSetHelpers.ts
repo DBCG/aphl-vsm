@@ -197,7 +197,9 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
     }
   })
 
+  console.log('composeInclude before: ', vsCopy.compose.include)
   vsCopy!.compose!.include = composeInclude
+  console.log('composeInclude after: ', composeInclude)
   return vsCopy
 }
 
