@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
-
+import { WHITELIST_VALUESET_FIELDS } from '../'
 interface GroupInfoItem {
   label: string
   value: string
@@ -47,7 +47,8 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
           searchParams: {
             url: url,
             version: version,
-            status: programStatus
+            status: programStatus,
+            '_elements': WHITELIST_VALUESET_FIELDS.join(',')
           }
         })
       })
