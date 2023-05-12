@@ -92,6 +92,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         disabled={disabled}
         type={type}
         buttonContext={buttonContext}
+        data-button-context={buttonContext}
         style={style}
         onClick={(e) => {
           !disabled && e ? handleClickIconButton(e) : null

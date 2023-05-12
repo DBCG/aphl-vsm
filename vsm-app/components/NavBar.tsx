@@ -37,6 +37,7 @@ const NavBar = () => {
         <BreadCrumbs />
         <Button
           text="Sign Out"
+          id='logout'
           onClick={() => {
             signOut({ redirect: false })
             router.push('/api/auth/logout')

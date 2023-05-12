@@ -22,6 +22,7 @@ services:
       - hapi.fhir.server_address=http://localhost:8082/fhir
       - hapi.fhir.cql.cql_logging_enabled=true
       - hapi.fhir.fhir_version=R4
+      - hapi.fhir.allow_multiple_delete=true
     ports:
       - 8082:8080
     depends_on:
