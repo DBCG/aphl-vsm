@@ -190,6 +190,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     ...debouncedFilters
   }) as Result
 
+  console.log('progdets: ', progValueSetDets)
+
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)

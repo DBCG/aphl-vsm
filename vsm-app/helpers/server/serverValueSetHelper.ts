@@ -118,7 +118,7 @@ export const fetchLeafValueSets = async ({
       const [urlNoVersion, version] = canonical.split('|')
       const searchParameters = {
         url: urlNoVersion,
-        status: 'active',
+        // status: 'active',
         ...searchParams
       }
       if (version) {
@@ -134,7 +134,7 @@ export const fetchLeafValueSets = async ({
 
   try {
     let valueSets
-
+    console.log('result entries: ', result.map(r => [r.link, r]).flat())
     valueSets = result
       ?.map((e) => {
         if (e.entry) {
@@ -156,7 +156,7 @@ export const fetchLeafValueSets = async ({
           // filter out multiple ids
           self.findIndex((v2) => v2?.id === value?.id) === index
       ) as fhir4.ValueSet[]
-
+    console.log('avluesets.ength: ', valueSets.length)
     return valueSets
   } catch (e) {
     // TODO: handle

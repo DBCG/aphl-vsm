@@ -1,6 +1,7 @@
 import { is } from '@/helpers/is'
 import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
@@ -82,7 +83,35 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = await req.body
     const bodyJson = JSON.parse(body)
-    const { vsCanonical, vsVersion, grouperIds } = bodyJson
+    const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
+    console.log('vsVersioni: ', vsVersion)
+    // get the valueset with the new version if it doesn't exist in CQF
+    const terminologySource = getTerminologySource(terminologyInfo)
+
+    const matchingTermServer = terminologyServerEndpoints?.find(e => e.label === terminologySource.value)
+
+    // if for some reason we cannot identify the original terminology server this came from
+    if (!matchingTermServer) {
+      logger.error(`Could not identify terminology server to fetch ${vsCanonical}`)
+      return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
+    }
+
+    // now that you have identified the server, set the client to use it and grab the valueset
+    terminologyClient.setClient(matchingTermServer.value.title as 'vsac' | 'ontoserverR4')
+    const terminologyClientInstance = terminologyClient.getClient()
+
+    let searchParams: fhir4.SearchParameter = {
+      url: vsCanonical.split('|')[0],
+      _sort: ['-version', '-date']
+    }
+
+    if (vsVersion && vsVersion !== 'latest') {
+      searchParams.version = vsVersion
+    }
+    const matchingValueSet = terminologyClientInstance?.search({
+      resourceType: 'ValueSet',
+      searchParams
+    })
 
     const groupersToUpdate = await Promise.all(
       grouperIds.map((grouperVsId: string) => (

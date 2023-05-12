@@ -118,15 +118,16 @@ const getLeafValueSets = async (
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
       if (!url) return
 
       leafValueSetCanonicals.push(url)
     })
+    console.log('grouper titlel ', grouperVs.name)
+    console.log('leaf canonicals: ', leafUrlsInGrouper)
+    console.log('leaf canonicals length: ', leafUrlsInGrouper.length)
   })
-
   if (!leafValueSetCanonicals.length) return ({ error: `No leaf Valuesets found.` })
 
   const leafValueSets = await fetchLeafValueSets({
