@@ -19,6 +19,7 @@ import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import cloneDeep from 'lodash.clonedeep'
+import uniqBy from 'lodash.uniqby'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -81,8 +82,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
   // programId will always be a string
   const programId = req.query.id as string
 
-  const { grouperVSets, grouperMetadata } = body
-
+  let { grouperVSets, grouperMetadata } = body
+  grouperVSets = uniqBy(grouperVSets, 'selectedValueSet.id')
   try {
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
@@ -144,7 +145,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(200).send({ message: responsesFromTransaction })
     }
   } catch (e: string | any) {
-    return res.status(400).send({ error: `${e} | 'Failed to create Grouper ValueSet'` })
+    logger.error(e)
+    return res.status(400).send({ error: `${JSON.stringify(e)} | 'Failed to create Grouper ValueSet'` })
   }
 }
 
