@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import { Button } from '@/components/buttons/Button'
 import styled from 'styled-components'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { PageTitle } from '@/components/Typography'
@@ -34,6 +35,7 @@ const ValueSets = () => {
 
   return (
     <Col>
+      <Button text="&#8592; Back to valueset list" style={{ width: 'fit-content' }} onClick={() => router.push(`/programs/${programId}/valuesets`)} />
       <PageTitle>Add ValueSets: {programId}</PageTitle>
       <DescriptionText>
         Valuesets added here will default to the most recent version available.
