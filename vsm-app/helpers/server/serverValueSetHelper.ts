@@ -117,7 +117,7 @@ export const fetchLeafValueSets = async ({
     leafValueSetCanonicals.map((canonical) => {
       const [urlNoVersion, version] = canonical.split('|')
       const searchParameters = {
-        url: urlNoVersion,
+        url: canonical,
         // status: 'active',
         ...searchParams
       }

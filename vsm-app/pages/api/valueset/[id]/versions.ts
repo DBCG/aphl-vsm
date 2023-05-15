@@ -149,7 +149,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       if (!match) {
-        console.error('no match found')
+        logger.error('no match found')
         return
       }
 
@@ -166,6 +166,8 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       matchingWholeVs.useContext = useContext
 
       // save this to the fhir server
+      matchingWholeVs.version = vsVersion
+      matchingWholeVs.url = `${vsCanonical}|${vsVersion}`
       const created = await fhirCdrClient.create({
         resourceType: 'ValueSet',
         body: matchingWholeVs
