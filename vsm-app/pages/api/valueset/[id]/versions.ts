@@ -128,6 +128,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       if (vsVersion && vsVersion !== 'latest') {
         termServerSearchParams.version = vsVersion
       }
+
       // this will only give us back subsetted results, we need the entire valueset
       const matchBundle = await terminologyClientInstance?.search({
         resourceType: 'ValueSet',

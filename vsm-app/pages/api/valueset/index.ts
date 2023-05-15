@@ -95,6 +95,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
               } else {
                 logger.error('no match found')
                 res.status(400).json({ error: `no match found` })
+                return
               }
             } else {
               res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
@@ -144,8 +145,8 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     )
 
     const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
-    logger.error('failed updates: ', failedUpdates)
-    res.status(400).json({ error: 'failed to update valueSet' })
+    logger.error(`failed updates: , ${e}`)
+    return res.status(400).json({ error: 'failed to update valueSet' })
   } catch (e) {
     logger.error('error 3', e)
   }
@@ -186,10 +187,10 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     )
   } catch (e) {
     logger.error('error 4: ', e)
-    res.status(400).json({ error: 'failed to update valueSet' })
+    return res.status(400).json({ error: 'failed to update valueSet' })
   }
 
-  res.status(200).send(200)
+  return res.status(200).send(200)
 }
 
 export default handler({
