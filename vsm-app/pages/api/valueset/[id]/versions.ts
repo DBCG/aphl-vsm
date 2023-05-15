@@ -1,10 +1,11 @@
 import { is } from '@/helpers/is'
-import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, getTerminologySource, authoritativeSourceExtensionUrl, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { updateConditions } from '@/helpers/conditionHelpers'
 
 const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
@@ -83,35 +84,92 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = await req.body
     const bodyJson = JSON.parse(body)
-    const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
-    console.log('vsVersioni: ', vsVersion)
-    // get the valueset with the new version if it doesn't exist in CQF
-    const terminologySource = getTerminologySource(terminologyInfo)
+    const { vsCanonical, vsVersion, groups, terminologyInfo, originalVsVersion, useContext } = bodyJson
+    const grouperIds = groups?.map(g => g?.id)
 
-    const matchingTermServer = terminologyServerEndpoints?.find(e => e.label === terminologySource.value)
-
-    // if for some reason we cannot identify the original terminology server this came from
-    if (!matchingTermServer) {
-      logger.error(`Could not identify terminology server to fetch ${vsCanonical}`)
-      return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
-    }
-
-    // now that you have identified the server, set the client to use it and grab the valueset
-    terminologyClient.setClient(matchingTermServer.value.title as 'vsac' | 'ontoserverR4')
-    const terminologyClientInstance = terminologyClient.getClient()
+    const versionInfo = vsVersion ? `-${vsVersion}` : ''
 
     let searchParams: fhir4.SearchParameter = {
-      url: vsCanonical.split('|')[0],
-      _sort: ['-version', '-date']
+      url: `${vsCanonical}${versionInfo}`,
+      // _sort: ['version', 'date']
     }
 
+    // Reminder: VSAC does not respect version, CQF does
     if (vsVersion && vsVersion !== 'latest') {
       searchParams.version = vsVersion
     }
-    const matchingValueSet = terminologyClientInstance?.search({
+
+    // check in CQF first to see if already exists
+    const matchInCqf = await fhirCdrClient.search({
       resourceType: 'ValueSet',
       searchParams
     })
+
+    if (!matchInCqf?.entry) {
+      // get the valueset with the new version if it doesn't exist in CQF
+      const matchingTermServer = terminologyServerEndpoints?.find(e => e.label === terminologyInfo.value)
+
+      // if for some reason we cannot identify the original terminology server this came from
+      if (!matchingTermServer) {
+        logger.error(`Could not identify terminology server to fetch ${vsCanonical}`)
+        return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
+      }
+
+      // now that you have identified the server, set the client to use it and grab the valueset
+      terminologyClient.setClient(matchingTermServer.value.title as 'vsac' | 'ontoserverR4')
+      const terminologyClientInstance = terminologyClient.getClient()
+
+      let termServerSearchParams: fhir4.SearchParameter = {
+        url: vsCanonical,
+        _sort: ['version', 'date']
+      }
+  
+      // Reminder: VSAC does not respect version, CQF does
+      if (vsVersion && vsVersion !== 'latest') {
+        termServerSearchParams.version = vsVersion
+      }
+      // this will only give us back subsetted results, we need the entire valueset
+      const matchBundle = await terminologyClientInstance?.search({
+        resourceType: 'ValueSet',
+        searchParams: termServerSearchParams
+      })
+
+      let results = matchBundle?.entry
+
+      if (!results) {
+        logger.error(`No matches found for valueset ${vsCanonical} in terminology server ${matchingTermServer.label}`)
+        return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
+      }
+
+      let match
+      // extra filter here in case, VSAC doesn't filter by version
+      if (results) {
+        match = results.find(vs => vs.resource.version === vsVersion)
+      }
+
+      if (!match) {
+        console.error('no match found')
+        return
+      }
+
+      // get entire valueset, not subsetted to save to CQF
+      let matchingWholeVs = await terminologyClientInstance?.read({
+        resourceType: 'ValueSet',
+        id: match.resource.id
+      })
+
+      // add authoritative source
+      matchingWholeVs = addExtensionToVs(matchingWholeVs, matchingTermServer.value.url, authoritativeSourceExtensionUrl)
+
+      // add conditions... just pass whole useContext?
+      matchingWholeVs.useContext = useContext
+
+      // save this to the fhir server
+      const created = await fhirCdrClient.create({
+        resourceType: 'ValueSet',
+        body: matchingWholeVs
+      })
+    }
 
     const groupersToUpdate = await Promise.all(
       grouperIds.map((grouperVsId: string) => (
@@ -121,8 +179,6 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
         }))
       )
     )
-
-    console.log('groupers to update: ', groupersToUpdate)
 
     const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
@@ -135,8 +191,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       )
     )
-
-    console.log('result compose include: ', result[0].compose.include)
+    // debugger
     res.status(200).json({ message: 'Update valueset versions completed' })
   } catch (e) {
     logger.error(e)

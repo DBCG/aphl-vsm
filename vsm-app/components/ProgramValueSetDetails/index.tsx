@@ -251,22 +251,29 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const handleVersionChange = async (
     selectedVersion: string = '',
     vsCanonical: string,
-    grouperIds: string[],
+    groups: GroupUpdateItem[],
     terminologyInfo: TerminologyResult,
-    originalVsVersion: string
+    originalVsVersion: string,
+    useContext: fhir4.UsageContext
   ) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, originalVsVersion }
+    console.log('this ccaled')
+
+    const data = { vsCanonical, version: selectedVersion, groups, terminologyInfo, originalVsVersion, useContext }
 
     // update the grouper canonical version
     // setVersionToUpdate(data)
 
     let result
 
+    console.log('groups: ', groups)
+
     const body = JSON.stringify({
       vsCanonical,
       vsVersion: selectedVersion,
-      grouperIds,
-      terminologyInfo
+      groups,
+      terminologyInfo,
+      originalVsVersion,
+      useContext
     })
 
     // you want to update the associated grouper valuesets, adding or removing versions
@@ -342,12 +349,14 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
+          console.log('row: ', row)
           if (progValueSetDets.programStatus === 'active') {
             return row?.valueSetPinnedVersion || 'latest'
           }
           const terminologyInfo = getTerminologySource(row.valueSet)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
+          const groups = row.groups
 
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
           return (
@@ -355,9 +364,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               <Select
                 instanceId="version-selector"
                 onChange={(e) => {
-                  const grouperIds = row?.groups?.map((g) => g.id)
-                  console.log('row: ', row)
-                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo, defaultValue)
+                  const useContext = row?.valueSet?.useContext
+
+                  handleVersionChange(e?.value, row?.valueSet?.url as string, groups, terminologyInfo, defaultValue, useContext)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
@@ -601,6 +610,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       <DT
         // @ts-expect-error
         data={progValueSetDets?.data}
+        keyField='canonical'
         persistTableHead={true}
         // @ts-expect-error
         columns={columns}

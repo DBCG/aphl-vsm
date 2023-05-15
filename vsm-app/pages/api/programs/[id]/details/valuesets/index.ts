@@ -150,6 +150,10 @@ const getLeafValueSets = async (
       return { ...acc, [baseCanonical]: version }
     }, {})
 
+  console.log(`${leafValueSetCanonicals.length} leaf valueset canonicals: `, leafValueSetCanonicals);
+  console.log(`${leafValueSets.length} leaf valuesets: `, leafValueSets);
+  
+
   const result = {
     leafValueSets,
     leafVersionsByCanonical
@@ -324,6 +328,9 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     // these filters are performed here
     const filterGroups = req?.query?.groups?.split(',')
     const filterConditions = req?.query?.conditions?.split(',')
+
+    console.log(`${leafValueSets.length} leaf vsets 1: `, leafValueSets)
+    console.log(`groupInfobyvs canonical 1: `, groupInfoByVsCanonical)
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter((vs) => (
@@ -336,7 +343,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
           vsHasRequiredCondition({ valueSet: vs, conditionCodesToFilterBy: filterConditions })
         )
       )).filter(x => !!x)
-
+    console.log(`${filteredLeafVSets.length} filtered leaf vsets 1: `, filteredLeafVSets)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
