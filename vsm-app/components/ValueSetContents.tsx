@@ -427,6 +427,26 @@ export default function ValueSetContents({
             </InputRow>
             <InputRow style={{ width: '100%' }}>
               <SearchInput
+                id="vs-url"
+                label={'URL'}
+                readonly={true}
+                value={currentValueSet.url}
+                def={currentValueSet.url}
+                placeholder={'No valueset url was set'}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <SearchInput
+                id="vs-oid"
+                label={'OID'}
+                readonly={true}
+                value={currentValueSet?.identifier?.[0]?.value}
+                def={currentValueSet?.identifier?.[0]?.value}
+                placeholder={'No valueset oid was set'}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <SearchInput
                 id="vs-publisher"
                 label="Publisher"
                 minWidth={650}
