@@ -1,5 +1,4 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
-import Image from 'next/image'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
@@ -9,7 +8,6 @@ import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
-import { FieldTitle } from '@/components/ProgramDetails/styles'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
@@ -20,10 +18,9 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
-import { Id, Row, FlexRow } from '@/styles'
+import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, customStyles } from './styles'
 import { NextRouter } from 'next/router'
-import { Tooltip } from '../Tooltip'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -289,7 +286,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }, [versionToUpdate])
 
   // @ts-ignore-next-line
-  const omitDelete = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
+  const isReadOnly = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
 
   const columns = useMemo(
     () => [
@@ -374,7 +371,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <div>
             <SelectInputTitle>Steward</SelectInputTitle>
             <FilterInput
-              // @ts-ignore-next-line
               onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
               style={{ height: '30px' }}
             />
@@ -537,7 +533,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <p>Remove ValueSet</p>
           </div>
         ),
-        omit: omitDelete,
+        omit: isReadOnly,
         selector: (row: TableRow) => row,
         sortable: false,
         wrap: true,
@@ -576,13 +572,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
     } else if (allowToEdit) {
-      return (
-        <Button
-          text="Update Valuesets"
-          style={{ minHeight: '40px', marginTop: '20px', marginLeft: '15px', minWidth: '150px' }}
-          onClick={() => handleUpdateValueSets()}
-        />
-      )
+      return <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
     }
     return null
   })()
@@ -592,13 +582,17 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       <Row>
         <FlexRow style={{ width: '80%' }}>
           <PageTitle>Program ValueSet Details</PageTitle>
-          <Image width={24} height={24} alt="" src="/images/right-chevron.svg" />
-          <Id>
-            <FieldTitle>ID</FieldTitle>
-            {programId}
-          </Id>
         </FlexRow>
-        {updateVSetsButton}
+        <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
+          {!isReadOnly && (
+            <Button
+              text="Add Valuesets"
+              style={{ minHeight: '40px', minWidth: '150px' }}
+              onClick={() => router.push(`${router.asPath}/search`)}
+            />
+          )}
+          {updateVSetsButton}
+        </Col>
       </Row>
       <DT
         // @ts-expect-error
