@@ -36,11 +36,12 @@ interface StringMap {
 
 interface ValueSetContentsProps {
   programAndGrouperInfo: ProgramDetails
+  isGrouperValueSet: boolean
   setToggleUpdateData: Dispatch<SetStateAction<boolean>>
   valueSet: fhir4.ValueSet
   programId: string
   enableEditing: boolean
-  isDraftProgram?: boolean
+  isDraftProgram: boolean
 }
 
 const EXPANSION_COLUMNS = [
@@ -102,12 +103,13 @@ interface MetadataResult {
 export default function ValueSetContents({
   programAndGrouperInfo,
   setToggleUpdateData,
+  isGrouperValueSet,
   valueSet,
   isDraftProgram = false,
   programId,
   enableEditing
 }: ValueSetContentsProps) {
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState(0) // Used for tabs
   const [isEditing, setIsEditing] = useState(false)
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
@@ -256,9 +258,9 @@ export default function ValueSetContents({
     setIsLoadingExpansion(false)
   }
 
-  const [programUrl, programVersion] = programAndGrouperInfo?.grouperLibrary?.url?.split('|') || []
+  const programUrl = programAndGrouperInfo?.program?.url
+  const programVersion = programAndGrouperInfo?.program?.version
   const memberSet = currentValueSet?.compose?.include
-  const isGrouperValueSet = memberSet?.[0]?.valueSet?.[0] != null
   const expansion = currentValueSet?.expansion
   const timeStamp = expansion?.timestamp
 
@@ -374,8 +376,14 @@ export default function ValueSetContents({
           </InputRow>
           <InputContainer>
             <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-              <SearchInput id="prog-name" label="Grouper ID" readonly={true} def={valueSet.id} placeholder={'No valueset id set'} />
-              {enableEditing && !isEditing && (
+              <SearchInput
+                id="prog-name"
+                label={isGrouperValueSet ? 'Grouper ID' : 'Valueset ID'}
+                readonly={true}
+                def={valueSet.id}
+                placeholder={'No valueset id set'}
+              />
+              {isGrouperValueSet && enableEditing && !isEditing && (
                 <Button
                   text="Edit Metadata"
                   onClick={(e) => {
@@ -409,7 +417,7 @@ export default function ValueSetContents({
             <InputRow style={{ width: '100%' }}>
               <SearchInput
                 id="vs-version"
-                label="Grouper Version"
+                label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
                 readonly={!isEditing}
                 value={grouperVersion}
                 def={defaultGrouperVersion}
