@@ -285,7 +285,6 @@ type ExtendedReq = NextApiRequest & {
   }
 }
 const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse<Result | { error: string }>) => {
-  let allGrouperVSets: fhir4.ValueSet[] = []
   try {
     const program = await getProgram(req.query.id as string)
 
@@ -330,8 +329,6 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const filterGroups = req?.query?.groups?.split(',')
     const filterConditions = req?.query?.conditions?.split(',')
 
-    console.log(`${leafValueSets.length} leaf vsets 1: `, leafValueSets)
-    console.log(`groupInfobyvs canonical 1: `, groupInfoByVsCanonical)
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter((vs) => (
@@ -344,7 +341,6 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
           vsHasRequiredCondition({ valueSet: vs, conditionCodesToFilterBy: filterConditions })
         )
       )).filter(x => !!x)
-    console.log(`${filteredLeafVSets.length} filtered leaf vsets 1: `, filteredLeafVSets)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
