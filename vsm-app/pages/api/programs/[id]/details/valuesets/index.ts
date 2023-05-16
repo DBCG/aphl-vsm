@@ -239,12 +239,13 @@ const formatValuesetData = (
 ) => {
   const formattedVsets = leafValueSets
     .filter((x) => !!x)
-    .map((valueSet) => {
+    .map((valueSet, index) => {
       const leafCanonical = valueSet.url!
       const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical]
       const valueSetPinnedVersion = leafVersionsByCanonical[leafCanonical]
 
       return ({
+        keyField: `${valueSet.url}-${valueSet.version}-${index}`,
         programName: program?.name || 'Undefined',
         programId: program?.id || 'Undefined',
         programStatus: program?.status || 'Unknown',
