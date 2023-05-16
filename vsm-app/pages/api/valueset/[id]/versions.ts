@@ -7,6 +7,13 @@ import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { updateConditions } from '@/helpers/conditionHelpers'
 
+interface SrchParams extends fhir4.SearchParameter {
+  // url: string
+  // _elements?: string
+  // version?: string
+  _sort?: string
+}
+
 const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
   let response
@@ -89,7 +96,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const versionInfo = vsVersion ? `-${vsVersion}` : ''
 
-    let searchParams: fhir4.SearchParameter = {
+    let searchParams: SrchParams = {
       url: `${vsCanonical}${versionInfo}`,
       // _sort: ['version', 'date']
     }
@@ -119,7 +126,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       terminologyClient.setClient(matchingTermServer.value.title as 'vsac' | 'ontoserverR4')
       const terminologyClientInstance = terminologyClient.getClient()
 
-      let termServerSearchParams: fhir4.SearchParameter = {
+      let termServerSearchParams = {
         url: vsCanonical,
         _sort: ['version', 'date']
       }
@@ -145,7 +152,7 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
       let match
       // extra filter here in case, VSAC doesn't filter by version
       if (results) {
-        match = results.find(vs => vs.resource.version === vsVersion)
+        match = results.find((bundleEntryItem) => bundleEntryItem.resource.version === vsVersion)
       }
 
       if (!match) {

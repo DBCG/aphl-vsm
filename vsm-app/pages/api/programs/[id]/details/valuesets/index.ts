@@ -115,9 +115,12 @@ interface GetLeafsReturn {
 const getLeafValueSets = async (
   { allGrouperVSets, nameToFind, stewardToFind, versionToFind, oidToFind }: GetLeafs
 ): Promise<GetLeafsReturn | ErrorRes> => {
+
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
+    console.log(`leafs in grouper ${grouperVs.name}: `, leafUrlsInGrouper);
+    
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
       if (!url) return
@@ -215,6 +218,7 @@ interface VsHasCondition {
 }
 
 const vsHasRequiredCondition = ({ valueSet, conditionCodesToFilterBy }: VsHasCondition): boolean => {
+  console.log('condition codes to filter by: ', conditionCodesToFilterBy)
   const useContextConditions = valueSet?.useContext?.filter(
     (i) => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')
   )
