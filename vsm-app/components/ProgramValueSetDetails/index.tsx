@@ -349,7 +349,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          console.log('row: ', row)
+          // console.log('row: ', row)
           if (progValueSetDets.programStatus === 'active') {
             return row?.valueSetPinnedVersion || 'latest'
           }
@@ -365,7 +365,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 instanceId="version-selector"
                 onChange={(e) => {
                   const useContext = row?.valueSet?.useContext
-
+                  console.log('row that was changed: ', row)
                   handleVersionChange(e?.value, row?.valueSet?.url as string, groups, terminologyInfo, defaultValue, useContext)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
