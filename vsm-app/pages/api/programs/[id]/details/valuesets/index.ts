@@ -21,7 +21,7 @@ interface ErrorRes {
 
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
 // as it could be quite large and slow down the application
-const WHITELIST_VALUESET_FIELDS = [
+export const WHITELIST_VALUESET_FIELDS = [
   'extension',
   'url',
   'identifier',
@@ -84,7 +84,6 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .filter(isDefinedString)
 
   if (!grouperValueSetCanonicals) return ({ error: `No Grouper Valuesets linked to Library ${grouperLib.id}` })
-  console.log('grouper vset canonicals: ', grouperValueSetCanonicals)
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
@@ -119,7 +118,6 @@ const getLeafValueSets = async (
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-    console.log(`leafs in grouper ${grouperVs.name}: `, leafUrlsInGrouper);
     
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
@@ -149,10 +147,6 @@ const getLeafValueSets = async (
       let [baseCanonical, version] = can.split('|')
       return { ...acc, [baseCanonical]: version }
     }, {})
-
-  console.log(`${leafValueSetCanonicals.length} leaf valueset canonicals: `, leafValueSetCanonicals);
-  console.log(`${leafValueSets.length} leaf valuesets: `, leafValueSets);
-  
 
   const result = {
     leafValueSets,
@@ -218,7 +212,6 @@ interface VsHasCondition {
 }
 
 const vsHasRequiredCondition = ({ valueSet, conditionCodesToFilterBy }: VsHasCondition): boolean => {
-  console.log('condition codes to filter by: ', conditionCodesToFilterBy)
   const useContextConditions = valueSet?.useContext?.filter(
     (i) => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')
   )

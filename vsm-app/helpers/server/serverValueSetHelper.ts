@@ -17,14 +17,14 @@ interface FetchGrouperVsets {
   whitelistFields?: string[]
 }
 
-export const fetchGrouperValueSets = ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
-
-  return Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
+export const fetchGrouperValueSets = async ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
+  const result = await Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
     client: fhirCdrClient,
     resourceType: 'ValueSet',
     canonical,
     whitelistFields
   })))
+  return result
 }
 
 export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string) => {
@@ -112,32 +112,40 @@ export const fetchLeafValueSets = async ({
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
+
   result = await Promise.all(
-    leafValueSetCanonicals.map((canonical) =>
-      fhirCdrClient.search({
+    leafValueSetCanonicals.map((canonical) => {
+      const [urlNoVersion, version] = canonical.split('|')
+      const searchParameters = {
+        url: canonical,
+        // status: 'active',
+        ...searchParams
+      }
+      if (version) {
+        searchParameters.version = version
+      }
+      return fhirCdrClient.search({
         resourceType: 'ValueSet',
-        searchParams: {
-          url: canonical,
-          status: 'active',
-          ...searchParams
-        }
+        searchParams: searchParameters
       })
+    }
     )
   )
 
   try {
     let valueSets
-
     valueSets = result
       ?.map((e) => {
         if (e.entry) {
-          return (<fhir4.Bundle>e).entry?.map((entry: fhir4.BundleEntry) => {
+
+          return (e.entry?.map((entry: fhir4.BundleEntry) => {
+
             const resource = entry?.resource as fhir4.ValueSet
             if (resource) {
               // instead of returning whole valuesets, just return a portion of the data
               return resource
             }
-          })
+          }))
         }
       })
       ?.flat()
@@ -147,7 +155,6 @@ export const fetchLeafValueSets = async ({
           // filter out multiple ids
           self.findIndex((v2) => v2?.id === value?.id) === index
       ) as fhir4.ValueSet[]
-
     return valueSets
   } catch (e) {
     // TODO: handle
@@ -167,6 +174,7 @@ interface FetchCanonical {
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
 export const fetchByCanonical = async ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
   const [url, version] = canonical.split('|')
+
   const searchParams: Record<string, string> = { url }
   if (version) {
     searchParams.version = version
@@ -177,6 +185,11 @@ export const fetchByCanonical = async ({ client, resourceType, canonical, whitel
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
-  const result = await client.search({ resourceType, searchParams })
-  return result
+  try {
+    const result = await client.search({ resourceType, searchParams })
+    return result
+
+  } catch (e) {
+    console.error('ERROR: ', e)
+  }
 }
