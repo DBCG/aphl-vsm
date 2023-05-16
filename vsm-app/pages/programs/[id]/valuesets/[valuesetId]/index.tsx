@@ -34,13 +34,17 @@ const ValueSetPageView = () => {
     return <LoadingIndicator />
   }
 
+  const isGrouperValueSet = currentValueSet.compose?.include?.[0]?.valueSet?.[0] != null
+
   return (
     <ValueSetContents
       setToggleUpdateData={handleToggleUpdateData}
       programId={programId}
       programAndGrouperInfo={programAndGrouperData}
+      isGrouperValueSet={isGrouperValueSet}
       valueSet={currentValueSet}
       enableEditing={enableEditing}
+      isDraftProgram={programAndGrouperData?.program?.status === 'draft'}
     />
   )
 }
