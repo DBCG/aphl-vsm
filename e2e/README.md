@@ -6,7 +6,7 @@ Install cypress in this repo
 
 `npm install`
 
-then cypress can be opened with `npx cypress open`
+then cypress can be opened within the `e2e` dirctory with this command `npx cypress open`
 
 **All applications must all be running before starting the cypress tests**
 

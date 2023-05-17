@@ -38,7 +38,7 @@ const btnTitleText = {
 
 type Key = keyof typeof btnTitleText
 
-const IconButton = ({ type, buttonContext, onClick, style, disabled = false, deletedItemDescription }: IButtonProps) => {
+const IconButton = ({ type, buttonContext, onClick, style, disabled = false, deletedItemDescription, ...props }: IButtonProps) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   const handleClickIconButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -97,6 +97,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         onClick={(e) => {
           !disabled && e ? handleClickIconButton(e) : null
         }}
+        {...props}
       >
         <ImageContainer>
           <Image src={`/images/${image}.svg`} width={24} height={24} alt="" />

@@ -45,6 +45,7 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
           />
           <Button
             style={{ paddingLeft: '16px', paddingRight: '16px', backgroundColor: 'var(--accent)' }}
+            data-modal={'confirm'}
             text={`YES`}
             onClick={() => {
               handleConfirmDelete()

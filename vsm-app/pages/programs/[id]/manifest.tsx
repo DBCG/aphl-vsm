@@ -175,12 +175,13 @@ const EditManifestDetails = () => {
   return (
     <>
       <Row>
-        <Button text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
+        <Button id="back-to-program" text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
       <CodesystemSelectContainer>
         <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
           isLoading={pageLoading}
+          id="code-system-selector"
           styles={{
             container: (baseStyle) => ({
               ...baseStyle,
@@ -227,6 +228,7 @@ const EditManifestDetails = () => {
                   return (
                     <Button
                       data-tag="allowRowEvents"
+                      data-add-manifest={`${selectedSystem}|${newVersion}`}
                       text="Add"
                       onClick={() => {
                         const clonedcurrentSelectedData = structuredClone(currentSelectedData)

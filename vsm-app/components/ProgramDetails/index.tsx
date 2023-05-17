@@ -87,7 +87,7 @@ const ProgramDetails = () => {
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
         <ManifestDetailTable programId={programId} data={manifestData} loading={manifestLoading} />
       </ManifestContainer>

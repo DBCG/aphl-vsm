@@ -10,7 +10,7 @@ const prepData = (data: ManifestDataMap) => {
   if (!data) return []
   const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {
-    value?.forEach((version) => preparedData.push({ system, version }))
+    value?.forEach((version) => preparedData.push({ system, version , id: `${system}|${version}` }))
   })
   return preparedData
 }
@@ -28,6 +28,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       cell: (row: ManifestSystemVersionPair) => {
         return (
           <IconButton
+            data-delete-manifest={`${row.system}|${row.version}`}
             deletedItemDescription={`system "${row.system}" version ${row.version}`}
             onClick={() => deleteFn(row)}
             buttonContext="delete"
