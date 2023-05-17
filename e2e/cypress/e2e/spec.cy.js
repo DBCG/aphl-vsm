@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 describe('Smoke Tests', () => {
   // before(() => {
   //   cy.setupData()
@@ -9,35 +11,36 @@ describe('Smoke Tests', () => {
   })
 
   context("Draft Library Setup", () => {
-    // it('clones active library', () => {
-    //   cy.get('[data-button-context="clone"]').click()
-    //   cy.get('[data-modal="confirm"]').click()
-    //   cy.get('[data-column-id="1"]').contains('draft').should('be.visible')
-    // })
+    
+    it('clones active library', () => {
+      cy.get('[data-button-context="clone"]').click()
+      cy.get('[data-modal="confirm"]').click()
+      cy.get('[data-column-id="1"]').contains('draft').should('be.visible')
+    })
 
-    // it('Edit Program Metadata', () => {
-    //   cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
-    //   cy.get('#edit-metadata').click()
+    it('Edit Program Metadata', () => {
+      cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
+      cy.get('#edit-metadata').click()
       
-    //   // Set program metadata values
-    //   cy.get('#prog-name').clear().type('Draft Library')
-    //   cy.get('#prog-version').clear().type('1.0.1-draft')
-    //   cy.get('#prog-desc').clear().type('Draft Library description')
-    //   cy.get('#prog-release-desc').clear().type('this is a release description for the draft library')
-    //   cy.get('.priority-level-selector__control').click()
-    //   cy.get('#react-select-priority-level-selector-option-1').click()
-    //   cy.intercept('PUT', '**/api/programs/*').as('updateProgramMetadata')
-    //   cy.get('#edit-metadata-save').click()
-    //   cy.wait('@updateProgramMetadata')
-    //   cy.reload()
+      // Set program metadata values
+      cy.get('#prog-name').clear().type('Draft Library')
+      cy.get('#prog-version').clear().type('1.0.1-draft')
+      cy.get('#prog-desc').clear().type('Draft Library description')
+      cy.get('#prog-release-desc').clear().type('this is a release description for the draft library')
+      cy.get('.priority-level-selector__control').click()
+      cy.get('#react-select-priority-level-selector-option-1').click()
+      cy.intercept('PUT', '**/api/programs/*').as('updateProgramMetadata')
+      cy.get('#edit-metadata-save').click()
+      cy.wait('@updateProgramMetadata')
+      cy.reload()
 
-    //   // Run assertions to check for persistence after reload
-    //   cy.get('#prog-name').contains('Draft Library')
-    //   cy.get('#prog-version').contains('1.0.1-draft')
-    //   cy.get('#prog-desc').contains('Draft Library description')
-    //   cy.get('#prog-release-desc').contains('this is a release description for the draft library')
-    //   cy.get('#priority-level').contains('Priority').should('be.visible')
-    // })
+      // Run assertions to check for persistence after reload
+      cy.get('#prog-name').contains('Draft Library')
+      cy.get('#prog-version').contains('1.0.1-draft')
+      cy.get('#prog-desc').contains('Draft Library description')
+      cy.get('#prog-release-desc').contains('this is a release description for the draft library')
+      cy.get('#priority-level').contains('Priority').should('be.visible')
+    })
 
     it('Adds a manifest to library', () => {
       cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
@@ -64,10 +67,36 @@ describe('Smoke Tests', () => {
       cy.get('[id="cell-4-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains('2020').should('exist')
     })
 
-    // it('Logs out of application', () => {
-    //   cy.get('#logout').click()
-    //   cy.get('#provider-logo-dark').should('be.visible')
-    // })
+    it('Creates new grouper', () => {
+      cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
+      cy.get('#create-new-grouper').click()
+
+      cy.get('#id').clear().type('test-grouper')
+      cy.get('#title').clear().type('excellent title for grouper')
+      cy.get('#purpose').clear().type('To group valuesets together')
+      cy.get('#description').clear().type('a description of the grouper')
+
+      // vsac search for valuesets
+      cy.get('#vs-search').type('diabetes')
+      cy.get('#submit-search-valueset-button').click()
+      cy.get('[name="select-all-rows"]').click()
+      cy.get('#add-valueset-to-program').click()
+
+
+      // Do some assertions here
+
+      cy.get('#submit-grouper-creation').click()
+
+      cy.get('#cell-1-test-grouper').contains('test-grouper').should('exist')
+      cy.get('#cell-2-test-grouper').contains('excellent title for grouper').should('exist')
+      cy.get('#cell-3-test-grouper').contains('To group valuesets together').should('exist')
+      cy.get('#cell-4-test-grouper').contains(moment().utc().format('YYYY-MM-DD')).should('exist')
+    })
+
+    it('Logs out of application', () => {
+      cy.get('#logout').click()
+      cy.get('#provider-logo-dark').should('be.visible')
+    })
   })
 
 

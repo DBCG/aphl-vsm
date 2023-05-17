@@ -95,6 +95,7 @@ const ProgramDetails = () => {
         <StyledSpan>Included Groups</StyledSpan>
         {can(session, 'edit') && status === 'draft' && (
           <Button
+            id="create-new-grouper"
             text="Create New Grouper"
             onClick={() => {
               router.push(`/programs/${router.query.id}/grouper`)
