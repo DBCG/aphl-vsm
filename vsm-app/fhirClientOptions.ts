@@ -1,4 +1,4 @@
-let terminologyServerEndpoints = [{ label: 'VSAC', value: { title: 'vsac', url: process.env.VSAC_BASE_URL } }]
+let terminologyServerEndpoints = [{ label: 'VSAC', value: { title: 'vsac', url: process.env.NEXT_PUBLIC_VSAC_BASE_URL } }]
 
 if (process.env.NEXT_PUBLIC_SHOW_TEST_TERMINOLOGY_SERVER) {
   terminologyServerEndpoints.push({
