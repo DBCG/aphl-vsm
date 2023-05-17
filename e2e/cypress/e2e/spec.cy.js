@@ -1,9 +1,9 @@
 import moment from 'moment'
 
 describe('Smoke Tests', () => {
-  // before(() => {
-  //   cy.setupData()
-  // })
+  before(() => {
+    cy.setupData()
+  })
 
   beforeEach(() => {
     cy.visit('http://localhost:3000')
@@ -50,8 +50,11 @@ describe('Smoke Tests', () => {
 
       // Add the manifests
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click()
+      cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').should('exist')
+      
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').click()
-
+      cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should('exist')
+      
       // Delete one of the manifests
       cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click()
       cy.get('[data-modal="confirm"]').click()
@@ -87,9 +90,9 @@ describe('Smoke Tests', () => {
 
       cy.get('#submit-grouper-creation').click()
 
-      cy.get('#cell-1-test-grouper').contains('test-grouper').should('exist')
+      cy.get('#cell-1-test-grouper').contains('Excellent_title_for_grouper').should('exist')
       cy.get('#cell-2-test-grouper').contains('excellent title for grouper').should('exist')
-      cy.get('#cell-3-test-grouper').contains('To group valuesets together').should('exist')
+      cy.get('#cell-3-test-grouper').contains('http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper').should('exist')
       cy.get('#cell-4-test-grouper').contains(moment().utc().format('YYYY-MM-DD')).should('exist')
     })
 
