@@ -10,6 +10,12 @@ describe('Smoke Tests', () => {
     cy.login('johndoe', 'password')
   })
 
+    afterEach(function() {
+      if (this.currentTest.state === 'failed') {
+        Cypress.runner.stop()
+      }
+    });
+
   context("Draft Library Setup", () => {
     
     it('clones active library', () => {
