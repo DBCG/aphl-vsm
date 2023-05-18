@@ -181177,7 +181177,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.6"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20210526",
                 "name": "DiphtheriaDisordersSNOMED",
                 "title": "Diphtheria (Disorders) (SNOMED)",
                 "status": "active",
@@ -181512,7 +181512,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1063"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20191227",
                 "name": "OpioidOverdoseandPoisoningDisordersSNOMED",
                 "title": "Opioid Overdose and Poisoning (Disorders) (SNOMED)",
                 "status": "active",
@@ -182738,7 +182738,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.360"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20180620",
                 "name": "BotulismDisordersICD10CM",
                 "title": "Botulism (Disorders) (ICD10CM)",
                 "status": "active",
@@ -182911,7 +182911,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.120"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20191227",
                 "name": "MeningococcalDiseaseDisordersSNOMED",
                 "title": "Meningococcal Disease (Disorders) (SNOMED)",
                 "status": "active",
@@ -183273,7 +183273,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.362"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20181031",
                 "name": "HansensDiseaseDisordersSNOMED",
                 "title": "Hansens Disease (Disorders) (SNOMED)",
                 "status": "active",
@@ -188533,7 +188533,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1439"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20220118",
                 "name": "RabiesSuspectedDisordersSNOMED",
                 "title": "Rabies [Suspected] (Disorders) (SNOMED)",
                 "status": "active",
@@ -188679,7 +188679,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1436"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20220118",
                 "name": "MeaslesSuspectedDisordersSNOMED",
                 "title": "Measles [Suspected] (Disorders) (SNOMED)",
                 "status": "active",
@@ -188816,7 +188816,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1435"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20220118",
                 "name": "DiphtheriaSuspectedDisordersSNOMED",
                 "title": "Diphtheria [Suspected] (Disorders) (SNOMED)",
                 "status": "active",
@@ -188953,7 +188953,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1446"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20220118",
                 "name": "ViralHemorrhagicFeverSuspectedDisordersSNOMED",
                 "title": "Viral Hemorrhagic Fever [Suspected] (Disorders) (SNOMED)",
                 "status": "active",
@@ -189090,7 +189090,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1438"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "20220118",
                 "name": "PoliomyelitisSuspectedDisordersSNOMED",
                 "title": "Poliomyelitis [Suspected] (Disorders) (SNOMED)",
                 "status": "active",
