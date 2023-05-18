@@ -19,9 +19,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   style?: React.CSSProperties
 }
 
-const Button = ({ text, style, disabled, onClick = () => {} }: ButtonProps) => {
+const Button = ({ text, style, disabled, onClick = () => {}, ...props }: ButtonProps) => {
   return (
     <StyledButton
+      {...props}
       style={style}
       disabled={disabled}
       onClick={(e) => {

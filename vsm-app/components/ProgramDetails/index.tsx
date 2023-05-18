@@ -80,14 +80,14 @@ const ProgramDetails = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        <Button text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
+        <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
       <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={can(session, 'edit') && status === 'draft'} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          <Button text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
         <ManifestDetailTable programId={programId} data={manifestData} loading={manifestLoading} />
       </ManifestContainer>
@@ -95,6 +95,7 @@ const ProgramDetails = () => {
         <StyledSpan>Included Groups</StyledSpan>
         {can(session, 'edit') && status === 'draft' && (
           <Button
+            id="create-new-grouper"
             text="Create New Grouper"
             onClick={() => {
               router.push(`/programs/${router.query.id}/grouper`)

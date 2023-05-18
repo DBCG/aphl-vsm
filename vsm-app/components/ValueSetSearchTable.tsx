@@ -591,6 +591,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
             />
             <IconButton
               style={{ alignSelf: 'center', marginTop: '12px' }}
+              id={"submit-search-valueset-button"}
               buttonContext="search"
               type="submit"
               onClick={(e) => {
@@ -656,6 +657,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
           </SelectGrouperContainer>
           <Button
             text="Add Selected To Program"
+            id={'add-valueset-to-program'}
             disabled={buttonDisabled}
             style={{ maxHeight: '60px', alignSelf: 'end', justifySelf: 'flex-end' }}
             onClick={(e) => submitAddVSet(e)}

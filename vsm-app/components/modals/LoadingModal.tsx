@@ -133,9 +133,10 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
             </>
           )}
           <ButtonGroup>
-            <Button text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
+            <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
             <Button
               text={`YES, ${actionType}`}
+              data-modal={'confirm'}
               disabled={disableSubmission}
               onClick={() => {
                 let currProgram = currentProgram

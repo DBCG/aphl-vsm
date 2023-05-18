@@ -55,7 +55,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
     setFormTouched(true)
     let newProgram
     if (fieldName === 'releaseDescription') {
-      newProgram = setReleaseDescription(program, target.value)
+      newProgram = setReleaseDescription(editedProgram, target.value)
     } else {
       newProgram = {
         ...editedProgram,
@@ -165,7 +165,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
       <ButtonCol>
         {editable && !enableEditing && !formTouched ? (
           <ButtonContainer>
-            <Button text={'Edit Metadata'} type="button" onClick={() => setEnableEditing(true)} />
+            <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
           </ButtonContainer>
         ) : (
           <></>
@@ -188,6 +188,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
 
               <Button
                 disabled={!formTouched || Boolean(error)}
+                id={'edit-metadata-save'}
                 style={{
                   ...buttonStyles,
                   backgroundColor: 'var(--theme-300)'

@@ -226,6 +226,7 @@ const AddGrouper = () => {
       <FormSectionHeader itemNum={4} title="Submit to create grouper for this program" />
       <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
         <Button
+          id="submit-grouper-creation"
           style={{
             fontSize: '150%'
           }}
