@@ -78,6 +78,8 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
+  console.log('here');
+  
   try {
     const body = await req.body
     const { vsCanonical, vsVersion, grouperIds } = body
