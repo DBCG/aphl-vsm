@@ -261,9 +261,20 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 }
 
 // VSAC appends versions to valueset ids and urls with hyphen
-const stringWithoutVersion = (str: string) => str.split('-')[0]
+const stringWithoutVersion = (str: string) => str?.split('-')[0]
+
+const getOid = (vs: fhir4.ValueSet) => {
+  let oid = vs?.identifier?.[0]?.value
+  if (!oid && vs?.url) {
+    // extract oid out of end of url
+    const url = vs?.url.split('/').pop() as string
+    oid = url?.includes('|') ? url.split('|')[0] : stringWithoutVersion(url)
+  }
+  return oid
+}
 
 export {
+  getOid,
   addExtensionToVs,
   addValueSetToGrouper,
   authoritativeSourceExtensionUrl,

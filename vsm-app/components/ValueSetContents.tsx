@@ -12,6 +12,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
 import { InputRow, InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
+import { getOid } from '@/helpers/valueSetHelpers'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -377,11 +378,11 @@ export default function ValueSetContents({
           <InputContainer>
             <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
               <SearchInput
-                id="prog-name"
+                id="vs-id"
                 label={isGrouperValueSet ? 'Grouper ID' : 'Valueset ID'}
                 readonly={true}
                 def={valueSet.id}
-                placeholder={'No valueset id set'}
+                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} id set`}
               />
               {isGrouperValueSet && enableEditing && !isEditing && (
                 <Button
@@ -421,7 +422,7 @@ export default function ValueSetContents({
                 readonly={!isEditing}
                 value={grouperVersion}
                 def={defaultGrouperVersion}
-                placeholder={'No valueset version set'}
+                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} version set`}
                 onChange={(e) => setGrouperVersion(e.target.value)}
               />
             </InputRow>
@@ -432,19 +433,21 @@ export default function ValueSetContents({
                 readonly={true}
                 value={currentValueSet.url}
                 def={currentValueSet.url}
-                placeholder={'No valueset url was set'}
+                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} url set`}
               />
             </InputRow>
-            <InputRow style={{ width: '100%' }}>
-              <SearchInput
-                id="vs-oid"
-                label={'OID'}
-                readonly={true}
-                value={currentValueSet?.identifier?.[0]?.value}
-                def={currentValueSet?.identifier?.[0]?.value}
-                placeholder={'No valueset oid was set'}
-              />
-            </InputRow>
+            {!isGrouperValueSet && (
+              <InputRow style={{ width: '100%' }}>
+                <SearchInput
+                  id="vs-oid"
+                  label={'OID'}
+                  readonly={true}
+                  value={getOid(currentValueSet)}
+                  def={getOid(currentValueSet)}
+                  placeholder={'No valueset oid was set'}
+                />
+              </InputRow>
+            )}
             <InputRow style={{ width: '100%' }}>
               <SearchInput
                 id="vs-publisher"
