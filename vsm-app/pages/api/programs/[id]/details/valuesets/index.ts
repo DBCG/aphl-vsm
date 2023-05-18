@@ -126,6 +126,7 @@ const getLeafValueSets = async (
       leafValueSetCanonicals.push(url)
     })
   })
+  console.log(`all leaf canonicals: ${leafValueSetCanonicals.length}`, leafValueSetCanonicals)
   if (!leafValueSetCanonicals.length) return ({ error: `No leaf Valuesets found.` })
 
   const leafValueSets = await fetchLeafValueSets({
@@ -136,6 +137,8 @@ const getLeafValueSets = async (
     oidToFind,
     whitelistFields: WHITELIST_VALUESET_FIELDS
   })
+
+  console.log(`full leafs after fetch: ${leafValueSets.length}`, leafValueSets)
 
   if (!leafValueSets?.length) {
     return ({ error: 'Could not fetch Leaf Valuesets' })
@@ -175,10 +178,11 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
         title: grouperVs.title || ''
       }
 
-      if (groupsByValueSetCanonical[urlNoVersion]) {
-        groupsByValueSetCanonical[urlNoVersion].push(groupToAdd)
+      // organizes by entire url, with version
+      if (groupsByValueSetCanonical[leafUrl]) {
+        groupsByValueSetCanonical[leafUrl].push(groupToAdd)
       } else {
-        groupsByValueSetCanonical[urlNoVersion] = [groupToAdd]
+        groupsByValueSetCanonical[leafUrl] = [groupToAdd]
       }
     })
   })
@@ -325,7 +329,9 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
 
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
-      .filter((vs) => (
+      .filter((vs) => {
+
+        return (
         !!vs &&
         // vs canonical has version on it?
         vsInRequiredGroup({
@@ -334,7 +340,8 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
         }) && (
           vsHasRequiredCondition({ valueSet: vs, conditionCodesToFilterBy: filterConditions })
         )
-      )).filter(x => !!x)
+      )}).filter(x => !!x)
+
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
