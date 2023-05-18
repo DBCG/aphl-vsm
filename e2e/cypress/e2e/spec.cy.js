@@ -76,7 +76,7 @@ describe('Smoke Tests', () => {
       cy.get('[id="cell-4-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains('2020').should('exist')
     })
 
-    it('Creates new grouper', () => {
+    it('Creates/Deletes new grouper', () => {
       cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
       cy.get('#create-new-grouper').click()
 
@@ -91,16 +91,19 @@ describe('Smoke Tests', () => {
       cy.get('[name="select-all-rows"]').click()
       cy.get('#add-valueset-to-program').click()
 
-
-      // Do some assertions here
-
       cy.get('#submit-grouper-creation').click()
-
+      // Do some assertions here
       cy.get('#cell-1-test-grouper').contains('Excellent_title_for_grouper').should('exist')
       cy.get('#cell-2-test-grouper').contains('excellent title for grouper').should('exist')
       cy.get('#cell-3-test-grouper').contains('http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper').should('exist')
       cy.get('#cell-4-test-grouper').contains(moment().utc().format('YYYY-MM-DD')).should('exist')
+
+      // Now remove newly created grouper
+      cy.get('#cell-5-test-grouper [data-button-context="delete"]').click()
+      cy.get('[data-modal="confirm"]').click()
+      cy.get('#cell-1-test-grouper').should('not.exist')
     })
+
 
     it('Logs out of application', () => {
       cy.get('#logout').click()
