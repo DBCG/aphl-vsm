@@ -154,7 +154,7 @@ const executeJobBatch = async (urls: string[]) => {
     await Promise.all(
       Object.keys(cdrResponseCollection).map(async (url) => {
         const { valuesets } = cdrResponseCollection[url]
-        let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
+        let serverType: 'vsac' | 'ontoserver_r4' = 'vsac'
         const { value } = getTerminologySource(valuesets[0]) //fetch the terminology server
 
         switch (value) {
@@ -162,7 +162,7 @@ const executeJobBatch = async (urls: string[]) => {
             serverType = 'vsac'
             break
           // case 'https://r4.ontoserver.csiro.au/fhir':  ### NOT SUPPORTED ###
-          //   serverType = 'ontoserverR4'
+          //   serverType = 'ontoserver_r4'
           //   break;
           default:
             // default will also be vsac

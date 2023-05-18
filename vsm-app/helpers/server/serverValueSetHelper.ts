@@ -131,7 +131,7 @@ export const fetchLeafValueSets = async ({
     )
   )
 
-  console.log('result: ', result)
+  console.log(`result of length ${result.length}: `, JSON.stringify(result, null, 4))
 
   try {
     let valueSets

@@ -47,7 +47,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     searchType: 'oid' | 'name' | 'url'
     count: string
     offset?: string
-    terminologyServer: 'vsac' | 'ontoserverR4'
+    terminologyServer: 'vsac' | 'ontoserver_r4'
   } = req.query
   const responseInfo: SearchResponse = {
     valueSets: [],

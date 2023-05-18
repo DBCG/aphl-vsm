@@ -193,7 +193,7 @@ type Offset = {
 }
 
 export interface LeafsToAdd {
-  selectedTerminologyServer: 'vsac' | 'ontoserverR4'
+  selectedTerminologyServer: 'vsac' | 'ontoserver_r4'
   selectedValueSets: SelectedValueSet[]
   selectedConditions: Condition[]
   selectedGroupers: SelectedGrouper[]

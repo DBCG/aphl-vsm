@@ -45,7 +45,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ error: `No maching terminology server found for query.` })
   }
 
-  terminologyClient.setClient(terminologySource as 'vsac' | 'ontoserverR4') // TS: at this point source's a string
+  terminologyClient.setClient(terminologySource as 'vsac' | 'ontoserver_r4') // TS: at this point source's a string
   // if the terminology server exists, set the terminology server to use that data source
   const terminologyClientInstance = terminologyClient.getClient()
 
