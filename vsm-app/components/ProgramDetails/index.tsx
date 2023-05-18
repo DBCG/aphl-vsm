@@ -80,7 +80,7 @@ const ProgramDetails = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        <Button text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
+        <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
       <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={can(session, 'edit') && status === 'draft'} />

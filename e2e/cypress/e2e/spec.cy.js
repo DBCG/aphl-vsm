@@ -104,7 +104,6 @@ describe('Smoke Tests', () => {
       cy.get('#cell-1-test-grouper').should('not.exist')
     })
 
-
     it('Logs out of application', () => {
       cy.get('#logout').click()
       cy.get('#provider-logo-dark').should('be.visible')
