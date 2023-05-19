@@ -83,6 +83,8 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .map((res) => res.resource)
     .filter(isDefinedString)
 
+  console.log('grouper canonicals: ', grouperValueSetCanonicals)
+
   if (!grouperValueSetCanonicals) return ({ error: `No Grouper Valuesets linked to Library ${grouperLib.id}` })
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
@@ -93,6 +95,8 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .filter(is.valueSet)
 
   if (!allGrouperVSets) return ({ error: `No Grouper Valuesets found for Library ${grouperLib.id}` })
+  console.log('all grouper vsets: ', allGrouperVSets);
+  
   return allGrouperVSets
 }
 
@@ -164,8 +168,9 @@ type GroupsByCanonical = Record<string, Group[]>
 const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) => {
   const groupsByValueSetCanonical: GroupsByCanonical = {}
   allGrouperVSets.forEach((grouperVs) => {
+    console.log('grouper 1: ', grouperVs)
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-
+    console.log('leafs in grouoper: ', leafUrlsInGrouper)
     leafUrlsInGrouper?.forEach((leafUrl) => {
       if (!leafUrl) return
       // arrange by unversioned grouper url
@@ -186,6 +191,7 @@ const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) 
       }
     })
   })
+  console.log('groups bby vs canonical: ', groupsByValueSetCanonical)
   return groupsByValueSetCanonical
 }
 
@@ -245,7 +251,8 @@ const formatValuesetData = (
     .filter((x) => !!x)
     .map((valueSet, index) => {
       const leafCanonical = valueSet.url!
-      const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical]
+      // groups may be arranged via canonical or <canonical>|<version>
+      const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical] || groupsByValueSetCanonical[`${leafCanonical}|${valueSet.version}`]
       const valueSetPinnedVersion = leafVersionsByCanonical[leafCanonical]
 
       return ({
@@ -327,6 +334,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const filterGroups = req?.query?.groups?.split(',')
     const filterConditions = req?.query?.conditions?.split(',')
 
+    console.log('leaf vsets: ', leafValueSets.map(({ url, name, version }) =>  ({url, name, version})))
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter((vs) => {
