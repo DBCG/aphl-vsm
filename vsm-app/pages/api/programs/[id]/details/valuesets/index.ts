@@ -130,7 +130,7 @@ const getLeafValueSets = async (
       leafValueSetCanonicals.push(url)
     })
   })
-  console.log(`all leaf canonicals: ${leafValueSetCanonicals.length}`, leafValueSetCanonicals)
+  console.log(`GET LEAF all leaf canonicals: ${leafValueSetCanonicals.length}`, leafValueSetCanonicals)
   if (!leafValueSetCanonicals.length) return ({ error: `No leaf Valuesets found.` })
 
   const leafValueSets = await fetchLeafValueSets({
@@ -142,7 +142,7 @@ const getLeafValueSets = async (
     whitelistFields: WHITELIST_VALUESET_FIELDS
   })
 
-  console.log(`full leafs after fetch: ${leafValueSets.length}`, leafValueSets)
+  console.log(`GET LEAF full leafs after fetch: ${leafValueSets.length}`, leafValueSets)
 
   if (!leafValueSets?.length) {
     return ({ error: 'Could not fetch Leaf Valuesets' })
@@ -334,7 +334,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const filterGroups = req?.query?.groups?.split(',')
     const filterConditions = req?.query?.conditions?.split(',')
 
-    console.log('leaf vsets: ', leafValueSets.map(({ url, name, version }) =>  ({url, name, version})))
+    // console.log('leaf vsets: ', leafValueSets.map(({ url, name, version }) =>  ({url, name, version})))
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter((vs) => {
@@ -360,6 +360,7 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     return res.status(200).send(composedResponse)
   }
   catch (e: any) {
+    console.log('hit catch here')
     logger.error(`error:  , ${e}`)
     res.status(400).json({ error: 'Search for leaf valueset details failed.' })
   }
