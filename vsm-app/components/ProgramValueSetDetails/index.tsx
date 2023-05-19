@@ -186,6 +186,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     ...debouncedFilters
   }) as Result
 
+  useEffect(() => {
+    console.log('prog dets: ', progValueSetDets)
+  }, [progValueSetDets])
+
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
@@ -205,7 +209,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
   let groupsInProgram = progValueSetDets?.groupsInProgram
-
+  
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
       if (typeof firstItem.title === 'string' && typeof secondItem.title === 'string') {
@@ -245,17 +249,19 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const handleVersionChange = (
     selectedVersion: string = '',
     vsCanonical: string,
-    grouperIds: string[],
-    terminologyInfo: TerminologyResult
+    groups: string[],
+    terminologyInfo: TerminologyResult,
+    vsCqfId: string
   ) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+    const data = { vsCanonical, version: selectedVersion, groups, terminologyInfo, vsCqfId }
 
     // update the grouper canonical version
     setVersionToUpdate(data)
   }
 
   useEffect(() => {
-    if (!versionToUpdate.grouperIds) {
+    if (!versionToUpdate?.groups?.length) {
+      console.error('no groups')
       return
     }
     let result
@@ -263,12 +269,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const body = JSON.stringify({
       vsCanonical: versionToUpdate.vsCanonical,
       vsVersion: versionToUpdate.version,
-      grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo
+      groups: versionToUpdate.groups,
+      terminologyInfo: versionToUpdate.terminologyInfo,
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      result = await fetch(`/api/valueset/versions`, {
+      result = await fetch(`/api/valueset/${versionToUpdate.vsCqfId}/versions`, {
         method: 'PUT',
         body
       }).then((res) => res.json())
@@ -346,15 +352,13 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const terminologyInfo = getTerminologySource(row.valueSet)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
-
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
                 instanceId="version-selector"
                 onChange={(e) => {
-                  const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo)
+                  handleVersionChange(e?.value, row?.valueSet?.url as string, row?.groups, terminologyInfo, row?.valueSet?.id)
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}

@@ -1,9 +1,18 @@
 import { is } from '@/helpers/is'
-import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, getTerminologySource, authoritativeSourceExtensionUrl, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { updateConditions } from '@/helpers/conditionHelpers'
+
+interface SrchParams extends fhir4.SearchParameter {
+  // url: string
+  // _elements?: string
+  // version?: string
+  _sort?: string
+}
 
 const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
@@ -45,7 +54,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(404).json({ error: `No maching terminology server found for query.` })
   }
 
-  terminologyClient.setClient(terminologySource as 'vsac' | 'ontoserver_r4') // TS: at this point source's a string
+  terminologyClient.setClient(terminologySource as 'vsac' | 'ontoserverR4') // TS: at this point source's a string
   // if the terminology server exists, set the terminology server to use that data source
   const terminologyClientInstance = terminologyClient.getClient()
 
@@ -78,24 +87,125 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('here');
-  
+  console.log('attempt')
   try {
     const body = await req.body
-    const { vsCanonical, vsVersion, grouperIds } = body
+    const bodyJson = JSON.parse(body)
 
+    console.log('bodyJson: ', bodyJson)
+    
+    const { vsCanonical, vsVersion, groups, terminologyInfo, originalVsVersion, useContext } = bodyJson
+    const grouperIds = groups?.map(g => g?.id)
+    const matchingTermServer = terminologyServerEndpoints?.find(e => e.label === terminologyInfo.value)
+    // don't like doing this, but add -version to url if it's vsac only
+    // the issue is that CQF is not letting us use a [url:contains] to find the base canonical
+    const versionInfo = vsVersion && matchingTermServer?.value.title === 'vsac' ? `-${vsVersion}` : ''
+
+    const [leafUrl, originalLeafVersion] = vsCanonical.split('|') 
+    console.log('vs canonical: ', vsCanonical) 
+    let searchParams = {
+      ['_url:contains']: vsCanonical,
+      // url: `${vsCanonical}${versionInfo}`,
+      _sort: ['version', 'date']
+    }
+
+    // Reminder: VSAC does not respect version, CQF does
+    if (vsVersion && vsVersion !== 'latest') {
+      searchParams.version = vsVersion
+    }
+
+    // check in CQF first to see if already exists
+    const matchInCqf = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams
+    })
+
+    console.log('matchInCqf: ', matchInCqf)
+    // return res.status(400)
+    if (!matchInCqf?.entry) {
+      // get the valueset with the new version if it doesn't exist in CQF
+
+      // if for some reason we cannot identify the original terminology server this came from
+      if (!matchingTermServer) {
+        logger.error(`Could not identify terminology server to fetch ${vsCanonical}`)
+        return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
+      }
+
+      // now that you have identified the server, set the client to use it and grab the valueset
+      terminologyClient.setClient(matchingTermServer.value.title as 'vsac' | 'ontoserverR4')
+      const terminologyClientInstance = terminologyClient.getClient()
+
+      let termServerSearchParams = {
+        url: vsCanonical,
+        _sort: ['version', 'date']
+      }
+  
+      // Reminder: VSAC does not respect version, CQF does
+      if (vsVersion && vsVersion !== 'latest') {
+        termServerSearchParams.version = vsVersion
+      }
+
+      // this will only give us back subsetted results, we need the entire valueset
+      const matchBundle = await terminologyClientInstance?.search({
+        resourceType: 'ValueSet',
+        searchParams: termServerSearchParams
+      })
+
+      let results = matchBundle?.entry
+
+      if (!results) {
+        logger.error(`No matches found for valueset ${vsCanonical} in terminology server ${matchingTermServer.label}`)
+        return res.status(404).json({ error: 'Could not identify Valueset source server to update version. You may attempt to add the Valueset to this program again to fix.' })
+      }
+      console.log('got here ', 1)
+      let match
+      // extra filter here in case, VSAC doesn't filter by version
+      if (results) {
+        match = results.find((bundleEntryItem) => bundleEntryItem.resource.version === vsVersion)
+      }
+
+      if (!match) {
+        logger.error('no match found')
+        return
+      }
+      console.log('got here ', 2)
+      // get entire valueset, not subsetted to save to CQF
+      let matchingWholeVs = await terminologyClientInstance?.read({
+        resourceType: 'ValueSet',
+        id: match.resource.id
+      })
+
+      // add authoritative source
+      matchingWholeVs = addExtensionToVs(matchingWholeVs, matchingTermServer.value.url, authoritativeSourceExtensionUrl)
+
+      // add conditions... just pass whole useContext?
+      matchingWholeVs.useContext = useContext
+
+      // save this to the fhir server
+      // matchingWholeVs.version = vsVersion
+      // matchingWholeVs.url = `${vsCanonical}|${vsVersion}`
+      const created = await fhirCdrClient.create({
+        resourceType: 'ValueSet',
+        body: matchingWholeVs
+      })
+
+      console.log('created: ', created)
+    }
+
+    console.log('grouperids ', grouperIds)
     const groupersToUpdate = await Promise.all(
-      grouperIds.map((grouperVsId: string) =>
+      grouperIds.map((grouperVsId: string) => (
         fhirCdrClient.read({
           resourceType: 'ValueSet',
           id: grouperVsId
-        })
+        }))
       )
     )
 
+    console.log('groupers to update: ', groupersToUpdate)
     const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
 
-    await Promise.all(
+    const result = await Promise.all(
       updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
         fhirCdrClient.update({
           resourceType: 'ValueSet',
@@ -104,11 +214,11 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       )
     )
-
-    res.status(200).json({ message: 'Update valueset versions completed' })
+    // debugger
+    return res.status(200).json({ message: 'Update valueset versions completed' })
   } catch (e) {
     logger.error(e)
-    res.status(500).json({ error: 'Error updating valueset versions' })
+    return res.status(500).json({ error: 'Error updating valueset versions' })
   }
 }
 
