@@ -586,6 +586,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {!isReadOnly && (
             <Button
+              id="add-valueset"
               text="Add Valuesets"
               style={{ minHeight: '40px', minWidth: '150px' }}
               onClick={() => router.push(`${router.asPath}/search`)}

@@ -5,6 +5,7 @@ import { SearchParams } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
@@ -73,16 +74,27 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
 
         if (activeTerminologyClient) {
           try {
-            const serverResponse = await retry(
-              () =>
-                activeTerminologyClient.search({
+            const serverResponse = await retry(() =>
+              activeTerminologyClient
+                .search({
                   resourceType: 'ValueSet',
                   searchParams,
                   options: {
-                    // @ts-ignore
                     signal: AbortSignal.timeout(30000)
                   }
-                }) as Promise<fhir4.Bundle>
+                })
+                .then((res) => {
+                  if (is.bundle(res)) {
+                    res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+                      const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+                      return {
+                        ...i,
+                        resource
+                      }
+                    })
+                  }
+                  return res
+                })
             )
 
             if (serverResponse.entry) {
@@ -128,10 +140,16 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
               await Promise.allSettled(
                 oidList.map(
                   (oid: string) =>
-                    activeTerminologyClient.read({
-                      resourceType: 'ValueSet',
-                      id: oid
-                    }) as Promise<fhir4.ValueSet>
+                    activeTerminologyClient
+                      .read({
+                        resourceType: 'ValueSet',
+                        id: oid
+                      })
+                      .then((res) => {
+                        if (is.valueSet(res)) {
+                          return transformFromVSACToCqf(res)
+                        }
+                      }) as Promise<fhir4.ValueSet>
                 )
               )
             )
@@ -184,10 +202,23 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
         }
         if (activeTerminologyClient) {
           try {
-            const serverResponse = (await activeTerminologyClient.search({
-              resourceType: 'ValueSet',
-              searchParams
-            })) as fhir4.Bundle
+            const serverResponse = await activeTerminologyClient
+              .search({
+                resourceType: 'ValueSet',
+                searchParams
+              })
+              .then((res) => {
+                if (is.bundle(res)) {
+                  res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+                    const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+                    return {
+                      ...i,
+                      resource
+                    }
+                  })
+                }
+                return res
+              })
 
             if (serverResponse.entry) {
               responseInfo.valueSets = serverResponse.entry.map((item: any) => {

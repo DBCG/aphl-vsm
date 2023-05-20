@@ -210,15 +210,47 @@ valueSetUpdateQueue.process(async function (job, done) {
   const maxIterations = Math.floor(clonedUrls.length / MAX_JOB_SIZE) + 1
   let iteration = 0
   console.log(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
+  const batchedJobs = [] as fhir4.Bundle[]
   while (clonedUrls.length > 0) {
-    await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
+    const batch =  await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
+    if (is.bundle(batch)) {
+      batchedJobs.push(batch)
+    }
     iteration += 1
     console.log('Progress:', (iteration / maxIterations) * 100)
-    job.progress((iteration / maxIterations) * 100)
-    await sleep(5000)
+    let progress = (iteration / maxIterations) * 100
+    if (progress >= 100) {
+      progress = 99 // prevent job from finishing
+    } else {
+      job.progress(progress)
+      await sleep(5000)
+    }
   }
+  const lastJob = batchedJobs.pop()
+
+  // If batch jobs were actually run, check and wait for job to finish
+  if (lastJob) {
+    const lastVSToUpdate = lastJob?.entry?.pop()?.response as fhir4.BundleEntryResponse
+    const vsID = lastVSToUpdate?.location?.split('/')?.[1] as string
+    let didFinishUpdate = false
+    while(!didFinishUpdate) {
+      const didUpdateVS = await fhirCdrClient.read({
+        resourceType: 'ValueSet',
+        id: vsID
+      })
+
+      if (didUpdateVS.meta.lastUpdated === lastVSToUpdate?.lastModified) {
+        console.log("queried valueset matches batch update")
+        didFinishUpdate = true
+        return
+      } else {
+        console.log('Waiting for update to finish')
+        await sleep(5000)
+      }
+    }
+  }
+
   console.log('job finished')
-  job.progress(100)
   done()
 })
 

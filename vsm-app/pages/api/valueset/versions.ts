@@ -1,8 +1,9 @@
-import { updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { is } from '@/helpers/is'
 
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
@@ -52,6 +53,17 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       const latestOrVersionedVset = await terminologyClientInstance.search({
         resourceType: 'ValueSet',
         searchParams
+      }).then((res) => {
+        if (is.bundle(res)) {
+          res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+            const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+            return {
+              ...i,
+              resource
+            }
+          })
+        }
+        return res
       })
 
       const bundleEntry = latestOrVersionedVset?.entry

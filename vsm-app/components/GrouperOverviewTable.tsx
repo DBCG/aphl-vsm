@@ -162,7 +162,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   }, [deleteGrouper, grouperLibId, programStatus, session])
 
   return (
-    <>
+    <div id="grouper-overview-table">
       <DataTable
         progressPending={deleting || groupsLoading}
         progressComponent={<LoadingIndicator />}
@@ -185,7 +185,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         pagination
         paginationPerPage={10}
       />
-    </>
+    </div>
   )
 }
 

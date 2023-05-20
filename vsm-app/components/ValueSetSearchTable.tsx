@@ -506,6 +506,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       if (leafsUpdated.ok) {
         toast.success('ValueSet Add Successful')
         router.push(`/programs/${programId}/valuesets`)
+      } else {
+        const { error } = await leafsUpdated.json()
+        toast.error(error)
       }
       setAddedValueSetsLoading(false)
     }

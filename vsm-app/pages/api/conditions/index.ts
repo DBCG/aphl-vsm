@@ -14,7 +14,7 @@ const getConditions = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // this will return a set of code/display pairs, along with their system info
     // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
-    const valueSet = data?.entry?.[0]?.resource?.compose?.include
+    const valueSet = data?.entry?.[0]?.resource?.compose?.include || []
     res.status(200).send(valueSet)
   } catch (e: any) {
     logger.error('error:  ', e?.response?.data?.text)
