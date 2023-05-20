@@ -117,7 +117,6 @@ export const fetchLeafValueSets = async ({
       const [urlNoVersion, version] = canonical.split('|')
       const searchParameters = {
         url: urlNoVersion,
-        // status: 'active',
         ...searchParams
       }
       if (version) {
