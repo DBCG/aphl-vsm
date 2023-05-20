@@ -112,12 +112,11 @@ export const fetchLeafValueSets = async ({
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
-
   result = await Promise.all(
     leafValueSetCanonicals.map((canonical) => {
       const [urlNoVersion, version] = canonical.split('|')
       const searchParameters = {
-        url: canonical,
+        url: urlNoVersion,
         // status: 'active',
         ...searchParams
       }
