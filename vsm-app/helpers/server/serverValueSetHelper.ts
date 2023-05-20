@@ -80,6 +80,8 @@ interface FetchLeafs {
   oidToFind?: string,
 }
 
+const paramExists = (p: any) => is.string(p) && p.trim() !== ''
+
 export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
   nameToFind,
@@ -92,20 +94,20 @@ export const fetchLeafValueSets = async ({
 
   let result = []
 
-  if (is.string(nameToFind)) {
+  if (paramExists(nameToFind)) {
     searchParams['name:contains'] = nameToFind
   }
 
-  if (is.string(stewardToFind)) {
+  if (paramExists(stewardToFind)) {
     searchParams['publisher:contains'] = stewardToFind
   }
 
-  if (is.string(versionToFind)) {
+  if (paramExists(versionToFind)) {
     searchParams['version:contains'] = versionToFind
   }
 
-  if (is.string(oidToFind)) {
-    searchParams['_url:contains'] = oidToFind
+  if (paramExists(oidToFind)) {
+    searchParams['url:contains'] = oidToFind
   }
 
   if (whitelistFields) {
