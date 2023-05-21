@@ -78,10 +78,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
               activeTerminologyClient
                 .search({
                   resourceType: 'ValueSet',
-                  searchParams,
-                  options: {
-                    signal: AbortSignal.timeout(30000)
-                  }
+                  searchParams
                 })
                 .then((res) => {
                   if (is.bundle(res)) {
