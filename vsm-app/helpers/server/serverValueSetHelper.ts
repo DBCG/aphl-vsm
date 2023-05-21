@@ -107,7 +107,9 @@ export const fetchLeafValueSets = async ({
   }
 
   if (paramExists(oidToFind)) {
-    searchParams['url:contains'] = oidToFind
+    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind))
+    // for some reason, url:contains is broken in cqf. Workaround above
+    // searchParams['url:contains'] = oidToFind
   }
 
   if (whitelistFields) {
