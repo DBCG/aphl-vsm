@@ -6,9 +6,10 @@ import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet, UsageContext } from 'fhir/r4'
 import { is } from '@/helpers/is'
-import { getTerminologySource } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, stringWithoutVersion, transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { sleep } from 'utils'
 import moment from 'moment'
+import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -23,7 +24,7 @@ type CDRResponseCollection = {
 const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1'
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[] }>('vsUpdate', `redis://${REDIS_HOST}:6379`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[], programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379`, {
   limiter: {
     max: 1,
     duration: 10000
@@ -172,10 +173,21 @@ const executeJobBatch = async (urls: string[]) => {
         termClient.setClient(serverType)
         const targetFhirClient = termClient.getClient()!
 
-        const vsComparatorResponses = (await targetFhirClient?.search({
+        const vsComparatorResponses = await targetFhirClient?.search({
           resourceType: 'ValueSet',
-          searchParams: { url: url }
-        })) as fhir4.Bundle
+          searchParams: { url: stringWithoutVersion(url) }
+        }).then((res) => {
+          if (is.bundle(res)) {
+            res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+              const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+              return {
+                ...i,
+                resource
+              }
+            })
+          }
+          return res
+        }) as fhir4.Bundle
 
         cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
       })
@@ -201,50 +213,52 @@ const executeJobBatch = async (urls: string[]) => {
  * Job is processed here and will do a max of 20 urls at a time
  */
 valueSetUpdateQueue.process(async function (job, done) {
-  const { urls = [] } = job.data
+  const { urls = [], programId } = job.data
   const clonedUrls = [...urls]
-  if (clonedUrls?.length === 0) {
-    console.error('No urls provided for valueset update worker')
+  if (clonedUrls?.length === 0 || programId == null) {
+    console.error('Urls and ProgramID required for valueset update worker')
     done()
   }
   const maxIterations = Math.floor(clonedUrls.length / MAX_JOB_SIZE) + 1
   let iteration = 0
   console.log(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
-  const batchedJobs = [] as fhir4.Bundle[]
+  const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch =  await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
-    if (is.bundle(batch)) {
-      batchedJobs.push(batch)
-    }
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
+    batchedJobs.push(batch)
     iteration += 1
-    console.log('Progress:', (iteration / maxIterations) * 100)
     let progress = (iteration / maxIterations) * 100
     if (progress >= 100) {
-      progress = 99 // prevent job from finishing
+      console.log('Progress: 99, begin checking for update to finish')
+      job.progress(99) // prevent job from finishing
+      break;
     } else {
+      console.log('Progress:', (iteration / maxIterations) * 100)
+
       job.progress(progress)
       await sleep(5000)
     }
   }
   const lastJob = batchedJobs.pop()
-
+  
+  const MAX_ITERATIONS = 30 // Stop checking after 30 iterations, 
+  // this handles the edge case where the valueset number may have 
+  // changed to less than the original count of urls it started with
+  
   // If batch jobs were actually run, check and wait for job to finish
   if (lastJob) {
-    const lastVSToUpdate = lastJob?.entry?.pop()?.response as fhir4.BundleEntryResponse
-    const vsID = lastVSToUpdate?.location?.split('/')?.[1] as string
     let didFinishUpdate = false
     while(!didFinishUpdate) {
-      const didUpdateVS = await fhirCdrClient.read({
-        resourceType: 'ValueSet',
-        id: vsID
-      })
+      const { payload } = await getProgramDetailsValuesets({id: programId })
 
-      if (didUpdateVS.meta.lastUpdated === lastVSToUpdate?.lastModified) {
-        console.log("queried valueset matches batch update")
+      // @ts-ignore
+      if (payload?.data?.length > urls.length) {
+        console.log('Update finished')
         didFinishUpdate = true
+        job.progress(100)
         return
       } else {
-        console.log('Waiting for update to finish')
+        console.log('Waiting for update to finish, leaf values count did not match')
         await sleep(5000)
       }
     }

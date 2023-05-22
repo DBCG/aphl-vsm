@@ -46,7 +46,7 @@ const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> 
   const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId })
   // disabling proto-cache because it causes problems with updating groupers
   if (!is.library(program)) {
-    return ({ error: `Program ${programId} must be a FHIR Library` })
+    return { error: `Program ${programId} must be a FHIR Library` }
   }
   return program
 }
@@ -56,7 +56,7 @@ const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library 
   // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
   const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
   if (!grouperLibraryCanonical) {
-    return ({ error: `Could not find Grouper Library canonical for Program ${program.id}` })
+    return { error: `Could not find Grouper Library canonical for Program ${program.id}` }
   }
   const grouperStatus = program.status // active programs get active groupers, draft get draft groupers
   // there is still going to be a bug here until we fix the fact that groupers are unversioned after draft
@@ -67,13 +67,14 @@ const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library 
   if (is.library(result)) {
     return result
   }
-  return ({ error: `Could not get Grouper Library for Program ${program.id}` })
+  return { error: `Could not get Grouper Library for Program ${program.id}` }
 }
 
-const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) => grouperVs?.compose?.include
-  ?.map((item) => item?.valueSet)
-  ?.filter((x) => !!x) // filter out undefined
-  ?.flat() || []
+const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
+  grouperVs?.compose?.include
+    ?.map((item) => item?.valueSet)
+    ?.filter((x) => !!x) // filter out undefined
+    ?.flat() || []
 
 // All leaf valuesets are required to belong to at least one grouper
 // so if none exist, this is a problem
@@ -83,24 +84,23 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
     .map((res) => res.resource)
     .filter(isDefinedString)
 
-  if (!grouperValueSetCanonicals) return ({ error: `No Grouper Valuesets linked to Library ${grouperLib.id}` })
+  if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
       .flatMap((bundle) => bundle?.entry?.map((e) => e?.resource!))
       .filter((x) => !!x) as fhir4.Resource[]
-  )
-    .filter(is.valueSet)
+  ).filter(is.valueSet)
 
-  if (!allGrouperVSets) return ({ error: `No Grouper Valuesets found for Library ${grouperLib.id}` })
+  if (!allGrouperVSets) return { error: `No Grouper Valuesets found for Library ${grouperLib.id}` }
   return allGrouperVSets
 }
 
 interface GetLeafs {
-  allGrouperVSets: fhir4.ValueSet[],
-  nameToFind: string,
-  stewardToFind: string,
-  versionToFind: string,
+  allGrouperVSets: fhir4.ValueSet[]
+  nameToFind: string
+  stewardToFind: string
+  versionToFind: string
   oidToFind: string
 }
 
@@ -111,14 +111,17 @@ interface GetLeafsReturn {
   leafValueSets: fhir4.ValueSet[]
 }
 
-const getLeafValueSets = async (
-  { allGrouperVSets, nameToFind, stewardToFind, versionToFind, oidToFind }: GetLeafs
-): Promise<GetLeafsReturn | ErrorRes> => {
-
+const getLeafValueSets = async ({
+  allGrouperVSets,
+  nameToFind,
+  stewardToFind,
+  versionToFind,
+  oidToFind
+}: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-    
+
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
       if (!url) return
@@ -126,7 +129,7 @@ const getLeafValueSets = async (
       leafValueSetCanonicals.push(url)
     })
   })
-  if (!leafValueSetCanonicals.length) return ({ error: `No leaf Valuesets found.` })
+  if (!leafValueSetCanonicals.length) return { error: `No leaf Valuesets found.` }
 
   const leafValueSets = await fetchLeafValueSets({
     leafValueSetCanonicals,
@@ -138,11 +141,11 @@ const getLeafValueSets = async (
   })
 
   if (!leafValueSets?.length) {
-    return ({ error: 'Could not fetch Leaf Valuesets' })
+    return { error: 'Could not fetch Leaf Valuesets' }
   }
 
   const leafVersionsByCanonical = leafValueSetCanonicals
-    ?.filter(canonical => canonical?.includes('|'))
+    ?.filter((canonical) => canonical?.includes('|'))
     ?.reduce((acc, can) => {
       let [baseCanonical, version] = can.split('|')
       return { ...acc, [baseCanonical]: version }
@@ -190,10 +193,7 @@ interface VsInReqGrp {
   groupIdsToFilterBy: string[] | undefined
 }
 
-const vsInRequiredGroup = ({
-  groupsVsBelongsTo,
-  groupIdsToFilterBy
-}: VsInReqGrp): boolean => {
+const vsInRequiredGroup = ({ groupsVsBelongsTo, groupIdsToFilterBy }: VsInReqGrp): boolean => {
   // if no group filters active, valueset is allowed by default
   if (!groupIdsToFilterBy) return true
   // if only one filter selected
@@ -244,7 +244,7 @@ const formatValuesetData = (
       const groupsVsBelongsTo = groupsByValueSetCanonical[leafCanonical]
       const valueSetPinnedVersion = leafVersionsByCanonical[leafCanonical]
 
-      return ({
+      return {
         keyField: `${valueSet.url}-${valueSet.version}-${index}`,
         programName: program?.name || 'Undefined',
         programId: program?.id || 'Undefined',
@@ -255,7 +255,7 @@ const formatValuesetData = (
         valueSetPinnedVersion,
         valueSet: valueSet,
         groups: groupsVsBelongsTo
-      })
+      }
     })
   return formattedVsets
 }
@@ -278,41 +278,61 @@ type ExtendedReq = NextApiRequest & {
     conditions?: string
   }
 }
-const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse<Result | { error: string }>) => {
+
+type RequestQueryParams = {
+  id: string
+  findInOid?: string
+  findInVsName?: string
+  findInSteward?: string
+  findInVersion?: string
+  groups?: string
+  conditions?: string
+}
+
+// TODO: maybe move this out of the route?
+export const getProgramDetailsValuesets = async ({
+  id: programId,
+  findInOid,
+  findInSteward,
+  findInVersion,
+  findInVsName,
+  groups,
+  conditions
+}: RequestQueryParams) => {
   try {
-    const program = await getProgram(req.query.id as string)
+    const program = await getProgram(programId)
 
     if (isError(program)) {
-      logger.error(`Problem encountered getting program with ID ${req.query.id}`)
-      return res.status(400).json({ error: program.error })
+      logger.error(`Problem encountered getting program with ID ${programId}`)
+      return { status: 400, payload: { error: program.error } }
     }
 
     const grouperLibrary = await getGrouperLibrary(program)
 
     if (isError(grouperLibrary)) {
-      logger.error(`Problem encountered getting grouper library for Program ${req.query.id}`)
-      return res.status(400).json({ error: grouperLibrary.error })
+      logger.error(`Problem encountered getting grouper library for Program ${programId}`)
+      return { status: 400, payload: { error: grouperLibrary.error } }
     }
 
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
 
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
-      logger.error(`Problem encountered getting grouper valuesets for Program ${req.query.id}`)
-      return res.status(400).json({ error: grouperValueSets.error })
+      logger.error(`Problem encountered getting grouper valuesets for Program ${programId}`)
+      return { status: 400, payload: { error: grouperValueSets.error } }
     }
 
     // filters here (<x>.toFind strings) are applied on the server side
     const leafVsetResponse = await getLeafValueSets({
       allGrouperVSets: grouperValueSets,
-      oidToFind: req.query.findInOid || '',
-      stewardToFind: req.query.findInSteward || '',
-      versionToFind: req.query.findInVersion || '',
-      nameToFind: req.query.findInVsName || ''
+      oidToFind: findInOid || '',
+      stewardToFind: findInSteward || '',
+      versionToFind: findInVersion || '',
+      nameToFind: findInVsName || ''
     })
 
     if (isError(leafVsetResponse)) {
-      logger.error(`Problem encountered getting leaf valuesets for Program ${req.query.id}`)
-      return res.status(400).json({ error: leafVsetResponse.error })
+      logger.error(`Problem encountered getting leaf valuesets for Program ${programId}`)
+      return { status: 400, payload: { error: leafVsetResponse.error } }
     }
 
     const { leafValueSets, leafVersionsByCanonical } = leafVsetResponse
@@ -320,21 +340,22 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
     // these filters are performed here
-    const filterGroups = req?.query?.groups?.split(',')
-    const filterConditions = req?.query?.conditions?.split(',')
+    const filterGroups = groups?.split(',')
+    const filterConditions = conditions?.split(',')
 
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
-      .filter((vs) => (
-        !!vs &&
-        // vs canonical has version on it?
-        vsInRequiredGroup({
-          groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
-          groupIdsToFilterBy: filterGroups
-        }) && (
+      .filter(
+        (vs) =>
+          !!vs &&
+          // vs canonical has version on it?
+          vsInRequiredGroup({
+            groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
+            groupIdsToFilterBy: filterGroups
+          }) &&
           vsHasRequiredCondition({ valueSet: vs, conditionCodesToFilterBy: filterConditions })
-        )
-      )).filter(x => !!x)
+      )
+      .filter((x) => !!x)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
@@ -342,14 +363,18 @@ const getProgramDetailsValuesets = async (req: ExtendedReq, res: NextApiResponse
       data: formattedVsets,
       groupsInProgram: grouperValueSets
     }
-    return res.status(200).send(composedResponse)
-  }
-  catch (e: any) {
-    logger.error(`error:  , ${e}`)
-    res.status(400).json({ error: 'Search for leaf valueset details failed.' })
+    return { status: 200, payload: composedResponse }
+  } catch (e: any) {
+    logger.error(`error:  , ${JSON.stringify(e, null, 2)}`)
+    return { status: 400, payload: { error: 'Search for leaf valueset details failed.' } }
   }
 }
 
+const getProgramDetailsValuesetsController = async (req: ExtendedReq, res: NextApiResponse<Result | { error: string }>) => {
+  const { status, payload } = await getProgramDetailsValuesets(req.query as unknown as RequestQueryParams)
+  res.status(status).json(payload)
+}
+
 export default handler({
-  GET: { action: getProgramDetailsValuesets }
+  GET: { action: getProgramDetailsValuesetsController }
 })

@@ -38,7 +38,7 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
   if (!('error' in jobStatus)) {
     setJobStatus(jobStatus.progress)
     if (jobStatus.progress < 100) {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       await subscribe(setJobStatus, jobId)
     } else {
       toast.success('ValueSet Update finished.')
@@ -132,7 +132,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       }) || []
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls })
+      body: JSON.stringify({ urls: canonicalUrls, programId })
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
