@@ -1,6 +1,7 @@
 import { fhirCdrClient } from 'fhirClients'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
+import moment from 'moment'
 
 interface FetchGrouperLib {
   client: FhirKitClient
@@ -142,15 +143,17 @@ export const fetchLeafValueSets = async ({
     valueSets = result
       ?.map((e) => {
         if (e.entry) {
-
-          return (e.entry?.map((entry: fhir4.BundleEntry) => {
-
-            const resource = entry?.resource as fhir4.ValueSet
-            if (resource) {
-              // instead of returning whole valuesets, just return a portion of the data
-              return resource
-            }
-          }))
+          if (e.entry.length > 1) {
+            // Find latest valueset version to return
+            const latestEntry = e.entry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
+              const curDate = moment(cur.resource?.version || 0)
+              const accDate = moment(acc.resource?.version || 0)
+              return curDate > accDate ? cur : acc
+            }, e.entry[0])
+            return [latestEntry.resource]
+          }
+          
+          return e.entry?.[0]?.resource
         }
       })
       ?.flat()
