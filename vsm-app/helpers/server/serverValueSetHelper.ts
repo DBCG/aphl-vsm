@@ -112,6 +112,7 @@ export const fetchLeafValueSets = async ({
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
+  console.log(`${leafValueSetCanonicals.length} leaf canonicals: `, leafValueSetCanonicals)
 
   result = await Promise.all(
     leafValueSetCanonicals.map((canonical) => {

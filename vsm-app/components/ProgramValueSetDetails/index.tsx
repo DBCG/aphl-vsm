@@ -48,9 +48,18 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
     console.error(jobStatus.error)
   }
 }
+
 interface ProgramValueSetDetailsProps {
   programId: string
   router: NextRouter
+}
+
+interface HandleVersionChange {
+  selectedVsId: string
+  selectedVersion: string
+  vsCanonical: string
+  grouperIds: string[]
+  terminologyInfo: TerminologyResult
 }
 
 const DEFAULT_FILTERS = {
@@ -242,13 +251,14 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   // versionInput
-  const handleVersionChange = (
-    selectedVersion: string = '',
-    vsCanonical: string,
-    grouperIds: string[],
-    terminologyInfo: TerminologyResult
-  ) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+  const handleVersionChange = ({
+    selectedVersion,
+    vsCanonical,
+    grouperIds,
+    terminologyInfo,
+    selectedVsId
+  }: HandleVersionChange) => {
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId }
 
     // update the grouper canonical version
     setVersionToUpdate(data)
@@ -264,7 +274,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       vsCanonical: versionToUpdate.vsCanonical,
       vsVersion: versionToUpdate.version,
       grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo
+      terminologyInfo: versionToUpdate.terminologyInfo,
+      selectedVsId: versionToUpdate.selectedVsId
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -346,7 +357,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const terminologyInfo = getTerminologySource(row.valueSet)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
-
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
@@ -354,7 +364,13 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo)
+                  handleVersionChange({
+                    selectedVsId: row?.valueSet?.id as string,
+                    selectedVersion: e?.value as string,
+                    vsCanonical: row?.valueSet?.url as string,
+                    grouperIds,
+                    terminologyInfo
+                  })
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}

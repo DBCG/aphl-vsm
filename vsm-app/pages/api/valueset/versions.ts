@@ -11,7 +11,7 @@ import { is } from '@/helpers/is'
 const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = await req.body
   const bodyJson = JSON.parse(body)
-  const { vsCanonical, vsVersion, grouperIds, terminologyInfo } = bodyJson
+  const { vsCanonical, vsVersion, grouperIds, terminologyInfo, selectedVsId } = bodyJson
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -22,6 +22,34 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
   // 4. merge use-context and extension info (authoritative src) with versioned vset
 
   try {
+
+    const cqfSearchParams = {
+      url: vsCanonical
+    }
+
+    if(vsVersion !== 'latest') {
+      cqfSearchParams.version = vsVersion
+    }
+
+    const matchInCqf = fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: cqfSearchParams
+    })
+
+    if(matchInCqf?.entry?.length) {
+      // TODO: if there's a match in cqf, skip all the valueset getting stuff
+      // should refactor this route so getting the valueset and setting the grouper refs
+      // are their own functions 
+    }
+    // first, get the valueset that you are updating precisely by id
+    // doing this to get extensions + usecontext to add to valueset later
+    const selectedVs = await fhirCdrClient.read({
+      resourceType: 'ValueSet',
+      id: selectedVsId
+    })
+
+    console.log('selected VS: ', selectedVs)
+
     const latestValueSetBundle = await fhirCdrClient.search({
       resourceType: 'ValueSet',
       searchParams: {
@@ -75,9 +103,34 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         let matchingItem = bundleEntry?.filter((e: fhir4.BundleEntry) => {
           const vs = e?.resource as fhir4.ValueSet
           return vs.version === vsVersion
-        })
-        if (matchingItem?.meta?.tag?.contains((i: any) => i?.code === 'SUBSETTED')) {
+        })?.[0]?.resource
+
+        const isSubsetted = Boolean(matchingItem?.meta?.tag?.find((t) => t?.code?.toUpperCase() === 'SUBSETTED'))
+        if (isSubsetted) {
+          console.log('subsetted')
           // need to get the whole valueset, not just subset
+          const wholeVs = await terminologyClientInstance.read({
+            resourceType: 'ValueSet',
+            id: matchingItem.id
+          }).then((vs) => {
+            if (is.valueSet(vs)) {
+              const resource = transformFromVSACToCqf(vs, vs.url as string)
+              return resource
+            }
+            console.error('not a valueset')
+          })
+
+          if(is.valueSet(wholeVs)) {
+            // add conditions, authoritative source
+            // for now just copy over useContext and extensions to test
+            wholeVs.useContext = selectedVs.useContext
+            wholeVs.extension = selectedVs.extension
+
+            const newV = await fhirCdrClient.create({
+              resourceType: 'ValueSet',
+              body: wholeVs
+            })
+          }
         }
       }
     }
