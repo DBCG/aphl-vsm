@@ -80,6 +80,10 @@ interface FetchLeafs {
   oidToFind?: string,
 }
 
+const isValidString = (search: any): boolean => {
+  return is.string(search) && search.trim() !== ''
+}
+
 export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
   nameToFind,
@@ -92,27 +96,27 @@ export const fetchLeafValueSets = async ({
 
   let result = []
 
-  if (is.string(nameToFind)) {
+  if (isValidString(nameToFind)) {
     searchParams['name:contains'] = nameToFind
   }
 
-  if (is.string(stewardToFind)) {
+  if (isValidString(stewardToFind)) {
     searchParams['publisher:contains'] = stewardToFind
   }
 
-  if (is.string(versionToFind)) {
+  if (isValidString(versionToFind)) {
     searchParams['version:contains'] = versionToFind
   }
 
-  if (is.string(oidToFind)) {
-    searchParams['_url:contains'] = oidToFind
+    // url:contains is not currently working on CQF for a partial string search
+    // so will filter this here instead
+  if (isValidString(oidToFind)) {
+    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind))
   }
 
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
-
-  console.log(`${leafValueSetCanonicals.length} leaf canonicals: `, leafValueSetCanonicals)
 
   result = await Promise.all(
     leafValueSetCanonicals.map((canonical) => {
