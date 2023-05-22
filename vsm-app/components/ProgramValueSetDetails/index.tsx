@@ -136,10 +136,13 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   const handleUpdateValueSets = async () => {
-    const canonicalUrls: string[] =
-      progValueSetDets?.data?.map((data) => {
-        return data.canonical
-      }) || []
+    const canonicalUrls: string[] = []
+    // @ts-ignore
+    for (const grouper of progValueSetDets?.groupsInProgram) {
+      const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+      canonicalUrls.push(...urls)
+    }
+
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
       body: JSON.stringify({ urls: canonicalUrls, programId })

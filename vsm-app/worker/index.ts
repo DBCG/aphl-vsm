@@ -71,19 +71,21 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
       console.error(`latestVersion or latestVersionUseContext not found for ValueSet at ${url}`)
       return
     }
-    // Find all the versions which are not in the local CQF instance
+    // Find if latest version is not in cqf store
     const vsComparatorResponsesWithVersions =
       (vsComparatorResponses?.entry
         ?.map((bundleEntry: BundleEntry) => {
           const resource = bundleEntry.resource as ValueSet
-          if (resource?.version && is.valueSet(resource) && !versions?.includes(resource.version)) {
-            console.log(`Adding new resource found: ${resource.name} version: ${resource.version}`)
+          if (resource?.version && is.valueSet(resource) && moment(resource.version) > moment(latestVersion)) {
+            console.log(`Adding new resource, latesr version found for: ${resource.name} version: ${resource.version}`)
             return resource
           }
         })
         .filter((i) => !!i) as ValueSet[]) || [] //filter out undefined
 
     if (vsComparatorResponsesWithVersions?.length === 0) return
+
+    
 
     const entry = buildValueSetEntry(vsComparatorResponsesWithVersions, latestVersionUseContext, url)
     if (entry != null) entries.push(entry)
@@ -239,7 +241,6 @@ valueSetUpdateQueue.process(async function (job, done) {
       await sleep(5000)
     }
   }
-  const lastJob = batchedJobs.pop()
   
   // TODO: need to implement below  
   // const MAX_ITERATIONS = 30 // Stop checking after 30 iterations, 
@@ -247,19 +248,29 @@ valueSetUpdateQueue.process(async function (job, done) {
   // changed to less than the original count of urls it started with
   
   // If batch jobs were actually run, check and wait for job to finish
-  if (lastJob) {
+  if (batchedJobs?.length > 0 ) {
+    const allBatchJobIds: string[] = []
+    for (const job of batchedJobs) {
+      job.entry.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
+    }
+
     let didFinishUpdate = false
     while(!didFinishUpdate) {
       const { payload } = await getProgramDetailsValuesets({id: programId })
-
+      const currentVsIds = payload?.data?.map((i) => i?.valueSet?.id)
+      
+      // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
+      const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value));
+      console.log("New VS ids", allBatchJobIds)
+      console.log("current VS ids", currentVsIds)
       // @ts-ignore
-      if (payload?.data?.length > urls.length) {
+      if (anyIntersection?.length) {
         console.log('Update finished')
         didFinishUpdate = true
         job.progress(100)
         break;
       } else {
-        console.log('Waiting for update to finish, leaf values count did not match')
+        console.log('Waiting for update to finish, leaf values intersection ids did not match')
         await sleep(5000)
       }
     }
