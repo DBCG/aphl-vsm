@@ -11,7 +11,12 @@ import { terminologyServerEndpoints } from '@/fhirClientOptions'
 // ------------ HELPER FUNCTIONS --------------
 // --------------------------------------------
 
-const matchExistsInCQF = async ({ vsCanonical, versionToFind }) => {
+interface MatchExists {
+  vsCanonical: string
+  versionToFind: string
+}
+
+const matchExistsInCQF = async ({ vsCanonical, versionToFind }:MatchExists): Promise<boolean> => {
   try {
     const cqfSearchParams = {
       url: vsCanonical,
@@ -19,6 +24,7 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }) => {
     }
   
     if(versionToFind !== 'latest') {
+      // @ts-ignore
       cqfSearchParams.version = versionToFind
     }
   
