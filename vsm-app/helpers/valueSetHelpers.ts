@@ -304,8 +304,8 @@ const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   // get last part of url
   const vsIdWithVersion = splitPaths?.pop() as string
   // extract without t
-  const vsId = vsIdWithVersion?.split('-')[0]
-  splitPaths.push(`${vsId}|${clonedVs.version}`)
+  const vsId = stringWithoutVersion(vsIdWithVersion)
+  splitPaths.push(vsId)
   clonedVs.url = splitPaths.join('/')
   return clonedVs
 }
