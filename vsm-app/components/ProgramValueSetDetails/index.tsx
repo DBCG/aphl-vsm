@@ -249,7 +249,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     terminologyInfo: TerminologyResult
   ) => {
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
-
+    console.log('data from version change: ', data)
     // update the grouper canonical version
     setVersionToUpdate(data)
   }

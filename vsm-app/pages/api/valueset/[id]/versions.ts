@@ -82,6 +82,11 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
     const body = await req.body
     const { vsCanonical, vsVersion, grouperIds } = body
 
+    // check CQF to see if the valueset exists
+    // but url:contains does not exist...
+    
+
+    // get all grouper valuesets
     const groupersToUpdate = await Promise.all(
       grouperIds.map((grouperVsId: string) =>
         fhirCdrClient.read({
@@ -90,10 +95,14 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       )
     )
+    console.log('--------------------------')
+    console.log('groupers to update: ', groupersToUpdate)
 
     const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+    console.log('--------------------------')
+    console.log('updatedGroupers: ', updatedGroupers)
 
-    await Promise.all(
+    const result = await Promise.all(
       updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
         fhirCdrClient.update({
           resourceType: 'ValueSet',
@@ -102,6 +111,9 @@ const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
         })
       )
     )
+
+    console.log('--------------------------')
+    console.log('result from grouper update: ', result)
 
     res.status(200).json({ message: 'Update valueset versions completed' })
   } catch (e) {
