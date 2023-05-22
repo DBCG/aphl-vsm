@@ -241,7 +241,8 @@ valueSetUpdateQueue.process(async function (job, done) {
   }
   const lastJob = batchedJobs.pop()
   
-  const MAX_ITERATIONS = 30 // Stop checking after 30 iterations, 
+  // TODO: need to implement below  
+  // const MAX_ITERATIONS = 30 // Stop checking after 30 iterations, 
   // this handles the edge case where the valueset number may have 
   // changed to less than the original count of urls it started with
   
@@ -256,7 +257,7 @@ valueSetUpdateQueue.process(async function (job, done) {
         console.log('Update finished')
         didFinishUpdate = true
         job.progress(100)
-        return
+        break;
       } else {
         console.log('Waiting for update to finish, leaf values count did not match')
         await sleep(5000)
