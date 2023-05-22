@@ -111,7 +111,7 @@ export const fetchLeafValueSets = async ({
     // url:contains is not currently working on CQF for a partial string search
     // so will filter this here instead
   if (isValidString(oidToFind)) {
-    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind))
+    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind as string))
   }
 
   if (whitelistFields) {
