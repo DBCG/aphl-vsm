@@ -146,8 +146,8 @@ export const fetchLeafValueSets = async ({
           if (e.entry.length > 1) {
             // Find latest valueset version to return
             const latestEntry = e.entry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
-              const curDate = moment(cur.resource?.version || 0)
-              const accDate = moment(acc.resource?.version || 0)
+              const curDate = moment((cur.resource as fhir4.ValueSet)?.version || 0)
+              const accDate = moment((acc.resource as fhir4.ValueSet)?.version || 0)
               return curDate > accDate ? cur : acc
             }, e.entry[0])
             return [latestEntry.resource]

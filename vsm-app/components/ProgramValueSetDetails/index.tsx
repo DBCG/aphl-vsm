@@ -375,6 +375,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                   handleVersionChange({
                     selectedVsId: row?.valueSet?.id as string,
                     selectedVersion: e?.value as string,
+                    // @ts-ignore
                     useContext: row?.valueSet?.useContext,
                     vsCanonical: row?.valueSet?.url as string,
                     grouperIds,

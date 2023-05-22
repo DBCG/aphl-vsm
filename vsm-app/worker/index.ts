@@ -257,13 +257,13 @@ valueSetUpdateQueue.process(async function (job, done) {
     let didFinishUpdate = false
     while(!didFinishUpdate) {
       const { payload } = await getProgramDetailsValuesets({id: programId })
-      const currentVsIds = payload?.data?.map((i) => i?.valueSet?.id)
+      // @ts-ignore
+      const currentVsIds: string[] = payload?.data?.map((i) => i?.valueSet?.id) || []
       
       // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
       const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value));
       console.log("New VS ids", allBatchJobIds)
       console.log("current VS ids", currentVsIds)
-      // @ts-ignore
       if (anyIntersection?.length) {
         console.log('Update finished')
         didFinishUpdate = true
