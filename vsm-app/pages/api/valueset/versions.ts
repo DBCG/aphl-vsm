@@ -1,17 +1,154 @@
-import { transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
+import cloneDeep from 'lodash.clonedeep'
+import { terminologyServerEndpoints } from '@/fhirClientOptions'
 
+// --------------------------------------------
+// ------------ HELPER FUNCTIONS --------------
+// --------------------------------------------
+
+const matchExistsInCQF = async ({ vsCanonical, versionToFind }) => {
+  try {
+    const cqfSearchParams = {
+      url: vsCanonical,
+      _sort: 'version'
+    }
+  
+    if(versionToFind !== 'latest') {
+      cqfSearchParams.version = versionToFind
+    }
+  
+    const matchInCqf = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: cqfSearchParams
+    })
+
+    if (matchInCqf?.entry?.length) {
+      return true
+    }
+  } catch(e) {
+    logger.error(`ERROR in getVsFromCQF: ${e}`)
+  }
+  return false
+}
+interface TermInfo {
+  value: string
+  hasExtension: boolean
+}
+
+interface AddDetails {
+  vs: fhir4.ValueSet
+  useContext: fhir4.UsageContext[]
+  terminologyInfo: TermInfo
+}
+const addDetailsToLeaf = ({vs, useContext, terminologyInfo}: AddDetails): fhir4.ValueSet => {
+  console.log('terminologyInfo: ', terminologyInfo)
+  const clonedVs = cloneDeep(vs)
+
+  const conditionsToAdd = useContext?.filter(ctxItem => ctxItem?.code?.code === 'focus' && ctxItem?.code?.system?.toLowerCase()?.endsWith('usage-context-type'))
+
+  if (conditionsToAdd) {
+    const existingUseContext = clonedVs.useContext || []
+    clonedVs.useContext = [...existingUseContext, ...conditionsToAdd]
+  }
+
+  const authSrcUrl = terminologyServerEndpoints?.find(
+    (grp) => grp.value.title.toLowerCase() === terminologyInfo?.value?.toLowerCase()
+  )?.value?.url as string
+
+  const vsWithAuthSrc = addExtensionToVs(clonedVs, authoritativeSourceExtensionUrl, authSrcUrl)
+  return vsWithAuthSrc
+}
+
+interface GetLeaf {
+  terminologyInfo: TermInfo
+  vsCanonical: string
+  versionToFind: string
+  useContext: fhir4.UsageContext[]
+}
+
+const getLeafFromTermServer = async ({ terminologyInfo, vsCanonical, versionToFind, useContext }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
+  try {
+    // @ts-ignore
+    terminologyClient.setClient(terminologyInfo.value.toLowerCase())
+    const terminologyClientInstance = terminologyClient.getClient()!
+  
+    const searchParams = {
+      url: vsCanonical,
+      _sort: 'version',
+      // if a specific version is set and is NOT equal to the current version
+      // set that version in the searchParameters
+      ...(versionToFind !== 'latest' && { version: versionToFind })
+    }
+  
+    const latestOrVersionedVsets = await terminologyClientInstance.search({
+      resourceType: 'ValueSet',
+      searchParams
+    }).then((res) => {
+      if (is.bundle(res)) {
+        res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+          // this is an unfortunate thing to have to do
+          const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+          return {
+            ...i,
+            resource
+          }
+        })
+      }
+      return res
+    })
+  
+    if(latestOrVersionedVsets?.entry?.length > 1) {
+      logger.info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
+    }
+  
+    const matchingVs = latestOrVersionedVsets?.entry?.[0]?.resource
+  
+    if(!matchingVs) return
+  
+    // the search above will return a subsetted resource from VSAC, which is not what we want
+    // have to perform a read operation to get the whole thing
+    const fullMatch = await terminologyClientInstance.read({
+      resourceType: 'ValueSet',
+      id: matchingVs.id
+    })
+
+    if(!is.valueSet(fullMatch)) {
+      logger.error(`Could not find ValueSet with id ${matchingVs.id} in terminology server ${terminologyInfo.value}`)
+    }
+
+    const vsWithNormalizedUrl = transformFromVSACToCqf(fullMatch as fhir4.ValueSet)
+    if(!vsWithNormalizedUrl) {
+      logger.error('Error normalizing leaf valueset')
+      return
+    }
+    const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo })
+    if(!vsWithMetadata) {
+      logger.error('Error adding conditions and auth source to leaf valueset')
+    }
+
+    return vsWithMetadata
+    
+  } catch (e) {
+    logger.error(`ERROR: ${e}`)
+    return
+  }
+}
+
+// --------------------------------------------
+// ----------------- ROUTES -------------------
+// --------------------------------------------
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
 const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = await req.body
   const bodyJson = JSON.parse(body)
-  const { vsCanonical, vsVersion, grouperIds, terminologyInfo, selectedVsId } = bodyJson
+  const { vsCanonical, vsVersion, grouperIds, terminologyInfo, useContext } = bodyJson
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -22,144 +159,54 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
   // 4. merge use-context and extension info (authoritative src) with versioned vset
 
   try {
-
-    const cqfSearchParams = {
-      url: vsCanonical
-    }
-
-    if(vsVersion !== 'latest') {
-      cqfSearchParams.version = vsVersion
-    }
-
-    const matchInCqf = fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams: cqfSearchParams
-    })
-
-    if(matchInCqf?.entry?.length) {
-      // TODO: if there's a match in cqf, skip all the valueset getting stuff
-      // should refactor this route so getting the valueset and setting the grouper refs
-      // are their own functions 
-    }
-    // first, get the valueset that you are updating precisely by id
-    // doing this to get extensions + usecontext to add to valueset later
-    const selectedVs = await fhirCdrClient.read({
-      resourceType: 'ValueSet',
-      id: selectedVsId
-    })
-
-    console.log('selected VS: ', selectedVs)
-
-    const latestValueSetBundle = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams: {
-        url: vsCanonical,
-        _sort: 'version',
-        _count: 1
+    const versionedLeafExistsInCQF = await matchExistsInCQF({ vsCanonical, versionToFind: vsVersion})
+    if(!versionedLeafExistsInCQF) {
+      const matchFromTermServer = await getLeafFromTermServer({terminologyInfo, vsCanonical, versionToFind: vsVersion, useContext})
+      if(!matchFromTermServer) {
+        return res.status(404).json({ message: `Could not find ValueSet with url ${vsCanonical} of version ${vsVersion} in ${terminologyInfo.value}`}) 
       }
-    })
 
-    if (!latestValueSetBundle?.entry) {
-      // there was no result, return
-      logger.error('no entry')
-      return res.status(404).json({ message: `Could not find ValueSet with url ${vsCanonical}` })
-    } else {
-      terminologyClient.setClient(terminologyInfo.value.toLowerCase())
-
-      const searchParams = {
-        url: vsCanonical,
-        // if a specific version is set and is NOT equal to the current version
-        // set that version in the searchParameters
-        ...(vsVersion !== 'latest' && { version: vsVersion })
-      }
-      // TODO: else
-      // just get the latest one, sort + count = 1
-      // if version matches on both, don't do the search etc
-
-      const terminologyClientInstance = terminologyClient.getClient()!
-
-      const latestOrVersionedVset = await terminologyClientInstance.search({
+      // save match to CQF to be used
+      const result = await fhirCdrClient.create({
         resourceType: 'ValueSet',
-        searchParams
-      }).then((res) => {
-        if (is.bundle(res)) {
-          res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
-            const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
-            return {
-              ...i,
-              resource
-            }
-          })
-        }
-        return res
+        body: matchFromTermServer
       })
 
-      const bundleEntry = latestOrVersionedVset?.entry
-
-      if (!bundleEntry) {
-        // return, resource doesn't exist
-      } else if (bundleEntry.length > 1) {
-        // this is necessary because VSAC isn't respecting version searchParam
-        let matchingItem = bundleEntry?.filter((e: fhir4.BundleEntry) => {
-          const vs = e?.resource as fhir4.ValueSet
-          return vs.version === vsVersion
-        })?.[0]?.resource
-
-        const isSubsetted = Boolean(matchingItem?.meta?.tag?.find((t) => t?.code?.toUpperCase() === 'SUBSETTED'))
-        if (isSubsetted) {
-          console.log('subsetted')
-          // need to get the whole valueset, not just subset
-          const wholeVs = await terminologyClientInstance.read({
-            resourceType: 'ValueSet',
-            id: matchingItem.id
-          }).then((vs) => {
-            if (is.valueSet(vs)) {
-              const resource = transformFromVSACToCqf(vs, vs.url as string)
-              return resource
-            }
-            console.error('not a valueset')
-          })
-
-          if(is.valueSet(wholeVs)) {
-            // add conditions, authoritative source
-            // for now just copy over useContext and extensions to test
-            wholeVs.useContext = selectedVs.useContext
-            wholeVs.extension = selectedVs.extension
-
-            const newV = await fhirCdrClient.create({
-              resourceType: 'ValueSet',
-              body: wholeVs
-            })
-          }
-        }
+      if(!is.valueSet(result)) {
+        return res.status(400).json({ message: `Error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`})  
       }
     }
   } catch (e) {
-    logger.error('error: ', e)
+    logger.error(`ERROR: ${e}`)
+    return res.status(400).json({ message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`}) 
   }
-  // return
-  const groupersToUpdate = await Promise.all(
-    grouperIds.map((id: string) =>
-      fhirCdrClient.read({
-        resourceType: 'ValueSet',
-        id
-      })
+
+  try {
+    const groupersToUpdate = await Promise.all(
+      grouperIds.map((id: string) => (
+        fhirCdrClient.read({
+          resourceType: 'ValueSet',
+          id
+        })
+        )
+      ))
+
+    const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+  
+    await Promise.all(
+      updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
+        fhirCdrClient.update({
+          resourceType: 'ValueSet',
+          id: grouperVs.id,
+          body: grouperVs
+        })
+      )
     )
-  )
-
-  const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
-
-  await Promise.all(
-    updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
-      fhirCdrClient.update({
-        resourceType: 'ValueSet',
-        id: grouperVs.id,
-        body: grouperVs
-      })
-    )
-  )
-
-  res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
+  
+    return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
+  } catch (e) {
+    return res.status(400).json({ message: `Failed to update groupers for ValueSet ${vsCanonical}` }) 
+  }
 }
 
 export default handler({

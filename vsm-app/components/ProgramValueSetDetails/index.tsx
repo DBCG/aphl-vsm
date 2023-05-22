@@ -55,6 +55,7 @@ interface ProgramValueSetDetailsProps {
 }
 
 interface HandleVersionChange {
+  useContext: fhir4.UsageContext
   selectedVsId: string
   selectedVersion: string
   vsCanonical: string
@@ -256,9 +257,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     vsCanonical,
     grouperIds,
     terminologyInfo,
-    selectedVsId
+    selectedVsId,
+    useContext
+
   }: HandleVersionChange) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId }
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
 
     // update the grouper canonical version
     setVersionToUpdate(data)
@@ -275,7 +278,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       vsVersion: versionToUpdate.version,
       grouperIds: versionToUpdate.grouperIds,
       terminologyInfo: versionToUpdate.terminologyInfo,
-      selectedVsId: versionToUpdate.selectedVsId
+      selectedVsId: versionToUpdate.selectedVsId,
+      useContext: versionToUpdate.useContext,
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -358,6 +362,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
+          
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
@@ -367,6 +372,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                   handleVersionChange({
                     selectedVsId: row?.valueSet?.id as string,
                     selectedVersion: e?.value as string,
+                    useContext: row?.valueSet?.useContext,
                     vsCanonical: row?.valueSet?.url as string,
                     grouperIds,
                     terminologyInfo
