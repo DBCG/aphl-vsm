@@ -56,7 +56,7 @@ const BreadCrumbs = () => {
   const items = breadCrumbs.map((c, index) => {
     if (c !== '') {
       return (
-        <NavItem alpha={index / 0.1} key={c}>
+        <NavItem alpha={index / 0.1} id={`breadcrumb-${c}`} key={c}>
           <Link href={composePath(router.asPath, c)}>{`${c.replace('?id=', ' ')}`}</Link>
         </NavItem>
       )

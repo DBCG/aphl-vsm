@@ -261,7 +261,16 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 }
 
 // VSAC appends versions to valueset ids and urls with hyphen
-const stringWithoutVersion = (str: string) => str?.split('-')[0]
+const stringWithoutVersion = (url: string) => {
+  if (url?.includes('|')) {
+    return url?.split('|')[0] 
+  } else {
+    const splitPaths = url?.split('/') || []
+    // get last part of url
+    const vsIdWithVersion = splitPaths?.pop() as string
+    return vsIdWithVersion?.split('-')[0]
+  }
+}
 
 const getOid = (vs: fhir4.ValueSet) => {
   let oid = vs?.identifier?.[0]?.value
@@ -271,6 +280,34 @@ const getOid = (vs: fhir4.ValueSet) => {
     oid = url?.includes('|') ? url.split('|')[0] : stringWithoutVersion(url)
   }
   return oid
+}
+
+/**
+ * Takes valueset from CQF server and transform 
+ * @param vs 
+ */
+const transformForVSAC = (vs: fhir4.ValueSet) => {
+  const clonedVs = cloneDeep(vs)
+  const vsId = clonedVs?.url?.split('|')[0]
+  clonedVs.url = `${vsId}-${clonedVs.version}`
+  return clonedVs
+}
+
+
+// fullUrlBundle comes with the bundle resource when search is applied
+const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
+  const clonedVs = cloneDeep(vs)
+  if (typeof fullUrlBundle === 'string') {
+    clonedVs.url = fullUrlBundle
+  }
+  const splitPaths = clonedVs?.url?.split('/') || []
+  // get last part of url
+  const vsIdWithVersion = splitPaths?.pop() as string
+  // extract without t
+  const vsId = stringWithoutVersion(vsIdWithVersion)
+  splitPaths.push(vsId)
+  clonedVs.url = splitPaths.join('/')
+  return clonedVs
 }
 
 export {
@@ -286,5 +323,7 @@ export {
   updateLeafVsVersion,
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
-  stringWithoutVersion
+  stringWithoutVersion,
+  transformForVSAC,
+  transformFromVSACToCqf
 }

@@ -267,6 +267,7 @@ export default function ValueSetContents({
 
   let definitionColumns, definitionData
   let expansionColumns, expansionData
+  // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
     definitionData = memberSet
     expansionData = expansion?.contains
@@ -515,7 +516,7 @@ export default function ValueSetContents({
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <DataTable columns={definitionColumns} data={definitionData as GrouperVSTableData[]} pagination paginationPerPage={10} />
+          <DataTable columns={definitionColumns} keyField={'valueSet'} data={definitionData as GrouperVSTableData[]} pagination paginationPerPage={10} />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <DataTable

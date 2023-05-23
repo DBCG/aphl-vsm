@@ -38,7 +38,7 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
   if (!('error' in jobStatus)) {
     setJobStatus(jobStatus.progress)
     if (jobStatus.progress < 100) {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
       await subscribe(setJobStatus, jobId)
     } else {
       toast.success('ValueSet Update finished.')
@@ -48,9 +48,19 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
     console.error(jobStatus.error)
   }
 }
+
 interface ProgramValueSetDetailsProps {
   programId: string
   router: NextRouter
+}
+
+interface HandleVersionChange {
+  useContext: fhir4.UsageContext
+  selectedVsId: string
+  selectedVersion: string
+  vsCanonical: string
+  grouperIds: string[]
+  terminologyInfo: TerminologyResult
 }
 
 const DEFAULT_FILTERS = {
@@ -126,13 +136,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   const handleUpdateValueSets = async () => {
-    const canonicalUrls: string[] =
-      progValueSetDets?.data?.map((data) => {
-        return data.canonical
-      }) || []
+    const canonicalUrls: string[] = []
+    // @ts-ignore
+    for (const grouper of progValueSetDets?.groupsInProgram) {
+      const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+      canonicalUrls.push(...urls)
+    }
+
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls })
+      body: JSON.stringify({ urls: canonicalUrls, programId })
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
@@ -242,13 +255,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   // versionInput
-  const handleVersionChange = (
-    selectedVersion: string = '',
-    vsCanonical: string,
-    grouperIds: string[],
-    terminologyInfo: TerminologyResult
-  ) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo }
+  const handleVersionChange = ({
+    selectedVersion,
+    vsCanonical,
+    grouperIds,
+    terminologyInfo,
+    selectedVsId,
+    useContext
+
+  }: HandleVersionChange) => {
+    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
 
     // update the grouper canonical version
     setVersionToUpdate(data)
@@ -264,7 +280,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       vsCanonical: versionToUpdate.vsCanonical,
       vsVersion: versionToUpdate.version,
       grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo
+      terminologyInfo: versionToUpdate.terminologyInfo,
+      selectedVsId: versionToUpdate.selectedVsId,
+      useContext: versionToUpdate.useContext,
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -346,15 +364,24 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const terminologyInfo = getTerminologySource(row.valueSet)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
-
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
+          
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
+                menuPlacement="top"
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange(e?.value, row?.valueSet?.url as string, grouperIds, terminologyInfo)
+                  handleVersionChange({
+                    selectedVsId: row?.valueSet?.id as string,
+                    selectedVersion: e?.value as string,
+                    // @ts-ignore
+                    useContext: row?.valueSet?.useContext,
+                    vsCanonical: row?.valueSet?.url as string,
+                    grouperIds,
+                    terminologyInfo
+                  })
                 }}
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
@@ -407,6 +434,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Conditions
             <Select
+              menuPlacement="top"
               placeholder="Filter conditions"
               classNamePrefix="conditions"
               inputId="conditions-selector"
@@ -448,6 +476,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
+                menuPlacement="top"
                 instanceId="condition-selector"
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
@@ -473,6 +502,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Groups
             <Select
+              menuPlacement="top"
               placeholder="Filter groups"
               classNamePrefix="groups"
               inputId="groups-selector"
@@ -505,6 +535,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
+                menuPlacement="top"
                 isClearable={false}
                 classNamePrefix="groups"
                 inputId="groups-selector"
@@ -586,6 +617,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {!isReadOnly && (
             <Button
+              id="add-valueset"
               text="Add Valuesets"
               style={{ minHeight: '40px', minWidth: '150px' }}
               onClick={() => router.push(`${router.asPath}/search`)}

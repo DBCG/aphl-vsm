@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
-import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl, stringWithoutVersion, transformForVSAC, transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -33,7 +33,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: item.url?.split('-')?.[0] || '',
+          url: item.url?.split('|')?.[0] || '',
           version: item.version || ''
         }
       })
@@ -48,7 +48,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
   for (const selectedVS of bodyJson.selectedValueSets) {
     const matchingValueSetInCQF = filteredVSets?.find(
-      (vs) => vs?.url === selectedVS?.url?.split('-')?.[0] && vs?.version === selectedVS?.version
+      (vs) => vs?.url === selectedVS?.url?.split('|')?.[0] && vs?.version === selectedVS?.version
     )
     // valueset already exists in our server, don't need to call other terminology server
     if (matchingValueSetInCQF) {
@@ -59,7 +59,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
         terminologyClient.setClient(bodyJson.selectedTerminologyServer)
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
-          let url = selectedVS?.url?.split('-')[0]
+          let url = stringWithoutVersion(selectedVS?.url as string)
           if (is.string(url)) {
             // get all matching valuesets
             // vsac doesn't support _sort so doing this broader search + sorting below
@@ -68,17 +68,32 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
               searchParams: {
                 url
               }
+            }).then((res) => {
+              if (is.bundle(res)) {
+                res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
+                  const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
+                  return {
+                    ...i,
+                    resource
+                  }
+                })
+              }
+              return res
             })
 
-            if (allAvailableMatches.entry) {
+            if (allAvailableMatches?.entry) {
               // sorting here because we cannot use _sort on VSAC server -- not supported
               const orderedMatchingVSets = allAvailableMatches.entry
                 .map((e: fhir4.BundleEntry) => e.resource)
                 .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version?.localeCompare(a.version || '') || '')
-              let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
+              let matchingVSetFromRemoteServer: fhir4.ValueSet = await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
                 id: orderedMatchingVSets[0].id
-              })) as fhir4.ValueSet
+              }).then((res) => {
+                if (is.valueSet(res)) {
+                  return transformFromVSACToCqf(res)
+                }
+              }) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
                 const authSrcUrl = terminologyServerEndpoints?.find(
@@ -144,8 +159,12 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     )
 
     const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
-    logger.error('failed updates: ', failedUpdates)
-    res.status(400).json({ error: 'failed to update valueSet' })
+    if (failedUpdates && failedUpdates?.length > 0) {
+      logger.error('failed updates: \n' + JSON.stringify(failedUpdates, null, 2))
+      // @ts-ignore
+      const failureReasons = failedUpdates.map((i) => i?.reason?.response?.data?.issue?.[0].diagnostics).join('\n')
+      return res.status(400).json({ error: 'failed to update valueSet:\n' + failureReasons })
+    }
   } catch (e) {
     logger.error('error 3', e)
   }

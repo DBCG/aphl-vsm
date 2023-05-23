@@ -1,6 +1,7 @@
 import { fhirCdrClient } from 'fhirClients'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
+import moment from 'moment'
 
 interface FetchGrouperLib {
   client: FhirKitClient
@@ -80,6 +81,10 @@ interface FetchLeafs {
   oidToFind?: string,
 }
 
+const isValidString = (search: any): boolean => {
+  return is.string(search) && search.trim() !== ''
+}
+
 export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
   nameToFind,
@@ -92,32 +97,33 @@ export const fetchLeafValueSets = async ({
 
   let result = []
 
-  if (is.string(nameToFind)) {
+  if (isValidString(nameToFind)) {
     searchParams['name:contains'] = nameToFind
   }
 
-  if (is.string(stewardToFind)) {
+  if (isValidString(stewardToFind)) {
     searchParams['publisher:contains'] = stewardToFind
   }
 
-  if (is.string(versionToFind)) {
+  if (isValidString(versionToFind)) {
     searchParams['version:contains'] = versionToFind
   }
 
-  if (is.string(oidToFind)) {
-    searchParams['_url:contains'] = oidToFind
+    // url:contains is not currently working on CQF for a partial string search
+    // so will filter this here instead
+  if (isValidString(oidToFind)) {
+    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind as string))
   }
 
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
-
   result = await Promise.all(
     leafValueSetCanonicals.map((canonical) => {
       const [urlNoVersion, version] = canonical.split('|')
       const searchParameters = {
-        url: canonical,
+        url: urlNoVersion,
         // status: 'active',
         ...searchParams
       }
@@ -137,15 +143,17 @@ export const fetchLeafValueSets = async ({
     valueSets = result
       ?.map((e) => {
         if (e.entry) {
-
-          return (e.entry?.map((entry: fhir4.BundleEntry) => {
-
-            const resource = entry?.resource as fhir4.ValueSet
-            if (resource) {
-              // instead of returning whole valuesets, just return a portion of the data
-              return resource
-            }
-          }))
+          if (e.entry.length > 1) {
+            // Find latest valueset version to return
+            const latestEntry = e.entry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
+              const curDate = moment((cur.resource as fhir4.ValueSet)?.version || 0)
+              const accDate = moment((acc.resource as fhir4.ValueSet)?.version || 0)
+              return curDate > accDate ? cur : acc
+            }, e.entry[0])
+            return [latestEntry.resource]
+          }
+          
+          return e.entry?.[0]?.resource
         }
       })
       ?.flat()

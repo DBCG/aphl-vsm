@@ -104,6 +104,46 @@ describe('Smoke Tests', () => {
       cy.get('#cell-1-test-grouper').should('not.exist')
     })
 
+    it("Adds a new valueset to the program", () => {
+      cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
+      cy.get('#view-valuesets').click()
+      cy.get('#add-valueset').click()
+
+      cy.get('#vs-search').type('brain')
+      cy.get('#submit-search-valueset-button').click()
+      cy.get('.rdt_TableBody input').first().click()
+
+      cy.get('.rdt_TableBody [data-column-id="6"]').first().then((message) => {
+        let oid = message.text()
+        cy.wrap(oid).as('oid')
+      })
+
+      cy.get('.rdt_TableBody [data-column-id="3"]').first().then((msg) => {
+        let version = msg.text()
+        cy.wrap(version).as('version')
+      })
+
+      let vsId = ''
+      cy.get('@oid').then((oid) => {
+        vsId = oid
+        return cy.get('@version')
+      }).then((version) => {
+        const vsIdWithVersion = vsId + '|' + version
+        cy.get('#react-select-search-page-groups-live-region').parent().click()
+        cy.get('#react-select-search-page-groups-option-0').click()
+        cy.get('#add-valueset-to-program').click()
+        cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsIdWithVersion).should('exist')
+
+        // navigate back to program view
+        cy.get('#breadcrumb-programs').click()
+        cy.get('[data-column-id="1"]').contains('draft').parents('div').first().click(50, 0,{ force: true })
+
+        // Check grouper to see if version exists
+        cy.get('#grouper-overview-table .rdt_TableBody [data-column-id="1"]').first().click(50, 10,{ force: true })
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsIdWithVersion}"]`).should('exist')
+      })
+    })
+
     it('Logs out of application', () => {
       cy.get('#logout').click()
       cy.get('#provider-logo-dark').should('be.visible')
