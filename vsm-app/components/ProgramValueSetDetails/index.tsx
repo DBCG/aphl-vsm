@@ -369,6 +369,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
+                menuPlacement="top"
                 instanceId="version-selector"
                 onChange={(e) => {
                   const grouperIds = row?.groups?.map((g) => g.id)
@@ -433,6 +434,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Conditions
             <Select
+              menuPlacement="top"
               placeholder="Filter conditions"
               classNamePrefix="conditions"
               inputId="conditions-selector"
@@ -474,6 +476,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
+                menuPlacement="top"
                 instanceId="condition-selector"
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
@@ -499,6 +502,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Groups
             <Select
+              menuPlacement="top"
               placeholder="Filter groups"
               classNamePrefix="groups"
               inputId="groups-selector"
@@ -531,6 +535,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
+                menuPlacement="top"
                 isClearable={false}
                 classNamePrefix="groups"
                 inputId="groups-selector"
