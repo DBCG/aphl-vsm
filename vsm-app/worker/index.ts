@@ -227,7 +227,9 @@ valueSetUpdateQueue.process(async function (job, done) {
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
     const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
-    batchedJobs.push(batch)
+    if (batch) {
+      batchedJobs.push(batch)
+    }
     iteration += 1
     let progress = (iteration / maxIterations) * 100
     if (progress >= 100) {
@@ -251,7 +253,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   if (batchedJobs?.length > 0 ) {
     const allBatchJobIds: string[] = []
     for (const job of batchedJobs) {
-      job.entry.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
+      job?.entry?.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
     }
 
     let didFinishUpdate = false
@@ -267,7 +269,6 @@ valueSetUpdateQueue.process(async function (job, done) {
       if (anyIntersection?.length) {
         console.log('Update finished')
         didFinishUpdate = true
-        job.progress(100)
         break;
       } else {
         console.log('Waiting for update to finish, leaf values intersection ids did not match')
@@ -275,7 +276,7 @@ valueSetUpdateQueue.process(async function (job, done) {
       }
     }
   }
-
+  job.progress(100)
   console.log('job finished')
   done()
 })
