@@ -30,7 +30,6 @@ export const Col = styled.div`
   display: flex;
   flex: 3;
   flex-direction: column;
-  max-width: 900px;
 `
 
 export const ButtonCol = styled(Col)`
