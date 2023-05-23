@@ -112,7 +112,7 @@ const getLeafFromTermServer = async ({ terminologyInfo, vsCanonical, versionToFi
       logger.info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
     }
   
-    const matchingVs = latestOrVersionedVsets?.entry?.[0]?.resource
+    const matchingVs = latestOrVersionedVsets?.entry?.find((e: fhir4.BundleEntry) => (e?.resource as fhir4.ValueSet)?.version === versionToFind)?.resource
   
     if(!matchingVs) return
   
