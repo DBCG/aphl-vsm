@@ -126,7 +126,6 @@ export default function ValueSetContents({
   const defaultGrouperAuthor =
     valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))?.valueContactDetail?.name || ''
 
-  const [grouperVersion, setGrouperVersion] = useState(defaultGrouperVersion)
   const [grouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
   const [grouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
   const [grouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
@@ -136,9 +135,6 @@ export default function ValueSetContents({
   useEffect(() => {
     const metadataItemsChanged: MetadataResult = {}
 
-    if (defaultGrouperVersion?.trim() !== grouperVersion?.trim()) {
-      metadataItemsChanged.version = grouperVersion?.trim()
-    }
     if (defaultGrouperDescription?.trim() !== grouperDescription?.trim()) {
       metadataItemsChanged.description = grouperDescription?.trim()
     }
@@ -154,7 +150,6 @@ export default function ValueSetContents({
 
     setChangedMetadataItems(metadataItemsChanged)
   }, [
-    grouperVersion,
     grouperDescription,
     grouperPurpose,
     grouperPublisher,
@@ -173,7 +168,6 @@ export default function ValueSetContents({
   }
 
   const resetValues = () => {
-    setGrouperVersion(defaultGrouperVersion)
     setGrouperDescription(defaultGrouperDescription)
     setGrouperPurpose(defaultGrouperPurpose)
     setGrouperPublisher(defaultGrouperPublisher)
@@ -182,7 +176,6 @@ export default function ValueSetContents({
 
   const submitGrouperUpdates = async () => {
     const metadataItems: StringMap = {
-      version: grouperVersion?.trim(),
       description: grouperDescription?.trim(),
       purpose: grouperPurpose?.trim(),
       publisher: grouperPublisher?.trim(),
@@ -424,11 +417,10 @@ export default function ValueSetContents({
               <SearchInput
                 id="vs-version"
                 label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
-                readonly={!isEditing}
-                value={grouperVersion}
+                readonly={true}
+                value={defaultGrouperVersion}
                 def={defaultGrouperVersion}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} version set`}
-                onChange={(e) => setGrouperVersion(e.target.value)}
               />
             </InputRow>
             <InputRow style={{ width: '100%' }}>
