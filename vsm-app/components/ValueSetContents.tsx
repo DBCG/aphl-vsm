@@ -369,7 +369,7 @@ export default function ValueSetContents({
                 placeholder={'No program version set'}
               />
             </InputRow>
-            <InputRow style={{ width: '100%', paddingTop: '12px', paddingBottom: '12px' }}>
+            <InputRow style={{ width: '100%' }}>
               <SearchInput
                 id="prog-url"
                 label="Program URL"
