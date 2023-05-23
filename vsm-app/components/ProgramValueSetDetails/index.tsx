@@ -434,7 +434,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Conditions
             <Select
-              menuPlacement="top"
+              menuPlacement="bottom"
               placeholder="Filter conditions"
               classNamePrefix="conditions"
               inputId="conditions-selector"
@@ -502,7 +502,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <SelectInputContainer>
             Groups
             <Select
-              menuPlacement="top"
+              menuPlacement="bottom"
               placeholder="Filter groups"
               classNamePrefix="groups"
               inputId="groups-selector"
