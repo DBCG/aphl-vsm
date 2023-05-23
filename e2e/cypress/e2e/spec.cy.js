@@ -118,21 +118,14 @@ describe('Smoke Tests', () => {
         cy.wrap(oid).as('oid')
       })
 
-      cy.get('.rdt_TableBody [data-column-id="3"]').first().then((msg) => {
-        let version = msg.text()
-        cy.wrap(version).as('version')
-      })
 
       let vsId = ''
       cy.get('@oid').then((oid) => {
         vsId = oid
-        return cy.get('@version')
-      }).then((version) => {
-        const vsIdWithVersion = vsId + '|' + version
         cy.get('#react-select-search-page-groups-live-region').parent().click()
         cy.get('#react-select-search-page-groups-option-0').click()
         cy.get('#add-valueset-to-program').click()
-        cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsIdWithVersion).should('exist')
+        cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsId).should('exist')
 
         // navigate back to program view
         cy.get('#breadcrumb-programs').click()
@@ -140,7 +133,7 @@ describe('Smoke Tests', () => {
 
         // Check grouper to see if version exists
         cy.get('#grouper-overview-table .rdt_TableBody [data-column-id="1"]').first().click(50, 10,{ force: true })
-        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsIdWithVersion}"]`).should('exist')
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should('exist')
       })
     })
 
