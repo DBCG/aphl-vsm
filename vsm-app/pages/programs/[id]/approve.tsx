@@ -6,6 +6,7 @@ import { PageTitle } from '@/components/Typography'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
+import { TextArea } from '@/components/TextArea'
 import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
@@ -253,10 +254,11 @@ const ApproveInfoForm: NextPage = () => {
             options={artifactAssessmentInfoTypeOptions}
             instanceId={'commentType'}
           />
-          <SearchInput
+          <TextArea
             id="text"
             label="Text"
             value={approvalFormData.artifactCommentText}
+            // @ts-ignore
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
           <SearchInput id="target" label="Target" def={approvalFormData.artifactCommentTarget} readonly={true} />

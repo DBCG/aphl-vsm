@@ -21,7 +21,7 @@ interface Error {
 }
 
 
-const ApprovalDetailList = ({ assessments }: {  assessments?:ToString<Partial<approvalFormParams>>[] }) => {
+const ApprovalDetailList = ({ assessments, loading=false }: {  assessments?:ToString<Partial<approvalFormParams>>[], loading?:boolean }) => {
 
 
   const columns = useMemo(() => {
@@ -72,6 +72,7 @@ const ApprovalDetailList = ({ assessments }: {  assessments?:ToString<Partial<ap
   return (
     <>
       <DataTable
+        progressPending={loading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
         data={assessments?.map(dataObj => {

@@ -56,7 +56,7 @@ export const FlexRow = styled.div`
 export const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 12px 24px;
+  padding: 24px;
   background-color: white;
   gap: 16px 12px;
 `

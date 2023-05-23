@@ -328,54 +328,58 @@ export default function ValueSetContents({
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px' }}>
         <Form>
           <PageTitle>{currentValueSet.title}</PageTitle>
-          <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput
-              id="prog-id"
-              label="Program ID"
-              readonly={true}
-              def={programAndGrouperInfo?.program?.id || 'No ID found'}
-              placeholder={'No valueset id set'}
-            />
-            {isDraftProgram && (
-              <Typography
-                style={{
-                  background: '#FAA024',
-                  color: 'white',
-                  padding: '10px',
-                  borderRadius: '20px',
-                  height: 'max-content'
-                }}
-              >
-                Draft
-              </Typography>
-            )}
-          </InputRow>
-          <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-            <SearchInput
-              id="prog-name"
-              label="Program Name"
-              readonly={true}
-              def={programAndGrouperInfo?.program?.name || 'No name found'}
-              placeholder={'No valueset id set'}
-            />
-          </InputRow>
-          <InputRow style={{ width: '100%', backgroundColor: 'white', paddingTop: '12px', paddingBottom: '12px' }}>
-            <SearchInput
-              id="prog-url"
-              label="Program URL"
-              minWidth={650}
-              readonly={true}
-              def={programUrl}
-              placeholder={'No program canonical set'}
-            />
-            <SearchInput
-              id="prog-version"
-              label="Program Version"
-              readonly={true}
-              def={programVersion}
-              placeholder={'No program version set'}
-            />
-          </InputRow>
+          <InputContainer style={{ width: '100%'}}>
+            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+              <SearchInput
+                id="prog-id"
+                label="Program ID"
+                readonly={true}
+                def={programAndGrouperInfo?.program?.id || 'No ID found'}
+                placeholder={'No valueset id set'}
+              />
+              {isDraftProgram && (
+                <Typography
+                  style={{
+                    background: '#FAA024',
+                    color: 'white',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    height: 'max-content'
+                  }}
+                >
+                  Draft
+                </Typography>
+              )}
+            </InputRow>
+            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+              <SearchInput
+                id="prog-name"
+                label="Program Name"
+                readonly={true}
+                def={programAndGrouperInfo?.program?.name || 'No name found'}
+                placeholder={'No valueset id set'}
+              />
+            </InputRow>
+            <InputRow>
+              <SearchInput
+                id="prog-version"
+                label="Program Version"
+                readonly={true}
+                def={programVersion}
+                placeholder={'No program version set'}
+              />
+            </InputRow>
+            <InputRow style={{ width: '100%' }}>
+              <SearchInput
+                id="prog-url"
+                label="Program URL"
+                minWidth={650}
+                readonly={true}
+                def={programUrl}
+                placeholder={'No program canonical set'}
+              />
+            </InputRow>
+          </InputContainer>
           <InputContainer>
             <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
               <SearchInput
