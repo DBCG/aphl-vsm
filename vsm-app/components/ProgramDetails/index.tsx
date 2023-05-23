@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
-import { ToString, useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { is } from '@/helpers/is'
@@ -15,7 +15,6 @@ import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContain
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
-import { approvalFormParams } from '@/pages/programs/[id]/approve'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 
 const ProgramDetails = () => {
@@ -112,8 +111,7 @@ const ProgramDetails = () => {
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
-          <StyledSpan>Last Approval</StyledSpan>
-          {program.approvalDate || '-'}
+          { program.approvalDate && <StyledSpan>Last Approval</StyledSpan> }
         </Col>
         {status === 'draft' && (
           <Col style={{ width: 'auto' }}>
