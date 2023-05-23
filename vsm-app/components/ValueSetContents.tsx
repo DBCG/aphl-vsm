@@ -456,12 +456,12 @@ export default function ValueSetContents({
             <InputRow style={{ width: '100%' }}>
               <SearchInput
                 id="vs-publisher"
-                label="Publisher"
+                label="Publisher/Steward"
                 minWidth={650}
                 readonly={!isEditing}
                 value={grouperPublisher}
                 def={defaultGrouperPublisher}
-                placeholder={'No valueset publisher set'}
+                placeholder={'Publisher/steward not set'}
                 onChange={(e) => setGrouperPublisher(e.target.value)}
               />
               <SearchInput
