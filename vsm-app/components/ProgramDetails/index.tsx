@@ -23,7 +23,7 @@ const ProgramDetails = () => {
   const programId = router.query.id as string
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
-  const { programAndGrouperData } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
   const fetchedProgram = useGetProgramById({ programId })
 
@@ -118,7 +118,7 @@ const ProgramDetails = () => {
           </Col>
         )}
       </Row>
-      <ApprovalDetailList assessments={programAndGrouperData?.artifactAssessments} />
+      <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
 }
