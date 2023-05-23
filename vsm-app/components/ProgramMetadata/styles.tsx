@@ -8,7 +8,6 @@ export const Form = styled.form`
   padding: 16px;
   padding-bottom: 24px;
   background-color: var(--theme-100);
-  max-width: 900px;
 `
 
 export const ButtonContainer = styled.div`
@@ -31,6 +30,7 @@ export const Col = styled.div`
   display: flex;
   flex: 3;
   flex-direction: column;
+  max-width: 900px;
 `
 
 export const ButtonCol = styled(Col)`
