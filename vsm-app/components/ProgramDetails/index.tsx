@@ -111,7 +111,6 @@ const ProgramDetails = () => {
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
-          { program.approvalDate && <StyledSpan>Last Approval</StyledSpan> }
         </Col>
         {status === 'draft' && (
           <Col style={{ width: 'auto' }}>
