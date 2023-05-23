@@ -415,7 +415,6 @@ const updateProgramLibraryWithGrouperRef = async (
 // -------------------------- ROUTE TO UPDATE EXISTING GROUPER ---------------------
 // ---------------------------------------------------------------------------------
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
-  const programId = req.query.id as string
 
   try {
     const body = JSON.parse(req.body)
