@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient, vsacFhirClient } from 'fhirClients'
+import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
-import { addExtensionToVs, authoritativeSourceExtensionUrl, stringWithoutVersion, transformForVSAC, transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl, stringWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -68,17 +68,6 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
               searchParams: {
                 url
               }
-            }).then((res) => {
-              if (is.bundle(res)) {
-                res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
-                  const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
-                  return {
-                    ...i,
-                    resource
-                  }
-                })
-              }
-              return res
             })
 
             if (allAvailableMatches?.entry) {
@@ -86,14 +75,10 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
               const orderedMatchingVSets = allAvailableMatches.entry
                 .map((e: fhir4.BundleEntry) => e.resource)
                 .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version?.localeCompare(a.version || '') || '')
-              let matchingVSetFromRemoteServer: fhir4.ValueSet = await terminologyClientInstance.read({
+              let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
                 id: orderedMatchingVSets[0].id
-              }).then((res) => {
-                if (is.valueSet(res)) {
-                  return transformFromVSACToCqf(res)
-                }
-              }) as fhir4.ValueSet
+              })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
                 const authSrcUrl = terminologyServerEndpoints?.find(

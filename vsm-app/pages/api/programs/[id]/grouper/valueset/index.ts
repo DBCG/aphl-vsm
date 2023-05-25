@@ -7,8 +7,7 @@ import {
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
-  stringWithoutVersion,
-  transformFromVSACToCqf
+  stringWithoutVersion
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -301,10 +300,6 @@ const submitUpdatesToCQF = async ({
         const valueSetToAdd = await terminologyClientInstance?.read({
           resourceType: 'ValueSet',
           id: idWithoutVersion
-        }).then((i) => {
-          if (is.valueSet(i)) {
-            return transformFromVSACToCqf(i)
-          }
         })
 
         // add optional conditions to valueset from term server (VSAC)
