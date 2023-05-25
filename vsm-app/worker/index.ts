@@ -6,7 +6,7 @@ import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet, UsageContext } from 'fhir/r4'
 import { is } from '@/helpers/is'
-import { getTerminologySource, stringWithoutVersion, transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, stringWithoutVersion } from '@/helpers/valueSetHelpers'
 import { sleep } from 'utils'
 import moment from 'moment'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
@@ -24,7 +24,7 @@ type CDRResponseCollection = {
 const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1'
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[], programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379`, {
   limiter: {
     max: 1,
     duration: 10000
@@ -84,8 +84,6 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
         .filter((i) => !!i) as ValueSet[]) || [] //filter out undefined
 
     if (vsComparatorResponsesWithVersions?.length === 0) return
-
-    
 
     const entry = buildValueSetEntry(vsComparatorResponsesWithVersions, latestVersionUseContext, url)
     if (entry != null) entries.push(entry)
@@ -175,21 +173,10 @@ const executeJobBatch = async (urls: string[]) => {
         termClient.setClient(serverType)
         const targetFhirClient = termClient.getClient()!
 
-        const vsComparatorResponses = await targetFhirClient?.search({
+        const vsComparatorResponses = (await targetFhirClient?.search({
           resourceType: 'ValueSet',
           searchParams: { url: stringWithoutVersion(url) }
-        }).then((res) => {
-          if (is.bundle(res)) {
-            res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
-              const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
-              return {
-                ...i,
-                resource
-              }
-            })
-          }
-          return res
-        }) as fhir4.Bundle
+        })) as fhir4.Bundle
 
         cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
       })
@@ -235,7 +222,7 @@ valueSetUpdateQueue.process(async function (job, done) {
     if (progress >= 100) {
       console.log('Progress: 99, begin checking for update to finish')
       job.progress(99) // prevent job from finishing
-      break;
+      break
     } else {
       console.log('Progress:', (iteration / maxIterations) * 100)
 
@@ -243,33 +230,33 @@ valueSetUpdateQueue.process(async function (job, done) {
       await sleep(5000)
     }
   }
-  
-  // TODO: need to implement below  
-  // const MAX_ITERATIONS = 30 // Stop checking after 30 iterations, 
-  // this handles the edge case where the valueset number may have 
+
+  // TODO: need to implement below
+  // const MAX_ITERATIONS = 30 // Stop checking after 30 iterations,
+  // this handles the edge case where the valueset number may have
   // changed to less than the original count of urls it started with
-  
+
   // If batch jobs were actually run, check and wait for job to finish
-  if (batchedJobs?.length > 0 ) {
+  if (batchedJobs?.length > 0) {
     const allBatchJobIds: string[] = []
     for (const job of batchedJobs) {
       job?.entry?.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
     }
 
     let didFinishUpdate = false
-    while(!didFinishUpdate) {
-      const { payload } = await getProgramDetailsValuesets({id: programId })
+    while (!didFinishUpdate) {
+      const { payload } = await getProgramDetailsValuesets({ id: programId })
       // @ts-ignore
       const currentVsIds: string[] = payload?.data?.map((i) => i?.valueSet?.id) || []
-      
+
       // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
-      const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value));
-      console.log("New VS ids", allBatchJobIds)
-      console.log("current VS ids", currentVsIds)
+      const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value))
+      console.log('New VS ids', allBatchJobIds)
+      console.log('current VS ids', currentVsIds)
       if (anyIntersection?.length) {
         console.log('Update finished')
         didFinishUpdate = true
-        break;
+        break
       } else {
         console.log('Waiting for update to finish, leaf values intersection ids did not match')
         await sleep(5000)

@@ -1,5 +1,5 @@
 import { is } from '@/helpers/is'
-import { getTerminologySource, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
@@ -59,19 +59,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
         url: response?.url?.split('|')?.[0] as string,
         ...searchParams
       }
-    }).then((res) => {
-      if (is.bundle(res)) {
-        res.entry = res?.entry?.map((i: fhir4.BundleEntry) => {
-          const resource = transformFromVSACToCqf(i.resource as fhir4.ValueSet, i.fullUrl as string)
-          return {
-            ...i,
-            resource
-          }
-        })
-      }
-      return res
     })
-
 
     // map through each valueSet and if version exists, keep it in an array
     // filter out any undefined values
