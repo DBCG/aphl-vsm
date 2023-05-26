@@ -14,7 +14,6 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
-import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 
 const ProgramDetails = () => {
@@ -24,7 +23,6 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
-  const { manifestData, manifestError, manifestLoading } = useGetProgramManifest({ programId })
   const fetchedProgram = useGetProgramById({ programId })
 
   useEffect(() => Modal.setAppElement('#__next'), [])
@@ -88,7 +86,11 @@ const ProgramDetails = () => {
           <StyledSpan>Program Manifest</StyledSpan>
           <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
         </Row>
-        <ManifestDetailTable programId={programId} data={manifestData} loading={manifestLoading} />
+        <ManifestDetailTable
+          programId={programId}
+          data={programAndGrouperData?.manifestData}
+          loading={programAndGrouperData?.manifestData == null}
+        />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>

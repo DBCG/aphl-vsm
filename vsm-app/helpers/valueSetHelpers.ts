@@ -158,7 +158,7 @@ const setExpansionParameters = (library: fhir4.Library, manifestDataMap: any) =>
   library.contained = filteredContain
 }
 
-const getExpansionParametersSystemVersion = (library: fhir4.Library) => {
+const getProgramManifestVersions = (library: fhir4.Library) => {
   const parameterMap: ManifestDataMap = {}
   const parameterResource = library?.contained?.find((resource) => resource.id === 'expansion-parameters-ecr') as fhir4.Parameters
   const systemVersion = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
@@ -218,7 +218,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
 }
 
 interface GrouperUpdateMetadata {
-  vsToUpdate: fhir4.ValueSet,
+  vsToUpdate: fhir4.ValueSet
   metadata: {
     version?: string
     publisher?: string
@@ -227,8 +227,6 @@ interface GrouperUpdateMetadata {
     desription?: string
   }
 }
-
-
 
 const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetadata) => {
   const newVs = cloneDeep(vsToUpdate)
@@ -246,7 +244,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
       }
     }
 
-    const existingIndex = newVs.extension.findIndex(ext => ext?.url?.endsWith('/StructureDefinition/valueset-author'))
+    const existingIndex = newVs.extension.findIndex((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))
     // if the extension does not exist already
     if (existingIndex === -1) {
       newVs.extension.push(authorExtension)
@@ -263,7 +261,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 // VSAC appends versions to valueset ids and urls with hyphen
 const stringWithoutVersion = (url: string) => {
   if (url?.includes('|')) {
-    return url?.split('|')[0] 
+    return url?.split('|')[0]
   } else {
     const splitPaths = url?.split('/') || []
     // get last part of url
@@ -283,8 +281,8 @@ const getOid = (vs: fhir4.ValueSet) => {
 }
 
 /**
- * Takes valueset from CQF server and transform 
- * @param vs 
+ * Takes valueset from CQF server and transform
+ * @param vs
  */
 const transformForVSAC = (vs: fhir4.ValueSet) => {
   const clonedVs = cloneDeep(vs)
@@ -292,7 +290,6 @@ const transformForVSAC = (vs: fhir4.ValueSet) => {
   clonedVs.url = `${vsId}-${clonedVs.version}`
   return clonedVs
 }
-
 
 // fullUrlBundle comes with the bundle resource when search is applied
 const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
@@ -315,7 +312,7 @@ export {
   addExtensionToVs,
   addValueSetToGrouper,
   authoritativeSourceExtensionUrl,
-  getExpansionParametersSystemVersion,
+  getProgramManifestVersions,
   getTerminologySource,
   removeValueSetFromGrouper,
   setExpansionParameters,

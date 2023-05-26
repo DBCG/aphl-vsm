@@ -10,8 +10,9 @@ import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { Row } from '@/styles'
-import { useGetProgramManifest } from '@/hooks/useGetProgramManifest'
 import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
+import { useGetProgramById } from '@/hooks/useGetProgramById'
+import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 
 const endWrapPx = 900
 
@@ -93,7 +94,7 @@ export const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
 const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
-  const { manifestData, manifestLoading, manifestError } = useGetProgramManifest({ programId })
+  const program = useGetProgramById({ programId })
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
@@ -105,6 +106,7 @@ const EditManifestDetails = () => {
     error
   } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
+  const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
 
@@ -114,14 +116,15 @@ const EditManifestDetails = () => {
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       setSystemNamesByUri(sysNamesByUri)
-    } else if (error || manifestError) {
-      toast.error(manifestError || 'Error retrieving Code System data from VSAC')
+    } else if (error) {
+      toast.error('Error retrieving Code System data from VSAC')
     }
     setPageLoading(isLoading)
-  }, [isLoading, systemAndVersionData, error, manifestError])
+  }, [isLoading, systemAndVersionData, error])
 
   useEffect(() => {
-    if (Object.keys(manifestData).length !== 0) {
+    console.log('set')
+    if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
     }
   }, [programId, manifestData])
@@ -264,7 +267,7 @@ const EditManifestDetails = () => {
             className="detail-table"
             customStyles={customStyles}
             data={currentSelectedData}
-            loading={manifestLoading}
+            loading={manifestData == null}
             deleteFn={deleteFn}
           />
         </MaxWidthContainer>
