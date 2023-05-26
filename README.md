@@ -64,6 +64,13 @@ You will need to use the ```non_admin_username``` and ```non_admin_password``` t
 ```bin/docker-cleanup```
 - Note that this command will also delete anything related to your local CQF (HAPI) server for this project (and anything you have for other projects)
 
+### Clear out CQF data only
+
+- If you want to clear out the CQF data only, run:
+```./bin/clear-data.sh```
+
+By default this will point to the local instance of the CQF server running at `http://localhost:8082/fhir`, but you can override this by passing in a different URL as the first argument.
+
 ### Alternative, running application with docker-compose
 
 `docker-compose up` Should bring up all the services required to run the application
