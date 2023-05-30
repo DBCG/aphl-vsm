@@ -37,7 +37,7 @@ interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   deletedItemDescription?: string
-  ariaLabel: string
+  ariaLabel?: string
 }
 
 const btnTitleText = {
