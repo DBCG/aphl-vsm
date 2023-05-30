@@ -82,7 +82,7 @@ const AddGrouper = () => {
         const json = await res.json()
         setProgramVersion(json?.programs?.[0]?.version)
       } else {
-        setError({ type: 'failed-grouper-add', message: 'Parent Program is missing version' })
+        setError({ type: 'failed-grouper-add', message: 'Something went wrong fetching the parent program' })
       }
     }
     getProgram()
