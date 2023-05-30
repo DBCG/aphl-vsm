@@ -13,6 +13,7 @@ import { Row } from '@/styles'
 import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { customTableStyles } from '@/components/tables/themes'
 
 const endWrapPx = 900
 
@@ -254,7 +255,7 @@ const EditManifestDetails = () => {
             ]}
             theme="aphl"
             fixedHeader
-            customStyles={customStyles}
+            customStyles={customTableStyles('readonly')}
             pagination
             paginationPerPage={10}
             className="detail-table"
@@ -265,7 +266,7 @@ const EditManifestDetails = () => {
           <ManifestDetailTable
             programId={programId}
             className="detail-table"
-            customStyles={customStyles}
+            customStyles={customTableStyles('readonly')}
             data={currentSelectedData}
             loading={manifestData == null}
             deleteFn={deleteFn}

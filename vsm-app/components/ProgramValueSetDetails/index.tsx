@@ -19,8 +19,9 @@ import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResu
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
-import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, customStyles } from './styles'
+import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
+import { customTableStyles } from '../tables/themes'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -641,7 +642,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         }}
         fixedHeader // TODO: Should we remove? adds an additional scrollbar
         // @ts-expect-error
-        customStyles={customStyles}
+        customStyles={customTableStyles('clickable')}
         progressPending={pageLoading || vSetsLoading}
         progressComponent={<LoadingIndicator />}
       />

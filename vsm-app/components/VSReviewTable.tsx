@@ -6,17 +6,7 @@ import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers
 import { ConditionsHandler } from 'pages/programs/[id]/grouper'
 import { FlatGrouperVSet } from '../types/grouperTypes'
 import { Dispatch, SetStateAction } from 'react'
-
-const customStyles = {
-  cells: {
-    style: {
-      paddingRight: '18px',
-      paddingLeft: '18px',
-      paddingTop: '12px',
-      paddingBottom: '12px'
-    }
-  }
-}
+import { customTableStyles } from './tables/themes'
 
 interface TableProps {
   vsToAdd: FlatGrouperVSet[]
@@ -102,7 +92,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     }
   ]
 
-  return <Table data={vsToAdd} columns={columns} customStyles={customStyles} />
+  return <Table data={vsToAdd} columns={columns} customStyles={customTableStyles('readonly')} />
 }
 
 export { VSReviewTable }

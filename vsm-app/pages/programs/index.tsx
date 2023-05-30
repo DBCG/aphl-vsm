@@ -13,6 +13,7 @@ import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
+import { customTableStyles } from '@/components/tables/themes'
 
 const Col = styled.div`
   display: flex;
@@ -44,12 +45,19 @@ const customStyles = {
   cells: {
     style: {
       paddingTop: '12px',
-      paddingBottom: '12px'
+      paddingBottom: '12px',
+      fontFamily: 'Roboto',
+      fontSize: '120%'
+    }
+  },
+  headCells: {
+    style: {
+      fontFamily: 'Roboto'
     }
   },
   rows: {
     style: {
-      cursor: 'pointer'
+      cursor: 'pointer',
     },
     highlightOnHoverStyle: {
       backgroundColor: '#DBF0F3'
@@ -271,7 +279,7 @@ const Programs: NextPage = () => {
         fixedHeader
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
-        customStyles={customStyles}
+        customStyles={customTableStyles('clickable')}
         progressPending={!programs.length}
         progressComponent={<LoadingIndicator />}
       />

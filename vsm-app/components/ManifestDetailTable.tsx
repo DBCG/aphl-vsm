@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
 import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
+import { customTableStyles } from './tables/themes'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
@@ -66,10 +67,11 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       progressPending={loading}
       columns={columns}
       highlightOnHover
-      customStyles={customStyles}
+      customStyles={customTableStyles('clickable')}
       data={preppedData}
       pagination
       paginationPerPage={10}
+      theme="aphl"
     />
   )
 }
