@@ -7,7 +7,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { ToastContainer, Slide } from 'react-toastify'
 import type {} from '@mui/lab/themeAugmentation'
 import 'react-toastify/dist/ReactToastify.css'
-
+import { NavContextProvider } from '@/components/NavBar'
 const theme = createTheme({
   components: {
     // Name of the component
@@ -51,11 +51,13 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         pauseOnHover
         transition={Slide}
       />
-      <Scaffold>
-        <ThemeProvider theme={theme}>
-          <Component {...pageProps} />
-        </ThemeProvider>
-      </Scaffold>
+      <NavContextProvider>
+        <Scaffold>
+          <ThemeProvider theme={theme}>
+            <Component {...pageProps} />
+          </ThemeProvider>
+        </Scaffold>
+      </NavContextProvider>
     </SessionProvider>
   )
 }
