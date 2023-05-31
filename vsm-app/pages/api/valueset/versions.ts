@@ -51,8 +51,7 @@ interface AddDetails {
   useContext: fhir4.UsageContext[]
   terminologyInfo: TermInfo
 }
-const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir4.ValueSet => {
-  console.log('terminologyInfo: ', terminologyInfo)
+const addDetailsToLeaf = ({vs, useContext, terminologyInfo}: AddDetails): fhir4.ValueSet => {
   const clonedVs = cloneDeep(vs)
 
   const conditionsToAdd = useContext?.filter(

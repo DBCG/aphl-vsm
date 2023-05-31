@@ -415,7 +415,6 @@ const updateProgramLibraryWithGrouperRef = async (
 // -------------------------- ROUTE TO UPDATE EXISTING GROUPER ---------------------
 // ---------------------------------------------------------------------------------
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
-  const programId = req.query.id as string
 
   try {
     const body = JSON.parse(req.body)
@@ -459,67 +458,8 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
       return res.status(500).send({ message: 'Error updating grouper' })
     }
 
-    // if version wasn't changed, route is done
-    if (!metadata.version) {
-      return res.status(200).send({ message: `Grouper ${grouperId} updated` })
-    }
-
-    // if version was changed, need to update this in the program library
-    const programSearchResult = await fhirCdrClient.search({
-      resourceType: 'Library',
-      searchParams: {
-        _id: programId,
-        status: 'draft'
-      }
-    })
-
-    const program = programSearchResult?.entry?.[0]?.resource
-
-    if (!is.library(program)) {
-      logger.error(`Could not find program with id ${programId} and draft status`)
-      return res.status(500).send({ message: 'Could not find program' })
-    }
-
-    const grouperLibCanonical = getGrouperLibraryCanonical(program)
-
-    if (!grouperLibCanonical) {
-      logger.error(`No canonical to identify grouper library on program with id ${programId}`)
-      return res.status(500).send({ message: 'Could not find grouper library' })
-    }
-
-    const grouperLibraryResult = await fhirCdrClient.search({
-      resourceType: 'Library',
-      searchParams: {
-        url: grouperLibCanonical,
-        status: 'draft'
-      }
-    })
-
-    const grouperLib = grouperLibraryResult?.entry?.[0]?.resource
-
-    if (!is.library(grouperLib)) {
-      logger.error(`Grouper library with canonical ${grouperLibCanonical} and status 'draft' not found`)
-      return res.status(500).send({ message: 'Could not find grouper library' })
-    }
-
-    const clonedGrouper = cloneDeep(grouperLib)
-
-    const resourceCanonicalToAdd = grouperToEdit.url.split('|')[0].concat(`|${metadata.version}`)
-    // remove this grouper's canonical
-    const filteredRelatedArtifact =
-      clonedGrouper?.relatedArtifact?.filter((art) => !(art.type === 'composed-of' && art.resource?.includes(grouperLibCanonical))) || []
-
-    const updatedComposeInclude = [...filteredRelatedArtifact, resourceCanonicalToAdd]
-
-    clonedGrouper.relatedArtifact = updatedComposeInclude
-
-    await fhirCdrClient.update({
-      resourceType: 'Library',
-      id: clonedGrouper.id,
-      body: clonedGrouper
-    })
-
-    return res.status(200).send({})
+    return res.status(200).send({ message: `Grouper ${grouperId} updated` })
+    
   } catch (e) {
     logSimpleHapiError(e)
     res.status(400).send({ error: 'error' })
