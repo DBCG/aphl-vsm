@@ -641,7 +641,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
         }}
         fixedHeader // TODO: Should we remove? adds an additional scrollbar
-        // @ts-expect-error
         customStyles={customTableStyles('clickable')}
         progressPending={pageLoading || vSetsLoading}
         progressComponent={<LoadingIndicator />}

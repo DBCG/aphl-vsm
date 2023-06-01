@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { IconButton as Icb } from '@mui/material'
+import { IconButton as Icb, IconButtonProps } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
@@ -11,7 +11,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
-const StyledButton = styled(Icb).attrs(({ buttonContext }: IButtonProps) => ({
+const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttonContext }) => ({
   ariaLabel: buttonContext,
   component: 'label'
 }))`
@@ -32,8 +32,8 @@ const ImageContainer = styled.div`
   padding-top: 8px;
 `
 
-interface IButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  buttonContext: string
+interface IButtonProps extends IconButtonProps {
+  buttonContext?: string | undefined
   onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   deletedItemDescription?: string
@@ -105,6 +105,7 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         title={btnTitleText[buttonContext as Key]}
         disabled={disabled}
         type={type}
+        // @ts-ignore
         buttonContext={buttonContext}
         data-button-context={buttonContext}
         style={style}

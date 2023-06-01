@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import Btn from '@mui/material/Button'
 
-const StyledBtn = styled(Btn)`
+const StyledBtn = styled(Btn)<ButtonProps>`
   height: fit-content;
 `
 
@@ -9,13 +9,16 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string
   btnType?: string
   style?: React.CSSProperties
+  ['data-modal']?: string
 }
 
-const Button = ({ text, style, disabled, onClick = () => {}, ...props }: ButtonProps) => {
+const Button = ({ text, id, type, style, disabled, onClick = () => {} }: ButtonProps) => {
   return (
     <StyledBtn
-      {...props}
+      id={id}
       style={style}
+      type={type}
+      text={text}
       disabled={disabled}
       onClick={(e) => {
         if (!disabled) {
