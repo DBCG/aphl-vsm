@@ -319,9 +319,21 @@ export default function ValueSetContents({
   return (
     <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px' }}>
-        <Form>
+        <Form style={{ flexDirection: 'column' }}>
           <PageTitle>{currentValueSet.title}</PageTitle>
-          <InputContainer style={{ width: '100%'}}>
+          <Typography
+            sx={{
+              background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
+              color: 'white',
+              padding: '4px 10px',
+              width: '85px',
+              textAlign: 'center',
+              borderRadius: '8px'
+            }}
+          >
+            {isGrouperValueSet ? 'Grouper' : 'Leaf'}
+          </Typography>
+          <InputContainer style={{ width: '100%' }}>
             <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
               <SearchInput
                 id="prog-id"
@@ -512,7 +524,13 @@ export default function ValueSetContents({
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <DataTable columns={definitionColumns} keyField={'valueSet'} data={definitionData as GrouperVSTableData[]} pagination paginationPerPage={10} />
+          <DataTable
+            columns={definitionColumns}
+            keyField={'valueSet'}
+            data={definitionData as GrouperVSTableData[]}
+            pagination
+            paginationPerPage={10}
+          />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <DataTable

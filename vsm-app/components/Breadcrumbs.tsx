@@ -33,11 +33,19 @@ const NavItem = styled.li<Props>`
 `
 
 const composePath = (pathItems: string, lastOfPath: string) => {
+  if (lastOfPath === 'grouper') {
+    // remove the valuesets part of the path since groupers are located there
+    return pathItems.split('/valuesets')[0]
+  }
   const idx = pathItems.indexOf(lastOfPath)
   return pathItems.slice(0, idx + lastOfPath.length)
 }
 
-const BreadCrumbs = () => {
+type BreadCrumbProps = {
+  isGrouperView: boolean
+}
+
+const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
   const [breadCrumbs, setBreadCrumbs] = useState<[] | string[]>([])
   const router = useRouter()
 
@@ -45,11 +53,14 @@ const BreadCrumbs = () => {
     if (router) {
       const crumbs = router.asPath.split('/')
       const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
+      if (isGrouperView && withoutQueryStrings.indexOf('valuesets') > -1) {
+        withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
+      }
       setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])
     }
-  }, [router])
+  }, [router, isGrouperView])
 
   if (!breadCrumbs.length) return null
 
