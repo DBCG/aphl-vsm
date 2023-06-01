@@ -14,7 +14,7 @@ import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttonContext }) => ({
   ariaLabel: buttonContext,
   component: 'label'
-}))`
+}))<IButtonProps & IconButtonProps>`
   height: 36px;
   width: 36px;
   border-radius: 50%;
@@ -36,6 +36,7 @@ interface IButtonProps extends IconButtonProps {
   buttonContext?: string | undefined
   onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
+  color?: 'default' | 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | undefined
   deletedItemDescription?: string
   ariaLabel?: string
 }
