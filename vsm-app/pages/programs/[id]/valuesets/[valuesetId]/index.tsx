@@ -10,11 +10,11 @@ import { NavContext } from '@/components/NavBar'
 const ValueSetPageView = () => {
   const router = useRouter()
   const programId = router.query.id as string
+  const valueSetId = router.query.valuesetId as string
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>(null)
   const { isGrouperView, changeGrouperView } = useContext(NavContext)
-
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const enableEditing = programAndGrouperData?.program?.status === 'draft' && can(session, 'edit')
 
@@ -23,20 +23,19 @@ const ValueSetPageView = () => {
   }
 
   useEffect(() => {
-    const isGrouperValueSet = currentValueSet?.compose?.include?.[0]?.valueSet?.[0] != null
-    changeGrouperView(isGrouperValueSet)
-  }, [currentValueSet, changeGrouperView])
-
-  useEffect(() => {
     const fetchValueSet = async () => {
-      const response = await fetch(`/api/valueset?id=${router.query.valuesetId}`)
+      const response = await fetch(`/api/valueset?id=${valueSetId}`)
       const json = await response.json()
       setCurrentValueSet(json)
     }
-    if (router.query.valuesetId) {
+
+    if (!programAndGrouperDataLoading) {
+      const grouperValueSet = programAndGrouperData?.grouperData?.find((gl) => gl.id === valueSetId)
+      changeGrouperView(grouperValueSet != null)
       fetchValueSet()
     }
-  }, [router.query.valuesetId, toggleUpdateData])
+  }, [valueSetId, toggleUpdateData, programAndGrouperDataLoading, changeGrouperView, programAndGrouperData?.grouperData])
+
   if (!currentValueSet || programAndGrouperDataLoading) {
     return <LoadingIndicator />
   }
