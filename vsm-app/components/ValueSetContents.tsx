@@ -330,7 +330,7 @@ export default function ValueSetContents({
           <PageTitle>{currentValueSet.title}</PageTitle>
           <Typography
             sx={{
-              background: isGrouperValueSet ? 'rgb(254, 94, 80)' : 'rgb(1, 161, 175)',
+              background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
               color: 'white',
               padding: '4px 10px',
               width: '85px',
