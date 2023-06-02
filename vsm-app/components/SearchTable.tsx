@@ -7,6 +7,7 @@ import { SelectInputTitle } from '@/components/ProgramValueSetDetails/styles'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
 import { TableContextType } from './ValueSetSearchTable'
+import { customTableStyles } from './tables/themes'
 
 interface TableData {
   name: ValueSet['name']
