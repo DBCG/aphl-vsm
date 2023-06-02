@@ -9,6 +9,7 @@ import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
+import { customTableStyles } from './tables/themes'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -167,16 +168,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         progressPending={deleting || groupsLoading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
-        customStyles={{
-          rows: {
-            style: {
-              cursor: 'pointer'
-            },
-            highlightOnHoverStyle: {
-              backgroundColor: '#DBF0F3'
-            }
-          }
-        }}
+        customStyles={customTableStyles('clickable')}
         highlightOnHover={true}
         onRowClicked={(row: fhir4.ValueSet) => {
           router.push(`/programs/${programId}/valuesets/${row.id}`)
@@ -184,6 +176,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         data={groups}
         pagination
         paginationPerPage={10}
+        theme="aphl"
       />
     </div>
   )

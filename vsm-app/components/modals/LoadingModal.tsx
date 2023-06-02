@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import ReactModal from 'react-modal'
+import Modal from '@mui/material/Modal'
 import { Button } from '@/components/buttons/Button'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'

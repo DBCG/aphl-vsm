@@ -1,30 +1,5 @@
 import styled from 'styled-components'
 
-export const customStyles = {
-  headCells: {
-    style: {
-      padding: '16px',
-      overflow: 'visible'
-    }
-  },
-  cells: {
-    style: {
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      whiteSpace: 'normal !important',
-      overflow: 'visible'
-    }
-  },
-  rows: {
-    style: {
-      cursor: 'pointer'
-    },
-    highlightOnHoverStyle: {
-      backgroundColor: '#DBF0F3'
-    }
-  }
-}
-
 export const SelectInputContainer = styled.div`
   width: 100%;
 `

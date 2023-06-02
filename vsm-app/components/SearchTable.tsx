@@ -3,10 +3,11 @@ import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
-import { SelectInputTitle, customStyles } from '@/components/ProgramValueSetDetails/styles'
+import { SelectInputTitle } from '@/components/ProgramValueSetDetails/styles'
 import { formatValuesetDate } from '@/helpers/formatDates'
 import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
 import { TableContextType } from './ValueSetSearchTable'
+import { customTableStyles } from './tables/themes'
 
 interface TableData {
   name: ValueSet['name']
@@ -299,7 +300,7 @@ const SearchTable = ({
         }
       }}
       // @ts-ignore-next-line
-      customStyles={customStyles}
+      customStyles={customTableStyles('readonly')}
       paginationTotalRows={paginationTotalRows}
       onChangePage={handlePageChange}
       onChangeRowsPerPage={handlePerRowsChange}

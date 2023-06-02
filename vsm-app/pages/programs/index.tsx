@@ -11,7 +11,9 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { ErrorMessage, ErrorState } from '@/components/ErrorMessage'
+import { ErrorMessage } from '@/components/ErrorMessage'
+import { StatusChip } from '@/components/data-display/StatusChip'
+import { customTableStyles } from '@/components/tables/themes'
 
 const Col = styled.div`
   display: flex;
@@ -39,22 +41,23 @@ interface Error {
   message?: string
 }
 
-const StatusTag = styled.div<StatusProps>`
-  padding: 4px 6px;
-  border-radius: 4px;
-  background-color: ${(props) => (props.status === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'rgba(252, 186, 3, 0.3)')};
-`
-
 const customStyles = {
   cells: {
     style: {
       paddingTop: '12px',
-      paddingBottom: '12px'
+      paddingBottom: '12px',
+      fontFamily: 'Roboto',
+      fontSize: '120%'
+    }
+  },
+  headCells: {
+    style: {
+      fontFamily: 'Roboto'
     }
   },
   rows: {
     style: {
-      cursor: 'pointer'
+      cursor: 'pointer',
     },
     highlightOnHoverStyle: {
       backgroundColor: '#DBF0F3'
@@ -135,7 +138,7 @@ const Programs: NextPage = () => {
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
-          return <StatusTag status={row.status}>{row.status}</StatusTag>
+          return <StatusChip label={row.status} />
         }
       },
       {
@@ -254,7 +257,7 @@ const Programs: NextPage = () => {
         loading={cloneLoading}
         handleCancelModal={() => setModalOpen(false)}
       />
-      <Row>
+      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
         <Button text="Publish" />
       </Row>
@@ -276,7 +279,7 @@ const Programs: NextPage = () => {
         fixedHeader
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
-        customStyles={customStyles}
+        customStyles={customTableStyles('clickable')}
         progressPending={!programs.length}
         progressComponent={<LoadingIndicator />}
       />

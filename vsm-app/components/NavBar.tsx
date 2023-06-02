@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
-import { BreadCrumbs } from './Breadcrumbs'
+import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { Button } from './buttons/Button'
 import { createContext, useState, useEffect, useContext } from 'react'
 

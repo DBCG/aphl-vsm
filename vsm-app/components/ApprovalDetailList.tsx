@@ -4,6 +4,7 @@ import DataTable from 'react-data-table-component'
 import LoadingIndicator from './LoadingIndicator'
 import { approvalFormParams } from 'pages/programs/[id]/approve'
 import { ToString } from '@/hooks/useGetProgramDetails'
+import { customTableStyles } from './tables/themes'
 
 interface TableData {
   date:string
@@ -72,6 +73,8 @@ const ApprovalDetailList = ({ assessments, loading=false }: {  assessments?:ToSt
   return (
     <>
       <DataTable
+        theme="aphl"
+        customStyles={customTableStyles('readonly')}
         progressPending={loading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
