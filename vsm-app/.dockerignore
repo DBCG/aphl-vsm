@@ -10,6 +10,7 @@
 !/styles
 !/worker
 !/types
+!/utils
 !.babelrc
 !cache.ts
 !fhirClientOptions.ts
