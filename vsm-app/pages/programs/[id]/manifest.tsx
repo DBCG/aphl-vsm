@@ -210,6 +210,8 @@ const EditManifestDetails = () => {
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
             highlightOnHover
+            defaultSortAsc={false}
+            defaultSortFieldId={3}
             columns={[
               {
                 name: 'Name',
