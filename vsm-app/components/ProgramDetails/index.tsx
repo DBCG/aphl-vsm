@@ -84,7 +84,9 @@ const ProgramDetails = () => {
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          {program.status !== 'active' && (
+            <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          )}
         </Row>
         <ManifestDetailTable
           programId={programId}
