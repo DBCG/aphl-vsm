@@ -117,7 +117,7 @@ const ProgramDetails = () => {
           <StyledSpan>Approvals</StyledSpan>
         </Col>
         <Col style={{ width: 'auto' }}>
-          <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+          <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
         </Col>
       </Row>
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
