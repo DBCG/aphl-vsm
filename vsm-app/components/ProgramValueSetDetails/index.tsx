@@ -176,7 +176,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         router.push('/programs')
       }
     } catch(e) {
-      console.log('e ', e)
       setError('Program release failed.')
       setIsReleasing(false)
       return
