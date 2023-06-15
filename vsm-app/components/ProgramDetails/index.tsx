@@ -84,7 +84,7 @@ const ProgramDetails = () => {
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          {program.status !== 'active' && (
+          {can(session, 'edit') && status === 'draft' && (
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
