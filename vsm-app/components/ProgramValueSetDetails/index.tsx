@@ -23,6 +23,7 @@ import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, Rea
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
+import { ErrorMessage } from '../ErrorMessage'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -166,7 +167,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       })
   
       if(!releaseRes.ok) {
-        setError('Program release failed.')
+        const failRes = await releaseRes.json()
+        setError(failRes.error)
         setIsReleasing(false)
         return
       } else {
@@ -174,6 +176,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         router.push('/programs')
       }
     } catch(e) {
+      console.log('e ', e)
       setError('Program release failed.')
       setIsReleasing(false)
       return
@@ -663,6 +666,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           {releaseButton}
         </Col>
       </Row>
+      {error && <ErrorMessage error={error}/>}
       <DT
         // @ts-expect-error
         data={progValueSetDets?.data}
