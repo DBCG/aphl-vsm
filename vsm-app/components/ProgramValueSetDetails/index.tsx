@@ -22,6 +22,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
+import { useGetProgramById } from '@/hooks/useGetProgramById'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -94,9 +95,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
+  const [isReleasing, setIsReleasing] = useState(false)
+  const [error, setError] = useState<null | string>(null)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
-
+  const program = useGetProgramById({ programId })
   // all available filters
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
 
@@ -150,6 +153,31 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
+  }
+
+  const handleReleaseProgram = async () => {
+    try {
+      setError(null)
+      setIsReleasing(true)
+      const endpoint = `/api/programs/${programId}/release`
+      const releaseRes = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(program)
+      })
+  
+      if(!releaseRes.ok) {
+        setError('Program release failed.')
+        setIsReleasing(false)
+        return
+      } else {
+        setIsReleasing(false)
+        router.push('/programs')
+      }
+    } catch(e) {
+      setError('Program release failed.')
+      setIsReleasing(false)
+      return
+    }
   }
 
   useEffect(() => {
@@ -609,6 +637,13 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     return null
   })()
 
+  const releaseButton = (() => {
+  if (allowToEdit) {
+      return <Button text="Release" loading={isReleasing} style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleReleaseProgram()} />
+    }
+    return null
+  })()
+
   return (
     <>
       <Row>
@@ -625,6 +660,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             />
           )}
           {updateVSetsButton}
+          {releaseButton}
         </Col>
       </Row>
       <DT
