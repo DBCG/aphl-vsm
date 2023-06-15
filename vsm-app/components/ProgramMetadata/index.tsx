@@ -4,6 +4,7 @@ import { InputLabel } from '@/components/InputLabel'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
+import DateInput from '@/components/DateInput'
 import {
   getReleaseDescription,
   setReleaseDescription,
@@ -45,21 +46,35 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
     : { requiredFields: 'Please fill out required fields' }
 
   const [error, setError] = useState(initialErrorState)
-
   const { name = '', version = '', title = '', description = '' } = program
+  const effectiveStartDate = program.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
 
-  const handleFieldChange = (e: React.ChangeEvent<Element>, fieldName: string) => {
-    e.preventDefault()
-    const target = e.target as HTMLInputElement
+  const handleFieldChange = (e: React.ChangeEvent<HTMLElement> | string, fieldName: string) => {
+    let value
+
+    if (typeof e === 'string') {
+      value = e
+    } else {
+      e.preventDefault()
+      value = e.target.value
+    }
     setFormTouched(true)
     let newProgram
     if (fieldName === 'releaseDescription') {
-      newProgram = setReleaseDescription(editedProgram, target.value)
+      newProgram = setReleaseDescription(editedProgram, value)
+    } else if (fieldName === 'effectiveStartDate') {
+      newProgram = {
+        ...editedProgram,
+        effectivePeriod: {
+          start: value,
+          end: editedProgram.effectivePeriod?.end
+        }
+      }
     } else {
       newProgram = {
         ...editedProgram,
-        [fieldName]: target.value
+        [fieldName]: value
       }
     }
     if (!progHasRequiredFields({ program: newProgram, requiredFields })) {
@@ -102,6 +117,16 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             onChange={(event) => handleFieldChange(event, 'title')}
             placeholder={'No program title set'}
             required={true}
+          />
+          <DateInput
+            label={'Effective Start Date'}
+            id="effectiveStartDate"
+            def={effectiveStartDate}
+            placeholder="No effective start date set"
+            onChange={(newDate) => {
+              handleFieldChange(newDate.format('YYYY-MM-DD'), 'effectiveStartDate')
+            }}
+            readonly={!editable || !enableEditing}
           />
           <TextAreaRow>
             <TextArea
