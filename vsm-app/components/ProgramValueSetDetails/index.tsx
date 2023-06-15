@@ -96,7 +96,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
-
   // all available filters
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
 

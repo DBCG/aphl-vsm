@@ -49,10 +49,10 @@ const is = {
   },
   hapiError: (error: any): error is HapiError => {
     return (
-      typeof error.response.status === 'number' &&
-      error.response.data.resourceType === 'OperationOutcome' &&
-      typeof error.config.method === 'string' &&
-      typeof error.config.url === 'string'
+      typeof error?.response?.status === 'number' &&
+      error?.response?.data?.resourceType === 'OperationOutcome' &&
+      typeof error?.config?.method === 'string' &&
+      typeof error?.config?.url === 'string'
     )
   },
   library: (resource?: fhir4.Library | any): resource is fhir4.Library => {

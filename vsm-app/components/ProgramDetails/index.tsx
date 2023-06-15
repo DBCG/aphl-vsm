@@ -15,6 +15,7 @@ import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContain
 import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { ApprovalDetailList } from '../ApprovalDetailList'
+import { ErrorMessage } from '../ErrorMessage'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -24,6 +25,8 @@ const ProgramDetails = () => {
   const [refreshData, setRefreshData] = useState(false)
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const fetchedProgram = useGetProgramById({ programId })
+  const [releaseError, setReleaseError] = useState<null | string>(null)
+  const [isReleasing, setIsReleasing] = useState(false)
 
   useEffect(() => Modal.setAppElement('#__next'), [])
 
@@ -60,6 +63,41 @@ const ProgramDetails = () => {
     }
   }
 
+  const handleReleaseProgram = async () => {
+    try {
+      setReleaseError(null)
+      setIsReleasing(true)
+      const endpoint = `/api/programs/${programId}/release`
+      const releaseRes = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(program)
+      })
+  
+      if(!releaseRes.ok) {
+        const failRes = await releaseRes.json()
+        setReleaseError(failRes.error)
+        setIsReleasing(false)
+        return
+      } else {
+        setIsReleasing(false)
+        router.push('/programs')
+      }
+    } catch(e) {
+      setReleaseError('Program release failed.')
+      setIsReleasing(false)
+      return
+    }
+  }
+
+  const allowToEdit = can(session, 'edit') && program?.status === 'draft'
+
+  const releaseButton = (() => {
+    if (allowToEdit) {
+        return <Button text="Release" loading={isReleasing} style={{ minHeight: '40px', minWidth: '150px', marginBottom: '.5rem' }} onClick={() => handleReleaseProgram()} />
+      }
+      return null
+    })()
+
   // early return if no data, must be a library if there's data
   if (!is.library(program)) {
     return (
@@ -80,6 +118,7 @@ const ProgramDetails = () => {
         <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
+
       <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={can(session, 'edit') && status === 'draft'} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
@@ -116,10 +155,12 @@ const ProgramDetails = () => {
         </Col>
         {status === 'draft' && (
           <Col style={{ width: 'auto' }}>
+            {releaseButton}
             <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
           </Col>
         )}
       </Row>
+      {releaseError && <ErrorMessage error={releaseError}/>}
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
