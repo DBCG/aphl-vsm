@@ -6,7 +6,7 @@ import { TextField, Box } from '@mui/material'
 import moment from 'moment'
 interface DateInputProps {
   readonly: boolean
-  def: string
+  def?: string
   label: string
   onChange: (date: any) => void
   placeholder?: string
@@ -38,7 +38,6 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
               label={label}
               value={def ? moment(def) : null}
               onChange={onChange}
-              renderInput={(params) => <TextField {...params} />}
             />
           </LocalizationProvider>
         </Box>
