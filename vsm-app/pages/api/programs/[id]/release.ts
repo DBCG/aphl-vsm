@@ -15,7 +15,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
         valueString: toReleaseLibrary?.version
       },
       {
-        name: 'versionBehavior',
+        name: 'version-behavior',
         valueCode: 'default'
       }
     ]
