@@ -50,7 +50,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const effectiveStartDate = program.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
 
-  const handleFieldChange = (e: React.ChangeEvent<HTMLElement> | string, fieldName: string) => {
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, fieldName: string) => {
     let value
 
     if (typeof e === 'string') {

@@ -7,6 +7,7 @@ import moment from 'moment'
 interface DateInputProps {
   readonly: boolean
   def?: string
+  id?: string
   label: string
   onChange: (date: any) => void
   placeholder?: string
