@@ -111,6 +111,10 @@ const EditManifestDetails = () => {
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
 
+  if (program?.status === 'active') {
+    router.push(`/programs/${programId}`)
+  }
+
   useEffect(() => {
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
@@ -124,7 +128,6 @@ const EditManifestDetails = () => {
   }, [isLoading, systemAndVersionData, error])
 
   useEffect(() => {
-    console.log('set')
     if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
     }
@@ -207,6 +210,8 @@ const EditManifestDetails = () => {
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
             highlightOnHover
+            defaultSortAsc={false}
+            defaultSortFieldId={3}
             columns={[
               {
                 name: 'Name',

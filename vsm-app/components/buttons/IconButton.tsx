@@ -12,7 +12,7 @@ import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
 const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttonContext }) => ({
-  ariaLabel: buttonContext,
+  'aria-label': buttonContext,
   component: 'label'
 }))<IButtonProps & IconButtonProps>`
   height: 36px;

@@ -7,7 +7,7 @@ import { ToString } from '@/hooks/useGetProgramDetails'
 import { customTableStyles } from './tables/themes'
 
 interface TableData {
-  date:string
+  date: string
   user: string
   type: string
   text: string
@@ -15,16 +15,18 @@ interface TableData {
   reference: string
 }
 
-
 interface Error {
-  type: 'delete_failed',
+  type: 'delete_failed'
   message: string
 }
 
-
-const ApprovalDetailList = ({ assessments, loading=false }: {  assessments?:ToString<Partial<approvalFormParams>>[], loading?:boolean }) => {
-
-
+const ApprovalDetailList = ({
+  assessments,
+  loading = false
+}: {
+  assessments?: ToString<Partial<approvalFormParams>>[]
+  loading?: boolean
+}) => {
   const columns = useMemo(() => {
     const fields = [
       {
@@ -67,7 +69,6 @@ const ApprovalDetailList = ({ assessments, loading=false }: {  assessments?:ToSt
     ]
 
     return fields
-
   }, [])
 
   return (
@@ -78,16 +79,19 @@ const ApprovalDetailList = ({ assessments, loading=false }: {  assessments?:ToSt
         progressPending={loading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
-        data={assessments?.map(dataObj => {
-          return {
-            date: dataObj.approvalDate || '-',
-            user: dataObj.artifactCommentUser || "-",
-            type: dataObj.artifactCommentType || "",
-            text: dataObj.artifactCommentText || "-",
-            reference: dataObj.artifactCommentReference || "-",
-            version: dataObj.artifactCommentTarget?.split('|')?.pop() || "-"
-          }
-        }) || []}
+        data={
+          assessments?.map((dataObj, i) => {
+            return {
+              id: `${dataObj.artifactCommentType}_${dataObj.approvalDate}_${i}`,
+              date: dataObj.approvalDate || '-',
+              user: dataObj.artifactCommentUser || '-',
+              type: dataObj.artifactCommentType || '',
+              text: dataObj.artifactCommentText || '-',
+              reference: dataObj.artifactCommentReference || '-',
+              version: dataObj.artifactCommentTarget?.split('|')?.pop() || '-'
+            }
+          }) || []
+        }
         pagination
         paginationPerPage={10}
       />
@@ -102,8 +106,8 @@ export async function getServerSideProps(context: GetSessionParams) {
     return {
       redirect: {
         destination: '/api/auth/signin',
-        permanent: false,
-      },
+        permanent: false
+      }
     }
   }
 

@@ -277,7 +277,7 @@ const ApproveInfoForm: NextPage = () => {
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-        <Button text="Submit" onClick={handleApprove} />
+        <Button id="submit-approve" text="Submit" onClick={handleApprove} />
       </Row>
     </>
   )

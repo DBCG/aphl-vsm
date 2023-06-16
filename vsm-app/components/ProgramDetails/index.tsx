@@ -123,7 +123,9 @@ const ProgramDetails = () => {
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          {can(session, 'edit') && status === 'draft' && (
+            <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
+          )}
         </Row>
         <ManifestDetailTable
           programId={programId}
@@ -153,12 +155,9 @@ const ProgramDetails = () => {
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
         </Col>
-        {status === 'draft' && (
-          <Col style={{ width: 'auto' }}>
-            {releaseButton}
-            <Button text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
-          </Col>
-        )}
+        <Col style={{ width: 'auto' }}>
+          <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+        </Col>
       </Row>
       {releaseError && <ErrorMessage error={releaseError}/>}
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />

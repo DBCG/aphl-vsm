@@ -44,6 +44,10 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
     id: req.query.id as string
   })) as fhir4.Library
 
+  if (grouperLibrary.status === 'active') {
+    return res.status(400).json({ 'server-error': 'Cannot update manifest on an active program.' })
+  }
+
   setExpansionParameters(grouperLibrary, req.body)
   const updatedExpansionParameters = getProgramManifestVersions(grouperLibrary)
 
