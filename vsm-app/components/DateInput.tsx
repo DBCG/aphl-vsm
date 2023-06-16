@@ -31,6 +31,7 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
           <LocalizationProvider dateAdapter={AdapterMoment}>
             <DesktopDatePicker
               {...props}
+              className={'date-input'}
               sx={{
                 backgroundColor: 'white',
                 label: { color: 'var(--theme-400)' },

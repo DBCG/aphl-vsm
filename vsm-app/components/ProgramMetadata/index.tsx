@@ -124,7 +124,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             def={effectiveStartDate}
             placeholder="No effective start date set"
             onChange={(newDate) => {
-              handleFieldChange(newDate.format('YYYY-MM-DD'), 'effectiveStartDate')
+              newDate && handleFieldChange(newDate.format('YYYY-MM-DD'), 'effectiveStartDate')
             }}
             readonly={!editable || !enableEditing}
           />
