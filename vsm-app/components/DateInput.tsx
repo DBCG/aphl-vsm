@@ -32,6 +32,7 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
             <DesktopDatePicker
               {...props}
               className={'date-input'}
+              format={'YYYY-MM-DD'}
               sx={{
                 backgroundColor: 'white',
                 label: { color: 'var(--theme-400)' },

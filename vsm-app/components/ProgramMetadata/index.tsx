@@ -53,23 +53,23 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, fieldName: string) => {
     let value
 
-    if (typeof e === 'string') {
+    if (typeof e === 'string' || e === null) {
       value = e
     } else {
-      e.preventDefault()
+      e?.preventDefault()
       value = e.target.value
     }
     setFormTouched(true)
     let newProgram
+
     if (fieldName === 'releaseDescription') {
       newProgram = setReleaseDescription(editedProgram, value)
     } else if (fieldName === 'effectiveStartDate') {
-      newProgram = {
-        ...editedProgram,
-        effectivePeriod: {
-          start: value,
-          end: editedProgram.effectivePeriod?.end
-        }
+      newProgram = { ...editedProgram }
+      if (value) {
+        newProgram.effectivePeriod = { start: value }
+      } else {
+        delete newProgram.effectivePeriod
       }
     } else {
       newProgram = {
@@ -124,7 +124,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             def={effectiveStartDate}
             placeholder="No effective start date set"
             onChange={(newDate) => {
-              newDate && handleFieldChange(newDate.format('YYYY-MM-DD'), 'effectiveStartDate')
+              const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
+              handleFieldChange(dateToSave, 'effectiveStartDate')
             }}
             readonly={!editable || !enableEditing}
           />
