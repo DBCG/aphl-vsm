@@ -47,7 +47,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
 
   const [error, setError] = useState(initialErrorState)
   const { name = '', version = '', title = '', description = '' } = program
-  const effectiveStartDate = program.effectivePeriod?.start
+  const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, fieldName: string) => {

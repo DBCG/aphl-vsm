@@ -2,7 +2,8 @@ import { TextArea } from './TextArea'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
-import { TextField, Box } from '@mui/material'
+import { IconButton, Box } from '@mui/material'
+import CancelIcon from '@mui/icons-material/Cancel'
 import moment from 'moment'
 interface DateInputProps {
   readonly: boolean
@@ -43,6 +44,9 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
               onChange={onChange}
             />
           </LocalizationProvider>
+          <IconButton aria-label={'Clear Effective Start Date'} sx={{ mt: '6px' }} onClick={() => onChange(null)}>
+            <CancelIcon />
+          </IconButton>
         </Box>
       )}
     </>
