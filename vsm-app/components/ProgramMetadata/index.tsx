@@ -107,8 +107,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             id="prog-name"
             label="Name"
             readonly={!editable || !enableEditing}
-            minWidth={200}
-            def={name}
+            defaultValue={name}
             onChange={(event) => handleFieldChange(event, 'name')}
             placeholder={'No program name set'}
             required={true}
@@ -118,8 +117,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             id="prog-version"
             label="Version"
             readonly={true}
-            minWidth={200}
-            def={version}
+            defaultValue={version}
             onChange={(event) => handleFieldChange(event, 'version')}
             placeholder={'No program version set'}
           />
@@ -127,8 +125,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             id="prog-title"
             label="Title"
             readonly={!editable || !enableEditing}
-            minWidth={200}
-            def={title}
+            defaultValue={title}
             onChange={(event) => handleFieldChange(event, 'title')}
             placeholder={'No program title set'}
             required={true}
@@ -137,7 +134,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <DateInput
             label={'Effective Start Date'}
             id="effectiveStartDate"
-            def={effectiveStartDate}
+            defaultValue={effectiveStartDate}
             placeholder="No effective start date set"
             onChange={(newDate) => {
               const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
@@ -150,8 +147,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               id="prog-desc"
               label="Description"
               readonly={!editable || !enableEditing}
-              minWidth={200}
-              def={description}
+              defaultValue={description}
               onChange={(event) => handleFieldChange(event, 'description')}
               placeholder={'No program description set'}
               style={{ flexBasis: '100%', maxWidth: '624px' }}
@@ -162,8 +158,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               id="prog-release-desc"
               label="Release Description"
               readonly={!editable || !enableEditing}
-              minWidth={200}
-              def={releaseDescription}
+              defaultValue={releaseDescription}
               onChange={(event) => handleFieldChange(event, 'releaseDescription')}
               placeholder={'No release description set'}
               style={{ flexBasis: '100%', maxWidth: '624px' }}
@@ -195,8 +190,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 id="priority-level"
                 label="Priority Level"
                 readonly={true}
-                minWidth={200}
-                def={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
+                defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
                 placeholder={'No Priority set'}
                 style={{ flexBasis: '100%', maxWidth: '624px' }}
               />

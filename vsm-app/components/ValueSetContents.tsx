@@ -339,7 +339,7 @@ export default function ValueSetContents({
                 id="prog-id"
                 label="Program ID"
                 readonly={true}
-                def={programAndGrouperInfo?.program?.id || 'No ID found'}
+                defaultValue={programAndGrouperInfo?.program?.id || 'No ID found'}
                 placeholder={'No valueset id set'}
               />
               {isDraftProgram && (
@@ -361,7 +361,7 @@ export default function ValueSetContents({
                 id="prog-name"
                 label="Program Name"
                 readonly={true}
-                def={programAndGrouperInfo?.program?.name || 'No name found'}
+                defaultValue={programAndGrouperInfo?.program?.name || 'No name found'}
                 placeholder={'No valueset id set'}
               />
             </InputRow>
@@ -370,7 +370,7 @@ export default function ValueSetContents({
                 id="prog-version"
                 label="Program Version"
                 readonly={true}
-                def={programVersion}
+                defaultValue={programVersion}
                 placeholder={'No program version set'}
               />
             </InputRow>
@@ -378,9 +378,8 @@ export default function ValueSetContents({
               <TextArea
                 id="prog-url"
                 label="Program URL"
-                minWidth={650}
                 readonly={true}
-                def={programUrl}
+                defaultValue={programUrl}
                 placeholder={'No program canonical set'}
               />
             </InputRow>
@@ -391,7 +390,7 @@ export default function ValueSetContents({
                 id="vs-id"
                 label={isGrouperValueSet ? 'Grouper ID' : 'Valueset ID'}
                 readonly={true}
-                def={valueSet.id}
+                defaultValue={valueSet.id}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} id set`}
               />
               {isGrouperValueSet && enableEditing && !isEditing && (
@@ -431,7 +430,7 @@ export default function ValueSetContents({
                 label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
                 readonly={true}
                 value={defaultGrouperVersion}
-                def={defaultGrouperVersion}
+                defaultValue={defaultGrouperVersion}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} version set`}
               />
             </InputRow>
@@ -441,7 +440,7 @@ export default function ValueSetContents({
                 label={'URL'}
                 readonly={true}
                 value={currentValueSet.url}
-                def={currentValueSet.url}
+                defaultValue={currentValueSet.url}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} url set`}
               />
             </InputRow>
@@ -452,7 +451,7 @@ export default function ValueSetContents({
                   label={'OID'}
                   readonly={true}
                   value={getOid(currentValueSet)}
-                  def={getOid(currentValueSet)}
+                  defaultValue={getOid(currentValueSet)}
                   placeholder={'No valueset oid was set'}
                 />
               </InputRow>
@@ -461,20 +460,18 @@ export default function ValueSetContents({
               <TextArea
                 id="vs-publisher"
                 label="Publisher"
-                minWidth={650}
                 readonly={!isEditing}
                 value={grouperPublisher}
-                def={defaultGrouperPublisher}
+                defaultValue={defaultGrouperPublisher}
                 placeholder={'No valueset publisher set'}
                 onChange={(e) => setGrouperPublisher(e.target.value)}
               />
               <SearchInput
                 id="vs-author"
                 label="Author"
-                // minWidth={650}
                 readonly={!isEditing}
                 value={grouperAuthor}
-                def={defaultGrouperAuthor}
+                defaultValue={defaultGrouperAuthor}
                 placeholder={'No valueset author set'}
                 onChange={(e) => setGrouperAuthor(e.target.value)}
               />
@@ -483,10 +480,9 @@ export default function ValueSetContents({
               <TextArea
                 id="vs-purpose"
                 label="Purpose"
-                // minWidth={650}
                 readonly={!isEditing}
                 value={grouperPurpose}
-                def={defaultGrouperPurpose}
+                defaultValue={defaultGrouperPurpose}
                 placeholder={'No valueset purpose set'}
                 onChange={(e) => setGrouperPurpose(e.target.value)}
               />
@@ -495,10 +491,9 @@ export default function ValueSetContents({
               <TextArea
                 id="vs-description"
                 label="Description"
-                minWidth={650}
                 readonly={!isEditing}
                 value={grouperDescription}
-                def={defaultGrouperDescription}
+                defaultValue={defaultGrouperDescription}
                 placeholder={'No valueset description set'}
                 onChange={(e) => setGrouperDescription(e.target.value)}
               />

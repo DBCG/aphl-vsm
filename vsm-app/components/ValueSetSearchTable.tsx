@@ -581,7 +581,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               label="Search Text"
               hasIcon={true}
               info={searchInfoText[searchType.value]}
-              minWidth={300}
               errorMessage={
                 vsNumExceedsFilterLimit ? (
                   <ErrorText>

@@ -23,12 +23,9 @@ interface Props {
   id?: string
   value?: string
   def?: string
-  minWidth?: number
   hasIcon?: boolean
   disabled?: boolean
   includeInfo?: boolean
-  info?: string
-  style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
   errorMessage?: string | null
@@ -40,11 +37,7 @@ const SearchInput = ({
   label,
   value,
   defaultValue,
-  def,
   id,
-  style,
-  minWidth,
-  info,
   disabled = false,
   readonly = false,
   required = false,
@@ -67,7 +60,6 @@ const SearchInput = ({
             disabled={disabled}
             required={required}
             value={value}
-            defaultValue={def}
             helperText={errorMessage}
           />
         </>

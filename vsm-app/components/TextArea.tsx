@@ -21,8 +21,7 @@ interface Props {
   value?: string
   label?: string
   id?: string
-  def?: string
-  minWidth?: number
+  defaultValue?: string
   maxInputHeight?: number
   hasIcon?: boolean
   info?: string
@@ -39,9 +38,7 @@ const TextArea = ({
   label,
   required = false,
   id,
-  def,
-  minWidth,
-  info,
+  defaultValue,
   readonly = false,
   style = {},
   errorMessage = null,
@@ -65,7 +62,7 @@ const TextArea = ({
             value={value}
             multiline
             onChange={onChange}
-            defaultValue={def}
+            defaultValue={defaultValue}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
                 return onKeyPress(e)

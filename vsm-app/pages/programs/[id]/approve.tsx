@@ -261,7 +261,7 @@ const ApproveInfoForm: NextPage = () => {
             // @ts-ignore
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
-          <SearchInput id="target" label="Target" def={approvalFormData.artifactCommentTarget} readonly={true} />
+          <SearchInput id="target" label="Target" defaultValue={approvalFormData.artifactCommentTarget} readonly={true} />
           <SearchInput
             id="reference"
             label="Reference"

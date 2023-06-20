@@ -7,14 +7,14 @@ import CancelIcon from '@mui/icons-material/Cancel'
 import moment from 'moment'
 interface DateInputProps {
   readonly: boolean
-  def?: string
+  defaultValue?: string
   id?: string
   label: string
   onChange: (date: any) => void
   placeholder?: string
 }
 
-const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props }: DateInputProps) => {
+const DateInput = ({ readonly, defaultValue, label, onChange, placeholder = '', ...props }: DateInputProps) => {
   return (
     <>
       {readonly ? (
@@ -22,8 +22,7 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
           {...props}
           label={label}
           readonly={true}
-          minWidth={200}
-          def={def}
+          defaultValue={defaultValue}
           placeholder={placeholder}
           style={{ flexBasis: '100%', maxWidth: '624px' }}
         />
@@ -40,7 +39,7 @@ const DateInput = ({ readonly, def, label, onChange, placeholder = '', ...props 
                 fieldset: { borderColor: 'transparent', borderBottom: '2px  solid var(--theme-300)' }
               }}
               label={label}
-              value={def ? moment(def) : null}
+              value={defaultValue ? moment(defaultValue) : null}
               onChange={onChange}
             />
           </LocalizationProvider>
