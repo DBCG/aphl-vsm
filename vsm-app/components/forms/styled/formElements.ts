@@ -1,7 +1,8 @@
 import styled from 'styled-components'
+import { FormControl } from '@mui/material'
 
 // add grouper form + page elements
-const Form = styled.form`
+const Form = styled(FormControl)`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
   gap: 12px;

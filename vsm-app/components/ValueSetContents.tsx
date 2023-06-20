@@ -319,7 +319,7 @@ export default function ValueSetContents({
   return (
     <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px' }}>
-        <Form style={{ flexDirection: 'column' }}>
+        <Form>
           <PageTitle>{currentValueSet.title}</PageTitle>
           <Typography
             sx={{
@@ -375,7 +375,7 @@ export default function ValueSetContents({
               />
             </InputRow>
             <InputRow style={{ width: '100%' }}>
-              <SearchInput
+              <TextArea
                 id="prog-url"
                 label="Program URL"
                 minWidth={650}
@@ -436,7 +436,7 @@ export default function ValueSetContents({
               />
             </InputRow>
             <InputRow style={{ width: '100%' }}>
-              <SearchInput
+              <TextArea
                 id="vs-url"
                 label={'URL'}
                 readonly={true}
@@ -447,7 +447,7 @@ export default function ValueSetContents({
             </InputRow>
             {!isGrouperValueSet && (
               <InputRow style={{ width: '100%' }}>
-                <SearchInput
+                <TextArea
                   id="vs-oid"
                   label={'OID'}
                   readonly={true}
@@ -458,7 +458,7 @@ export default function ValueSetContents({
               </InputRow>
             )}
             <InputRow style={{ width: '100%' }}>
-              <SearchInput
+              <TextArea
                 id="vs-publisher"
                 label="Publisher"
                 minWidth={650}
@@ -471,7 +471,7 @@ export default function ValueSetContents({
               <SearchInput
                 id="vs-author"
                 label="Author"
-                minWidth={650}
+                // minWidth={650}
                 readonly={!isEditing}
                 value={grouperAuthor}
                 def={defaultGrouperAuthor}
@@ -483,7 +483,7 @@ export default function ValueSetContents({
               <TextArea
                 id="vs-purpose"
                 label="Purpose"
-                minWidth={650}
+                // minWidth={650}
                 readonly={!isEditing}
                 value={grouperPurpose}
                 def={defaultGrouperPurpose}
