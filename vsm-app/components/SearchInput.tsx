@@ -17,6 +17,7 @@ const Container = styled.div`
 
 interface Props {
   placeholder?: string
+  defaultValue?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   label: string
   id?: string
@@ -38,6 +39,7 @@ const SearchInput = ({
   onChange,
   label,
   value,
+  defaultValue,
   def,
   id,
   style,
@@ -51,8 +53,8 @@ const SearchInput = ({
   return (
     <Container>
         <>
-          <InputLabel id={id}>{label}</InputLabel>
           <Input
+            defaultValue={defaultValue}
             label={label}
             variant='filled'
             id={id}
