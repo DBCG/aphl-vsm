@@ -36,6 +36,8 @@ describe("Smoke Tests", () => {
       cy.get("#prog-name").clear().type("Draft Library");
       cy.get("#prog-version").clear().type("1.0.1-draft");
       cy.get("#prog-desc").clear().type("Draft Library description");
+      cy.get(".date-input button").click();
+      cy.get(".MuiPickersDay-today").click();
       cy.get("#prog-release-desc").clear().type("this is a release description for the draft library");
       cy.get(".priority-level-selector__control").click();
       cy.get("#react-select-priority-level-selector-option-1").click();
@@ -50,6 +52,7 @@ describe("Smoke Tests", () => {
       cy.get("#prog-desc").contains("Draft Library description");
       cy.get("#prog-release-desc").contains("this is a release description for the draft library");
       cy.get("#priority-level").contains("Priority").should("be.visible");
+      cy.get("#effectiveStartDate").contains(moment().format("YYYY-MM-DD")).should("be.visible");
     });
 
     it("Adds a manifest to library", () => {
