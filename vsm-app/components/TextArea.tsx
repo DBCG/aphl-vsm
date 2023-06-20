@@ -1,20 +1,8 @@
 import styled from 'styled-components'
-import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
+import { TextField } from '@mui/material'
 
-interface InputProps {
-  minWidth?: number
-  minHeight?: number
-  maxInputHeight?: number
-  onChange: Props['onChange']
-}
-
-const Input = styled.textarea<InputProps>`
-  min-width: ${(props) => props.minWidth || 0}px;
-  padding: 4px 6px;
-  background-color: white;
-  border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-300);
-`
+const Input = styled(TextField)`
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -61,30 +49,30 @@ const TextArea = ({
 }: Props) => {
   return (
     <Container style={style}>
-      <FlexRow>
-        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
-      </FlexRow>
-      {readonly ? (
-        <ReadOnlyContainer id={id} minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
-      ) : (
         <>
           <Input
             id={id}
+            label={label}
             name={id}
+            variant="filled"
+            helperText={errorMessage}
+            error={!!errorMessage}
+            required={required}
+            InputProps={{
+              readOnly: readonly
+            }}
             placeholder={placeholder}
             value={value}
+            multiline
             onChange={onChange}
             defaultValue={def}
-            minWidth={minWidth}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
                 return onKeyPress(e)
               }
             }}
           />
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         </>
-      )}
     </Container>
   )
 }

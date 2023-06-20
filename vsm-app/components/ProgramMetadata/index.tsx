@@ -8,7 +8,7 @@ import DateInput from '@/components/DateInput'
 import {
   getReleaseDescription,
   setReleaseDescription,
-  progHasRequiredFields,
+  missingFields,
   setVSPriorityUsageContext,
   getVSPriorityUsageContext,
   USHealthVSPriority
@@ -35,20 +35,34 @@ const priorityLevelOptions: Options<OptionType> = [
   { label: 'Routine', value: 'routine' }
 ] as const
 
+interface ErrorMessages {
+  [key: string]: string
+}
+
+const errorMessages: ErrorMessages = {
+  name: 'Program name required',
+  title: 'Program title required',
+  description: 'Program description required',
+}
+
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEditModalContentProps) => {
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>(program)
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
 
-  const initialErrorState = progHasRequiredFields({ program, requiredFields })
-    ? null
-    : { requiredFields: 'Please fill out required fields' }
+  const initialErrorState = missingFields({ program, requiredFields })
 
-  const [error, setError] = useState(initialErrorState)
+  const [errorFields, setErrorFields] = useState(initialErrorState)
   const { name = '', version = '', title = '', description = '' } = program
   const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
+
+  const getErrorText = (fieldName: string) => {
+    if(errorFields.includes(fieldName)) {
+      return errorMessages[fieldName]
+    }
+  }
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, fieldName: string) => {
     let value
@@ -77,16 +91,16 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
         [fieldName]: value
       }
     }
-    if (!progHasRequiredFields({ program: newProgram, requiredFields })) {
-      setError({ requiredFields: 'Please fill out required fields' })
-    } else {
-      setError(null)
-    }
+
+    const requiredFieldsMissing = missingFields({ program: newProgram, requiredFields })
+    setErrorFields(requiredFieldsMissing)
+
     setEditedProgram(newProgram)
   }
 
+
   return (
-    <Form>
+    <Form error={Boolean(errorFields.length)}>
       <Col>
         <InputRow>
           <SearchInput
@@ -98,11 +112,12 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             onChange={(event) => handleFieldChange(event, 'name')}
             placeholder={'No program name set'}
             required={true}
+            errorMessage={getErrorText('name')}
           />
           <SearchInput
             id="prog-version"
             label="Version"
-            readonly={!editable || !enableEditing}
+            readonly={true}
             minWidth={200}
             def={version}
             onChange={(event) => handleFieldChange(event, 'version')}
@@ -117,6 +132,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             onChange={(event) => handleFieldChange(event, 'title')}
             placeholder={'No program title set'}
             required={true}
+            errorMessage={getErrorText('title')}
           />
           <DateInput
             label={'Effective Start Date'}
@@ -140,6 +156,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               placeholder={'No program description set'}
               style={{ flexBasis: '100%', maxWidth: '624px' }}
               required={true}
+              errorMessage={getErrorText('description')}
             />
             <TextArea
               id="prog-release-desc"
@@ -158,7 +175,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   maxWidth: '624px'
                 }}
               >
-                <InputLabel id="priority-level-selector-label" label="Priority Level" required={true} readonly={true} />
                 <Select
                   placeholder="Select Priority Level"
                   classNamePrefix="priority-level-selector"
@@ -198,7 +214,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
         )}
         {editable && enableEditing ? (
           <ButtonCol style={{ justifyContent: 'space-between' }}>
-            <RequiredWarning>* field required</RequiredWarning>
             <ButtonContainer style={{ alignItems: 'flex-end' }}>
               <Button
                 style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
@@ -213,7 +228,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               />
 
               <Button
-                disabled={!formTouched || Boolean(error)}
+                disabled={!formTouched || Boolean(errorFields.length)}
                 id={'edit-metadata-save'}
                 style={{
                   ...buttonStyles,

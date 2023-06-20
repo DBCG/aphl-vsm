@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { TextField } from '@mui/material'
 import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
 
 interface InputProps {
@@ -6,28 +7,18 @@ interface InputProps {
   onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
-const Input = styled.input<InputProps>`
-  min-width: ${(props) => props.minWidth || 0}px;
-  padding: 4px 6px;
-  background-color: white;
-  border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-300);
-`
+const Input = styled(TextField)`
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
 `
 
-const FlexRow = styled.div`
-  display: flex;
-  flex-direction: row;
-`
-
 interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
-  label?: string
+  label: string
   id?: string
   value?: string
   def?: string
@@ -59,26 +50,25 @@ const SearchInput = ({
 }: Props) => {
   return (
     <Container>
-      <FlexRow>
-        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
-      </FlexRow>
-      {readonly ? (
-        <ReadOnlyContainer id={id} minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
-      ) : (
         <>
+          <InputLabel id={id}>{label}</InputLabel>
           <Input
+            label={label}
+            variant='filled'
             id={id}
+            InputProps={{
+              readOnly: readonly
+            }}
+            error={!!errorMessage}
             placeholder={placeholder}
             onChange={onChange}
-            minWidth={minWidth}
             disabled={disabled}
+            required={required}
             value={value}
             defaultValue={def}
-            style={style}
+            helperText={errorMessage}
           />
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
         </>
-      )}
     </Container>
   )
 }

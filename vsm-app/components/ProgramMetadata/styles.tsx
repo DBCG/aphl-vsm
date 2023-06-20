@@ -1,6 +1,7 @@
 import styled from 'styled-components'
+import { FormControl } from '@mui/material'
 
-export const Form = styled.form`
+export const Form = styled(FormControl)`
   display: flex;
   flex-wrap: wrap;
   gap: 16px 24px;
