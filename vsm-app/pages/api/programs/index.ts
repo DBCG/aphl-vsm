@@ -45,14 +45,6 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       queries['title:contains'] = req.query['title'] as string
     }
 
-    const test = await fhirCdrClient.operation({
-      name: '$package',
-      resourceType: 'Library',
-      id: req.query.id as string,
-      method: 'PUT',
-      input: {}
-    })
-
     const searchResult = await fhirCdrClient.search({
       resourceType: 'Library',
       options: {
