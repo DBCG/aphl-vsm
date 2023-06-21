@@ -48,7 +48,6 @@ const Col = styled.div`
   display: flex;
   flex-direction: column;
   gap: 36px;
-  min-width: 450px;
 `
 
 const Row = styled.div`
@@ -61,6 +60,8 @@ const MetadataContainer = styled.div`
   padding-bottom: 64px;
   display: flex;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 24px;
 `
 
 const Subtitle = styled.p`
