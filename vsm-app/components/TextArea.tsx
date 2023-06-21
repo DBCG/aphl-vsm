@@ -3,6 +3,10 @@ import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 
 const Input = styled(TextField)`
+  & .MuiInputBase-multiline {
+    background: white !important;
+  }
+
   & .Mui-readOnly {
     background: transparent !important;
   }

@@ -8,9 +8,14 @@ interface InputProps {
 }
 
 const Input = styled(TextField)`
+& .MuiFilledInput-input {
+  background: white !important;
+}
+
 & .Mui-readOnly {
   background: transparent !important;
 }
+
 ` as typeof TextField
 
 const Container = styled.div`
