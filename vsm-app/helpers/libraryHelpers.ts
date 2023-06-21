@@ -90,12 +90,12 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription = ''):
   return clonedProgram
 }
 
-interface ProgHasRequiredFields {
+interface MissingFields {
   program: fhir4.Library
   requiredFields: string[]
 }
 
-const missingFields = ({ program, requiredFields }: ProgHasRequiredFields): string[] => {
+const missingFields = ({ program, requiredFields }: MissingFields): string[] => {
   // this fn returns all required field names that do not have entries
   // @ts-ignore-next-line
   return requiredFields.filter(field => !Boolean(program?.[field]?.trim()))
