@@ -1,8 +1,8 @@
 import styled from 'styled-components'
-import { TextField } from '@mui/material'
+import { TextField, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
-const Input = styled(TextField)`
-` as typeof TextField
+const Input = styled(TextField)`` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -28,6 +28,7 @@ interface Props {
   readonly?: boolean
   style?: React.CSSProperties
   errorMessage?: string | JSX.Element | null
+  helperMessage?: string | null
   onKeyPress?: React.KeyboardEventHandler
 }
 
@@ -42,34 +43,40 @@ const TextArea = ({
   readonly = false,
   style = {},
   errorMessage = null,
+  helperMessage = null,
   onKeyPress
 }: Props) => {
   return (
     <Container style={style}>
-        <>
-          <Input
-            id={id}
-            label={label}
-            name={id}
-            variant="filled"
-            helperText={errorMessage}
-            error={!!errorMessage}
-            required={required}
-            InputProps={{
-              readOnly: readonly
-            }}
-            placeholder={placeholder}
-            value={value}
-            multiline
-            onChange={onChange}
-            defaultValue={defaultValue}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
-                return onKeyPress(e)
-              }
-            }}
-          />
-        </>
+      <>
+        <Input
+          id={id}
+          label={label}
+          name={id}
+          variant="filled"
+          helperText={errorMessage}
+          error={!!errorMessage}
+          required={required}
+          InputProps={{
+            readOnly: readonly,
+            endAdornment: helperMessage ? (
+              <Tooltip title={helperMessage} placement="top" arrow>
+                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+              </Tooltip>
+            ) : null
+          }}
+          placeholder={placeholder}
+          value={value}
+          multiline
+          onChange={onChange}
+          defaultValue={defaultValue}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
+              return onKeyPress(e)
+            }
+          }}
+        />
+      </>
     </Container>
   )
 }

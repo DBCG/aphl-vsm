@@ -1,14 +1,13 @@
 import styled from 'styled-components'
-import { TextField } from '@mui/material'
-import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
+import { TextField, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
 interface InputProps {
   minWidth?: number
   onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
-const Input = styled(TextField)`
-` as typeof TextField
+const Input = styled(TextField)`` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -29,6 +28,7 @@ interface Props {
   readonly?: boolean
   required?: boolean
   errorMessage?: string | null
+  helperMessage?: string | null
 }
 
 const SearchInput = ({
@@ -41,28 +41,34 @@ const SearchInput = ({
   disabled = false,
   readonly = false,
   required = false,
-  errorMessage = null
+  errorMessage = null,
+  helperMessage = null
 }: Props) => {
   return (
     <Container>
-        <>
-          <Input
-            defaultValue={defaultValue}
-            label={label}
-            variant='filled'
-            id={id}
-            InputProps={{
-              readOnly: readonly
-            }}
-            error={!!errorMessage}
-            placeholder={placeholder}
-            onChange={onChange}
-            disabled={disabled}
-            required={required}
-            value={value}
-            helperText={errorMessage}
-          />
-        </>
+      <>
+        <Input
+          defaultValue={defaultValue}
+          label={label}
+          variant="filled"
+          id={id}
+          InputProps={{
+            readOnly: readonly,
+            endAdornment: helperMessage ? (
+              <Tooltip title={helperMessage} placement="top" arrow>
+                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+              </Tooltip>
+            ) : null
+          }}
+          error={!!errorMessage}
+          placeholder={placeholder}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          value={value}
+          helperText={errorMessage}
+        />
+      </>
     </Container>
   )
 }
