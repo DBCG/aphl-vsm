@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
-import { InputLabel } from '@/components/InputLabel'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -13,7 +12,7 @@ import {
   getVSPriorityUsageContext,
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
-import { Form, ButtonContainer, TextAreaRow, Col, ButtonCol, RequiredWarning, buttonStyles } from './styles'
+import { Form, ButtonContainer, TextAreaRow, Col, buttonStyles } from './styles'
 import { InputRow } from '@/styles'
 
 interface ProgramEditModalContentProps {
@@ -50,6 +49,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>(program)
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
 
   const initialErrorState = missingFields({ program, requiredFields })
 
@@ -114,14 +114,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             errorMessage={getErrorText('name')}
           />
           <SearchInput
-            id="prog-version"
-            label="Version"
-            readonly={true}
-            defaultValue={version}
-            onChange={(event) => handleFieldChange(event, 'version')}
-            placeholder={'No program version set'}
-          />
-          <SearchInput
             id="prog-title"
             label="Title"
             readonly={!editable || !enableEditing}
@@ -130,6 +122,14 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             placeholder={'No program title set'}
             required={true}
             errorMessage={getErrorText('title')}
+          />
+          <SearchInput
+            id="prog-version"
+            label={`Version ${enableEditing ? `(read-only)` : ''}`}
+            readonly={true}
+            defaultValue={version}
+            onChange={(event) => handleFieldChange(event, 'version')}
+            placeholder={'No program version set'}
           />
           <DateInput
             label={'Effective Start Date'}
@@ -198,7 +198,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           </TextAreaRow>
         </InputRow>
       </Col>
-      <ButtonCol>
+      <Col>
         {editable && !enableEditing && !formTouched ? (
           <ButtonContainer>
             <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
@@ -207,7 +207,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <></>
         )}
         {editable && enableEditing ? (
-          <ButtonCol style={{ justifyContent: 'space-between' }}>
+          <Col style={{ justifyContent: 'space-between' }}>
             <ButtonContainer style={{ alignItems: 'flex-end' }}>
               <Button
                 style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
@@ -228,21 +228,24 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   ...buttonStyles,
                   backgroundColor: 'var(--theme-300)'
                 }}
+                loading={isSaving}
                 text={'Save Changes'}
                 type="submit"
                 onClick={async (e) => {
+                  setIsSaving(true)
                   e.preventDefault()
                   await handleSubmit(editedProgram)
                   setEnableEditing(false)
                   setFormTouched(false)
+                  setIsSaving(false)
                 }}
               />
             </ButtonContainer>
-          </ButtonCol>
+          </Col>
         ) : (
           <></>
         )}
-      </ButtonCol>
+      </Col>
     </Form>
   )
 }

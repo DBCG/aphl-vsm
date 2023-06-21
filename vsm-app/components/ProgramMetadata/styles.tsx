@@ -29,12 +29,8 @@ export const TextAreaRow = styled.div`
 
 export const Col = styled.div`
   display: flex;
-  flex: 3;
-  flex-direction: column;
-`
-
-export const ButtonCol = styled(Col)`
   flex: 1;
+  flex-direction: column;
 `
 
 export const RequiredWarning = styled.p`
