@@ -429,7 +429,6 @@ export default function ValueSetContents({
                 id="vs-version"
                 label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
                 readonly={true}
-                value={defaultGrouperVersion}
                 defaultValue={defaultGrouperVersion}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} version set`}
               />
@@ -439,7 +438,6 @@ export default function ValueSetContents({
                 id="vs-url"
                 label={'URL'}
                 readonly={true}
-                value={currentValueSet.url}
                 defaultValue={currentValueSet.url}
                 placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} url set`}
               />

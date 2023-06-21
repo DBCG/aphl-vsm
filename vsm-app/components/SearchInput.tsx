@@ -7,7 +7,11 @@ interface InputProps {
   onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
-const Input = styled(TextField)`` as typeof TextField
+const Input = styled(TextField)`
+& .Mui-readOnly {
+  background: transparent !important;
+}
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -52,6 +56,7 @@ const SearchInput = ({
           label={label}
           variant="filled"
           id={id}
+          InputLabelProps={{ shrink: true }}
           InputProps={{
             readOnly: readonly,
             endAdornment: helperMessage ? (

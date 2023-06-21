@@ -2,7 +2,11 @@ import styled from 'styled-components'
 import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 
-const Input = styled(TextField)`` as typeof TextField
+const Input = styled(TextField)`
+  & .Mui-readOnly {
+    background: transparent !important;
+  }
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -54,6 +58,7 @@ const TextArea = ({
           label={label}
           name={id}
           variant="filled"
+          InputLabelProps={{ shrink: true }}
           helperText={errorMessage}
           error={!!errorMessage}
           required={required}
