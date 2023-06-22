@@ -175,6 +175,7 @@ const ValueSetDetailsTables = ({
     })
   }
 
+  //@ts-ignore
   const filteredDefinitionData = definitionData?.filter((item) =>
     item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())
   )
