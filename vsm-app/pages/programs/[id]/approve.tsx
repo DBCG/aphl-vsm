@@ -229,6 +229,10 @@ const ApproveInfoForm: NextPage = () => {
     }
     return parametersObj
   }
+
+  useEffect(() => {
+    console.log('approvalFormData: ', approvalFormData)
+  }, [approvalFormData])
   return (
     <>
       <Row>
@@ -273,7 +277,7 @@ const ApproveInfoForm: NextPage = () => {
           <SearchInput
             id="target"
             label="Target"
-            defaultValue={approvalFormData.artifactCommentTarget}
+            value={approvalFormData.artifactCommentTarget}
             helperMessage="Target of the program comment"
             readonly={true}
           />
