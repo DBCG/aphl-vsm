@@ -1,19 +1,11 @@
-import { useState, useEffect, SetStateAction, Dispatch } from 'react'
-import { Tabs, Box, Tab, Tooltip, Typography } from '@mui/material'
+import { useState, SetStateAction, Dispatch } from 'react'
+import { Tabs, Box, Tab, Tooltip, Typography, TextField, IconButton } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
-import { PageTitle } from '@/components/Typography'
-import { Button } from './buttons/Button'
-import LoadingIndicator from './LoadingIndicator'
-import { Form } from './ProgramMetadata/styles'
-import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
-import { InputRow, InputContainer, ButtonContainer } from '@/styles'
-import { TextArea } from './TextArea'
-import { getOid } from '@/helpers/valueSetHelpers'
-
+import ClearIcon from '@mui/icons-material/Clear'
 interface TabPanelProps {
   children?: React.ReactNode
   index: number
@@ -25,6 +17,18 @@ interface ExpansionTableData {
   version: string
   code: string
   timestamp?: string
+}
+
+interface GrouperVSTableData {
+  valueSet: string[]
+}
+
+interface ValueSetDetailsTablesProps {
+  setCurrentValueSet: Dispatch<SetStateAction<any>>
+  programAndGrouperInfo: ProgramDetails
+  currentValueSet: fhir4.ValueSet
+  isGrouperValueSet: boolean
+  isDraftProgram: boolean
 }
 
 const EXPANSION_COLUMNS = [
@@ -49,20 +53,12 @@ const EXPANSION_COLUMNS = [
   }
 ]
 
-interface GrouperVSTableData {
-  valueSet: string[]
-}
-
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
 
   return (
     <div role="tabpanel" hidden={value !== index} id={`tabpanel-${index}`} aria-labelledby={`tab-${index}`} {...other}>
-      {value === index && (
-        <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
-        </Box>
-      )}
+      {value === index && <Box sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>{children}</Box>}
     </div>
   )
 }
@@ -74,14 +70,6 @@ function a11yProps(index: number) {
   }
 }
 
-interface ValueSetDetailsTablesProps {
-  setCurrentValueSet: Dispatch<SetStateAction<any>>
-  programAndGrouperInfo: ProgramDetails
-  currentValueSet: fhir4.ValueSet
-  isGrouperValueSet: boolean
-  isDraftProgram: boolean
-}
-
 const ValueSetDetailsTables = ({
   setCurrentValueSet,
   programAndGrouperInfo,
@@ -91,6 +79,8 @@ const ValueSetDetailsTables = ({
 }: ValueSetDetailsTablesProps) => {
   const [value, setValue] = useState(0) // Used for tabs
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
+  const [filterDefinitionText, setFilterDefinitionText] = useState('')
+  const [filterExpansionText, setFilterExpansionText] = useState('')
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -185,6 +175,11 @@ const ValueSetDetailsTables = ({
     })
   }
 
+  const filteredDefinitionData = definitionData?.filter((item) =>
+    item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+  )
+
+  const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase()))
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -206,19 +201,49 @@ const ValueSetDetailsTables = ({
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
+        <TextField
+          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+          InputProps={{
+            endAdornment: (
+              <IconButton onClick={() => setFilterDefinitionText('')}>
+                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+              </IconButton>
+            )
+          }}
+          value={filterDefinitionText}
+          onChange={(e) => setFilterDefinitionText(e.target.value)}
+          id="filter-definition-table"
+          label="Filter Definitions"
+          variant="outlined"
+        />
         <DataTable
           columns={definitionColumns}
           keyField={'valueSet'}
-          data={definitionData as GrouperVSTableData[]}
+          data={filteredDefinitionData as GrouperVSTableData[]}
           pagination
           paginationPerPage={10}
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
+        <TextField
+          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+          InputProps={{
+            endAdornment: (
+              <IconButton onClick={() => setFilterExpansionText('')}>
+                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+              </IconButton>
+            )
+          }}
+          value={filterExpansionText}
+          onChange={(e) => setFilterExpansionText(e.target.value)}
+          id="filter-expansion-table"
+          label="Filter Expansion Codes"
+          variant="outlined"
+        />
         <DataTable
           columns={expansionColumns}
           defaultSortFieldId={'code'}
-          data={expansionData as ExpansionTableData[]}
+          data={filteredExpansionData as ExpansionTableData[]}
           pagination
           paginationPerPage={10}
         />
