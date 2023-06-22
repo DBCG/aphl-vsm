@@ -3,7 +3,8 @@
 
 - For information on how to connect Keycloak to the VSM application, please see the top-level README
 
-Please note this is using [jboss/keycloak from Docker hub](https://hub.docker.com/r/jboss/keycloak/).  Go [there](https://hub.docker.com/r/jboss/keycloak/) for more information if needed.
+Please note this is using [quay.io/keycloak from quay.io](quay.io/keycloak/keycloak:legacy).  Go [there](quay.io/keycloak/keycloak:legacy)
+for more information if needed.
 
 # Run With Postgres as Database
 ```

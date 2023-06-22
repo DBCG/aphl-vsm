@@ -1,7 +1,7 @@
 #!/bin/bash
 # Command used to debug script quickly
 # docker rm -f keycloak-keycloak-1 keycloak-postgres-1 && docker volume prune -f && docker-compose up -d && ./configure
-# https://github.com/ThisIsRuvos/ersd-keycloak/blob/master/configure
+# https://github.com/DBCG/aphl-vsm/blob/8e7c14a342e9f3b1592aee77348884037103b942/keycloak/configure
 set -e
 
 read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
