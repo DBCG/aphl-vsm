@@ -44,6 +44,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
     if (req.query['title']) {
       queries['title:contains'] = req.query['title'] as string
     }
+
     const searchResult = await fhirCdrClient.search({
       resourceType: 'Library',
       options: {

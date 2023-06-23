@@ -55,12 +55,12 @@ const ProgramEditModalContent = ({ handleSubmit, program }: ProgramEditModalCont
  return (
   <ModalForm>
     <PageTitle>Edit Program Metadata</PageTitle> 
-    <SearchInput id='prog-id' label='ID' minWidth={400} def={id} onChange={(event) => handleFieldChange(event, 'id')}/>
-    <SearchInput id='prog-name' label='Name' minWidth={400} def={name} onChange={(event) => handleFieldChange(event, 'name')}/>
-    <SearchInput id='prog-version' label='Version' def={version} onChange={(event) => handleFieldChange(event, 'version')}/>
-    <SearchInput id='prog-title' label='Title' def={title} onChange={(event) => handleFieldChange(event, 'title')}/>
-    <TextArea id='prog-desc' label='Description' minWidth={500} def={description} onChange={(event) => handleFieldChange(event, 'description')} />
-    <TextArea id='prog-release-desc' label='Release Description' minWidth={500} def={releaseDescription} onChange={(event) => handleFieldChange(event, 'releaseDescription')} />
+    <SearchInput id='prog-id' label='ID' defaultValue={id} onChange={(event) => handleFieldChange(event, 'id')}/>
+    <SearchInput id='prog-name' label='Name' defaultValue={name} onChange={(event) => handleFieldChange(event, 'name')}/>
+    <SearchInput id='prog-version' label='Version' defaultValue={version} onChange={(event) => handleFieldChange(event, 'version')}/>
+    <SearchInput id='prog-title' label='Title' defaultValue={title} onChange={(event) => handleFieldChange(event, 'title')}/>
+    <TextArea id='prog-desc' label='Description' defaultValue={description} onChange={(event) => handleFieldChange(event, 'description')} />
+    <TextArea id='prog-release-desc' label='Release Description' defaultValue={releaseDescription} onChange={(event) => handleFieldChange(event, 'releaseDescription')} />
     {formTouched && (
       <ButtonContainer>
         <Button

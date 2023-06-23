@@ -1,45 +1,43 @@
 import styled from 'styled-components'
-import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
+import { TextField, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
 interface InputProps {
   minWidth?: number
   onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
 }
 
-const Input = styled.input<InputProps>`
-  min-width: ${(props) => props.minWidth || 0}px;
-  padding: 4px 6px;
-  background-color: white;
-  border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-300);
-`
+const Input = styled(TextField)`
+& .MuiFilledInput-input {
+  background: white !important;
+}
+
+& .Mui-readOnly {
+  background: transparent !important;
+}
+
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
 `
 
-const FlexRow = styled.div`
-  display: flex;
-  flex-direction: row;
-`
-
 interface Props {
   placeholder?: string
+  defaultValue?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
-  label?: string
+  label: string
   id?: string
   value?: string
   def?: string
-  minWidth?: number
   hasIcon?: boolean
   disabled?: boolean
   includeInfo?: boolean
-  info?: string
-  style?: React.CSSProperties
   readonly?: boolean
   required?: boolean
   errorMessage?: string | null
+  helperMessage?: string | null
 }
 
 const SearchInput = ({
@@ -47,38 +45,40 @@ const SearchInput = ({
   onChange,
   label,
   value,
-  def,
+  defaultValue,
   id,
-  style,
-  minWidth,
-  info,
   disabled = false,
   readonly = false,
   required = false,
-  errorMessage = null
+  errorMessage = null,
+  helperMessage = null
 }: Props) => {
   return (
     <Container>
-      <FlexRow>
-        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
-      </FlexRow>
-      {readonly ? (
-        <ReadOnlyContainer id={id} minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
-      ) : (
-        <>
-          <Input
-            id={id}
-            placeholder={placeholder}
-            onChange={onChange}
-            minWidth={minWidth}
-            disabled={disabled}
-            value={value}
-            defaultValue={def}
-            style={style}
-          />
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-        </>
-      )}
+      <>
+        <Input
+          defaultValue={defaultValue}
+          label={label}
+          variant="filled"
+          id={id}
+          InputLabelProps={{ shrink: true }}
+          InputProps={{
+            readOnly: readonly,
+            endAdornment: helperMessage ? (
+              <Tooltip title={helperMessage} placement="top" arrow>
+                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+              </Tooltip>
+            ) : null
+          }}
+          error={!!errorMessage}
+          placeholder={placeholder}
+          onChange={onChange}
+          disabled={disabled}
+          required={required}
+          value={value}
+          helperText={errorMessage}
+        />
+      </>
     </Container>
   )
 }

@@ -1,6 +1,7 @@
 import styled from 'styled-components'
+import { FormControl } from '@mui/material'
 
-export const Form = styled.form`
+export const Form = styled(FormControl)`
   display: flex;
   flex-wrap: wrap;
   gap: 16px 24px;
@@ -28,12 +29,8 @@ export const TextAreaRow = styled.div`
 
 export const Col = styled.div`
   display: flex;
-  flex: 3;
-  flex-direction: column;
-`
-
-export const ButtonCol = styled(Col)`
   flex: 1;
+  flex-direction: column;
 `
 
 export const RequiredWarning = styled.p`

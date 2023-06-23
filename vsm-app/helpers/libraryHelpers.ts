@@ -90,14 +90,16 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription = ''):
   return clonedProgram
 }
 
-interface ProgHasRequiredFields {
+interface MissingFields {
   program: fhir4.Library
   requiredFields: string[]
 }
 
-const progHasRequiredFields = ({ program, requiredFields }: ProgHasRequiredFields): boolean =>
+const missingFields = ({ program, requiredFields }: MissingFields): string[] => {
+  // this fn returns all required field names that do not have entries
   // @ts-ignore-next-line
-  requiredFields.every((field) => Boolean(program?.[field]?.trim()))
+  return requiredFields.filter(field => !Boolean(program?.[field]?.trim()))
+}
 
 // currently used just for groupers, could make more flexible
 // this also doesn't specify deletion by version, deletes all by base url
@@ -128,6 +130,6 @@ export {
   getVSPriorityUsageContext,
   getReleaseDescription,
   setReleaseDescription,
-  progHasRequiredFields,
+  missingFields,
   editComposeInclude
 }

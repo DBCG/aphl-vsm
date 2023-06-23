@@ -40,6 +40,7 @@ export const InputRow = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 16px 12px;
+  flex: 1;
 `
 export const Id = styled(PageTitle).attrs({
   as: 'span'

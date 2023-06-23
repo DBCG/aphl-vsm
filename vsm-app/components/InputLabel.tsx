@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { InputLabel as MuiInputLabel } from '@mui/material'
 import Image from 'next/image'
 
 interface LabelProps {
@@ -7,6 +8,7 @@ interface LabelProps {
   required?: boolean
   readonly?: boolean
   info?: string
+  children: JSX.Element | string
 }
 
 const TooltipContainer = styled.div`
@@ -53,16 +55,17 @@ interface ReadOnlyContainerProps {
 
 export const ReadOnlyContainer = styled.div<ReadOnlyContainerProps>`
   min-width: ${(props) => (props?.minWidth ? props.minWidth + 'px' : 'auto')};
+  display: flex;
+  flex-direction: column;
 `
 
-const InputLabel = ({ id, label, required, readonly, info }: LabelProps) => {
+const InputLabel = ({ id, label, info }: LabelProps) => {
   return (
     <>
       {label !== undefined && id !== undefined && (
-        <StyledLabel>
+        <MuiInputLabel htmlFor={id}>
           {label}
-          {required && !readonly && <sup style={{ color: 'red' }}>*</sup>}
-        </StyledLabel>
+        </MuiInputLabel>
       )}
       {info && (
         <InfoContainer>

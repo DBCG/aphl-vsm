@@ -5,6 +5,7 @@ import { CircularProgress } from '@mui/material'
 
 const StyledBtn = styled(Btn)<ButtonProps>`
   height: fit-content;
+  transition: width 500ms;
 `
 
 interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,15 +23,16 @@ const Button = ({ text, style, loading, disabled, onClick = () => {}, ...props }
   ) : null
 
   const generateIcon = () => {
+    if(loading) {
+      return <CircularProgress color='inherit' style={{  marginRight: '.5em', width: '20px', height: '20px' }}/>
+    }
+
     if (text !== 'Release') {
       return null
     }
+  
     if (text === 'Release') {
-      if(loading) {
-        return <CircularProgress color='inherit' style={{  marginRight: '.5em', width: '20px', height: '20px' }}/>
-      } else {
-        return <NewReleasesIcon style={{  marginRight: '.2em' }}/>
-      }
+      return <NewReleasesIcon style={{  marginRight: '.2em' }}/>
     }
     return null
   }

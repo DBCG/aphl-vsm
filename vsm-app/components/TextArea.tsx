@@ -1,20 +1,16 @@
 import styled from 'styled-components'
-import { InputLabel, ErrorMessage, ReadOnlyContainer } from './InputLabel'
+import { TextField, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
-interface InputProps {
-  minWidth?: number
-  minHeight?: number
-  maxInputHeight?: number
-  onChange: Props['onChange']
-}
+const Input = styled(TextField)`
+  & .MuiInputBase-multiline {
+    background: white !important;
+  }
 
-const Input = styled.textarea<InputProps>`
-  min-width: ${(props) => props.minWidth || 0}px;
-  padding: 4px 6px;
-  background-color: white;
-  border: 2px solid transparent;
-  border-bottom: 2px solid var(--theme-300);
-`
+  & .Mui-readOnly {
+    background: transparent !important;
+  }
+` as typeof TextField
 
 const Container = styled.div`
   display: flex;
@@ -33,14 +29,14 @@ interface Props {
   value?: string
   label?: string
   id?: string
-  def?: string
-  minWidth?: number
+  defaultValue?: string
   maxInputHeight?: number
   hasIcon?: boolean
   info?: string
   readonly?: boolean
   style?: React.CSSProperties
   errorMessage?: string | JSX.Element | null
+  helperMessage?: string | null
   onKeyPress?: React.KeyboardEventHandler
 }
 
@@ -51,40 +47,45 @@ const TextArea = ({
   label,
   required = false,
   id,
-  def,
-  minWidth,
-  info,
+  defaultValue,
   readonly = false,
   style = {},
   errorMessage = null,
+  helperMessage = null,
   onKeyPress
 }: Props) => {
   return (
     <Container style={style}>
-      <FlexRow>
-        <InputLabel id={id} info={info} label={label} required={required} readonly={readonly} />
-      </FlexRow>
-      {readonly ? (
-        <ReadOnlyContainer id={id} minWidth={minWidth}>{def || placeholder}</ReadOnlyContainer>
-      ) : (
-        <>
-          <Input
-            id={id}
-            name={id}
-            placeholder={placeholder}
-            value={value}
-            onChange={onChange}
-            defaultValue={def}
-            minWidth={minWidth}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
-                return onKeyPress(e)
-              }
-            }}
-          />
-          {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-        </>
-      )}
+      <>
+        <Input
+          id={id}
+          label={label}
+          name={id}
+          variant="filled"
+          InputLabelProps={{ shrink: true }}
+          helperText={errorMessage}
+          error={!!errorMessage}
+          required={required}
+          InputProps={{
+            readOnly: readonly,
+            endAdornment: helperMessage ? (
+              <Tooltip title={helperMessage} placement="top" arrow>
+                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+              </Tooltip>
+            ) : null
+          }}
+          placeholder={placeholder}
+          value={value}
+          multiline
+          onChange={onChange}
+          defaultValue={defaultValue}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
+              return onKeyPress(e)
+            }
+          }}
+        />
+      </>
     </Container>
   )
 }

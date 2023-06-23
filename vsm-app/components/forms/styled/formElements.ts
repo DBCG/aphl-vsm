@@ -1,7 +1,8 @@
 import styled from 'styled-components'
+import { FormControl } from '@mui/material'
 
 // add grouper form + page elements
-const Form = styled.form`
+const Form = styled(FormControl)`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
   gap: 12px;
@@ -47,7 +48,6 @@ const Col = styled.div`
   display: flex;
   flex-direction: column;
   gap: 36px;
-  min-width: 450px;
 `
 
 const Row = styled.div`
@@ -60,6 +60,8 @@ const MetadataContainer = styled.div`
   padding-bottom: 64px;
   display: flex;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 24px;
 `
 
 const Subtitle = styled.p`

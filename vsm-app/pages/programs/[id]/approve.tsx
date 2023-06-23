@@ -11,6 +11,9 @@ import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
 import { toast } from 'react-toastify'
+import { Box, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
+
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -226,6 +229,10 @@ const ApproveInfoForm: NextPage = () => {
     }
     return parametersObj
   }
+
+  useEffect(() => {
+    console.log('approvalFormData: ', approvalFormData)
+  }, [approvalFormData])
   return (
     <>
       <Row>
@@ -244,7 +251,12 @@ const ApproveInfoForm: NextPage = () => {
           <SubtitleRow>
             <StyledSpan>Artifact Comment</StyledSpan>
           </SubtitleRow>
-          <LabelStyled>Type</LabelStyled>
+          <LabelStyled>
+            Type{' '}
+            <Tooltip title="Approval type" placement="top" arrow>
+              <InfoIcon sx={{ width: '15px', height: '15px' }} />
+            </Tooltip>
+          </LabelStyled>
           <Select
             value={{
               value: approvalFormData.artifactCommentType,
@@ -257,20 +269,29 @@ const ApproveInfoForm: NextPage = () => {
           <TextArea
             id="text"
             label="Text"
+            helperMessage="Text description for the program comment"
             value={approvalFormData.artifactCommentText}
             // @ts-ignore
             onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
           />
-          <SearchInput id="target" label="Target" def={approvalFormData.artifactCommentTarget} readonly={true} />
+          <SearchInput
+            id="target"
+            label="Target"
+            value={approvalFormData.artifactCommentTarget}
+            helperMessage="Target of the program comment"
+            readonly={true}
+          />
           <SearchInput
             id="reference"
             label="Reference"
+            helperMessage="Reference to the program being commented on"
             value={approvalFormData.artifactCommentReference}
             onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
           />
           <SearchInput
             id="user"
             label="User"
+            helperMessage="User who is approving the program"
             value={approvalFormData.artifactCommentUser}
             onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}
           />
