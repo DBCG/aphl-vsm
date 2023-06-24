@@ -107,7 +107,6 @@ const ValueSetDetailsTables = ({
         toast.error('Failed to expand valueset')
       }
     } catch (e) {
-      console.error(e)
       toast.error('Failed to expand valueset')
     }
     setIsLoadingExpansion(false)
@@ -176,11 +175,11 @@ const ValueSetDetailsTables = ({
   }
 
   //@ts-ignore
-  const filteredDefinitionData = definitionData?.filter((item) =>
-    item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())
-  )
+  const filteredDefinitionData =
+    definitionData?.filter((item) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())) || []
 
-  const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase()))
+  const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
+
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -202,21 +201,23 @@ const ValueSetDetailsTables = ({
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        <TextField
-          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-          InputProps={{
-            endAdornment: (
-              <IconButton onClick={() => setFilterDefinitionText('')}>
-                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-              </IconButton>
-            )
-          }}
-          value={filterDefinitionText}
-          onChange={(e) => setFilterDefinitionText(e.target.value)}
-          id="filter-definition-table"
-          label="Filter Definitions"
-          variant="outlined"
-        />
+        {filteredDefinitionData?.length > 0 && (
+          <TextField
+            sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+            InputProps={{
+              endAdornment: (
+                <IconButton onClick={() => setFilterDefinitionText('')}>
+                  <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+                </IconButton>
+              )
+            }}
+            value={filterDefinitionText}
+            onChange={(e) => setFilterDefinitionText(e.target.value)}
+            id="filter-definition-table"
+            label="Filter Definitions"
+            variant="outlined"
+          />
+        )}
         <DataTable
           columns={definitionColumns}
           keyField={'valueSet'}
@@ -226,21 +227,23 @@ const ValueSetDetailsTables = ({
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <TextField
-          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-          InputProps={{
-            endAdornment: (
-              <IconButton onClick={() => setFilterExpansionText('')}>
-                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-              </IconButton>
-            )
-          }}
-          value={filterExpansionText}
-          onChange={(e) => setFilterExpansionText(e.target.value)}
-          id="filter-expansion-table"
-          label="Filter Expansion Codes"
-          variant="outlined"
-        />
+        {filteredExpansionData?.length > 0 && (
+          <TextField
+            sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+            InputProps={{
+              endAdornment: (
+                <IconButton onClick={() => setFilterExpansionText('')}>
+                  <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+                </IconButton>
+              )
+            }}
+            value={filterExpansionText}
+            onChange={(e) => setFilterExpansionText(e.target.value)}
+            id="filter-expansion-table"
+            label="Filter Expansion Codes"
+            variant="outlined"
+          />
+        )}
         <DataTable
           columns={expansionColumns}
           defaultSortFieldId={'code'}
