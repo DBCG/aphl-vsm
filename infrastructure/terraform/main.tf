@@ -90,7 +90,7 @@ module "ebs_kms_key" {
   source  = "terraform-aws-modules/kms/aws"
   version = "~> 1.1"
 
-  description = "Customer managed key to encrypt EKS managed node group volumes"
+  description = "Key to encrypt EKS managed node group volumes"
 
   # Policy
   key_administrators = [

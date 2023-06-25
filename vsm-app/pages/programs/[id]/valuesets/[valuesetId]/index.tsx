@@ -29,7 +29,7 @@ const ValueSetPageView = () => {
       setCurrentValueSet(json)
     }
 
-    if (!programAndGrouperDataLoading) {
+    if (!programAndGrouperDataLoading && valueSetId) {
       const grouperValueSet = programAndGrouperData?.grouperData?.find((gl) => gl.id === valueSetId)
       changeGrouperView(grouperValueSet != null)
       fetchValueSet()
