@@ -1,13 +1,14 @@
 import { useState, useEffect, SetStateAction, Dispatch } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Tabs, Box, Tab, Tooltip, Typography, Grid, FormControl } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
-import { Form } from './ProgramMetadata/styles'
 import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
-import { InputRow, InputContainer, ButtonContainer } from '@/styles'
+import { InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
 import { getOid } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
@@ -160,23 +161,43 @@ export default function ValueSetContents({
   const programVersion = programAndGrouperInfo?.program?.version
   return (
     <Box>
-      <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px' }}>
-        <Form>
-          <PageTitle>{currentValueSet.title}</PageTitle>
-          <Typography
-            sx={{
-              background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
-              color: 'white',
-              padding: '4px 10px',
-              width: '85px',
-              textAlign: 'center',
-              borderRadius: '8px'
-            }}
-          >
-            {isGrouperValueSet ? 'Grouper' : 'Leaf'}
-          </Typography>
-          <InputContainer style={{ width: '100%' }}>
-            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+      <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px', maxWidth: maxFormWidth }}>
+          <Grid container justifyContent='flex-end' spacing={2}>
+            <Grid item xs={12} sm={2}>
+              <Typography
+                sx={{
+                  background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
+                  color: 'white',
+                  padding: '4px 10px',
+                  textAlign: 'center',
+                  borderRadius: '8px'
+                }}
+              >
+                {isGrouperValueSet ? 'Grouper' : 'Leaf'}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} sm={10}>
+              <PageTitle>{currentValueSet.title}</PageTitle>
+            </Grid>
+          </Grid>
+          <InputContainer>
+            <Grid container justifyContent='flex-end'>
+                {isDraftProgram && (
+                  <Typography
+                    style={{
+                      background: '#FAA024',
+                      color: 'white',
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      height: 'max-content'
+                    }}
+                  >
+                    Draft
+                  </Typography>
+                )}
+            </Grid>
+          <Grid container alignItems='flex-start' spacing={2}>
+            <Grid item xs={12} sm={6} md={4}>
               <SearchInput
                 id="prog-id"
                 label="Program ID"
@@ -184,21 +205,8 @@ export default function ValueSetContents({
                 defaultValue={programAndGrouperInfo?.program?.id || 'No ID found'}
                 placeholder={'No valueset id set'}
               />
-              {isDraftProgram && (
-                <Typography
-                  style={{
-                    background: '#FAA024',
-                    color: 'white',
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    height: 'max-content'
-                  }}
-                >
-                  Draft
-                </Typography>
-              )}
-            </InputRow>
-            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
               <SearchInput
                 id="prog-name"
                 label="Program Name"
@@ -206,8 +214,8 @@ export default function ValueSetContents({
                 defaultValue={programAndGrouperInfo?.program?.name || 'No name found'}
                 placeholder={'No valueset id set'}
               />
-            </InputRow>
-            <InputRow>
+            </Grid>
+            <Grid item xs={12} sm={6} md={4}>
               <SearchInput
                 id="prog-version"
                 label="Program Version"
@@ -215,8 +223,8 @@ export default function ValueSetContents({
                 defaultValue={programVersion}
                 placeholder={'No program version set'}
               />
-            </InputRow>
-            <InputRow style={{ width: '100%' }}>
+            </Grid>
+            <Grid item xs={12}>
               <TextArea
                 id="prog-url"
                 label="Program URL"
@@ -224,122 +232,119 @@ export default function ValueSetContents({
                 defaultValue={programUrl}
                 placeholder={'No program canonical set'}
               />
-            </InputRow>
+            </Grid>
+          </Grid>
           </InputContainer>
           <InputContainer>
-            <InputRow style={{ width: '100%', justifyContent: 'space-between' }}>
-              <SearchInput
-                id="vs-id"
-                label={isGrouperValueSet ? 'Grouper ID' : 'Valueset ID'}
-                readonly={true}
-                defaultValue={valueSet.id}
-                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} id set`}
-              />
-              {isGrouperValueSet && enableEditing && !isEditing && (
-                <Button
-                  text="Edit Metadata"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setIsEditing(true)
-                  }}
-                />
-              )}
-              {enableEditing && isEditing && (
-                <ButtonContainer>
-                  <Button
-                    text="Cancel"
-                    style={{ backgroundColor: 'darkGray' }}
-                    onClick={(e) => {
-                      resetValues()
-                      e.preventDefault()
-                      setIsEditing(false)
-                    }}
-                  />
-                  <Button
-                    disabled={!Boolean(Object.keys(changedMetadataItems).length)}
-                    text="Save Changes"
-                    onClick={async (e) => {
-                      e.preventDefault()
-                      await submitGrouperUpdates()
-                    }}
-                  />
-                </ButtonContainer>
-              )}
-            </InputRow>
-            <InputRow style={{ width: '100%' }}>
-              <SearchInput
-                id="vs-version"
-                label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
-                readonly={true}
-                defaultValue={defaultGrouperVersion}
-                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} version set`}
-              />
-            </InputRow>
-            <InputRow style={{ width: '100%' }}>
-              <TextArea
-                id="vs-url"
-                label={'URL'}
-                readonly={true}
-                defaultValue={currentValueSet.url}
-                placeholder={`No ${isGrouperValueSet ? 'Groupper' : 'Valueset'} url set`}
-              />
-            </InputRow>
-            {!isGrouperValueSet && (
-              <InputRow style={{ width: '100%' }}>
-                <TextArea
-                  id="vs-oid"
-                  label={'OID'}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <SearchInput
+                  id="vs-version"
+                  label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
                   readonly={true}
-                  value={getOid(currentValueSet)}
-                  defaultValue={getOid(currentValueSet)}
-                  placeholder={'No valueset oid was set'}
+                  defaultValue={defaultGrouperVersion}
+                  placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} version set`}
                 />
-              </InputRow>
+              </Grid>
+              <Grid item xs={12}>
+                <TextArea
+                  id="vs-url"
+                  label={'URL'}
+                  readonly={true}
+                  defaultValue={currentValueSet.url}
+                  placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} url set`}
+                />
+              </Grid>
+              <Grid item xs={12}>
+              {!isGrouperValueSet && (
+              <TextArea
+                id="vs-oid"
+                label={'OID'}
+                readonly={true}
+                value={getOid(currentValueSet)}
+                defaultValue={getOid(currentValueSet)}
+                placeholder={'No valueset oid was set'}
+              />
             )}
-            <InputRow style={{ width: '100%' }}>
-              <TextArea
-                id="vs-publisher"
-                label="Publisher"
-                readonly={!isEditing}
-                value={grouperPublisher}
-                defaultValue={defaultGrouperPublisher}
-                placeholder={'No valueset publisher set'}
-                onChange={(e) => setGrouperPublisher(e.target.value)}
-              />
-              <SearchInput
-                id="vs-author"
-                label="Author"
-                readonly={!isEditing}
-                value={grouperAuthor}
-                defaultValue={defaultGrouperAuthor}
-                placeholder={'No valueset author set'}
-                onChange={(e) => setGrouperAuthor(e.target.value)}
-              />
-            </InputRow>
-            <InputRow style={{ width: '100%' }}>
-              <TextArea
-                id="vs-purpose"
-                label="Purpose"
-                readonly={!isEditing}
-                value={grouperPurpose}
-                defaultValue={defaultGrouperPurpose}
-                placeholder={'No valueset purpose set'}
-                onChange={(e) => setGrouperPurpose(e.target.value)}
-              />
-            </InputRow>
-            <InputRow style={{ width: '100%' }}>
-              <TextArea
-                id="vs-description"
-                label="Description"
-                readonly={!isEditing}
-                value={grouperDescription}
-                defaultValue={defaultGrouperDescription}
-                placeholder={'No valueset description set'}
-                onChange={(e) => setGrouperDescription(e.target.value)}
-              />
-            </InputRow>
+              </Grid>
+              <Grid item xs={12} sm={12} md={6}>
+                <TextArea
+                  id="vs-publisher"
+                  label="Publisher"
+                  readonly={!isEditing}
+                  value={grouperPublisher}
+                  defaultValue={defaultGrouperPublisher}
+                  placeholder={'No valueset publisher set'}
+                  onChange={(e) => setGrouperPublisher(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <SearchInput
+                  id="vs-author"
+                  label="Author"
+                  readonly={!isEditing}
+                  value={grouperAuthor}
+                  defaultValue={defaultGrouperAuthor}
+                  placeholder={'No valueset author set'}
+                  onChange={(e) => setGrouperAuthor(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextArea
+                  id="vs-purpose"
+                  label="Purpose"
+                  readonly={!isEditing}
+                  value={grouperPurpose}
+                  defaultValue={defaultGrouperPurpose}
+                  placeholder={'No valueset purpose set'}
+                  onChange={(e) => setGrouperPurpose(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextArea
+                  id="vs-description"
+                  label="Description"
+                  readonly={!isEditing}
+                  value={grouperDescription}
+                  defaultValue={defaultGrouperDescription}
+                  placeholder={'No valueset description set'}
+                  onChange={(e) => setGrouperDescription(e.target.value)}
+                />
+              </Grid>
+            </Grid>
+              <Grid container justifyContent='flex-end'>
+                {isGrouperValueSet && enableEditing && !isEditing && (
+                  <Button
+                    text="Edit Metadata"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsEditing(true)
+                    }}
+                  />
+                )}
+                {enableEditing && isEditing && (
+                  <ButtonContainer>
+                    <Button
+                      text="Cancel"
+                      style={{ backgroundColor: 'darkGray' }}
+                      onClick={(e) => {
+                        resetValues()
+                        e.preventDefault()
+                        setIsEditing(false)
+                      }}
+                    />
+                    <Button
+                      disabled={!Boolean(Object.keys(changedMetadataItems).length)}
+                      text="Save Changes"
+                      onClick={async (e) => {
+                        e.preventDefault()
+                        await submitGrouperUpdates()
+                      }}
+                    />
+                  </ButtonContainer>
+                )}
+              </Grid>
           </InputContainer>
-        </Form>
         <ValueSetDetailsTables
           setCurrentValueSet={setCurrentValueSet}
           currentValueSet={currentValueSet}

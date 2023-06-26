@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
+import { Grid } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -12,8 +13,7 @@ import {
   getVSPriorityUsageContext,
   USHealthVSPriority
 } from '@/helpers/libraryHelpers'
-import { Form, ButtonContainer, TextAreaRow, Col, buttonStyles } from './styles'
-import { InputRow } from '@/styles'
+import { Form, ButtonContainer, buttonStyles } from './styles'
 
 interface ProgramEditModalContentProps {
   handleSubmit: Function
@@ -101,8 +101,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
 
   return (
     <Form error={Boolean(errorFields.length)}>
-      <Col>
-        <InputRow>
+      <Grid container spacing={2} style={{ maxWidth: '700px' }}>
+        <Grid item xs={12} md={4}>
           <SearchInput
             id="prog-name"
             label="Name"
@@ -113,6 +113,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             required={true}
             errorMessage={getErrorText('name')}
           />
+        </Grid>
+        <Grid item xs={12} md={4}>
           <SearchInput
             id="prog-title"
             label="Title"
@@ -123,6 +125,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             required={true}
             errorMessage={getErrorText('title')}
           />
+        </Grid>
+        <Grid item xs={12} md={4}>
           <SearchInput
             id="prog-version"
             label={`Version ${enableEditing ? `(read-only)` : ''}`}
@@ -131,6 +135,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             onChange={(event) => handleFieldChange(event, 'version')}
             placeholder={'No program version set'}
           />
+        </Grid>
+        <Grid item xs={12}>
           <DateInput
             label={'Effective Start Date'}
             id="effectiveStartDate"
@@ -142,63 +148,59 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             }}
             readonly={!editable || !enableEditing}
           />
-          <TextAreaRow>
-            <TextArea
-              id="prog-desc"
-              label="Description"
-              readonly={!editable || !enableEditing}
-              defaultValue={description}
-              onChange={(event) => handleFieldChange(event, 'description')}
-              placeholder={'No program description set'}
-              style={{ flexBasis: '100%', maxWidth: '624px' }}
-              required={true}
-              errorMessage={getErrorText('description')}
-            />
-            <TextArea
-              id="prog-release-desc"
-              label="Release Description"
-              readonly={!editable || !enableEditing}
-              defaultValue={releaseDescription}
-              onChange={(event) => handleFieldChange(event, 'releaseDescription')}
-              placeholder={'No release description set'}
-              style={{ flexBasis: '100%', maxWidth: '624px' }}
-            />
-            {enableEditing ? (
-              <div
-                style={{
-                  flexBasis: '100%',
-                  maxWidth: '624px'
+        </Grid>
+        <Grid item xs={12}>
+          <TextArea
+            id="prog-desc"
+            label="Description"
+            readonly={!editable || !enableEditing}
+            defaultValue={description}
+            onChange={(event) => handleFieldChange(event, 'description')}
+            placeholder={'No program description set'}
+            required={true}
+            errorMessage={getErrorText('description')}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextArea
+            id="prog-release-desc"
+            label="Release Description"
+            readonly={!editable || !enableEditing}
+            defaultValue={releaseDescription}
+            onChange={(event) => handleFieldChange(event, 'releaseDescription')}
+            placeholder={'No release description set'}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          {enableEditing ? (
+            <div>
+              <Select
+                placeholder="Select Priority Level"
+                classNamePrefix="priority-level-selector"
+                inputId="priority-level-selector"
+                defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
+                instanceId="priority-level-selector"
+                options={priorityLevelOptions}
+                onChange={(e) => {
+                  const newPriority = e?.value as USHealthVSPriority
+                  const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
+                  setFormTouched(true)
+                  setEditedProgram(updatedProgram)
                 }}
-              >
-                <Select
-                  placeholder="Select Priority Level"
-                  classNamePrefix="priority-level-selector"
-                  inputId="priority-level-selector"
-                  defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
-                  instanceId="priority-level-selector"
-                  options={priorityLevelOptions}
-                  onChange={(e) => {
-                    const newPriority = e?.value as USHealthVSPriority
-                    const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
-                    setFormTouched(true)
-                    setEditedProgram(updatedProgram)
-                  }}
-                />
-              </div>
-            ) : (
-              <TextArea
-                id="priority-level"
-                label="Priority Level"
-                readonly={true}
-                defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
-                placeholder={'No Priority set'}
-                style={{ flexBasis: '100%', maxWidth: '624px' }}
               />
-            )}
-          </TextAreaRow>
-        </InputRow>
-      </Col>
-      <Col>
+            </div>
+          ) : (
+            <TextArea
+              id="priority-level"
+              label="Priority Level"
+              readonly={true}
+              defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
+              placeholder={'No Priority set'}
+              style={{ flexBasis: '100%', maxWidth: '624px' }}
+            />
+          )}
+        </Grid>
+        <Grid item xs={12}>
         {editable && !enableEditing && !formTouched ? (
           <ButtonContainer>
             <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
@@ -207,45 +209,43 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <></>
         )}
         {editable && enableEditing ? (
-          <Col style={{ justifyContent: 'space-between' }}>
-            <ButtonContainer style={{ alignItems: 'flex-end' }}>
-              <Button
-                style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
-                text={'Cancel'}
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  setFormTouched(false)
-                  setEditedProgram(program)
-                  setEnableEditing(false)
-                }}
-              />
-
-              <Button
-                disabled={!formTouched || Boolean(errorFields.length)}
-                id={'edit-metadata-save'}
-                style={{
-                  ...buttonStyles,
-                  backgroundColor: 'var(--theme-300)'
-                }}
-                loading={isSaving}
-                text={'Save Changes'}
-                type="submit"
-                onClick={async (e) => {
-                  setIsSaving(true)
-                  e.preventDefault()
-                  await handleSubmit(editedProgram)
-                  setEnableEditing(false)
-                  setFormTouched(false)
-                  setIsSaving(false)
-                }}
-              />
-            </ButtonContainer>
-          </Col>
+          <ButtonContainer style={{ alignItems: 'flex-end' }}>
+            <Button
+              style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
+              text={'Cancel'}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                setFormTouched(false)
+                setEditedProgram(program)
+                setEnableEditing(false)
+              }}
+            />
+            <Button
+              disabled={!formTouched || Boolean(errorFields.length)}
+              id={'edit-metadata-save'}
+              style={{
+                ...buttonStyles,
+                backgroundColor: 'var(--theme-300)'
+              }}
+              loading={isSaving}
+              text={'Save Changes'}
+              type="submit"
+              onClick={async (e) => {
+                setIsSaving(true)
+                e.preventDefault()
+                await handleSubmit(editedProgram)
+                setEnableEditing(false)
+                setFormTouched(false)
+                setIsSaving(false)
+              }}
+            />
+          </ButtonContainer>
         ) : (
           <></>
         )}
-      </Col>
+        </Grid>
+      </Grid>
     </Form>
   )
 }
