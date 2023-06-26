@@ -1,9 +1,9 @@
 import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Dialog, DialogTitle } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import ReactModal from 'react-modal'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
@@ -99,26 +99,6 @@ const ErrorText = styled.span`
 const SelectInputContainer = styled.div`
   min-width: 300px;
 `
-
-const ModalContent = styled.div`
-  display: flex;
-  height: 80%;
-  flex-direction: row;
-  justify-content: center;
-  align-self: center;
-  align-items: center;
-`
-
-const ModalColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-self: center;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-`
-
-const ModalTitle = styled.h1``
 
 const ErrorBlock = styled.div`
   background-color: white;
@@ -528,14 +508,12 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   return (
     <Col>
-      <ReactModal isOpen={addedValueSetsLoading}>
-        <ModalContent>
-          <ModalColumn>
-            <LoadingIndicator size="large" />
-            <ModalTitle>Saving Valuesets to Program</ModalTitle>
-          </ModalColumn>
-        </ModalContent>
-      </ReactModal>
+      <Dialog open={addedValueSetsLoading}>
+        <DialogTitle>Saving Valuesets to Program...</DialogTitle>
+        <div style={{ margin: '0 auto' }}>
+          <LoadingIndicator size="medium" />
+        </div>
+      </Dialog>
       <TitleRow>
         <Row>
           <StyledForm>

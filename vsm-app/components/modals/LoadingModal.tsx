@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import ReactModal from 'react-modal'
-import Modal from '@mui/material/Modal'
+import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
-import LoadingIndicator from '@/components/LoadingIndicator'
 import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
 
@@ -85,10 +83,6 @@ const customModalStyles = {
   }
 }
 
-if (typeof window !== 'undefined') {
-  ReactModal.setAppElement('body')
-}
-
 const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancellable = true, handleModalAction, program }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
@@ -113,12 +107,16 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
   }, [actionType, currentInput.length])
 
   return (
-    <ReactModal isOpen={isOpen} style={customModalStyles}>
-      <ModalContent>
-        <div>
-          <ModalTitle>{title}</ModalTitle>
-          <ModalText>{text}</ModalText>
-          <ModalText style={{ marginBottom: '36px' }}>{actionText}</ModalText>
+    <Dialog open={isOpen}>
+      <DialogContent>
+        <DialogTitle>
+          {title}
+        </DialogTitle>
+        <DialogContentText>
+          {text}
+        </DialogContentText>
+        <DialogContentText>
+          {actionText}
           {actionType === 'release' && (
             <>
               <TextArea
@@ -133,8 +131,10 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
               />
             </>
           )}
-          <ButtonGroup>
-            <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+      <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
             <Button
               text={`YES, ${actionType}`}
               data-modal={'confirm'}
@@ -148,19 +148,9 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 }
                 handleModalAction(actionType, currProgram)
               }}
-            />
-          </ButtonGroup>
-          {loading && (
-            <ModalOverlay>
-              <LoadingContainer>
-                {modalLoadingText}
-                <LoadingIndicator size="large" />
-              </LoadingContainer>
-            </ModalOverlay>
-          )}
-        </div>
-      </ModalContent>
-    </ReactModal>
+            /> 
+      </DialogActions>
+    </Dialog>
   )
 }
 

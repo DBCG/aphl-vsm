@@ -1,7 +1,6 @@
-import React, { useEffect, useState, Dispatch, SetStateAction } from 'react'
+import React from 'react'
+import { Dialog, DialogTitle, DialogContent, DialogContentText, Button, DialogActions } from '@mui/material'
 import styled from 'styled-components'
-import ReactModal from 'react-modal'
-import { Button } from '@/components/buttons/Button'
 
 interface ModalInfo {
   isOpen: boolean
@@ -10,51 +9,34 @@ interface ModalInfo {
   handleConfirmDelete: () => void
 }
 
-const customModalStyles = {
-  overlay: {
-    zIndex: 2
-  },
-  content: {
-    maxWidth: '500px',
-    margin: '0 auto',
-    height: 'fit-content',
-    paddingBottom: '48px'
-  }
-}
-
-if (typeof window !== 'undefined') {
-  ReactModal.setAppElement('body')
-}
-
 const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete, itemToDelete }: ModalInfo) => {
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
   }
 
+  const handleConfirm = () => {
+    handleConfirmDelete()
+    toggleModalOpen()
+  }
+
   return (
-    <ReactModal isOpen={isOpen} style={customModalStyles}>
+    <Dialog open={isOpen}>
       <ModalContent>
-        <ModalTitle>Confirm</ModalTitle>
-        <ModalText>Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}</ModalText>
+        <DialogTitle>Confirm</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancel}>Cancel</Button>
+          <Button onClick={handleConfirm}>YES</Button>
+        </DialogActions>
         <ButtonGroup>
-          <Button
-            text="Cancel"
-            onClick={(e) => handleCancel(e)}
-            style={{ backgroundColor: 'var(--neutral-300)', paddingLeft: '16px', paddingRight: '16px' }}
-          />
-          <Button
-            style={{ paddingLeft: '16px', paddingRight: '16px', backgroundColor: 'var(--accent)' }}
-            data-modal={'confirm'}
-            text={`YES`}
-            onClick={() => {
-              handleConfirmDelete()
-              toggleModalOpen()
-            }}
-          />
         </ButtonGroup>
       </ModalContent>
-    </ReactModal>
+    </Dialog>
   )
 }
 
