@@ -4,7 +4,7 @@ Our applications are setup on AWS Elastic Kubernetes Service (EKS) and utilizes 
 - EC2: Load Balancers and instances will be spun up from the EKS cluster to support the applications running in the orchestrator.
 - RDS Postgres: Stores the data for our cqf-ruler application.
 - AWS Elastic Cache: Can be used as a cache for our vsm-app but serves as a worker for our background jobs.
-
+- Key Management Service: Used to encrypt various secrets and keys.
 ## AWS Infrastructure Deployment
 
 On EKS we run three services, cqf-ruler, vsm-app, and keycloak with one pod replication each. To deploy all the standing 
@@ -48,7 +48,6 @@ This will deploy all of our applications to the cluster. We can check the status
 ## Future refinements
 
 For our deployments we didn't setup persistence for our user auth but it would be setup similarly in terms of the infrastructure to RDS for the cqf-ruler.
-
 
 ## Troubleshooting:
 
