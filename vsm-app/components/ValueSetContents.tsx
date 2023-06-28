@@ -1,7 +1,5 @@
 import { useState, useEffect, SetStateAction, Dispatch } from 'react'
-import { Tabs, Box, Tab, Tooltip, Typography, Grid, FormControl } from '@mui/material'
-import LoadingButton from '@mui/lab/LoadingButton'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { Box, Typography, Grid, FormControl } from '@mui/material'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { Button } from './buttons/Button'
@@ -12,6 +10,9 @@ import { InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
 import { getOid } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
+
+const maxFormWidth = '1000px'
+
 interface StringMap {
   [key: string]: string | undefined
 }
@@ -162,6 +163,7 @@ export default function ValueSetContents({
   return (
     <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px', maxWidth: maxFormWidth }}>
+        <FormControl>
           <Grid container justifyContent='flex-end' spacing={2}>
             <Grid item xs={12} sm={2}>
               <Typography
@@ -345,6 +347,7 @@ export default function ValueSetContents({
                 )}
               </Grid>
           </InputContainer>
+        </FormControl>
         <ValueSetDetailsTables
           setCurrentValueSet={setCurrentValueSet}
           currentValueSet={currentValueSet}
