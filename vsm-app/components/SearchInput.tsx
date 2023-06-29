@@ -20,6 +20,10 @@ const Input = styled(TextField)`
   display: none !important;
 }
 
+& .Mui-readOnly::after {
+  display: none !important;
+}
+
 ` as typeof TextField
 
 const Container = styled.div`
