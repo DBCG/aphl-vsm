@@ -16,6 +16,14 @@ const Input = styled(TextField)`
   background: transparent !important;
 }
 
+& .Mui-readOnly::before {
+  display: none !important;
+}
+
+& .Mui-readOnly::after {
+  display: none !important;
+}
+
 ` as typeof TextField
 
 const Container = styled.div`

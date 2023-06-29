@@ -1,13 +1,5 @@
 import styled from 'styled-components'
-import { FormControl } from '@mui/material'
 
-// add grouper form + page elements
-const Form = styled(FormControl)`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 400px));
-  gap: 12px;
-  justify-content: center;
-`
 
 const FormTitle = styled.h1`
   color: var(--theme-500);
@@ -72,4 +64,4 @@ const Asterisk = styled.span`
   color: var(--accent);
 `
 
-export { Form, FormDirections, FormTitle, DirectionContainer, Col, Row, MetadataContainer, NumberItem, Subtitle, Asterisk }
+export { FormDirections, FormTitle, DirectionContainer, Col, Row, MetadataContainer, NumberItem, Subtitle, Asterisk }

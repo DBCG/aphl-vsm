@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import Modal from 'react-modal'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -27,8 +26,6 @@ const ProgramDetails = () => {
   const fetchedProgram = useGetProgramById({ programId })
   const [releaseError, setReleaseError] = useState<null | string>(null)
   const [isReleasing, setIsReleasing] = useState(false)
-
-  useEffect(() => Modal.setAppElement('#__next'), [])
 
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)

@@ -1,7 +1,7 @@
 import styled, { keyframes } from 'styled-components'
 
 interface Props {
-  size?: 'large'
+  size?: 'large' | 'medium'
 }
 
 const rotate360 = keyframes`
