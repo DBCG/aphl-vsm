@@ -210,7 +210,26 @@ output "aws_auth_configmap_yaml" {
   value       = module.eks.aws_auth_configmap_yaml
 }
 
-output "rds_endpoint" {
-   description = "Endpoint of the RDS cluster"
-  value = "${aws_db_instance.vsm-cqf-ruler.endpoint}"
+output "rds_vsm_cqf_ruler_endpoint" {
+  description = "Endpoint of the CQF-ruler RDS cluster"
+  value       = aws_db_instance.vsm-cqf-ruler.endpoint
+}
+
+output "rds_vsm_keycloak_endpoint" {
+  description = "Endpoint of the Keycloak RDS cluster"
+  value       = aws_db_instance.vsm-keycloak.endpoint
+}
+
+output "cqf-ruler-db-password" {
+  value     = random_password.vsm-cqf-ruler-password.result
+  sensitive = true
+}
+
+output "keycloak-db-password" {
+  value     = random_password.vsm-keycloak-password.result
+  sensitive = true
+}
+
+output "redis-cache-endpoint" {
+  value = aws_elasticache_replication_group.redis-cache.primary_endpoint_address
 }

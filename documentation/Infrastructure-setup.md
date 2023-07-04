@@ -13,7 +13,6 @@ infrastructure we first use terraform.
 `terraform init`
 
 `terraform plan -out plan.out`
-**Important: we need to extract the database password to save for later because it will be generated only at this time**
 
 `terraform apply plan.out`
 
@@ -51,9 +50,10 @@ For our deployments we didn't setup persistence for our user auth but it would b
 
 ## Troubleshooting:
 
-If you cannot access the cluster, you may need to update the aws-auth configmap. To do this, run the following command and adding your arn to the configmap:
+- If you cannot access the cluster, you may need to update the aws-auth configmap. To do this, run the following command and adding your arn to the configmap:
 
 `kube -n kube-system configmap/aws-auth`
 
 resource: https://www.agilepartner.net/en/adding-users-to-your-eks-cluster/
 
+- If you have trouble running the scripts make sure `yq` and `jq` are installed and available in your path.
