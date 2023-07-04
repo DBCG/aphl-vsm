@@ -9,8 +9,8 @@ ALL_CONTAINERS=$(docker ps -a -q)
 
 case "$choice" in 
   y|Y ) docker-compose down \
-    && docker volume prune -f \
     && docker rm -f $ALL_CONTAINERS \
+    && docker volume rm -f $(docker volume ls -q) \
     && docker system prune -f;;
   n|N ) echo "cancelled";;
   * ) echo "invalid option";;
