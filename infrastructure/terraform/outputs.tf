@@ -220,16 +220,16 @@ output "rds_vsm_keycloak_endpoint" {
   value       = aws_db_instance.vsm-keycloak.endpoint
 }
 
-output "cqf-ruler-db-password" {
+output "cqf_ruler_db_password" {
   value     = random_password.vsm-cqf-ruler-password.result
   sensitive = true
 }
 
-output "keycloak-db-password" {
+output "keycloak_db_password" {
   value     = random_password.vsm-keycloak-password.result
   sensitive = true
 }
 
-output "redis-cache-endpoint" {
+output "redis_cache_endpoint" {
   value = aws_elasticache_replication_group.redis-cache.primary_endpoint_address
 }
