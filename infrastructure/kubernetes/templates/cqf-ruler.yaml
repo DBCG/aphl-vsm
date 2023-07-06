@@ -30,7 +30,7 @@ spec:
         app: cqf-ruler-vsm
     spec:
       containers:
-        - image: alphora/cqf-ruler:cqf-ruler-vsm
+        - image: {{ .Values.cqf_ruler.image }}
           imagePullPolicy: Always
           name: cqf-ruler-vsm
           env:
@@ -43,7 +43,7 @@ spec:
             - name: hapi.fhir.cql.cql_logging_enabled
               value: "true"
             - name: spring.datasource.url
-              value: {{ .Values.cqf_ruler_db_url }}
+              value: {{ .Values.cqf_ruler.db_url }}
             - name: spring.datasource.driverClassName
               value: org.postgresql.Driver
             - name: spring.datasource.username

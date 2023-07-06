@@ -32,7 +32,6 @@ keycloak_app_url=$(jq -r '.items[] | select(.metadata.name == "keycloak").status
 yq -i '.keycloak_app_url = env(keycloak_app_url)' ../kubernetes/values.yaml
 echo "done!"
 
-
 # Set secrets for dbs, example below: 
 # keycloak_rds_password=$(jq -r '.keycloak_db_password.value' <<< $terraform_output)
 # cqf_ruler_rds_password=$(jq -r '.cqf_ruler_db_password.value' <<< $terraform_output)

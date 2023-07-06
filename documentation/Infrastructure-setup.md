@@ -16,7 +16,7 @@ infrastructure we first use terraform.
 
 `terraform apply plan.out`
 
-When complete terraform should report a successful deployment. We can setup kubectl to connect to our cluster by running:
+When complete terraform should report a successful deployment. We can setup our local command line to connect to our cluster by running:
 
 `aws eks --region us-east-1 update-kubeconfig --name vsm-eks` where `vsm-eks` is the name of the cluster.
 
@@ -24,25 +24,29 @@ We can now deploy our applications to the cluster. First we need to create a nam
 
 `kubectl create namespace vsm`
 
-Next we need to create a secret for our database password:
-
-`kubectl create secret generic vsm-db-password --from-literal=password=<password> -n vsm`
-
-Where `<password>` is the password we extracted from terraform.
-
-
 ## Application Deployment
 
-Now we have our DB setup we can deploy our applications. First we need to build our vsm-app docker images and push them to ECR.
-Afterwards we need to update our yaml files in `infrastructure/kubernetes` to use the new image directory.
+prequisites:
+  - helm (https://helm.sh/docs/intro/install/#from-script)
+  - yq (https://mikefarah.gitbook.io/yq/) & jq (https://stedolan.github.io/jq/)
+  - ecr setup (https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html)
 
-Now we can deploy our applications:
-`kubectl apply -f <app_root_directory>/infrastructure/kubernetes -n vsm`
+Application will first require a deployment so that AWS can allocate load balancers to the services. Thereafter we will redeployment with those load balancer urls.
+
+Build vsm-app docker images and push them to ECR, refer to `./bin/deploy` at the `# Build and push image to ECR` step to see how to do this.
+
+Afterwards we need to update our yaml files in `infrastructure/kubernetes/templates` to use the new image directory.
+
+Now we can deploy our applications using helm:
+`helm install`
 
 This will deploy all of our applications to the cluster. We can check the status of our pods by running:
 
 `kubectl get pods -n vsm`
 
+Afterwards we will need to setup our load balancers. To do this we need to run the following commands:
+
+ `./bin/update_helm_config.js` to make things easier.
 
 ## Future refinements
 
@@ -56,4 +60,4 @@ For our deployments we didn't setup persistence for our user auth but it would b
 
 resource: https://www.agilepartner.net/en/adding-users-to-your-eks-cluster/
 
-- If you have trouble running the scripts make sure `yq` and `jq` are installed and available in your path.
+- If you have trouble running the scripts make sure `yq` and `jq` are installed and available in your path.****

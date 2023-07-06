@@ -30,24 +30,20 @@ spec:
         app: keycloak
     spec:
       containers:
-        - image: quay.io/keycloak/keycloak:legacy
+        - image: {{ .Values.keycloak.image }}
           imagePullPolicy: IfNotPresent
           name: keycloak
           env:
             - name: KC_DB
               value: postgres
-            - name: KC_DB_URL_HOST
-              value: {{ .Values.keycloak_db_url }}
-            - name: KC_DB_SCHEMA
-              value: public
-            - name: KC_DB_NAME
-              value: keycloak
+            - name: KC_DB_URL
+              value: {{ .Values.keycloak.db_url }}
             - name: KC_HOSTNAME_STRICT_HTTPS
               value: false
             - name: KC_HTTP_ENABLED
               value: true
             - name: KC_HOSTNAME
-              value: localhost
+              value: {{ .Values.keycloak.app_url }}
             - name: KC_HOSTNAME_STRICT
               value: false
             - name: KC_DB_USERNAME
@@ -55,8 +51,8 @@ spec:
             - name: KC_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: vsm-app-secrets
-                  key: vsm-keycloak-db-password
+                  name: prod-db-passwords
+                  key: keycloak_db_password
           ports:
             - containerPort: 8080
               protocol: TCP
