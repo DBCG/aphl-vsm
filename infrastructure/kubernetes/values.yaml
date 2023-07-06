@@ -1,3 +1,8 @@
 tag: ""
+cqf_ruler_db_url: "jdbc:postgresql://vsm-cqf-ruler-db.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
+keycloak_db_url: ""
+redis_host_url: ""
+vsm_app_url: ""
+keycloak_app_url: ""
 aws:
   account_id: "912275679263"
