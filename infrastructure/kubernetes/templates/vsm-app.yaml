@@ -18,10 +18,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vsm-app
+  namespace: vsm
   labels:
     app: vsm-app
     tag: {{ .Values.tag }}
-  namespace: vsm
 spec:
   replicas: 1
   selector:
@@ -46,11 +46,11 @@ spec:
         - name: NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL
           value: https://r4.ontoserver.csiro.au/fhir
         - name: REDIS_HOST
-          value: vsm-app.5hhpo0.ng.0001.use1.cache.amazonaws.com
+          value: {{ .Values.redis_host_url}}
         - name: VSAC_USERNAME
           value: apikey
         - name: NEXTAUTH_URL
-          value: http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com
+          value: {{.Values.protocol}}://{{ .Values.vsm_app_url }}
         - name: KEYCLOAK_ID
           value: aphl_app
         - name: CONDITIONS_CANONICAL
@@ -61,9 +61,9 @@ spec:
               name: vsm-app-secrets
               key: keycloak-secret
         - name: KEYCLOAK_ISSUER
-          value: http://a277b15a1bef34b5da8a6af142026e21-1645222855.us-east-1.elb.amazonaws.com/auth/realms/aphl
+          value: {{.Values.protocol}}://{{ .Values.vsm_app_url }}/realms/aphl
         - name: KEYCLOAK_REDIRECT_URI
-          value: http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com/api/auth/callback/keycloak
+          value: {{.Values.protocol}}://{{ .Values.keycloak_app_url }}/api/auth/callback/keycloak
         - name: VSAC_API_KEY
           valueFrom:
             secretKeyRef:

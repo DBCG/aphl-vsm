@@ -43,7 +43,7 @@ spec:
             - name: hapi.fhir.cql.cql_logging_enabled
               value: "true"
             - name: spring.datasource.url
-              value: jdbc:postgresql://vsm-cqf-ruler-db.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler
+              value: {{ .Values.cqf_ruler_db_url }}
             - name: spring.datasource.driverClassName
               value: org.postgresql.Driver
             - name: spring.datasource.username
@@ -51,7 +51,7 @@ spec:
             - name: spring.datasource.password
               valueFrom:
                 secretKeyRef:
-                  name: vsm-app-secrets
+                  name: prod-db-passwords
                   key: vsm-db-password
             - name: spring.jpa.properties.hibernate.dialect
               value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
