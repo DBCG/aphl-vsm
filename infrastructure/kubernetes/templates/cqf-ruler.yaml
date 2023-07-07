@@ -4,13 +4,13 @@ metadata:
   name: cqf-ruler-vsm
   namespace: vsm
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: cqf-ruler-vsm
   ports:
-  - name: http 
-    port: 80
-    targetPort: 8080
+    - name: http
+      port: 80
+      targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -30,32 +30,31 @@ spec:
         app: cqf-ruler-vsm
     spec:
       containers:
-      - image: alphora/cqf-ruler:cqf-ruler-vsm
-        imagePullPolicy: Always
-        name: cqf-ruler-vsm
-        env:
-        - name: hapi.fhir.server_address
-          value: http://localhost:8080/fhir
-        - name: hapi.fhir.allow_multiple_delete
-          value: "true"
-        - name: hapi.fhir.fhir_version
-          value: R4
-        - name: hapi.fhir.cql.cql_logging_enabled
-          value: "true"
-        - name: spring.datasource.url
-          value: jdbc:postgresql://vsm-cqf-ruler-db.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler
-        - name: spring.datasource.driverClassName
-          value: org.postgresql.Driver
-        - name: spring.datasource.username
-          value: dbadmin
-        - name: spring.datasource.password
-          valueFrom:
-            secretKeyRef:
-              name: vsm-app-secrets
-              key: vsm-db-password
-        - name: spring.jpa.properties.hibernate.dialect
-          value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
-        ports:
-          - containerPort: 8080
-            protocol: TCP
-
+        - image: {{ .Values.cqf_ruler.image }}
+          imagePullPolicy: Always
+          name: cqf-ruler-vsm
+          env:
+            - name: hapi.fhir.server_address
+              value: http://localhost:8080/fhir
+            - name: hapi.fhir.allow_multiple_delete
+              value: "true"
+            - name: hapi.fhir.fhir_version
+              value: R4
+            - name: hapi.fhir.cql.cql_logging_enabled
+              value: "true"
+            - name: spring.datasource.url
+              value: {{ .Values.cqf_ruler.db_url }}
+            - name: spring.datasource.driverClassName
+              value: org.postgresql.Driver
+            - name: spring.datasource.username
+              value: dbadmin
+            - name: spring.datasource.password
+              valueFrom:
+                secretKeyRef:
+                  name: prod-db-passwords
+                  key: vsm-db-password
+            - name: spring.jpa.properties.hibernate.dialect
+              value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+          ports:
+            - containerPort: 8080
+              protocol: TCP

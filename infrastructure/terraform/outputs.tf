@@ -209,3 +209,27 @@ output "aws_auth_configmap_yaml" {
   description = "Formatted yaml output for base aws-auth configmap containing roles used in cluster node groups/fargate profiles"
   value       = module.eks.aws_auth_configmap_yaml
 }
+
+output "rds_vsm_cqf_ruler_endpoint" {
+  description = "Endpoint of the CQF-ruler RDS cluster"
+  value       = aws_db_instance.vsm-cqf-ruler.endpoint
+}
+
+output "rds_vsm_keycloak_endpoint" {
+  description = "Endpoint of the Keycloak RDS cluster"
+  value       = aws_db_instance.vsm-keycloak.endpoint
+}
+
+output "cqf_ruler_db_password" {
+  value     = random_password.vsm-cqf-ruler-password.result
+  sensitive = true
+}
+
+output "keycloak_db_password" {
+  value     = random_password.vsm-keycloak-password.result
+  sensitive = true
+}
+
+output "redis_cache_endpoint" {
+  value = aws_elasticache_replication_group.redis-cache.primary_endpoint_address
+}
