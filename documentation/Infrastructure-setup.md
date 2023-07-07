@@ -38,7 +38,7 @@ Build vsm-app docker images and push them to ECR, refer to `./bin/deploy` at the
 Afterwards we need to update our yaml files in `infrastructure/kubernetes/templates` to use the new image directory.
 
 Now we can deploy our applications using helm:
-`helm install`
+`helm install "vsm-app" --namespace=vsm --set tag=<the tag vsm-app ecr image was given> infrastructure/kubernetes`
 
 This will deploy all of our applications to the cluster. We can check the status of our pods by running:
 
@@ -48,6 +48,8 @@ Afterwards we will need to setup our load balancers. To do this we need to run t
 
  `./bin/update_helm_config.js` to make things easier.
 
+To update our deployment with the load balancer urls we need to run the following commands:
+`helm upgrade "vsm-app" --namespace=vsm infrastructure/kubernetes`
 ## Future refinements
 
 For our deployments we didn't setup persistence for our user auth but it would be setup similarly in terms of the infrastructure to RDS for the cqf-ruler.
