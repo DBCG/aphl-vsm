@@ -48,6 +48,13 @@ spec:
               value: false
             - name: KC_DB_USERNAME
               value: dbadmin
+            - name: KEYCLOAK_ADMIN
+              value: admin
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vsm-app-secrets
+                  key: keycloak-admin-password
             - name: KC_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
