@@ -39,13 +39,13 @@ spec:
             - name: KC_DB_URL
               value: {{ .Values.keycloak.db_url }}
             - name: KC_HOSTNAME_STRICT_HTTPS
-              value: false
+              value: "false"
             - name: KC_HTTP_ENABLED
-              value: true
+              value: "true"
             - name: KC_HOSTNAME
               value: {{ .Values.keycloak.app_url }}
             - name: KC_HOSTNAME_STRICT
-              value: false
+              value: "false"
             - name: KC_DB_USERNAME
               value: dbadmin
             - name: KEYCLOAK_ADMIN
