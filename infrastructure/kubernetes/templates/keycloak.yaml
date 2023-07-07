@@ -32,6 +32,7 @@ spec:
       containers:
         - image: {{ .Values.keycloak.image }}
           imagePullPolicy: IfNotPresent
+          command: ["start"]
           name: keycloak
           env:
             - name: KC_DB
