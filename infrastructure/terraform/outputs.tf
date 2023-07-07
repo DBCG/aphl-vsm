@@ -165,15 +165,6 @@ output "cloudwatch_log_group_arn" {
 }
 
 ################################################################################
-# Fargate Profile
-################################################################################
-
-output "fargate_profiles" {
-  description = "Map of attribute maps for all EKS Fargate Profiles created"
-  value       = module.eks.fargate_profiles
-}
-
-################################################################################
 # EKS Managed Node Group
 ################################################################################
 
@@ -185,20 +176,6 @@ output "eks_managed_node_groups" {
 output "eks_managed_node_groups_autoscaling_group_names" {
   description = "List of the autoscaling group names created by EKS managed node groups"
   value       = module.eks.eks_managed_node_groups_autoscaling_group_names
-}
-
-################################################################################
-# Self Managed Node Group
-################################################################################
-
-output "self_managed_node_groups" {
-  description = "Map of attribute maps for all self managed node groups created"
-  value       = module.eks.self_managed_node_groups
-}
-
-output "self_managed_node_groups_autoscaling_group_names" {
-  description = "List of the autoscaling group names created by self-managed node groups"
-  value       = module.eks.self_managed_node_groups_autoscaling_group_names
 }
 
 ################################################################################

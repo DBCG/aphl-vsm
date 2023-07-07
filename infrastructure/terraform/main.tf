@@ -14,8 +14,6 @@ module "eks" {
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
   cluster_endpoint_private_access = true
-  # IPV6
-  # cluster_ip_family = "ipv6"
 
   # We are using the IRSA created below for permissions
   # However, we have to deploy with the policy attached FIRST (when creating a fresh cluster)
@@ -137,7 +135,6 @@ resource "aws_security_group" "remote_access" {
     to_port          = 0
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
-    # ipv6_cidr_blocks = ["::/0"]
   }
 
   tags = merge(local.tags, { Name = "${local.name}-remote" })
@@ -145,7 +142,7 @@ resource "aws_security_group" "remote_access" {
 
 resource "aws_iam_policy" "node_additional" {
   name        = "${local.name}-additional"
-  description = "Example usage of node additional policy"
+  description = "Node additional policy"
 
   policy = jsonencode({
     Version = "2012-10-17"

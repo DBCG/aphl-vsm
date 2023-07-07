@@ -11,7 +11,7 @@ resource "aws_db_instance" "vsm-cqf-ruler" {
   identifier          = "vsm-cqf-ruler-db"
   username            = "dbadmin"
   password            = random_password.vsm-cqf-ruler-password.result
-  publicly_accessible = true # Should setup private in future version
+  publicly_accessible = true #TODO: Should setup private in future version
 }
 
 
@@ -28,5 +28,5 @@ resource "aws_db_instance" "vsm-keycloak" {
   identifier          = "vsm-keycloak-db"
   username            = "dbadmin"
   password            = random_password.vsm-keycloak-password.result
-  publicly_accessible = false # Should setup private in future version
+  publicly_accessible = true #TODO: Should setup private in future version
 }

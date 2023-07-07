@@ -32,7 +32,7 @@ spec:
       containers:
         - image: {{ .Values.keycloak.image }}
           imagePullPolicy: IfNotPresent
-          command: ["start"]
+          command: ["/opt/keycloak/bin/kc.sh", "start"]
           name: keycloak
           env:
             - name: KC_DB
@@ -47,8 +47,6 @@ spec:
               value: {{ .Values.keycloak.app_url }}
             - name: KC_HOSTNAME_STRICT
               value: "false"
-            - name: KC_DB_USERNAME
-              value: dbadmin
             - name: KEYCLOAK_ADMIN
               value: admin
             - name: KEYCLOAK_ADMIN_PASSWORD
@@ -56,6 +54,8 @@ spec:
                 secretKeyRef:
                   name: vsm-app-secrets
                   key: keycloak-admin-password
+            - name: KC_DB_USERNAME
+              value: dbadmin
             - name: KC_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
