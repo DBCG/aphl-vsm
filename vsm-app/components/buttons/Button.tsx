@@ -6,6 +6,7 @@ import { CircularProgress } from '@mui/material'
 const StyledBtn = styled(Btn)<ButtonProps>`
   height: fit-content;
   transition: width 500ms;
+  background-color: ${props => props.disabled ? 'lightgray' : 'auto'};
 `
 
 interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
