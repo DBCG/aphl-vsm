@@ -4,10 +4,11 @@ import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
-import { PageTitle } from '@/components/Typography'
+import { PageTitle, PageP, FormErrorText } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
@@ -23,6 +24,10 @@ import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, Rea
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { Box } from '@mui/material'
+import { SearchInput } from '../SearchInput'
+import { FormControl, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ErrorMessage } from '../ErrorMessage'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -95,6 +100,15 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
+  const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
+
+  // states for code search/$expand
+  const [codeToFind, setCodeToFind] = useState(null)
+  const [systemToFind, setSystemToFind] = useState(null)
+  const [groupersToSearch, setGroupersToSearch] = useState([])
+  const [matchingValueSetUrls, setMatchingValueSetUrls] = useState(null)
+  const [filteredData, setFilteredData] = useState(null)
+  const [toggleUpdateData, setToggleUpdateData] = useState(false)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // all available filters
@@ -102,6 +116,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
+
+
+  const handleClear = () => {
+    setCodeToFind(null)
+    setGroupersToSearch([])
+    setSystemToFind(null)
+    setMatchingValueSetUrls(null)
+    setFilteredData(null)
+  }
+
 
   const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
     if (!vsCanonical || !grouperInfo) {
@@ -152,6 +176,37 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     subscribe(setJobInStatusProgress, job?.id)
   }
 
+  const handleSearchCodes = async () => {
+    setLoadingCodeSearch(true)
+    try {
+      console.log('called')
+      console.log('groupers to searh: ', groupersToSearch)
+      if(!groupersToSearch?.length) return
+      const grouperIdsToSearch = groupersToSearch?.map(i => i?.id)?.filter(x => Boolean(x))
+  
+      let endpoint = `/api/valueset/expand`
+      console.log('endpoint')
+      const matches = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          codeSystem: systemToFind,
+          groupersToSearch: grouperIdsToSearch,
+          codeToFind,
+          expansionParameters: programAndGrouperData.manifestData
+        })
+      }).then((res) => res.json())
+  
+      setMatchingValueSetUrls(matches)
+      console.log('expanded data: ', matches)
+    } catch (e) {
+      console.log('error here: ', e)
+    }
+    setLoadingCodeSearch(false)
+  }
+
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
@@ -165,6 +220,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
           setUpdatedValueSet(json)
         } catch (e) {
+          // handle error here
           console.error('error: ', e)
         }
         setConditionLoading(false)
@@ -199,6 +255,29 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     versionUpdated,
     ...debouncedFilters
   }) as Result
+
+  useEffect(() => {
+    if (matchingValueSetUrls === null) {
+      setFilteredData(null)
+    } else if (matchingValueSetUrls.length === 0) {
+      setFilteredData([])
+    } else {
+      const filtered = progValueSetDets?.data?.filter((item) => {
+        const result =  matchingValueSetUrls?.includes(item.canonical)
+        return result
+      })
+      setFilteredData(filtered || [])
+    }
+    
+  }, [matchingValueSetUrls, progValueSetDets?.data])
+
+  const {
+    programAndGrouperData, programAndGrouperDataLoading
+  } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+
+  useEffect(() => {
+    console.log('progGrouperData.expansionParams: ', programAndGrouperData)
+  }, [programAndGrouperData])
 
   // since query takes a while, expose loading state
   useEffect(() => {
@@ -625,26 +704,115 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           {updateVSetsButton}
         </Col>
       </Row>
-      <Box id="vs-table-detail">
-        <DT
-          // @ts-expect-error
-          data={progValueSetDets?.data}
-          keyField="keyField"
-          persistTableHead={true}
-          // @ts-expect-error
-          columns={columns}
-          theme="aphl"
-          pagination
-          highlightOnHover={true}
-          onRowClicked={(row) => {
-            router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
-          }}
-          fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable')}
-          progressPending={pageLoading || vSetsLoading}
-          progressComponent={<LoadingIndicator />}
-        />
-      </Box>
+      <Row>
+        <Col>
+            <Accordion style={{ backgroundColor: 'var(--theme-100)', borderRadius: '0' }}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+              >
+                <PageP>
+                  Advanced filter by contained code
+                </PageP>
+              </AccordionSummary>
+              <AccordionDetails>
+                <PageP>
+                  Find ValueSets in this program that...
+                </PageP>
+                <FormControl style={{ marginBottom: '24px', marginTop: '12px', width: '100%' }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <PageP>
+                        Contain this code:
+                      </PageP>
+                      <SearchInput
+                        onChange={
+                          (e) => {
+                            setCodeToFind(e.target.value)
+                          }
+                        }
+                        value={codeToFind || ''}
+                        required
+                        errorMessage={ !codeToFind && 'Required' }
+                        label='Code'
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <PageP>
+                        In System (optional):
+                      </PageP>
+                      <SearchInput
+                        onChange={
+                          (e) => {
+                            console.log('system: ', e.target.value)
+                            setSystemToFind(e.target.value)
+                          }}
+                        label='System'
+                        value={systemToFind || ''}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <PageP>
+                        In Grouper(s):
+                      </PageP>
+                      <Select
+                        required={true}
+                        onChange={
+                          (e) => {
+                            console.log('groupers: ', e)
+                            setGroupersToSearch(e)
+                          }
+                        }
+                        isMulti={true}
+                        value={groupersToSearch}
+                        menuPlacement="top"
+                        instanceId="grouper-selector"
+                        options={buildGroupOptions(groupsInProgram)}
+                      />
+                      {!groupersToSearch?.length && <FormErrorText>Required</FormErrorText>}
+                    </Grid>
+                  </Grid>
+                  <Grid container justifyContent='flex-end' spacing={2} xs={12} style={{ marginTop: '24px' }}>
+                      <Button text='Search'
+                        onClick={() => handleSearchCodes()}
+                        style={{ marginRight: '8px' }}
+                        disabled={ !codeToFind || !groupersToSearch.length }
+                        loading={loadingCodeSearch}
+                      />
+                      <Button
+                        text='Clear'
+                        onClick={handleClear}
+                      />
+                    <Grid container justifyContent='flex-end' xs={12} style={{ marginTop: '12px' }}>
+                      {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
+                    </Grid>
+                  </Grid>
+                </FormControl>
+
+              </AccordionDetails>
+            </Accordion>
+        </Col>
+      </Row>
+      {filteredData && (
+        <ErrorMessage severity='warning' error={`Showing SUBSET of results: clear advanced code filter above to see all ValueSets in this program.`}/> 
+      )}
+      <DT
+        // @ts-expect-error
+        data={filteredData || progValueSetDets?.data}
+        keyField="keyField"
+        persistTableHead={true}
+        // @ts-expect-error
+        columns={columns}
+        theme="aphl"
+        pagination
+        highlightOnHover={true}
+        onRowClicked={(row) => {
+          router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+        }}
+        fixedHeader // TODO: Should we remove? adds an additional scrollbar
+        customStyles={customTableStyles('clickable')}
+        progressPending={pageLoading || vSetsLoading}
+        progressComponent={<LoadingIndicator />}
+      />
     </>
   )
 }
