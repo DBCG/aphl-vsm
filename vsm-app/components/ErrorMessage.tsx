@@ -7,25 +7,36 @@ interface ErrorState {
 
 type Error = {
   error: string | null
+  severity?: 'warning'
 }
 
 const ErrorContainer = styled.div<Error>`
   max-height: ${(props) => (props.error ? '500px' : '0')};
-  background-color: white;
+  background-color: ${(props) => (props.severity === 'warning' ? 'var(--warning-light)' : 'white')};
   transition: max-height 1s ease;
   padding-left: 18px;
-  border: ${(props) => (props.error ? '1px solid var(--accent)' : 'none')};
+  border: ${(props) => {
+    console.log('props: ', props)
+    if(props?.severity === 'warning' && props?.error) {
+      return '1px solid orange';
+    } else if (props?.error) {
+      return '1px solid var(--accent)';
+    } else {
+      return 'none';
+    }
+  }}
 `
 
 const ErrorText = styled.p<Error>`
   color: var(--accent);
   display: ${(props) => (props.error ? 'inherit' : 'none')};
+  color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
 `
 
-const ErrorMessage = ({ error }: Error) => {
+const ErrorMessage = ({ error, severity }: Error) => {
   return (
-    <ErrorContainer error={error}>
-      <ErrorText error={error}>{error}</ErrorText>
+    <ErrorContainer severity={severity} error={error}>
+      <ErrorText severity={severity} error={error}>{error}</ErrorText>
     </ErrorContainer>
   )
 }
