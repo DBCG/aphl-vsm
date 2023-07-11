@@ -17,9 +17,25 @@ interface GrouperIdsByUrlItem {
 
 type GrouperIdsByUrl = Record<string, GrouperIdsByUrlItem>
 
-const findMatches = ({ vs, codeToFind, systemToFind }: FindMatches): boolean => {
+const matchingCodeGroups = ({ vs, codeToFind, systemToFind }: FindMatches): boolean => {
   if (!systemToFind) return Boolean(vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === codeToFind?.toLowerCase()))
   return Boolean(vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === codeToFind?.toLowerCase() && i?.system?.toLowerCase() === systemToFind?.toLowerCase()))
+}
+
+const findMatches = ({ vs, codeToFind, systemToFind }: FindMatches): boolean => {
+  if (!systemToFind) {
+    const match = vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === codeToFind?.toLowerCase())
+    return ({
+      isMatch: Boolean(match),
+      codeMatches: match
+    })
+  } else {
+    const match = vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === codeToFind?.toLowerCase() && i?.system?.toLowerCase() === systemToFind?.toLowerCase())
+    return ({
+      isMatch: Boolean(match),
+      codeMatches: match
+    })
+  }
 }
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
@@ -206,11 +222,17 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
             // only want valuesets that contain the code + (optional) system
             const matches = expandedItems?.filter((vs: fhir4.ValueSet) => {
-              return findMatches({ vs, codeToFind, systemToFind })
+              return findMatches({ vs, codeToFind, systemToFind }).isMatch
             })
-            
+            console.log('matches: ', matches)
+            console.log('grouper ids by leaf: ', grouperIdsByLeaf)
             // return the urls of valuesets that contain the code
-            return matches?.map(i => i?.url)
+            return matches?.map(i => ({
+              leafDisplay: i?.name,
+              url: i?.url?.split('-')?.[0],
+              matchingCodes: findMatches({ vs: i, codeToFind, systemToFind }).codeMatches,
+              // grouperIds: grouperIdsByLeaf[i?.url?.split('-')?.[0]].grouperIds
+            }))
           }
 
           const matchingVSets = await matchingExpansions()
@@ -219,19 +241,19 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
         const allGroupers = await getSpecifiedGroupers()
         const grouperIdsByLeaf = arrangeGroupersByLeafRef(allGroupers)
-        const matchingValueSetUrls = await matchingLeafs(grouperIdsByLeaf)
+        const matchingValueSetUrlsAndCodes = await matchingLeafs(grouperIdsByLeaf)
 
-        const unversionedUrls = matchingValueSetUrls?.map((vsUrl: string) => {
-          // do not want the version, only the base url. VSAC tags on version to end of url
-          const [url] = vsUrl.split('-')
-          return url
-        })
+        // const unversionedUrls = matchingValueSetUrlsAndCodes?.map((vsUrl: string) => {
+        //   // do not want the version, only the base url. VSAC tags on version to end of url
+        //   const [url] = vsUrl.split('-')
+        //   return url
+        // })
 
-        return unversionedUrls
+        return matchingValueSetUrlsAndCodes
       }
 
-      const matchingVsUrls = await findMatchingVsetUrls()
-      res.status(200).send(matchingVsUrls)
+      const matchingVsUrlsCodes = await findMatchingVsetUrls()
+      res.status(200).send(matchingVsUrlsCodes)
 
     } else {
       console.log("oops")

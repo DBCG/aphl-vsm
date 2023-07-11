@@ -263,7 +263,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       setFilteredData([])
     } else {
       const filtered = progValueSetDets?.data?.filter((item) => {
-        const result =  matchingValueSetUrls?.includes(item.canonical)
+        const allVsUrls = matchingValueSetUrls?.map(i => i?.url)
+        console.log('matching', matchingValueSetUrls)
+        console.log('all vs urls: ', allVsUrls)
+        const result =  allVsUrls?.includes(item.canonical)
         return result
       })
       setFilteredData(filtered || [])
@@ -384,6 +387,20 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // @ts-ignore-next-line
   const isReadOnly = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
+
+  const Expansion = ({ data }) => {
+    if(!data) return
+    console.log('data: ', data)
+    return (
+      <div style={{ padding: '24px' }}>
+        <p>{data.leafDisplay}</p>
+        <ul>
+          <li>{data.url}</li>
+          {/* <li>Found in groupers {data.grouperIds.split(', ')}</li> */}
+        </ul>
+      </div>
+    )
+  }
 
   const columns = useMemo(
     () => [
@@ -675,6 +692,46 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     [router, groupsInProgram, allConditions]
   )
 
+  const matchColumns = useMemo(
+    () => [
+      {
+        name: 'System',
+        id: 'vs-code-system',
+        selector: (row) => row.matchingCodes.system!,
+        sortable: false,
+        maxWidth: '180px',
+        wrap: true
+      },
+      {
+        name: 'Code',
+        id: 'vs-code',
+        selector: (row) => row.matchingCodes.code!,
+        sortable: false,
+        maxWidth: '160px',
+        wrap: true
+      },
+      {
+        name: 'Code System Version',
+        id: 'vs-code-system-version',
+        selector: (row) => row.matchingCodes.version,
+        sortable: false,
+        maxWidth: '260px',
+        wrap: true,
+      },
+      {
+        name: 'Display',
+        id: 'vs-code-system-version',
+        selector: (row) => row.matchingCodes.display,
+        sortable: false,
+        maxWidth: '320px',
+        wrap: true
+      }
+    ],
+    [router, groupsInProgram, matchingValueSetUrls]
+  )
+
+
+
   const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
 
   const updateVSetsButton = (() => {
@@ -788,6 +845,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                   </Grid>
                 </FormControl>
 
+                {matchingValueSetUrls?.length && (
+                  <DT
+                    title='Matches Found:'
+                    theme='aphl'
+                    data={matchingValueSetUrls || []}
+                    progressPending={loadingCodeSearch}
+                    columns={matchColumns}
+                    expandableRows
+                    expandableRowExpanded={(row) => true}
+                    expandableRowsComponent={Expansion}
+                  />
+                )}
               </AccordionDetails>
             </Accordion>
         </Col>
