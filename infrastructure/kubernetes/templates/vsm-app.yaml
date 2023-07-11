@@ -61,9 +61,9 @@ spec:
               name: vsm-app-secrets
               key: keycloak-secret
         - name: KEYCLOAK_ISSUER
-          value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}/realms/aphl
+          value: {{.Values.protocol}}://{{ .Values.keycloak.app_url }}/realms/aphl
         - name: KEYCLOAK_REDIRECT_URI
-          value: {{.Values.protocol}}://{{ .Values.keycloak.app_url }}/api/auth/callback/keycloak
+          value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}/api/auth/callback/keycloak
         - name: VSAC_API_KEY
           valueFrom:
             secretKeyRef:
