@@ -725,7 +725,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         sortable: false,
         maxWidth: '320px',
         wrap: true
-      }
+      },
+
     ],
     [router, groupsInProgram, matchingValueSetUrls]
   )
