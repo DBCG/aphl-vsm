@@ -135,20 +135,21 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
       </DialogContent>
       <DialogActions>
       <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
-            <Button
-              text={`YES, ${actionType}`}
-              data-modal={'confirm'}
-              disabled={disableSubmission}
-              onClick={() => {
-                let currProgram = currentProgram
-                if (actionType === 'release' && currProgram) {
-                  const modifiedProgram = setReleaseDescription(currProgram, currentInput.trim())
-                  setProgram(modifiedProgram)
-                  currProgram = modifiedProgram
-                }
-                handleModalAction(actionType, currProgram)
-              }}
-            /> 
+        <Button
+          text={`YES, ${actionType}`}
+          data-modal={'confirm'}
+          disabled={disableSubmission}
+          loading={loading || false}
+          onClick={() => {
+            let currProgram = currentProgram
+            if (actionType === 'release' && currProgram) {
+              const modifiedProgram = setReleaseDescription(currProgram, currentInput.trim())
+              setProgram(modifiedProgram)
+              currProgram = modifiedProgram
+            }
+            handleModalAction(actionType, currProgram)
+          }}
+        />
       </DialogActions>
     </Dialog>
   )
