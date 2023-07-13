@@ -67,11 +67,23 @@ describe('libraryHelpers', () => {
         relatedArtifact: [
           {
             type: 'composed-of',
-            resource: 'www.example.com|1.1'
+            resource: 'www.example.com|1.1',
+            extension:[
+              {
+                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                valueBoolean: true
+              }
+            ]
           },
           {
             type: 'composed-of',
-            resource: 'www.secondExample.com'
+            resource: 'www.secondExample.com',
+            extension:[
+              {
+                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                valueBoolean: true
+              }
+            ]
           }
         ]
       } as fhir4.Library
@@ -81,7 +93,13 @@ describe('libraryHelpers', () => {
         relatedArtifact: [
           {
             type: 'composed-of',
-            resource: 'www.secondExample.com'
+            resource: 'www.secondExample.com',
+            extension:[
+              {
+                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                valueBoolean: true
+              }
+            ]
           }
         ]
       } as fhir4.Library
@@ -101,7 +119,13 @@ describe('libraryHelpers', () => {
         relatedArtifact: [
           {
             type: 'composed-of',
-            resource: 'www.example.com|1.1'
+            resource: 'www.example.com|1.1',
+            extension:[
+              {
+                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                valueBoolean: true
+              }
+            ]
           }
         ]
       } as fhir4.Library
@@ -185,11 +209,23 @@ const FIXTURE_PROGRAM = {
   relatedArtifact: [
     {
       type: 'composed-of',
-      resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification'
+      resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
+      extension:[
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          valueBoolean: true
+        }
+      ]
     },
     {
       type: 'composed-of',
-      resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc'
+      resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
+      extension:[
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          valueBoolean: true
+        }
+      ]
     }
   ]
 } as fhir4.Library
