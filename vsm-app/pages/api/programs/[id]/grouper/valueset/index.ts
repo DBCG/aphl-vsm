@@ -394,7 +394,14 @@ const updateProgramLibraryWithGrouperRef = async (
 
     libResource.relatedArtifact.push({
       type: 'composed-of',
-      resource: grouperRef?.split('|')[0] // should this be verisoned or unversioned
+      resource: grouperRef?.split('|')[0], // use unversioned
+      extension:[
+        {
+          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          valueBoolean: true
+        }
+      ]
+
     })
 
     // at this point, the grouper's valueset library is updated, save & return 200 if success
