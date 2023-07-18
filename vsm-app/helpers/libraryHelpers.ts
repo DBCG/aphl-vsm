@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash'
 interface RelatedArtifactItem {
   url: string
   version?: string
+  extension?: fhir4.Extension[]
 }
 
 interface EditComposeInclude {

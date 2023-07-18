@@ -78,11 +78,23 @@
                 [
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0"
+                        "resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     }
                 ]
             },
@@ -1328,27 +1340,63 @@
                 [
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc|2022-10-19"
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc|2022-10-19",
+                        "extension":[
+                            {
+                                "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                                "valueBoolean": true
+                            }
+                        ]
                     }
                 ]
             },
