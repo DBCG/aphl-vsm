@@ -135,12 +135,8 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // needs to check the RIGHT VERSION of a leaf valueset
           const batchEntries: fhir4.BundleEntry[] = leafUrls.map((leafUrl) => {
-            let searchUrl = `/ValueSet?url=${leafUrl}&_sort=version`
-            const leafVersion = groupersByLeaf[leafUrl].version
-
-            if (leafVersion) {
-              searchUrl += `&version=${leafVersion}`
-            }
+            const leafVersion = groupersByLeaf?.[leafUrl]?.version
+            let searchUrl = `/ValueSet?url=${leafUrl}&_sort=version` + (leafVersion ? `&version=${leafVersion}` : '')
 
             return {
               request: {
@@ -260,7 +256,6 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(200).send(matchingVsUrlsCodes)
 
     } else {
-      console.log("oops")
       return res.status(500).json({ error: 'Invalid request.' })
     }
 
