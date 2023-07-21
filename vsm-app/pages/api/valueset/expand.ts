@@ -195,8 +195,12 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
           const vsacLeafBundle = await vsacFhirClient.batch({
             body: vsacLeafRequestBundle
           })
+
+          console.log('bundle.entry: ', vsacLeafBundle.entry)
           
-          const allVsacLeafs = vsacLeafBundle?.entry?.map(i => i?.resource)?.map(i => i?.entry)?.flat()?.map(x => x?.resource)
+          const allVsacLeafs = vsacLeafBundle?.entry
+            ?.filter(i => i?.resource?.entry)
+            ?.map(i => i?.resource?.entry?.[0]?.resource)
 
           const matchingExpansions = async () => {
             const expansions = await Promise.allSettled(
