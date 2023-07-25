@@ -302,6 +302,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const allConditions = formatConditionsComposeInclude(conditions)
   let groupsInProgram = progValueSetDets?.groupsInProgram
 
+  console.log('groups in program: ', groupsInProgram)
+
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
       if (typeof firstItem.title === 'string' && typeof secondItem.title === 'string') {
@@ -391,13 +393,31 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const Expansion = ({ data }) => {
     if(!data) return
     console.log('data: ', data)
+    const columns = [
+      {
+        name: 'Name',
+        selector: (data) => data.leafDisplay
+      },
+      {
+        name: 'Canonical',
+        selector: (data) => data.url
+      },
+      {
+        name: 'In Groupers',
+        selector: (data) => data.leafDisplay
+      },
+      {
+        name: 'Associated Conditions',
+        selector: (data) => data.leafDisplay
+      },
+    ]
     return (
       <div style={{ padding: '24px' }}>
-        <p>{data.leafDisplay}</p>
-        <ul>
-          <li>{data.url}</li>
-          {/* <li>Found in groupers {data.grouperIds.split(', ')}</li> */}
-        </ul>
+        <p>Match found in these Valuesets</p>
+        <DT
+          columns={columns}
+          data={[data]}
+        />
       </div>
     )
   }
@@ -801,7 +821,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                       <SearchInput
                         onChange={
                           (e) => {
-                            console.log('system: ', e.target.value)
                             setSystemToFind(e.target.value)
                           }}
                         label='System'
@@ -816,7 +835,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                         required={true}
                         onChange={
                           (e) => {
-                            console.log('groupers: ', e)
                             setGroupersToSearch(e)
                           }
                         }
@@ -845,10 +863,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                     </Grid>
                   </Grid>
                 </FormControl>
-
-                {matchingValueSetUrls?.length && (
+                {matchingValueSetUrls && matchingValueSetUrls?.length && (
                   <DT
-                    title='Matches Found:'
+                    title='Matches found in program:'
                     theme='aphl'
                     data={matchingValueSetUrls || []}
                     progressPending={loadingCodeSearch}
@@ -862,12 +879,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             </Accordion>
         </Col>
       </Row>
-      {filteredData && (
-        <ErrorMessage severity='warning' error={`Showing SUBSET of results: clear advanced code filter above to see all ValueSets in this program.`}/> 
-      )}
       <DT
         // @ts-expect-error
-        data={filteredData || progValueSetDets?.data}
+        data={progValueSetDets?.data}
         keyField="keyField"
         persistTableHead={true}
         // @ts-expect-error
