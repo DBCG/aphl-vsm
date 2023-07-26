@@ -64,7 +64,9 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
   })
 
   // using <any> here, fhir types doesn't seem to map the {resource, response} obj structure for a bundle response
-  return allGroupers?.entry?.map((i: any) => i?.resource?.entry?.[0]?.resource).filter((x: any) => x) || []
+  const result = allGroupers?.entry?.map((i: any) => i?.resource?.entry?.[0]?.resource).filter((x: any) => x) || []
+  console.log('result: ', result)
+  return result
 }
 
 const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
@@ -72,14 +74,17 @@ const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
   for (const grouper of groupers) {
       // exclude groupers that don't have anything in compose.include (bad data?)
       if(!grouper?.compose?.include?.length) return
+      console.log('grouper.compose.include: ', grouper?.compose?.include)
       const vsRefs = grouper?.compose?.include?.map(i => i?.valueSet?.[0])?.filter(x => Boolean(x)) as string[]
 
-      vsRefs.forEach((ref: string) => {
+      vsRefs.forEach((ref: string, ind) => {
         const [url, version] = ref.split('|')
-        const grouperIds = grouperIdsByLeafRef?.[url]?.grouperIds
-        if (typeof grouperIds !== undefined && Array.isArray(grouperIds)) {
-          grouperIdsByLeafRef[url].grouperIds = new Set([...grouperIds, grouper.id])
+        const existingGrouperIds = grouperIdsByLeafRef?.[url]?.grouperIds
+
+        if (typeof existingGrouperIds !== 'undefined' && existingGrouperIds.size) {
+          grouperIdsByLeafRef[url].grouperIds = new Set([...existingGrouperIds, grouper.id])
         } else {
+          console.log('this called')
           grouperIdsByLeafRef[url] = new Set([]) as GrouperIdsByUrlItem
           grouperIdsByLeafRef[url].grouperIds = new Set([grouper.id!])
         }

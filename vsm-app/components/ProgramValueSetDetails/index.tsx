@@ -256,24 +256,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     ...debouncedFilters
   }) as Result
 
-  useEffect(() => {
-    if (matchingValueSetUrls === null) {
-      setFilteredData(null)
-    } else if (matchingValueSetUrls.length === 0) {
-      setFilteredData([])
-    } else {
-      const filtered = progValueSetDets?.data?.filter((item) => {
-        const allVsUrls = matchingValueSetUrls?.map(i => i?.url)
-        console.log('matching', matchingValueSetUrls)
-        console.log('all vs urls: ', allVsUrls)
-        const result =  allVsUrls?.includes(item.canonical)
-        return result
-      })
-      setFilteredData(filtered || [])
-    }
-    
-  }, [matchingValueSetUrls, progValueSetDets?.data])
-
   const {
     programAndGrouperData, programAndGrouperDataLoading
   } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
@@ -404,7 +386,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       },
       {
         name: 'In Groupers',
-        selector: (data) => data.leafDisplay
+        selector: (data) => data.leafDisplay,
+        cell: (data) => {
+          const grouperMatches = groupsInProgram
+            ?.filter((grouper => data.groupersBelongsTo.includes(grouper?.id)))
+            ?.map(vs => <div>{vs?.title?.replace('_', ' ')}</div>)
+
+          return (
+            <div>{grouperMatches}</div>
+          )
+        }
       },
       {
         name: 'Associated Conditions',
@@ -759,7 +750,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
     } else if (allowToEdit) {
-      return <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+      return (
+        <>
+          <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+          <Button text="Search for Codes in Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+        </>
+      )
     }
     return null
   })()
