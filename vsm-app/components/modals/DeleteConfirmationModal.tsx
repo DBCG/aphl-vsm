@@ -25,16 +25,17 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
       <ModalContent>
         <DialogTitle>Confirm</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}
-          </DialogContentText>
+          <DialogContentText>Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleConfirm}>YES</Button>
+          <Button data-modal={'cancel'} onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button data-modal={'yes'} onClick={handleConfirm}>
+            YES
+          </Button>
         </DialogActions>
-        <ButtonGroup>
-        </ButtonGroup>
+        <ButtonGroup></ButtonGroup>
       </ModalContent>
     </Dialog>
   )

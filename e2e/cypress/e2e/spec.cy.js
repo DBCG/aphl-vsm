@@ -34,7 +34,6 @@ describe("Smoke Tests", () => {
 
       // Set program metadata values
       cy.get("#prog-name").clear().type("Draft Library");
-      cy.get("#prog-version").clear().type("1.0.1-draft");
       cy.get("#prog-desc").clear().type("Draft Library description");
       cy.get(".date-input button").click();
       cy.get(".MuiPickersDay-today").click();
@@ -47,12 +46,12 @@ describe("Smoke Tests", () => {
       cy.reload();
 
       // Run assertions to check for persistence after reload
-      cy.get("#prog-name").contains("Draft Library");
-      cy.get("#prog-version").contains("1.0.1-draft");
-      cy.get("#prog-desc").contains("Draft Library description");
-      cy.get("#prog-release-desc").contains("this is a release description for the draft library");
-      cy.get("#priority-level").contains("Priority").should("be.visible");
-      cy.get("#effectiveStartDate").contains(moment().format("YYYY-MM-DD")).should("be.visible");
+      cy.get("#prog-name").should("have.value", "Draft Library");
+      cy.get("#prog-version").should("have.value", "1.0.0-draft");
+      cy.get("#prog-desc").should("have.value", "Draft Library description");
+      cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
+      cy.get("#priority-level").should("have.value", "Priority").should("be.visible");
+      cy.get("#effectiveStartDate").should("have.value", moment().format("YYYY-MM-DD")).should("be.visible");
     });
 
     it("Adds a manifest to library", () => {
@@ -65,7 +64,7 @@ describe("Smoke Tests", () => {
 
       cy.get("#edit-manifest").click();
       cy.get("#code-system-selector").click();
-      cy.get("#react-select-3-option-20").click();
+      cy.get("#react-select-3-listbox").contains("ICD10CM").click(); 
 
       // Add the manifests
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
@@ -76,7 +75,7 @@ describe("Smoke Tests", () => {
 
       // Delete one of the manifests
       cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
-      cy.get('[data-modal="confirm"]').click();
+      cy.get('[data-modal="yes"]').click();
 
       // Check that it reappears on the available version manifest list
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').should("exist");
@@ -119,11 +118,11 @@ describe("Smoke Tests", () => {
       cy.get("#cell-3-test-grouper")
         .contains("http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper")
         .should("exist");
-      cy.get("#cell-4-test-grouper").contains("1.0.1-draft").should("exist");
+      cy.get("#cell-4-test-grouper").contains("1.0.0-draft").should("exist");
 
       // Now remove newly created grouper
       cy.get('#cell-5-test-grouper [data-button-context="delete"]').click();
-      cy.get('[data-modal="confirm"]').click();
+      cy.get('[data-modal="yes"]').click();
       cy.get("#cell-1-test-grouper").should("not.exist");
     });
 
