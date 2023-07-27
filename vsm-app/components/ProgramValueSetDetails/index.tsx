@@ -102,9 +102,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
-
-
-  const [filteredData, setFilteredData] = useState(null)
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -226,10 +223,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     programAndGrouperData, programAndGrouperDataLoading
   } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
 
-  useEffect(() => {
-    console.log('progGrouperData.expansionParams: ', programAndGrouperData)
-  }, [programAndGrouperData])
-
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
@@ -249,8 +242,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
   const groupsInProgram = progValueSetDets?.groupsInProgram
-
-  console.log('groups in program: ', groupsInProgram)
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {

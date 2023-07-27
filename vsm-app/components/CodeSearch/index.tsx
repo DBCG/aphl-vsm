@@ -75,7 +75,8 @@ const CodeSearch = ({ programId, router }: Props) => {
           expansionParameters: programAndGrouperData.manifestData
         })
       }).then((res) => res.json())
-  
+      
+      console.log('matches: ', matches)
       setMatchingValueSetUrls(matches)
     } catch (e) {
       console.log('error here: ', e)
@@ -196,15 +197,15 @@ const CodeSearch = ({ programId, router }: Props) => {
           </Grid>
         </Grid>
       </FormControl>
-      {matchingValueSetUrls && matchingValueSetUrls?.length && (
+      {matchingValueSetUrls && (
         <DT
-          title='Matches found in program:'
+          title={loadingCodeSearch ? '' : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`}
           theme='aphl'
           data={matchingValueSetUrls || []}
           progressPending={loadingCodeSearch}
           columns={matchColumns}
           expandableRows
-          expandableRowExpanded={(row) => true}
+          expandableRowExpanded={() => true}
           expandableRowsComponent={Expansion}
           expandableRowsComponentProps={{ 'groupsInProgram': groupsInProgram }}
 

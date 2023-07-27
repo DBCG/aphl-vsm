@@ -33,6 +33,7 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // in this case expanding just one valueset
     if (typeof req.body.valueSetId === 'string') {
+      console.log(`time to expand vs ${req.body.valueSetId}`)
       response = await vsacFhirClient.operation({
         name: '$expand',
         id: req.body.valueSetId,
@@ -66,6 +67,7 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
     res.status(200).send(response)
   } catch (e: any) {
+    console.error('e: ', e)
     logger.error('error in expandValueSets:  ', JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
