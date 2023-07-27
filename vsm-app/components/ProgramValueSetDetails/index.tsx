@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
-import { PageTitle, PageP, FormErrorText } from '@/components/Typography'
+import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
@@ -36,6 +36,7 @@ const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
     id: g.id
   }))
 }
+import { buildGroupOptions } from '@/helpers/selectHelpers'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -100,13 +101,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
-  const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
 
-  // states for code search/$expand
-  const [codeToFind, setCodeToFind] = useState(null)
-  const [systemToFind, setSystemToFind] = useState(null)
-  const [groupersToSearch, setGroupersToSearch] = useState([])
-  const [matchingValueSetUrls, setMatchingValueSetUrls] = useState(null)
+
+
   const [filteredData, setFilteredData] = useState(null)
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
 
@@ -174,37 +171,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
-  }
-
-  const handleSearchCodes = async () => {
-    setLoadingCodeSearch(true)
-    try {
-      console.log('called')
-      console.log('groupers to searh: ', groupersToSearch)
-      if(!groupersToSearch?.length) return
-      const grouperIdsToSearch = groupersToSearch?.map(i => i?.id)?.filter(x => Boolean(x))
-  
-      let endpoint = `/api/valueset/expand`
-      console.log('endpoint')
-      const matches = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          codeSystem: systemToFind,
-          groupersToSearch: grouperIdsToSearch,
-          codeToFind,
-          expansionParameters: programAndGrouperData.manifestData
-        })
-      }).then((res) => res.json())
-  
-      setMatchingValueSetUrls(matches)
-      console.log('expanded data: ', matches)
-    } catch (e) {
-      console.log('error here: ', e)
-    }
-    setLoadingCodeSearch(false)
   }
 
   useEffect(() => {
@@ -282,7 +248,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
-  let groupsInProgram = progValueSetDets?.groupsInProgram
+  const groupsInProgram = progValueSetDets?.groupsInProgram
 
   console.log('groups in program: ', groupsInProgram)
 
@@ -371,47 +337,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // @ts-ignore-next-line
   const isReadOnly = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
-
-  const Expansion = ({ data }) => {
-    if(!data) return
-    console.log('data: ', data)
-    const columns = [
-      {
-        name: 'Name',
-        selector: (data) => data.leafDisplay
-      },
-      {
-        name: 'Canonical',
-        selector: (data) => data.url
-      },
-      {
-        name: 'In Groupers',
-        selector: (data) => data.leafDisplay,
-        cell: (data) => {
-          const grouperMatches = groupsInProgram
-            ?.filter((grouper => data.groupersBelongsTo.includes(grouper?.id)))
-            ?.map(vs => <div>{vs?.title?.replace('_', ' ')}</div>)
-
-          return (
-            <div>{grouperMatches}</div>
-          )
-        }
-      },
-      {
-        name: 'Associated Conditions',
-        selector: (data) => data.leafDisplay
-      },
-    ]
-    return (
-      <div style={{ padding: '24px' }}>
-        <p>Match found in these Valuesets</p>
-        <DT
-          columns={columns}
-          data={[data]}
-        />
-      </div>
-    )
-  }
 
   const columns = useMemo(
     () => [
@@ -703,47 +628,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     [router, groupsInProgram, allConditions]
   )
 
-  const matchColumns = useMemo(
-    () => [
-      {
-        name: 'System',
-        id: 'vs-code-system',
-        selector: (row) => row.matchingCodes.system!,
-        sortable: false,
-        maxWidth: '180px',
-        wrap: true
-      },
-      {
-        name: 'Code',
-        id: 'vs-code',
-        selector: (row) => row.matchingCodes.code!,
-        sortable: false,
-        maxWidth: '160px',
-        wrap: true
-      },
-      {
-        name: 'Code System Version',
-        id: 'vs-code-system-version',
-        selector: (row) => row.matchingCodes.version,
-        sortable: false,
-        maxWidth: '260px',
-        wrap: true,
-      },
-      {
-        name: 'Display',
-        id: 'vs-code-system-version',
-        selector: (row) => row.matchingCodes.display,
-        sortable: false,
-        maxWidth: '320px',
-        wrap: true
-      },
-
-    ],
-    [router, groupsInProgram, matchingValueSetUrls]
-  )
-
-
-
   const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
 
   const updateVSetsButton = (() => {
@@ -753,7 +637,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       return (
         <>
           <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
-          <Button text="Search for Codes in Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+          <Button text="Code Search" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => router.push(`${router.asPath}/codesearch`)} />
         </>
       )
     }
@@ -776,103 +660,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             />
           )}
           {updateVSetsButton}
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-            <Accordion style={{ backgroundColor: 'var(--theme-100)', borderRadius: '0' }}>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-              >
-                <PageP>
-                  Advanced filter by contained code
-                </PageP>
-              </AccordionSummary>
-              <AccordionDetails>
-                <PageP>
-                  Find ValueSets in this program that...
-                </PageP>
-                <FormControl style={{ marginBottom: '24px', marginTop: '12px', width: '100%' }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <PageP>
-                        Contain this code:
-                      </PageP>
-                      <SearchInput
-                        onChange={
-                          (e) => {
-                            setCodeToFind(e.target.value)
-                          }
-                        }
-                        value={codeToFind || ''}
-                        required
-                        errorMessage={ !codeToFind && 'Required' }
-                        label='Code'
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <PageP>
-                        In System (optional):
-                      </PageP>
-                      <SearchInput
-                        onChange={
-                          (e) => {
-                            setSystemToFind(e.target.value)
-                          }}
-                        label='System'
-                        value={systemToFind || ''}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={4}>
-                      <PageP>
-                        In Grouper(s):
-                      </PageP>
-                      <Select
-                        required={true}
-                        onChange={
-                          (e) => {
-                            setGroupersToSearch(e)
-                          }
-                        }
-                        isMulti={true}
-                        value={groupersToSearch}
-                        menuPlacement="top"
-                        instanceId="grouper-selector"
-                        options={buildGroupOptions(groupsInProgram)}
-                      />
-                      {!groupersToSearch?.length && <FormErrorText>Required</FormErrorText>}
-                    </Grid>
-                  </Grid>
-                  <Grid container justifyContent='flex-end' spacing={2} xs={12} style={{ marginTop: '24px' }}>
-                      <Button text='Search'
-                        onClick={() => handleSearchCodes()}
-                        style={{ marginRight: '8px' }}
-                        disabled={ !codeToFind || !groupersToSearch.length }
-                        loading={loadingCodeSearch}
-                      />
-                      <Button
-                        text='Clear'
-                        onClick={handleClear}
-                      />
-                    <Grid container justifyContent='flex-end' xs={12} style={{ marginTop: '12px' }}>
-                      {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
-                    </Grid>
-                  </Grid>
-                </FormControl>
-                {matchingValueSetUrls && matchingValueSetUrls?.length && (
-                  <DT
-                    title='Matches found in program:'
-                    theme='aphl'
-                    data={matchingValueSetUrls || []}
-                    progressPending={loadingCodeSearch}
-                    columns={matchColumns}
-                    expandableRows
-                    expandableRowExpanded={(row) => true}
-                    expandableRowsComponent={Expansion}
-                  />
-                )}
-              </AccordionDetails>
-            </Accordion>
         </Col>
       </Row>
       <DT
