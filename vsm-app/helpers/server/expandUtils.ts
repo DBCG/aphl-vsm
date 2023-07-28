@@ -70,6 +70,7 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
 }
 
 const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
+  console.log('groupers: ', groupers)
   const grouperIdsByLeafRef: GrouperIdsByUrl = {}
   for (const grouper of groupers) {
       // exclude groupers that don't have anything in compose.include (bad data?)
@@ -112,6 +113,7 @@ const findMatchingVsetUrls = async ({
 }: FindMatchingVsetUrlsParams) => {
 
   const matchingLeafs = async (groupersByLeaf: GrouperIdsByUrl | undefined) => {
+    console.log('groupers by leaf: ', groupersByLeaf)
     if (!groupersByLeaf) return []
 
     const clonedGroupersByLeaf = cloneDeep(groupersByLeaf)

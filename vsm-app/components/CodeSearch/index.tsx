@@ -148,7 +148,7 @@ const CodeSearch = ({ programId, router }: Props) => {
               }
               value={codeToFind || ''}
               required
-              errorMessage={ codeToFind && 'Required' }
+              errorMessage={ !codeToFind ? 'Required' : ''}
               label='Code'
             />
           </Grid>
@@ -212,7 +212,6 @@ const CodeSearch = ({ programId, router }: Props) => {
           // @ts-ignore-next-line (I can't figure this one out)
           expandableRowsComponent={Expansion}
           expandableRowsComponentProps={{ 'groupsInProgram': groupsInProgram }}
-
         />
       )}
     </div>
