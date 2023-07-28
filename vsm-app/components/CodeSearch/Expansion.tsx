@@ -5,6 +5,7 @@ interface Row {
   leafDisplay: string
   url: string
   groupersBelongsTo: string[]
+  conditionInfo: string[]
 }
 
 interface Props extends ExpanderComponentProps<Row> {
@@ -37,7 +38,15 @@ const Expansion = ({ data, groupsInProgram }: Props) => {
     },
     {
       name: 'Associated Conditions',
-      selector: (data: Row) => data.leafDisplay
+      selector: (data: Row) => data.conditionInfo,
+      cell: (data: Row) => {
+        const conditionMatches = data.conditionInfo
+          ?.map(condition => <div>{condition}</div>)
+
+        return (
+          <div>{conditionMatches}</div>
+        )
+      }
     },
   ]
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, Dispatch, SetStateAction } from 'react'
+import { useState, useMemo } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
@@ -32,11 +32,14 @@ const CodeSearch = ({ programId, router }: Props) => {
   // states for code search/$expand
   const [codeToFind, setCodeToFind] = useState<string | null>(null)
   const [systemToFind, setSystemToFind] = useState<string | null>(null)
-  const [groupersToSearch, setGroupersToSearch] = useState<readonly string[] | []>([])
+  const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<string[] | null>(null)
 
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
+
+  // error states
+  const [error, setError] = useState<boolean | string>(false)
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
@@ -56,13 +59,13 @@ const CodeSearch = ({ programId, router }: Props) => {
   }
 
   const handleSearchCodes = async () => {
+    setError(false)
     setLoadingCodeSearch(true)
     try {
       if(!groupersToSearch?.length) return
       const grouperIdsToSearch = groupersToSearch?.map(i => i?.id)?.filter(x => Boolean(x))
   
       let endpoint = `/api/valueset/expand`
-      console.log('endpoint')
       const matches = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -76,10 +79,10 @@ const CodeSearch = ({ programId, router }: Props) => {
         })
       }).then((res) => res.json())
       
-      console.log('matches: ', matches)
       setMatchingValueSetUrls(matches)
     } catch (e) {
       console.log('error here: ', e)
+      setError('Error occurred searching for code')
     }
     setLoadingCodeSearch(false)
   }

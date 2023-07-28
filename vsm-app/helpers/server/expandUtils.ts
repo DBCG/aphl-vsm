@@ -1,6 +1,7 @@
 import FhirKitClient from 'fhir-kit-client'
 import cloneDeep from 'lodash.clonedeep'
 import { is } from '../is'
+import logger from './logger'
 
 interface GrouperIdsByUrlItem {
   version?: string
@@ -65,7 +66,6 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
 
   // using <any> here, fhir types doesn't seem to map the {resource, response} obj structure for a bundle response
   const result = allGroupers?.entry?.map((i: any) => i?.resource?.entry?.[0]?.resource).filter((x: any) => x) || []
-  console.log('result: ', result)
   return result
 }
 
@@ -74,7 +74,6 @@ const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
   for (const grouper of groupers) {
       // exclude groupers that don't have anything in compose.include (bad data?)
       if(!grouper?.compose?.include?.length) return
-      console.log('grouper.compose.include: ', grouper?.compose?.include)
       const vsRefs = grouper?.compose?.include?.map(i => i?.valueSet?.[0])?.filter(x => Boolean(x)) as string[]
 
       vsRefs.forEach((ref: string, ind) => {
@@ -84,7 +83,6 @@ const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
         if (typeof existingGrouperIds !== 'undefined' && existingGrouperIds.size) {
           grouperIdsByLeafRef[url].grouperIds = new Set([...existingGrouperIds, grouper.id])
         } else {
-          console.log('this called')
           grouperIdsByLeafRef[url] = new Set([]) as GrouperIdsByUrlItem
           grouperIdsByLeafRef[url].grouperIds = new Set([grouper.id!])
         }
@@ -163,7 +161,6 @@ const findMatchingVsetUrls = async ({
         }
       }
     })
-    console.log(`vsacBundle.length: `, vsacEntries.length)
     const vsacLeafRequestBundle: fhir4.Bundle & { type: 'batch' } = {
       resourceType: 'Bundle',
       type: 'batch',
@@ -212,17 +209,26 @@ const findMatchingVsetUrls = async ({
         return findMatches({ vs, codeToFind, systemToFind }).isMatch
       })
 
-      console.log('groupers by leaf: ', groupersByLeaf)
       // return the urls of valuesets that contain the code
       return matches?.map(i => {
         const vsUrl = i?.url?.split('-')?.[0] as string
-        console.log('vs url: ', vsUrl)
         const grouperInfo = Array.from(groupersByLeaf?.[vsUrl]?.grouperIds || [])
+        const conditionInfoFromCQF = leafsFromCQF
+          ?.find((vs: fhir4.ValueSet) => vs.url === vsUrl)
+          ?.useContext
+          ?.filter((ctx: fhir4.UsageContext) => (
+            ctx.code.system?.endsWith('usage-context-type') &&
+            ctx.code.code === 'focus'
+          ))
+          ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text)
+
         return ({
         leafDisplay: i?.name,
         groupersBelongsTo: grouperInfo,
         url: vsUrl,
         matchingCodes: findMatches({ vs: i, codeToFind, systemToFind }).codeMatches,
+        conditionInfo: conditionInfoFromCQF
+
       })
     }
       )
@@ -232,7 +238,7 @@ const findMatchingVsetUrls = async ({
       const matchingVSets = await matchingExpansions()
       return matchingVSets
     } catch (e) {
-      console.log('e: ', e)
+      logger.error(e)
     }
   }
 

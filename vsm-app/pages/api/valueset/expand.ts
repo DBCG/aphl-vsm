@@ -33,7 +33,6 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // in this case expanding just one valueset
     if (typeof req.body.valueSetId === 'string') {
-      console.log(`time to expand vs ${req.body.valueSetId}`)
       response = await vsacFhirClient.operation({
         name: '$expand',
         id: req.body.valueSetId,

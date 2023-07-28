@@ -16,7 +16,6 @@ const ErrorContainer = styled.div<Error>`
   transition: max-height 1s ease;
   padding-left: 18px;
   border: ${(props) => {
-    console.log('props: ', props)
     if(props?.severity === 'warning' && props?.error) {
       return '1px solid orange';
     } else if (props?.error) {
