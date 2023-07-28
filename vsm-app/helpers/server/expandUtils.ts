@@ -81,7 +81,7 @@ const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
         const existingGrouperIds = grouperIdsByLeafRef?.[url]?.grouperIds
 
         if (typeof existingGrouperIds !== 'undefined' && existingGrouperIds.size) {
-          grouperIdsByLeafRef[url].grouperIds = new Set([...existingGrouperIds, grouper.id])
+          grouperIdsByLeafRef[url].grouperIds = new Set([...existingGrouperIds, grouper.id!])
         } else {
           grouperIdsByLeafRef[url] = new Set([]) as GrouperIdsByUrlItem
           grouperIdsByLeafRef[url].grouperIds = new Set([grouper.id!])

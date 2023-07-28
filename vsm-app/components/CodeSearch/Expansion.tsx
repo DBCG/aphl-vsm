@@ -9,11 +9,16 @@ interface Row {
 }
 
 interface Props extends ExpanderComponentProps<Row> {
-  groupsInProgram: fhir4.ValueSet[]
+  // currently, props that extend ExpanderComponentProps must be set to optional.
+  // https://react-data-table-component.netlify.app/?path=/docs/expandable-basic--basic
+  groupsInProgram?: fhir4.ValueSet[]
 }
 
-const Expansion = ({ data, groupsInProgram }: Props) => {
+const Expansion = (props: Props) => {
+  const { data, groupsInProgram } = props
+
   if(!data) return (<></>)
+
   const columns = [
     {
       name: 'Name',
@@ -25,7 +30,7 @@ const Expansion = ({ data, groupsInProgram }: Props) => {
     },
     {
       name: 'In Groupers',
-      selector: (data: Row) => data.groupersBelongsTo.join(''),
+      selector: (data: Row) => data?.groupersBelongsTo?.join('') || data.url,
       cell: (data: Row) => {
         const grouperMatches = groupsInProgram
           ?.filter((grouper => data.groupersBelongsTo.includes(grouper.id!)))
@@ -38,7 +43,7 @@ const Expansion = ({ data, groupsInProgram }: Props) => {
     },
     {
       name: 'Associated Conditions',
-      selector: (data: Row) => data.conditionInfo,
+      selector: (data: Row) => data?.conditionInfo?.join('') || data.url,
       cell: (data: Row) => {
         const conditionMatches = data.conditionInfo
           ?.map(condition => <div>{condition}</div>)

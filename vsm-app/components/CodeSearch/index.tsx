@@ -33,7 +33,7 @@ const CodeSearch = ({ programId, router }: Props) => {
   const [codeToFind, setCodeToFind] = useState<string | null>(null)
   const [systemToFind, setSystemToFind] = useState<string | null>(null)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
-  const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<string[] | null>(null)
+  const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
 
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
@@ -108,7 +108,7 @@ const CodeSearch = ({ programId, router }: Props) => {
       {
         name: 'Code System Version',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.version,
+        selector: (row: Row) => row?.matchingCodes?.version!,
         sortable: false,
         maxWidth: '260px',
         wrap: true,
@@ -116,7 +116,7 @@ const CodeSearch = ({ programId, router }: Props) => {
       {
         name: 'Display',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.display,
+        selector: (row: Row) => row?.matchingCodes?.display!,
         sortable: false,
         maxWidth: '320px',
         wrap: true
@@ -209,6 +209,7 @@ const CodeSearch = ({ programId, router }: Props) => {
           columns={matchColumns}
           expandableRows
           expandableRowExpanded={() => true}
+          // @ts-ignore-next-line (I can't figure this one out)
           expandableRowsComponent={Expansion}
           expandableRowsComponentProps={{ 'groupsInProgram': groupsInProgram }}
 
