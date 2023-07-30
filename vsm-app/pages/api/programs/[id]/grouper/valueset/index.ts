@@ -113,8 +113,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       sendError(matchesInCqf)
     }
 
-    console.log('matches in CQF: ', matchesInCqf)
-
     // update those cached leafs with newly added conditions (if any)
     const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
 
@@ -133,7 +131,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     }
 
     const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
-    console.log('cqf updates payload: ', cqfUpdatesPayload)
     const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
     const grouperVsUrl = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
     const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl, grouperMetadata)

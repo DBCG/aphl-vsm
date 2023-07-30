@@ -2,6 +2,7 @@ import FhirKitClient from 'fhir-kit-client'
 import cloneDeep from 'lodash.clonedeep'
 import { is } from '../is'
 import logger from './logger'
+import { stringWithoutVersion } from '../valueSetHelpers'
 
 interface GrouperIdsByUrlItem {
   version?: string
@@ -70,7 +71,6 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
 }
 
 const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
-  console.log('groupers: ', groupers)
   const grouperIdsByLeafRef: GrouperIdsByUrl = {}
   for (const grouper of groupers) {
       // exclude groupers that don't have anything in compose.include (bad data?)
@@ -93,6 +93,59 @@ const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
   return grouperIdsByLeafRef
 }
 
+interface FindMatchingExpansions {
+  leafVSets: fhir4.ValueSet[]
+  expandParameters: fhir4.Parameters
+  terminologyClient: FhirKitClient
+}
+
+const filterRejectPromiseValues = (items: PromiseSettledResult<any>[]) => (
+  items?.filter(item => is.promiseFulfilled(item))
+  ?.map((res: any) => res.value) as fhir4.ValueSet[]
+)
+
+interface GetVsConditionInfo {
+  cachedLeafs: fhir4.ValueSet[]
+  expansionUrl: string
+}
+
+// the expansions from the terminology server do not have the condition info
+// match up vsets with those cached via url
+const getVsConditionInfo = ({ cachedLeafs, expansionUrl }: GetVsConditionInfo) => {
+  return cachedLeafs
+    ?.find((vs) => stringWithoutVersion(vs.url!) === stringWithoutVersion(expansionUrl))
+    ?.useContext
+    ?.filter((ctx: fhir4.UsageContext) => (
+      ctx.code.system?.endsWith('usage-context-type') &&
+      ctx.code.code === 'focus'
+    ))
+    ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text)
+}
+
+const findMatchingExpansions = async (
+  { leafVSets, expandParameters, terminologyClient }: FindMatchingExpansions
+) => {
+  const expandedLeafs = await Promise.allSettled(
+    leafVSets.map((leaf: fhir4.ValueSet) => (
+      terminologyClient.operation({
+        name: '$expand',
+        id: leaf.id,
+        resourceType: 'ValueSet',
+        method: 'POST',
+        input: JSON.stringify(expandParameters),
+        options: {
+          headers: {
+            'content-type': 'application/json'
+          }
+        }
+      })
+    ))
+  ).then((leafs) => filterRejectPromiseValues(leafs))
+
+  const filteredItems = 'test' // TODO FINISH THIS
+
+}
+
 interface FindMatchingVsetUrlsParams {
   fhirCdrClient: FhirKitClient
   vsacFhirClient: FhirKitClient
@@ -113,7 +166,6 @@ const findMatchingVsetUrls = async ({
 }: FindMatchingVsetUrlsParams) => {
 
   const matchingLeafs = async (groupersByLeaf: GrouperIdsByUrl | undefined) => {
-    console.log('groupers by leaf: ', groupersByLeaf)
     if (!groupersByLeaf) return []
 
     const clonedGroupersByLeaf = cloneDeep(groupersByLeaf)
@@ -182,7 +234,9 @@ const findMatchingVsetUrls = async ({
     // running into an issue here where VSAC times out intermittently
     // seems to start occuring when there are more than 10 vsets to expand, but who knows.
     // need to batch this :(
+
     const matchingExpansions = async () => {
+
       const expansions = await Promise.allSettled(
         allVsacLeafs.map((leaf: fhir4.ValueSet) => (
           vsacFhirClient.operation({
@@ -230,10 +284,7 @@ const findMatchingVsetUrls = async ({
         url: vsUrl,
         matchingCodes: findMatches({ vs: i, codeToFind, systemToFind }).codeMatches,
         conditionInfo: conditionInfoFromCQF
-
-      })
-    }
-      )
+      })})
     }
 
     try {
