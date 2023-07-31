@@ -202,23 +202,21 @@ const ValueSetDetailsTables = ({
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        {filteredDefinitionData?.length > 0 && (
-          <TextField
-            sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={() => setFilterDefinitionText('')}>
-                  <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-                </IconButton>
-              )
-            }}
-            value={filterDefinitionText}
-            onChange={(e) => setFilterDefinitionText(e.target.value)}
-            id="filter-definition-table"
-            label="Filter Definitions"
-            variant="outlined"
-          />
-        )}
+        <TextField
+          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+          InputProps={{
+            endAdornment: (
+              <IconButton onClick={() => setFilterDefinitionText('')}>
+                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+              </IconButton>
+            )
+          }}
+          value={filterDefinitionText}
+          onChange={(e) => setFilterDefinitionText(e.target.value)}
+          id="filter-definition-table"
+          label="Filter Definitions"
+          variant="outlined"
+        />
         <DataTable
           columns={definitionColumns}
           keyField={'valueSet'}
@@ -228,23 +226,21 @@ const ValueSetDetailsTables = ({
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        {filteredExpansionData?.length > 0 && (
-          <TextField
-            sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-            InputProps={{
-              endAdornment: (
-                <IconButton onClick={() => setFilterExpansionText('')}>
-                  <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-                </IconButton>
-              )
-            }}
-            value={filterExpansionText}
-            onChange={(e) => setFilterExpansionText(e.target.value)}
-            id="filter-expansion-table"
-            label="Filter Expansion Codes"
-            variant="outlined"
-          />
-        )}
+        <TextField
+          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
+          InputProps={{
+            endAdornment: (
+              <IconButton onClick={() => setFilterExpansionText('')}>
+                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+              </IconButton>
+            )
+          }}
+          value={filterExpansionText}
+          onChange={(e) => setFilterExpansionText(e.target.value)}
+          id="filter-expansion-table"
+          label="Filter Expansion Codes"
+          variant="outlined"
+        />
         <DataTable
           columns={expansionColumns}
           defaultSortFieldId={'code'}
