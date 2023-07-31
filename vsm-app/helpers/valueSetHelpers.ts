@@ -258,7 +258,10 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
   return Object.assign(newVs, rest)
 }
 
+const urlWithoutVersion = (url: string) => url?.split?.('-')?.[0]
+
 // VSAC appends versions to valueset ids and urls with hyphen
+// this returns only the OID w/o version
 const idWithoutVersion = (url: string) => {
   if (url?.includes('|')) {
     return url?.split('|')[0]
@@ -266,7 +269,7 @@ const idWithoutVersion = (url: string) => {
     const splitPaths = url?.split('/') || []
     // get last part of url
     const vsIdWithVersion = splitPaths?.pop() as string
-    return vsIdWithVersion?.split('-')[0]
+    return urlWithoutVersion(vsIdWithVersion)
   }
 }
 
@@ -321,6 +324,7 @@ export {
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   idWithoutVersion,
+  urlWithoutVersion,
   transformForVSAC,
   transformFromVSACToCqf
 }

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
-import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -172,7 +172,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
         const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs.compose.include
 
         const newValueSetCanonicals = bodyJson.selectedValueSets
-          .map((item: any) => item.url.split('-')[0])
+          .map((item: any) => urlWithoutVersion(item.url))
           .filter((canonical) => originalComposeInclude?.find((item) => item?.valueSet?.[0] !== canonical))
 
         const newItems = newValueSetCanonicals?.map((c) => ({ valueSet: [c] }))

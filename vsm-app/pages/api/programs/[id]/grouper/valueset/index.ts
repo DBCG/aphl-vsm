@@ -7,7 +7,8 @@ import {
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
-  idWithoutVersion
+  idWithoutVersion,
+  urlWithoutVersion
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -17,8 +18,6 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import cloneDeep from 'lodash.clonedeep'
 import uniqBy from 'lodash.uniqby'
 
 export type ErrorResponse = {
@@ -211,7 +210,7 @@ const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<Boolea
 
 const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleEntry[] => {
   return grouperVSets.map((vs) => {
-    const unversionedUrl = (vs.selectedValueSet.url!)?.split('-')?.[0]
+    const unversionedUrl = urlWithoutVersion(vs.selectedValueSet.url!)
     return {
       request: {
         method: 'GET',
@@ -276,7 +275,7 @@ const submitUpdatesToCQF = async ({
   // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
-    ?.map((vs) => (vs.selectedValueSet.url!)?.split('-')?.[0])
+    ?.map((vs) => (urlWithoutVersion(vs.selectedValueSet.url!)))
     ?.filter((url) => !matchesInCqfUrls?.includes(url))
     ?.filter((item) => Boolean(item))
 
@@ -286,7 +285,7 @@ const submitUpdatesToCQF = async ({
   }
 
   const vsToAddFromTermServer = grouperVSets.filter((flatVs) => {
-    return urlsToAddFromRemote.includes(flatVs?.selectedValueSet?.url?.split('-')[0]!)
+    return urlsToAddFromRemote.includes(urlWithoutVersion(flatVs?.selectedValueSet?.url!))
   })
 
   if (vsToAddFromTermServer) {
