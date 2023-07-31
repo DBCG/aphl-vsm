@@ -34,8 +34,9 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   // debugger
 
   if (!response.ok) {
+    console.error('res here: ', response)
     logger.error('error', response.status, response.statusText)
-    return res.status(response.status).json({ error: response.statusText })
+    return res.status(response.status || 500).json({ error: response.statusText })
   }
 
   const libraryUpdateResponse = await fhirCdrClient.update({
