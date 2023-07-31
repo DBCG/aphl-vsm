@@ -259,7 +259,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 }
 
 // VSAC appends versions to valueset ids and urls with hyphen
-const stringWithoutVersion = (url: string) => {
+const idWithoutVersion = (url: string) => {
   if (url?.includes('|')) {
     return url?.split('|')[0]
   } else {
@@ -275,7 +275,7 @@ const getOid = (vs: fhir4.ValueSet) => {
   if (!oid && vs?.url) {
     // extract oid out of end of url
     const url = vs?.url.split('/').pop() as string
-    oid = url?.includes('|') ? url.split('|')[0] : stringWithoutVersion(url)
+    oid = url?.includes('|') ? url.split('|')[0] : idWithoutVersion(url)
   }
   return oid
 }
@@ -301,7 +301,7 @@ const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   // get last part of url
   const vsIdWithVersion = splitPaths?.pop() as string
   // extract without t
-  const vsId = stringWithoutVersion(vsIdWithVersion)
+  const vsId = idWithoutVersion(vsIdWithVersion)
   splitPaths.push(vsId)
   clonedVs.url = splitPaths.join('/')
   return clonedVs
@@ -320,7 +320,7 @@ export {
   updateLeafVsVersion,
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
-  stringWithoutVersion,
+  idWithoutVersion,
   transformForVSAC,
   transformFromVSACToCqf
 }

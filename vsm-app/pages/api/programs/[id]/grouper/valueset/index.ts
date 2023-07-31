@@ -7,7 +7,7 @@ import {
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
-  stringWithoutVersion
+  idWithoutVersion
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -246,7 +246,7 @@ const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: Fl
 
   return matchesInCqf.map((cachedVS) => {
     const conditionsToAdd = grouperVSets
-      .find((item) => stringWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
+      .find((item) => idWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
       ?.selectedConditions?.filter((x) => Boolean(x))
     // if user does not include conditions, just return unchanged vs
     if (!conditionsToAdd?.length) {
@@ -296,10 +296,10 @@ const submitUpdatesToCQF = async ({
         const terminologyClientInstance = terminologyClient.getClient()
         // vsac appends version to the id, search by unversioned
         // must do a read operation to get whole valueset instead of subsetted
-        const idWithoutVersion = stringWithoutVersion(flatGrouperItem.selectedValueSet.id!)
+        const idNoVersion = idWithoutVersion(flatGrouperItem.selectedValueSet.id!)
         const valueSetToAdd = await terminologyClientInstance?.read({
           resourceType: 'ValueSet',
-          id: idWithoutVersion
+          id: idNoVersion
         })
 
         // add optional conditions to valueset from term server (VSAC)
