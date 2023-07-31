@@ -21,6 +21,8 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     ]
   }
 
+  // debugger
+
   const response = await fhirCdrClient.operation({
     name: '$release',
     resourceType: 'Library',
@@ -28,6 +30,8 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     method: 'POST',
     input: releasePayload
   })
+
+  // debugger
 
   if (!response.ok) {
     logger.error('error', response.status, response.statusText)
@@ -39,6 +43,8 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     id: req.query.id as string,
     body: req.body
   })
+
+  // debugger
 
   if (!libraryUpdateResponse) {
     console.error('error here: ', libraryUpdateResponse)
