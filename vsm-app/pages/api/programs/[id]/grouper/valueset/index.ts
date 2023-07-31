@@ -276,7 +276,7 @@ const submitUpdatesToCQF = async ({
   // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
-    ?.map((vs) => stringWithoutVersion(vs.selectedValueSet.url!))
+    ?.map((vs) => (vs.selectedValueSet.url!)?.split('-')?.[0])
     ?.filter((url) => !matchesInCqfUrls?.includes(url))
     ?.filter((item) => Boolean(item))
 
