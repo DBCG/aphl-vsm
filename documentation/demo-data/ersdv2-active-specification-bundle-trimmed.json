@@ -1277,7 +1277,7 @@
                         "value": "2.16.840.1.114222.4.11.7508"
                     }
                 ],
-                "version": "2022-10-19",
+                "version": "1.0.0-draft",
                 "name": "Reportable_Condition_Trigger_Codes",
                 "title": "OID",
                 "status": "active",
