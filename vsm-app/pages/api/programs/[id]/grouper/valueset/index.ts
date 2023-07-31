@@ -211,7 +211,7 @@ const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<Boolea
 
 const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleEntry[] => {
   return grouperVSets.map((vs) => {
-    const unversionedUrl = (vs.selectedValueSet.url!)?.split('-')?.
+    const unversionedUrl = (vs.selectedValueSet.url!)?.split('-')?.[0]
     return {
       request: {
         method: 'GET',
