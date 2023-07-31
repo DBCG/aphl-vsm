@@ -4,7 +4,9 @@ import {
   removeValueSetFromGrouper,
   updateLeafVsVersion,
   createGrouperWithMetadata,
-  updateGrouperWithMetadata
+  updateGrouperWithMetadata,
+  urlWithoutVersion,
+  idWithoutVersion
 } from "./valueSetHelpers";
 
 
@@ -216,6 +218,22 @@ describe('valueSetHelpers', () => {
       expect(authorExtension?.length).toBe(1)
       expect(authorExtension?.[0]?.valueContactDetail?.name).toBe('test author')
     })
+  })
+
+  describe('idWithoutVerison', () => {
+    const test1 = 'http://xyz.com/slkdjf-1.0.0'
+    const test2 = 'http://example.com/123'
+
+    expect(idWithoutVersion(test1)).toBe('slkdjf')
+    expect(idWithoutVersion(test2)).toBe('123')
+  })
+
+  describe('urlWithoutVersion', () => {
+    const test1 = 'http://xyz.com/slkdjf-1.0.0'
+    const test2 = 'http://example.com'
+
+    expect(urlWithoutVersion(test1)).toBe('http://xyz.com/slkdjf')
+    expect(urlWithoutVersion(test2)).toBe('http://example.com')
   })
 })
 
