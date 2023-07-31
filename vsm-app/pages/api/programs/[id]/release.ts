@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import appCache from 'cache'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
+import { removeDraftFromVersionString } from '@/utils'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
@@ -12,7 +12,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     parameter: [
       {
         name: 'version',
-        valueString: toReleaseLibrary?.version
+        valueString: removeDraftFromVersionString(toReleaseLibrary?.version)
       },
       {
         name: 'versionBehavior',
@@ -41,6 +41,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   })
 
   if (!libraryUpdateResponse) {
+    console.error('error here: ', libraryUpdateResponse)
     logger.error('error updating library', libraryUpdateResponse)
     return res.status(400).json(libraryUpdateResponse)
   }
