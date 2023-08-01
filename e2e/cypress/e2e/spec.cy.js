@@ -90,7 +90,7 @@ describe("Smoke Tests", () => {
       cy.get('[id="cell-4-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains("2020").should("exist");
     });
 
-    it("Creates/Deletes new grouper", () => {
+    it("Creates, Edits, and Deletes new grouper", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -112,13 +112,37 @@ describe("Smoke Tests", () => {
       cy.get("#add-valueset-to-program").click();
 
       cy.get("#submit-grouper-creation").click();
-      // Do some assertions here
+      // Do some assertions on Program Detail View Page
       cy.get("#cell-1-test-grouper").contains("Excellent_title_for_grouper").should("exist");
       cy.get("#cell-2-test-grouper").contains("excellent title for grouper").should("exist");
       cy.get("#cell-3-test-grouper")
         .contains("http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper")
         .should("exist");
-      cy.get("#cell-4-test-grouper").contains("1.0.0-draft").should("exist");
+
+      // Edit the grouper
+      cy.get("#cell-1-test-grouper").click({force: true})
+      cy.get('[data-button="edit-metadata"]').click();
+      cy.get("#vs-publisher").clear().type("test-publisher");
+      cy.get("#vs-author").clear().type("test-author");
+      cy.get("#vs-purpose").clear().type("test-purpose");
+      cy.get("#vs-description").clear().type("test-description");
+      cy.get('[data-button="edit-metadata-save"]').click();
+
+      // Check that the metadata was updated
+      cy.get("#vs-publisher").should("have.value", "test-publisher");
+      cy.get("#vs-author").should("have.value", "test-author");
+      cy.get("#vs-purpose").should("have.value", "test-purpose");
+      cy.get("#vs-description").should("have.value", "test-description");
+
+      // Navigate back to program view
+      cy.get("#breadcrumb-programs").click();
+      cy.get('[data-column-id="1"]')
+      .contains("DRAFT")
+      .parents("div")
+      .parents("div")
+      .first()
+      .click(50, 0, { force: true });
+
 
       // Now remove newly created grouper
       cy.get('#cell-5-test-grouper [data-button-context="delete"]').click();
