@@ -150,7 +150,7 @@ describe("Smoke Tests", () => {
       cy.get("#cell-1-test-grouper").should("not.exist");
     });
 
-    it("Adds a new valueset to the program", () => {
+    it("Adds a new valueset to multiple program groupers", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -160,23 +160,27 @@ describe("Smoke Tests", () => {
 
       cy.get("#view-valuesets").click();
       cy.get("#add-valueset").click();
-
+      
+      // vsac search for valuesets
       cy.get("#vs-search").type("brain");
       cy.get("#submit-search-valueset-button").click();
       cy.get(".rdt_TableBody input").first().click();
 
-      cy.get('.rdt_TableBody [data-column-id="6"]')
-        .first()
-        .then((message) => {
-          let oid = message.text();
-          cy.wrap(oid).as("oid");
-        });
+      // Set alias for oid
+      cy.get('.rdt_TableBody [data-column-id="6"]').first().then((oid) => cy.wrap(oid.text()).as("oid"));
 
-      let vsId = "";
-      cy.get("@oid").then((oid) => {
-        vsId = oid;
+      cy.get("@oid").then((vsId) => {
+        // Select first grouper on list
         cy.get("#react-select-search-page-groups-live-region").parent().click();
-        cy.get("#react-select-search-page-groups-option-0").click();
+        // Grab text from grouper1
+        cy.get('#react-select-search-page-groups-option-0').first().then((grouperEl) => cy.wrap(grouperEl.text()).as('grouper1'));
+        cy.get('#react-select-search-page-groups-option-0').click()
+
+        // Select second grouper on list
+        cy.get("#react-select-search-page-groups-live-region").parent().click();
+        cy.get('#react-select-search-page-groups-option-1').first().then((grouperEl) => cy.wrap(grouperEl.text()).as('grouper2'));
+        cy.get("#react-select-search-page-groups-option-1").click();
+
         cy.get("#add-valueset-to-program").click();
         cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsId).should("exist");
 
@@ -190,7 +194,25 @@ describe("Smoke Tests", () => {
           .click(50, 0, { force: true });
 
         // Check grouper to see if version exists
-        cy.get('#grouper-overview-table .rdt_TableBody [data-column-id="1"]').first().click(50, 10, { force: true });
+        cy.get('@grouper1').then((grouper1) => {
+          cy.get('#grouper-overview-table .rdt_TableBody').contains(grouper1).first().click(50, 10, { force: true });
+        })
+
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+
+        // navigate back to program view
+        cy.get("#breadcrumb-programs").click();
+        cy.get('[data-column-id="1"]')
+          .contains("DRAFT")
+          .parents("div")
+          .parents("div")
+          .first()
+          .click(50, 0, { force: true });
+
+        // // Check second grouper to see if version exists
+        cy.get('@grouper2').then((grouper2) => {
+          cy.get('#grouper-overview-table .rdt_TableBody').contains(grouper2).first().click(50, 10, { force: true });
+        })
         cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
       });
     });
