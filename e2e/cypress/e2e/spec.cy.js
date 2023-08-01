@@ -284,7 +284,8 @@ describe("Smoke Tests", () => {
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
     });
 
-    it("Creates approval for draft library", () => {
+    it("Creates approval for draft library and release", () => {
+      // View first draft progrma
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -293,14 +294,20 @@ describe("Smoke Tests", () => {
         .click(50, 0, { force: true });
 
       cy.get("#approve").click();
-
+      
+      // Fill out Approval form
       cy.get("#text").clear().type("This is a test approval");
       cy.get("#reference").clear().type("http://example.com");
       cy.get("#user").clear().type("johndoe");
       cy.get("#submit-approve").click();
 
       cy.get(`#cell-1-comment_${moment().utc().format("YYYY-MM-DD")}_0`).should("exist");
-      // cy.get(`#cell-2-comment_${moment().utc().format("YYYY-MM-DD")}_0`).contains("")
+      
+      // Navigate back to program view
+      cy.get('#breadcrumb-programs').click();
+
+      cy.get('[data-button-context="release"]').click();
+      cy.get('[data-modal="confirm"]').click();
     });
 
     it("Logs out of application", () => {
