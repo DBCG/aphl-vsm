@@ -230,9 +230,6 @@ const ApproveInfoForm: NextPage = () => {
     return parametersObj
   }
 
-  useEffect(() => {
-    console.log('approvalFormData: ', approvalFormData)
-  }, [approvalFormData])
   return (
     <>
       <Row>

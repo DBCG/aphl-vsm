@@ -38,6 +38,7 @@ interface MetadataResult {
   publisher?: string
   purpose?: string
   author?: string
+  name?: string
 }
 
 export default function ValueSetContents({
@@ -56,7 +57,8 @@ export default function ValueSetContents({
     version: defaultGrouperVersion,
     description: defaultGrouperDescription,
     publisher: defaultGrouperPublisher,
-    purpose: defaultGrouperPurpose
+    purpose: defaultGrouperPurpose,
+    name: defaultGrouperName
   } = valueSet
 
   // could be multiple authors maybe?
@@ -67,6 +69,7 @@ export default function ValueSetContents({
   const [grouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
   const [grouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
   const [grouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
+  const [grouperName, setGrouperName] = useState(defaultGrouperName)
   const [changedMetadataItems, setChangedMetadataItems] = useState({})
 
   useEffect(() => {
@@ -83,6 +86,9 @@ export default function ValueSetContents({
     }
     if (defaultGrouperAuthor?.trim() !== grouperAuthor?.trim()) {
       metadataItemsChanged.author = grouperAuthor?.trim()
+    }
+    if (defaultGrouperName?.trim() !== grouperName?.trim()) {
+      metadataItemsChanged.name = grouperName?.trim()
     }
 
     setChangedMetadataItems(metadataItemsChanged)
@@ -255,6 +261,17 @@ export default function ValueSetContents({
                   readonly={true}
                   defaultValue={currentValueSet.url}
                   placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} url set`}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <SearchInput
+                  id="vs-name"
+                  label={isGrouperValueSet ? 'Grouper Name' : 'Valueset Name'}
+                  readonly={!isEditing}
+                  value={grouperName}
+                  defaultValue={defaultGrouperName}
+                  placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} name set`}
+                  onChange={(e) => setGrouperName(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}>

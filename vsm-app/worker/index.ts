@@ -6,7 +6,7 @@ import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet, UsageContext } from 'fhir/r4'
 import { is } from '@/helpers/is'
-import { getTerminologySource, stringWithoutVersion } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, idWithoutVersion } from '@/helpers/valueSetHelpers'
 import { sleep } from 'utils'
 import moment from 'moment'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
@@ -175,7 +175,7 @@ const executeJobBatch = async (urls: string[]) => {
 
         const vsComparatorResponses = (await targetFhirClient?.search({
           resourceType: 'ValueSet',
-          searchParams: { url: stringWithoutVersion(url) }
+          searchParams: { url: idWithoutVersion(url) }
         })) as fhir4.Bundle
 
         cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
