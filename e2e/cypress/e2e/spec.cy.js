@@ -64,7 +64,7 @@ describe("Smoke Tests", () => {
 
       cy.get("#edit-manifest").click();
       cy.get("#code-system-selector").click();
-      cy.get("#react-select-3-listbox").contains("ICD10CM").click(); 
+      cy.get("#react-select-3-listbox").contains("ICD10CM").click();
 
       // Add the manifests
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
@@ -143,14 +143,13 @@ describe("Smoke Tests", () => {
       .first()
       .click(50, 0, { force: true });
 
-
       // Now remove newly created grouper
       cy.get('#cell-5-test-grouper [data-button-context="delete"]').click();
       cy.get('[data-modal="yes"]').click();
       cy.get("#cell-1-test-grouper").should("not.exist");
     });
 
-    it("Adds a new valueset to multiple program groupers", () => {
+    it("Adds a new valueset to multiple program groupers then removes it", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -160,25 +159,31 @@ describe("Smoke Tests", () => {
 
       cy.get("#view-valuesets").click();
       cy.get("#add-valueset").click();
-      
+
       // vsac search for valuesets
       cy.get("#vs-search").type("brain");
       cy.get("#submit-search-valueset-button").click();
       cy.get(".rdt_TableBody input").first().click();
 
       // Set alias for oid
-      cy.get('.rdt_TableBody [data-column-id="6"]').first().then((oid) => cy.wrap(oid.text()).as("oid"));
+      cy.get('.rdt_TableBody [data-column-id="6"]')
+        .first()
+        .then((oid) => cy.wrap(oid.text()).as("oid"));
 
       cy.get("@oid").then((vsId) => {
         // Select first grouper on list
         cy.get("#react-select-search-page-groups-live-region").parent().click();
         // Grab text from grouper1
-        cy.get('#react-select-search-page-groups-option-0').first().then((grouperEl) => cy.wrap(grouperEl.text()).as('grouper1'));
-        cy.get('#react-select-search-page-groups-option-0').click()
+        cy.get("#react-select-search-page-groups-option-0")
+          .first()
+          .then((grouperEl) => cy.wrap(grouperEl.text()).as("grouper1"));
+        cy.get("#react-select-search-page-groups-option-0").click();
 
         // Select second grouper on list
         cy.get("#react-select-search-page-groups-live-region").parent().click();
-        cy.get('#react-select-search-page-groups-option-1').first().then((grouperEl) => cy.wrap(grouperEl.text()).as('grouper2'));
+        cy.get("#react-select-search-page-groups-option-1")
+          .first()
+          .then((grouperEl) => cy.wrap(grouperEl.text()).as("grouper2"));
         cy.get("#react-select-search-page-groups-option-1").click();
 
         cy.get("#add-valueset-to-program").click();
@@ -194,26 +199,45 @@ describe("Smoke Tests", () => {
           .click(50, 0, { force: true });
 
         // Check grouper to see if version exists
-        cy.get('@grouper1').then((grouper1) => {
-          cy.get('#grouper-overview-table .rdt_TableBody').contains(grouper1).first().click(50, 10, { force: true });
-        })
+        cy.get("@grouper1").then((grouper1) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+        });
 
         cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
 
         // navigate back to program view
-        cy.get("#breadcrumb-programs").click();
-        cy.get('[data-column-id="1"]')
-          .contains("DRAFT")
-          .parents("div")
-          .parents("div")
-          .first()
-          .click(50, 0, { force: true });
+        cy.go("back");
 
         // // Check second grouper to see if version exists
-        cy.get('@grouper2').then((grouper2) => {
-          cy.get('#grouper-overview-table .rdt_TableBody').contains(grouper2).first().click(50, 10, { force: true });
-        })
+        cy.get("@grouper2").then((grouper2) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+        });
         cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+
+        // Remove same valueset from program
+        cy.go("back");
+
+        cy.get("#view-valuesets").click();
+        cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).click({ force: true });
+        cy.get('[data-modal="yes"]').click();
+        cy.go("back");
+
+        // Check grouper to see valueset has been removed
+        cy.get("@grouper1").then((grouper1) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+          cy.get('#page-title').contains(grouper1).should("exist")
+        });
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+
+        // navigate back to program view
+        cy.go("back");
+
+        // Check second grouper to see valueset has been removed
+        cy.get("@grouper2").then((grouper2) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+          cy.get('#page-title').contains(grouper2).should("exist")
+        });
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
       });
     });
 

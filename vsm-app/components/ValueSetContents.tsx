@@ -185,7 +185,7 @@ export default function ValueSetContents({
               </Typography>
             </Grid>
             <Grid item xs={12} sm={10}>
-              <PageTitle>{currentValueSet.title}</PageTitle>
+              <PageTitle id={'page-title'}>{currentValueSet.title}</PageTitle>
             </Grid>
           </Grid>
           <InputContainer>

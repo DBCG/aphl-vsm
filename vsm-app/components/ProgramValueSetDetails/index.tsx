@@ -262,7 +262,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     terminologyInfo,
     selectedVsId,
     useContext
-
   }: HandleVersionChange) => {
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
 
@@ -282,7 +281,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       grouperIds: versionToUpdate.grouperIds,
       terminologyInfo: versionToUpdate.terminologyInfo,
       selectedVsId: versionToUpdate.selectedVsId,
-      useContext: versionToUpdate.useContext,
+      useContext: versionToUpdate.useContext
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -365,7 +364,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
-          
+
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
@@ -397,10 +396,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         name: (
           <div>
             <SelectInputTitle>Steward</SelectInputTitle>
-            <FilterInput
-              onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
-              style={{ height: '30px' }}
-            />
+            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
           </div>
         ),
         selector: (row: TableRow) => row.valueSet.publisher,
@@ -574,6 +570,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <FlexCol>
               <IconButton
                 deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
+                data-remove-grouper-vs={row?.canonical}
                 onClick={async () => {
                   await handleDelete({
                     vsCanonical: row?.valueSet?.url,
