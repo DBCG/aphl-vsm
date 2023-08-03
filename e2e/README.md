@@ -7,10 +7,12 @@ E2E Tests
 
 - In app root directory, run:
 ```docker-compose up```
-in a separate window run the following command to configure keycloak
+**wait a few minutes before running next command**
+
+- In a separate window run the following command to configure keycloak
 ```./keycloak/configure```
 
-finally, start the application in also in a separate window
+- Finally, start the application in also in a separate window
 ```cd vsm-app && npm install && npm run dev```
 
 ### Running cypress
