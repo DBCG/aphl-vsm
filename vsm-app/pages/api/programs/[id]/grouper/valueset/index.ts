@@ -31,14 +31,15 @@ export type ErrorResponse = {
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
-    const { vsCanonical, grouperCanonicals } = body
+    const { vsCanonical, grouperInfo } = body
 
     const groupersToUpdate = []
-    for (const grouperC of grouperCanonicals) {
+    for (const grouperC of grouperInfo) {
       const grouperValueSetBundle = (await fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
-          url: grouperC
+          url: grouperC.canonical,
+          _id: grouperC.id
         }
       })) as fhir4.Bundle
 
@@ -467,7 +468,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     return res.status(200).send({ message: `Grouper ${grouperId} updated` })
     
   } catch (e) {
-    logSimpleHapiError(e)
+    logSimpleHapiError(e, 'updateExistingGrouper')
     res.status(400).send({ error: 'error' })
   }
 }

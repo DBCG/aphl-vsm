@@ -103,8 +103,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
 
-  const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
-    if (!vsCanonical || !grouperCanonicals) {
+  const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
+    if (!vsCanonical || !grouperInfo) {
       setIsDeleting(false)
       return
     } else {
@@ -114,11 +114,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     try {
       const body = {
         vsCanonical,
-        grouperCanonicals
+        grouperInfo
       }
 
       const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
-        method: 'PUT',
+        method: 'DELETE',
         body: JSON.stringify(body)
       }).then((res) => res.json())
 
@@ -573,11 +573,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
                 data-remove-grouper-vs={row?.canonical}
                 onClick={async () => {
-                  await handleDelete({
-                    vsCanonical: row?.valueSet?.url,
-                    grouperCanonicals: row.groups.map((g) => g.url)
-                  })
-                  window.location.reload()
+                  const payload = {
+                    vsCanonical: row.valueSet.url!,
+                    grouperInfo: row.groups.map((g) => ({canonical: g?.url!, id: g?.id!}))
+                  }
+                  console.log(payload)
+                  await handleDelete(payload)
                 }}
                 buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
