@@ -285,7 +285,7 @@ describe("Smoke Tests", () => {
     });
 
     it("Creates approval for draft library and release", () => {
-      // View first draft progrma
+      // View first draft program
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -305,7 +305,9 @@ describe("Smoke Tests", () => {
       
       // Navigate back to program view
       cy.get('#breadcrumb-programs').click();
-
+      // we have to wait up to 1 minute for CQF to finish all its $draft stuff
+      // or this will break
+      cy.wait(60000);
       cy.get('[data-button-context="release"]').click();
       cy.get('[data-modal="confirm"]').click();
     });
