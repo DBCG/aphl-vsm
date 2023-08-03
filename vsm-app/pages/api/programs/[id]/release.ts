@@ -20,9 +20,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       }
     ]
   }
-
-  // debugger
-
+  
   const response = await fhirCdrClient.operation({
     name: '$release',
     resourceType: 'Library',
@@ -31,29 +29,13 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     input: releasePayload
   })
 
-  // debugger
-
-  if (!response.ok) {
+  if (!response.entry) {
     console.error('res here: ', response)
     logger.error('error', response.status, response.statusText)
     return res.status(response.status || 500).json({ error: response.statusText })
   }
 
-  const libraryUpdateResponse = await fhirCdrClient.update({
-    resourceType: 'Library',
-    id: req.query.id as string,
-    body: req.body
-  })
-
-  // debugger
-
-  if (!libraryUpdateResponse) {
-    console.error('error here: ', libraryUpdateResponse)
-    logger.error('error updating library', libraryUpdateResponse)
-    return res.status(400).json(libraryUpdateResponse)
-  }
-
-  return res.send(libraryUpdateResponse)
+  return res.status(200).send({})
 }
 
 export default handler({
