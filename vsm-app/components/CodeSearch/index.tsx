@@ -28,6 +28,14 @@ interface Row {
   matchingCodes: MatchingCodes
 }
 
+const customStyles = {
+  rows: {
+    style: {
+      padding: '8px 12px'
+    }
+  }
+}
+
 const CodeSearch = ({ programId, router }: Props) => {
   // states for code search/$expand
   const [codeToFind, setCodeToFind] = useState<string | null>(null)
@@ -202,6 +210,7 @@ const CodeSearch = ({ programId, router }: Props) => {
       </FormControl>
       {matchingValueSetUrls && (
         <DT
+          customStyles={customStyles}
           title={loadingCodeSearch ? '' : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`}
           theme='aphl'
           data={matchingValueSetUrls || []}
