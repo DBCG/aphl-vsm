@@ -177,7 +177,7 @@ const ValueSetDetailsTables = ({
 
   const filteredDefinitionData =
     //@ts-ignore
-    definitionData?.filter((item) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())) || []
+    filterDefinitionText?.trim() ? definitionData?.filter((item) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())) : definitionData
 
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
 
