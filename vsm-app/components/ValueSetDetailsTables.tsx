@@ -199,7 +199,7 @@ const ValueSetDetailsTables = ({
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleTabChange}>
           <Tab label="Definition" {...a11yProps(0)} />
-          <Tab label="Expansion" {...a11yProps(1)} />
+          { !isGrouperValueSet && <Tab label="Expansion" {...a11yProps(1)} /> }
           {value === 1 && isDraftProgram && (
             <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
               <Box sx={{ mt: 1, mr: 1 }}>
