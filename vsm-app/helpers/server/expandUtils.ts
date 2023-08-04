@@ -231,12 +231,7 @@ const findMatchingVsetUrls = async ({
       ?.map((i: any) => i?.resource?.entry?.[0]?.resource)
       ?.filter((x: any) => Boolean(x)) as fhir4.ValueSet[]
 
-    // running into an issue here where VSAC times out intermittently
-    // seems to start occuring when there are more than 10 vsets to expand, but who knows.
-    // need to batch this :(
-
     const matchingExpansions = async () => {
-
       const expansions = await Promise.allSettled(
         allVsacLeafs.map((leaf: fhir4.ValueSet) => (
           vsacFhirClient.operation({

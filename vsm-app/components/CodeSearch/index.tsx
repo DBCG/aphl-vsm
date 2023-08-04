@@ -11,6 +11,7 @@ import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
+import { ErrorMessage } from '../ErrorMessage'
 
 interface Props {
   programId: string
@@ -47,7 +48,7 @@ const CodeSearch = ({ programId, router }: Props) => {
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
 
   // error states
-  const [error, setError] = useState<boolean | string>(false)
+  const [error, setError] = useState<null | string>(null)
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
@@ -67,7 +68,7 @@ const CodeSearch = ({ programId, router }: Props) => {
   }
 
   const handleSearchCodes = async () => {
-    setError(false)
+    setError(null)
     setLoadingCodeSearch(true)
     try {
       if(!groupersToSearch?.length) return
@@ -89,7 +90,6 @@ const CodeSearch = ({ programId, router }: Props) => {
       
       setMatchingValueSetUrls(matches)
     } catch (e) {
-      console.log('error here: ', e)
       setError('Error occurred searching for code')
     }
     setLoadingCodeSearch(false)
@@ -207,6 +207,9 @@ const CodeSearch = ({ programId, router }: Props) => {
             {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
           </Grid>
         </Grid>
+          { error && (
+            <ErrorMessage error={error} />
+          )}
       </FormControl>
       {matchingValueSetUrls && (
         <DT
