@@ -175,9 +175,22 @@ const ValueSetDetailsTables = ({
     })
   }
 
-  const filteredDefinitionData =
-    //@ts-ignore
-    filterDefinitionText?.trim() ? definitionData?.filter((item) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())) : definitionData
+  const filteredDefinitions = (defData: any) => {
+    const textToFind = filterDefinitionText.trim()
+    if (!textToFind) return defData
+  
+    if (isGrouperValueSet) {
+      return defData.filter(
+        (item: any) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+      )
+    } else {
+      return defData.filter(
+        (item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+      )
+    }
+  }
+
+  const filteredDefinitionData = filteredDefinitions(definitionData)
 
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
 
