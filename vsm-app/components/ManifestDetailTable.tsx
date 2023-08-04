@@ -67,7 +67,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       progressPending={loading}
       columns={columns}
       highlightOnHover
-      customStyles={customTableStyles('clickable')}
+      customStyles={customTableStyles('readonly')}
       data={preppedData}
       pagination
       paginationPerPage={10}
