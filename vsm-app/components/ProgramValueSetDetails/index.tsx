@@ -471,7 +471,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               ))}
             </ReadOnlyContainer>
           ) : (
-            <SelectInputContainer>
+            <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
                 menuPlacement="top"
                 instanceId="condition-selector"
@@ -575,7 +575,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 onClick={async () => {
                   const payload = {
                     vsCanonical: row.valueSet.url!,
-                    grouperInfo: row.groups.map((g) => ({canonical: g?.url!, id: g?.id!}))
+                    grouperInfo: row.groups.map((g) => ({ canonical: g?.url!, id: g?.id! }))
                   }
                   console.log(payload)
                   await handleDelete(payload)
