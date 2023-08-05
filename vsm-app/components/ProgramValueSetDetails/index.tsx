@@ -22,6 +22,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
+import { Box } from '@mui/material'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -623,24 +624,26 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           {updateVSetsButton}
         </Col>
       </Row>
-      <DT
-        // @ts-expect-error
-        data={progValueSetDets?.data}
-        keyField="keyField"
-        persistTableHead={true}
-        // @ts-expect-error
-        columns={columns}
-        theme="aphl"
-        pagination
-        highlightOnHover={true}
-        onRowClicked={(row) => {
-          router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
-        }}
-        fixedHeader // TODO: Should we remove? adds an additional scrollbar
-        customStyles={customTableStyles('clickable')}
-        progressPending={pageLoading || vSetsLoading}
-        progressComponent={<LoadingIndicator />}
-      />
+      <Box id="vs-table-detail">
+        <DT
+          // @ts-expect-error
+          data={progValueSetDets?.data}
+          keyField="keyField"
+          persistTableHead={true}
+          // @ts-expect-error
+          columns={columns}
+          theme="aphl"
+          pagination
+          highlightOnHover={true}
+          onRowClicked={(row) => {
+            router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+          }}
+          fixedHeader // TODO: Should we remove? adds an additional scrollbar
+          customStyles={customTableStyles('clickable')}
+          progressPending={pageLoading || vSetsLoading}
+          progressComponent={<LoadingIndicator />}
+        />
+      </Box>
     </>
   )
 }

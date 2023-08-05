@@ -241,6 +241,49 @@ describe("Smoke Tests", () => {
       });
     });
 
+    it("Ability to filter Valuesets by OID, Name, or Version", () => {
+      cy.get('[data-column-id="1"]')
+      .contains("DRAFT")
+      .parents("div")
+      .parents("div")
+      .first()
+      .click(50, 0, { force: true });
+
+      cy.get("#view-valuesets").click();
+      // Search By Name
+      cy.get('[data-column-id="vs-name-search"] input').clear().type("covid");
+      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223-2022-10-19-0"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
+      cy.get('[data-column-id="vs-name-search"] input').clear()
+
+      // Search By OID
+      cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
+      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
+      cy.get('[data-column-id="vs-oid-search"] input').clear();
+    })
+
+    it("Adds and Removes conditions from valuesets", {scrollBehavior: false}, () => {
+      cy.get('[data-column-id="1"]')
+        .contains("DRAFT")
+        .parents("div")
+        .parents("div")
+        .first()
+        .click(50, 0, { force: true });
+
+      cy.get("#view-valuesets").click();
+      cy.get("#vs-table-detail").children().first().scrollTo("right")
+      
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"],[id="#react-select-condition-selector-input"]').click()
+
+      cy.get("#react-select-condition-selector-listbox").contains("California Serogroup Virus Disease").scrollIntoView().click()
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('include.text', "California Serogroup Virus Disease")
+
+      // Removes condition from valueset
+      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click()
+      cy.get('body').click(0,0, {force: true}); // For bluring the element
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
+    });
+
     it("Creates approval for draft library", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")

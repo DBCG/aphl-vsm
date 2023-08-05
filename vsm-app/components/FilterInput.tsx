@@ -22,6 +22,7 @@ interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
   value?: string
+  id?: string
   def?: string
   minWidth?: number
   hasIcon?: boolean
