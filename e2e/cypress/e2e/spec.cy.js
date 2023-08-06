@@ -64,7 +64,7 @@ describe("Smoke Tests", () => {
 
       cy.get("#edit-manifest").click();
       cy.get("#code-system-selector").click();
-      cy.get("#react-select-3-listbox").contains("ICD10CM").click(); 
+      cy.get("#react-select-3-listbox").contains("ICD10CM").click();
 
       // Add the manifests
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
@@ -90,7 +90,7 @@ describe("Smoke Tests", () => {
       cy.get('[id="cell-4-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains("2020").should("exist");
     });
 
-    it("Creates/Deletes new grouper", () => {
+    it("Creates, Edits, and Deletes new grouper", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -112,13 +112,36 @@ describe("Smoke Tests", () => {
       cy.get("#add-valueset-to-program").click();
 
       cy.get("#submit-grouper-creation").click();
-      // Do some assertions here
+      // Do some assertions on Program Detail View Page
       cy.get("#cell-1-test-grouper").contains("Excellent_title_for_grouper").should("exist");
       cy.get("#cell-2-test-grouper").contains("excellent title for grouper").should("exist");
       cy.get("#cell-3-test-grouper")
         .contains("http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper")
         .should("exist");
-      cy.get("#cell-4-test-grouper").contains("1.0.0-draft").should("exist");
+
+      // Edit the grouper
+      cy.get("#cell-1-test-grouper").click({force: true})
+      cy.get('[data-button="edit-metadata"]').click();
+      cy.get("#vs-publisher").clear().type("test-publisher");
+      cy.get("#vs-author").clear().type("test-author");
+      cy.get("#vs-purpose").clear().type("test-purpose");
+      cy.get("#vs-description").clear().type("test-description");
+      cy.get('[data-button="edit-metadata-save"]').click();
+
+      // Check that the metadata was updated
+      cy.get("#vs-publisher").should("have.value", "test-publisher");
+      cy.get("#vs-author").should("have.value", "test-author");
+      cy.get("#vs-purpose").should("have.value", "test-purpose");
+      cy.get("#vs-description").should("have.value", "test-description");
+
+      // Navigate back to program view
+      cy.get("#breadcrumb-programs").click();
+      cy.get('[data-column-id="1"]')
+      .contains("DRAFT")
+      .parents("div")
+      .parents("div")
+      .first()
+      .click(50, 0, { force: true });
 
       // Now remove newly created grouper
       cy.get('#cell-5-test-grouper [data-button-context="delete"]').click();
@@ -126,7 +149,7 @@ describe("Smoke Tests", () => {
       cy.get("#cell-1-test-grouper").should("not.exist");
     });
 
-    it("Adds a new valueset to the program", () => {
+    it("Adds a new valueset to multiple program groupers then removes it", () => {
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -137,22 +160,32 @@ describe("Smoke Tests", () => {
       cy.get("#view-valuesets").click();
       cy.get("#add-valueset").click();
 
+      // vsac search for valuesets
       cy.get("#vs-search").type("brain");
       cy.get("#submit-search-valueset-button").click();
       cy.get(".rdt_TableBody input").first().click();
 
+      // Set alias for oid
       cy.get('.rdt_TableBody [data-column-id="6"]')
         .first()
-        .then((message) => {
-          let oid = message.text();
-          cy.wrap(oid).as("oid");
-        });
+        .then((oid) => cy.wrap(oid.text()).as("oid"));
 
-      let vsId = "";
-      cy.get("@oid").then((oid) => {
-        vsId = oid;
+      cy.get("@oid").then((vsId) => {
+        // Select first grouper on list
         cy.get("#react-select-search-page-groups-live-region").parent().click();
+        // Grab text from grouper1
+        cy.get("#react-select-search-page-groups-option-0")
+          .first()
+          .then((grouperEl) => cy.wrap(grouperEl.text()).as("grouper1"));
         cy.get("#react-select-search-page-groups-option-0").click();
+
+        // Select second grouper on list
+        cy.get("#react-select-search-page-groups-live-region").parent().click();
+        cy.get("#react-select-search-page-groups-option-1")
+          .first()
+          .then((grouperEl) => cy.wrap(grouperEl.text()).as("grouper2"));
+        cy.get("#react-select-search-page-groups-option-1").click();
+
         cy.get("#add-valueset-to-program").click();
         cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsId).should("exist");
 
@@ -166,9 +199,89 @@ describe("Smoke Tests", () => {
           .click(50, 0, { force: true });
 
         // Check grouper to see if version exists
-        cy.get('#grouper-overview-table .rdt_TableBody [data-column-id="1"]').first().click(50, 10, { force: true });
+        cy.get("@grouper1").then((grouper1) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+        });
+
         cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+
+        // navigate back to program view
+        cy.go("back");
+
+        // // Check second grouper to see if version exists
+        cy.get("@grouper2").then((grouper2) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+        });
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+
+        // Remove same valueset from program
+        cy.go("back");
+
+        cy.get("#view-valuesets").click();
+        cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).click({ force: true });
+        cy.get('[data-modal="yes"]').click();
+        cy.go("back");
+
+        // Check grouper to see valueset has been removed
+        cy.get("@grouper1").then((grouper1) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+          cy.get('#page-title').contains(grouper1).should("exist")
+        });
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+
+        // navigate back to program view
+        cy.go("back");
+
+        // Check second grouper to see valueset has been removed
+        cy.get("@grouper2").then((grouper2) => {
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+          cy.get('#page-title').contains(grouper2).should("exist")
+        });
+        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
       });
+    });
+
+    it("Ability to filter Valuesets by OID, Name, or Version", () => {
+      cy.get('[data-column-id="1"]')
+      .contains("DRAFT")
+      .parents("div")
+      .parents("div")
+      .first()
+      .click(50, 0, { force: true });
+
+      cy.get("#view-valuesets").click();
+      // Search By Name
+      cy.get('[data-column-id="vs-name-search"] input').clear().type("covid");
+      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223-2022-10-19-0"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
+      cy.get('[data-column-id="vs-name-search"] input').clear()
+
+      // Search By OID
+      cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
+      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
+      cy.get('[data-column-id="vs-oid-search"] input').clear();
+    })
+
+    it("Adds and Removes conditions from valuesets", {scrollBehavior: false}, () => {
+      cy.get('[data-column-id="1"]')
+        .contains("DRAFT")
+        .parents("div")
+        .parents("div")
+        .first()
+        .click(50, 0, { force: true });
+
+      cy.get("#view-valuesets").click();
+      cy.get("#vs-table-detail").children().first().scrollTo("right")
+      
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"],[id="#react-select-condition-selector-input"]').click()
+
+      cy.get("#react-select-condition-selector-listbox").contains("California Serogroup Virus Disease").scrollIntoView().click()
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('include.text', "California Serogroup Virus Disease")
+
+      // Removes condition from valueset
+      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click()
+      cy.get('body').click(0,0, {force: true}); // For bluring the element
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
     });
 
     it("Creates approval for draft library", () => {

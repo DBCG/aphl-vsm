@@ -14,9 +14,10 @@ The `baseURL` for the server in development is: `http://localhost:8082/fhir`
 ```bin/load-data.sh```
 
 ### Run Keycloak to sign in to the app
-- In ./keycloak, run:
+- In root directory, run:
 ```docker-compose up```
-```./configure```
+- wait a few minutes before running next steps
+```./keycloak/configure```
 - The compose file will build + run the keycloak and postgres containers
 - The configure file initializes some of the settings in Keycloak, adding a realm, admin role, etc.
 

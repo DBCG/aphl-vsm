@@ -170,7 +170,7 @@ export default function ValueSetContents({
     <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px', maxWidth: maxFormWidth }}>
         <FormControl>
-          <Grid container justifyContent='flex-end' spacing={2}>
+          <Grid container justifyContent="flex-end" spacing={2}>
             <Grid item xs={12} sm={2}>
               <Typography
                 sx={{
@@ -185,63 +185,63 @@ export default function ValueSetContents({
               </Typography>
             </Grid>
             <Grid item xs={12} sm={10}>
-              <PageTitle>{currentValueSet.title}</PageTitle>
+              <PageTitle id={'page-title'}>{currentValueSet.title}</PageTitle>
             </Grid>
           </Grid>
           <InputContainer>
-            <Grid container justifyContent='flex-end'>
-                {isDraftProgram && (
-                  <Typography
-                    style={{
-                      background: '#FAA024',
-                      color: 'white',
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      height: 'max-content'
-                    }}
-                  >
-                    Draft
-                  </Typography>
-                )}
+            <Grid container justifyContent="flex-end">
+              {isDraftProgram && (
+                <Typography
+                  style={{
+                    background: '#FAA024',
+                    color: 'white',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    height: 'max-content'
+                  }}
+                >
+                  Draft
+                </Typography>
+              )}
             </Grid>
-          <Grid container alignItems='flex-start' spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <SearchInput
-                id="prog-id"
-                label="Program ID"
-                readonly={true}
-                defaultValue={programAndGrouperInfo?.program?.id || 'No ID found'}
-                placeholder={'No valueset id set'}
-              />
+            <Grid container alignItems="flex-start" spacing={2}>
+              <Grid item xs={12} sm={6} md={4}>
+                <SearchInput
+                  id="prog-id"
+                  label="Program ID"
+                  readonly={true}
+                  defaultValue={programAndGrouperInfo?.program?.id || 'No ID found'}
+                  placeholder={'No valueset id set'}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <SearchInput
+                  id="prog-name"
+                  label="Program Name"
+                  readonly={true}
+                  defaultValue={programAndGrouperInfo?.program?.name || 'No name found'}
+                  placeholder={'No valueset id set'}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={4}>
+                <SearchInput
+                  id="prog-version"
+                  label="Program Version"
+                  readonly={true}
+                  defaultValue={programVersion}
+                  placeholder={'No program version set'}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextArea
+                  id="prog-url"
+                  label="Program URL"
+                  readonly={true}
+                  defaultValue={programUrl}
+                  placeholder={'No program canonical set'}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <SearchInput
-                id="prog-name"
-                label="Program Name"
-                readonly={true}
-                defaultValue={programAndGrouperInfo?.program?.name || 'No name found'}
-                placeholder={'No valueset id set'}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <SearchInput
-                id="prog-version"
-                label="Program Version"
-                readonly={true}
-                defaultValue={programVersion}
-                placeholder={'No program version set'}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextArea
-                id="prog-url"
-                label="Program URL"
-                readonly={true}
-                defaultValue={programUrl}
-                placeholder={'No program canonical set'}
-              />
-            </Grid>
-          </Grid>
           </InputContainer>
           <InputContainer>
             <Grid container spacing={2}>
@@ -275,16 +275,16 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12}>
-              {!isGrouperValueSet && (
-              <TextArea
-                id="vs-oid"
-                label={'OID'}
-                readonly={true}
-                value={getOid(currentValueSet)}
-                defaultValue={getOid(currentValueSet)}
-                placeholder={'No valueset oid was set'}
-              />
-            )}
+                {!isGrouperValueSet && (
+                  <TextArea
+                    id="vs-oid"
+                    label={'OID'}
+                    readonly={true}
+                    value={getOid(currentValueSet)}
+                    defaultValue={getOid(currentValueSet)}
+                    placeholder={'No valueset oid was set'}
+                  />
+                )}
               </Grid>
               <Grid item xs={12} sm={12} md={6}>
                 <TextArea
@@ -331,38 +331,40 @@ export default function ValueSetContents({
                 />
               </Grid>
             </Grid>
-              <Grid container justifyContent='flex-end'>
-                {isGrouperValueSet && enableEditing && !isEditing && (
+            <Grid container justifyContent="flex-end">
+              {isGrouperValueSet && enableEditing && !isEditing && (
+                <Button
+                  data-button="edit-metadata"
+                  text="Edit Metadata"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsEditing(true)
+                  }}
+                />
+              )}
+              {enableEditing && isEditing && (
+                <ButtonContainer>
                   <Button
-                    text="Edit Metadata"
+                    text="Cancel"
+                    style={{ backgroundColor: 'darkGray' }}
                     onClick={(e) => {
+                      resetValues()
                       e.preventDefault()
-                      setIsEditing(true)
+                      setIsEditing(false)
                     }}
                   />
-                )}
-                {enableEditing && isEditing && (
-                  <ButtonContainer>
-                    <Button
-                      text="Cancel"
-                      style={{ backgroundColor: 'darkGray' }}
-                      onClick={(e) => {
-                        resetValues()
-                        e.preventDefault()
-                        setIsEditing(false)
-                      }}
-                    />
-                    <Button
-                      disabled={!Boolean(Object.keys(changedMetadataItems).length)}
-                      text="Save Changes"
-                      onClick={async (e) => {
-                        e.preventDefault()
-                        await submitGrouperUpdates()
-                      }}
-                    />
-                  </ButtonContainer>
-                )}
-              </Grid>
+                  <Button
+                    disabled={!Boolean(Object.keys(changedMetadataItems).length)}
+                    data-button="edit-metadata-save"
+                    text="Save Changes"
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      await submitGrouperUpdates()
+                    }}
+                  />
+                </ButtonContainer>
+              )}
+            </Grid>
           </InputContainer>
         </FormControl>
         <ValueSetDetailsTables

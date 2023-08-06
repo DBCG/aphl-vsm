@@ -22,6 +22,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
+import { Box } from '@mui/material'
 
 const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
   return groupVsets?.map((g) => ({
@@ -102,8 +103,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
 
-  const handleDelete = async ({ vsCanonical, grouperCanonicals }: DeleteParams) => {
-    if (!vsCanonical || !grouperCanonicals) {
+  const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
+    if (!vsCanonical || !grouperInfo) {
       setIsDeleting(false)
       return
     } else {
@@ -113,11 +114,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     try {
       const body = {
         vsCanonical,
-        grouperCanonicals
+        grouperInfo
       }
 
       const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
-        method: 'PUT',
+        method: 'DELETE',
         body: JSON.stringify(body)
       }).then((res) => res.json())
 
@@ -262,7 +263,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     terminologyInfo,
     selectedVsId,
     useContext
-
   }: HandleVersionChange) => {
     const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
 
@@ -282,7 +282,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       grouperIds: versionToUpdate.grouperIds,
       terminologyInfo: versionToUpdate.terminologyInfo,
       selectedVsId: versionToUpdate.selectedVsId,
-      useContext: versionToUpdate.useContext,
+      useContext: versionToUpdate.useContext
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -365,7 +365,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
-          
+
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
@@ -397,10 +397,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         name: (
           <div>
             <SelectInputTitle>Steward</SelectInputTitle>
-            <FilterInput
-              onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')}
-              style={{ height: '30px' }}
-            />
+            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
           </div>
         ),
         selector: (row: TableRow) => row.valueSet.publisher,
@@ -474,7 +471,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               ))}
             </ReadOnlyContainer>
           ) : (
-            <SelectInputContainer>
+            <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
                 menuPlacement="top"
                 instanceId="condition-selector"
@@ -574,12 +571,14 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <FlexCol>
               <IconButton
                 deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
+                data-remove-grouper-vs={row?.canonical}
                 onClick={async () => {
-                  await handleDelete({
-                    vsCanonical: row?.valueSet?.url,
-                    grouperCanonicals: row.groups.map((g) => g.url)
-                  })
-                  window.location.reload()
+                  const payload = {
+                    vsCanonical: row.valueSet.url!,
+                    grouperInfo: row.groups.map((g) => ({ canonical: g?.url!, id: g?.id! }))
+                  }
+                  console.log(payload)
+                  await handleDelete(payload)
                 }}
                 buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
@@ -626,24 +625,26 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           {updateVSetsButton}
         </Col>
       </Row>
-      <DT
-        // @ts-expect-error
-        data={progValueSetDets?.data}
-        keyField="keyField"
-        persistTableHead={true}
-        // @ts-expect-error
-        columns={columns}
-        theme="aphl"
-        pagination
-        highlightOnHover={true}
-        onRowClicked={(row) => {
-          router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
-        }}
-        fixedHeader // TODO: Should we remove? adds an additional scrollbar
-        customStyles={customTableStyles('clickable')}
-        progressPending={pageLoading || vSetsLoading}
-        progressComponent={<LoadingIndicator />}
-      />
+      <Box id="vs-table-detail">
+        <DT
+          // @ts-expect-error
+          data={progValueSetDets?.data}
+          keyField="keyField"
+          persistTableHead={true}
+          // @ts-expect-error
+          columns={columns}
+          theme="aphl"
+          pagination
+          highlightOnHover={true}
+          onRowClicked={(row) => {
+            router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+          }}
+          fixedHeader // TODO: Should we remove? adds an additional scrollbar
+          customStyles={customTableStyles('clickable')}
+          progressPending={pageLoading || vSetsLoading}
+          progressComponent={<LoadingIndicator />}
+        />
+      </Box>
     </>
   )
 }

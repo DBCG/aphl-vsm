@@ -8,9 +8,14 @@ export interface GroupUpdateItem {
   groupInfo?: GroupInfoItem[]
 }
 
+interface GrouperInfo {
+  canonical: string
+  id: string
+}
+
 export interface DeleteParams {
   vsCanonical: string | undefined
-  grouperCanonicals: string[] | undefined
+  grouperInfo: GrouperInfo[]
 }
 
 export interface GroupItem {

@@ -146,7 +146,7 @@ const SelectGrouperContainer = styled.div`
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
-    label: vSet?.title?.replaceAll('_', ''),
+    label: vSet?.title,
     url: vSet?.url,
     version: vSet?.version,
     id: vSet?.id,
@@ -467,7 +467,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     if (tableContext === 'add-grouper') {
       if (handleAddValueSets) {
         handleAddValueSets(leafsToAdd)
-        const selectedVSIds = selectedValueSets.map(i => i.id)
+        const selectedVSIds = selectedValueSets.map((i) => i.id)
         setValueSets(valueSets?.filter((i) => !selectedVSIds?.includes(i?.id)))
       }
       setToggledClearRows(true)
@@ -571,7 +571,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
             />
             <IconButton
               style={{ alignSelf: 'center', marginTop: '12px' }}
-              id={"submit-search-valueset-button"}
+              id={'submit-search-valueset-button'}
               buttonContext="search"
               type="submit"
               onClick={(e) => {
