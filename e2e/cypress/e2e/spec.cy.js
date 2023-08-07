@@ -47,7 +47,7 @@ describe("Smoke Tests", () => {
 
       // Run assertions to check for persistence after reload
       cy.get("#prog-name").should("have.value", "Draft Library");
-      cy.get("#prog-version").should("have.value", "1.0.0-draft");
+      cy.get("#prog-version").should("have.value", "1.1.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
       cy.get("#priority-level").should("have.value", "Priority").should("be.visible");
