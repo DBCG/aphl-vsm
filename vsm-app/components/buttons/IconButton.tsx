@@ -47,6 +47,7 @@ const btnTitleText = {
   search: 'Search',
   clone: 'Make a new program based on this one (must have active status)',
   release: 'Promote a program from draft to active status',
+  mustApproveRelease: 'You must approve this draft to release it',
   publish: 'Publish this program',
   retire: 'Convert program from active to retired status'
 }
@@ -89,6 +90,9 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
     case 'release':
       image = <NewReleasesIcon />
       break
+    case 'mustApproveRelease':
+        image = <NewReleasesIcon />
+        break
     case 'retire':
       image = <DoNotTouchIcon />
       break
