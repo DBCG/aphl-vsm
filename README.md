@@ -40,7 +40,7 @@ In order to connect your local Keycloak to the app, you must:
 # certain values must match the keycloak configure file
 KEYCLOAK_ID=aphl_app
 KEYCLOAK_SECRET=<YOUR LOCAL KEYCLOAK SECRET>
-KEYCLOAK_ISSUER=http://localhost:8080/auth/realms/aphl
+KEYCLOAK_ISSUER=http://localhost:8080/realms/aphl
 KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
 ```
 
