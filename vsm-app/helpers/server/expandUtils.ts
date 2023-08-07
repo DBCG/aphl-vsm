@@ -2,7 +2,7 @@ import FhirKitClient from 'fhir-kit-client'
 import cloneDeep from 'lodash.clonedeep'
 import { is } from '../is'
 import logger from './logger'
-import { stringWithoutVersion } from '../valueSetHelpers'
+import { urlWithoutVersion } from '../valueSetHelpers'
 
 interface GrouperIdsByUrlItem {
   version?: string
@@ -113,7 +113,7 @@ interface GetVsConditionInfo {
 // match up vsets with those cached via url
 const getVsConditionInfo = ({ cachedLeafs, expansionUrl }: GetVsConditionInfo) => {
   return cachedLeafs
-    ?.find((vs) => stringWithoutVersion(vs.url!) === stringWithoutVersion(expansionUrl))
+    ?.find((vs) => urlWithoutVersion(vs.url!) === urlWithoutVersion(expansionUrl))
     ?.useContext
     ?.filter((ctx: fhir4.UsageContext) => (
       ctx.code.system?.endsWith('usage-context-type') &&
