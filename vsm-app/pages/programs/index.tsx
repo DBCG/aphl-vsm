@@ -199,12 +199,12 @@ const Programs: NextPage = () => {
         cell: (row: fhir4.Library) => (
           <ButtonWrapper>
             <IconButton
-              disabled={row.status !== 'draft'}
+              disabled={row.status !== 'draft' || !row.approvalDate}
               onClick={() => {
                 setError({})
                 setProgramToRelease(row)
               }}
-              buttonContext="release"
+              buttonContext={programToPublish?.approvalDate ? 'release' : 'mustApproveRelease'}
             />
           </ButtonWrapper>
         )
