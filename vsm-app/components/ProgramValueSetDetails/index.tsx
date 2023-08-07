@@ -2,6 +2,7 @@ import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
+import { Box } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
@@ -23,19 +24,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
-import { Box } from '@mui/material'
-import { SearchInput } from '../SearchInput'
-import { FormControl, Grid, Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { ErrorMessage } from '../ErrorMessage'
 
-const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets?.map((g) => ({
-    value: g.id,
-    label: g.title?.replaceAll('_', ' '),
-    id: g.id
-  }))
-}
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
@@ -110,16 +99,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
-
-
-  const handleClear = () => {
-    setCodeToFind(null)
-    setGroupersToSearch([])
-    setSystemToFind(null)
-    setMatchingValueSetUrls(null)
-    setFilteredData(null)
-  }
-
 
   const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
     if (!vsCanonical || !grouperInfo) {
@@ -653,24 +632,26 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           {updateVSetsButton}
         </Col>
       </Row>
-      <DT
-        // @ts-expect-error
-        data={progValueSetDets?.data}
-        keyField="keyField"
-        persistTableHead={true}
-        // @ts-expect-error
-        columns={columns}
-        theme="aphl"
-        pagination
-        highlightOnHover={true}
-        onRowClicked={(row) => {
-          router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
-        }}
-        fixedHeader // TODO: Should we remove? adds an additional scrollbar
-        customStyles={customTableStyles('clickable')}
-        progressPending={pageLoading || vSetsLoading}
-        progressComponent={<LoadingIndicator />}
-      />
+      <Box id="vs-table-detail">
+        <DT
+          // @ts-expect-error
+          data={progValueSetDets?.data}
+          keyField="keyField"
+          persistTableHead={true}
+          // @ts-expect-error
+          columns={columns}
+          theme="aphl"
+          pagination
+          highlightOnHover={true}
+          onRowClicked={(row) => {
+            router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+          }}
+          fixedHeader // TODO: Should we remove? adds an additional scrollbar
+          customStyles={customTableStyles('clickable')}
+          progressPending={pageLoading || vSetsLoading}
+          progressComponent={<LoadingIndicator />}
+        />
+      </Box>
     </>
   )
 }
