@@ -20,7 +20,7 @@
                     ]
                 },
                 "url": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "SpecificationLibrary",
                 "title": "Specification Library",
                 "status": "active",
@@ -88,7 +88,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -191,7 +191,7 @@
                     {
                         "type": "depends-on",
                         "label": "RCTC Value Set Library of Trigger Codes",
-                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0-draft"
+                        "resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19"
                     }
                 ],
                 "action":
@@ -1340,7 +1340,7 @@
                 [
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1350,7 +1350,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1360,7 +1360,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lotc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1370,7 +1370,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/lrtc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1380,7 +1380,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1390,7 +1390,7 @@
                     },
                     {
                         "type": "composed-of",
-                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc|1.0.0-draft",
+                        "resource": "http://ersd.aimsplatform.org/fhir/ValueSet/sdtc|2022-10-19",
                         "extension":[
                             {
                                 "url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1445,7 +1445,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.627"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "Diagnosis_ProblemTriggersforPublicHealthReporting",
                 "title": "Diagnosis_Problem Triggers for Public Health Reporting",
                 "status": "active",
@@ -102140,7 +102140,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1059"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "Organism_SubstanceReleaseTriggersforPublicHealthReporting",
                 "title": "Organism_Substance Release Triggers for Public Health Reporting",
                 "status": "active",
@@ -138645,7 +138645,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1056"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "LabOrderTestTriggersforPublicHealthReporting",
                 "title": "Lab Order Test Triggers for Public Health Reporting",
                 "status": "active",
@@ -146515,7 +146515,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1057"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "LabObsTestTriggersforPublicHealthReporting",
                 "title": "Lab Obs Test Triggers for Public Health Reporting",
                 "status": "active",
@@ -178840,7 +178840,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1060"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "MedicationsTriggersforPublicHealthReporting",
                 "title": "Medications Triggers for Public Health Reporting",
                 "status": "active",
@@ -180985,7 +180985,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1479"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "Suspected_DisorderTriggersforPublicHealthReporting",
                 "title": "Suspected_Disorder Triggers for Public Health Reporting",
                 "status": "active",
@@ -183701,7 +183701,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.528"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "DengueVirusInfectionOrganismorSubstanceinLabResults",
                 "title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
                 "status": "active",
@@ -183955,7 +183955,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.408"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HepatitisBVirusInfectionOrganismorSubstanceinLabResults",
                 "title": "Hepatitis B Virus Infection (Organism or Substance in Lab Results)",
                 "status": "active",
@@ -184290,7 +184290,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.409"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HepatitisCVirusInfectionOrganismorSubstanceinLabResults",
                 "title": "Hepatitis C Virus Infection (Organism or Substance in Lab Results)",
                 "status": "active",
@@ -184688,7 +184688,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1469"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "EnterococcusfaeciumorEfaecalisOrganismorSubstanceinLabResults",
                 "title": "Enterococcus faecium or E. faecalis (Organism or Substance in Lab Results)",
                 "status": "active",
@@ -184942,7 +184942,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1866"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "TaeniasisOrganismorSubstanceinLabResults",
                 "title": "Taeniasis (Organism or Substance in Lab Results)",
                 "status": "active",
@@ -185223,7 +185223,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1906"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "OrthopoxTestsforOrthopoxVirusNucleicAcid",
                 "title": "Orthopox (Tests for Orthopox Virus Nucleic Acid)",
                 "status": "active",
@@ -185379,7 +185379,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.480"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "AnthraxTestsforBacillisanthracisAntigen",
                 "title": "Anthrax (Tests for Bacillis anthracis Antigen)",
                 "status": "active",
@@ -185561,7 +185561,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.481"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "AnthraxTestsforBacillisanthracisAntibody",
                 "title": "Anthrax (Tests for Bacillis anthracis Antibody)",
                 "status": "active",
@@ -185797,7 +185797,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.761"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "MumpsTestPanelsformumpsvirusNucleicAcid",
                 "title": "Mumps (Test Panels for mumps virus Nucleic Acid)",
                 "status": "active",
@@ -185943,7 +185943,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1223"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod",
                 "title": "COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)",
                 "status": "active",
@@ -186090,7 +186090,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1182"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "PowassanVirusDiseaseTestsforPowassanVirusAntibodyQuantitative",
                 "title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
                 "status": "active",
@@ -186362,7 +186362,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1181"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "EasternEquineEncephalitisVirusDiseaseTestsforEasternEquineEncephalitisVirusAntibodyQuantitative",
                 "title": "Eastern Equine Encephalitis Virus Disease (Tests for Eastern Equine Encephalitis Virus Antibody [Quantitative])",
                 "status": "active",
@@ -186733,7 +186733,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1184"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "CaliforniaSerogroupVirusDiseasesTestsforCaliforniaSerogroupVirusAntibodyQuantitative",
                 "title": "California Serogroup Virus Diseases (Tests for California Serogroup Virus Antibody [Quantitative])",
                 "status": "active",
@@ -187599,7 +187599,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1601"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HIVInfectionARVBoostersCYP3A4InhibitorRXNORM",
                 "title": "HIV Infection (ARV Boosters [CYP3A4 Inhibitor]) (RXNORM)",
                 "status": "active",
@@ -187817,7 +187817,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1600"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HIVInfectionARVIntegraseStrandTransferInhibitorsINSTIsRXNORM",
                 "title": "HIV Infection (ARV Integrase Strand Transfer Inhibitors [INSTIs]) (RXNORM)",
                 "status": "active",
@@ -188143,7 +188143,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1603"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HIVInfectionARVAttachmentInhibitorsRXNORM",
                 "title": "HIV Infection (ARV Attachment Inhibitors) (RXNORM)",
                 "status": "active",
@@ -188289,7 +188289,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1602"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "HIVInfectionARVPostattachmentInhibitorsRXNORM",
                 "title": "HIV Infection (ARV Postattachment Inhibitors) (RXNORM)",
                 "status": "active",
@@ -188435,7 +188435,7 @@
                         "value": "urn:oid:2.16.840.1.113762.1.4.1146.1082"
                     }
                 ],
-                "version": "1.0.0-draft",
+                "version": "2022-10-19",
                 "name": "AnthraxVaccineRXNORM",
                 "title": "Anthrax Vaccine (RXNORM)",
                 "status": "active",
