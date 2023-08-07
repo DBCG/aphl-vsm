@@ -1446,8 +1446,8 @@
                     }
                 ],
                 "version": "1.0.0",
-                "name": "Diagnosis_ProblemTriggersforPublicHealthReporting",
-                "title": "Diagnosis_Problem Triggers for Public Health Reporting",
+                "name": "DiagnosisProblemTriggersforPublicHealthReporting",
+                "title": "Diagnosis Problem Triggers for Public Health Reporting",
                 "status": "active",
                 "experimental": true,
                 "publisher": "Association of Public Health Laboratories (APHL)",
@@ -180986,8 +180986,8 @@
                     }
                 ],
                 "version": "1.0.0",
-                "name": "Suspected_DisorderTriggersforPublicHealthReporting",
-                "title": "Suspected_Disorder Triggers for Public Health Reporting",
+                "name": "SuspectedDisorderTriggersforPublicHealthReporting",
+                "title": "Suspected Disorder Triggers for Public Health Reporting",
                 "status": "active",
                 "experimental": true,
                 "publisher": "Association of Public Health Laboratories (APHL)",

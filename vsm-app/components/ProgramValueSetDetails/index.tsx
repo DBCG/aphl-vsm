@@ -2,12 +2,14 @@ import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
+import { Box } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
@@ -22,15 +24,8 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
-import { Box } from '@mui/material'
 
-const buildGroupOptions = (groupVsets: fhir4.ValueSet[]) => {
-  return groupVsets?.map((g) => ({
-    value: g.id,
-    label: g.title?.replaceAll('_', ' '),
-    id: g.id
-  }))
-}
+import { buildGroupOptions } from '@/helpers/selectHelpers'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -95,6 +90,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
+
+  const [toggleUpdateData, setToggleUpdateData] = useState(false)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // all available filters
@@ -165,6 +162,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
           setUpdatedValueSet(json)
         } catch (e) {
+          // handle error here
           console.error('error: ', e)
         }
         setConditionLoading(false)
@@ -200,6 +198,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     ...debouncedFilters
   }) as Result
 
+  const {
+    programAndGrouperData, programAndGrouperDataLoading
+  } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
@@ -218,7 +220,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
-  let groupsInProgram = progValueSetDets?.groupsInProgram
+  const groupsInProgram = progValueSetDets?.groupsInProgram
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -602,7 +604,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
     } else if (allowToEdit) {
-      return <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+      return (
+        <>
+          <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
+          <Button text="Code Search" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => router.push(`${router.asPath}/codesearch`)} />
+        </>
+      )
     }
     return null
   })()

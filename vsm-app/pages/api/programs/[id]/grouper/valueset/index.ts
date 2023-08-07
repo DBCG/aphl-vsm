@@ -44,7 +44,9 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
       })) as fhir4.Bundle
 
       // there is an issue in the sample data where grouper valuesets have the exact same url
-      const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
+      const grouperVsToUpdate = grouperValueSetBundle
+        ?.entry?.[0]
+        ?.resource as fhir4.ValueSet
 
       if (grouperVsToUpdate) {
         const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
@@ -365,13 +367,8 @@ const updateProgramLibraryWithGrouperRef = async (
       return { resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id} to Program ${program.id}` }
     }
 
-    // there is currently no version on the grouper library after clone...
-    // how do we identify which is the right one if this is the case?
     const [url, version] = vsLibUrlToUpdate.split('|')
 
-    // currently there will only be ONE vs library with this url with draft status
-    // this will be changed in the future with updates to how CQF $draft works
-    // for now have to use this uniqueness to target the right library, will need to update
     const vsLib = await fhirCdrClient.search({
       resourceType: 'Library',
       searchParams: {

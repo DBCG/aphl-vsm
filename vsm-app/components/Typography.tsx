@@ -7,4 +7,19 @@ const PageTitle = styled(Typography).attrs({
   color: var(--theme-300);
 `
 
-export { PageTitle }
+const PageP = styled(Typography).attrs({
+  variant: 'body1'
+})`
+  color: var(--theme-300);
+`
+
+const FormErrorText = styled(Typography).attrs({
+  variant: 'body1'
+})`
+  color: var(--accent);
+  font-size: 0.75rem;
+  margin-left: 14px;
+`
+
+
+export { PageTitle, PageP, FormErrorText }

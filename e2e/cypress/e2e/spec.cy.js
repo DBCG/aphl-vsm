@@ -308,6 +308,7 @@ describe("Smoke Tests", () => {
       // we have to wait up to 1 minute for CQF to finish all its $draft stuff
       // or this will break
       cy.wait(60000);
+      cy.get("#vs-table-detail").children().first().scrollTo("right")
       cy.get('[data-button-context="release"]').click();
       cy.get('[data-modal="confirm"]').click();
     });

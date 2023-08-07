@@ -70,7 +70,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!clientResponse?.entry?.length && attempts > 0) {
           logger.error(`Error: could not $draft Library/${body.id} with version ${newVersion}. Attempt #${attempts}/5.`)
           attempts = attempts - 1
-          await createDraftWithNewVersion()
+          return await createDraftWithNewVersion()
         } else {
           response = clientResponse
         }

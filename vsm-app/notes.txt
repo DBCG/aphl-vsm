@@ -1,0 +1,13 @@
+Goal:
+
+Users should be able to:
+- search within a program for codes
+- filter by grouper or codesystem
+
+How does this work?
+- user enters code search and MUST select at least 1 grouper to search within
+- optionally can add code system
+- press submit. Search expands all valuesets in the groupers & returns results
+
+Remember:
+VSAC UAT has batch support (we are not currently using UAT as the endpoint)

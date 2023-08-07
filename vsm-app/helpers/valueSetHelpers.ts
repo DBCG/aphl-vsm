@@ -6,10 +6,14 @@ import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap } from '@/types/manifestTypes'
 
-const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]): fhir4.ValueSet => {
+const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
+  if (!leafVsCanonical || leafVsCanonical.length === 0) {
+    console.error('missing leaf to add')
+    return vs
+  }
   const valueSetToUpdate = cloneDeep(vs)
-  if (typeof vsCanonical === 'string') {
-    vsCanonical = [vsCanonical]
+  if (typeof leafVsCanonical === 'string') {
+    leafVsCanonical = [leafVsCanonical]
   }
 
   // get all of the leafs currently within the grouper
@@ -19,13 +23,14 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, vsCanonical: string | string[]
 
   const composeIncludeToAdd = valueSetToUpdate?.compose?.include || []
 
-  vsCanonical.forEach((url) => {
+  leafVsCanonical.forEach((url) => {
     if (!leafVSetsAlreadyInGroup?.includes(url)) {
       composeIncludeToAdd.push({ valueSet: [url] })
     }
   })
 
   set(valueSetToUpdate, 'compose.include', composeIncludeToAdd)
+
   return valueSetToUpdate
 }
 
