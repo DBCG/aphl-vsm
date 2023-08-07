@@ -23,9 +23,12 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     }
     await action(req, res, session)
   } catch (error: any) {
+    console.log('error: ', error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
-    logger.error(`Something went wrong: ${error?.message} ${error?.stack}`)
-    return res.status(500).json({ error: diagnostics || error?.message })
+    const errorText = error?.response?.data?.text
+    logger.error(`Something went wrong: ${diagnostics}`)
+    logger.error(`Error text: ${errorText}`)
+    return res.status(500).json({ error: diagnostics || error?.message || error })
   }
 }
 

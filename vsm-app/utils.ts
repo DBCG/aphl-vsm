@@ -1,3 +1,4 @@
+import cloneDeep from "lodash.clonedeep"
 import { is } from "./helpers/is"
 
 // Usage: await sleep(1000);
@@ -56,4 +57,15 @@ export const incrementSemver = ({
       patch = incrementStringValue(patch)
   }
   return `${major}.${minor}.${patch}`
+}
+
+export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')
+
+export const updateResourceVersion = (
+  resource: fhir4.Library | fhir4.ValueSet | fhir4.PlanDefinition,
+  newVersion: string
+) => {
+  const clonedResource = cloneDeep(resource)
+  clonedResource.version = newVersion
+  return clonedResource
 }

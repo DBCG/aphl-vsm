@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import appCache from 'cache'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
+import { removeDraftFromVersionString } from '@/utils'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
@@ -12,15 +12,15 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     parameter: [
       {
         name: 'version',
-        valueString: toReleaseLibrary?.version
+        valueString: removeDraftFromVersionString(toReleaseLibrary?.version)
       },
       {
-        name: 'version-behavior',
+        name: 'versionBehavior',
         valueCode: 'default'
       }
     ]
   }
-
+  
   const response = await fhirCdrClient.operation({
     name: '$release',
     resourceType: 'Library',
@@ -29,23 +29,13 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     input: releasePayload
   })
 
-  if (!response.ok) {
+  if (!response.entry) {
+    console.error('res here: ', response)
     logger.error('error', response.status, response.statusText)
-    return res.status(response.status).json({ error: response.statusText })
+    return res.status(response.status || 500).json({ error: response.statusText })
   }
 
-  const libraryUpdateResponse = await fhirCdrClient.update({
-    resourceType: 'Library',
-    id: req.query.id as string,
-    body: req.body
-  })
-
-  if (!libraryUpdateResponse) {
-    logger.error('error updating library', libraryUpdateResponse)
-    return res.status(400).json(libraryUpdateResponse)
-  }
-
-  return res.send(libraryUpdateResponse)
+  return res.status(200).send({})
 }
 
 export default handler({

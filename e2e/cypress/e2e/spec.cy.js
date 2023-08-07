@@ -47,7 +47,7 @@ describe("Smoke Tests", () => {
 
       // Run assertions to check for persistence after reload
       cy.get("#prog-name").should("have.value", "Draft Library");
-      cy.get("#prog-version").should("have.value", "1.0.0-draft");
+      cy.get("#prog-version").should("have.value", "1.1.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
       cy.get("#priority-level").should("have.value", "Priority").should("be.visible");
@@ -284,7 +284,8 @@ describe("Smoke Tests", () => {
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
     });
 
-    it("Creates approval for draft library", () => {
+    it("Creates approval for draft library and release", () => {
+      // View first draft program
       cy.get('[data-column-id="1"]')
         .contains("DRAFT")
         .parents("div")
@@ -293,14 +294,22 @@ describe("Smoke Tests", () => {
         .click(50, 0, { force: true });
 
       cy.get("#approve").click();
-
+      
+      // Fill out Approval form
       cy.get("#text").clear().type("This is a test approval");
       cy.get("#reference").clear().type("http://example.com");
       cy.get("#user").clear().type("johndoe");
       cy.get("#submit-approve").click();
 
       cy.get(`#cell-1-comment_${moment().utc().format("YYYY-MM-DD")}_0`).should("exist");
-      // cy.get(`#cell-2-comment_${moment().utc().format("YYYY-MM-DD")}_0`).contains("")
+      
+      // Navigate back to program view
+      cy.get('#breadcrumb-programs').click();
+      // we have to wait up to 1 minute for CQF to finish all its $draft stuff
+      // or this will break
+      cy.wait(60000);
+      cy.get('[data-button-context="release"]').click();
+      cy.get('[data-modal="confirm"]').click();
     });
 
     it("Logs out of application", () => {

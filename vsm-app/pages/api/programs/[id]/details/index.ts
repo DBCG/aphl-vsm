@@ -42,7 +42,10 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
         searchParams
       })
       .then((res) => res as fhir4.Bundle)
-      .then((res) => res?.entry?.[0]?.resource)
+      .then((res) => {
+        const resource = res?.entry?.[0]?.resource
+        return resource
+    })
     if (is.library(grouperLibrary)) {
       const grouperUrls = grouperLibrary?.relatedArtifact?.map((i) => i?.resource)?.filter((i) => !!i) as string[]
 
@@ -66,7 +69,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
       throw new Error('returned resource was not Library')
     }
   } catch (e: any) {
-    logger.error('error:  ', e)
+    logger.error(`error in programs/programId/details:  ${e}`)
     res.status(400).json({ error: 'Search for grouper libraries failed.' })
   }
 }
