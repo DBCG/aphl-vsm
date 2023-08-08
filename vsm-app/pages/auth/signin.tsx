@@ -20,8 +20,8 @@ export default function SignIn({ providers }: InferGetServerSidePropsType<typeof
       <Typography sx={{ color: 'var(--theme-100)' }} variant="h2">
         ValueSet Manager
       </Typography>
-      {Object.values(providers).map((provider) => (
-        <div key={provider.name}>
+      {Object.values(providers).map((provider: any) => (
+        <div key={provider?.name || 'provider-name'}>
           <Button sx={{ mt: 8, width: '150px', border: '1px solid white' }} onClick={() => signIn(provider.id)}>
             Sign in
           </Button>
