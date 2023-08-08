@@ -233,16 +233,8 @@ const ApproveInfoForm: NextPage = () => {
   return (
     <>
       <Row>
-        <PageTitle>Approve</PageTitle>
+        <PageTitle style={{ marginBottom: '2rem' }}>Approve</PageTitle>
       </Row>
-      <Row>
-        <LabelStyled>Approval Date</LabelStyled>
-      </Row>
-      <StyledDateInput
-        value={approvalFormData.approvalDate.toISOString().slice(0, 10)}
-        onChange={(e) => handleFieldChange(e, 'approvalDate')}
-        readOnly
-      />
       <GridContainer>
         <Col>
           <SubtitleRow>
