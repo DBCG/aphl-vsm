@@ -29,6 +29,10 @@
                 "title": "Specification Library",
                 "status": "active",
                 "experimental": true,
+                "extension": [ {
+                  "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension",
+                  "valueString": "Test release description text"
+                } ],
                 "type":
                 {
                     "coding":
