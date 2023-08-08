@@ -450,7 +450,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         selector: (row: TableRow) => row.valueSet,
         sortable: false,
         wrap: true,
-        cell: (row: TableRow) => {
+        cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.valueSet?.useContext
             ?.map((i) => {
               if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
@@ -475,7 +475,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                menuPlacement="top"
+                menuPlacement={index === 0 ? 'bottom' : 'top' }
                 instanceId="condition-selector"
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
@@ -520,7 +520,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         sortable: false,
         allowOverflow: true,
         wrap: true,
-        cell: (row: TableRow) => {
+        cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replaceAll('_', ' '), value: i?.id }))
 
           const dedupedSelectedOptions = uniqBy(selectedOptions, 'label')
@@ -534,7 +534,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
-                menuPlacement="top"
+                menuPlacement={index === 0 ? 'bottom' : 'top' }
                 isClearable={false}
                 classNamePrefix="groups"
                 inputId="groups-selector"
@@ -634,6 +634,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       </Row>
       <Box id="vs-table-detail">
         <DT
+          className="vs-table-detail"
           // @ts-expect-error
           data={progValueSetDets?.data}
           keyField="keyField"
