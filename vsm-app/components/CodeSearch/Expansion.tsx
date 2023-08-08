@@ -29,7 +29,7 @@ const Expansion = (props: Props) => {
       selector: (data: Row) => data.url
     },
     {
-      name: 'In Groupers',
+      name: 'Grouper',
       selector: (data: Row) => data?.groupersBelongsTo?.join('') || data.url,
       cell: (data: Row) => {
         const grouperMatches = groupsInProgram
