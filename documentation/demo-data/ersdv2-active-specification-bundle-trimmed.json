@@ -1,4 +1,4 @@
-{
+
     "resourceType": "Bundle",
     "id": "rctc-release-2022-10-19-Bundle-rctc",
     "type": "transaction",
@@ -12,6 +12,9 @@
                 "resourceType": "Library",
                 "id": "SpecificationLibrary",
                 "approvalDate": "2023-08-08",
+                "effectivePeriod": {
+                  "start": "2023-08-07"
+                },
                 "meta":
                 {
                     "versionId": "1.0.0",
