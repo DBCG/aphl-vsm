@@ -108,10 +108,10 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
 
   return (
     <Dialog open={isOpen}>
+      <DialogTitle>
+        {title}
+      </DialogTitle>
       <DialogContent>
-        <DialogTitle>
-          {title}
-        </DialogTitle>
         <DialogContentText>
           {text}
         </DialogContentText>
