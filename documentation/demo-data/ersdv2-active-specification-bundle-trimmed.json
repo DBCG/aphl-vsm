@@ -48,6 +48,18 @@
                 "useContext":
                 [
                     {
+                        "code": {
+                          "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+                          "code": "priority"
+                        },
+                          "valueCodeableConcept": {
+                              "coding": [ {
+                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+                                "code": "routine"
+                              } ]
+                        }
+                    },
+                    {
                         "code":
                         {
                             "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
