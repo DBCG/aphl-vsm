@@ -247,6 +247,12 @@ const ApproveInfoForm: NextPage = () => {
             </Tooltip>
           </LabelStyled>
           <Select
+            styles={{
+              menu: (baseStyles, state) => ({
+                ...baseStyles,
+                zIndex: 10
+              }),
+            }}
             value={{
               value: approvalFormData.artifactCommentType,
               label: artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]
