@@ -11,6 +11,7 @@
             {
                 "resourceType": "Library",
                 "id": "SpecificationLibrary",
+                "approvalDate": "2023-08-08",
                 "meta":
                 {
                     "versionId": "1.0.0",
