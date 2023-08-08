@@ -41,10 +41,8 @@ const Scaffold = ({ children }: Props) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <StyledMain>
-        <Row>
-          <NavBar />
-        </Row>
-        <Content>{router.pathname.includes('login') ? children : <FileContainer>{children}</FileContainer>}</Content>
+        <Row>{!router.pathname.includes('signin') && <NavBar />}</Row>
+        <Content>{router.pathname.includes('signin') ? children : <FileContainer>{children}</FileContainer>}</Content>
       </StyledMain>
       <footer></footer>
     </ScaffoldWrapper>

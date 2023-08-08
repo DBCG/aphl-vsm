@@ -74,7 +74,7 @@ const SearchInput = ({
             readOnly: readonly,
             endAdornment: helperMessage ? (
               <Tooltip title={helperMessage} placement="top" arrow>
-                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginLeft: '10px' }} />
               </Tooltip>
             ) : null
           }}

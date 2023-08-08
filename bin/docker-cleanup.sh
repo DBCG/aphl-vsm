@@ -3,7 +3,7 @@
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 echo -e "This command will stop + delete: \n  - all containers \n  - associated volumes \n"
-read -p "Continue? (y/n)?" choice
+read -p "Continue? (y/n)? " choice
 
 ALL_CONTAINERS=$(docker ps -a -q)
 

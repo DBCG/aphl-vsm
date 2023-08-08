@@ -12,6 +12,9 @@
                 "resourceType": "Library",
                 "id": "SpecificationLibrary",
                 "approvalDate": "2023-08-08",
+                "effectivePeriod": {
+                  "start": "2023-08-07"
+                },
                 "meta":
                 {
                     "versionId": "1.0.0",
@@ -26,6 +29,10 @@
                 "title": "Specification Library",
                 "status": "active",
                 "experimental": true,
+                "extension": [ {
+                  "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension",
+                  "valueString": "Test release description text"
+                } ],
                 "type":
                 {
                     "coding":
@@ -40,6 +47,18 @@
                 "description": "Defines the asset-collection library containing the US Public Health specification assets.",
                 "useContext":
                 [
+                    {
+                        "code": {
+                          "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+                          "code": "priority"
+                        },
+                          "valueCodeableConcept": {
+                              "coding": [ {
+                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+                                "code": "routine"
+                              } ]
+                        }
+                    },
                     {
                         "code":
                         {

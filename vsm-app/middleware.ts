@@ -6,7 +6,7 @@ export const config = {
      * - _next/static (static files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api/auth|_next/static|favicon.ico).*)'
+    '/((?!api/auth|auth|images|_next/static|favicon.ico).*)'
   ]
 }
 

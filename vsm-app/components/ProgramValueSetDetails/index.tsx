@@ -2,7 +2,7 @@ import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
-import { Box } from '@mui/material'
+import { Box, Tooltip } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
@@ -24,6 +24,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
+import InfoIcon from '@mui/icons-material/Info'
 
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 
@@ -345,6 +346,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         id: 'vs-oid-search',
         selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
         sortable: false,
+        style: { fontSize: '12px' },
         maxWidth: '360px',
         wrap: true
       },
@@ -450,7 +452,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         selector: (row: TableRow) => row.valueSet,
         sortable: false,
         wrap: true,
-        cell: (row: TableRow) => {
+        cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.valueSet?.useContext
             ?.map((i) => {
               if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
@@ -475,11 +477,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                menuPlacement="top"
+                menuPlacement={index === 0 ? 'bottom' : 'top' }
                 instanceId="condition-selector"
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
+                styles={{
+                  multiValueLabel: (baseStyles, state) => ({
+                    ...baseStyles,
+                    textOverflow: 'unset',
+                    textWrap: 'wrap'
+                  })
+                }}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
                 onChange={(e) => {
@@ -507,6 +516,13 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               inputId="groups-selector"
               instanceId="groups-selector"
               isMulti
+              styles={{
+                multiValueLabel: (baseStyles, state) => ({
+                  ...baseStyles,
+                  textOverflow: 'unset',
+                  textWrap: 'wrap'
+                })
+              }}
               options={buildGroupOptions(alphabetizedGroups)}
               // @ts-ignore-next-line
               onChange={(e) => {
@@ -520,7 +536,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         sortable: false,
         allowOverflow: true,
         wrap: true,
-        cell: (row: TableRow) => {
+        cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.groups?.map((i) => ({ label: i?.title?.replaceAll('_', ' '), value: i?.id }))
 
           const dedupedSelectedOptions = uniqBy(selectedOptions, 'label')
@@ -534,9 +550,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
-                menuPlacement="top"
+                menuPlacement={index === 0 ? 'bottom' : 'top' }
                 isClearable={false}
                 classNamePrefix="groups"
+                styles={{
+                  multiValueLabel: (baseStyles, state) => ({
+                    ...baseStyles,
+                    textOverflow: 'unset',
+                    textWrap: 'wrap'
+                  })
+                }}
                 inputId="groups-selector"
                 instanceId="groups-selector"
                 isMulti={true}
@@ -579,7 +602,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                     vsCanonical: row.valueSet.url!,
                     grouperInfo: row.groups.map((g) => ({ canonical: g?.url!, id: g?.id! }))
                   }
-                  console.log(payload)
                   await handleDelete(payload)
                 }}
                 buttonContext="delete"
@@ -606,8 +628,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } else if (allowToEdit) {
       return (
         <>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
-          <Button text="Code Search" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => router.push(`${router.asPath}/codesearch`)} />
+          <Tooltip title={'Retrieves and updates all ValueSets to latest versions from this list'} placement="left" arrow>
+            <InfoIcon
+              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
+            />
+          </Tooltip>
+          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+
+          <Button
+            text="Code Search"
+            style={{ minHeight: '40px', minWidth: '150px' }}
+            onClick={() => router.push(`${router.asPath}/codesearch`)}
+          />
         </>
       )
     }
@@ -618,7 +650,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     <>
       <Row>
         <FlexRow style={{ width: '80%' }}>
-          <PageTitle>Program ValueSet Details</PageTitle>
+          <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
         </FlexRow>
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {!isReadOnly && (
@@ -634,6 +666,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       </Row>
       <Box id="vs-table-detail">
         <DT
+          className="vs-table-detail"
           // @ts-expect-error
           data={progValueSetDets?.data}
           keyField="keyField"

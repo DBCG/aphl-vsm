@@ -259,7 +259,7 @@ const Programs: NextPage = () => {
       />
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
-        <Button text="Publish" />
+        {/* <Button text="Publish" /> */}
       </Row>
       <LoadingModal
         isOpen={Boolean(programToRelease) || Boolean(programToPublish)}

@@ -39,6 +39,9 @@ export const AuthOptions = {
   },
   jwt: {
     secret: process.env.NEXTAUTH_SECRET
+  },
+  pages: {
+    signIn: '/auth/signin',
   }
 } as NextAuthOptions
 

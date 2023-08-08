@@ -18,6 +18,7 @@ describe("Smoke Tests", () => {
 
   context("Draft Library Setup", () => {
     it("clones active library", () => {
+      cy.wait(3000)
       cy.get('[data-button-context="clone"]').click();
       cy.get('[data-modal="confirm"]').click();
       cy.get('[data-column-id="1"]').contains("DRAFT").should("be.visible");

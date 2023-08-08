@@ -46,13 +46,19 @@ const customTableStyles = (tableType: 'clickable' | 'readonly'): TableStyles => 
       }
     },
     rows: {
-      style: {},
-      highlightOnHoverStyle: { backgroundColor: '#DBF0F3' }
+      style: {
+        cursor: 'auto',
+        overflow: 'visible'
+      },
+      highlightOnHoverStyle: { backgroundColor: '#DBF0F3' },
     }
   }
 
-  if(tableType === 'clickable') {
-    baseStyles.rows.style = { cursor: 'pointer' }
+  if (tableType === 'clickable') {
+    baseStyles.rows.style = {
+      cursor: 'pointer',
+      overflow: 'visible'
+    }
   }
   return baseStyles
 }
