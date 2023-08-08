@@ -607,7 +607,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } else if (allowToEdit) {
       return (
         <>
-          <Tooltip title={'Retrieves and updates all ValueSets to latest versions from this list'} placement="left" arrow>
+          <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
             <InfoIcon
               sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
             />
