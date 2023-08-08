@@ -650,7 +650,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     <>
       <Row>
         <FlexRow style={{ width: '80%' }}>
-          <PageTitle>Program ValueSet Details</PageTitle>
+          <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
         </FlexRow>
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {!isReadOnly && (
