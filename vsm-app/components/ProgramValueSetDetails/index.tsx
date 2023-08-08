@@ -604,6 +604,14 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
+    } else if (programAndGrouperData?.program?.status === 'active') {
+      return (
+        <Button
+          text="Code Search"
+          style={{ minHeight: '40px', minWidth: '150px' }}
+          onClick={() => router.push(`${router.asPath}/codesearch`)}
+        />
+      )
     } else if (allowToEdit) {
       return (
         <>
@@ -613,7 +621,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             />
           </Tooltip>
           <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
-
           <Button
             text="Code Search"
             style={{ minHeight: '40px', minWidth: '150px' }}

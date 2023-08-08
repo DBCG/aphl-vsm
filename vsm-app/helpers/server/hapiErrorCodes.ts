@@ -1,6 +1,6 @@
 const hapiErrorCodes = {
   ['HAPI-0389']: {
-    message: 'Only one draft of a program can exist at a time.'
+    message: 'Draft program must be approved before release'
   }
 }
 

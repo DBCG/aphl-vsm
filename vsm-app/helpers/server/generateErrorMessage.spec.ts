@@ -4,7 +4,7 @@ import { hapiErrorCodes } from './hapiErrorCodes'
 describe('generateErrorMessage', () => {
   it('generates the proper message when it exists in hapiErrorCodes.ts', () => {
     expect(generateErrorMessage({ serverResponse: OPERATION_OUTCOME, defaultErrorMessage: 'oh no' })).toBe(
-      'Only one draft of a program can exist at a time.'
+      'Draft program must be approved before release'
     )
   })
 
