@@ -2,7 +2,7 @@ import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
-import { Box } from '@mui/material'
+import { Box, Tooltip } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
@@ -24,6 +24,7 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
+import InfoIcon from '@mui/icons-material/Info'
 
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 
@@ -627,8 +628,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } else if (allowToEdit) {
       return (
         <>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => handleUpdateValueSets()} />
-          <Button text="Code Search" style={{ minHeight: '40px', minWidth: '150px' }} onClick={() => router.push(`${router.asPath}/codesearch`)} />
+          <Tooltip title={'Retrieves and updates all ValueSets to latest versions from this list'} placement="left" arrow>
+            <InfoIcon
+              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
+            />
+          </Tooltip>
+          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+
+          <Button
+            text="Code Search"
+            style={{ minHeight: '40px', minWidth: '150px' }}
+            onClick={() => router.push(`${router.asPath}/codesearch`)}
+          />
         </>
       )
     }
