@@ -482,13 +482,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
-                styles={{
-                  multiValueLabel: (baseStyles, state) => ({
-                    ...baseStyles,
-                    textOverflow: 'unset',
-                    textWrap: 'wrap'
-                  })
-                }}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
                 onChange={(e) => {
@@ -516,13 +509,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               inputId="groups-selector"
               instanceId="groups-selector"
               isMulti
-              styles={{
-                multiValueLabel: (baseStyles, state) => ({
-                  ...baseStyles,
-                  textOverflow: 'unset',
-                  textWrap: 'wrap'
-                })
-              }}
               options={buildGroupOptions(alphabetizedGroups)}
               // @ts-ignore-next-line
               onChange={(e) => {
@@ -553,13 +539,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 menuPlacement={index === 0 ? 'bottom' : 'top' }
                 isClearable={false}
                 classNamePrefix="groups"
-                styles={{
-                  multiValueLabel: (baseStyles, state) => ({
-                    ...baseStyles,
-                    textOverflow: 'unset',
-                    textWrap: 'wrap'
-                  })
-                }}
                 inputId="groups-selector"
                 instanceId="groups-selector"
                 isMulti={true}
@@ -628,7 +607,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } else if (allowToEdit) {
       return (
         <>
-          <Tooltip title={'Retrieves and updates all ValueSets to latest versions from this list'} placement="left" arrow>
+          <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
             <InfoIcon
               sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
             />
