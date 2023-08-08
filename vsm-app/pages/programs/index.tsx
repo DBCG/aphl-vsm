@@ -235,8 +235,9 @@ const Programs: NextPage = () => {
     })
 
     if (!result.ok) {
+      const res = await result.json()
       setError({
-        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. Please try again.`
+        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${res?.error?.includes('HAPI-0389')? 'Draft program must be approved to release.' : 'Please try again.'}`
       })
     } else {
       router.reload()
