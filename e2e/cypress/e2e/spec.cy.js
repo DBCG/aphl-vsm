@@ -19,7 +19,7 @@ describe("Smoke Tests", () => {
   context("Draft Library Setup", () => {
     it("clones active library", () => {
       cy.wait(3000)
-      cy.get('[data-button-context="clone"]').click();
+      cy.get('[data-button-context="clone-active"]').click();
       cy.get('[data-modal="confirm"]').click();
       cy.get('[data-column-id="1"]').contains("DRAFT").should("be.visible");
     });
@@ -299,24 +299,18 @@ describe("Smoke Tests", () => {
       // Fill out Approval form
       cy.get("#text").clear().type("This is a test approval");
       cy.get("#reference").clear().type("http://example.com");
-      cy.get("#user").clear().type("johndoe");
       cy.get("#submit-approve").click();
 
       cy.get(`#cell-1-comment_${moment().utc().format("YYYY-MM-DD")}_0`).should("exist");
-      
+      cy.get(`#cell-5-comment_${moment().utc().format("YYYY-MM-DD")}_0`).contains('johndoe@test.com')
       // Navigate back to program view
       cy.get('#breadcrumb-programs').click();
-      // we have to wait up to 1 minute for CQF to finish all its $draft stuff
-      // or this will break
-      cy.wait(60000);
-      cy.get("#vs-table-detail").children().first().scrollTo("right")
-      cy.get('[data-button-context="release"]').click();
+      cy.get('[data-button-context="mustApproveRelease-draft"]').first().click();
       cy.get('[data-modal="confirm"]').click();
-    });
 
-    it("Logs out of application", () => {
-      cy.get("#logout").click();
-      cy.get("#provider-logo-dark").should("be.visible");
+      // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
+      cy.get('[data-column-id="1"]').should("not.exist", "DRAFT")
+      cy.get('[data-button-context="mustApproveRelease-active"]').first().should("exist")
     });
   });
 });
