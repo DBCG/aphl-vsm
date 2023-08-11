@@ -57,7 +57,7 @@ const customStyles = {
   },
   rows: {
     style: {
-      cursor: 'pointer',
+      cursor: 'pointer'
     },
     highlightOnHoverStyle: {
       backgroundColor: '#DBF0F3'
@@ -185,7 +185,7 @@ const Programs: NextPage = () => {
         center: true,
         cell: (row: fhir4.Library) => (
           <ButtonWrapper>
-            <IconButton disabled={row.status !== 'active'} onClick={() => handleClickClone(row.id)} buttonContext="clone" />
+            <IconButton disabled={row.status !== 'active'} onClick={() => handleClickClone(row.id)} buttonContext={`clone-${row.status}`} />
           </ButtonWrapper>
         )
       },
@@ -204,7 +204,7 @@ const Programs: NextPage = () => {
                 setError({})
                 setProgramToRelease(row)
               }}
-              buttonContext={programToPublish?.approvalDate ? 'release' : 'mustApproveRelease'}
+              buttonContext={programToPublish?.approvalDate ? `release-${row.status}` : `mustApproveRelease-${row.status}`}
             />
           </ButtonWrapper>
         )
@@ -237,7 +237,9 @@ const Programs: NextPage = () => {
     if (!result.ok) {
       const res = await result.json()
       setError({
-        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${res?.error?.includes('HAPI-0389')? 'Draft program must be approved to release.' : 'Please try again.'}`
+        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${
+          res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
+        }`
       })
     } else {
       router.reload()

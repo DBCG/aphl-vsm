@@ -97,7 +97,6 @@ export interface approvalFormParams {
   artifactCommentText: string
   artifactCommentTarget: string
   artifactCommentReference: string
-  artifactCommentUser: string
 }
 
 const ApproveInfoForm: NextPage = () => {
@@ -109,8 +108,7 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
-    artifactCommentReference: '',
-    artifactCommentUser: ''
+    artifactCommentReference: ''
   })
   useEffect(() => {
     let target: string = ''
@@ -130,8 +128,7 @@ const ApproveInfoForm: NextPage = () => {
       artifactCommentType: 'comment',
       artifactCommentText: '',
       artifactCommentTarget: target || '',
-      artifactCommentReference: '',
-      artifactCommentUser: ''
+      artifactCommentReference: ''
     })
   }, [programAndGrouperData?.program])
 
@@ -191,42 +188,15 @@ const ApproveInfoForm: NextPage = () => {
   const createParametersObj = () => {
     const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
     parametersObj.parameter = []
-    parametersObj.parameter.push({
-      name: 'approvalDate',
-      valueDate: approvalFormData.approvalDate.toISOString()
+
+    Object.keys(approvalFormData).forEach((name) => {
+      if (name === 'approvalDate') {
+        parametersObj.parameter.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
+      } else {
+        parametersObj?.parameter.push({ name, valueCanonical: approvalFormData[name] })
+      }
     })
-    if (approvalFormData.artifactCommentTarget) {
-      parametersObj.parameter.push({
-        name: 'artifactCommentTarget',
-        valueCanonical: approvalFormData.artifactCommentTarget
-      })
-    }
-    if (approvalFormData.artifactCommentReference) {
-      parametersObj.parameter.push({
-        name: 'artifactCommentReference',
-        valueCanonical: approvalFormData.artifactCommentReference
-      })
-    }
-    if (approvalFormData.artifactCommentUser) {
-      parametersObj.parameter.push({
-        name: 'artifactCommentUser',
-        valueReference: {
-          reference: approvalFormData.artifactCommentUser
-        }
-      })
-    }
-    if (approvalFormData.artifactCommentText) {
-      parametersObj.parameter.push({
-        name: 'artifactCommentText',
-        valueString: approvalFormData.artifactCommentText
-      })
-    }
-    if (approvalFormData.artifactCommentType) {
-      parametersObj.parameter.push({
-        name: 'artifactCommentType',
-        valueString: approvalFormData.artifactCommentType
-      })
-    }
+
     return parametersObj
   }
 
@@ -251,7 +221,7 @@ const ApproveInfoForm: NextPage = () => {
               menu: (baseStyles, state) => ({
                 ...baseStyles,
                 zIndex: 10
-              }),
+              })
             }}
             value={{
               value: approvalFormData.artifactCommentType,
@@ -282,13 +252,6 @@ const ApproveInfoForm: NextPage = () => {
             helperMessage="Reference to the program being commented on"
             value={approvalFormData.artifactCommentReference}
             onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
-          />
-          <SearchInput
-            id="user"
-            label="User"
-            helperMessage="User who is approving the program"
-            value={approvalFormData.artifactCommentUser}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentUser')}
           />
         </Col>
       </GridContainer>
