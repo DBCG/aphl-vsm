@@ -97,6 +97,7 @@ export interface approvalFormParams {
   artifactCommentText: string
   artifactCommentTarget: string
   artifactCommentReference: string
+  artifactCommentUser: string
 }
 
 const ApproveInfoForm: NextPage = () => {
@@ -108,7 +109,8 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
-    artifactCommentReference: ''
+    artifactCommentReference: '',
+    artifactCommentUser: ''
   })
   useEffect(() => {
     let target: string = ''
@@ -128,7 +130,8 @@ const ApproveInfoForm: NextPage = () => {
       artifactCommentType: 'comment',
       artifactCommentText: '',
       artifactCommentTarget: target || '',
-      artifactCommentReference: ''
+      artifactCommentReference: '',
+      artifactCommentUser: ''
     })
   }, [programAndGrouperData?.program])
 
@@ -187,13 +190,14 @@ const ApproveInfoForm: NextPage = () => {
   }
   const createParametersObj = () => {
     const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
-    parametersObj.parameter = []
+    parametersObj.parameter = [] as fhir4.ParametersParameter[]
 
     Object.keys(approvalFormData).forEach((name) => {
       if (name === 'approvalDate') {
-        parametersObj.parameter.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
+        parametersObj?.parameter?.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
       } else {
-        parametersObj?.parameter.push({ name, valueCanonical: approvalFormData[name] })
+        // @ts-ignore
+        parametersObj?.parameter?.push({ name, valueCanonical: approvalFormData[name] })
       }
     })
 
