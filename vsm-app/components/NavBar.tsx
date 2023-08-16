@@ -3,7 +3,11 @@ import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
 import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { Button } from './buttons/Button'
-import { createContext, useState, useEffect, useContext } from 'react'
+import { createContext, useState, useContext } from 'react'
+import packageInfo from '@/package.json'
+import Box from '@mui/material/Box'
+import { Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -58,14 +62,19 @@ const NavBar = () => {
     <BarWrapper>
       <Bar>
         <BreadCrumbs isGrouperView={isGrouperView} />
-        <Button
-          text="Sign Out"
-          id="logout"
-          onClick={() => {
-            signOut({ redirect: false })
-            router.push('/api/auth/logout')
-          }}
-        />
+        <Box sx={{ alignItems: 'center', display: 'flex' }}>
+          <Tooltip title={`App Version v-${packageInfo.version}`}>
+            <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+          </Tooltip>
+          <Button
+            text="Sign Out"
+            id="logout"
+            onClick={() => {
+              signOut({ redirect: false })
+              router.push('/api/auth/logout')
+            }}
+          />
+        </Box>
       </Bar>
     </BarWrapper>
   )
