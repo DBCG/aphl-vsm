@@ -16,7 +16,9 @@ install:
 jobs:
   include:
     - stage: test
-      script: npm ci && npm run test-ci
+      script: 
+      - cd $TRAVIS_BUILD_DIR/vsm-app
+      - npm ci && npm run test-ci
       install: skip
     - stage: deploy
       if: branch IN (main, deployed)
