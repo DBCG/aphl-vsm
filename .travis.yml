@@ -30,4 +30,5 @@ jobs:
         - git commit -m "update version number [ci skip]"
         - git push origin HEAD:$TRAVIS_BRANCH
         - docker build -t vsm-app:$TRAVIS_COMMIT .
+        - cd ../
         - ./bin/deploy.sh
