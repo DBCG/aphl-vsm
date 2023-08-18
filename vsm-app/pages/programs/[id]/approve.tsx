@@ -97,7 +97,7 @@ export interface approvalFormParams {
   artifactCommentText: string
   artifactCommentTarget: string
   artifactCommentReference: string
-  artifactCommentUser: string
+  artifactCommentUser?: string
 }
 
 const ApproveInfoForm: NextPage = () => {
@@ -109,8 +109,7 @@ const ApproveInfoForm: NextPage = () => {
     artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
-    artifactCommentReference: '',
-    artifactCommentUser: ''
+    artifactCommentReference: ''
   })
   useEffect(() => {
     let target: string = ''
@@ -130,8 +129,7 @@ const ApproveInfoForm: NextPage = () => {
       artifactCommentType: 'comment',
       artifactCommentText: '',
       artifactCommentTarget: target || '',
-      artifactCommentReference: '',
-      artifactCommentUser: ''
+      artifactCommentReference: ''
     })
   }, [programAndGrouperData?.program])
 
@@ -195,6 +193,8 @@ const ApproveInfoForm: NextPage = () => {
     Object.keys(approvalFormData).forEach((name) => {
       if (name === 'approvalDate') {
         parametersObj?.parameter?.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
+      } else if (name === 'artifactCommentText' || name === 'artifactCommentType') {
+        parametersObj?.parameter?.push({ name, valueString: approvalFormData[name] })
       } else {
         // @ts-ignore
         parametersObj?.parameter?.push({ name, valueCanonical: approvalFormData[name] })
