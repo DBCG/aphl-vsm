@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import Select, { Options, SingleValue } from 'react-select'
 import { PageTitle } from '@/components/Typography'
@@ -7,70 +6,18 @@ import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { StyledLabel } from '@/components/InputLabel'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import type { NextPage } from 'next'
 import { toast } from 'react-toastify'
-import { Box, Tooltip } from '@mui/material'
+import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 24px;
-  max-width: 1200px;
-  margin-bottom: 48px;
-`
-
-const StyledDateInput = styled.input.attrs({
-  type: 'date'
-})`
-  margin-bottom: 24px;
-`
-
-const Row = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  justify-content: flex-start;
-`
-
-const SubtitleRow = styled(Row)`
-  margin-bottom: 8px;
-`
-
-const LabelStyled = styled(StyledLabel)`
-  margin-bottom: 0;
-`
-
-const Col = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  height: fit-content;
-  gap: 8px;
-`
-export const EmailPattern: RegExp = /^[^\W_]+([._-][^\W_]+)*@[^\W_]+([.-][^\W_]+)*\.[a-z]{2,4}$/
-const numberValidator = (val: string) => Number.isInteger(Number(val.replace(' ', '')))
-// http://hl7.org/fhir/R4/valueset-contact-point-system.html
-const contactTypes = {
-  '': {
-    display: 'Please select a contact type',
-    validation: () => true
-  },
-  phone: {
-    display: 'Phone',
-    validation: numberValidator
-  },
-  fax: {
-    display: 'Fax',
-    validation: numberValidator
-  },
-  email: {
-    display: 'Email',
-    validation: (val: string) => val.match(EmailPattern)
-  }
-}
+import {
+  Row,
+  SubtitleRow,
+  LabelStyled,
+  Col,
+  GridContainer
+} from './styles'
 
 export const artifactAssessmentInfoTypes = {
   comment: 'Comment',
@@ -88,9 +35,7 @@ export const artifactAssessmentInfoTypes = {
 const artifactAssessmentInfoTypeOptions: Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }> = Object.entries(
   artifactAssessmentInfoTypes
 ).map(([key, value]) => ({ value: key, label: value })) as Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }>
-const contactTypeOptions: Options<{ value: keyof typeof contactTypes; label: string }> = Object.entries(contactTypes).map(
-  ([key, value]) => ({ value: key, label: value.display })
-) as Options<{ value: keyof typeof contactTypes; label: string }>
+
 export interface approvalFormParams {
   approvalDate: Date
   artifactCommentType: keyof typeof artifactAssessmentInfoTypes
@@ -158,6 +103,7 @@ const ApproveInfoForm: NextPage = () => {
       }
     })
   }
+
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>,
     fieldName: keyof approvalFormParams
@@ -190,6 +136,7 @@ const ApproveInfoForm: NextPage = () => {
       }
     }
   }
+
   const createParametersObj = () => {
     const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
     parametersObj.parameter = [] as fhir4.ParametersParameter[]
