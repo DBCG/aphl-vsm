@@ -7,6 +7,7 @@ import { TextArea } from '@/components/TextArea'
 import DateInput from '@/components/DateInput'
 import {
   getReleaseDescription,
+  getReleaseLabel,
   setReleaseDescription,
   missingFields,
   setVSPriorityUsageContext,
@@ -41,7 +42,7 @@ interface ErrorMessages {
 const errorMessages: ErrorMessages = {
   name: 'Program name required',
   title: 'Program title required',
-  description: 'Program description required',
+  description: 'Program description required'
 }
 
 // editable will be a prop
@@ -57,9 +58,9 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const { name = '', version = '', title = '', description = '' } = program
   const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
-
+  const releaseLabel = getReleaseLabel(program)
   const getErrorText = (fieldName: string) => {
-    if(errorFields.includes(fieldName)) {
+    if (errorFields.includes(fieldName)) {
       return errorMessages[fieldName]
     }
   }
@@ -98,7 +99,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
     setEditedProgram(newProgram)
   }
 
-
   return (
     <Form error={Boolean(errorFields.length)}>
       <Grid container spacing={2} style={{ maxWidth: '700px' }}>
@@ -134,6 +134,15 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             defaultValue={version}
             onChange={(event) => handleFieldChange(event, 'version')}
             placeholder={'No program version set'}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <SearchInput
+            id="prog-release-label"
+            label={`Release Label ${enableEditing ? `(read-only)` : ''}`}
+            readonly={true}
+            defaultValue={releaseLabel}
+            placeholder={'No release label set'}
           />
         </Grid>
         <Grid item xs={12}>
@@ -201,49 +210,49 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           )}
         </Grid>
         <Grid item xs={12}>
-        {editable && !enableEditing && !formTouched ? (
-          <ButtonContainer>
-            <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
-          </ButtonContainer>
-        ) : (
-          <></>
-        )}
-        {editable && enableEditing ? (
-          <ButtonContainer style={{ alignItems: 'flex-end' }}>
-            <Button
-              style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
-              text={'Cancel'}
-              type="button"
-              onClick={(e) => {
-                e.preventDefault()
-                setFormTouched(false)
-                setEditedProgram(program)
-                setEnableEditing(false)
-              }}
-            />
-            <Button
-              disabled={!formTouched || Boolean(errorFields.length)}
-              id={'edit-metadata-save'}
-              style={{
-                ...buttonStyles,
-                backgroundColor: 'var(--theme-300)'
-              }}
-              loading={isSaving}
-              text={'Save Changes'}
-              type="submit"
-              onClick={async (e) => {
-                setIsSaving(true)
-                e.preventDefault()
-                await handleSubmit(editedProgram)
-                setEnableEditing(false)
-                setFormTouched(false)
-                setIsSaving(false)
-              }}
-            />
-          </ButtonContainer>
-        ) : (
-          <></>
-        )}
+          {editable && !enableEditing && !formTouched ? (
+            <ButtonContainer>
+              <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
+            </ButtonContainer>
+          ) : (
+            <></>
+          )}
+          {editable && enableEditing ? (
+            <ButtonContainer style={{ alignItems: 'flex-end' }}>
+              <Button
+                style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
+                text={'Cancel'}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setFormTouched(false)
+                  setEditedProgram(program)
+                  setEnableEditing(false)
+                }}
+              />
+              <Button
+                disabled={!formTouched || Boolean(errorFields.length)}
+                id={'edit-metadata-save'}
+                style={{
+                  ...buttonStyles,
+                  backgroundColor: 'var(--theme-300)'
+                }}
+                loading={isSaving}
+                text={'Save Changes'}
+                type="submit"
+                onClick={async (e) => {
+                  setIsSaving(true)
+                  e.preventDefault()
+                  await handleSubmit(editedProgram)
+                  setEnableEditing(false)
+                  setFormTouched(false)
+                  setIsSaving(false)
+                }}
+              />
+            </ButtonContainer>
+          ) : (
+            <></>
+          )}
         </Grid>
       </Grid>
     </Form>

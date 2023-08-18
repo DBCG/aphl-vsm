@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
-import { getReleaseDescription, setReleaseDescription } from '@/helpers/libraryHelpers'
+import { getReleaseDescription, setReleaseDescription as releaseDescriptionSet } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
@@ -71,50 +71,35 @@ const modalText = {
   }
 }
 
-const customModalStyles = {
-  overlay: {
-    zIndex: 2
-  },
-  content: {
-    maxWidth: '500px',
-    margin: '0 auto',
-    height: 'fit-content',
-    paddingBottom: '48px'
-  }
-}
-
 const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancellable = true, handleModalAction, program }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   const [currentProgram, setProgram] = useState(program)
-  const [currentInput, setCurrentInput] = useState('')
+  const [releaseDescription, setReleaseDescription] = useState('')
+  const [releaseLabel, setReleaseLabel] = useState('')
   const [disableSubmission, setDisableSubmission] = useState(false)
 
   useEffect(() => {
     // Need to set here because async
     if (program != null) {
       setProgram(program)
-      setCurrentInput(getReleaseDescription(program))
+      setReleaseDescription(getReleaseDescription(program))
     }
   }, [program])
 
   useEffect(() => {
-    if (actionType === 'release' && currentInput.length === 0) {
+    if (actionType === 'release' && (releaseDescription.length === 0 || releaseLabel.length === 0)) {
       setDisableSubmission(true)
     } else {
       setDisableSubmission(false)
     }
-  }, [actionType, currentInput.length])
+  }, [actionType, releaseDescription.length])
 
   return (
     <Dialog open={isOpen}>
-      <DialogTitle>
-        {title}
-      </DialogTitle>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {text}
-        </DialogContentText>
+        <DialogContentText>{text}</DialogContentText>
         <DialogContentText>
           {actionText}
           {actionType === 'release' && (
@@ -123,10 +108,21 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 label="Description of Release"
                 id="releaseDescription"
                 required={true}
-                value={currentInput}
+                value={releaseDescription}
                 onChange={(e) => {
                   const newValue = e?.target?.value
-                  setCurrentInput(newValue)
+                  setReleaseDescription(newValue)
+                }}
+              />
+              <TextArea
+                label="Label for Release"
+                id="releaseLabel"
+                style={{ marginTop: '24px' }}
+                required={true}
+                value={releaseLabel}
+                onChange={(e) => {
+                  const newValue = e?.target?.value
+                  setReleaseLabel(newValue)
                 }}
               />
             </>
@@ -134,7 +130,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-      <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
+        <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
         <Button
           text={`YES, ${actionType}`}
           data-modal={'confirm'}
@@ -143,7 +139,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
           onClick={() => {
             let currProgram = currentProgram
             if (actionType === 'release' && currProgram) {
-              const modifiedProgram = setReleaseDescription(currProgram, currentInput.trim())
+              const modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
               setProgram(modifiedProgram)
               currProgram = modifiedProgram
             }
@@ -154,46 +150,5 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
     </Dialog>
   )
 }
-
-const ModalOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--theme-color);
-  backdrop-filter: blur(20px);
-`
-
-const ModalContent = styled.div`
-  justify-content: center;
-  text-align: center;
-`
-
-const ModalTitle = styled.h1`
-  margin-bottom: 36px;
-`
-
-const ModalText = styled.p`
-  max-width: 400px;
-  line-height: 140%;
-  margin: 0 auto;
-  margin-bottom: 12px;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-top: 36px;
-`
-
-const LoadingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-`
 
 export { LoadingModal }
