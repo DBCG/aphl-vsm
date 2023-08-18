@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import Select, { Options, SingleValue } from 'react-select'
@@ -104,13 +104,15 @@ const ApproveInfoForm: NextPage = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const { programAndGrouperData } = useGetProgramDetails({ id: programId })
-  const [approvalFormData, setApprovalFormData] = React.useState<approvalFormParams>({
+  const [loading, setLoading] = useState(false)
+  const [approvalFormData, setApprovalFormData] = useState<approvalFormParams>({
     approvalDate: new Date(),
     artifactCommentType: 'comment',
     artifactCommentText: '',
     artifactCommentTarget: '',
     artifactCommentReference: ''
   })
+
   useEffect(() => {
     let target: string = ''
     const url = programAndGrouperData?.program?.url
@@ -134,6 +136,7 @@ const ApproveInfoForm: NextPage = () => {
   }, [programAndGrouperData?.program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    setLoading(true)
     const parameterObj = createParametersObj()
     const approveEndpoint = `/api/programs/${(programAndGrouperData.program as fhir4.Library).id}/approve`
     return fetch(approveEndpoint, {
@@ -150,6 +153,7 @@ const ApproveInfoForm: NextPage = () => {
             borderRadius: 0
           }
         })
+        setLoading(false)
         res.json().then((error) => console.error(error))
       }
     })
@@ -260,7 +264,7 @@ const ApproveInfoForm: NextPage = () => {
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-        <Button id="submit-approve" text="Submit" onClick={handleApprove} />
+        <Button id="submit-approve" text="Submit" onClick={handleApprove} loading={loading} />
       </Row>
     </>
   )
