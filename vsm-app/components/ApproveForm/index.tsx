@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import Select, { Options, SingleValue } from 'react-select'
+import Select, { SingleValue } from 'react-select'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
@@ -16,34 +16,7 @@ import {
   Col,
   GridContainer
 } from './styles'
-
-
-export interface approvalFormParams {
-  approvalDate: Date
-  artifactCommentType: keyof typeof artifactAssessmentInfoTypes
-  artifactCommentText: string
-  artifactCommentTarget: string
-  artifactCommentReference: string
-  artifactCommentUser?: string
-}
-
-export const artifactAssessmentInfoTypes = {
-  comment: 'Comment',
-  classifier: 'Classifier',
-  rating: 'Rating',
-  response: 'Response',
-  'change-request': 'Change Request'
-  // technically container is
-  // a valid response but disabling
-  // it since it doesn't make
-  // sense in the context
-  // of an approval
-  // container: 'Container',
-}
-
-const artifactAssessmentInfoTypeOptions: Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }> = Object.entries(
-  artifactAssessmentInfoTypes
-).map(([key, value]) => ({ value: key, label: value })) as Options<{ value: keyof typeof artifactAssessmentInfoTypes; label: string }>
+import { approvalFormParams, artifactAssessmentInfoTypeOptions, artifactAssessmentInfoTypes } from './types'
 
 
 export const ApproveForm = () => {
