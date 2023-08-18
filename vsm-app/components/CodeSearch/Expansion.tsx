@@ -34,7 +34,12 @@ const Expansion = (props: Props) => {
       cell: (data: Row) => {
         const grouperMatches = groupsInProgram
           ?.filter((grouper => data.groupersBelongsTo.includes(grouper.id!)))
-          ?.map(vs => <div>{vs?.title?.replace('_', ' ')}</div>)
+          ?.map((vs) => {
+            const noSpacesTitle = vs?.title?.replace(' ', '') 
+            return (
+              <div key={noSpacesTitle}>{vs?.title}</div>
+            )
+          })
 
         return (
           <div>{grouperMatches}</div>
@@ -46,7 +51,7 @@ const Expansion = (props: Props) => {
       selector: (data: Row) => data?.conditionInfo?.join('') || data.url,
       cell: (data: Row) => {
         const conditionMatches = data.conditionInfo
-          ?.map(condition => <div>{condition}</div>)
+          ?.map(condition => <div key={condition}>{condition}</div>)
 
         return (
           <div>{conditionMatches}</div>
