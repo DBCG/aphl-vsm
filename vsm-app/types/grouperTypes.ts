@@ -1,7 +1,7 @@
 import { Condition } from '@/helpers/conditionHelpers';
 import { ToString } from '@/hooks/useGetProgramDetails';
-import { approvalFormParams } from '@/pages/programs/[id]/approve';
 import { ManifestDataMap } from './manifestTypes';
+import { approvalFormParams } from '@/components/ApproveForm/types';
 
 interface GrouperMetadata {
   id: fhir4.ValueSet['id'];

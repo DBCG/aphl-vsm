@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import DataTable from 'react-data-table-component'
 import LoadingIndicator from './LoadingIndicator'
-import { approvalFormParams } from '@/pages/programs/[id]/approve'
 import { ToString } from '@/hooks/useGetProgramDetails'
+import { approvalFormParams } from './ApproveForm/types'
 import { customTableStyles } from './tables/themes'
 
 interface TableData {
