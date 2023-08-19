@@ -11,7 +11,7 @@
 //
 // -- This is a parent command --
 Cypress.Commands.add('login', (username, password) => { 
-  cy.get('button').click()
+  cy.get('#signin').click()
   cy.get('#username').type(username)
   cy.get('#password').type(password)
   cy.get('#kc-login').click()
