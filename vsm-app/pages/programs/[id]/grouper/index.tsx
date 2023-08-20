@@ -48,7 +48,7 @@ const FormSectionHeader = ({ itemNum, title }: Header) => (
 )
 
 interface Error {
-  type: 'failed-grouper-add'
+  type: 'failed-grouper-add' | 'failed-id-format'
   message: string
 }
 
@@ -67,6 +67,7 @@ const AddGrouper = () => {
   const [description, setDescription] = useState(defaultFormData.description)
   const [purpose, setPurpose] = useState(defaultFormData.purpose)
   const [error, setError] = useState<Error | null>(null)
+  const [grouperFormError, setGrouperFormError] = useState<Error | null>(null)
   const [loading, setLoading] = useState(false)
   const [programVersion, setProgramVersion] = useState(null)
 
@@ -74,6 +75,7 @@ const AddGrouper = () => {
   const programId = router.query.id as string
 
   useEffect(() => {
+    setError(null)
     const getProgram = async () => {
       const res = await fetch(`/api/programs?id=${programId}`)
       if (res?.ok) {
@@ -177,24 +179,28 @@ const AddGrouper = () => {
         setPurpose(targetValue)
         break
       case 'id':
+        const regexMatch = /[A-Za-z0-9\-\.]{1,64}/
+        if(!targetValue.match(regexMatch) && targetValue?.trim() !== '') {
+          setGrouperFormError({
+            type: 'failed-id-format',
+            message: `Grouper ID may only contain A-Z, a-z, numbers, hyphens, and periods. Limit 64 characters.`
+          })
+        } else {
+          setGrouperFormError(null)
+        }
         setId(targetValue)
     }
   }
   const currentSelectedVSId: string[] = grouperVSets?.map((i) => i?.selectedValueSet?.id as string)?.filter(i => i)
 
   const submitDisabled =
-    !(grouperVSets.length && title && id && author && publisher && description && purpose && programVersion) || !startsAlphabetically(title)
+    !(grouperVSets.length && title && id && author && publisher && description && purpose && programVersion)
+      || !startsAlphabetically(title)
+      || grouperFormError
+
 
   return (
     <>
-      <LoadingModal
-        isOpen={loading}
-        actionType="grouper-add"
-        program={null}
-        handleCancelModal={() => {}}
-        loading={loading}
-        handleModalAction={() => {}}
-      />
       <FormTitle>Add a Grouper</FormTitle>
       <FormSectionHeader
         itemNum={1}
@@ -205,10 +211,14 @@ const AddGrouper = () => {
           </>
         }
       />
+      <ErrorMessage
+        style={{ marginBottom: '2rem' }}
+        error={grouperFormError?.message || ''}
+      />
       <FormControl error={Boolean(error)}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
-            <SearchInput label="ID" id="id" required={true} onChange={(e) => updateField(e)} value={id}  errorMessage={!id ? "field required" : null}/>
+            <SearchInput label="ID" id="id" required={true} onChange={(e) => updateField(e)} value={id}  errorMessage={!id ? "field required [letters, numbers, hyphens, and periods only]" : null}/>
           </Grid>
           <Grid item xs={12} sm={6}>
             <SearchInput label="Author" id="author" required={true} onChange={(e) => updateField(e)} value={author}  errorMessage={!author ? "field required" : null}/>
@@ -272,6 +282,7 @@ const AddGrouper = () => {
       <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
         <Button
           id="submit-grouper-creation"
+          loading={loading}
           style={{
             fontSize: '150%'
           }}

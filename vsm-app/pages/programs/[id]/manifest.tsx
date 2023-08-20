@@ -14,6 +14,7 @@ import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSy
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
+import { convertSnomedVersion, convertRxNormVersion } from '@/helpers/formatVersions'
 
 const endWrapPx = 900
 
@@ -50,6 +51,9 @@ const DataTableContainer = styled.div`
 `
 
 const MaxWidthContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   min-width: 300px;
   @media (max-width: ${endWrapPx}px) {
     min-width: 100%;
@@ -185,7 +189,7 @@ const EditManifestDetails = () => {
         <Button id="back-to-program" text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
       <CodesystemSelectContainer>
-        <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
+        <StyledLabel style={{ fontSize: '1rem' }}>Available Versions for CodeSystem: </StyledLabel>
         <Select
           isLoading={pageLoading}
           id="code-system-selector"
@@ -230,7 +234,15 @@ const EditManifestDetails = () => {
                 maxWidth: '120px',
                 selector: (row) => row,
                 sortable: true,
-                wrap: true
+                wrap: true,
+                format: (row) => {
+                  if (selectedSystem?.toLowerCase()?.includes('snomed')) {
+                      return convertSnomedVersion(row)
+                  } else if (selectedSystem?.toLowerCase()?.includes('rxnorm')) {
+                      return convertRxNormVersion(row)
+                  }
+                  return row
+                }
               },
               {
                 cell: (newVersion) => {

@@ -177,6 +177,27 @@ const Programs: NextPage = () => {
         wrap: true
       },
       {
+        name: 'Steward',
+        selector: (row: fhir4.Library) => row.publisher,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Last Updated',
+        selector: (row: fhir4.Library) => {
+          const lastUpdatedData = row?.meta?.lastUpdated
+
+          if (!lastUpdatedData) {
+            return ''
+          } else {
+            const lastUpdated = new Date(lastUpdatedData).toLocaleDateString()
+            return lastUpdated
+          }
+        },
+        sortable: true,
+        wrap: true
+      },
+      {
         name: 'Clone',
         selector: (row: fhir4.Library) => row.name,
         sortable: false,
