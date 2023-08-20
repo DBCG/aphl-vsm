@@ -6,6 +6,8 @@ import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import router from 'next/router'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -54,6 +56,33 @@ const EXPANSION_COLUMNS = [
   }
 ]
 
+const GROUPER_CONTENTS_COLUMNS = [
+  {
+    name: 'Name',
+    selector: (row: ExpansionTableData) => row?.system!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'OID',
+    selector: (row: ExpansionTableData) => row?.system!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'Version',
+    selector: (row: ExpansionTableData) => row?.version!,
+    sortable: true,
+    wrap: true
+  },
+  {
+    name: 'URL',
+    selector: (row: ExpansionTableData) => row?.code!,
+    sortable: true,
+    wrap: true
+  }
+]
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
 
@@ -82,6 +111,12 @@ const ValueSetDetailsTables = ({
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
+  const programId = router.query.id as string
+  const grouperId = router.query.valuesetId as string
+  
+  const programWithLeafData = useGetProgramValueSetDetails({
+    id: programId
+  })
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -119,17 +154,39 @@ const ValueSetDetailsTables = ({
 
   let definitionColumns, definitionData
   let expansionColumns, expansionData
+
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
-    definitionData = memberSet
+    console.log('data: ', programWithLeafData)
+    definitionData = programWithLeafData?.data?.filter(x => x.groups.find(g => g.id === grouperId))
+    console.log('def: ', definitionData)
     expansionData = expansion?.contains
     definitionColumns = [
       {
-        name: 'ValueSets',
-        selector: (row: GrouperVSTableData) => row?.valueSet?.[0]!,
+        name: 'Name',
+        selector: (row: GrouperVSTableData) => row?.valueSet?.name!,
         sortable: true,
         wrap: true
-      }
+      },
+      {
+        name: 'ID',
+        selector: (row: GrouperVSTableData) => row?.valueSet?.id!,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Version',
+        selector: (row: GrouperVSTableData) => row?.valueSetPinnedVersion || 'latest',
+        sortable: true,
+        wrap: true,
+        maxWidth: '150px'
+      },
+      {
+        name: 'URL',
+        selector: (row: GrouperVSTableData) => row?.valueSet?.url!,
+        sortable: true,
+        wrap: true
+      },
     ]
 
     expansionColumns = EXPANSION_COLUMNS
@@ -181,7 +238,7 @@ const ValueSetDetailsTables = ({
   
     if (isGrouperValueSet) {
       return defData.filter(
-        (item: any) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+        (item: any) => item?.valueSet?.name?.toLowerCase().includes(filterDefinitionText.toLowerCase())
       )
     } else {
       return defData.filter(
@@ -227,7 +284,7 @@ const ValueSetDetailsTables = ({
           value={filterDefinitionText}
           onChange={(e) => setFilterDefinitionText(e.target.value)}
           id="filter-definition-table"
-          label="Filter Definitions"
+          label={`Filter ${isGrouperValueSet ? 'By Name' : 'Definitions'}`}
           variant="outlined"
         />
         <DataTable
