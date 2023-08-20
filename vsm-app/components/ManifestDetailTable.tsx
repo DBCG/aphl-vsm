@@ -6,6 +6,7 @@ import { fetcher } from '@/utils'
 import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
 import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
+import { convertSnomedVersion, convertRxNormVersion } from '@/helpers/formatVersions'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
@@ -57,7 +58,15 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       name: 'Version',
       selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
-      wrap: true
+      wrap: true,
+      format: (row: ManifestSystemVersionPair) => {
+        if (row.system?.toLowerCase()?.includes('snomed')) {
+            return convertSnomedVersion(row.version)
+        } else if (row.system?.toLowerCase()?.includes('rxnorm')) {
+            return convertRxNormVersion(row.version)
+        }
+        return row
+      }
     }
   ]
 
