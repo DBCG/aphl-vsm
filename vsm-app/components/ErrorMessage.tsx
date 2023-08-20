@@ -8,6 +8,7 @@ interface ErrorState {
 type Error = {
   error: string | null
   severity?: 'warning'
+  style?: React.CSSProperties
 }
 
 const ErrorContainer = styled.div<Error>`
@@ -32,9 +33,9 @@ const ErrorText = styled.p<Error>`
   color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
 `
 
-const ErrorMessage = ({ error, severity }: Error) => {
+const ErrorMessage = ({ error, severity, style }: Error) => {
   return (
-    <ErrorContainer severity={severity} error={error}>
+    <ErrorContainer severity={severity} error={error} style={style}>
       <ErrorText severity={severity} error={error}>{error}</ErrorText>
     </ErrorContainer>
   )
