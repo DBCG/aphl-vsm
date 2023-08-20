@@ -31,6 +31,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Name',
       wrap: true,
+      minWidth: '300px',
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name!
     },
     {
