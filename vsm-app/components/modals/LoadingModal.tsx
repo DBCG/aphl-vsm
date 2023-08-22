@@ -2,7 +2,12 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
-import { getReleaseDescription, getReleaseLabel, setReleaseDescription as releaseDescriptionSet } from '@/helpers/libraryHelpers'
+import {
+  getReleaseDescription,
+  getReleaseLabel,
+  setReleaseLabel as releaseLabelSet,
+  setReleaseDescription as releaseDescriptionSet
+} from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
@@ -140,7 +145,8 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
           onClick={() => {
             let currProgram = currentProgram
             if (actionType === 'release' && currProgram) {
-              const modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
+              let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
+              modifiedProgram = releaseLabelSet(modifiedProgram, releaseLabel.trim())
               setProgram(modifiedProgram)
               currProgram = modifiedProgram
             }
