@@ -55,7 +55,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const initialErrorState = missingFields({ program, requiredFields })
 
   const [errorFields, setErrorFields] = useState(initialErrorState)
-  const { name = '', version = '', title = '', description = '' } = program
+  const { name = '', version = '', title = '', description = '', status } = program
   const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
   const releaseLabel = getReleaseLabel(program)
@@ -137,13 +137,15 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           />
         </Grid>
         <Grid item xs={12}>
-          <SearchInput
-            id="prog-release-label"
-            label={`Release Label ${enableEditing ? `(read-only)` : ''}`}
-            readonly={true}
-            defaultValue={releaseLabel}
-            placeholder={'No release label set'}
-          />
+          {status === 'active' && (
+            <SearchInput
+              id="prog-release-label"
+              label={`Release Label ${enableEditing ? `(read-only)` : ''}`}
+              readonly={true}
+              defaultValue={releaseLabel}
+              placeholder={'No release label set'}
+            />
+          )}
         </Grid>
         <Grid item xs={12}>
           <DateInput

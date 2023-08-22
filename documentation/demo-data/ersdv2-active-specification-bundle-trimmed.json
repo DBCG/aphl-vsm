@@ -32,7 +32,10 @@
                 "extension": [ {
                   "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension",
                   "valueString": "Test release description text"
-                } ],
+                }, {
+                    "url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel",
+                    "valueString": "Release Label for Program"
+                }],
                 "type":
                 {
                     "coding":
