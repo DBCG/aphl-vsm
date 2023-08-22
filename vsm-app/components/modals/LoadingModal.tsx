@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
-import { getReleaseDescription, setReleaseDescription as releaseDescriptionSet } from '@/helpers/libraryHelpers'
+import { getReleaseDescription, getReleaseLabel, setReleaseDescription as releaseDescriptionSet } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
@@ -84,6 +84,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
     if (program != null) {
       setProgram(program)
       setReleaseDescription(getReleaseDescription(program))
+      setReleaseLabel(getReleaseLabel(program))
     }
   }, [program])
 
@@ -93,7 +94,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
     } else {
       setDisableSubmission(false)
     }
-  }, [actionType, releaseDescription.length])
+  }, [actionType, releaseDescription.length, releaseLabel.length])
 
   return (
     <Dialog open={isOpen}>
@@ -110,7 +111,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseDescription}
                 onChange={(e) => {
-                  const newValue = e?.target?.value
+                  const newValue = e?.target?.value?.trim()
                   setReleaseDescription(newValue)
                 }}
               />
@@ -121,7 +122,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseLabel}
                 onChange={(e) => {
-                  const newValue = e?.target?.value
+                  const newValue = e?.target?.value?.trim()
                   setReleaseLabel(newValue)
                 }}
               />

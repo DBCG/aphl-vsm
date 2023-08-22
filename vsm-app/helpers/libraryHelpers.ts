@@ -110,8 +110,8 @@ const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditCompose
   return clonedGrouperLib
 }
 
-const getReleaseLabel = (program: fhir4.Library) => {
-  return program.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString
+const getReleaseLabel = (program: fhir4.Library | null | undefined) => {
+  return program?.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString || ''
 }
 
 const setExtension = (program: fhir4.Library, url: string, valueString: string) => {
