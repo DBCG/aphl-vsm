@@ -16,11 +16,13 @@ Specification Repository and used there throughout the composition process.
 ### CQF Tooling ValueSet Generator
 CQF Tooling's GenericValueSetGenerator operation can be used to generate the ValueSet.
 
+Currently, only the compose from the generated ValueSet will be useful. The generation does not extract the description from the ReadMe sheet in the workbook and it does not set other values like ID, Name, Title, URL, etc., and so those should be preserved from version to version - i.e., just replace the compose element with the newly-generated compose and then manually update the description, using the value from the readme in the spreadsheet.
+
 Example invocation of the operation:
 ```
 mvn exec: java -Dexec.args="
   -XlsxToValueSet
-  -pts=/aphl-vsm/data/vocabulary/RCKMS Condition Codes.20210609.xlsx
+  -pts=/aphl-vsm/data/vocabulary/RCKMS Condition Codes.20230614.xlsx
   -op=/aphl-vsm/data/vocabulary
   -e=json
   -code=1:1:2
@@ -29,3 +31,5 @@ mvn exec: java -Dexec.args="
   -synonymdesignation=1:1:0
   -codeversion=1:1:5"
 ```
+
+Or you can run the _generateValueSet.sh script, just change the name of the spreadsheet to which it's referring.
