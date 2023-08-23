@@ -7,6 +7,16 @@ import { removeDraftFromVersionString } from '@/utils'
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const toReleaseLibrary = JSON.parse(req?.body)
+  try {
+    await fhirCdrClient.update<fhir4.Library>({
+      resourceType: 'Library',
+      id: toReleaseLibrary.id as string,
+      body: toReleaseLibrary
+    })
+  } catch (e) {
+    logger.error('error', e)
+    return res.status(500).json({ error: 'Error updating program by ID' })
+  }
   const releasePayload = {
     resourceType: 'Parameters',
     parameter: [

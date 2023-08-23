@@ -71,24 +71,9 @@ const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   return program?.extension?.find((ext) => ext?.url?.endsWith('us-ph-specification-release-description-extension'))?.valueString || ''
 }
 
-const setReleaseDescription = (program: fhir4.Library, releaseDescription = ''): fhir4.Library => {
-  const clonedProgram = cloneDeep(program)
-  const newReleaseDescriptionEntry = {
-    url: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension',
-    valueString: releaseDescription
-  }
-
-  if (clonedProgram?.extension == null) {
-    clonedProgram.extension = [] as fhir4.Extension[]
-  }
-  const libraryExtensionIndex = Math.max(
-    clonedProgram?.extension?.findIndex((ext) => ext?.url?.endsWith('us-ph-specification-release-description-extension')),
-    0
-  )
-
-  clonedProgram.extension[libraryExtensionIndex] = newReleaseDescriptionEntry
-
-  return clonedProgram
+const setReleaseDescription = (program: fhir4.Library, releaseDescription: string = ''): fhir4.Library => {
+  const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension'
+  return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
 interface MissingFields {
@@ -125,6 +110,36 @@ const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditCompose
   return clonedGrouperLib
 }
 
+const getReleaseLabel = (program: fhir4.Library | null | undefined) => {
+  return program?.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString || ''
+}
+
+const setExtension = (program: fhir4.Library, url: string, valueString: string) => {
+  const clonedProgram = cloneDeep(program)
+  const newExtensionEntry = {
+    url,
+    valueString
+  }
+
+  if (clonedProgram?.extension == null) {
+    clonedProgram.extension = [] as fhir4.Extension[]
+  }
+  const libraryExtensionIndex = clonedProgram?.extension?.findIndex((ext) => ext?.url === url)
+
+  if (libraryExtensionIndex === -1) {
+    clonedProgram.extension.push(newExtensionEntry)
+  } else {
+    clonedProgram.extension[libraryExtensionIndex] = newExtensionEntry
+  }
+
+  return clonedProgram
+}
+
+const setReleaseLabel = (program: fhir4.Library, label: string = '') => {
+  const releaseLabelExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel'
+  return setExtension(program, releaseLabelExtensionUrl, label)
+}
+
 export {
   getGrouperLibraryCanonical,
   setVSPriorityUsageContext,
@@ -132,5 +147,7 @@ export {
   getReleaseDescription,
   setReleaseDescription,
   missingFields,
-  editComposeInclude
+  editComposeInclude,
+  getReleaseLabel,
+  setReleaseLabel
 }
