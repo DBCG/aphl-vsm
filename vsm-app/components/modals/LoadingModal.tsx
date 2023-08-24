@@ -11,7 +11,7 @@ import {
 import { TextArea } from '../TextArea'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone' | 'grouper-add'
+  actionType: 'release' | 'publish' | 'clone'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -57,18 +57,6 @@ const modalText = {
     modalLoadingText: (
       <LoadingText>
         Cloning may take up to a minute.
-        <br />
-        Please keep this window open until it completes.
-      </LoadingText>
-    )
-  },
-  'grouper-add': {
-    title: 'Save your Grouper',
-    text: 'Saving your updated grouper ValueSet',
-    actionText: 'Would you like to continue?',
-    modalLoadingText: (
-      <LoadingText>
-        Saving a grouper may take up to a minute.
         <br />
         Please keep this window open until it completes.
       </LoadingText>

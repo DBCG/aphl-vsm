@@ -187,14 +187,6 @@ const AddGrouper = () => {
 
   return (
     <>
-      <LoadingModal
-        isOpen={loading}
-        actionType="grouper-add"
-        program={null}
-        handleCancelModal={() => {}}
-        loading={loading}
-        handleModalAction={() => {}}
-      />
       <FormTitle>Add a Grouper</FormTitle>
       <FormSectionHeader
         itemNum={1}
@@ -275,6 +267,7 @@ const AddGrouper = () => {
           style={{
             fontSize: '150%'
           }}
+          loading={loading}
           text="SUBMIT"
           disabled={submitDisabled}
           onClick={async () => await addGrouper()}
