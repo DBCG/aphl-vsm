@@ -9,7 +9,7 @@ describe('formatDates', () => {
 
     it('returns empty string if input is not a string', () => {
       const notDate = null
-      expect(formatDateForTable(null, 'm/d/yyyy')).toBe('')
+      expect(formatDateForTable(notDate, 'm/d/yyyy')).toBe('')
     })
 
     it('returns empty string if input is not a valid date', () => {

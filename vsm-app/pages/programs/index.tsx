@@ -188,7 +188,6 @@ const Programs: NextPage = () => {
         name: 'Last Updated',
         selector: (row: fhir4.Library) => {
           const formattedDate = formatDateForTable(row?.meta?.lastUpdated, 'm/d/yyyy')
-          console.log('lastupdated:', row.meta?.lastUpdated)
           return formattedDate
         },
         sortable: true,
