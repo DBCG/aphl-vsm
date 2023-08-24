@@ -4,7 +4,6 @@ interface FormatVs {
   valueSet: fhir4.ValueSet
   dateType: string
 }
-const formatDate = (dateStr: string) => format(new Date(dateStr), 'YYY-M-d')
 
 const formatValuesetDate = ({ valueSet, dateType }: FormatVs) => {
   if (dateType === 'lastUpdated') {
@@ -18,4 +17,21 @@ const formatValuesetDate = ({ valueSet, dateType }: FormatVs) => {
   }
 }
 
-export { formatValuesetDate }
+const formatDateForTable = (date: string | any, format: string): string => {
+  if (typeof date !== 'string' || !date?.trim()?.length) {
+    return ''
+  }
+
+  try {
+    if (format?.toLowerCase() === 'm/d/yyyy') {
+      const dateItem = new Date(date)
+      const formattedDate = new Intl.DateTimeFormat('en-US').format(dateItem)
+      return formattedDate
+    }
+    return date
+  } catch (e) {
+    return ''
+  }
+}
+
+export { formatValuesetDate, formatDateForTable }

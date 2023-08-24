@@ -14,6 +14,7 @@ import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
 import { customTableStyles } from '@/components/tables/themes'
+import { formatDateForTable } from '@/helpers/formatDates'
 
 const Col = styled.div`
   display: flex;
@@ -171,8 +172,25 @@ const Programs: NextPage = () => {
         wrap: true
       },
       {
+        name: 'Steward',
+        selector: (row: fhir4.Library) => row.publisher,
+        sortable: true,
+        maxWidth: '200px',
+        wrap: true
+      },
+      {
         name: 'Version',
         selector: (row: fhir4.Library) => row.version,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Last Updated',
+        selector: (row: fhir4.Library) => {
+          const formattedDate = formatDateForTable(row?.meta?.lastUpdated, 'm/d/yyyy')
+          console.log('lastupdated:', row.meta?.lastUpdated)
+          return formattedDate
+        },
         sortable: true,
         wrap: true
       },
