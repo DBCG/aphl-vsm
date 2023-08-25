@@ -50,7 +50,7 @@ const DataTableContainer = styled.div`
 `
 
 const MaxWidthContainer = styled.div`
-  min-width: 300px;
+  flex: 1;
   @media (max-width: ${endWrapPx}px) {
     min-width: 100%;
   }
