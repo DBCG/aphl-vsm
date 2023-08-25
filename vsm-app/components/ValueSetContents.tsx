@@ -39,6 +39,7 @@ interface MetadataResult {
   purpose?: string
   author?: string
   name?: string
+  title?: string
 }
 
 export default function ValueSetContents({
@@ -58,7 +59,8 @@ export default function ValueSetContents({
     description: defaultGrouperDescription,
     publisher: defaultGrouperPublisher,
     purpose: defaultGrouperPurpose,
-    name: defaultGrouperName
+    name: defaultGrouperName,
+    title: defaultGrouperTitle,
   } = valueSet
 
   // could be multiple authors maybe?
@@ -70,6 +72,7 @@ export default function ValueSetContents({
   const [grouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
   const [grouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
   const [grouperName, setGrouperName] = useState(defaultGrouperName)
+  const [grouperTitle, setGrouperTitle] = useState(defaultGrouperTitle)
   const [changedMetadataItems, setChangedMetadataItems] = useState({})
 
   useEffect(() => {
@@ -89,6 +92,9 @@ export default function ValueSetContents({
     }
     if (defaultGrouperName?.trim() !== grouperName?.trim()) {
       metadataItemsChanged.name = grouperName?.trim()
+    }
+    if (defaultGrouperTitle?.trim() !== grouperTitle?.trim()) {
+      metadataItemsChanged.title = grouperTitle?.trim()
     }
 
     setChangedMetadataItems(metadataItemsChanged)
@@ -266,12 +272,12 @@ export default function ValueSetContents({
               <Grid item xs={12}>
                 <SearchInput
                   id="vs-name"
-                  label={isGrouperValueSet ? 'Grouper Name' : 'Valueset Name'}
+                  label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
-                  value={grouperName}
-                  defaultValue={defaultGrouperName}
-                  placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} name set`}
-                  onChange={(e) => setGrouperName(e.target.value)}
+                  value={grouperTitle}
+                  defaultValue={defaultGrouperTitle}
+                  placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} title set`}
+                  onChange={(e) => setGrouperTitle(e.target.value)}
                 />
               </Grid>
               <Grid item xs={12}>
