@@ -53,13 +53,13 @@ export default function ValueSetContents({
 }: ValueSetContentsProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
+  const [loading, setLoading] = useState(false)
 
   const {
     version: defaultGrouperVersion,
     description: defaultGrouperDescription,
     publisher: defaultGrouperPublisher,
     purpose: defaultGrouperPurpose,
-    name: defaultGrouperName,
     title: defaultGrouperTitle,
   } = valueSet
 
@@ -71,7 +71,6 @@ export default function ValueSetContents({
   const [grouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
   const [grouperPublisher, setGrouperPublisher] = useState(defaultGrouperPublisher)
   const [grouperAuthor, setGrouperAuthor] = useState(defaultGrouperAuthor)
-  const [grouperName, setGrouperName] = useState(defaultGrouperName)
   const [grouperTitle, setGrouperTitle] = useState(defaultGrouperTitle)
   const [changedMetadataItems, setChangedMetadataItems] = useState({})
 
@@ -90,15 +89,13 @@ export default function ValueSetContents({
     if (defaultGrouperAuthor?.trim() !== grouperAuthor?.trim()) {
       metadataItemsChanged.author = grouperAuthor?.trim()
     }
-    if (defaultGrouperName?.trim() !== grouperName?.trim()) {
-      metadataItemsChanged.name = grouperName?.trim()
-    }
     if (defaultGrouperTitle?.trim() !== grouperTitle?.trim()) {
       metadataItemsChanged.title = grouperTitle?.trim()
     }
 
     setChangedMetadataItems(metadataItemsChanged)
   }, [
+    grouperTitle,
     grouperDescription,
     grouperPurpose,
     grouperPublisher,
@@ -124,6 +121,7 @@ export default function ValueSetContents({
   }
 
   const submitGrouperUpdates = async () => {
+    setLoading(true)
     const metadataItems: StringMap = {
       description: grouperDescription?.trim(),
       purpose: grouperPurpose?.trim(),
@@ -139,6 +137,7 @@ export default function ValueSetContents({
         type: 'no-data',
         message: 'All fields required.'
       })
+      setLoading(false)
       return
     }
 
@@ -148,6 +147,7 @@ export default function ValueSetContents({
         type: 'no-fields-changed',
         message: 'No fields were changed, update cancelled.'
       })
+      setLoading(false)
       return
     }
 
@@ -167,6 +167,7 @@ export default function ValueSetContents({
     } else {
       toast.error('Failed to update grouper')
     }
+    setLoading(false)
     setIsEditing(false)
   }
 
@@ -271,7 +272,7 @@ export default function ValueSetContents({
               </Grid>
               <Grid item xs={12}>
                 <SearchInput
-                  id="vs-name"
+                  id="vs-title"
                   label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
                   value={grouperTitle}
@@ -362,6 +363,7 @@ export default function ValueSetContents({
                   <Button
                     disabled={!Boolean(Object.keys(changedMetadataItems).length)}
                     data-button="edit-metadata-save"
+                    loading={loading}
                     text="Save Changes"
                     onClick={async (e) => {
                       e.preventDefault()
