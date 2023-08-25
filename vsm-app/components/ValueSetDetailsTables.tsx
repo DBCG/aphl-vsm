@@ -6,6 +6,7 @@ import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
+import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -20,8 +21,10 @@ interface ExpansionTableData {
   timestamp?: string
 }
 
-interface GrouperVSTableData {
-  valueSet: string[]
+interface GrouperTableDetail {
+  name: string
+  oid: string
+  canonical: string
 }
 
 interface ValueSetDetailsTablesProps {
@@ -83,6 +86,16 @@ const ValueSetDetailsTables = ({
   const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
 
+  const programData = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
+
+  const leafDataForDisplay = (pData: Result) => {
+    return pData?.data?.map((i: DataItem) => ({
+      name: i?.valueSet?.name,
+      oid: i?.canonical?.split('/ValueSet/')?.[1],
+      canonical: i?.canonical
+    }))
+}
+
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
   }
@@ -121,12 +134,24 @@ const ValueSetDetailsTables = ({
   let expansionColumns, expansionData
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
-    definitionData = memberSet
+    definitionData = leafDataForDisplay(programData as Result)
     expansionData = expansion?.contains
     definitionColumns = [
       {
-        name: 'ValueSets',
-        selector: (row: GrouperVSTableData) => row?.valueSet?.[0]!,
+        name: 'Name',
+        selector: (row: GrouperTableDetail) => row?.name!,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'OID',
+        selector: (row: GrouperTableDetail) => row?.oid!,
+        sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Canonical',
+        selector: (row: GrouperTableDetail) => row?.canonical!,
         sortable: true,
         wrap: true
       }
@@ -187,7 +212,10 @@ const ValueSetDetailsTables = ({
     if (!textToFind) return defData
 
     if (isGrouperValueSet) {
-      return defData.filter((item: any) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
+      return defData.filter((item: any) => (
+        item?.name?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+        || item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+      ))
     } else {
       return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
     }
@@ -230,13 +258,13 @@ const ValueSetDetailsTables = ({
           value={filterDefinitionText}
           onChange={(e) => setFilterDefinitionText(e.target.value)}
           id="filter-definition-table"
-          label="Filter Definitions"
+          label={`Filter ${isGrouperValueSet ? 'by Name or OID' : 'Definitions'}`}
           variant="outlined"
         />
         <DataTable
           columns={definitionColumns}
           keyField={'valueSet'}
-          data={filteredDefinitionData as GrouperVSTableData[]}
+          data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}
         />
