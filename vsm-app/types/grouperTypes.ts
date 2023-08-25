@@ -4,7 +4,7 @@ import { ManifestDataMap } from './manifestTypes';
 import { approvalFormParams } from '@/components/ApproveForm/types';
 
 interface GrouperMetadata {
-  id: fhir4.ValueSet['id'];
+  id?: fhir4.ValueSet['id'];
   version: fhir4.ValueSet['version'];
   title: fhir4.ValueSet['title'];
   name: fhir4.ValueSet['name'];
