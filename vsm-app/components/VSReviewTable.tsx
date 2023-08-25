@@ -30,6 +30,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
   const columns = [
     {
       name: 'Name',
+      minWidth: '300px',
       wrap: true,
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name!
     },
@@ -40,20 +41,22 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     },
     {
       name: 'ID',
+      minWidth: '300px',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id!
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id?.split('-')?.[0]!
     },
     {
-      name: 'Terminology Server',
+      name: 'Origin',
+      maxWidth: '100px',
       wrap: true,
       selector: (row: FlatGrouperVSet) => row?.selectedTerminologyServer!
     },
     {
       name: 'Conditions',
       wrap: true,
+      minWidth: '200px',
       selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map((c) => c?.label)?.join() || '',
       sortable: false,
-      minWidth: '300px',
       style: {
         rowWrap: 'wrap'
       },
@@ -71,8 +74,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       )
     },
     {
-      name: 'Remove from Grouper',
-      wrap: true,
+      name: 'Remove',
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id!,
       sortable: false,
       style: {
@@ -80,13 +82,15 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       },
       cell: (row: FlatGrouperVSet) => {
         return (
-          <IconButton
-            deletedItemDescription={`valueset with id ${row.selectedValueSet.id} and version ${row.selectedValueSet.version}`}
-            type="button"
-            onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
-            buttonContext="delete"
-            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <IconButton
+              deletedItemDescription={`valueset with id ${row.selectedValueSet.id} and version ${row.selectedValueSet.version}`}
+              type="button"
+              onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
+              buttonContext="delete"
+              style={{ backgroundColor: 'darkRed', margin: '0 auto', alignSelf: 'center' }}
+            />
+          </div>
         )
       }
     }
