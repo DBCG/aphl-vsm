@@ -212,7 +212,10 @@ const ValueSetDetailsTables = ({
     if (!textToFind) return defData
 
     if (isGrouperValueSet) {
-      return defData.filter((item: any) => item?.valueSet?.[0]?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
+      return defData.filter((item: any) => (
+        item?.name?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+        || item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+      ))
     } else {
       return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
     }
@@ -255,7 +258,7 @@ const ValueSetDetailsTables = ({
           value={filterDefinitionText}
           onChange={(e) => setFilterDefinitionText(e.target.value)}
           id="filter-definition-table"
-          label="Filter Definitions"
+          label={`Filter ${isGrouperValueSet ? 'by Name or OID' : 'Definitions'}`}
           variant="outlined"
         />
         <DataTable
