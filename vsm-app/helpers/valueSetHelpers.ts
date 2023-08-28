@@ -208,7 +208,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.id}` })
+  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.name?.replace(' ', '')}` })
 
   // apply extension
   vs.extension = [
