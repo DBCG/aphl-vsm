@@ -71,31 +71,20 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
 
   let image = <PsychologyAltIcon />
 
-  switch (buttonContext) {
-    case 'edit':
-      image = <EditIcon />
-      break
-    case 'delete':
-      image = <DeleteForeverIcon />
-      break
-    case 'search':
-      image = <SearchIcon />
-      break
-    case 'clone':
-      image = <ContentCopyIcon />
-      break
-    case 'publish':
-      image = <PublishIcon />
-      break
-    case 'release':
-      image = <NewReleasesIcon />
-      break
-    case 'mustApproveRelease':
-        image = <NewReleasesIcon />
-        break
-    case 'retire':
-      image = <DoNotTouchIcon />
-      break
+  if (buttonContext === 'edit') {
+    image = <EditIcon/>
+  } else if (buttonContext === 'delete') {
+    image = <DeleteForeverIcon/>
+  } else if (buttonContext === 'search') {
+    image = <SearchIcon/>
+  } else if (buttonContext?.toLowerCase()?.includes('clone')) {
+    image = <ContentCopyIcon/>
+  } else if (buttonContext?.toLowerCase()?.includes('publish')) {
+    image = <PublishIcon/>
+  } else if (buttonContext?.toLowerCase()?.includes('release')) {
+    image = <NewReleasesIcon/>
+  } else if (buttonContext === 'retire') {
+    image = <DoNotTouchIcon/>
   }
 
   return (

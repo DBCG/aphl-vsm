@@ -202,7 +202,11 @@ const Programs: NextPage = () => {
         center: true,
         cell: (row: fhir4.Library) => (
           <ButtonWrapper>
-            <IconButton disabled={row.status !== 'active'} onClick={() => handleClickClone(row.id)} buttonContext={`clone-${row.status}`} />
+            <IconButton
+              disabled={row.status !== 'active'}
+              onClick={() => handleClickClone(row.id)}
+              buttonContext={`clone-${row.status}`}
+            />
           </ButtonWrapper>
         )
       },
