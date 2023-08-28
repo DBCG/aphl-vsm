@@ -118,6 +118,7 @@ export default function ValueSetContents({
     setGrouperPurpose(defaultGrouperPurpose)
     setGrouperPublisher(defaultGrouperPublisher)
     setGrouperAuthor(defaultGrouperAuthor)
+    setGrouperTitle(defaultGrouperTitle)
   }
 
   const submitGrouperUpdates = async () => {
