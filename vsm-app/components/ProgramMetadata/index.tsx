@@ -42,7 +42,8 @@ interface ErrorMessages {
 const errorMessages: ErrorMessages = {
   name: 'Program name required',
   title: 'Program title required',
-  description: 'Program description required'
+  description: 'Program description required',
+  startDate: 'Cannot be a past date'
 }
 
 // editable will be a prop
@@ -157,7 +158,9 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
               handleFieldChange(dateToSave, 'effectiveStartDate')
             }}
+            disablePast={true}
             readonly={!editable || !enableEditing}
+            errorText={errorMessages.startDate}
           />
         </Grid>
         <Grid item xs={12}>

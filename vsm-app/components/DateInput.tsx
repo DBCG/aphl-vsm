@@ -11,10 +11,21 @@ interface DateInputProps {
   id?: string
   label: string
   onChange: (date: any) => void
+  disablePast: boolean
   placeholder?: string
+  errorText: string
 }
 
-const DateInput = ({ readonly, defaultValue, label, onChange, placeholder = '', ...props }: DateInputProps) => {
+const DateInput = ({
+  readonly,
+  defaultValue,
+  label,
+  onChange,
+  placeholder = '',
+  disablePast = false,
+  errorText = 'Error',
+  ...props
+}: DateInputProps) => {
   return (
     <>
       {readonly ? (
@@ -41,6 +52,12 @@ const DateInput = ({ readonly, defaultValue, label, onChange, placeholder = '', 
               label={label}
               value={defaultValue ? moment(defaultValue) : null}
               onChange={onChange}
+              disablePast={disablePast}
+              slotProps={{
+                textField: {
+                  helperText: errorText
+                }
+              }}
             />
           </LocalizationProvider>
           <IconButton aria-label={'Clear Effective Start Date'} sx={{ mt: '6px' }} onClick={() => onChange(null)}>
