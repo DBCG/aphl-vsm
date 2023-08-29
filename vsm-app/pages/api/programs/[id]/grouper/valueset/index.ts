@@ -131,8 +131,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     }
 
     const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
-    const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
-    const grouperVsUrl = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
+    const grouperToSubmitPayload = await createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
+    const grouperVsUrl = `${grouperToSubmitPayload?.url}|${grouperToSubmitPayload?.version}`
     const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl, grouperMetadata)
     if (is.errorResponse(programLibUpdatePayload)) {
       sendError(programLibUpdatePayload)
@@ -141,7 +141,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
         resourceType: 'Bundle',
         type: 'transaction',
         // @ts-ignore
-        entry: [...cqfUpdatesPayload, grouperToSubmitPayload, programLibUpdatePayload]
+        entry: [...cqfUpdatesPayload, programLibUpdatePayload]
       }
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
       return res.status(200).send({ message: responsesFromTransaction })
@@ -338,17 +338,19 @@ const submitUpdatesToCQF = async ({
   return transactionEntries
 }
 
-const createAndSubmitGrouper = (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
+const createAndSubmitGrouper = async (
+  leafReferencesToAdd: fhir4.ValueSet['url'][],
+  grouperMetadata: GrouperMetadata
+) => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
 
-  return {
-    resource: grouperWithLeafRefs,
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${grouperMetadata.id}`
-    }
-  }
+  const response = await fhirCdrClient.create({
+    resourceType: 'ValueSet',
+    body: grouperWithLeafRefs
+  })
+
+  return response
 }
 
 const updateProgramLibraryWithGrouperRef = async (
