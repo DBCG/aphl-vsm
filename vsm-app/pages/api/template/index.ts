@@ -20,9 +20,27 @@ type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { e
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
   try {
+    const latestProgram = await fhirCdrClient.search({
+      resourceType: 'Library',
+      searchParams: {
+        url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
+        _sort: ['-version'],
+        _count: 1
+      }
+    })
+
+    const latestSemverFromCdr = latestProgram
+    ?.entry?.[0]?.resource?.version?.split('-draft')?.[0]
+
+    const incrementedLatest = incrementSemver({
+      valueToIncrement: latestSemverFromCdr,
+      incrementType: 'minor',
+      fallbackValue: '1.0.0'
+    })
+    
     let body = JSON.parse(req.body)
 
-    let previousVersion = body.version
+    let previousVersion = incrementedLatest
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
