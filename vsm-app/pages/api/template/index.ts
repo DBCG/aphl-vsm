@@ -32,15 +32,15 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     const latestSemverFromCdr = latestProgram
     ?.entry?.[0]?.resource?.version?.split('-draft')?.[0]
 
-    const incrementedLatest = incrementSemver({
+    const latestIncrementedVersion = incrementSemver({
       valueToIncrement: latestSemverFromCdr,
       incrementType: 'minor',
       fallbackValue: '1.0.0'
     })
+
+    let versionToAttempt = latestIncrementedVersion
     
     let body = JSON.parse(req.body)
-
-    let previousVersion = incrementedLatest
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
@@ -48,27 +48,19 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     let attempts = totalAttempts
 
     const createDraftWithNewVersion = async (): Promise<DraftCreateResponse> => {
-
       let response
 
-      const newVersion = incrementSemver({
-        valueToIncrement: previousVersion,
-        incrementType: 'minor',
-        fallbackValue: '1.0.0'
-      })
-
-      logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${newVersion}`)
+      logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
 
       try {
         // update previousVersion in case you need to run again
-        previousVersion = newVersion
 
         const parameters = {
           resourceType: 'Parameters',
           parameter: [
             {
               name: 'version',
-              valueString: newVersion
+              valueString: versionToAttempt
             }
           ]
         } as fhir4.Parameters
@@ -86,8 +78,15 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         })
 
         if (!clientResponse?.entry?.length && attempts > 0) {
-          logger.error(`Error: could not $draft Library/${body.id} with version ${newVersion}. Attempt #${attempts}/5.`)
+          logger.error(`Error: could not $draft Library/${body.id} with version ${versionToAttempt}. Attempt #${attempts}/5.`)
           attempts = attempts - 1
+
+          versionToAttempt = incrementSemver({
+            valueToIncrement: versionToAttempt,
+            incrementType: 'minor',
+            fallbackValue: '1.0.0'
+          })
+
           return await createDraftWithNewVersion()
         } else {
           response = clientResponse
