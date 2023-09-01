@@ -33,7 +33,7 @@ for namespace in "${namespaces[@]}"; do
   fi
   values_file=$([[ "$namespace" == "vsm" ]] && echo "$k8s_dir/values.yaml" || echo "$k8s_dir/values.qa.yaml")
 
-  if helm list -n vsm | grep -q "$helm_chart_name"; then
+  if helm list -n $namespace | grep -q "$helm_chart_name"; then
     echo "Upgrading old stack ${helm_chart_name}"
     helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
   else
