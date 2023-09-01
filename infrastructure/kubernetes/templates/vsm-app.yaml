@@ -48,7 +48,7 @@ spec:
         - name: REDIS_HOST
           value: {{ .Values.vsm_app.redis_host_url}}
         - name: REDIS_DB
-          value: {{ .Values.vsm_app.redis_db }}
+          value: "{{ .Values.vsm_app.redis_db }}"
         - name: VSAC_USERNAME
           value: apikey
         - name: NEXTAUTH_URL
