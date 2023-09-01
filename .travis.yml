@@ -23,7 +23,7 @@ jobs:
     - stage: deploy
       if: branch IN (main, deployed)
       script:
-        - cd $TRAVIS_BUILD_DIR/vsm-app
+        # - cd $TRAVIS_BUILD_DIR/vsm-app
         # - git remote set-url origin https://$GITHUB_TOKEN@github.com/DBCG/aphl-vsm.git
         # - npm version patch
         # - git add .
