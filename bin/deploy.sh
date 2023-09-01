@@ -23,17 +23,23 @@ helm_chart_name="vsm-app"
 k8s_dir="${DIR}/../infrastructure/kubernetes"
 aws --version
 
-# Create namespace
-if ! kubectl get namespaces | grep vsm ; then
-  kubectl create namespace vsm
-fi
- 
-if helm list -n vsm | grep -q "$helm_chart_name"; then
-  echo "Uninstalling old stack ${helm_chart_name}"
-  helm upgrade "$helm_chart_name" --namespace=vsm --set tag=$TRAVIS_COMMIT $k8s_dir
-else
-  echo "Installing new stack ${helm_chart_name}"
-  helm install "$helm_chart_name" --namespace=vsm --set tag=$TRAVIS_COMMIT $k8s_dir
-fi
+namespaces=("vsm" "vsm-qa")
+
+for namespace in "${namespaces[@]}"; do
+  echo "Processing for namespace: $namespace"
+  # Create namespace
+  if ! kubectl get namespaces | grep $namespace ; then
+    kubectl create namespace $namespace
+  fi
+  values_file=$([[ "$namespace" == "vsm" ]] && echo "$k8s_dir/values.yaml" || echo "$k8s_dir/values.qa.yaml")
+
+  if helm list -n vsm | grep -q "$helm_chart_name"; then
+    echo "Uninstalling old stack ${helm_chart_name}"
+    helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+  else
+    echo "Installing new stack ${helm_chart_name}"
+    helm install "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+  fi
+done
 
 echo "Deployed!"

@@ -207,6 +207,26 @@ output "keycloak_db_password" {
   sensitive = true
 }
 
+output "rds_vsm_cqf_ruler_endpoint_qa" {
+  description = "Endpoint of the CQF-ruler RDS cluster"
+  value       = aws_db_instance.vsm-cqf-ruler-qa.endpoint
+}
+
+output "rds_vsm_keycloak_endpoint_qa" {
+  description = "Endpoint of the Keycloak RDS cluster"
+  value       = aws_db_instance.vsm-keycloak-qa.endpoint
+}
+
+output "cqf_ruler_db_password_qa" {
+  value     = random_password.vsm-cqf-ruler-password-qa.result
+  sensitive = true
+}
+
+output "keycloak_db_password_qa" {
+  value     = random_password.vsm-keycloak-password-qa.result
+  sensitive = true
+}
+
 output "redis_cache_endpoint" {
   value = aws_elasticache_replication_group.redis-cache.primary_endpoint_address
 }

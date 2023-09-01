@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: keycloak
-  namespace: vsm
+  namespace: {{ .Values.namespace }}
 spec:
   type: LoadBalancer
   selector:
@@ -18,7 +18,7 @@ metadata:
   name: keycloak
   labels:
     app: keycloak
-  namespace: vsm
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:

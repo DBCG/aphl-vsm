@@ -21,10 +21,11 @@ type CDRResponseCollection = {
   }
 }
 
-const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1'
+const REDIS_HOST = process.env.REDIS_HOST
+const REDIS_DB = process.env.REDIS_DB
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379/${REDIS_DB}`, {
   limiter: {
     max: 1,
     duration: 10000
