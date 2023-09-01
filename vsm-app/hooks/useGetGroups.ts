@@ -28,6 +28,7 @@ const useGetGroups = ({ programId, refreshToggle }: GroupArgs): GroupsResponse =
           const json = await response.json()
           if (json.error) {
             console.error(json.error)
+            setGroups([])
             setGroupsError(`Could not find groups for program with id ${programId}`)
           } else {
             setGroups(json)

@@ -78,8 +78,8 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           type: 'delete_failed',
           message: 'Failed to delete grouper Value Set'
         })
-        setDeleting(false)
       }
+      setDeleting(false)
     },
     [programId]
   )
@@ -173,7 +173,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         onRowClicked={(row: fhir4.ValueSet) => {
           router.push(`/programs/${programId}/valuesets/${row.id}`)
         }}
-        data={groups}
+        data={groups || []}
         pagination
         paginationPerPage={10}
         theme="aphl"
