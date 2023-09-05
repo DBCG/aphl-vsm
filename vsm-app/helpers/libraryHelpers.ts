@@ -72,7 +72,7 @@ const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
 }
 
 const setReleaseDescription = (program: fhir4.Library, releaseDescription: string = ''): fhir4.Library => {
-  const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension'
+  const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription'
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
