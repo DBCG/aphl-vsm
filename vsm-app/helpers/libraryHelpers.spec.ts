@@ -160,7 +160,7 @@ const FIXTURE_PROGRAM = {
   title: 'Specification Library',
   extension: [
     {
-      url: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension',
+      url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
       valueString: 'testtesttest'
     }
   ],

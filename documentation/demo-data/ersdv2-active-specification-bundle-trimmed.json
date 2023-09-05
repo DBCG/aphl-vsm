@@ -30,7 +30,7 @@
                 "status": "active",
                 "experimental": true,
                 "extension": [ {
-                  "url": "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension",
+                  "url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription",
                   "valueString": "Test release description text"
                 }, {
                     "url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel",

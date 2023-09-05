@@ -68,11 +68,11 @@ const getVSPriorityUsageContext = (library: fhir4.Library) => {
 }
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
-  return program?.extension?.find((ext) => ext?.url?.endsWith('us-ph-specification-release-description-extension'))?.valueString || ''
+  return program?.extension?.find((ext) => ext?.url?.endsWith('artifact-releaseDescription'))?.valueString || ''
 }
 
 const setReleaseDescription = (program: fhir4.Library, releaseDescription: string = ''): fhir4.Library => {
-  const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-release-description-extension'
+  const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription'
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
