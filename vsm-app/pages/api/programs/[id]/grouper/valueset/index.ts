@@ -131,9 +131,13 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     }
 
     const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
-    const grouperToSubmitPayload = createAndSubmitGrouper(leafReferencesToAdd, grouperMetadata)
-    const grouperVsUrl = `${grouperToSubmitPayload?.resource?.url}|${grouperToSubmitPayload?.resource?.version}`
-    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl, grouperMetadata)
+    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd, grouperMetadata)
+
+    if (is.operationOutcome(newGrouper)) {
+      return res.status(400).send('Error creating new grouper valueset')
+    }
+    const grouperVsUrl = `${newGrouper?.url}|${newGrouper?.version}`
+    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl)
     if (is.errorResponse(programLibUpdatePayload)) {
       sendError(programLibUpdatePayload)
     } else {
@@ -141,7 +145,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
         resourceType: 'Bundle',
         type: 'transaction',
         // @ts-ignore
-        entry: [...cqfUpdatesPayload, grouperToSubmitPayload, programLibUpdatePayload]
+        entry: [...cqfUpdatesPayload, programLibUpdatePayload]
       }
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
       return res.status(200).send({ message: responsesFromTransaction })
@@ -338,23 +342,21 @@ const submitUpdatesToCQF = async ({
   return transactionEntries
 }
 
-const createAndSubmitGrouper = (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
+const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
 
-  return {
-    resource: grouperWithLeafRefs,
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${grouperMetadata.id}`
-    }
-  }
+  const result = await fhirCdrClient.create({
+    resourceType: 'ValueSet',
+    body: grouperWithLeafRefs
+  })
+
+  return result
 }
 
 const updateProgramLibraryWithGrouperRef = async (
   program: fhir4.Library,
   grouperRef: fhir4.ValueSet['url'],
-  grouperMetadata: GrouperMetadata
 ): Promise<fhir4.BundleEntry | ErrorResponse> => {
   try {
     // only one relatedArtifact will be the vs library
@@ -364,7 +366,7 @@ const updateProgramLibraryWithGrouperRef = async (
     })?.resource
 
     if (!is.string(vsLibUrlToUpdate) || !vsLibUrlToUpdate.length) {
-      return { resStatus: 400, errorMessage: `Error saving Grouper ${grouperMetadata.id} to Program ${program.id}` }
+      return { resStatus: 400, errorMessage: `Error saving Grouper ${grouperRef} to Program ${program.id}` }
     }
 
     const [url, version] = vsLibUrlToUpdate.split('|')

@@ -1,5 +1,5 @@
 import { useState, SetStateAction, Dispatch } from 'react'
-import { Tabs, Box, Tab, Tooltip, Typography, TextField, IconButton } from '@mui/material'
+import { Tabs, Box, Tab, Tooltip, TextField, IconButton } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { toast } from 'react-toastify'
@@ -7,6 +7,7 @@ import DataTable from 'react-data-table-component'
 import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useRouter } from 'next/router'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -88,8 +89,10 @@ const ValueSetDetailsTables = ({
 
   const programData = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
 
-  const leafDataForDisplay = (pData: Result) => {
-    return pData?.data?.map((i: DataItem) => ({
+  const router = useRouter()
+  
+  const leafDataForDisplay = (pData: any) => {
+    return pData?.map((i: DataItem) => ({
       name: i?.valueSet?.name,
       oid: i?.canonical?.split('/ValueSet/')?.[1],
       canonical: i?.canonical
@@ -134,7 +137,16 @@ const ValueSetDetailsTables = ({
   let expansionColumns, expansionData
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
-    definitionData = leafDataForDisplay(programData as Result)
+    // @ts-ignore-next-line
+    const dataInGroup = programData?.data?.filter((item: any) => {
+      const match = Boolean(item?.groups?.find((groupInfo: any) => {
+        return groupInfo.id === router.query.valuesetId
+    }))
+
+      return match
+  })
+
+    definitionData = leafDataForDisplay(dataInGroup as Result)
     expansionData = expansion?.contains
     definitionColumns = [
       {
