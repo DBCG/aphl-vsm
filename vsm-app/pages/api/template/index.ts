@@ -43,7 +43,6 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     })
 
     let versionToAttempt = latestIncrementedVersion
-    
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
@@ -56,8 +55,6 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
 
       try {
-        // update previousVersion in case you need to run again
-
         const parameters = {
           resourceType: 'Parameters',
           parameter: [
