@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { latestVersion } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
@@ -29,18 +30,20 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     })
 
+    let body = JSON.parse(req.body)
+    const semverFromTemplateProgram = body?.version
+
     const latestSemverFromCdr = latestProgram
     ?.entry?.[0]?.resource?.version?.split('-draft')?.[0]
 
     const latestIncrementedVersion = incrementSemver({
-      valueToIncrement: latestSemverFromCdr,
+      valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
       incrementType: 'minor',
       fallbackValue: '1.0.0'
     })
 
     let versionToAttempt = latestIncrementedVersion
     
-    let body = JSON.parse(req.body)
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
@@ -93,6 +96,13 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       } catch (e: HapiError | any) {
         if (e?.response?.status === 422 && attempts > 0) {
+
+          versionToAttempt = incrementSemver({
+            valueToIncrement: versionToAttempt,
+            incrementType: 'minor',
+            fallbackValue: '1.0.0'
+          })
+
           attempts = attempts - 1
           return await createDraftWithNewVersion()
         } else {
