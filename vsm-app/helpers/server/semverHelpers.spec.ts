@@ -31,8 +31,12 @@ describe('semverHelpers', () => {
     it('ignores "draft" designation in comparison', () => {
       const cdrSemverDraft = '2.0.0-draft'
       const templateSemver = '2.0.0'
-      const result = latestVersion(cdrSemverDraft, templateSemver)
-      expect(result).toBe('2.0.0')
+      const result1 = latestVersion(cdrSemverDraft, templateSemver)
+      expect(result1).toBe('2.0.0')
+
+      const templateSemver2 = '1.0.0'
+      const result2 = latestVersion(cdrSemverDraft, templateSemver2)
+      expect(result2).toBe('2.0.0')
     })
   })
 })

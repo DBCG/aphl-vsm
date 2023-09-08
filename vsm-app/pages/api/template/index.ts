@@ -26,7 +26,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       searchParams: {
         url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
         _sort: ['-version'],
-        _count: 1
+        // _count: 1
       }
     })
 
@@ -34,7 +34,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     const semverFromTemplateProgram = body?.version
 
     const latestSemverFromCdr = latestProgram
-    ?.entry?.[0]?.resource?.version?.split('-draft')?.[0]
+    ?.entry?.[0]?.resource?.version
 
     const latestIncrementedVersion = incrementSemver({
       valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
@@ -43,6 +43,15 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     })
 
     let versionToAttempt = latestIncrementedVersion
+
+    // side effect to increment the above fn
+    const incrementVersionToAttempt = () => {
+      versionToAttempt = incrementSemver({
+        valueToIncrement: versionToAttempt,
+        incrementType: 'minor',
+        fallbackValue: '1.0.0'
+      })
+    }
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
@@ -80,31 +89,19 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!clientResponse?.entry?.length && attempts > 0) {
           logger.error(`Error: could not $draft Library/${body.id} with version ${versionToAttempt}. Attempt #${attempts}/5.`)
           attempts = attempts - 1
-
-          versionToAttempt = incrementSemver({
-            valueToIncrement: versionToAttempt,
-            incrementType: 'minor',
-            fallbackValue: '1.0.0'
-          })
-
+          incrementVersionToAttempt()
           return await createDraftWithNewVersion()
         } else {
           response = clientResponse
         }
       } catch (e: HapiError | any) {
-        if (e?.response?.status === 422 && attempts > 0) {
-
-          versionToAttempt = incrementSemver({
-            valueToIncrement: versionToAttempt,
-            incrementType: 'minor',
-            fallbackValue: '1.0.0'
-          })
-
+        if (is.operationOutcome(e?.response?.data) && attempts > 0) {
+          incrementVersionToAttempt()
           attempts = attempts - 1
           return await createDraftWithNewVersion()
         } else {
-          logSimpleHapiError(e)
-          return null
+          incrementVersionToAttempt()
+          return await createDraftWithNewVersion()
         }
       }
       // final return of response if nothing catches
