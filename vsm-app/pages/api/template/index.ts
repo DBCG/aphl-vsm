@@ -26,7 +26,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       searchParams: {
         url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
         _sort: ['-version'],
-        // _count: 1
+        _count: 1
       }
     })
 
