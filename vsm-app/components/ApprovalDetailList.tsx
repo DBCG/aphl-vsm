@@ -33,13 +33,15 @@ const ApprovalDetailList = ({
         name: 'Date',
         selector: (row: TableData) => row.date!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        maxWidth: '150px'
       },
       {
         name: 'Type',
         selector: (row: TableData) => row.type!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        maxWidth: '150px'
       },
       {
         name: 'Text',
