@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { latestVersion } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
@@ -29,18 +30,28 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     })
 
+    let body = JSON.parse(req.body)
+    const semverFromTemplateProgram = body?.version
+
     const latestSemverFromCdr = latestProgram
-    ?.entry?.[0]?.resource?.version?.split('-draft')?.[0]
+    ?.entry?.[0]?.resource?.version
 
     const latestIncrementedVersion = incrementSemver({
-      valueToIncrement: latestSemverFromCdr,
+      valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
       incrementType: 'minor',
       fallbackValue: '1.0.0'
     })
 
     let versionToAttempt = latestIncrementedVersion
-    
-    let body = JSON.parse(req.body)
+
+    // side effect to increment the above fn
+    const incrementVersionToAttempt = () => {
+      versionToAttempt = incrementSemver({
+        valueToIncrement: versionToAttempt,
+        incrementType: 'minor',
+        fallbackValue: '1.0.0'
+      })
+    }
 
     // try to increment versions totalAttempts times before failing out
     // in case there are 422 (already exist collisions)
@@ -53,8 +64,6 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
 
       try {
-        // update previousVersion in case you need to run again
-
         const parameters = {
           resourceType: 'Parameters',
           parameter: [
@@ -80,24 +89,19 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         if (!clientResponse?.entry?.length && attempts > 0) {
           logger.error(`Error: could not $draft Library/${body.id} with version ${versionToAttempt}. Attempt #${attempts}/5.`)
           attempts = attempts - 1
-
-          versionToAttempt = incrementSemver({
-            valueToIncrement: versionToAttempt,
-            incrementType: 'minor',
-            fallbackValue: '1.0.0'
-          })
-
+          incrementVersionToAttempt()
           return await createDraftWithNewVersion()
         } else {
           response = clientResponse
         }
       } catch (e: HapiError | any) {
-        if (e?.response?.status === 422 && attempts > 0) {
+        if (is.operationOutcome(e?.response?.data) && attempts > 0) {
+          incrementVersionToAttempt()
           attempts = attempts - 1
           return await createDraftWithNewVersion()
         } else {
-          logSimpleHapiError(e)
-          return null
+          incrementVersionToAttempt()
+          return await createDraftWithNewVersion()
         }
       }
       // final return of response if nothing catches
