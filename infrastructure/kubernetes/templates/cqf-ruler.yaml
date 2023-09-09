@@ -48,6 +48,17 @@ spec:
               value: org.postgresql.Driver
             - name: spring.datasource.username
               value: dbadmin
+            - name: hapi.fhir.security.enabled
+              value: "true"
+            - name: hapi.fhir.security.basic_auth.enabled
+              value: "true"
+            - name: hapi.fhir.security.basic_auth.username
+              value: admin
+            - name: hapi.fhir.security.basic_auth.password
+              valueFrom:  
+                secretKeyRef:
+                  name: vsm-app-secrets
+                  key: cqf-ruler-basic-auth-password
             - name: spring.datasource.password
               valueFrom:
                 secretKeyRef:

@@ -57,6 +57,13 @@ spec:
           value: aphl_app
         - name: CONDITIONS_CANONICAL
           value: http://ersd.aimsplatform.org/fhir/ValueSet/rckms-condition-codes
+        - name: FHIR_CDR_BASIC_AUTH_USERNAME
+          value: admin
+        - name: FHIR_CDR_BASIC_AUTH_PASSWORD
+          valueFrom:  
+            secretKeyRef:
+              name: vsm-app-secrets
+              key: cqf-ruler-basic-auth-password
         - name: KEYCLOAK_SECRET
           valueFrom:  
             secretKeyRef:
