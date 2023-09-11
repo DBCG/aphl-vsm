@@ -18,14 +18,12 @@ const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH
 
 const fhirCdrClient = new FhirKitClient({
   baseUrl: FHIR_CDR_URL,
-  customHeaders: {
-    Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}`
-  }
+  ...(FHIR_CDR_BASIC_AUTH_USERNAME && FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}`} })
 })
 
 const vsacFhirClient = new FhirKitClient({
   baseUrl: NEXT_PUBLIC_VSAC_BASE_URL,
-  ...(FHIR_CDR_BASIC_AUTH_USERNAME && FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` } })
+  customHeaders: { Authorization: `Basic ${Buffer.from(vsacAuthString).toString('base64')}` }
 })
 
 const decorateForVSACClient = (client: Client) => {
