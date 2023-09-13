@@ -3,14 +3,23 @@ import FhirKitClient from 'fhir-kit-client'
 import { transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { is } from '@/helpers/is'
 import { cloneDeep } from 'lodash'
-const { FHIR_CDR_URL, VSAC_USERNAME, VSAC_API_KEY, NEXT_PUBLIC_VSAC_BASE_URL, ONTOSERVER_R4_BASE_URL } = process.env as Record<
-  string,
-  string
->
+const {
+  FHIR_CDR_URL,
+  VSAC_USERNAME,
+  VSAC_API_KEY,
+  NEXT_PUBLIC_VSAC_BASE_URL,
+  ONTOSERVER_R4_BASE_URL,
+  FHIR_CDR_BASIC_AUTH_USERNAME,
+  FHIR_CDR_BASIC_AUTH_PASSWORD
+} = process.env as Record<string, string>
 
 const vsacAuthString = `${VSAC_USERNAME}:${VSAC_API_KEY}`
+const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH_PASSWORD}`
 
-const fhirCdrClient = new FhirKitClient({ baseUrl: FHIR_CDR_URL })
+const fhirCdrClient = new FhirKitClient({
+  baseUrl: FHIR_CDR_URL,
+  ...(FHIR_CDR_BASIC_AUTH_USERNAME && FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}`} })
+})
 
 const vsacFhirClient = new FhirKitClient({
   baseUrl: NEXT_PUBLIC_VSAC_BASE_URL,
