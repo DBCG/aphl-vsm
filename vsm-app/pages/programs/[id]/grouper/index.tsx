@@ -74,6 +74,7 @@ const AddGrouper = () => {
     const getProgram = async () => {
       const res = await fetch(`/api/programs?id=${programId}`)
       if (res?.ok) {
+        setError(null)
         const json = await res.json()
         setProgramVersion(json?.programs?.[0]?.version)
       } else {
