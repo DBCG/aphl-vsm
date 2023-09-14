@@ -50,7 +50,7 @@ services:
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
   keycloak:
-    image: quay.io/keycloak/keycloak:21.1.1
+    image: keycloak/keycloak:21.1.1
     command: 'start'
     ports:
       - 8080:8080
