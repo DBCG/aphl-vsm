@@ -52,6 +52,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [key, setKey] = useState(1)
 
   const initialErrorState = missingFields({ program, requiredFields })
 
@@ -101,7 +102,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   }
 
   return (
-    <Form error={Boolean(errorFields.length)}>
+    <Form error={Boolean(errorFields.length)} key={key}>
       <Grid container spacing={2} style={{ maxWidth: '700px' }}>
         <Grid item xs={12} md={4}>
           <SearchInput
@@ -230,6 +231,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 type="button"
                 onClick={(e) => {
                   e.preventDefault()
+                  setKey(k => k + 1)
                   setFormTouched(false)
                   setEditedProgram(program)
                   setEnableEditing(false)
