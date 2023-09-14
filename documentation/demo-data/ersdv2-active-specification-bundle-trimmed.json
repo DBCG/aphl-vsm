@@ -185614,6 +185614,18 @@
                 "extension":
                 [
                     {
+                        "url": "http://hl7.org/fhir/StructureDefinition/valueset-keyWord",
+                        "valueString": "Not_Used"
+                    },
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/valueset-keyWord",
+                        "valueString": "Chemical"
+                    },
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/valueset-keyWord",
+                        "valueString": "disease"
+                    },
+                    {
                         "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
                         "valueContactDetail":
                         {

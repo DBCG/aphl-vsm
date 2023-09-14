@@ -5,6 +5,11 @@ import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap } from '@/types/manifestTypes'
+import { setExtension } from './fhirResourceHelper'
+
+const EXTENSIONS = {
+  VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
+}
 
 const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
   if (!leafVsCanonical || leafVsCanonical.length === 0) {
@@ -315,6 +320,11 @@ const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   return clonedVs
 }
 
+const getKeywords = (valueset: fhir4.ValueSet) => {
+  const keywordExtensions = valueset?.extension?.filter((ext) => ext.url === EXTENSIONS.VALUESET_KEYWORD) || []
+  return keywordExtensions
+}
+
 export {
   getOid,
   addExtensionToVs,
@@ -324,6 +334,7 @@ export {
   getTerminologySource,
   removeValueSetFromGrouper,
   setExpansionParameters,
+  getKeywords,
   valuesetDataForDisplay,
   updateLeafVsVersion,
   createGrouperWithMetadata,
