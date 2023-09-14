@@ -10,7 +10,7 @@ import { InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
 import { getOid } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
-import { getKeyword } from '@/helpers/valueSetHelpers'
+import { getKeywords } from '@/helpers/valueSetHelpers'
 
 const maxFormWidth = '1000px'
 
@@ -68,7 +68,7 @@ export default function ValueSetContents({
   const defaultGrouperAuthor =
     valueSet?.extension?.find((ext) => ext?.url?.endsWith('/StructureDefinition/valueset-author'))?.valueContactDetail?.name || ''
 
-  const keyword = getKeyword(valueSet)
+  const keywords = getKeywords(valueSet).map((i) => i?.valueString)
 
   const [grouperDescription, setGrouperDescription] = useState(defaultGrouperDescription)
   const [grouperPurpose, setGrouperPurpose] = useState(defaultGrouperPurpose)
@@ -252,9 +252,9 @@ export default function ValueSetContents({
                   placeholder={'No program canonical set'}
                 />
               </Grid>
-              {keyword && (
+              {keywords.length > 0 && (
                 <Grid item xs={6}>
-                  <TextArea id="keyword" label="Keyword" readonly={true} defaultValue={keyword} placeholder={'No program canonical set'} />
+                  <TextArea id="keywords" label="Keywords" readonly={true} defaultValue={keywords.join(', ')} />
                 </Grid>
               )}
             </Grid>

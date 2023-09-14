@@ -7,6 +7,10 @@ import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap } from '@/types/manifestTypes'
 import { setExtension } from './fhirResourceHelper'
 
+const EXTENSIONS = {
+  VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
+}
+
 const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
   if (!leafVsCanonical || leafVsCanonical.length === 0) {
     console.error('missing leaf to add')
@@ -316,9 +320,9 @@ const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   return clonedVs
 }
 
-const getKeyword = (valueset: fhir4.ValueSet) => {
-  const keywordExtension = valueset?.extension?.find((ext) => ext.url === 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord')
-  return keywordExtension?.valueString
+const getKeywords = (valueset: fhir4.ValueSet) => {
+  const keywordExtensions = valueset?.extension?.filter((ext) => ext.url === EXTENSIONS.VALUESET_KEYWORD) || []
+  return keywordExtensions
 }
 
 export {
@@ -330,7 +334,7 @@ export {
   getTerminologySource,
   removeValueSetFromGrouper,
   setExpansionParameters,
-  getKeyword,
+  getKeywords,
   valuesetDataForDisplay,
   updateLeafVsVersion,
   createGrouperWithMetadata,
