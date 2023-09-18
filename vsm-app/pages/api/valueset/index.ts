@@ -167,7 +167,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
   try {
     // this assumes grouper already has a compose/include block, will need to be updated
     // when we allow users to create groupers
-    await Promise.all(
+    return await Promise.all(
       groupersToUpdate.map(async (grouperVs) => {
         const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs.compose.include
 

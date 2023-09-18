@@ -176,7 +176,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     const payload = formatDeletePayload(itemsToDelete)
-    // need?
+
     setIsDeleting(true)
 
     const body = JSON.stringify({ batchDelete: payload })
@@ -184,13 +184,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
       method: 'DELETE',
       body: body
-    }).then((res) => res.json())
-
-    if (!result.ok) {
-      // handle error
+    })
+    
+    if (result.ok) {
+      router.reload()
     } else {
-      setTableKey(k => k + 1)
-      setToggleUpdateData(t => !t)
+      // handle error
     }
     setIsDeleting(false)
   }
@@ -266,8 +265,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }) as Result
 
   const {
-    programAndGrouperData, programAndGrouperDataLoading
-  } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+    programAndGrouperData,
+    programAndGrouperDataLoading
+  } = useGetProgramDetails({
+    id: programId, toggleRefresh: toggleUpdateData
+  })
 
   // since query takes a while, expose loading state
   useEffect(() => {
@@ -276,13 +278,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   useEffect(() => {
     setVSetsLoading(false)
+    console.log('progValuesetdets: ', progValueSetDets)
   }, [progValueSetDets])
 
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
-    if (keys.length) {
-      setPageLoading(false)
-    }
+    setPageLoading(false)
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
@@ -717,7 +718,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <TableActions
           handleDelete={handleBatchDelete}
           selectedRows={selectedRows}
+          isDeleting={isDeleting}
         />
+        <p>pageloading: {pageLoading.toString()}</p>
+        <p>pageloading: {programAndGrouperDataLoading.toString()}</p>
         <DT
           selectableRows={
             Boolean (
@@ -743,7 +747,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable')}
-          progressPending={pageLoading || vSetsLoading}
+          progressPending={pageLoading || programAndGrouperDataLoading}
           progressComponent={<LoadingIndicator />}
         />
       </Box>

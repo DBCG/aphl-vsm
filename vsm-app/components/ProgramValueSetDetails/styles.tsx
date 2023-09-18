@@ -48,7 +48,7 @@ const ActionContainerRow = styled.div`
   align-items: center;
 `
 
-export const TableActions = ({ selectedRows, handleDelete }) => {
+export const TableActions = ({ selectedRows, handleDelete, isDeleting }) => {
   if (selectedRows?.length) {
 
     return (
@@ -61,6 +61,7 @@ export const TableActions = ({ selectedRows, handleDelete }) => {
           <Button
             style={{ backgroundColor: 'var(--accent)' }}
             text='Delete'
+            loading={isDeleting}
             onClick={() => handleDelete(selectedRows)}
           />
         </ActionContainerRow>
