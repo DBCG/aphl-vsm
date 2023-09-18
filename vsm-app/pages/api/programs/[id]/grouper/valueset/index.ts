@@ -25,46 +25,144 @@ export type ErrorResponse = {
   resStatus: number
 }
 
+interface GrouperPayloadItem {
+  canonical: string
+  id: string
+}
+
+interface DeletePayload {
+  vsCanonical: string
+  grouperInfo: GrouperPayloadItem[]
+}
+
+// 
+const formatTransactionSearchEntry = (items): fhir4.Bundle & { type: 'transaction' } => {
+  const grouperIds = Array.from(new Set(Object.values(items).flat()))
+
+  const itemsToGet = grouperIds.map(id => ({
+    request: {
+      method: 'GET',
+      url: `ValueSet/${id}`
+    } as fhir4.BundleEntryRequest
+  })) 
+
+  return ({
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: itemsToGet
+  })
+}
+
+const formatBatchGrouperUpdate = (
+  groupers: fhir4.ValueSet[]
+): fhir4.Bundle & { type: 'transaction' } => {
+  const itemsToUpdate = groupers.map(grouper => ({
+    request: {
+      method: 'PUT',
+      url: `ValueSet/${grouper.id}`
+    } as fhir4.BundleEntryRequest,
+    resource: grouper as fhir4.ValueSet
+  })) 
+
+  return ({
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: itemsToUpdate
+  })
+}
+
 // ---------------------------------------------------------------------------------
 // --------------------- ROUTE TO DELETE VSETS FROM EXISTING GROUPERS --------------
 // ---------------------------------------------------------------------------------
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body = JSON.parse(req.body)
-    const { vsCanonical, grouperInfo } = body
+    // if you are deleting valuesets from groupers in a batch...
+    if (body.batchDelete) {
+      try {
+        const { batchDelete } = body
+        const searchInput = formatTransactionSearchEntry(batchDelete)
+      
+        // grab all the groupers that need to be updated from CQF
+        const grouperBatchEntryToUpdate = await fhirCdrClient.transaction({
+          body: searchInput
+        })
 
-    const groupersToUpdate = []
-    for (const grouperC of grouperInfo) {
-      const grouperValueSetBundle = (await fhirCdrClient.search({
-        resourceType: 'ValueSet',
-        searchParams: {
-          url: grouperC.canonical,
-          _id: grouperC.id
+        if (is.operationOutcome(grouperBatchEntryToUpdate)) {
+          // send failure response
+          return res.status(400).send({ error: 'Error finding groupers to update' })
         }
-      })) as fhir4.Bundle
+  
+        // just return the valueSet resource itself
+        const grouperList = grouperBatchEntryToUpdate.entry
+          .map(i => i.resource)
 
-      // there is an issue in the sample data where grouper valuesets have the exact same url
-      const grouperVsToUpdate = grouperValueSetBundle
-        ?.entry?.[0]
-        ?.resource as fhir4.ValueSet
+        const updatedGroupers = grouperList.map(g => {
+          const allVsUrlsToDelete = Object.keys(batchDelete)
+          return removeValueSetFromGrouper(g, allVsUrlsToDelete)
+        })
 
-      if (grouperVsToUpdate) {
-        const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, vsCanonical)
+        const updateInput = formatBatchGrouperUpdate(updatedGroupers)
+  
+        const updateGroupers = await fhirCdrClient.transaction({
+          body: updateInput
+        })
+  
+        if (is.operationOutcome(updateGroupers)) {
+          // send failure response
+          return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
+        }
+        return res.status(200).send({})
+      } catch (e) {
+        return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
+      }
 
-        groupersToUpdate.push(updatedGrouper)
-        await Promise.all(
-          groupersToUpdate.map((grouperVs) =>
-            fhirCdrClient.update({
-              resourceType: 'ValueSet',
-              id: grouperVs.id,
-              body: grouperVs
-            })
-          )
-        )
+
+    // otherwise, you are deleting vsets one by one
+    } else {
+      try {
+        const { vsCanonical, grouperInfo } = body
+
+        const groupersToUpdate = []
+        for (const grouperC of grouperInfo) {
+          const grouperValueSetBundle = (await fhirCdrClient.search({
+            resourceType: 'ValueSet',
+            searchParams: {
+              url: grouperC.canonical,
+              _id: grouperC.id
+            }
+          })) as fhir4.Bundle
+    
+          // there is an issue in the sample data where grouper valuesets have the exact same url
+          const grouperVsToUpdate = grouperValueSetBundle
+            ?.entry?.[0]
+            ?.resource as fhir4.ValueSet
+    
+          if (grouperVsToUpdate) {
+            const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, [vsCanonical])
+    
+            groupersToUpdate.push(updatedGrouper)
+            await Promise.all(
+              groupersToUpdate.map((grouperVs) =>
+                fhirCdrClient.update({
+                  resourceType: 'ValueSet',
+                  id: grouperVs.id,
+                  body: grouperVs
+                })
+              )
+            )
+          }
+        }
+        return res.status(200).send(groupersToUpdate)
+
+      } catch (e) {
+        logger.error('error: ', e)
+        res.status(400).send({ error: 'Error deleting grouper' })
       }
     }
-    return res.status(200).send(groupersToUpdate)
+
   } catch (e) {
+    console.error(e)
     logger.error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
@@ -144,7 +242,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       const putRequestBundle: fhir4.Bundle & { type: 'transaction' } = {
         resourceType: 'Bundle',
         type: 'transaction',
-        // @ts-ignore
         entry: [...cqfUpdatesPayload, programLibUpdatePayload]
       }
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })

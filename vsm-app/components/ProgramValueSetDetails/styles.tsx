@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { Button } from '../buttons/Button'
 
 export const SelectInputContainer = styled.div`
   width: 100%;
@@ -32,3 +33,40 @@ export const ReadOnlyTag = styled.div`
 export const LoadingMessage = styled.p`
   color: blue;
 `
+
+export const TableActionContainer = styled.div`
+  display: flex;
+  border: 4px solid blue;
+  padding: 24px 36px;
+  background-color: lightblue;
+  width: 100%;
+`
+
+const ActionContainerRow = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: center;
+`
+
+export const TableActions = ({ selectedRows, handleDelete }) => {
+  if (selectedRows?.length) {
+
+    return (
+      <TableActionContainer>
+        <ActionContainerRow>
+          <p>{selectedRows.length} valueset{selectedRows.length > 1 && 's'} selected</p>
+
+        </ActionContainerRow>
+        <ActionContainerRow>
+          <Button
+            style={{ backgroundColor: 'var(--accent)' }}
+            text='Delete'
+            onClick={() => handleDelete(selectedRows)}
+          />
+        </ActionContainerRow>
+      </TableActionContainer>
+    )
+  } else {
+    return null
+  }
+}

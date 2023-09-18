@@ -39,10 +39,11 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | stri
   return valueSetToUpdate
 }
 
-const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
+const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet => {
   let updatedComposeInclude = vs?.compose?.include
     ?.map((item) => {
-      if (item?.valueSet?.includes(vsCanonical)) {
+      const match = vsCanonicals.includes(item.valueSet[0])
+      if (match) {
         return
       } else {
         return item

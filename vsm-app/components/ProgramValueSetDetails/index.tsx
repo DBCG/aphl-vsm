@@ -21,7 +21,15 @@ import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResu
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
-import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
+import {
+  SelectInputContainer,
+  SelectInputTitle,
+  FlexCol,
+  ReadOnlyContainer,
+  ReadOnlyTag,
+  LoadingMessage,
+  TableActions
+} from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
@@ -70,6 +78,35 @@ const DEFAULT_FILTERS = {
   activeGroups: []
 }
 
+interface SelectedRows {
+  selectedRows: TableRow[]
+}
+
+interface GrouperPayloadItem {
+  canonical: string
+  id: string
+}
+
+interface DeletePayload {
+  vsCanonical: string
+  grouperInfo: GrouperPayloadItem[]
+}
+
+const formatDeletePayload = (rows: TableRow[]): DeletePayload[] => {
+  const payload = {}
+
+  rows.forEach(row => {
+    const vsCanonical = row.valueSet.url!
+    const grouperIds = row.groups.map(g => g.id!)
+    if (payload[vsCanonical]) {
+      payload[vsCanonical].push(grouperIds) 
+    } else {
+      payload[vsCanonical] = grouperIds
+    }
+  })
+  return payload
+}
+
 const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
@@ -92,7 +129,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
+  // row actions
+  const [selectedRows, setSelectedRows] = useState<SelectedRows[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
+  const [tableKey, setTableKey] = useState(1)
 
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // all available filters
@@ -101,7 +141,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
 
-  const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
+  const handleSingleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
     if (!vsCanonical || !grouperInfo) {
       setIsDeleting(false)
       return
@@ -134,6 +174,28 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setIsDeleting(false)
   }
 
+  const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
+    console.log('selectedRows: ', selectedRows)
+    const payload = formatDeletePayload(itemsToDelete)
+    // need?
+    setIsDeleting(true)
+
+    const body = JSON.stringify({ batchDelete: payload })
+  
+    const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+      method: 'DELETE',
+      body: body
+    }).then((res) => res.json())
+
+    if (!result.ok) {
+      // handle error
+    } else {
+      setTableKey(k => k + 1)
+      setToggleUpdateData(t => !t)
+    }
+    setIsDeleting(false)
+  }
+
   const handleUpdateValueSets = async () => {
     const canonicalUrls: string[] = []
     // @ts-ignore
@@ -148,6 +210,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
+  }
+
+  const handleChange = ({ selectedRows }: SelectedRows) => {
+    // You can set state or dispatch with something like Redux so we can use the retrieved data
+    console.log('Selected Rows: ', selectedRows);
+    setSelectedRows(selectedRows)
   }
 
   useEffect(() => {
@@ -577,11 +645,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
                 data-remove-grouper-vs={row?.canonical}
                 onClick={async () => {
-                  const payload = {
-                    vsCanonical: row.valueSet.url!,
-                    grouperInfo: row.groups.map((g) => ({ canonical: g?.url!, id: g?.id! }))
-                  }
-                  await handleDelete(payload)
+                  const payload = formatDeletePayload([row])
+                  await handleSingleDelete(payload[0])
                 }}
                 buttonContext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
@@ -651,8 +716,21 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         </Col>
       </Row>
       <Box id="vs-table-detail">
+        <TableActions
+          handleDelete={handleBatchDelete}
+          selectedRows={selectedRows}
+        />
         <DT
+          selectableRows={
+            Boolean (
+              programId
+              && !isReadOnly
+              && programAndGrouperData?.program?.status === 'draft'
+            )
+          }
+          onSelectedRowsChange={handleChange}
           className="vs-table-detail"
+          key={tableKey}
           // @ts-expect-error
           data={progValueSetDets?.data}
           keyField="keyField"
