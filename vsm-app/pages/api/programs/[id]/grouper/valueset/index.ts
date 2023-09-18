@@ -102,6 +102,10 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           return removeValueSetFromGrouper(g, allVsUrlsToDelete)
         })
 
+        if (updatedGroupers.find((g: any) => g == null )) {
+          return res.status(400).send({ error: 'Error removing Valueset(s) from grouper' }) 
+        }
+
         const updateInput = formatBatchGrouperUpdate(updatedGroupers)
   
         const updateGroupers = await fhirCdrClient.transaction({

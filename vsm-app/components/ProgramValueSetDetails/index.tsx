@@ -7,6 +7,7 @@ import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
+import { ErrorMessage } from '@/components/ErrorMessage'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -128,6 +129,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [tableKey, setTableKey] = useState(1)
 
+  // handle error display
+  const [error, setError] = useState<null | string>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // all available filters
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
@@ -136,6 +139,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const debouncedFilters = useDebounce(filters, 300)
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
+    setError(null)
     const payload = formatDeletePayload(itemsToDelete)
 
     setIsDeleting(true)
@@ -150,7 +154,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     if (result.ok) {
       router.reload()
     } else {
-      // handle error
+      const json = await result.json()
+      setError(json.error)
     }
     setIsDeleting(false)
   }
@@ -646,6 +651,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           handleDelete={handleBatchDelete}
           selectedRows={selectedRows}
           isDeleting={isDeleting}
+        />
+        <ErrorMessage
+          error={error}
         />
         <DT
           selectableRows={

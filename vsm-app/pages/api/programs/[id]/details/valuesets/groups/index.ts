@@ -130,8 +130,13 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
         // add the grouper
         groupersToUpdate.push(addValueSetToGrouper(grouperValueSet, body.canonical))
       } else if (leafExistsInGrouper && !leafShouldExistInGrouper) {
-        // remove from grouper
-        groupersToUpdate.push(removeValueSetFromGrouper(grouperValueSet, body.canonical))
+        const grouperWithVsRemoved = removeValueSetFromGrouper(grouperValueSet, [body.canonical])
+        if (grouperWithVsRemoved) {
+          // remove from grouper
+          groupersToUpdate.push(grouperWithVsRemoved)
+        } else {
+          return res.status(400).send({ error: `Could not remove Valueset "${grouperValueSet.title}" from groupers`})
+        }
       }
     }
 

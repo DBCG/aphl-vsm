@@ -43,7 +43,7 @@ const urlWithoutPinnedVersion = (url: string): string => {
   return url.split('|')[0]
 }
 
-const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet => {
+const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet | null => {
   const vsCanonicalsWithoutPinned = vsCanonicals?.map(c => urlWithoutPinnedVersion(c))
   let updatedComposeInclude = vs?.compose?.include
     ?.map((item) => {
@@ -58,10 +58,11 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): 
   if (updatedComposeInclude && vs?.compose?.include) {
     // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude
+    return vs
   } else {
     console.error('grouper does not have compose include')
+    return null
   }
-  return vs
 }
 
 // this only handles extensions with valueUri as type for now
