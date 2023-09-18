@@ -39,10 +39,15 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | stri
   return valueSetToUpdate
 }
 
+const urlWithoutPinnedVersion = (url: string): string => {
+  return url.split('|')[0]
+}
+
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet => {
+  const vsCanonicalsWithoutPinned = vsCanonicals?.map(c => urlWithoutPinnedVersion(c))
   let updatedComposeInclude = vs?.compose?.include
     ?.map((item) => {
-      const match = vsCanonicals.includes(item.valueSet[0])
+      const match = vsCanonicalsWithoutPinned.includes(urlWithoutPinnedVersion(item.valueSet![0]))
       if (match) {
         return
       } else {
@@ -50,7 +55,6 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): 
       }
     })
     .filter((x) => !!x)
-
   if (updatedComposeInclude && vs?.compose?.include) {
     // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude

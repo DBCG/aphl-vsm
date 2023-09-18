@@ -175,7 +175,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
-    console.log('selectedRows: ', selectedRows)
     const payload = formatDeletePayload(itemsToDelete)
     // need?
     setIsDeleting(true)
@@ -214,7 +213,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const handleChange = ({ selectedRows }: SelectedRows) => {
     // You can set state or dispatch with something like Redux so we can use the retrieved data
-    console.log('Selected Rows: ', selectedRows);
     setSelectedRows(selectedRows)
   }
 
