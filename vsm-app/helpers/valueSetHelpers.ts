@@ -39,24 +39,30 @@ const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | stri
   return valueSetToUpdate
 }
 
-const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonical: string): fhir4.ValueSet => {
+const urlWithoutPinnedVersion = (url: string): string => {
+  return url.split('|')[0]
+}
+
+const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet | null => {
+  const vsCanonicalsWithoutPinned = vsCanonicals?.map(c => urlWithoutPinnedVersion(c))
   let updatedComposeInclude = vs?.compose?.include
     ?.map((item) => {
-      if (item?.valueSet?.includes(vsCanonical)) {
+      const match = vsCanonicalsWithoutPinned.includes(urlWithoutPinnedVersion(item.valueSet![0]))
+      if (match) {
         return
       } else {
         return item
       }
     })
     .filter((x) => !!x)
-
   if (updatedComposeInclude && vs?.compose?.include) {
     // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude
+    return vs
   } else {
     console.error('grouper does not have compose include')
+    return null
   }
-  return vs
 }
 
 // this only handles extensions with valueUri as type for now

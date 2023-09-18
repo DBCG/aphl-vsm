@@ -5,8 +5,10 @@ import DT from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
+import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
+import { ErrorMessage } from '@/components/ErrorMessage'
 import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -21,7 +23,15 @@ import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResu
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
-import { SelectInputContainer, SelectInputTitle, FlexCol, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
+import {
+  SelectInputContainer,
+  SelectInputTitle,
+  FlexCol,
+  ReadOnlyContainer,
+  ReadOnlyTag,
+  LoadingMessage,
+  TableActions
+} from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
@@ -70,6 +80,29 @@ const DEFAULT_FILTERS = {
   activeGroups: []
 }
 
+interface SelectedRows {
+  selectedRows: TableRow[]
+}
+
+type GrouperPayloadItem = string[]
+
+type DeletePayload = Record<string, string[]>
+
+const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
+  const payload = {} as DeletePayload
+
+  rows.forEach(row => {
+    const vsCanonical = row.valueSet.url!
+    const grouperIds = row.groups.map(g => g.id!)
+    if (payload[vsCanonical]) {
+      payload[vsCanonical] = payload[vsCanonical].concat(grouperIds)
+    } else {
+      payload[vsCanonical] = grouperIds
+    }
+  })
+  return payload
+}
+
 const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
@@ -88,12 +121,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
-  const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
+  // row actions
+  const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
+  const [tableKey, setTableKey] = useState(1)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
+  // handle error display
+  const [error, setError] = useState<null | string>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // all available filters
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
@@ -101,35 +140,24 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
 
-  const handleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
-    if (!vsCanonical || !grouperInfo) {
-      setIsDeleting(false)
-      return
+  const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
+    setError(null)
+    const payload = formatDeletePayload(itemsToDelete)
+
+    setIsDeleting(true)
+
+    const body = JSON.stringify({ batchDelete: payload })
+  
+    const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+      method: 'DELETE',
+      body: body
+    })
+    
+    if (result.ok) {
+      router.reload()
     } else {
-      setIsDeleting(vsCanonical)
-    }
-
-    try {
-      const body = {
-        vsCanonical,
-        grouperInfo
-      }
-
-      const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
-        method: 'DELETE',
-        body: JSON.stringify(body)
-      }).then((res) => res.json())
-
-      const json = await result
-
-      if (!json) {
-        console.error('failure result: ', json)
-      } else {
-        setIsDeleting(false)
-        window.location.reload()
-      }
-    } catch (e) {
-      console.error(e)
+      const json = await result.json()
+      setError(json.error)
     }
     setIsDeleting(false)
   }
@@ -148,6 +176,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
+  }
+
+  const handleChange = ({ selectedRows }: SelectedRows) => {
+    // You can set state or dispatch with something like Redux so we can use the retrieved data
+    setSelectedRows(selectedRows)
   }
 
   useEffect(() => {
@@ -200,8 +233,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }) as Result
 
   const {
-    programAndGrouperData, programAndGrouperDataLoading
-  } = useGetProgramDetails({ id: programId, toggleRefresh: toggleUpdateData })
+    programAndGrouperData,
+    programAndGrouperDataLoading
+  } = useGetProgramDetails({
+    id: programId, toggleRefresh: toggleUpdateData
+  })
 
   // since query takes a while, expose loading state
   useEffect(() => {
@@ -214,9 +250,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
-    if (keys.length) {
-      setPageLoading(false)
-    }
+    setPageLoading(false)
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
@@ -558,42 +592,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             </SelectInputContainer>
           )
         }
-      },
-      {
-        name: (
-          <div style={{ textAlign: 'center', width: '100%' }}>
-            <p>Remove ValueSet</p>
-          </div>
-        ),
-        omit: isReadOnly,
-        selector: (row: TableRow) => row,
-        sortable: false,
-        wrap: true,
-        maxWidth: '150px',
-        cell: (row: TableRow) => (
-          <FlexRow style={{ justifyContent: 'center' }}>
-            <FlexCol>
-              <IconButton
-                deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
-                data-remove-grouper-vs={row?.canonical}
-                onClick={async () => {
-                  const payload = {
-                    vsCanonical: row.valueSet.url!,
-                    grouperInfo: row.groups.map((g) => ({ canonical: g?.url!, id: g?.id! }))
-                  }
-                  await handleDelete(payload)
-                }}
-                buttonContext="delete"
-                style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
-              />
-              {isDeleting === row?.valueSet?.url && (
-                <p>
-                  <em>Deleting...</em>
-                </p>
-              )}
-            </FlexCol>
-          </FlexRow>
-        )
       }
     ],
     [router, groupsInProgram, allConditions]
@@ -634,6 +632,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   return (
     <>
+      <DeleteConfirmationModal
+        isOpen={showConfirmationModal}
+        toggleModalOpen={() => setShowConfirmationModal(show => !show)}
+        handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
+        itemToDelete={`${selectedRows.length} Valueset(s)`}
+      />
       <Row>
         <FlexRow style={{ width: '80%' }}>
           <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
@@ -651,8 +655,25 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         </Col>
       </Row>
       <Box id="vs-table-detail">
+        <TableActions
+          handleDelete={() => setShowConfirmationModal(true)}
+          selectedRows={selectedRows}
+          isDeleting={isDeleting}
+        />
+        <ErrorMessage
+          error={error}
+        />
         <DT
+          selectableRows={
+            Boolean (
+              programId
+              && !isReadOnly
+              && programAndGrouperData?.program?.status === 'draft'
+            )
+          }
+          onSelectedRowsChange={handleChange}
           className="vs-table-detail"
+          key={tableKey}
           // @ts-expect-error
           data={progValueSetDets?.data}
           keyField="keyField"
@@ -667,7 +688,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable')}
-          progressPending={pageLoading || vSetsLoading}
+          progressPending={pageLoading || programAndGrouperDataLoading}
           progressComponent={<LoadingIndicator />}
         />
       </Box>
