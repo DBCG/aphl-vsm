@@ -54,6 +54,9 @@ const DateInput = ({
               onChange={onChange}
               disablePast={disablePast}
               slotProps={{
+                actionBar: {
+                  actions: ['today']
+                },
                 textField: {
                   helperText: errorText
                 }

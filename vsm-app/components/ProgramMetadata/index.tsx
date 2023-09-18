@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import Select, { Options } from 'react-select'
+import { PickersActionBar } from '@mui/x-date-pickers/PickersActionBar'
+
 import { Grid } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
@@ -231,7 +233,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 type="button"
                 onClick={(e) => {
                   e.preventDefault()
-                  setKey(k => k + 1)
+                  setKey((k) => k + 1)
                   setFormTouched(false)
                   setEditedProgram(program)
                   setEnableEditing(false)
