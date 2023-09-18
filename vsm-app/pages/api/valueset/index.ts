@@ -167,7 +167,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
   try {
     // this assumes grouper already has a compose/include block, will need to be updated
     // when we allow users to create groupers
-    return await Promise.all(
+    const result = await Promise.all(
       groupersToUpdate.map(async (grouperVs) => {
         const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs.compose.include
 
@@ -181,19 +181,25 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
         grouperVs.compose.include = newComposeInclude
 
-        await fhirCdrClient.update({
+        return await fhirCdrClient.update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs
         })
       })
     )
+
+    const validResults = result?.filter(r => r.resourceType === 'ValueSet')
+    if (validResults?.length && validResults?.length > 0) {
+      return res.status(200).send(200)
+    } else {
+      res.status(400).json({ error: 'could not update valueset' }) 
+    }
   } catch (e) {
     logger.error('error 4: ', e)
     res.status(400).json({ error: 'failed to update valueSet' })
   }
 
-  res.status(200).send(200)
 }
 
 export default handler({

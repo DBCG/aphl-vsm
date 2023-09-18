@@ -82,24 +82,18 @@ interface SelectedRows {
   selectedRows: TableRow[]
 }
 
-interface GrouperPayloadItem {
-  canonical: string
-  id: string
-}
+type GrouperPayloadItem = string[]
 
-interface DeletePayload {
-  vsCanonical: string
-  grouperInfo: GrouperPayloadItem[]
-}
+type DeletePayload = Record<string, string[]>
 
-const formatDeletePayload = (rows: TableRow[]): DeletePayload[] => {
-  const payload = {}
+const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
+  const payload = {} as DeletePayload
 
   rows.forEach(row => {
     const vsCanonical = row.valueSet.url!
     const grouperIds = row.groups.map(g => g.id!)
     if (payload[vsCanonical]) {
-      payload[vsCanonical].push(grouperIds) 
+      payload[vsCanonical] = payload[vsCanonical].concat(grouperIds)
     } else {
       payload[vsCanonical] = grouperIds
     }
@@ -125,12 +119,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [vSetsLoading, setVSetsLoading] = useState(true)
-  const [isDeleting, setIsDeleting] = useState<boolean | string>(false)
+  const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
   // row actions
-  const [selectedRows, setSelectedRows] = useState<SelectedRows[]>([])
+  const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [tableKey, setTableKey] = useState(1)
 
@@ -140,39 +134,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
-
-  const handleSingleDelete = async ({ vsCanonical, grouperInfo }: DeleteParams) => {
-    if (!vsCanonical || !grouperInfo) {
-      setIsDeleting(false)
-      return
-    } else {
-      setIsDeleting(vsCanonical)
-    }
-
-    try {
-      const body = {
-        vsCanonical,
-        grouperInfo
-      }
-
-      const result = fetch(`/api/programs/${programId}/grouper/valueset`, {
-        method: 'DELETE',
-        body: JSON.stringify(body)
-      }).then((res) => res.json())
-
-      const json = await result
-
-      if (!json) {
-        console.error('failure result: ', json)
-      } else {
-        setIsDeleting(false)
-        window.location.reload()
-      }
-    } catch (e) {
-      console.error(e)
-    }
-    setIsDeleting(false)
-  }
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     const payload = formatDeletePayload(itemsToDelete)
@@ -278,7 +239,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   useEffect(() => {
     setVSetsLoading(false)
-    console.log('progValuesetdets: ', progValueSetDets)
   }, [progValueSetDets])
 
   useEffect(() => {
@@ -625,39 +585,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             </SelectInputContainer>
           )
         }
-      },
-      {
-        name: (
-          <div style={{ textAlign: 'center', width: '100%' }}>
-            <p>Remove ValueSet</p>
-          </div>
-        ),
-        omit: isReadOnly,
-        selector: (row: TableRow) => row,
-        sortable: false,
-        wrap: true,
-        maxWidth: '150px',
-        cell: (row: TableRow) => (
-          <FlexRow style={{ justifyContent: 'center' }}>
-            <FlexCol>
-              <IconButton
-                deletedItemDescription={`valueset "${row.title}" from Program ${programId}`}
-                data-remove-grouper-vs={row?.canonical}
-                onClick={async () => {
-                  const payload = formatDeletePayload([row])
-                  await handleSingleDelete(payload[0])
-                }}
-                buttonContext="delete"
-                style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
-              />
-              {isDeleting === row?.valueSet?.url && (
-                <p>
-                  <em>Deleting...</em>
-                </p>
-              )}
-            </FlexCol>
-          </FlexRow>
-        )
       }
     ],
     [router, groupsInProgram, allConditions]
@@ -720,8 +647,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           selectedRows={selectedRows}
           isDeleting={isDeleting}
         />
-        <p>pageloading: {pageLoading.toString()}</p>
-        <p>pageloading: {programAndGrouperDataLoading.toString()}</p>
         <DT
           selectableRows={
             Boolean (

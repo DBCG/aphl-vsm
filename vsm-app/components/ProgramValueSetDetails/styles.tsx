@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { Button } from '../buttons/Button'
+import { TableRow } from '@/types/valuesets'
 
 export const SelectInputContainer = styled.div`
   width: 100%;
@@ -48,7 +49,17 @@ const ActionContainerRow = styled.div`
   align-items: center;
 `
 
-export const TableActions = ({ selectedRows, handleDelete, isDeleting }) => {
+interface TableActions {
+  selectedRows: TableRow[]
+  handleDelete: (selectedRows: TableRow[]) => void
+  isDeleting: boolean
+}
+
+export const TableActions = ({
+  selectedRows,
+  handleDelete,
+  isDeleting
+}: TableActions) => {
   if (selectedRows?.length) {
 
     return (
