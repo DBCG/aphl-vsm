@@ -5,6 +5,7 @@ import DT from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
+import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
@@ -128,6 +129,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [tableKey, setTableKey] = useState(1)
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
 
   // handle error display
   const [error, setError] = useState<null | string>(null)
@@ -630,6 +632,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   return (
     <>
+      <DeleteConfirmationModal
+        isOpen={showConfirmationModal}
+        toggleModalOpen={() => setShowConfirmationModal(show => !show)}
+        handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
+        itemToDelete={`${selectedRows.length} Valueset(s)`}
+      />
       <Row>
         <FlexRow style={{ width: '80%' }}>
           <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
@@ -648,7 +656,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       </Row>
       <Box id="vs-table-detail">
         <TableActions
-          handleDelete={handleBatchDelete}
+          handleDelete={() => setShowConfirmationModal(true)}
           selectedRows={selectedRows}
           isDeleting={isDeleting}
         />
