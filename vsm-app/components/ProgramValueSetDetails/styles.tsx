@@ -37,15 +37,17 @@ export const LoadingMessage = styled.p`
 
 export const TableActionContainer = styled.div`
   display: flex;
-  border: 4px solid blue;
-  padding: 24px 36px;
+  border: 4px solid var(--theme-300);
+  padding: 24px 16px;
   background-color: lightblue;
   width: 100%;
+  font-weight: bold;
+  color: var(--theme-500);
+  column-gap: 24px;
 `
 
 const ActionContainerRow = styled.div`
   display: flex;
-  width: 100%;
   align-items: center;
 `
 
@@ -66,7 +68,6 @@ export const TableActions = ({
       <TableActionContainer>
         <ActionContainerRow>
           <p>{selectedRows.length} valueset{selectedRows.length > 1 && 's'} selected</p>
-
         </ActionContainerRow>
         <ActionContainerRow>
           <Button
