@@ -276,7 +276,13 @@ const Programs: NextPage = () => {
       <LoadingModal
         actionType="clone"
         isOpen={modalOpen}
-        handleModalAction={async () => cloneProgram(progIdToClone)}
+        handleModalAction={
+          async () => {
+            // throttle this action based on if it is already ongoing
+            if (cloneLoading) return
+            cloneProgram(progIdToClone)
+          }
+        }
         program={null}
         loading={cloneLoading}
         handleCancelModal={() => setModalOpen(false)}
