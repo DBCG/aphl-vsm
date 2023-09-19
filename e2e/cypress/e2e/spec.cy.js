@@ -21,6 +21,8 @@ describe("Smoke Tests", () => {
       cy.wait(3000)
       cy.get('[data-button-context="clone-active"]').click();
       cy.get('[data-modal="confirm"]').click();
+      cy.get('[data-modal="confirm"]').should("not.exist"); // Wait for draft operation to finish
+      cy.get('[data-column-id="1"]').first().scrollIntoView()
       cy.get('[data-column-id="1"]').contains("DRAFT").should("be.visible");
     });
 
@@ -37,7 +39,7 @@ describe("Smoke Tests", () => {
       cy.get("#prog-name").clear().type("Draft Library");
       cy.get("#prog-desc").clear().type("Draft Library description");
       cy.get(".date-input button").click();
-      cy.get(".MuiPickersDay-today").click();
+      cy.get("button").contains('Today').click();
       cy.get("#prog-release-desc").clear().type("this is a release description for the draft library");
       cy.get(".priority-level-selector__control").click();
       cy.get("#react-select-priority-level-selector-option-1").click();
@@ -101,7 +103,6 @@ describe("Smoke Tests", () => {
 
       cy.get("#create-new-grouper").click();
 
-      cy.get("#id").clear().type("test-grouper");
       cy.get("#title").clear().type("excellent title for grouper");
       cy.get("#purpose").clear().type("To group valuesets together");
       cy.get("#description").clear().type("a description of the grouper");
@@ -114,14 +115,14 @@ describe("Smoke Tests", () => {
 
       cy.get("#submit-grouper-creation").click();
       // Do some assertions on Program Detail View Page
-      cy.get("#cell-1-test-grouper").contains("Excellent_title_for_grouper").should("exist");
-      cy.get("#cell-2-test-grouper").contains("excellent title for grouper").should("exist");
-      cy.get("#cell-3-test-grouper")
-        .contains("http://ersd.aimsplatform.org/fhir/ValueSet/test-grouper")
+      cy.get('[data-column-id="1"]').contains("Excellent_title_for_grouper").should("exist");
+      cy.get('[data-column-id="2"]').contains("excellent title for grouper").should("exist");
+      cy.get('[data-column-id="3"]')
+        .contains("http://ersd.aimsplatform.org/fhir/ValueSet/Excellent_title_for_grouper")
         .should("exist");
 
       // Edit the grouper
-      cy.get("#cell-1-test-grouper").click({force: true})
+      cy.get('[data-column-id="1"]').last().click({force: true})
       cy.get('[data-button="edit-metadata"]').click();
       cy.get("#vs-publisher").clear().type("test-publisher");
       cy.get("#vs-author").clear().type("test-author");
@@ -145,9 +146,9 @@ describe("Smoke Tests", () => {
       .click(50, 0, { force: true });
 
       // Now remove newly created grouper
-      cy.get('#cell-5-test-grouper [data-button-context="delete"]').click();
+      cy.get('[data-button-context="delete"]').last().click();
       cy.get('[data-modal="yes"]').click();
-      cy.get("#cell-1-test-grouper").should("not.exist");
+      cy.get('[data-column-id="1"]').contains("Excellent_title_for_grouper").should("not.exist");
     });
 
     it("Adds a new valueset to multiple program groupers then removes it", () => {
@@ -203,8 +204,8 @@ describe("Smoke Tests", () => {
         cy.get("@grouper1").then((grouper1) => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
         });
-
-        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+        cy.wait(3000) // Wait for valueset to load due to async nature of the call above
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // navigate back to program view
         cy.go("back");
@@ -213,13 +214,15 @@ describe("Smoke Tests", () => {
         cy.get("@grouper2").then((grouper2) => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
         });
-        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("exist");
+        cy.wait(3000)
+
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // Remove same valueset from program
         cy.go("back");
 
         cy.get("#view-valuesets").click();
-        cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).click({ force: true });
+        cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).click({ force: true });
         cy.get('[data-modal="yes"]').click();
         cy.go("back");
 
@@ -228,7 +231,9 @@ describe("Smoke Tests", () => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
           cy.get('#page-title').contains(grouper1).should("exist")
         });
-        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+        cy.wait(3000)
+
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("not.exist");
 
         // navigate back to program view
         cy.go("back");
@@ -238,7 +243,9 @@ describe("Smoke Tests", () => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
           cy.get('#page-title').contains(grouper2).should("exist")
         });
-        cy.get(`[id="cell-1-http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+        cy.wait(3000)
+
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
       });
     });
 
@@ -306,6 +313,7 @@ describe("Smoke Tests", () => {
       // Navigate back to program view
       cy.get('#breadcrumb-programs').click();
       cy.get('[data-button-context="mustApproveRelease-draft"]').first().click();
+      cy.get('#releaseLabel').clear().type("1.1.0");
       cy.get('[data-modal="confirm"]').click();
 
       // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
