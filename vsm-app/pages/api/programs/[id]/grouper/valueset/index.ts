@@ -202,12 +202,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       sendError(program)
     }
 
-    // ensure user-entered grouper VS ID is unique
-    const isIdUnique = await checkForUniqueID(grouperMetadata.id)
-    if (is.errorResponse(isIdUnique)) {
-      sendError(isIdUnique)
-    }
-
     // find any leaf matches that exist in our HAPI server
     // (these may or may not exist)
     const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
@@ -291,29 +285,6 @@ const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library
       resStatus: 404
     }
   }
-}
-
-const checkForUniqueID = async (grouperId: fhir4.ValueSet['id']): Promise<Boolean | ErrorResponse> => {
-  // check to make sure no vset exists with user-entered ID
-  try {
-    const existingVS = await fhirCdrClient.read({
-      resourceType: 'ValueSet',
-      id: grouperId!
-    })
-
-    // if vs with id already exists, error out
-    if (existingVS) {
-      return { resStatus: 409, errorMessage: `ValueSet with ID ${grouperId} already exists. Please enter a unique ID.` }
-    }
-  } catch (e: HapiError | any) {
-    // 404 is what we want -- no existing resource with that ID
-    if (e?.response?.status === 404) {
-      return true
-    } else {
-      logSimpleHapiError(e, 'checkForUniqueId')
-    }
-  }
-  return { resStatus: 409, errorMessage: `Server error occurred while checking existence of ValueSet with ID ${grouperId}.` }
 }
 
 const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleEntry[] => {
