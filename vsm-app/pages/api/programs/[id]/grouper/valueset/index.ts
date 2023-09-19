@@ -36,7 +36,7 @@ interface DeletePayload {
 }
 
 // 
-const formatTransactionSearchEntry = (items): fhir4.Bundle & { type: 'transaction' } => {
+const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
   const grouperIds = Array.from(new Set(Object.values(items).flat()))
 
   const itemsToGet = grouperIds.map(id => ({
@@ -95,9 +95,9 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
   
         // just return the valueSet resource itself
         const grouperList = grouperBatchEntryToUpdate.entry
-          .map(i => i.resource)
+          .map((i: any) => i.resource)
 
-        const updatedGroupers = grouperList.map(g => {
+        const updatedGroupers = grouperList.map((g: any) => {
           const allVsUrlsToDelete = Object.keys(batchDelete)
           return removeValueSetFromGrouper(g, allVsUrlsToDelete)
         })
@@ -150,8 +150,8 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
               groupersToUpdate.map((grouperVs) =>
                 fhirCdrClient.update({
                   resourceType: 'ValueSet',
-                  id: grouperVs.id,
-                  body: grouperVs
+                  id: grouperVs!.id,
+                  body: grouperVs as fhir4.ValueSet
                 })
               )
             )
