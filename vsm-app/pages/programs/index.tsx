@@ -150,13 +150,6 @@ const Programs: NextPage = () => {
         wrap: true
       },
       {
-        name: 'Name',
-        selector: (row: fhir4.Library) => row.name,
-        sortable: true,
-        maxWidth: '300px',
-        wrap: true
-      },
-      {
         name: 'Title',
         selector: (row: fhir4.Library) => row.title,
         sortable: true,
