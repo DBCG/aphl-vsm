@@ -157,21 +157,6 @@ const Programs: NextPage = () => {
         wrap: true
       },
       {
-        name: 'Description',
-        selector: (row: fhir4.Library) => row.description,
-        sortable: false,
-        maxWidth: '300px',
-        minWidth: '300px',
-        wrap: true
-      },
-      {
-        name: 'Steward',
-        selector: (row: fhir4.Library) => row.publisher,
-        sortable: true,
-        maxWidth: '200px',
-        wrap: true
-      },
-      {
         name: 'Version',
         selector: (row: fhir4.Library) => row.version,
         sortable: true,
@@ -184,6 +169,21 @@ const Programs: NextPage = () => {
           return formattedDate
         },
         sortable: true,
+        wrap: true
+      },
+      {
+        name: 'Description',
+        selector: (row: fhir4.Library) => row.description,
+        sortable: false,
+        maxWidth: '300px',
+        minWidth: '300px',
+        wrap: true
+      },
+      {
+        name: 'Steward',
+        selector: (row: fhir4.Library) => row.publisher,
+        sortable: true,
+        maxWidth: '200px',
         wrap: true
       },
       {
