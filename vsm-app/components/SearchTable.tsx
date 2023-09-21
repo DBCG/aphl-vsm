@@ -160,43 +160,6 @@ const SearchTable = ({
     {
       name: (
         <div>
-          <SelectInputTitle>Status</SelectInputTitle>
-          {showFilters && (
-            <FilterInput
-              onChange={(e: React.ChangeEvent<Element>) => {
-                const target = e.target as HTMLInputElement
-                setFindInStatus(target.value.trim())
-              }}
-              style={{ height: '30px' }}
-              value={findInStatus}
-            />
-          )}
-        </div>
-      ),
-      wrap: true,
-      maxWidth: '100px',
-      selector: (row: TableData) => row.status,
-      cell: (row: TableData) => {
-        return (
-          <div>
-            <StatusTag status={row.status}>{row.status!}</StatusTag>
-            {row.status !== 'active' && (
-              <>
-                <br />
-                <StatusWarning>* only active ValueSets can be added to program</StatusWarning>
-              </>
-            )}
-          </div>
-        )
-      },
-      sortable: false,
-      style: {
-        rowWrap: 'wrap'
-      }
-    },
-    {
-      name: (
-        <div>
           <SelectInputTitle>{tableContext === 'search-page' && 'Latest'} Version</SelectInputTitle>
           {showFilters && (
             <FilterInput
