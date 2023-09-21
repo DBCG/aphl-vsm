@@ -110,20 +110,9 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   const columns = useMemo(() => {
     const fields = [
       {
-        name: 'Name',
-        selector: (row: fhir4.ValueSet) => row.name!,
-        sortable: true,
-        wrap: true
-      },
-      {
         name: 'Title',
         selector: (row: fhir4.ValueSet) => row.title!,
         sortable: true,
-        wrap: true
-      },
-      {
-        name: 'URL',
-        selector: (row: fhir4.ValueSet) => row.url!,
         wrap: true
       },
       {
@@ -131,11 +120,16 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         selector: (row: fhir4.ValueSet) => row.version!,
         sortable: true,
         wrap: true,
-        maxWidth: '150px'
+        maxWidth: '10rem'
+      },
+      {
+        name: 'URL',
+        selector: (row: fhir4.ValueSet) => row.url!,
+        wrap: true
       },
       {
         name: 'Remove Group',
-        maxWidth: '150px',
+        maxWidth: '10rem',
         center: true,
         omit: !(can(session, 'edit') && programStatus === 'draft'),
         cell: (row: fhir4.ValueSet) => {
