@@ -38,7 +38,7 @@ export const LoadingMessage = styled.p`
 export const TableActionContainer = styled.div`
   display: flex;
   border: 4px solid var(--theme-300);
-  padding: 24px 16px;
+  padding: 4px 16px;
   background-color: lightblue;
   width: 100%;
   font-weight: bold;
