@@ -151,6 +151,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
+      minWidth: '20rem',
       selector: (row: TableData) => row.name!,
       sortable: false,
       style: {
@@ -177,7 +178,8 @@ const SearchTable = ({
       ),
       selector: (row: TableData) => row.version!,
       sortable: false,
-      wrap: true
+      wrap: true,
+      maxWidth: '10rem'
     },
     {
       name: (
@@ -197,7 +199,7 @@ const SearchTable = ({
       ),
       sortable: false,
       wrap: true,
-      maxWidth: '120px',
+      maxWidth: '10rem',
       selector: (row: TableData) => row.lastUpdated!
     },
     {
@@ -218,6 +220,7 @@ const SearchTable = ({
           )}
         </div>
       ),
+      maxWidth: '15rem',
       selector: (row: TableData) => row.steward!,
       sortable: false,
       wrap: true
@@ -241,6 +244,7 @@ const SearchTable = ({
         </div>
       ),
       wrap: true,
+      minWidth: '20rem',
       selector: (row: TableData) => row?.oid?.split?.('-')?.[0]! || ''
     }
   ]
