@@ -30,20 +30,21 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
   const columns = [
     {
       name: 'Name',
-      minWidth: '300px',
+      minWidth: '20rem',
       wrap: true,
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name!
-    },
-    {
-      name: 'Steward',
-      wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.steward!
     },
     {
       name: 'ID',
       minWidth: '300px',
       wrap: true,
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id?.split('-')?.[0]!
+    },
+    {
+      name: 'Steward',
+      wrap: true,
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.steward!,
+      maxWidth: '10rem'
     },
     {
       name: 'Origin',

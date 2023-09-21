@@ -26,7 +26,6 @@ import { Col, Row, FlexRow } from '@/styles'
 import {
   SelectInputContainer,
   SelectInputTitle,
-  FlexCol,
   ReadOnlyContainer,
   ReadOnlyTag,
   LoadingMessage,
