@@ -44,7 +44,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     terminologyServer
   }: {
     search: string
-    searchType: 'oid' | 'name' | 'url'
+    searchType: 'oid' | 'title' | 'url'
     count: string
     offset?: string
     terminologyServer: 'vsac' | 'ontoserverR4'
@@ -63,9 +63,9 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     const activeTerminologyClient = terminologyClient.getClient()
     let searchParams: SearchParams
     switch (searchType) {
-      case 'name':
+      case 'title':
         searchParams = {
-          'name:contains': search,
+          'title:contains': search,
           status: 'active',
           _count: count,
           _offset: typeof offset === 'string' && offset

@@ -39,11 +39,6 @@ const StatusTag = styled.div<StatusProps>`
   display: inline-block;
 `
 
-const StatusWarning = styled.p`
-  color: var(--accent);
-  font-size: 80%;
-`
-
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
   if (!valueSets?.length) {
     return []
@@ -82,8 +77,8 @@ interface Input {
   valueSets: ValueSet[] | undefined
   setSelectedValueSets: (eventItem: any) => void
   setClearSelectedRows: (eventItem: any) => void
-  findInName: string
-  setFindInName: (eventItem: any) => void
+  findInTitle: string
+  setFindInTitle: (eventItem: any) => void
   findInSteward: string
   setFindInSteward: (eventItem: any) => void
   findInStatus: string
@@ -108,10 +103,8 @@ interface Input {
 const SearchTable = ({
   valueSets = [],
   setSelectedValueSets,
-  findInName,
-  setFindInName,
-  findInStatus,
-  setFindInStatus,
+  findInTitle,
+  setFindInTitle,
   findInSteward,
   setFindInSteward,
   findInOid,
@@ -137,15 +130,15 @@ const SearchTable = ({
     {
       name: (
         <div>
-          <SelectInputTitle>Name</SelectInputTitle>
+          <SelectInputTitle>Title</SelectInputTitle>
           {showFilters && (
             <FilterInput
               onChange={(e: React.ChangeEvent<Element>) => {
                 const target = e.target as HTMLInputElement
-                setFindInName(target.value.trim())
+                setFindInTitle(target.value.trim())
               }}
               style={{ height: '30px' }}
-              value={findInName}
+              value={findInTitle}
             />
           )}
         </div>
