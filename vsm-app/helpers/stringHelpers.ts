@@ -16,4 +16,42 @@ const capitalizeFirstLetter = (title: string) => {
   return title.charAt(0).toUpperCase() + title.slice(1)
 }
 
-export { stripFromName, startsAlphabetically, capitalizeFirstLetter }
+// FHIR names have some rules around their composition
+// example: https://build.fhir.org/valueset-definitions.html#ValueSet.name
+// rules: 
+// 1. Must start uppercase LETTER
+// 2. May contain numbers, may contain upper or lowercase letters a to z
+// 3. No spaces
+// 4. No symbols except underscore _
+// 5. FHIR names do NOT need to be unique
+const generateNameFromTitle = (title: string | undefined, defaultName: string) => {
+  // if title doesn't exist (it's not required) then just use the default name
+  if (!title || title.trim() === '') {
+    return defaultName
+  }
+  const disallowedItemsRx = new RegExp('[^a-z,A-Z,0-9,_]', 'g')
+  const startsWithLetterRx = new RegExp('^[a-z,A-Z]')
+  // replace all characters not matching allowed with _
+  const cleanedName = stripFromName(title).replace('__', '_')
+
+  // lastly, ensure name starts with uppercase letter, adjust if not
+  const startsWithLetter = startsWithLetterRx.test(cleanedName)
+
+  if (startsWithLetter) {
+    return capitalizeFirstLetter(cleanedName)
+  } else {
+    // just in case users didn't start their human-readable title with a letter
+    // find the first letter used in the title
+    const anyLetterRx = new RegExp('[a-z,A-Z]')
+    const indexOfFirstLetter = cleanedName.search(anyLetterRx)
+    const firstLetter = indexOfFirstLetter > -1 ? cleanedName.charAt(indexOfFirstLetter).toUpperCase() : 'A'
+    return `${firstLetter}${cleanedName}`
+  }
+}
+
+export {
+  stripFromName,
+  startsAlphabetically,
+  capitalizeFirstLetter,
+  generateNameFromTitle
+}

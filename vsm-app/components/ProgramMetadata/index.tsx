@@ -14,7 +14,8 @@ import {
   missingFields,
   setVSPriorityUsageContext,
   getVSPriorityUsageContext,
-  USHealthVSPriority
+  USHealthVSPriority,
+  setTitleAndDerivedName
 } from '@/helpers/libraryHelpers'
 import { Form, ButtonContainer, buttonStyles } from './styles'
 
@@ -24,7 +25,7 @@ interface ProgramEditModalContentProps {
   editable: boolean
 }
 
-const requiredFields = ['name', 'description', 'title']
+const requiredFields = ['description', 'title']
 
 interface OptionType {
   label: string
@@ -42,7 +43,6 @@ interface ErrorMessages {
 }
 
 const errorMessages: ErrorMessages = {
-  name: 'Program name required',
   title: 'Program title required',
   description: 'Program description required',
   startDate: 'Cannot be a past date'
@@ -59,7 +59,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const initialErrorState = missingFields({ program, requiredFields })
 
   const [errorFields, setErrorFields] = useState(initialErrorState)
-  const { name = '', version = '', title = '', description = '', status } = program
+  const { version = '', title = '', description = '', status } = program
   const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
   const releaseLabel = getReleaseLabel(program)
@@ -90,6 +90,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
       } else {
         delete newProgram.effectivePeriod
       }
+    } else if (fieldName === 'title') {
+      newProgram = setTitleAndDerivedName(editedProgram, value, 'DefaultProgramName')
     } else {
       newProgram = {
         ...editedProgram,
@@ -106,18 +108,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   return (
     <Form error={Boolean(errorFields.length)} key={key}>
       <Grid container spacing={2} style={{ maxWidth: '700px' }}>
-        <Grid item xs={12} md={4}>
-          <SearchInput
-            id="prog-name"
-            label="Name"
-            readonly={!editable || !enableEditing}
-            defaultValue={name}
-            onChange={(event) => handleFieldChange(event, 'name')}
-            placeholder={'No program name set'}
-            required={true}
-            errorMessage={getErrorText('name')}
-          />
-        </Grid>
         <Grid item xs={12} md={4}>
           <SearchInput
             id="prog-title"

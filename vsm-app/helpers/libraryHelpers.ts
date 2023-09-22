@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash'
+import { generateNameFromTitle } from './stringHelpers'
 
 interface RelatedArtifactItem {
   url: string
@@ -76,6 +77,15 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription: strin
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
+const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefined, defaultName: string) => {
+  const clonedProgram = cloneDeep(program)
+  if (title) {
+    clonedProgram.title = title
+  }
+  clonedProgram.name = generateNameFromTitle(title, defaultName)
+  return clonedProgram
+}
+
 interface MissingFields {
   program: fhir4.Library
   requiredFields: string[]
@@ -149,5 +159,6 @@ export {
   missingFields,
   editComposeInclude,
   getReleaseLabel,
-  setReleaseLabel
+  setReleaseLabel,
+  setTitleAndDerivedName
 }
