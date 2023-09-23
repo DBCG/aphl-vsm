@@ -25,9 +25,22 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
     const terminologyCapabilityStatement = await activeTerminologyClient?.capabilityStatement()
     const availableCodeSystems = terminologyCapabilityStatement?.extension
       ?.map((ext: fhir4.Extension) => {
-        const uri = ext?.extension?.find(({ url }) => url === 'system')?.valueUri
-        const name = ext?.extension?.find(({ url }) => url === 'name')?.valueString
-        return { uri, name }
+        let uri, name, latestVersion
+        ext?.extension?.forEach((e: fhir4.Extension) => {
+          switch (e.url) {
+            case 'system':
+              uri = e.valueUri
+              break
+            case 'version':
+              latestVersion = e.valueString
+              break
+            case 'name':
+              name = e.valueString
+              break
+          }
+        })
+
+        return { uri, name, latestVersion }
       })
       .filter((x: any) => x.uri && x.name)
 
