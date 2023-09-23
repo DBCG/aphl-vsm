@@ -98,6 +98,7 @@ const EditManifestDetails = () => {
   const program = useGetProgramById({ programId })
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
@@ -141,6 +142,7 @@ const EditManifestDetails = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentSelectedData)
       }).then((res) => res.json())
+      setIsAdding(false)
       setCurrentSelectedData(mData)
       const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
       toast.success(notificationTxt)
@@ -237,9 +239,11 @@ const EditManifestDetails = () => {
                   return (
                     <Button
                       data-tag="allowRowEvents"
+                      disabled={isAdding}
                       data-add-manifest={`${selectedSystem}|${newVersion}`}
                       text="Add"
                       onClick={() => {
+                        setIsAdding(true)
                         const clonedcurrentSelectedData = structuredClone(currentSelectedData)
                         clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
 
