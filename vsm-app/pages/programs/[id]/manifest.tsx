@@ -181,6 +181,9 @@ const EditManifestDetails = () => {
     return null // Fixes a nextjs hydration error
   }
 
+  const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
+
+  const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
   return (
     <>
       <Row>
