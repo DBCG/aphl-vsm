@@ -11,12 +11,12 @@ const prepData = (data: ManifestDataMap) => {
   if (!data) return []
   const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {
-    value?.forEach((version) => preparedData.push({ system, version , id: `${system}|${version}` }))
+    value?.forEach((version) => preparedData.push({ system, version, id: `${system}|${version}` }))
   })
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading, programId }: any) => {
+const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading, programId, availableUpdates }: any) => {
   const preppedData = prepData(manifestData)
   const { data: systemAndVersionData = [] } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
@@ -60,6 +60,30 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       wrap: true
     }
   ]
+  console.log(availableUpdates)
+  if (availableUpdates?.length > 0) {
+    columns.push({
+      name: 'Update Available',
+      maxWidth: '200px',
+      sortable: true,
+      cell: (row: ManifestSystemVersionPair) => {
+        const matchingVs = availableUpdates.find((vs) => vs.url === row.system && vs.version !== row.version)
+        if (matchingVs) {
+          return (
+            <IconButton
+              data-update-manifest={`${row.system}|${row.version}`}
+              onClick={() => console.log('Updating manifest')}
+              buttonContext="update"
+              style={{ backgroundColor: 'darkGreen', margin: '0 auto' }}
+            />
+          )
+        } else {
+          return null
+        }
+      },
+      wrap: true
+    })
+  }
 
   return (
     <DataTable

@@ -14,6 +14,8 @@ import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSy
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
+import InfoIcon from '@mui/icons-material/Info'
+import Tooltip from '@mui/material/Tooltip'
 
 const endWrapPx = 900
 
@@ -98,7 +100,8 @@ const EditManifestDetails = () => {
   const program = useGetProgramById({ programId })
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
-  const [isAdding, setIsAdding] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [availableUpdates, setAvailableUpdates] = useState([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
@@ -117,6 +120,7 @@ const EditManifestDetails = () => {
   }
 
   useEffect(() => {
+    // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
@@ -129,6 +133,7 @@ const EditManifestDetails = () => {
   }, [isLoading, systemAndVersionData, error])
 
   useEffect(() => {
+    // Initializes the current selected data
     if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
     }
@@ -142,17 +147,48 @@ const EditManifestDetails = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(currentSelectedData)
       }).then((res) => res.json())
-      setIsAdding(false)
       setCurrentSelectedData(mData)
       const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
       toast.success(notificationTxt)
     } catch (err) {
       console.error(err)
       toast.error('Error adding manifest program version')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const searchAvailableUpdates = async () => {
+    const manifestEndpoint = `/api/programs/${programId}/manifest`
+
+    // Find all the latest versions for the chosen systems
+    const availableLatestVersionsMap = {} as { [key: string]: string }
+    Object.keys(currentSelectedData).forEach((system) => {
+      availableLatestVersionsMap[system] = systemAndVersionData.find((i: SystemSelection) => i.uri === system)?.latestVersion
+    })
+    try {
+      const mData = await fetch(manifestEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(availableLatestVersionsMap)
+      }).then((res) => res.json())
+      // Because VSAC versions in the metadata do not match the version listed on ValueSet we need to double check
+      // that the versions we are offering to update are not already the latest
+      const filteredAvailableVersions = mData.filter((i: fhir4.ValueSet) => {
+        const currentVersions = currentSelectedData[i?.url!]
+        return !currentVersions?.includes(i?.version!)
+      })
+      setAvailableUpdates(filteredAvailableVersions)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error finding available updates')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   useEffect(() => {
+    // Pulla the available versions for the selected CodeSystem
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
       const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
@@ -175,6 +211,7 @@ const EditManifestDetails = () => {
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
     updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
+    setIsUpdating(false)
   }
 
   if (selectOptions.length === 0) {
@@ -207,6 +244,18 @@ const EditManifestDetails = () => {
           onChange={({ value }: any) => setSelectedSystem(value)}
           name="codesystems"
           options={selectOptions}
+        />
+        <Tooltip title={`Search for updates to the latest version CodeSystem`}>
+          <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
+        </Tooltip>
+        <Button
+          style={{ marginLeft: '10px' }}
+          text="Search for Updates"
+          loading={isUpdating}
+          onClick={() => {
+            setIsUpdating(true)
+            searchAvailableUpdates()
+          }}
         />
       </CodesystemSelectContainer>
       <DataTableContainer>
@@ -242,11 +291,11 @@ const EditManifestDetails = () => {
                   return (
                     <Button
                       data-tag="allowRowEvents"
-                      disabled={isAdding}
+                      disabled={shouldDisableAddButton}
                       data-add-manifest={`${selectedSystem}|${newVersion}`}
                       text="Add"
                       onClick={() => {
-                        setIsAdding(true)
+                        setIsUpdating(true)
                         const clonedcurrentSelectedData = structuredClone(currentSelectedData)
                         clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
 
@@ -280,6 +329,7 @@ const EditManifestDetails = () => {
             className="detail-table"
             customStyles={customTableStyles('readonly')}
             data={currentSelectedData}
+            availableUpdates={availableUpdates}
             loading={manifestData == null}
             deleteFn={deleteFn}
           />
