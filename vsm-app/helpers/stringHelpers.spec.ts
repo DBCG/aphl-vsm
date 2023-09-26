@@ -1,4 +1,9 @@
-import { stripFromName, startsAlphabetically, capitalizeFirstLetter } from './stringHelpers'
+import {
+  stripFromName,
+  startsAlphabetically,
+  capitalizeFirstLetter,
+  generateNameFromTitle
+} from './stringHelpers'
 
 describe('stringHelpers', () => {
   // helpers to generate a FHIR valueset name from a title string
@@ -41,5 +46,27 @@ describe('stringHelpers', () => {
       const expected6 = 'AlrightAlrightAlright'
       expect(capitalizeFirstLetter(testInput6)).toBe(expected6)
     })
+  })
+
+  describe('generateNameFromTitle', () => {
+    it('returns the default if title was not present', () => {
+      const testTitle1 = ''
+      const testTitle2 = undefined
+
+      const expected1 = 'Default'
+      const expected2 = 'Default2'
+      expect(generateNameFromTitle(testTitle1, 'Default')).toBe(expected1)
+      expect(generateNameFromTitle(testTitle2, 'Default2')).toBe(expected2)
+    })
+  })
+
+  it('returns properly formatted names from incompatible titles', () => {
+    const testTitle1 = ' ? this is a title '
+    const testTitle2 = ' (a test) title '
+
+    const expected1 = 'T_this_is_a_title'
+    const expected2 = 'A_a_test_title'
+    expect(generateNameFromTitle(testTitle1, 'Default')).toBe(expected1)
+    expect(generateNameFromTitle(testTitle2, 'Default2')).toBe(expected2)
   })
 })

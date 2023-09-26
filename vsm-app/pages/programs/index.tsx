@@ -135,7 +135,7 @@ const Programs: NextPage = () => {
         name: 'Status',
         selector: (row: fhir4.Library) => row.status,
         sortable: true,
-        maxWidth: '150px',
+        maxWidth: '8rem',
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
@@ -143,46 +143,19 @@ const Programs: NextPage = () => {
         }
       },
       {
-        name: 'ID',
-        selector: (row: fhir4.Library) => row.id,
-        sortable: true,
-        maxWidth: '250px',
-        wrap: true
-      },
-      {
-        name: 'Name',
-        selector: (row: fhir4.Library) => row.name,
-        sortable: true,
-        maxWidth: '300px',
-        wrap: true
-      },
-      {
         name: 'Title',
         selector: (row: fhir4.Library) => row.title,
         sortable: true,
-        maxWidth: '200px',
-        wrap: true
-      },
-      {
-        name: 'Description',
-        selector: (row: fhir4.Library) => row.description,
-        sortable: false,
-        maxWidth: '300px',
-        minWidth: '300px',
-        wrap: true
-      },
-      {
-        name: 'Steward',
-        selector: (row: fhir4.Library) => row.publisher,
-        sortable: true,
-        maxWidth: '200px',
+        maxWidth: '15rem',
+        minWidth: '10rem',
         wrap: true
       },
       {
         name: 'Version',
         selector: (row: fhir4.Library) => row.version,
         sortable: true,
-        wrap: true
+        wrap: true,
+        maxWidth: '8rem'
       },
       {
         name: 'Last Updated',
@@ -191,6 +164,22 @@ const Programs: NextPage = () => {
           return formattedDate
         },
         sortable: true,
+        wrap: true,
+        maxWidth: '8rem'
+      },
+      {
+        name: 'Description',
+        selector: (row: fhir4.Library) => row.description,
+        sortable: false,
+        wrap: true,
+        minWidth: '20rem'
+      },
+      {
+        name: 'Steward',
+        selector: (row: fhir4.Library) => row.publisher,
+        sortable: true,
+        maxWidth: '15rem',
+        minWidth: '10rem',
         wrap: true
       },
       {
@@ -200,6 +189,7 @@ const Programs: NextPage = () => {
         omit: !can(session, 'clone'),
         wrap: true,
         center: true,
+        maxWidth: '3rem',
         cell: (row: fhir4.Library) => (
           <ButtonWrapper>
             <IconButton
@@ -217,6 +207,7 @@ const Programs: NextPage = () => {
         omit: !can(session, 'release'),
         wrap: true,
         center: true,
+        maxWidth: '3rem',
         cell: (row: fhir4.Library) => (
           <ButtonWrapper>
             <IconButton

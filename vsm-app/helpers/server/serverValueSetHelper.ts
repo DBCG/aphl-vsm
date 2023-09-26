@@ -74,7 +74,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
 
 interface FetchLeafs {
   leafValueSetCanonicals: string[],
-  nameToFind?: string,
+  titleToFind?: string,
   stewardToFind?: string,
   versionToFind?: string,
   whitelistFields?: string[],
@@ -87,7 +87,7 @@ const isValidString = (search: any): boolean => {
 
 export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
-  nameToFind,
+  titleToFind,
   stewardToFind,
   versionToFind,
   whitelistFields,
@@ -97,8 +97,8 @@ export const fetchLeafValueSets = async ({
 
   let result = []
 
-  if (isValidString(nameToFind)) {
-    searchParams['name:contains'] = nameToFind
+  if (isValidString(titleToFind)) {
+    searchParams['title:contains'] = titleToFind
   }
 
   if (isValidString(stewardToFind)) {

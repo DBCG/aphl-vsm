@@ -98,7 +98,7 @@ const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.Val
 
 interface GetLeafs {
   allGrouperVSets: fhir4.ValueSet[]
-  nameToFind: string
+  titleToFind: string
   stewardToFind: string
   versionToFind: string
   oidToFind: string
@@ -113,7 +113,7 @@ interface GetLeafsReturn {
 
 const getLeafValueSets = async ({
   allGrouperVSets,
-  nameToFind,
+  titleToFind,
   stewardToFind,
   versionToFind,
   oidToFind
@@ -133,7 +133,7 @@ const getLeafValueSets = async ({
 
   const leafValueSets = await fetchLeafValueSets({
     leafValueSetCanonicals,
-    nameToFind,
+    titleToFind,
     stewardToFind,
     versionToFind,
     oidToFind,
@@ -271,7 +271,7 @@ type ExtendedReq = NextApiRequest & {
   query: {
     id: string
     findInOid?: string
-    findInVsName?: string
+    findInVsTitle?: string
     findInSteward?: string
     findInVersion?: string
     groups?: string
@@ -282,7 +282,7 @@ type ExtendedReq = NextApiRequest & {
 type RequestQueryParams = {
   id: string
   findInOid?: string
-  findInVsName?: string
+  findInVsTitle?: string
   findInSteward?: string
   findInVersion?: string
   groups?: string
@@ -295,7 +295,7 @@ export const getProgramDetailsValuesets = async ({
   findInOid,
   findInSteward,
   findInVersion,
-  findInVsName,
+  findInVsTitle,
   groups,
   conditions
 }: RequestQueryParams) => {
@@ -327,7 +327,7 @@ export const getProgramDetailsValuesets = async ({
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
       versionToFind: findInVersion || '',
-      nameToFind: findInVsName || ''
+      titleToFind: findInVsTitle || ''
     })
 
     if (isError(leafVsetResponse)) {

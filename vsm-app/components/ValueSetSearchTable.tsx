@@ -24,14 +24,14 @@ import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import uniqBy from 'lodash.uniqby'
 
 const searchTypes = [
-  { label: 'Name', value: 'name' },
+  { label: 'Title', value: 'title' },
   { label: 'OID', value: 'oid' },
   { label: 'URL', value: 'url' }
 ] as const
 
 const searchInfoText = {
   oid: 'OID search supports a comma-delimited list, max 100 OIDs. Search here requires an entire OID instead of partial.',
-  name: 'Name search finds full or partial matches within VS name',
+  title: 'Title search finds full or partial matches within VS title',
   url: 'URL search requires a full URL'
 }
 
@@ -133,7 +133,7 @@ const CopyButton = styled.button`
 const paginationMaximum = 100
 
 const columnSortMap = {
-  1: 'name',
+  1: 'title',
   3: 'lastupdated',
   4: 'version',
   5: 'publisher'
@@ -206,13 +206,13 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
   // filters
-  const [findInName, setFindInName] = useState('')
+  const [findInTitle, setFindInTitle] = useState('')
   const [findInSteward, setFindInSteward] = useState('')
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
   const [findInVersion, setFindInVersion] = useState('')
-  const [sortParams, setSortParams] = useState({ column: 'name', direction: 'asc' })
+  const [sortParams, setSortParams] = useState({ column: 'title', direction: 'asc' })
 
   // set default terminology server for search
   const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
@@ -239,18 +239,18 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   const filterExists = useMemo(
     () =>
-      findInName?.length ||
+      findInTitle?.length ||
       findInStatus?.length ||
       findInSteward?.length ||
       findInVersion?.length ||
       findInOid?.length ||
       findInLastUpdated?.length,
-    [findInLastUpdated?.length, findInName?.length, findInOid?.length, findInStatus?.length, findInVersion?.length, findInSteward?.length]
+    [findInLastUpdated?.length, findInTitle?.length, findInOid?.length, findInStatus?.length, findInVersion?.length, findInSteward?.length]
   )
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
   /**
-   *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by name/OID/steward
+   *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by title/OID/steward
    */
   const submitVSetSearch = useCallback(
     async (searchContext: 'filter' | 'search' = 'search') => {
@@ -280,7 +280,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
           return
         }
         searchStr = dedupedOids?.join(',')
-      } else if (searchType.value === 'name') {
+      } else if (searchType.value === 'title') {
         searchStr = searchTerm.current.trim()
       } else if (searchType.value === 'url') {
         searchStr = searchTerm.current.trim()
@@ -376,8 +376,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
           return oid?.includes(findInOid)
         })
       }
-      if (findInName?.length) {
-        filteredValueSets = filteredValueSets?.filter((vs) => vs?.name?.toLowerCase()?.includes(findInName?.toLocaleLowerCase()))
+      if (findInTitle?.length) {
+        filteredValueSets = filteredValueSets?.filter((vs) => vs?.title?.toLowerCase()?.includes(findInTitle?.toLocaleLowerCase()))
       }
       if (findInStatus?.length) {
         filteredValueSets = filteredValueSets?.filter((vs) => {
@@ -401,7 +401,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       filteredValueSets = filteredValueSets.filter((i) => !currentSelectedVSId?.includes(i?.id as string))
       setFilteredVSets(filteredValueSets)
     }
-  }, [valueSets, findInName, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
+  }, [valueSets, findInTitle, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
 
   useEffect(() => {
     setIsLoading(true)
@@ -651,8 +651,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         setSelectedValueSets={setSelectedValueSets}
         clearSelectedRows={toggledClearRows}
         setClearSelectedRows={setToggledClearRows}
-        findInName={findInName}
-        setFindInName={setFindInName}
+        findInTitle={findInTitle}
+        setFindInTitle={setFindInTitle}
         findInSteward={findInSteward}
         setFindInSteward={setFindInSteward}
         findInStatus={findInStatus}

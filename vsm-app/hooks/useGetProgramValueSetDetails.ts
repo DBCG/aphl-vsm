@@ -40,7 +40,7 @@ export interface Result {
 
 interface Args {
   id: string
-  findInVsName?: string
+  findInVsTitle?: string
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
@@ -53,7 +53,7 @@ interface Args {
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({
   id,
-  findInVsName,
+  findInVsTitle,
   findInOid,
   findInVersion,
   findInSteward,
@@ -75,8 +75,8 @@ const useGetProgramValueSetDetails = ({
       let endpoint = `/api/programs/${id}/details/valuesets`
       let queries = []
 
-      if (findInVsName?.length) {
-        queries.push(`findInVsName=${encodeURIComponent(findInVsName)}`)
+      if (findInVsTitle?.length) {
+        queries.push(`findInVsTitle=${encodeURIComponent(findInVsTitle)}`)
       }
 
       if (findInVersion?.length) {
@@ -137,7 +137,7 @@ const useGetProgramValueSetDetails = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     id,
-    findInVsName,
+    findInVsTitle,
     findInVersion,
     findInSteward,
     findInOid,

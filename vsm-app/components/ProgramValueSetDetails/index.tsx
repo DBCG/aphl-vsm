@@ -26,7 +26,6 @@ import { Col, Row, FlexRow } from '@/styles'
 import {
   SelectInputContainer,
   SelectInputTitle,
-  FlexCol,
   ReadOnlyContainer,
   ReadOnlyTag,
   LoadingMessage,
@@ -73,7 +72,7 @@ interface HandleVersionChange {
 
 const DEFAULT_FILTERS = {
   findInOid: '',
-  findInVsName: '',
+  findInVsTitle: '',
   findInSteward: '',
   findInVersion: '',
   activeConditions: [],
@@ -348,17 +347,17 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       {
         name: (
           <div>
-            <SelectInputTitle>Valueset Name</SelectInputTitle>
+            <SelectInputTitle>Valueset Title</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
                 // @ts-ignore-next-line
-                handleFilterChange(e.target.value, 'findInVsName')
+                handleFilterChange(e.target.value, 'findInVsTitle')
               }}
               style={{ height: '30px' }}
             />
           </div>
         ),
-        id: 'vs-name-search',
+        id: 'vs-title-search',
         selector: (row: TableRow) => row.title,
         sortable: false,
         maxWidth: '350px',

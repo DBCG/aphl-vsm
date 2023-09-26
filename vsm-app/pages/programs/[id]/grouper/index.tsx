@@ -247,7 +247,7 @@ const AddGrouper = () => {
           </Grid>
         </Grid>
       </MetadataContainer>
-      <Subtitle>Valuesets in Grouper</Subtitle>
+      <Subtitle>Valuesets to Add</Subtitle>
       <VSReviewTable vsToAdd={grouperVSets || []} setGrouperVSets={setGrouperVSets} handleUpdateConditions={handleUpdateConditions} />
       <FormSectionHeader itemNum={4} title="Submit to create grouper for this program" />
       <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
