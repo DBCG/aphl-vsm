@@ -67,7 +67,10 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       maxWidth: '200px',
       sortable: true,
       cell: (row: ManifestSystemVersionPair) => {
-        const matchingVs = availableUpdates.find((vs) => vs.url === row.system && vs.version !== row.version)
+        const matchingVs = availableUpdates.find(
+          // @ts-ignore
+          (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version.toLowerCase().includes('provisional')
+        )
         if (matchingVs) {
           return (
             <IconButton
