@@ -34,7 +34,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     const semverFromTemplateProgram = body?.version
 
     const latestSemverFromCdr = latestProgram
-    ?.entry?.[0]?.resource?.version
+      ?.entry?.[0]?.resource?.version
 
     const latestIncrementedVersion = incrementSemver({
       valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
@@ -75,7 +75,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
         } as fhir4.Parameters
 
         const clientResponse = await fhirCdrClient.operation({
-          name: '$draft',
+          name: '$crmi.draft',
           method: 'POST',
           id: `Library/${body.id}`,
           options: {

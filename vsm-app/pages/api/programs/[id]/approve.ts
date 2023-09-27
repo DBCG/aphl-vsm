@@ -10,7 +10,7 @@ import { getServerSession } from 'next-auth'
 // this sets approvalDate and date and optionally
 // creates an artifactCommentExtension
 const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>): Promise<void> => {
-  const parameters = JSON.parse(req.body || {}) 
+  const parameters = JSON.parse(req.body || {})
   const session = await getServerSession(req, res, AuthOptions)
   const userEmail = session?.user?.email
   if (!userEmail) {
@@ -28,7 +28,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
 
   try {
     const response = (await fhirCdrClient.operation({
-      name: '$approve',
+      name: '$crmi.approve',
       resourceType: 'Library',
       id: req.query.id as string,
       method: 'POST',
