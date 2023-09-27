@@ -657,6 +657,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
           selectedRows={selectedRows}
+          totalRows={progValueSetDets?.data?.length || 0}
           isDeleting={isDeleting}
         />
         <ErrorMessage
@@ -675,7 +676,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           key={tableKey}
           // @ts-expect-error
           data={progValueSetDets?.data}
-          keyField="keyField"
+          keyField="canonical"
           persistTableHead={true}
           // @ts-expect-error
           columns={columns}
