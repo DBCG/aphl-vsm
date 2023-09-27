@@ -675,7 +675,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           key={tableKey}
           // @ts-expect-error
           data={progValueSetDets?.data}
-          keyField="keyField"
+          keyField="canonical"
           persistTableHead={true}
           // @ts-expect-error
           columns={columns}
