@@ -55,19 +55,25 @@ interface TableActions {
   selectedRows: TableRow[]
   handleDelete: (selectedRows: TableRow[]) => void
   isDeleting: boolean
+  totalRows: number
 }
 
 export const TableActions = ({
   selectedRows,
   handleDelete,
-  isDeleting
+  isDeleting,
+  totalRows
 }: TableActions) => {
   if (selectedRows?.length) {
-
+    const text = selectedRows.length === totalRows
+      ? `You have selected all ${totalRows} Valuesets in this Program`
+      : `You have selected ${selectedRows.length} out of ${totalRows} total Valuesets`
     return (
       <TableActionContainer>
         <ActionContainerRow>
-          <p>{selectedRows.length} valueset{selectedRows.length > 1 && 's'} selected</p>
+          <p>
+            {text}
+          </p>
         </ActionContainerRow>
         <ActionContainerRow>
           <Button
