@@ -207,6 +207,7 @@ const EditManifestDetails = () => {
   }, [systemSelections])
 
   const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
+    setIsUpdating(true)
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
@@ -216,6 +217,19 @@ const EditManifestDetails = () => {
 
   if (selectOptions.length === 0) {
     return null // Fixes a nextjs hydration error
+  }
+
+  const onClickAddHandler = (newVersion: string) => {
+    setIsUpdating(true)
+    const clonedcurrentSelectedData = structuredClone(currentSelectedData)
+    clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
+
+    updateManifest({
+      currentSelectedData: clonedcurrentSelectedData,
+      action: 'add',
+      id: getIdFromSystem(selectedSystem),
+      version: newVersion
+    })
   }
 
   const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
@@ -296,18 +310,7 @@ const EditManifestDetails = () => {
                       disabled={shouldDisableAddButton}
                       data-add-manifest={`${selectedSystem}|${newVersion}`}
                       text="Add"
-                      onClick={() => {
-                        setIsUpdating(true)
-                        const clonedcurrentSelectedData = structuredClone(currentSelectedData)
-                        clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
-
-                        updateManifest({
-                          currentSelectedData: clonedcurrentSelectedData,
-                          action: 'add',
-                          id: getIdFromSystem(selectedSystem),
-                          version: newVersion
-                        })
-                      }}
+                      onClick={() => onClickAddHandler(newVersion)}
                     />
                   )
                 },
