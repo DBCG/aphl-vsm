@@ -219,15 +219,19 @@ const EditManifestDetails = () => {
     return null // Fixes a nextjs hydration error
   }
 
-  const onClickAddHandler = (newVersion: string) => {
+  const onClickAddHandler = (newVersion: string, system?: string) => {
+    const targetedSystem = system || selectedSystem
     setIsUpdating(true)
     const clonedcurrentSelectedData = structuredClone(currentSelectedData)
-    clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
+    // collect all provisional versions, we want to keep these in the manifest but swap out the pinned version
+    const toUpdateManifestVersions = clonedcurrentSelectedData[targetedSystem]?.filter((i: string) => i.includes('provisional')) || []
+    toUpdateManifestVersions.push(newVersion)
+    clonedcurrentSelectedData[targetedSystem] = toUpdateManifestVersions
 
     updateManifest({
       currentSelectedData: clonedcurrentSelectedData,
       action: 'add',
-      id: getIdFromSystem(selectedSystem),
+      id: getIdFromSystem(targetedSystem),
       version: newVersion
     })
   }
@@ -336,6 +340,16 @@ const EditManifestDetails = () => {
             data={currentSelectedData}
             availableUpdates={availableUpdates}
             loading={manifestData == null}
+            updateFn={(version: string, system: string) => {
+              const targetedVsIndex = availableUpdates.findIndex((i: fhir4.ValueSet) => i.url === system)
+              const targetedVs = availableUpdates[targetedVsIndex] as fhir4.ValueSet
+              onClickAddHandler(targetedVs?.version as string, system)
+              // Remove the update from the available updates list
+              availableUpdates.splice(targetedVsIndex, 1)
+              const newUpdates = [...availableUpdates]
+              setAvailableUpdates(newUpdates)
+              setIsUpdating(false)
+            }}
             deleteFn={deleteFn}
           />
         </MaxWidthContainer>

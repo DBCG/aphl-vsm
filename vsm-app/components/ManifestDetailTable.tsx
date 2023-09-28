@@ -16,7 +16,7 @@ const prepData = (data: ManifestDataMap) => {
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading, programId, availableUpdates }: any) => {
+const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, programId, availableUpdates }: any) => {
   const preppedData = prepData(manifestData)
   const { data: systemAndVersionData = [] } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
@@ -60,7 +60,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       wrap: true
     }
   ]
-  console.log(availableUpdates)
+
   if (availableUpdates?.length > 0) {
     columns.push({
       name: 'Update Available',
@@ -75,7 +75,7 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
           return (
             <IconButton
               data-update-manifest={`${row.system}|${row.version}`}
-              onClick={() => console.log('Updating manifest')}
+              onClick={() => updateFn(row.version, row.system)}
               buttonContext="update"
               style={{ backgroundColor: 'darkGreen', margin: '0 auto' }}
             />
