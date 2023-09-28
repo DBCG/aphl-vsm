@@ -81,6 +81,8 @@ const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], 
 
         vs.useContext = [...nonConditionContexts, ...existingConditionContexts, ...dedupedNewConditionContexts]
       }
+    } else {
+      delete vs.useContext
     }
   } else if (!vs?.useContext && newConditions?.length) {
     vs.useContext = newConditions?.map((c) => buildConditionItem(c))
