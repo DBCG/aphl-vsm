@@ -100,7 +100,6 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
           attempts = attempts - 1
           return await createDraftWithNewVersion()
         } else {
-          // looooooop
           incrementVersionToAttempt()
           return await createDraftWithNewVersion()
         }
