@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
 import { removeDraftFromVersionString } from '@/utils'
 
