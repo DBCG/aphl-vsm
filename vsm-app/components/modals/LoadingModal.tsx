@@ -104,8 +104,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseDescription}
                 onChange={(e) => {
-                  const newValue = e?.target?.value?.trim()
-                  setReleaseDescription(newValue)
+                  setReleaseDescription(e?.target?.value)
                 }}
               />
               <TextArea
@@ -115,8 +114,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseLabel}
                 onChange={(e) => {
-                  const newValue = e?.target?.value?.trim()
-                  setReleaseLabel(newValue)
+                  setReleaseLabel(e?.target?.value)
                 }}
               />
             </>
