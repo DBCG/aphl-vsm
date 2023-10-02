@@ -5,6 +5,7 @@ import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
 import { getServerSession } from 'next-auth'
+import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
 
 
 // this sets approvalDate and date and optionally
@@ -28,17 +29,17 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
 
   try {
     const response = (await fhirCdrClient.operation({
-      name: '$crmi.approve',
+      name: '$approve',
       resourceType: 'Library',
       id: req.query.id as string,
       method: 'POST',
       input: parameters
     })) as fhir4.Library
+    console.log('approve fail: response:', response)
     res.send(response)
   } catch (e: any) {
-    const error = e as HapiError
-    logger.error('ERROR: ' + error.response?.data?.issue?.[0]?.code + " : " + error.response?.data?.issue?.[0]?.diagnostics)
-    res.status(error.response?.status).json({ error: error.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
+    logSimpleHapiError(e)
+    res.status(e?.response?.status).json({ error: e?.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
   }
 }
 

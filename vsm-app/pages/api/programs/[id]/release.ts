@@ -32,14 +32,14 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   }
 
   const response = await fhirCdrClient.operation({
-    name: '$crmi.release',
+    name: '$releasee',
     resourceType: 'Library',
     id: req.query.id as string,
     method: 'POST',
     input: releasePayload
   })
 
-  if (!response.entry) {
+  if (response.entry) {
     console.error('res here: ', response)
     logger.error('error', response.status, response.statusText)
     return res.status(response.status || 500).json({ error: response.statusText })
