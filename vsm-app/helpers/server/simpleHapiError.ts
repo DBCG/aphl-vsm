@@ -19,15 +19,24 @@ const formatHapiError = (e: HapiError, location?: string): FormattedHapiError =>
   return error
 }
 
-const logSimpleHapiError = (e: HapiError | any, location?: string): void => {
+const logSimpleError = (e: HapiError | any, location?: string): void => {
+  const isDevelopment = process.env.NODE_ENV === 'development'
 
   if (is.hapiError(e)) {
     const formattedError = formatHapiError(e, location)
-    logger.error(formattedError)
+    if (isDevelopment) {
+      console.error(formattedError)
+    } else {
+      logger.error(formattedError)
+    }
   } else {
-    logger.error(`Error not from HAPI: , ${e}`)
-    logger.error(`Location: ${location}`)
+    if (isDevelopment) {
+      console.error(e)
+    } else {
+      logger.error(`Error not from HAPI: , ${e}`)
+      logger.error(`Location: ${location}`)
+    }
   }
 }
 
-export { logSimpleHapiError, formatHapiError }
+export { logSimpleError, formatHapiError }

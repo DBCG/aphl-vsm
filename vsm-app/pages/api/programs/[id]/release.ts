@@ -14,8 +14,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       body: toReleaseLibrary
     })
   } catch (e) {
-    logger.error('error', e)
-    return res.status(500).json({ error: 'Error updating program by ID' })
+    throw(e)
   }
   const releasePayload = {
     resourceType: 'Parameters',
@@ -31,20 +30,15 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     ]
   }
 
-  const response = await fhirCdrClient.operation({
-    name: '$releasee',
+  await fhirCdrClient.operation({
+    name: '$release',
     resourceType: 'Library',
     id: req.query.id as string,
     method: 'POST',
     input: releasePayload
   })
 
-  if (response.entry) {
-    console.error('res here: ', response)
-    logger.error('error', response.status, response.statusText)
-    return res.status(response.status || 500).json({ error: response.statusText })
-  }
-
+  // errors are caught by the handler, processed in handler.ts
   return res.status(200).send({})
 }
 

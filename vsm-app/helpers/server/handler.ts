@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
 import logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { logSimpleError } from './simpleHapiError'
 
 const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse) => {
   const session = <VSMSession>await getSession(res)
@@ -23,12 +24,9 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     }
     await action(req, res, session)
   } catch (error: any) {
-    console.log('error: ', error)
+    logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
-    const errorText = error?.response?.data?.text
-    logger.error(`Something went wrong: ${diagnostics}`)
-    logger.error(`Error text: ${JSON.stringify(errorText)}`)
-    return res.status(500).json({ error: diagnostics || error?.message || error })
+    return res.status(500).json({ error: diagnostics || error?.error || error })
   }
 }
 

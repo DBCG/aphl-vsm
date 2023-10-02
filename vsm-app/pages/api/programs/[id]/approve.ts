@@ -5,7 +5,7 @@ import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
 import { getServerSession } from 'next-auth'
-import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 
 // this sets approvalDate and date and optionally
@@ -14,9 +14,9 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   const parameters = JSON.parse(req.body || {})
   const session = await getServerSession(req, res, AuthOptions)
   const userEmail = session?.user?.email
+
   if (!userEmail) {
-    res.status(401).json({ error: 'Unauthorized' })
-    return
+    throw({ error: 'Unauthorized' })
   }
 
   const approvalUser = {
@@ -35,11 +35,10 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
       method: 'POST',
       input: parameters
     })) as fhir4.Library
-    console.log('approve fail: response:', response)
+
     res.send(response)
   } catch (e: any) {
-    logSimpleHapiError(e)
-    res.status(e?.response?.status).json({ error: e?.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
+    throw(e)
   }
 }
 
