@@ -107,7 +107,7 @@ const ProgramDetails = () => {
   const { id = '', status } = program
   return (
     <Col>
-      <Row style={{ justifyContent: 'space-between' }}>
+      <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
