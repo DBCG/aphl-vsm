@@ -58,8 +58,10 @@ export const incrementSemver = ({
       break
     case 'revision':
       patch = incrementStringValue(revision)
+      break
   }
-  return `${major}.${minor}.${patch}.${revision}`
+  // only append revision if it exists
+  return `${major}.${minor}.${patch}${revision ? "." + revision : ""}`
 }
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')
