@@ -77,7 +77,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
       } as fhir4.Parameters
 
       const clientResponse = await fhirCdrClient.operation({
-        name: '$draft',
+        name: '$crmi.draft',
         method: 'POST',
         id: `Library/${body.id}`,
         options: {
