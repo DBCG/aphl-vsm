@@ -1,4 +1,4 @@
-import DataTable from 'react-data-table-component'
+import DataTable, { TableColumn } from 'react-data-table-component'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import useSWR from 'swr'
@@ -11,35 +11,19 @@ const prepData = (data: ManifestDataMap) => {
   if (!data) return []
   const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {
-    value?.forEach((version) => preparedData.push({ system, version , id: `${system}|${version}` }))
+    value?.forEach((version) => preparedData.push({ system, version, id: `${system}|${version}` }))
   })
   return preparedData
 }
 
-const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestData, loading, programId }: any) => {
+const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, programId, availableUpdates }: any) => {
   const preppedData = prepData(manifestData)
   const { data: systemAndVersionData = [] } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)
+  const noUpdatesAvailable = !Boolean(availableUpdates?.length)
 
-  const columns = [
-    {
-      omit: !deleteFn,
-      maxWidth: '50px',
-      cell: (row: ManifestSystemVersionPair) => {
-        return (
-          <IconButton
-            data-delete-manifest={`${row.system}|${row.version}`}
-            deletedItemDescription={`system "${row.system}" version ${row.version}`}
-            onClick={() => deleteFn(row)}
-            buttonContext="delete"
-            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
-          />
-        )
-      },
-      sortable: true,
-      wrap: true
-    },
+  const columns: TableColumn<ManifestSystemVersionPair>[] = [
     {
       name: 'Name',
       selector: (row: ManifestSystemVersionPair) => getNameByUri(row.system!, allSystemNamesByUri),
@@ -57,6 +41,48 @@ const ManifestDetailTable = ({ deleteFn = false, customStyles, data: manifestDat
       name: 'Version',
       selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
+      wrap: true
+    },
+    {
+      name: 'Remove',
+      omit: !deleteFn,
+      maxWidth: '50px',
+      cell: (row: ManifestSystemVersionPair) => {
+        return (
+          <IconButton
+            data-delete-manifest={`${row.system}|${row.version}`}
+            deletedItemDescription={`system "${row.system}" version ${row.version}`}
+            onClick={() => deleteFn(row)}
+            buttonContext="delete"
+            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+          />
+        )
+      },
+      sortable: true,
+      wrap: true
+    },
+    {
+      name: 'Update Available',
+      maxWidth: '200px',
+      omit: noUpdatesAvailable,
+      sortable: true,
+      cell: (row: ManifestSystemVersionPair) => {
+        const matchingVs = availableUpdates.find(
+          (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
+        )
+        if (matchingVs) {
+          return (
+            <IconButton
+              data-update-manifest={`${row.system}|${row.version}`}
+              onClick={() => updateFn(row.version, row.system)}
+              buttonContext="update"
+              style={{ backgroundColor: 'darkGreen', margin: '0 auto' }}
+            />
+          )
+        } else {
+          return null
+        }
+      },
       wrap: true
     }
   ]

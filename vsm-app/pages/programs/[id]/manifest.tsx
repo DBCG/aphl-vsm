@@ -14,6 +14,9 @@ import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSy
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
+import InfoIcon from '@mui/icons-material/Info'
+import Tooltip from '@mui/material/Tooltip'
+import { ErrorMessage } from '@/components/ErrorMessage'
 
 const endWrapPx = 900
 
@@ -98,6 +101,8 @@ const EditManifestDetails = () => {
   const program = useGetProgramById({ programId })
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [availableUpdates, setAvailableUpdates] = useState([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
@@ -116,6 +121,7 @@ const EditManifestDetails = () => {
   }
 
   useEffect(() => {
+    // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
@@ -128,6 +134,7 @@ const EditManifestDetails = () => {
   }, [isLoading, systemAndVersionData, error])
 
   useEffect(() => {
+    // Initializes the current selected data
     if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
     }
@@ -147,10 +154,42 @@ const EditManifestDetails = () => {
     } catch (err) {
       console.error(err)
       toast.error('Error adding manifest program version')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const searchAvailableUpdates = async () => {
+    const manifestEndpoint = `/api/programs/${programId}/manifest`
+
+    // Find all the latest versions for the chosen systems
+    const availableLatestVersionsMap = {} as { [key: string]: string }
+    Object.keys(currentSelectedData).forEach((system) => {
+      availableLatestVersionsMap[system] = systemAndVersionData.find((i: SystemSelection) => i.uri === system)?.latestVersion
+    })
+    try {
+      const mData = await fetch(manifestEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(availableLatestVersionsMap)
+      }).then((res) => res.json())
+      // Because VSAC versions in the metadata do not match the version listed on ValueSet we need to double check
+      // that the versions we are offering to update are not already the latest
+      const filteredAvailableVersions = mData.filter((i: fhir4.ValueSet) => {
+        const currentVersions = currentSelectedData[i?.url!]
+        return !currentVersions?.includes(i?.version!)
+      })
+      setAvailableUpdates(filteredAvailableVersions)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error finding available updates')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   useEffect(() => {
+    // Pulla the available versions for the selected CodeSystem
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
       const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
@@ -169,16 +208,40 @@ const EditManifestDetails = () => {
   }, [systemSelections])
 
   const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
+    setIsUpdating(true)
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
     updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
+    setIsUpdating(false)
   }
 
   if (selectOptions.length === 0) {
     return null // Fixes a nextjs hydration error
   }
 
+  const onClickAddHandler = (newVersion: string, system?: string) => {
+    const targetedSystem = system || selectedSystem
+    setIsUpdating(true)
+    const clonedcurrentSelectedData = structuredClone(currentSelectedData)
+    // collect all provisional versions, we want to keep these in the manifest but swap out the pinned version
+    const toUpdateManifestVersions = clonedcurrentSelectedData[targetedSystem]?.filter((i: string) => i.includes('provisional')) || []
+    toUpdateManifestVersions.push(newVersion)
+    clonedcurrentSelectedData[targetedSystem] = toUpdateManifestVersions
+
+    updateManifest({
+      currentSelectedData: clonedcurrentSelectedData,
+      action: 'add',
+      id: getIdFromSystem(targetedSystem),
+      version: newVersion
+    })
+  }
+
+  const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
+
+  const errorMessage = `You have already added a version for this codesystem. To select another, please remove a version below with Code System ${selectedSystem}`
+
+  const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
   return (
     <>
       <Row>
@@ -202,6 +265,18 @@ const EditManifestDetails = () => {
           onChange={({ value }: any) => setSelectedSystem(value)}
           name="codesystems"
           options={selectOptions}
+        />
+        <Tooltip title={`Search for updates to the latest version CodeSystem`}>
+          <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
+        </Tooltip>
+        <Button
+          style={{ marginLeft: '10px' }}
+          text="Search for Updates"
+          loading={isUpdating}
+          onClick={() => {
+            setIsUpdating(true)
+            searchAvailableUpdates()
+          }}
         />
       </CodesystemSelectContainer>
       <DataTableContainer>
@@ -230,6 +305,8 @@ const EditManifestDetails = () => {
                 maxWidth: '120px',
                 selector: (row) => row,
                 sortable: true,
+                // Some code systems have urls for their versions with the date at the end
+                sortFunction: (a: string, b: string) => a.split('/')?.pop()?.localeCompare(b.split('/').pop()),
                 wrap: true
               },
               {
@@ -237,19 +314,10 @@ const EditManifestDetails = () => {
                   return (
                     <Button
                       data-tag="allowRowEvents"
+                      disabled={shouldDisableAddButton}
                       data-add-manifest={`${selectedSystem}|${newVersion}`}
                       text="Add"
-                      onClick={() => {
-                        const clonedcurrentSelectedData = structuredClone(currentSelectedData)
-                        clonedcurrentSelectedData[selectedSystem] = [...(clonedcurrentSelectedData[selectedSystem] || []), newVersion]
-
-                        updateManifest({
-                          currentSelectedData: clonedcurrentSelectedData,
-                          action: 'add',
-                          id: getIdFromSystem(selectedSystem),
-                          version: newVersion
-                        })
-                      }}
+                      onClick={() => onClickAddHandler(newVersion)}
                     />
                   )
                 },
@@ -268,12 +336,28 @@ const EditManifestDetails = () => {
         </MaxWidthContainer>
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
+          {!isUpdating && shouldDisableAddButton && (
+            <ErrorMessage
+              error={errorMessage}
+            />
+          )}
           <ManifestDetailTable
             programId={programId}
             className="detail-table"
             customStyles={customTableStyles('readonly')}
             data={currentSelectedData}
+            availableUpdates={availableUpdates}
             loading={manifestData == null}
+            updateFn={(version: string, system: string) => {
+              const targetedVsIndex = availableUpdates.findIndex((i: fhir4.ValueSet) => i.url === system)
+              const targetedVs = availableUpdates[targetedVsIndex] as fhir4.ValueSet
+              onClickAddHandler(targetedVs?.version as string, system)
+              // Remove the update from the available updates list
+              availableUpdates.splice(targetedVsIndex, 1)
+              const newUpdates = [...availableUpdates]
+              setAvailableUpdates(newUpdates)
+              setIsUpdating(false)
+            }}
             deleteFn={deleteFn}
           />
         </MaxWidthContainer>

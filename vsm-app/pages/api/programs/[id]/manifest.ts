@@ -25,13 +25,55 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
     const terminologyCapabilityStatement = await activeTerminologyClient?.capabilityStatement()
     const availableCodeSystems = terminologyCapabilityStatement?.extension
       ?.map((ext: fhir4.Extension) => {
-        const uri = ext?.extension?.find(({ url }) => url === 'system')?.valueUri
-        const name = ext?.extension?.find(({ url }) => url === 'name')?.valueString
-        return { uri, name }
+        let uri, name, latestVersion
+        ext?.extension?.forEach((e: fhir4.Extension) => {
+          switch (e.url) {
+            case 'system':
+              uri = e.valueUri
+              break
+            case 'version':
+              latestVersion = e.valueString
+              break
+            case 'name':
+              name = e.valueString
+              break
+          }
+        })
+
+        return { uri, name, latestVersion }
       })
       .filter((x: any) => x.uri && x.name)
 
     return res.status(200).json(availableCodeSystems)
+  } catch (e) {
+    logger.error('error:  ', e)
+    return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
+  }
+}
+
+const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
+  terminologyClient.setClient('vsac')
+  const activeTerminologyClient = terminologyClient.getClient()
+  try {
+   const latestVersions = await activeTerminologyClient?.batch({
+      body: {
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: Object.entries(req.body).map((i) => {
+          const [system, version] = i
+          return {
+            request: {
+              method: 'GET',
+              url: `/CodeSystem?system=${system}&version=${version}`
+            }
+          }
+        })
+      }
+    });
+
+    // Parse a bundle of bundle into a list of CodeSystems
+    const latestVersionCodeSystems = latestVersions?.entry?.map((i: fhir4.BundleEntry) => i.resource?.entry?.[0]?.resource)
+    return res.status(200).json(latestVersionCodeSystems)
   } catch (e) {
     logger.error('error:  ', e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
@@ -61,5 +103,6 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 
 export default handler({
   GET: { action: getManifestVersions, access: ['admin', 'editor'] },
-  PUT: { action: updateManifest, access: ['admin', 'editor'] }
+  PUT: { action: updateManifest, access: ['admin', 'editor'] },
+  POST: { action: getAvailableLatestVersions, access: ['admin', 'editor'] }
 })
