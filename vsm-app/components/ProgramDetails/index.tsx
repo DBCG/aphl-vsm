@@ -15,6 +15,8 @@ import { StyledSpan } from '@/styles'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
+import { PackageDetailsModal } from '../modals/PackageDetailsModal'
+import { Stack } from '@mui/material'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -26,6 +28,7 @@ const ProgramDetails = () => {
   const fetchedProgram = useGetProgramById({ programId })
   const [releaseError, setReleaseError] = useState<null | string>(null)
   const [isReleasing, setIsReleasing] = useState(false)
+  const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
 
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
@@ -69,8 +72,8 @@ const ProgramDetails = () => {
         method: 'POST',
         body: JSON.stringify(program)
       })
-  
-      if(!releaseRes.ok) {
+
+      if (!releaseRes.ok) {
         const failRes = await releaseRes.json()
         setReleaseError(failRes.error)
         setIsReleasing(false)
@@ -79,21 +82,43 @@ const ProgramDetails = () => {
         setIsReleasing(false)
         router.push('/programs')
       }
-    } catch(e) {
+    } catch (e) {
       setReleaseError('Program release failed.')
       setIsReleasing(false)
       return
     }
   }
+  const downloadObject = (json: any) => {
+    // https://stackoverflow.com/a/55613750/8144343
+    const stringified = JSON.stringify(json, null, 2)
+    const blob = new Blob([stringified], { type: 'application/fhir+json' })
+    const href = URL.createObjectURL(blob)
+    // create "a" HTLM element with href to file
+    const link = document.createElement('a')
+    link.href = href
+    link.download = `${programAndGrouperData.program?.name}-bundle.json`
+    document.body.appendChild(link)
+    link.click()
 
+    // clean up "a" element & remove ObjectURL
+    document.body.removeChild(link)
+    URL.revokeObjectURL(href)
+  }
   const allowToEdit = can(session, 'edit') && program?.status === 'draft'
 
   const releaseButton = (() => {
     if (allowToEdit) {
-        return <Button text="Release" loading={isReleasing} style={{ minHeight: '40px', minWidth: '150px', marginBottom: '.5rem' }} onClick={() => handleReleaseProgram()} />
-      }
-      return null
-    })()
+      return (
+        <Button
+          text="Release"
+          loading={isReleasing}
+          style={{ minHeight: '40px', minWidth: '150px', marginBottom: '.5rem' }}
+          onClick={() => handleReleaseProgram()}
+        />
+      )
+    }
+    return null
+  })()
 
   // early return if no data, must be a library if there's data
   if (!is.library(program)) {
@@ -112,7 +137,22 @@ const ProgramDetails = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
+          <Button text={'Export'} onClick={() => setShowExportOptionsModal(true)}></Button>
+          <PackageDetailsModal
+            isOpen={showExportOptionsModal}
+            toggleModalOpen={() => setShowExportOptionsModal(false)}
+            handleDownloadClick={async (useV2, xml) =>
+              fetch(`/api/programs/${router.query.id}/package`, {
+                method: 'POST',
+                body: JSON.stringify({ parameters: {}, xml: xml })
+              })
+                .then((data) => data.json())
+                .then((json) => downloadObject(json))
+            }
+          />
+        </Stack>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
 
@@ -156,7 +196,7 @@ const ProgramDetails = () => {
           <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
         </Col>
       </Row>
-      {releaseError && <ErrorMessage error={releaseError}/>}
+      {releaseError && <ErrorMessage error={releaseError} />}
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
