@@ -1,3 +1,11 @@
+interface FormattedHapiError {
+  location: string | undefined
+  status: number | undefined
+  severity: string | undefined
+  code: string | undefined
+  diagnostics: string | undefined
+}
+
 interface HapiError {
   response: {
     status: number
@@ -10,4 +18,4 @@ interface HapiError {
   }
 }
 
-export type { HapiError }
+export type { HapiError, FormattedHapiError }
