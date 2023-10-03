@@ -333,6 +333,12 @@ const EditManifestDetails = () => {
         </MaxWidthContainer>
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
+          {!isUpdating && shouldDisableAddButton && (
+            <StyledLabel>
+              You have already added a version for this codesystem. To select another, please remove a version below with Code System:{'  '}
+              <b>{selectedSystem}</b>
+            </StyledLabel>
+          )}
           <ManifestDetailTable
             programId={programId}
             className="detail-table"
