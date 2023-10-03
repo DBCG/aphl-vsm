@@ -153,7 +153,8 @@ const getLeafValueSets = async ({
 
   const result = {
     leafValueSets,
-    leafVersionsByCanonical
+    leafVersionsByCanonical,
+    totalLeafs: leafValueSetCanonicals.length
   }
 
   return result
@@ -335,7 +336,7 @@ export const getProgramDetailsValuesets = async ({
       return { status: 400, payload: { error: leafVsetResponse.error } }
     }
 
-    const { leafValueSets, leafVersionsByCanonical } = leafVsetResponse
+    const { leafValueSets, leafVersionsByCanonical, totalLeafs } = leafVsetResponse
 
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
@@ -361,7 +362,8 @@ export const getProgramDetailsValuesets = async ({
     const composedResponse = {
       programStatus: program.status,
       data: formattedVsets,
-      groupsInProgram: grouperValueSets
+      groupsInProgram: grouperValueSets,
+      totalLeafs
     }
     return { status: 200, payload: composedResponse }
   } catch (e: any) {

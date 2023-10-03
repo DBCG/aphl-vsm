@@ -238,6 +238,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     id: programId, toggleRefresh: toggleUpdateData
   })
 
+  console.log('program and grouper data: ', programAndGrouperData)
+
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)
@@ -255,6 +257,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
   const groupsInProgram = progValueSetDets?.groupsInProgram
+  const totalLeafs = progValueSetDets?.totalLeafs
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -657,7 +660,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
           selectedRows={selectedRows}
-          totalRows={progValueSetDets?.data?.length || 0}
+          totalRows={totalLeafs}
           isDeleting={isDeleting}
         />
         <ErrorMessage
