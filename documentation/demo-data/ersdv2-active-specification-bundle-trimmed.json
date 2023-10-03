@@ -57,7 +57,7 @@
                         },
                           "valueCodeableConcept": {
                               "coding": [ {
-                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
                                 "code": "routine"
                               } ]
                         }

@@ -33,7 +33,7 @@ const setVSPriorityUsageContext = (target: fhir4.Library | fhir4.ValueSet, code:
     valueCodeableConcept: {
       coding: [
         {
-          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
           code
         }
       ]
