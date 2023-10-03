@@ -16,6 +16,7 @@ import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
+import { ErrorMessage } from '@/components/ErrorMessage'
 
 const endWrapPx = 900
 
@@ -238,6 +239,8 @@ const EditManifestDetails = () => {
 
   const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
 
+  const errorMessage = `You have already added a version for this codesystem. To select another, please remove a version below with Code System ${selectedSystem}`
+
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
   return (
     <>
@@ -334,10 +337,9 @@ const EditManifestDetails = () => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           {!isUpdating && shouldDisableAddButton && (
-            <StyledLabel>
-              You have already added a version for this codesystem. To select another, please remove a version below with Code System:{'  '}
-              <b>{selectedSystem}</b>
-            </StyledLabel>
+            <ErrorMessage
+              error={errorMessage}
+            />
           )}
           <ManifestDetailTable
             programId={programId}
