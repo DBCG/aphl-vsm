@@ -26,6 +26,7 @@ const ProgramDetails = () => {
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const fetchedProgram = useGetProgramById({ programId })
   const [releaseError, setReleaseError] = useState<null | string>(null)
+  const [exportError, setExportError] = useState<null | string>(null)
   const [isReleasing, setIsReleasing] = useState(false)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [downloadLoading, setDownloadLoading] = useState(false)
@@ -88,15 +89,14 @@ const ProgramDetails = () => {
       return
     }
   }
-  const downloadObject = (json: any) => {
+  const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`) => {
     // https://stackoverflow.com/a/55613750/8144343
-    const stringified = JSON.stringify(json, null, 2)
-    const blob = new Blob([stringified], { type: 'application/fhir+json' })
+    const blob = new Blob([data], { type: type })
     const href = URL.createObjectURL(blob)
     // create "a" HTLM element with href to file
     const link = document.createElement('a')
     link.href = href
-    link.download = `${programAndGrouperData.program?.name}-bundle.json`
+    link.download = `${programAndGrouperData.program?.name}-bundle.${type.includes('json') ? 'json' : 'xml'}`
     document.body.appendChild(link)
     link.click()
 
@@ -148,8 +148,11 @@ const ProgramDetails = () => {
             loading={downloadLoading}
             disabled={downloadLoading}
             text={'Export'}
-            onClick={() => setShowExportOptionsModal(true)}
-          ></Button>
+            onClick={() => {
+              setReleaseError(null)
+              setShowExportOptionsModal(true)
+            }}
+          />
           <PackageDetailsModal
             isOpen={showExportOptionsModal}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
@@ -159,10 +162,24 @@ const ProgramDetails = () => {
                 method: 'POST',
                 body: JSON.stringify({ parameters: {}, xml: xml })
               })
-                .then((data) => data.json())
-                .then((json) => downloadObject(json))
+                .then((resp) => resp.text())
+                .then((data) => {
+                  try {
+                    const json = JSON.parse(data)
+                    return downloadTextData(data, 'application/fhir+json')
+                  } catch (error) {
+                    if (data?.[0] === '<') {
+                      return downloadTextData(data, 'application/fhir+xml')
+                    } else {
+                      throw new Error('Unable to parse $crmi.package response')
+                    }
+                  }
+                })
+                .catch((error) => {
+                  console.error(error)
+                  setReleaseError('Error exporting artifact')
+                })
                 .finally(() => {
-                  console.log('something happened')
                   setDownloadLoading(false)
                 })
             }}
@@ -212,6 +229,7 @@ const ProgramDetails = () => {
         </Col>
       </Row>
       {releaseError && <ErrorMessage error={releaseError} />}
+      {exportError && <ErrorMessage error={exportError} />}
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )

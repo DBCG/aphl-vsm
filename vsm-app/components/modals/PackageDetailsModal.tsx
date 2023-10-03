@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -22,27 +22,30 @@ interface ModalInfo {
 }
 
 const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick, itemToDelete }: ModalInfo) => {
+  const xml = useRef(false)
+  const useV2 = useRef(true)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
   }
 
   const handleDownload = () => {
-    handleDownloadClick(switchControl.props.value, checkbox.props.value)
+    handleDownloadClick(useV2.current, xml.current)
     toggleModalOpen()
   }
-  const switchControl = <Switch defaultChecked={true} />
-  const checkbox = <Checkbox defaultChecked={false} />
   return (
     <Dialog open={isOpen}>
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
           <FormGroup>
-            <FormControlLabel control={checkbox} label="XML" />
+            <FormControlLabel
+              control={<Checkbox defaultChecked={false} onChange={(event) => (xml.current = event.target.checked)} />}
+              label="XML"
+            />
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography>V1</Typography>
-              {switchControl}
+              {<Switch defaultChecked={true} onChange={(event) => (useV2.current = event.target.checked)} />}
               <Typography>V2</Typography>
             </Stack>
           </FormGroup>
