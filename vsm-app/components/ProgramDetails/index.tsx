@@ -16,6 +16,7 @@ import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { PackageDetailsModal } from '../modals/PackageDetailsModal'
+import { expectedPackageBody } from '@/pages/api/programs/[id]/package'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -132,6 +133,7 @@ const ProgramDetails = () => {
   const { id = '', status } = program
   return (
     <Col>
+      {exportError && <ErrorMessage error={exportError} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
@@ -149,35 +151,43 @@ const ProgramDetails = () => {
             disabled={downloadLoading}
             text={'Export'}
             onClick={() => {
-              setReleaseError(null)
+              setExportError(null)
               setShowExportOptionsModal(true)
             }}
           />
           <PackageDetailsModal
             isOpen={showExportOptionsModal}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
-            handleDownloadClick={async (useV2, xml) => {
+            handleDownloadClick={(useV2, xml) => {
               setDownloadLoading(true)
+              const body: expectedPackageBody = { parameters: { resourceType: 'Parameters' }, xml: xml }
               fetch(`/api/programs/${router.query.id}/package`, {
                 method: 'POST',
-                body: JSON.stringify({ parameters: {}, xml: xml })
+                body: JSON.stringify(body)
               })
                 .then((resp) => resp.text())
                 .then((data) => {
+                  let json
                   try {
-                    const json = JSON.parse(data)
-                    return downloadTextData(data, 'application/fhir+json')
+                    // if it's not JSON this will throw an error
+                    json = JSON.parse(data)
                   } catch (error) {
+                    // all XML starts with <
                     if (data?.[0] === '<') {
                       return downloadTextData(data, 'application/fhir+xml')
                     } else {
                       throw new Error('Unable to parse $crmi.package response')
                     }
                   }
+                  if ('error' in json) {
+                    throw new Error('Server error')
+                  } else if (json) {
+                    return downloadTextData(data, 'application/fhir+json')
+                  }
                 })
                 .catch((error) => {
                   console.error(error)
-                  setReleaseError('Error exporting artifact')
+                  setExportError('Error exporting artifact')
                 })
                 .finally(() => {
                   setDownloadLoading(false)
@@ -229,7 +239,6 @@ const ProgramDetails = () => {
         </Col>
       </Row>
       {releaseError && <ErrorMessage error={releaseError} />}
-      {exportError && <ErrorMessage error={exportError} />}
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>
   )
