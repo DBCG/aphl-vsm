@@ -28,7 +28,12 @@ interface IncrementParams {
   fallbackValue: string
 }
 
-const incrementStringValue = (str: string) => (parseInt(str) + 1).toString()
+const incrementStringValue = (str: string) => {
+  const parsed = parseInt(str)
+  if (!Number.isNaN(parsed)) {
+    return (parsed + 1).toString()
+  }
+}
 
 export const incrementSemver = ({
   valueToIncrement,
@@ -48,16 +53,16 @@ export const incrementSemver = ({
 
   switch (incrementType) {
     case 'major':
-      major = incrementStringValue(major)
+      major = incrementStringValue(major) || major
       break
     case 'minor':
-      minor = incrementStringValue(minor)
+      minor = incrementStringValue(minor) || minor
       break
     case 'patch':
-      patch = incrementStringValue(patch)
+      patch = incrementStringValue(patch) || patch
       break
     case 'revision':
-      revision = incrementStringValue(revision)
+      revision = incrementStringValue(revision) || revision || '0'
       break
   }
   // only append revision if it exists
