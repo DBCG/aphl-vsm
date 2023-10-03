@@ -16,7 +16,6 @@ import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { PackageDetailsModal } from '../modals/PackageDetailsModal'
-import { Stack } from '@mui/material'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -29,6 +28,7 @@ const ProgramDetails = () => {
   const [releaseError, setReleaseError] = useState<null | string>(null)
   const [isReleasing, setIsReleasing] = useState(false)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
+  const [downloadLoading, setDownloadLoading] = useState(false)
 
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
@@ -137,22 +137,37 @@ const ProgramDetails = () => {
           <PageTitle>{id}</PageTitle>
           <StatusTag status={status}>{status}</StatusTag>
         </MetadataTitle>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Button id="view-valuesets" text="View ValueSets" onClick={() => router.push(`/programs/${id}/valuesets`)} />
-          <Button text={'Export'} onClick={() => setShowExportOptionsModal(true)}></Button>
+        <Col style={{ width: 'auto' }}>
+          <Button
+            id="view-valuesets"
+            text="View ValueSets"
+            onClick={() => router.push(`/programs/${id}/valuesets`)}
+            style={{ marginBottom: '15px' }}
+          />
+          <Button
+            loading={downloadLoading}
+            disabled={downloadLoading}
+            text={'Export'}
+            onClick={() => setShowExportOptionsModal(true)}
+          ></Button>
           <PackageDetailsModal
             isOpen={showExportOptionsModal}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
-            handleDownloadClick={async (useV2, xml) =>
+            handleDownloadClick={async (useV2, xml) => {
+              setDownloadLoading(true)
               fetch(`/api/programs/${router.query.id}/package`, {
                 method: 'POST',
                 body: JSON.stringify({ parameters: {}, xml: xml })
               })
                 .then((data) => data.json())
                 .then((json) => downloadObject(json))
-            }
+                .finally(() => {
+                  console.log('something happened')
+                  setDownloadLoading(false)
+                })
+            }}
           />
-        </Stack>
+        </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
 
