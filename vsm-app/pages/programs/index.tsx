@@ -9,7 +9,6 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
-import { Button } from '@/components/buttons/Button'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
@@ -39,7 +38,7 @@ export interface StatusProps {
 }
 
 interface Error {
-  message?: string
+  error?: string
 }
 
 const customStyles = {
@@ -119,10 +118,10 @@ const Programs: NextPage = () => {
         toggleNewCloneExists()
       } else {
         const json = await res.json()
-        setError({ message: json.message })
+        setError({ error: json.error })
       }
     } catch (e) {
-      setError({ message: `Error cloning program ${programId}` })
+      setError({ error: `Error cloning program ${programId}` })
     }
 
     setCloneLoading(false)
@@ -249,7 +248,7 @@ const Programs: NextPage = () => {
     if (!result.ok) {
       const res = await result.json()
       setError({
-        message: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${
+        error: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${
           res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
         }`
       })
@@ -280,7 +279,6 @@ const Programs: NextPage = () => {
       />
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
-        {/* <Button text="Publish" /> */}
       </Row>
       <LoadingModal
         isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
@@ -290,7 +288,7 @@ const Programs: NextPage = () => {
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
       />
-      <ErrorMessage error={error?.message || null} />
+      <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
         // @ts-expect-error

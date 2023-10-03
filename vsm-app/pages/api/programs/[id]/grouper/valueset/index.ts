@@ -15,7 +15,7 @@ import { HapiError } from '@/types/hapiError'
 import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
-import { logSimpleHapiError } from '@/helpers/server/simpleHapiError'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import uniqBy from 'lodash.uniqby'
@@ -279,7 +279,7 @@ const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library
       return program
     }
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e, 'getProgram')
+    logSimpleError(e, 'getProgram')
     return {
       errorMessage: `Program with id ${programId} not found.`,
       resStatus: 404
@@ -314,7 +314,7 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
     // so first is most recent
     return responsesFromCdrGet?.entry?.map((i: any) => i?.resource?.entry?.[0]?.resource)?.filter((x: fhir4.ValueSet | undefined) => x)
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e, 'getMatchingLeafsFromCQF')
+    logSimpleError(e, 'getMatchingLeafsFromCQF')
     return { resStatus: 400, errorMessage: 'Could not find batch ValueSets' }
   }
 }
@@ -402,7 +402,7 @@ const submitUpdatesToCQF = async ({
 
         transactionEntries.push(vsAddedToCache)
       } catch (e: HapiError | any) {
-        logSimpleHapiError(e, 'submitLeafUpdatesFromTermServers')
+        logSimpleError(e, 'submitLeafUpdatesFromTermServers')
         return {
           resStatus: 400,
           errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}`
@@ -484,7 +484,7 @@ const updateProgramLibraryWithGrouperRef = async (
       }
     } as fhir4.BundleEntry
   } catch (e: HapiError | any) {
-    logSimpleHapiError(e, 'updateProgramLibraryWithGrouperRef')
+    logSimpleError(e, 'updateProgramLibraryWithGrouperRef')
     return { resStatus: 400, errorMessage: `Failed to create transaction payload for Program ${program.id}` }
   }
 }
@@ -539,7 +539,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     return res.status(200).send({ message: `Grouper ${grouperId} updated` })
     
   } catch (e) {
-    logSimpleHapiError(e, 'updateExistingGrouper')
+    logSimpleError(e, 'updateExistingGrouper')
     res.status(400).send({ error: 'error' })
   }
 }
