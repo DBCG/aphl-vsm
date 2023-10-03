@@ -57,7 +57,7 @@ export const incrementSemver = ({
       patch = incrementStringValue(patch)
       break
     case 'revision':
-      patch = incrementStringValue(revision)
+      revision = incrementStringValue(revision)
       break
   }
   // only append revision if it exists
