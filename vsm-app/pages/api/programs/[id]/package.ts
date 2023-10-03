@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
-import { HapiError } from '@/types/hapiError'
-import logger from '@/helpers/server/logger'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 export type expectedPackageBody = { parameters: fhir4.Parameters; xml: boolean }
 // this sets approvalDate and date and optionally
 // creates an artifactCommentExtension
@@ -37,10 +36,10 @@ const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bund
         })
       res.send(response)
     }
-  } catch (e: any) {
-    const error = e as HapiError
-    logger.error('ERROR: ' + error.response?.data?.issue?.[0]?.code + " : " + error.response?.data?.issue?.[0]?.diagnostics)
-    res.status(error.response?.status || 500).json({ error: error.response?.data?.issue?.[0]?.diagnostics || 'unknown' })
+  } catch (error: any) {
+    logSimpleError(error)
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
   }
 }
 
