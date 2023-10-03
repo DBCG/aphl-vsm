@@ -41,7 +41,7 @@ const modalText = {
   release: {
     title: 'Release Program',
     text: 'Releasing this program will mark it as active and allow others to use it as a template.',
-    actionText: 'Would you like to continue?',
+    actionText: 'Please review the following required fields to continue:',
     modalLoadingText: (
       <LoadingText>
         Releasing may take up to a minute.
