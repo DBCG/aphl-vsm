@@ -2,7 +2,7 @@ import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from "pages/api/programs/[id]/grouper/valueset"
 
 type SemverType = `${number}.${number}.${number}.${number}` | `${number}.${number}.${number}`
-// this regex is numeric only and matches MAJOR.MNIOR.PATCH or MAJOR.MINOR.PATCH.REVISION
+// this regex is numeric only and matches MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH.REVISION
 // matches values like 1.0.0.0 or 1.0.1, 20.1.1.10 or 20.1.1, 4000.29439.8198.1234 or 4000.29439.8198 etc
 const semverRegex = /^(\d+\.)(\d+\.)(\d+\.)?(\*|\d+)$/
 
