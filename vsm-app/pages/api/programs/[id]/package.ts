@@ -3,8 +3,8 @@ import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 export type expectedPackageBody = { parameters: fhir4.Parameters; xml: boolean }
-// this sets approvalDate and date and optionally
-// creates an artifactCommentExtension
+// this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
+// optionally returns in XML
 const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
   const { parameters, xml } = JSON.parse(req.body || {}) as expectedPackageBody
   try {
