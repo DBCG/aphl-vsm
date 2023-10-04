@@ -334,10 +334,12 @@ describe("Smoke Tests", () => {
         .click(50, 0, { force: true });
       // click the Export button
       cy.get('button').contains('Export').click()
+      // if we don't wait here the program data is lost somewhere
+      cy.wait(3000)
       // click the Download button
       cy.get('button').contains('Download').click()
       // file path is relative to the working folder
-      const filename = path.join(downloadsFolder, 'undefined-bundle.json')
+      const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.json')
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.a.property','resourceType')
@@ -354,12 +356,14 @@ describe("Smoke Tests", () => {
         .click(50, 0, { force: true });
       // click the Export button
       cy.get('button').contains('Export').click()
+      // if we don't wait here the program data is lost somewhere
+      cy.wait(3000)
       // tick the XML checkbox
       cy.get('span').contains('XML').parents('label').click()
       // click the Download button
       cy.get('button').contains('Download').click()
       // file path is relative to the working folder
-      const filename = path.join(downloadsFolder, 'undefined-bundle.xml')
+      const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.xml')
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.length.gt',50).and('contain.text','<')
