@@ -15,7 +15,7 @@ interface ResponseItem {
   lastModified: string
 }
 
-type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome
+type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | { error: { message: string; type: string } }
 
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -60,8 +60,8 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   const totalAttempts = 30
   let attempts = totalAttempts
 
-  const createDraftWithNewVersion = async (): Promise<DraftCreateResponse> => {
-    let response
+  const createDraftWithNewVersion = async (): Promise<DraftCreateResponse | undefined> => {
+    let response: DraftCreateResponse | undefined
 
     logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
 
@@ -86,8 +86,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         },
         input: JSON.stringify(parameters)
-      })
-
+      }) as fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] }
       if (!clientResponse?.entry?.length && attempts > 0) {
         logger.error(`
           Error: could not $draft Library/${body.id} with version ${versionToAttempt}.
@@ -109,6 +108,8 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
           incrementVersionToAttempt()
           attempts = attempts - 1
           return await createDraftWithNewVersion()
+        } else if ('message' in e && 'type' in e) {
+          response = { error: { message: e.message, type: e.type } }
         } else {
           response = e.response
         }
@@ -122,7 +123,9 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
 
   if (is.operationOutcome(draftResponse)) {
     throw draftResponse
-  } else if (!draftResponse?.entry) {
+  } else if (!!draftResponse && ('error' in draftResponse)) {
+    throw ({ error: draftResponse.error.message })
+  } else if (!!draftResponse && !('entry' in draftResponse)) {
     throw ({ error: 'Error occurred cloning library' })
   } else {
     return res.status(200).json({ message: 'Successfully drafted' })
