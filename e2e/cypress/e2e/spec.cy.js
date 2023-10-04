@@ -1,5 +1,9 @@
 import moment from "moment";
-
+import path from "path";
+const downloadsFolder = Cypress.config('downloadsFolder')
+const deleteDownloadsFolder = () => {
+  cy.task('deleteFolder', downloadsFolder)
+}
 describe("Smoke Tests", () => {
   before(() => {
     cy.setupData();
@@ -8,6 +12,7 @@ describe("Smoke Tests", () => {
   beforeEach(() => {
     cy.visit("http://localhost:3000");
     cy.login("johndoe", "password");
+    deleteDownloadsFolder()
   });
 
   afterEach(function () {
@@ -319,6 +324,45 @@ describe("Smoke Tests", () => {
       // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
       cy.get('[data-column-id="1"]').should("not.exist", "DRAFT")
       cy.get('[data-button-context="mustApproveRelease-active"]').first().should("exist")
+    });
+    it("Downloads a JSON bundle using the Export button", () => {
+      // click on the first Draft Library on the programs page
+      cy.get('[data-column-id="1"]')
+        .contains("DRAFT")
+        .parents("div")
+        .parents("div")
+        .first()
+        .click(50, 0, { force: true });
+      // click the Export button
+      cy.get('button').contains('Export').click()
+      // click the Download button
+      cy.get('button').contains('Download').click()
+      // file path is relative to the working folder
+      const filename = path.join(downloadsFolder, 'undefined-bundle.json')
+      cy.readFile(filename, { timeout: 30000 })
+      // actually checking contents is memory intensive
+      //.should('have.a.property','resourceType')
+    });
+
+    it("Downloads an XML bundle using the Export button", () => {
+      // click on the first Draft Library on the programs page
+      cy.get('[data-column-id="1"]')
+        .contains("DRAFT")
+        .parents("div")
+        .parents("div")
+        .first()
+        .click(50, 0, { force: true });
+      // click the Export button
+      cy.get('button').contains('Export').click()
+      // tick the XML checkbox
+      cy.get('span').contains('XML').parents('label').click()
+      // click the Download button
+      cy.get('button').contains('Download').click()
+      // file path is relative to the working folder
+      const filename = path.join(downloadsFolder, 'undefined-bundle.xml')
+      cy.readFile(filename, { timeout: 30000 })
+      // actually checking contents is memory intensive
+      //.should('have.length.gt',50).and('contain.text','<')
     });
   });
 });
