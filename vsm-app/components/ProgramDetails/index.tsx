@@ -97,7 +97,7 @@ const ProgramDetails = () => {
     // create "a" HTLM element with href to file
     const link = document.createElement('a')
     link.href = href
-    link.download = `${programAndGrouperData.program?.title || programAndGrouperData.program?.id}-bundle.${
+    link.download = `${programAndGrouperData.program?.name || programAndGrouperData.program?.id}-bundle.${
       type.includes('json') ? 'json' : 'xml'
     }`
     document.body.appendChild(link)
