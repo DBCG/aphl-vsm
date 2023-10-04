@@ -23,7 +23,7 @@ describe("Smoke Tests", () => {
   context("Draft Library Setup", () => {
     it("clones active library", () => {
       cy.wait(3000)
-      cy.get('[data-button-context="clone-active"]').click();
+      cy.get('[data-button-context="clone-active"]').first().click();
       cy.get('[data-modal="confirm"]').click();
       cy.get('[data-modal="confirm"]').should("not.exist"); // Wait for draft operation to finish
       cy.get('[data-column-id="1"]').first().scrollIntoView()
@@ -40,7 +40,7 @@ describe("Smoke Tests", () => {
       cy.get("#edit-metadata").click();
 
       // Set program metadata values
-      cy.get("#prog-name").clear().type("Draft Library");
+      cy.get("#prog-title").clear().type("Draft Library");
       cy.get("#prog-desc").clear().type("Draft Library description");
       cy.get(".date-input button").click();
       cy.get("button").contains('Today').click();
@@ -53,7 +53,7 @@ describe("Smoke Tests", () => {
       cy.reload();
 
       // Run assertions to check for persistence after reload
-      cy.get("#prog-name").should("have.value", "Draft Library");
+      cy.get("#prog-title").should("have.value", "Draft Library");
       cy.get("#prog-version").should("have.value", "1.1.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
@@ -109,6 +109,8 @@ describe("Smoke Tests", () => {
 
       cy.get("#title").clear().type("excellent title for grouper");
       cy.get("#purpose").clear().type("To group valuesets together");
+      cy.get("#author").clear().type("test author");
+      cy.get("#publisher").clear().type("test publisher");
       cy.get("#description").clear().type("a description of the grouper");
 
       // vsac search for valuesets
@@ -172,7 +174,7 @@ describe("Smoke Tests", () => {
       cy.get(".rdt_TableBody input").first().click();
 
       // Set alias for oid
-      cy.get('.rdt_TableBody [data-column-id="6"]')
+      cy.get('.rdt_TableBody [data-column-id="5"]')
         .first()
         .then((oid) => cy.wrap(oid.text()).as("oid"));
 
@@ -263,13 +265,13 @@ describe("Smoke Tests", () => {
 
       cy.get("#view-valuesets").click();
       // Search By Name
-      cy.get('[data-column-id="vs-name-search"] input').clear().type("covid");
-      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223-2022-10-19-0"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
-      cy.get('[data-column-id="vs-name-search"] input').clear()
+      cy.get('[data-column-id="vs-title-search"] input').clear().type("covid");
+      cy.get('[id="cell-vs-title-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
+      cy.get('[data-column-id="vs-title-search"] input').clear()
 
       // Search By OID
       cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
-      cy.get('[id="cell-vs-name-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
+      cy.get('[id="cell-vs-title-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
       cy.get('[data-column-id="vs-oid-search"] input').clear();
     })
 
@@ -318,6 +320,7 @@ describe("Smoke Tests", () => {
       cy.get('#breadcrumb-programs').click();
       cy.get('[data-button-context="mustApproveRelease-draft"]').first().click();
       cy.get('#releaseLabel').clear().type("1.1.0");
+      cy.get('#releaseDescription').clear().type("description");
       cy.get('[data-modal="confirm"]').click();
 
       // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
