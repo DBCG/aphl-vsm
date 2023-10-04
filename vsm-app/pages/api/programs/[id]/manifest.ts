@@ -72,6 +72,7 @@ const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiRespo
     });
 
     // Parse a bundle of bundle into a list of CodeSystems
+    //@ts-ignore
     const latestVersionCodeSystems = latestVersions?.entry?.map((i: fhir4.BundleEntry) => i.resource?.entry?.[0]?.resource)
     return res.status(200).json(latestVersionCodeSystems)
   } catch (e) {
