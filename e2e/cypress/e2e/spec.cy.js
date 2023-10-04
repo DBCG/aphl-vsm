@@ -12,7 +12,6 @@ describe("Smoke Tests", () => {
   beforeEach(() => {
     cy.visit("http://localhost:3000");
     cy.login("johndoe", "password");
-    deleteDownloadsFolder()
   });
 
   afterEach(function () {
@@ -342,6 +341,7 @@ describe("Smoke Tests", () => {
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.a.property','resourceType')
+      deleteDownloadsFolder()
     });
 
     it("Downloads an XML bundle using the Export button", () => {
@@ -363,6 +363,7 @@ describe("Smoke Tests", () => {
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.length.gt',50).and('contain.text','<')
+      deleteDownloadsFolder()
     });
   });
 });
