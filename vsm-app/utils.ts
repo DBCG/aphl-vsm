@@ -24,11 +24,16 @@ export const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
 interface IncrementParams {
   valueToIncrement: any
-  incrementType: 'major' | 'minor' | 'patch'
+  incrementType: 'major' | 'minor' | 'patch' | 'revision'
   fallbackValue: string
 }
 
-const incrementStringValue = (str: string) => (parseInt(str) + 1).toString()
+const incrementStringValue = (str: string) => {
+  const parsed = parseInt(str)
+  if (!Number.isNaN(parsed)) {
+    return (parsed + 1).toString()
+  }
+}
 
 export const incrementSemver = ({
   valueToIncrement,
@@ -44,19 +49,24 @@ export const incrementSemver = ({
   // if value is not semver format, return fallback
   if (!is.semver(semverWithoutTag)) return fallbackValue
 
-  let [major, minor, patch] = semverWithoutTag.split('.')
+  let [major, minor, patch, revision] = semverWithoutTag.split('.')
 
   switch (incrementType) {
     case 'major':
-      major = incrementStringValue(major)
+      major = incrementStringValue(major) || major
       break
     case 'minor':
-      minor = incrementStringValue(minor)
+      minor = incrementStringValue(minor) || minor
       break
     case 'patch':
-      patch = incrementStringValue(patch)
+      patch = incrementStringValue(patch) || patch
+      break
+    case 'revision':
+      revision = incrementStringValue(revision) || revision || '0'
+      break
   }
-  return `${major}.${minor}.${patch}`
+  // only append revision if it exists
+  return `${major}.${minor}.${patch}${revision ? "." + revision : ""}`
 }
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')

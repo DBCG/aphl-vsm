@@ -20,16 +20,16 @@ type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { e
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
-    const latestProgram = await fhirCdrClient.search({
-      resourceType: 'Library',
-      searchParams: {
-        url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
-        // currently sorting by newest lastUpdated field because the CQF sort
-        // doesn't handle semver automatically
-        _sort: ['-_lastUpdated'],
-        _count: 1
-      }
-    })
+  const latestProgram = await fhirCdrClient.search({
+    resourceType: 'Library',
+    searchParams: {
+      url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
+      // currently sorting by newest lastUpdated field because the CQF sort
+      // doesn't handle semver automatically
+      _sort: ['-_lastUpdated'],
+      _count: 1
+    }
+  })
 
   let body = JSON.parse(req.body)
 
@@ -51,7 +51,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
     versionToAttempt = incrementSemver({
       valueToIncrement: versionToAttempt,
       incrementType: 'minor',
-      fallbackValue: '1.0.0'
+      fallbackValue: '1.0.0.0'
     })
   }
 
@@ -123,7 +123,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   if (is.operationOutcome(draftResponse)) {
     throw draftResponse
   } else if (!draftResponse?.entry) {
-    throw({ error: 'Error occurred cloning library'})
+    throw ({ error: 'Error occurred cloning library' })
   } else {
     return res.status(200).json({ message: 'Successfully drafted' })
   }
