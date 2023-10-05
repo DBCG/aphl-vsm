@@ -2,13 +2,13 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-export type expectedPackageBody = { parameters: fhir4.Parameters; xml: boolean }
+export type expectedPackageBody = { parameters: fhir4.Parameters; json: boolean }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
-  const { parameters, xml } = JSON.parse(req.body || {}) as expectedPackageBody
+  const { parameters, json } = JSON.parse(req.body || {}) as expectedPackageBody
   try {
-    if (!xml) {
+    if (json) {
       const response = (await fhirCdrClient.operation({
         name: '$crmi.package',
         resourceType: 'Library',

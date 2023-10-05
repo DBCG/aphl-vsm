@@ -5,23 +5,25 @@ import {
   DialogContent,
   Button,
   DialogActions,
-  Checkbox,
   FormControlLabel,
   FormGroup,
   Switch,
   Stack,
-  Typography
+  Typography,
+  Radio,
+  RadioGroup
 } from '@mui/material'
 import styled from 'styled-components'
 
 interface ModalInfo {
   isOpen: boolean
   toggleModalOpen: () => void
-  handleDownloadClick: (useV2: boolean, xml: boolean) => void
+  handleDownloadClick: (useV2: boolean, json: boolean) => void
 }
 
 const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: ModalInfo) => {
-  const xml = useRef<HTMLInputElement>(null)
+  const json = useRef<HTMLInputElement>(null)
+  const useV1 = useRef<HTMLInputElement>(null)
   const useV2 = useRef<HTMLInputElement>(null)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
@@ -29,7 +31,7 @@ const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: M
   }
 
   const handleDownload = () => {
-    handleDownloadClick(!!useV2.current?.checked, !!xml.current?.checked)
+    handleDownloadClick(!!useV2.current?.checked, !!json.current?.checked)
     toggleModalOpen()
   }
   return (
@@ -38,15 +40,26 @@ const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: M
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
           <FormGroup>
-            <FormControlLabel control={<Checkbox defaultChecked={false} inputRef={xml} />} label="XML" />
             <Stack direction="row" spacing={1} alignItems="center">
-              <Typography>V1</Typography>
-              {<Switch defaultChecked={true} inputRef={useV2} />}
-              <Typography>V2</Typography>
+              <Typography>XML</Typography>
+              {
+                <Switch
+                  defaultChecked={true}
+                  inputRef={json}
+                  sx={{
+                    '& .MuiSwitch-thumb, & .MuiSwitch-track': { backgroundColor: 'var(--theme-300)' }
+                  }}
+                />
+              }
+              <Typography>JSON</Typography>
             </Stack>
+            <RadioGroup row defaultValue="v2" name="radio-buttons-group">
+              <FormControlLabel inputRef={useV1} value="v1" control={<Radio />} label="V1" />
+              <FormControlLabel inputRef={useV2} value="v2" control={<Radio />} label="V2" />
+            </RadioGroup>
           </FormGroup>
         </DialogContent>
-        <DialogActions sx={{ justifyContent: 'flex-start' }}>
+        <DialogActions sx={{ justifyContent: 'flex-end' }}>
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>

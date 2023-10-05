@@ -160,9 +160,9 @@ const ProgramDetails = () => {
           <PackageDetailsModal
             isOpen={showExportOptionsModal}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
-            handleDownloadClick={(useV2, xml) => {
+            handleDownloadClick={(useV2, json) => {
               setDownloadLoading(true)
-              const body: expectedPackageBody = { parameters: { resourceType: 'Parameters' }, xml: xml }
+              const body: expectedPackageBody = { parameters: { resourceType: 'Parameters' }, json: json }
               fetch(`/api/programs/${router.query.id}/package`, {
                 method: 'POST',
                 body: JSON.stringify(body)
