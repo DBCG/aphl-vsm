@@ -270,7 +270,7 @@ const ValueSetDetailsTables = ({
           value={filterDefinitionText}
           onChange={(e) => setFilterDefinitionText(e.target.value)}
           id="filter-definition-table"
-          label={`Filter ${isGrouperValueSet ? 'by Title or OID' : 'Definitions'}`}
+          label={`Filter by ${isGrouperValueSet ? 'itle or OID' : 'Display'}`}
           variant="outlined"
         />
         <DataTable
