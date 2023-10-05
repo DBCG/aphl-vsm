@@ -41,7 +41,7 @@ const modalText = {
   release: {
     title: 'Release Program',
     text: 'Releasing this program will mark it as active and allow others to use it as a template.',
-    actionText: 'Would you like to continue?',
+    actionText: 'Please review the following required fields to continue:',
     modalLoadingText: (
       <LoadingText>
         Releasing may take up to a minute.
@@ -104,8 +104,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseDescription}
                 onChange={(e) => {
-                  const newValue = e?.target?.value?.trim()
-                  setReleaseDescription(newValue)
+                  setReleaseDescription(e?.target?.value)
                 }}
               />
               <TextArea
@@ -115,8 +114,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
                 required={true}
                 value={releaseLabel}
                 onChange={(e) => {
-                  const newValue = e?.target?.value?.trim()
-                  setReleaseLabel(newValue)
+                  setReleaseLabel(e?.target?.value)
                 }}
               />
             </>

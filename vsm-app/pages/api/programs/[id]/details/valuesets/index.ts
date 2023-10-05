@@ -109,6 +109,7 @@ type LeafVersionsByUrl = Record<string, string>
 interface GetLeafsReturn {
   leafVersionsByCanonical: LeafVersionsByUrl
   leafValueSets: fhir4.ValueSet[]
+  totalLeafs: number
 }
 
 const getLeafValueSets = async ({
@@ -124,7 +125,7 @@ const getLeafValueSets = async ({
 
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
-      if (!url) return
+      if (!url || leafValueSetCanonicals?.includes(url)) return
 
       leafValueSetCanonicals.push(url)
     })
@@ -153,7 +154,8 @@ const getLeafValueSets = async ({
 
   const result = {
     leafValueSets,
-    leafVersionsByCanonical
+    leafVersionsByCanonical,
+    totalLeafs: leafValueSetCanonicals.length
   }
 
   return result
@@ -335,7 +337,7 @@ export const getProgramDetailsValuesets = async ({
       return { status: 400, payload: { error: leafVsetResponse.error } }
     }
 
-    const { leafValueSets, leafVersionsByCanonical } = leafVsetResponse
+    const { leafValueSets, leafVersionsByCanonical, totalLeafs } = leafVsetResponse
 
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
@@ -361,7 +363,8 @@ export const getProgramDetailsValuesets = async ({
     const composedResponse = {
       programStatus: program.status,
       data: formattedVsets,
-      groupsInProgram: grouperValueSets
+      groupsInProgram: grouperValueSets,
+      totalLeafs
     }
     return { status: 200, payload: composedResponse }
   } catch (e: any) {

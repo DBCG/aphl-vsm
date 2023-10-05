@@ -81,6 +81,7 @@ export const TableActions = ({
             text='Delete'
             loading={isDeleting}
             onClick={() => handleDelete(selectedRows)}
+            data-action='delete'
           />
         </ActionContainerRow>
       </TableActionContainer>

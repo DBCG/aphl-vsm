@@ -113,14 +113,15 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         name: 'Title',
         selector: (row: fhir4.ValueSet) => row.title!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        minWidth: '20rem'
       },
       {
         name: 'Version',
         selector: (row: fhir4.ValueSet) => row.version!,
         sortable: true,
         wrap: true,
-        maxWidth: '10rem'
+        maxWidth: '8rem'
       },
       {
         name: 'URL',

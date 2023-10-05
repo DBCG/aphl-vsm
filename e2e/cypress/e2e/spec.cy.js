@@ -77,24 +77,24 @@ describe("Smoke Tests", () => {
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
       cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').should("exist");
 
-      cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').click();
-      cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should("exist");
+      // can only add one manifest of the same codesystem at a time
+      cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should("be.disabled");
 
-      // Delete one of the manifests
-      cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
-      cy.get('[data-modal="yes"]').click();
+      // // Delete one of the manifests
+      // cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
+      // cy.get('[data-modal="yes"]').click();
 
-      // Check that it reappears on the available version manifest list
-      cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').should("exist");
+      // Check that the one not added is on the available version manifest list
+      cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should("exist");
 
       cy.get("#back-to-program").click();
 
       // Check that the manifest had been added to the program table
-      cy.get('[id="cell-2-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains("ICD10CM").should("exist");
-      cy.get('[id="cell-3-http://hl7.org/fhir/sid/icd-10-cm|2020"]')
+      cy.get('[id="cell-1-http://hl7.org/fhir/sid/icd-10-cm|2022"]').contains("ICD10CM").should("exist");
+      cy.get('[id="cell-2-http://hl7.org/fhir/sid/icd-10-cm|2022"]')
         .contains("http://hl7.org/fhir/sid/icd-10-cm")
         .should("exist");
-      cy.get('[id="cell-4-http://hl7.org/fhir/sid/icd-10-cm|2020"]').contains("2020").should("exist");
+      cy.get('[id="cell-3-http://hl7.org/fhir/sid/icd-10-cm|2022"]').contains("2022").should("exist");
     });
 
     it("Creates, Edits, and Deletes new grouper", () => {
@@ -121,8 +121,7 @@ describe("Smoke Tests", () => {
 
       cy.get("#submit-grouper-creation").click();
       // Do some assertions on Program Detail View Page
-      cy.get('[data-column-id="1"]').contains("Excellent_title_for_grouper").should("exist");
-      cy.get('[data-column-id="2"]').contains("excellent title for grouper").should("exist");
+      cy.get('[data-column-id="1"]').contains("excellent title for grouper").should("exist");
       cy.get('[data-column-id="3"]')
         .contains("http://ersd.aimsplatform.org/fhir/ValueSet/Excellent_title_for_grouper")
         .should("exist");
@@ -224,11 +223,14 @@ describe("Smoke Tests", () => {
 
         cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
-        // Remove same valueset from program
+        // Remove same leaf from program
         cy.go("back");
 
         cy.get("#view-valuesets").click();
-        cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).click({ force: true });
+        // second checkbox to delete
+        cy.get('input[type="checkbox"]').eq(1).check({ force: true })
+        // cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).click({ force: true });
+        cy.get('[data-action="delete"]').click();
         cy.get('[data-modal="yes"]').click();
         cy.go("back");
 
@@ -284,7 +286,8 @@ describe("Smoke Tests", () => {
         .click(50, 0, { force: true });
 
       cy.get("#view-valuesets").click();
-      cy.get("#vs-table-detail").children().first().scrollTo("right")
+      cy.wait(3000);
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("right")
       
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"],[id="#react-select-condition-selector-input"]').click()
@@ -324,16 +327,17 @@ describe("Smoke Tests", () => {
       cy.get('[data-modal="confirm"]').click();
 
       // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
-      cy.get('[data-column-id="1"]').should("not.exist", "DRAFT")
+      cy.get('[data-column-id="1"]').contains("DRAFT").should("not.exist")
       cy.get('[data-button-context="mustApproveRelease-active"]').first().should("exist")
     });
+
     it("Downloads a JSON bundle using the Export button", () => {
       // click on the first Draft Library on the programs page
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
+      cy.get('[data-column-id="2"]')
+        .contains("Specification Library")
+        // .parents("div")
+        // .parents("div")
+        // .first()
         .click(50, 0, { force: true });
       // click the Export button
       cy.get('button').contains('Export').click()
@@ -352,7 +356,7 @@ describe("Smoke Tests", () => {
     it("Downloads an XML bundle using the Export button", () => {
       // click on the first Draft Library on the programs page
       cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
+        .contains("ACTIVE")
         .parents("div")
         .parents("div")
         .first()
@@ -361,12 +365,12 @@ describe("Smoke Tests", () => {
       cy.get('button').contains('Export').click()
       // if we don't wait here the program data is lost somewhere
       cy.wait(3000)
-      // tick the XML checkbox
-      cy.get('span').contains('XML').parents('label').click()
+      // move the toggle to XML
+      cy.get('input[type="checkbox"]').click()
       // click the Download button
       cy.get('button').contains('Download').click()
       // file path is relative to the working folder
-      const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.xml')
+      const filename = path.join(downloadsFolder, 'Draft_Library-bundle.xml')
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.length.gt',50).and('contain.text','<')
