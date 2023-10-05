@@ -23,7 +23,7 @@ interface ExpansionTableData {
 }
 
 interface GrouperTableDetail {
-  name: string
+  title: string
   oid: string
   canonical: string
 }
@@ -93,7 +93,7 @@ const ValueSetDetailsTables = ({
   
   const leafDataForDisplay = (pData: any) => {
     return pData?.map((i: DataItem) => ({
-      name: i?.valueSet?.name,
+      title: i?.valueSet?.title,
       oid: i?.canonical?.split('/ValueSet/')?.[1],
       canonical: i?.canonical
     }))
@@ -150,8 +150,8 @@ const ValueSetDetailsTables = ({
     expansionData = expansion?.contains
     definitionColumns = [
       {
-        name: 'Name',
-        selector: (row: GrouperTableDetail) => row?.name!,
+        name: 'Title',
+        selector: (row: GrouperTableDetail) => row?.title!,
         sortable: true,
         wrap: true
       },
@@ -225,7 +225,7 @@ const ValueSetDetailsTables = ({
 
     if (isGrouperValueSet) {
       return defData.filter((item: any) => (
-        item?.name?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+        item?.title?.toLowerCase().includes(filterDefinitionText.toLowerCase())
         || item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
       ))
     } else {
@@ -270,7 +270,7 @@ const ValueSetDetailsTables = ({
           value={filterDefinitionText}
           onChange={(e) => setFilterDefinitionText(e.target.value)}
           id="filter-definition-table"
-          label={`Filter ${isGrouperValueSet ? 'by Name or OID' : 'Definitions'}`}
+          label={`Filter ${isGrouperValueSet ? 'by Title or OID' : 'Definitions'}`}
           variant="outlined"
         />
         <DataTable
