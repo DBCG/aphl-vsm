@@ -25,7 +25,8 @@ const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bund
           method: 'POST',
           headers: {
             'Content-Type': 'application/fhir+json',
-            // ...fhirCdrClient.customHeaders
+            // should be Basic Auth creds
+            ...fhirCdrClient.customHeaders
           }
         }).then(data => {
           if (data.ok) {
