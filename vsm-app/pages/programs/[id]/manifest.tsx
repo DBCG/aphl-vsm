@@ -306,6 +306,7 @@ const EditManifestDetails = () => {
                 selector: (row) => row,
                 sortable: true,
                 // Some code systems have urls for their versions with the date at the end
+                // @ts-ignore
                 sortFunction: (a: string, b: string) => a.split('/')?.pop()?.localeCompare(b.split('/').pop()),
                 wrap: true
               },
