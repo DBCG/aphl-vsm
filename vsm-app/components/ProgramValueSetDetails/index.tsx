@@ -658,7 +658,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
           selectedRows={selectedRows}
-          totalRows={totalLeafs}
+          totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
         />
         <ErrorMessage
