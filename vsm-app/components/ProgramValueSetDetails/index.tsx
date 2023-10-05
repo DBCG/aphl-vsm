@@ -238,8 +238,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     id: programId, toggleRefresh: toggleUpdateData
   })
 
-  console.log('program and grouper data: ', programAndGrouperData)
-
   // since query takes a while, expose loading state
   useEffect(() => {
     setVSetsLoading(true)

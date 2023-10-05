@@ -109,6 +109,7 @@ type LeafVersionsByUrl = Record<string, string>
 interface GetLeafsReturn {
   leafVersionsByCanonical: LeafVersionsByUrl
   leafValueSets: fhir4.ValueSet[]
+  totalLeafs: number
 }
 
 const getLeafValueSets = async ({
@@ -124,7 +125,7 @@ const getLeafValueSets = async ({
 
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
-      if (!url) return
+      if (!url || leafValueSetCanonicals?.includes(url)) return
 
       leafValueSetCanonicals.push(url)
     })

@@ -158,11 +158,7 @@ export const fetchLeafValueSets = async ({
       })
       ?.flat()
       ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
-      ?.filter(
-        (value, index, self) =>
-          // filter out multiple ids
-          self.findIndex((v2) => v2?.id === value?.id) === index
-      ) as fhir4.ValueSet[]
+
     return valueSets
   } catch (e) {
     // TODO: handle
