@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
-import { HapiError } from '@/types/hapiError'
-import logger from '@/helpers/server/logger'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
 import { getServerSession } from 'next-auth'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
@@ -16,7 +14,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   const userEmail = session?.user?.email
 
   if (!userEmail) {
-    throw({ error: 'Unauthorized' })
+    throw ({ error: 'Unauthorized' })
   }
 
   const approvalUser = {
@@ -37,8 +35,10 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
     })) as fhir4.Library
 
     res.send(response)
-  } catch (e: any) {
-    throw(e)
+  } catch (error: any) {
+    logSimpleError(error)
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
   }
 }
 
