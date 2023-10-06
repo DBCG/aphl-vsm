@@ -101,6 +101,7 @@ const Programs: NextPage = () => {
   }
 
   const cloneProgram = async (programId: string) => {
+    if (cloneLoading) return
     setCloneLoading(true)
     setError({})
     let libraryData: any = ''
