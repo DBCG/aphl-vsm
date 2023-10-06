@@ -165,7 +165,7 @@ const validStartDate = (date: any): boolean => {
   // early return to prevent typeErrors if not valid date
   if (isNaN(parsedDate)) return false
 
-  const today = new Intl.DateTimeFormat("fr-CA", {year: "numeric", month: "2-digit", day: "2-digit"}).format(Date.now())
+  const today = new Intl.DateTimeFormat('en-US', {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York'}).format(Date.now())
   const parsedToday = Date.parse(today)
   // only allow today or future
   return (parsedDate - parsedToday > -1)
