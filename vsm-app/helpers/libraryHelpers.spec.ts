@@ -167,7 +167,7 @@ describe('validStartDate', () => {
 
   it('should be false for past date', () => {
     const todayDate = new Date()
-    const lastYearString = `${todayDate.getFullYear() - 1}-${todayDate.getMonth() + 1}-${todayDate.getDate() + 1}`
+    const lastYearString = `${todayDate.getFullYear() - 1}-${todayDate.getMonth() + 1}-${todayDate.getDate()}`
     expect(validStartDate(lastYearString)).toBe(false)
   })
 
@@ -185,7 +185,7 @@ describe('setEffectivePeriodStart', () => {
     expect(programWithEffective?.effectivePeriod?.start).toEqual('2020-12-12')
   })
 
-  it('should udpate effective period if it does exist', () => {
+  it('should update effective period if it does exist', () => {
     const testProgram = {
       effectivePeriod: {
         start: 'some date'

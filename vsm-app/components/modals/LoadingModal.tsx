@@ -78,12 +78,10 @@ const LoadingModal = ({
 }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
-  const defaultStartDate = program?.effectivePeriod?.start
-
   const [currentProgram, setProgram] = useState(program)
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseLabel, setReleaseLabel] = useState('')
-  const [effectiveStartDate, setEffectiveStartDate] = useState(null)
+  const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
 
   useEffect(() => {
@@ -92,16 +90,20 @@ const LoadingModal = ({
       setProgram(program)
       setReleaseDescription(getReleaseDescription(program))
       setReleaseLabel(getReleaseLabel(program))
+      setEffectiveStartDate(program?.effectivePeriod?.start || null)
     }
   }, [program])
 
   useEffect(() => {
+    // console.log(
+    //   'test: ', !validStartDate(defaultStartDate || effectiveStartDate)
+    // )
     if (
       actionType === 'release'
       && (
         releaseDescription.length === 0 ||
         releaseLabel.length === 0 ||
-        !validStartDate(defaultStartDate || effectiveStartDate)
+        !validStartDate(effectiveStartDate)
       )) {
       setDisableSubmission(true)
     } else {
@@ -142,11 +144,12 @@ const LoadingModal = ({
               <DateInput
                 label={'Effective Start Date'}
                 id="effectiveStartDate"
-                defaultValue={defaultStartDate}
+                defaultValue={effectiveStartDate || undefined}
                 placeholder="No effective start date set"
                 readonly={false}
                 onChange={(newDate) => {
                   const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
+                  console.log('dateToSave: ', dateToSave)
                   setEffectiveStartDate(dateToSave)
                 }}
                 disablePast={true}

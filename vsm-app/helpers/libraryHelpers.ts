@@ -165,10 +165,10 @@ const validStartDate = (date: any): boolean => {
   // early return to prevent typeErrors if not valid date
   if (isNaN(parsedDate)) return false
 
-  const today = new Date().setHours(0,0,0,0)
-  const testDate = new Date(parsedDate)?.getTime()
+  const today = new Intl.DateTimeFormat("fr-CA", {year: "numeric", month: "2-digit", day: "2-digit"}).format(Date.now())
+  const parsedToday = Date.parse(today)
   // only allow today or future
-  return (testDate - today > -1)
+  return (parsedDate - parsedToday > -1)
 }
 
 export {

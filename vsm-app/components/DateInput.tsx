@@ -13,11 +13,13 @@ interface DateInputProps {
   onChange: (date: any) => void
   disablePast: boolean
   placeholder?: string
-  errorText: string
+  errorText: string,
+  allowClear?: boolean
 }
 
 const DateInput = ({
   readonly,
+  allowClear=false,
   defaultValue,
   label,
   onChange,
@@ -63,9 +65,13 @@ const DateInput = ({
               }}
             />
           </LocalizationProvider>
-          <IconButton aria-label={'Clear Effective Start Date'} sx={{ mt: '6px' }} onClick={() => onChange(null)}>
-            <CancelIcon />
-          </IconButton>
+          {
+            allowClear && (
+            <IconButton aria-label={'Clear Effective Start Date'} sx={{ mt: '6px' }} onClick={() => onChange(null)}>
+              <CancelIcon />
+            </IconButton>
+            )
+          }
         </Box>
       )}
     </>
