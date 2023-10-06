@@ -95,9 +95,6 @@ const LoadingModal = ({
   }, [program])
 
   useEffect(() => {
-    // console.log(
-    //   'test: ', !validStartDate(defaultStartDate || effectiveStartDate)
-    // )
     if (
       actionType === 'release'
       && (
@@ -149,7 +146,6 @@ const LoadingModal = ({
                 readonly={false}
                 onChange={(newDate) => {
                   const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
-                  console.log('dateToSave: ', dateToSave)
                   setEffectiveStartDate(dateToSave)
                 }}
                 disablePast={true}
