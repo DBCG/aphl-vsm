@@ -77,6 +77,15 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription: strin
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
+const setEffectivePeriodStart = (program: fhir4.Library, date: any) => {
+  if (typeof date === 'string') {
+    const clonedProgram = cloneDeep(program)
+    clonedProgram.effectivePeriod = { start: date }
+    return clonedProgram
+  }
+  return program
+}
+
 const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefined, defaultName: string) => {
   const clonedProgram = cloneDeep(program)
   if (title) {
@@ -150,6 +159,18 @@ const setReleaseLabel = (program: fhir4.Library, label: string = '') => {
   return setExtension(program, releaseLabelExtensionUrl, label)
 }
 
+// effectiveStartDate must be valid date and today or later
+const validStartDate = (date: any): boolean => {
+  const parsedDate = Date?.parse(date)
+  // early return to prevent typeErrors if not valid date
+  if (isNaN(parsedDate)) return false
+
+  const today = new Date().setHours(0,0,0,0)
+  const testDate = new Date(parsedDate)?.getTime()
+  // only allow today or future
+  return (testDate - today > -1)
+}
+
 export {
   getGrouperLibraryCanonical,
   setVSPriorityUsageContext,
@@ -160,5 +181,7 @@ export {
   editComposeInclude,
   getReleaseLabel,
   setReleaseLabel,
-  setTitleAndDerivedName
+  setTitleAndDerivedName,
+  setEffectivePeriodStart,
+  validStartDate
 }

@@ -6,9 +6,12 @@ import {
   getReleaseDescription,
   getReleaseLabel,
   setReleaseLabel as releaseLabelSet,
-  setReleaseDescription as releaseDescriptionSet
+  setReleaseDescription as releaseDescriptionSet,
+  setEffectivePeriodStart,
+  validStartDate
 } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
+import DateInput from '../DateInput'
 
 interface ModalInfo {
   actionType: 'release' | 'publish' | 'clone'
@@ -64,12 +67,23 @@ const modalText = {
   }
 }
 
-const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancellable = true, handleModalAction, program }: ModalInfo) => {
+const LoadingModal = ({
+  isOpen,
+  actionType,
+  loading,
+  handleCancelModal,
+  cancellable = true,
+  handleModalAction,
+  program
+}: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
+
+  const defaultStartDate = program?.effectivePeriod?.start
 
   const [currentProgram, setProgram] = useState(program)
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseLabel, setReleaseLabel] = useState('')
+  const [effectiveStartDate, setEffectiveStartDate] = useState(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
 
   useEffect(() => {
@@ -82,12 +96,19 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
   }, [program])
 
   useEffect(() => {
-    if (actionType === 'release' && (releaseDescription.length === 0 || releaseLabel.length === 0)) {
+    if (
+      actionType === 'release'
+      && (
+        releaseDescription.length === 0 ||
+        releaseLabel.length === 0 ||
+        !validStartDate(defaultStartDate || effectiveStartDate)
+      )) {
       setDisableSubmission(true)
     } else {
       setDisableSubmission(false)
     }
-  }, [actionType, releaseDescription.length, releaseLabel.length])
+  }, [actionType, releaseDescription.length, releaseLabel.length, effectiveStartDate])
+
 
   return (
     <Dialog open={isOpen}>
@@ -99,6 +120,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
           {actionType === 'release' && (
             <>
               <TextArea
+                style={{ marginTop: '2rem' }}
                 label="Description of Release"
                 id="releaseDescription"
                 required={true}
@@ -110,12 +132,25 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
               <TextArea
                 label="Label for Release"
                 id="releaseLabel"
-                style={{ marginTop: '24px' }}
+                style={{ marginTop: '24px', marginBottom: '3rem' }}
                 required={true}
                 value={releaseLabel}
                 onChange={(e) => {
                   setReleaseLabel(e?.target?.value)
                 }}
+              />
+              <DateInput
+                label={'Effective Start Date'}
+                id="effectiveStartDate"
+                defaultValue={defaultStartDate}
+                placeholder="No effective start date set"
+                readonly={false}
+                onChange={(newDate) => {
+                  const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
+                  setEffectiveStartDate(dateToSave)
+                }}
+                disablePast={true}
+                errorText={'Start date must be today or a future date'}
               />
             </>
           )}
@@ -133,6 +168,7 @@ const LoadingModal = ({ isOpen, actionType, loading, handleCancelModal, cancella
             if (actionType === 'release' && currProgram) {
               let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
               modifiedProgram = releaseLabelSet(modifiedProgram, releaseLabel.trim())
+              modifiedProgram = setEffectivePeriodStart(modifiedProgram, effectiveStartDate)
               setProgram(modifiedProgram)
               currProgram = modifiedProgram
             }
