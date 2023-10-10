@@ -1,4 +1,4 @@
-import { latestVersion } from './semverHelpers'
+import { latestVersion, isValidSimpleSemver } from './semverHelpers'
 
 describe('semverHelpers', () => {
   describe('latestVersion', () => {
@@ -37,6 +37,21 @@ describe('semverHelpers', () => {
       const templateSemver2 = '1.0.0'
       const result2 = latestVersion(cdrSemverDraft, templateSemver2)
       expect(result2).toBe('2.0.0')
+    })
+  })
+
+  describe('isValidSimpleSemver', () => {
+    it('returns true if valid MAJOR.MINOR.PATCH semver format', () => {
+      expect(isValidSimpleSemver('2.0.0')).toBe(true)
+      expect(isValidSimpleSemver('20.10.10')).toBe(true)
+      expect(isValidSimpleSemver('0.10.0')).toBe(true)
+    })
+
+    it('returns false if invalid format', () => {
+      expect(isValidSimpleSemver('2.0.0-draft')).toBe(false)
+      expect(isValidSimpleSemver('20.10.10.92')).toBe(false)
+      expect(isValidSimpleSemver('0.10')).toBe(false)
+      expect(isValidSimpleSemver('invalid!')).toBe(false)
     })
   })
 })

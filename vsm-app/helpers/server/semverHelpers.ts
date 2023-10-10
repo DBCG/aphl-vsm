@@ -2,6 +2,10 @@ import semver from 'semver'
 
 const removeFlags = (item: any) => item?.split('-')?.[0]
 
+const simpleSemverRx = new RegExp('^(\\d+).(\\d+).(\\d+)$', 'gm')
+
+const isValidSimpleSemver = (item: string) => Boolean(item.match(simpleSemverRx))
+
 // returns the latest version between two options (not considering flags)
 const latestVersion = (cdrVersion: string | any, templateVersion: string | any): string | null => {
   const noFlagsCdrSemver = removeFlags(cdrVersion)
@@ -22,4 +26,4 @@ const latestVersion = (cdrVersion: string | any, templateVersion: string | any):
   }
 }
 
-export { latestVersion }
+export { latestVersion, isValidSimpleSemver }

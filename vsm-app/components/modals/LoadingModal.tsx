@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
@@ -12,6 +12,8 @@ import {
 } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
+import { SearchInput } from '../SearchInput'
+import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 
 interface ModalInfo {
   actionType: 'release' | 'publish' | 'clone'
@@ -21,6 +23,7 @@ interface ModalInfo {
   loading: boolean
   program: fhir4.Library | null
   cancellable?: boolean
+  updateVersion?: Dispatch<SetStateAction<string | null | undefined>>
 }
 
 const LoadingText = styled.p`
@@ -44,7 +47,7 @@ const modalText = {
   release: {
     title: 'Release Program',
     text: 'Releasing this program will mark it as active and allow others to use it as a template.',
-    actionText: 'Please review the following required fields to continue:',
+    actionText: 'Please review the following fields to continue:',
     modalLoadingText: (
       <LoadingText>
         Releasing may take up to a minute.
@@ -74,7 +77,8 @@ const LoadingModal = ({
   handleCancelModal,
   cancellable = true,
   handleModalAction,
-  program
+  program,
+  updateVersion
 }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
@@ -83,6 +87,7 @@ const LoadingModal = ({
   const [releaseLabel, setReleaseLabel] = useState('')
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
+  const [versionError, setVersionError] = useState<string | null>(null)
 
   useEffect(() => {
     // Need to set here because async
@@ -95,12 +100,17 @@ const LoadingModal = ({
   }, [program])
 
   useEffect(() => {
+
+  }, [])
+
+  useEffect(() => {
     if (
       actionType === 'release'
       && (
         releaseDescription.length === 0 ||
         releaseLabel.length === 0 ||
-        !validStartDate(effectiveStartDate)
+        !validStartDate(effectiveStartDate) ||
+        versionError
       )) {
       setDisableSubmission(true)
     } else {
@@ -118,8 +128,25 @@ const LoadingModal = ({
           {actionText}
           {actionType === 'release' && (
             <>
+              <SearchInput
+                style={{ marginTop: '2rem', marginBottom: '1rem' }}
+                label="Update Program Version (optional)"
+                onChange={
+                  (e) => {
+                    updateVersion!(e?.target?.value)
+                    const versionErrorExists = !isValidSimpleSemver(e?.target?.value)
+                    if(versionErrorExists) {
+                      setVersionError('This version must be in semantic versioning format with only numbers and periods. Example: 3.0.2')
+                    } else {
+                      setVersionError(null)
+                    }
+                  }
+                }
+                defaultValue={currentProgram?.version?.split('-draft')?.[0]}
+                helperMessage={'This version must be in semantic versioning format. Example: 3.0.2'}
+                errorMessage={versionError && 'Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1'}
+              />
               <TextArea
-                style={{ marginTop: '2rem' }}
                 label="Description of Release"
                 id="releaseDescription"
                 required={true}
@@ -165,6 +192,9 @@ const LoadingModal = ({
           onClick={() => {
             let currProgram = currentProgram
             if (actionType === 'release' && currProgram) {
+              if (versionError) {
+                return
+              }
               let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
               modifiedProgram = releaseLabelSet(modifiedProgram, releaseLabel.trim())
               modifiedProgram = setEffectivePeriodStart(modifiedProgram, effectiveStartDate)

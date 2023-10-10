@@ -75,6 +75,7 @@ const Programs: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
+  const [versionToRelease, setVersionToRelease] = useState<null | string | undefined>(null)
   const [error, setError] = useState<Error>({})
 
   // clone template
@@ -235,22 +236,29 @@ const Programs: NextPage = () => {
   const handleCancelModal = () => {
     setProgramToPublish(null)
     setProgramToRelease(null)
+    setVersionToRelease(null)
   }
 
   const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
     let result
     let endpoint
+    let reqBody
     setLoading(true)
 
     if (actionType === 'release') {
       endpoint = `/api/programs/${program.id}/release`
+      reqBody = {
+        releaseAsVersion: versionToRelease,
+        program
+      }
     } else {
       endpoint = `/api/programs/${program.id}/publish`
+      reqBody = program
     }
 
     result = await fetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(program)
+      body: JSON.stringify(reqBody)
     })
 
     if (!result.ok) {
@@ -267,6 +275,7 @@ const Programs: NextPage = () => {
     setLoading(false)
     setProgramToPublish(null)
     setProgramToRelease(null)
+    setVersionToRelease(null)
   }
 
   return (
@@ -295,6 +304,7 @@ const Programs: NextPage = () => {
         handleCancelModal={handleCancelModal}
         handleModalAction={handleModalAction}
         program={programToPublish || programToRelease}
+        updateVersion={setVersionToRelease}
       />
       <ErrorMessage error={error?.error || null} />
       <DT
