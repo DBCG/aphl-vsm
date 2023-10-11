@@ -12,7 +12,6 @@ import ProgramMetadata from '@/components/ProgramMetadata'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
-import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { PackageDetailsModal } from '../modals/PackageDetailsModal'
@@ -25,21 +24,20 @@ const ProgramDetails = () => {
   const [program, setProgram] = useState<fhir4.Library>()
   const [refreshData, setRefreshData] = useState(false)
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
-  const fetchedProgram = useGetProgramById({ programId })
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [downloadLoading, setDownloadLoading] = useState(false)
-
+  
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
   }
 
   useEffect(() => {
     // Set initial program
-    if (is.library(fetchedProgram)) {
-      setProgram(fetchedProgram)
+    if (is.library(programAndGrouperData?.program)) {
+      setProgram(programAndGrouperData?.program)
     }
-  }, [programId, fetchedProgram])
+  }, [programId, programAndGrouperData?.program])
 
   const handleSubmit = async (submittedProgram: fhir4.Library) => {
     await updateProgram(submittedProgram)
