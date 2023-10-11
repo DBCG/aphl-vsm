@@ -9,7 +9,6 @@ import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { IconButton } from '@/components/buttons/IconButton'
 import { Button } from '@/components/buttons/Button'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
@@ -19,7 +18,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, VSMSession } from '@/helpers/rolesHelper'
-import { GroupUpdateItem, DeleteParams, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
+import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
@@ -340,8 +339,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
   }, [versionToUpdate])
 
-  // @ts-ignore-next-line
-  const isReadOnly = progValueSetDets?.data?.[0]?.programStatus === 'active' || !can(session, 'edit')
+  // Can only edit if program is loaded and in draft status
+  const isEditable = progValueSetDets?.data?.[0]?.programStatus === 'draft' && can(session, 'edit')
 
   const columns = useMemo(
     () => [
@@ -643,7 +642,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
         </FlexRow>
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
-          {!isReadOnly && (
+          {isEditable && (
             <Button
               id="add-valueset"
               text="Add Valuesets"
@@ -668,9 +667,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           selectableRows={
             Boolean (
               programId
-              && !isReadOnly
-              && programAndGrouperData?.program?.status === 'draft'
-            )
+              && isEditable            )
           }
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
