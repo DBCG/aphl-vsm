@@ -45,6 +45,7 @@ describe('semverHelpers', () => {
       expect(isValidSimpleSemver('2.0.0')).toBe(true)
       expect(isValidSimpleSemver('20.10.10')).toBe(true)
       expect(isValidSimpleSemver('0.10.0')).toBe(true)
+      expect(isValidSimpleSemver('20.10.101')).toBe(true)
     })
 
     it('returns false if invalid format', () => {
