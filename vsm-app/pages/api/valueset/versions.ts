@@ -181,10 +181,17 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       }
     }
   } catch (e) {
-    logger.error(`ERROR: ${e}`)
-    return res.status(400).json({
-      message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`
-    })
+    // Sometimes the server lags behind and has not yet indexed the search for a created valueset
+    // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
+    // @ts-ignore
+    if (e?.response?.data?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
+      logger.warn(`ERROR: ${JSON.stringify(e)}`)  
+    } else {
+      logger.error(`ERROR: ${JSON.stringify(e)}`)
+      return res.status(400).json({
+        message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`
+      })
+    }
   }
 
   try {
