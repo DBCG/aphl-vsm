@@ -1,8 +1,9 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import styled from 'styled-components'
+import debounce from 'lodash.debounce'
 import DT from 'react-data-table-component'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { IconButton } from '@/components/buttons/IconButton'
@@ -126,9 +127,11 @@ const Programs: NextPage = () => {
       setError({ error: `Error cloning program ${programId}` })
     }
 
-    setCloneLoading(false)
     setModalOpen(false)
+    setCloneLoading(false)
   }
+
+  const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
 
   const columns = useMemo(
     () => [
@@ -202,7 +205,9 @@ const Programs: NextPage = () => {
           <ButtonWrapper>
             <IconButton
               disabled={row.status !== 'active'}
-              onClick={() => handleClickClone(row.id)}
+              onClick={() => {
+                handleClickClone(row.id)
+              }}
               buttonContext={`clone-${row.status}`}
             />
           </ButtonWrapper>
@@ -287,7 +292,7 @@ const Programs: NextPage = () => {
           async () => {
             // throttle this action based on if it is already ongoing
             if (cloneLoading) return
-            cloneProgram(progIdToClone)
+            debouncedCloneProgram(progIdToClone)
           }
         }
         program={null}

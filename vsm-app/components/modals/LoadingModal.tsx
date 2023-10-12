@@ -189,7 +189,7 @@ const LoadingModal = ({
           data-modal={'confirm'}
           disabled={disableSubmission}
           loading={loading || false}
-          onClick={() => {
+          onClick={(e) => {
             let currProgram = currentProgram
             if (actionType === 'release' && currProgram) {
               if (versionError) {
