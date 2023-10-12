@@ -1,5 +1,12 @@
 import { cloneDeep } from 'lodash'
-import { getReleaseDescription, setReleaseDescription, missingFields, editComposeInclude } from './libraryHelpers'
+import {
+  getReleaseDescription,
+  setReleaseDescription,
+  missingFields,
+  editComposeInclude,
+  validStartDate,
+  setEffectivePeriodStart
+} from './libraryHelpers'
 
 describe('libraryHelpers', () => {
   describe('getReleaseDescription', () => {
@@ -142,6 +149,50 @@ describe('libraryHelpers', () => {
 
       expect(editedRctc).toEqual(simple_lib_result)
     })
+  })
+})
+
+describe('validStartDate', () => {
+  it('should be true for today', () => {
+    const todayDate = new Date()
+    const todayAsString = `${todayDate.getFullYear()}-${todayDate.getMonth() + 1}-${todayDate.getDate()}`
+    expect(validStartDate(todayAsString)).toBe(true)
+  })
+
+  it('should be true for future date', () => {
+    const todayDate = new Date()
+    const tomorrowString = `${todayDate.getFullYear()}-${todayDate.getMonth() + 1}-${todayDate.getDate() + 1}`
+    expect(validStartDate(tomorrowString)).toBe(true)
+  })
+
+  it('should be false for past date', () => {
+    const todayDate = new Date()
+    const lastYearString = `${todayDate.getFullYear() - 1}-${todayDate.getMonth() + 1}-${todayDate.getDate()}`
+    expect(validStartDate(lastYearString)).toBe(false)
+  })
+
+  it('should be false for invalid date', () => {
+    expect(validStartDate(null)).toBe(false)
+    expect(validStartDate('abc')).toBe(false)
+    expect(validStartDate(NaN)).toBe(false)
+  })
+})
+
+describe('setEffectivePeriodStart', () => {
+  it('should add effective period if it does not exist', () => {
+    const testProgram = {} as fhir4.Library
+    const programWithEffective = setEffectivePeriodStart(testProgram, '2020-12-12')
+    expect(programWithEffective?.effectivePeriod?.start).toEqual('2020-12-12')
+  })
+
+  it('should update effective period if it does exist', () => {
+    const testProgram = {
+      effectivePeriod: {
+        start: 'some date'
+      }
+    } as fhir4.Library
+    const programWithEffective = setEffectivePeriodStart(testProgram, '2020-12-12')
+    expect(programWithEffective?.effectivePeriod?.start).toEqual('2020-12-12')
   })
 })
 

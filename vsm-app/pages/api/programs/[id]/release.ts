@@ -5,12 +5,17 @@ import { removeDraftFromVersionString } from '@/utils'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const toReleaseLibrary = JSON.parse(req?.body)
+  const {releaseAsVersion, program } = JSON.parse(req?.body)
+
   try {
+    if (typeof releaseAsVersion === 'string') {
+      program.version = releaseAsVersion
+    }
+
     await fhirCdrClient.update<fhir4.Library>({
       resourceType: 'Library',
-      id: toReleaseLibrary.id as string,
-      body: toReleaseLibrary
+      id: program.id as string,
+      body: program
     })
   } catch (e) {
     throw(e)
@@ -20,7 +25,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     parameter: [
       {
         name: 'version',
-        valueString: removeDraftFromVersionString(toReleaseLibrary?.version)
+        valueString: removeDraftFromVersionString(program?.version)
       },
       {
         name: 'versionBehavior',

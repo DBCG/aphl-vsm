@@ -77,6 +77,12 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription: strin
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
+const setEffectivePeriodStart = (program: fhir4.Library, date: string) => {
+  const clonedProgram = cloneDeep(program)
+  clonedProgram.effectivePeriod = { start: date }
+  return clonedProgram
+}
+
 const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefined, defaultName: string) => {
   const clonedProgram = cloneDeep(program)
   if (title) {
@@ -150,6 +156,22 @@ const setReleaseLabel = (program: fhir4.Library, label: string = '') => {
   return setExtension(program, releaseLabelExtensionUrl, label)
 }
 
+// effectiveStartDate must be valid date and today or later
+const validStartDate = (date: any): boolean => {
+  const parsedDate = Date?.parse(date)
+  // early return to prevent typeErrors if not valid date
+  if (isNaN(parsedDate)) return false
+
+  const [year, month, day] = date.split('-')
+  const today = new Intl.DateTimeFormat('en-US', {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York'}).format(Date.now())
+  const [monthToday, dayToday, yearToday] = today.split('/')
+
+  const testDate = Number(`${year}${month.padStart(2, '0')}${day.padStart(2, '0')}`)
+  const todayDate = Number(`${yearToday}${monthToday}${dayToday}`)
+
+  return (testDate - todayDate > -1)
+}
+
 export {
   getGrouperLibraryCanonical,
   setVSPriorityUsageContext,
@@ -160,5 +182,7 @@ export {
   editComposeInclude,
   getReleaseLabel,
   setReleaseLabel,
-  setTitleAndDerivedName
+  setTitleAndDerivedName,
+  setEffectivePeriodStart,
+  validStartDate
 }

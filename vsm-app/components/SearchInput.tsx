@@ -46,6 +46,7 @@ interface Props {
   required?: boolean
   errorMessage?: string | null
   helperMessage?: string | null
+  style?: React.CSSProperties
 }
 
 const SearchInput = ({
@@ -59,7 +60,8 @@ const SearchInput = ({
   readonly = false,
   required = false,
   errorMessage = null,
-  helperMessage = null
+  helperMessage = null,
+  style
 }: Props) => {
   return (
     <Container>
@@ -85,6 +87,7 @@ const SearchInput = ({
           required={required}
           value={value}
           helperText={errorMessage}
+          style={style}
         />
       </>
     </Container>
