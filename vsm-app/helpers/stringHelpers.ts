@@ -49,9 +49,20 @@ const generateNameFromTitle = (title: string | undefined, defaultName: string) =
   }
 }
 
+// https://build.fhir.org/datatypes.html#dateTime
+const dateTimeRegex = /^\d{4}-\d{2}-\d{2}$/gm;
+
+// our system is currently only composing effective start date with YYYY-MM-DD format
+// but technically could have several formats which the fhir regex supports
+const isFhirDateTime = (item: any): boolean => {
+  if (typeof item !== 'string') return false
+  return dateTimeRegex.test(item)
+}
+
 export {
   stripFromName,
   startsAlphabetically,
   capitalizeFirstLetter,
-  generateNameFromTitle
+  generateNameFromTitle,
+  isFhirDateTime
 }

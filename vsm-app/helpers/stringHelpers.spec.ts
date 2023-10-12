@@ -2,7 +2,8 @@ import {
   stripFromName,
   startsAlphabetically,
   capitalizeFirstLetter,
-  generateNameFromTitle
+  generateNameFromTitle,
+  isFhirDateTime
 } from './stringHelpers'
 
 describe('stringHelpers', () => {
@@ -68,5 +69,15 @@ describe('stringHelpers', () => {
     const expected2 = 'A_a_test_title'
     expect(generateNameFromTitle(testTitle1, 'Default')).toBe(expected1)
     expect(generateNameFromTitle(testTitle2, 'Default2')).toBe(expected2)
+  })
+
+  describe('isFhirDateTime', () => {
+    it('returns true if valid dateTime format', () => {
+      expect(isFhirDateTime('2020-12-12')).toBe(true)
+    })
+
+    it('returns false if invalid dateTime format', () => {
+      expect(isFhirDateTime('20201212')).toBe(false)
+    })
   })
 })

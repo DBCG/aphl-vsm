@@ -77,13 +77,10 @@ const setReleaseDescription = (program: fhir4.Library, releaseDescription: strin
   return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
 }
 
-const setEffectivePeriodStart = (program: fhir4.Library, date: any) => {
-  if (typeof date === 'string') {
-    const clonedProgram = cloneDeep(program)
-    clonedProgram.effectivePeriod = { start: date }
-    return clonedProgram
-  }
-  return program
+const setEffectivePeriodStart = (program: fhir4.Library, date: string) => {
+  const clonedProgram = cloneDeep(program)
+  clonedProgram.effectivePeriod = { start: date }
+  return clonedProgram
 }
 
 const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefined, defaultName: string) => {

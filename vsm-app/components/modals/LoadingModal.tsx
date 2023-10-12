@@ -197,7 +197,10 @@ const LoadingModal = ({
               }
               let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
               modifiedProgram = releaseLabelSet(modifiedProgram, releaseLabel.trim())
-              modifiedProgram = setEffectivePeriodStart(modifiedProgram, effectiveStartDate)
+              // if effectiveStartDate is set, add it
+              if (typeof effectiveStartDate === 'string') {
+                modifiedProgram = setEffectivePeriodStart(modifiedProgram, effectiveStartDate)
+              }
               setProgram(modifiedProgram)
               currProgram = modifiedProgram
             }
