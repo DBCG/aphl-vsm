@@ -218,6 +218,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
     return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
   } catch (e) {
+    logger.error(`ERROR: ${JSON.stringify(e)}`)
     return res.status(400).json({ message: `Failed to update groupers for ValueSet ${vsCanonical}` })
   }
 }
