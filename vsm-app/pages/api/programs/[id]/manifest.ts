@@ -46,7 +46,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    logger.error('error:  ', e)
+    logger.error("An error occured likely from the VSAC side")
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
