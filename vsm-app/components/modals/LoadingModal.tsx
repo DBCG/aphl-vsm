@@ -14,6 +14,7 @@ import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
 import { SearchInput } from '../SearchInput'
 import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
+import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
   actionType: 'release' | 'publish' | 'clone'
@@ -80,6 +81,8 @@ const LoadingModal = ({
   program,
   updateVersion
 }: ModalInfo) => {
+  if (!isOpen) return null
+
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   const [currentProgram, setProgram] = useState(program)
@@ -88,6 +91,21 @@ const LoadingModal = ({
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
   const [versionError, setVersionError] = useState<string | null>(null)
+  const [versionToCheck, setVersionToCheck] = useState<string | null>(null)
+
+  const matches = useGetPrograms({ version: versionToCheck || undefined })
+
+  useEffect(() => {
+    const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
+    if (versionFormatErrorExists) {
+      setVersionError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
+      return
+    } else if (matches.length) {
+      setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
+      return
+    }
+    setVersionError(null)
+  }, [versionToCheck, matches])
 
   useEffect(() => {
     // Need to set here because async
@@ -98,10 +116,6 @@ const LoadingModal = ({
       setEffectiveStartDate(program?.effectivePeriod?.start || null)
     }
   }, [program])
-
-  useEffect(() => {
-
-  }, [])
 
   useEffect(() => {
     if (
@@ -118,7 +132,6 @@ const LoadingModal = ({
     }
   }, [actionType, releaseDescription.length, releaseLabel.length, effectiveStartDate])
 
-
   return (
     <Dialog open={isOpen}>
       <DialogTitle>{title}</DialogTitle>
@@ -133,18 +146,14 @@ const LoadingModal = ({
                 label="Update Program Version (optional)"
                 onChange={
                   (e) => {
+                    setVersionError(null)
+                    setVersionToCheck(e?.target?.value)
                     updateVersion!(e?.target?.value)
-                    const versionErrorExists = !isValidSimpleSemver(e?.target?.value)
-                    if(versionErrorExists) {
-                      setVersionError('This version must be in semantic versioning format with only numbers and periods. Example: 3.0.2')
-                    } else {
-                      setVersionError(null)
-                    }
                   }
                 }
                 defaultValue={currentProgram?.version?.split('-draft')?.[0]}
                 helperMessage={'This version must be in semantic versioning format. Example: 3.0.2'}
-                errorMessage={versionError && 'Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1'}
+                errorMessage={versionError}
               />
               <TextArea
                 label="Description of Release"
