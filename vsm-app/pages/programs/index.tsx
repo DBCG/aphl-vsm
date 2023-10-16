@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import debounce from 'lodash.debounce'
 import DT from 'react-data-table-component'

@@ -5,6 +5,7 @@ export interface SearchFilters {
   id?: string
   name?: string
   title?: string
+  version?: string
   description?: string
   newProgram?: string | undefined
   refreshToggle?: boolean
@@ -13,9 +14,9 @@ export interface SearchFilters {
 const buildQuery = (args: any): string => {
   if (!args) return ''
   let query = []
-  const strMatch = /id|name|title|description/
+  const strMatch = /id|name|title|description|version/
   for (const arg in args) {
-    if (arg.match(strMatch) && `${args[arg]}` !== '') {
+    if (arg.match(strMatch) && `${args[arg]}` !== '' && `${args[arg]}` !== 'undefined') {
       query.push(`${arg}=${encodeURIComponent(args[arg])}`)
     }
   }
@@ -24,7 +25,7 @@ const buildQuery = (args: any): string => {
 
 const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
   const [libraries, setLibraries] = useState<fhir4.Library[]>([])
-  const { id, name, title, description, newProgram, refreshToggle } = fields
+  const { id, name, title, description, version, newProgram, refreshToggle } = fields
   useEffect(() => {
     async function getPrograms(): Promise<void> {
       let endpoint = '/api/programs'
@@ -35,7 +36,6 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
       try {
         const response: Response = await fetch(endpoint)
         if (!response.ok) {
-          console.error('not ok!')
           setLibraries([])
         } else {
           const json = await response.json() as ProgramApiResponse
@@ -47,13 +47,12 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
         }
       } catch (e) {
         setLibraries([])
-        console.error('Error in useGetPrograms: ', e)
       }
     }
     void getPrograms()
     // disabled b/c including 'fields' obj results in infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, name, title, description, newProgram, refreshToggle])
+  }, [id, name, title, version, description, newProgram, refreshToggle])
 
   return libraries
 }

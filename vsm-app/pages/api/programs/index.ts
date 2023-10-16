@@ -11,11 +11,14 @@ interface Query {
   'name:contains'?: string
   'description:contains'?: string
   'title:contains'?: string
+  'version'?: string
 }
+
 export type ProgramApiResponse = {
   programs: fhir4.Library[]
   assessments: fhir4.Basic[]
 } | { error: string }
+
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse>) => {
   const cache = appCache?.getInstance()
   try {
@@ -44,6 +47,9 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
     if (req.query['title']) {
       queries['title:contains'] = req.query['title'] as string
     }
+    if (req.query['version']) {
+      queries['version'] = req.query['version'] as string
+    }
 
     const searchResult = await fhirCdrClient.search({
       resourceType: 'Library',
@@ -59,6 +65,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         ...queries
       }
     }) as fhir4.Bundle
+
     if (searchResult.entry) {
       const resources = searchResult?.entry?.map((e) => e?.resource)
       const programs = resources?.filter(is.library)
