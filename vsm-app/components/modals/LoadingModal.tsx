@@ -71,16 +71,6 @@ const modalText = {
   }
 }
 
-const versionErrorMessage = (
-  formatError: string | null,
-  matches: fhir4.Library[],
-  versionToCheck: string | null
-): string | null => {
-  if (formatError) return formatError
-  if (matches?.length) return `A Program with version ${versionToCheck} already exists. Please pick a unique version.`
-  return null
-}
-
 const LoadingModal = ({
   isOpen,
   actionType,
@@ -100,11 +90,22 @@ const LoadingModal = ({
   const [releaseLabel, setReleaseLabel] = useState('')
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
-  const [versionFormatError, setVersionFormatError] = useState<string | null>(null)
-  const [versionCollisionError, setVersionCollisionError] = useState<string | null>(null)
+  const [versionError, setVersionError] = useState<string | null>(null)
   const [versionToCheck, setVersionToCheck] = useState<string | null>(null)
 
   const matches = useGetPrograms({ version: versionToCheck || undefined })
+
+  useEffect(() => {
+    const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
+    if (versionFormatErrorExists) {
+      setVersionError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
+      return
+    } else if (matches.length) {
+      setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
+      return
+    }
+    setVersionError(null)
+  }, [versionToCheck, matches])
 
   useEffect(() => {
     // Need to set here because async
@@ -123,7 +124,7 @@ const LoadingModal = ({
         releaseDescription.length === 0 ||
         releaseLabel.length === 0 ||
         !validStartDate(effectiveStartDate) ||
-        versionFormatError
+        versionError
       )) {
       setDisableSubmission(true)
     } else {
@@ -145,25 +146,14 @@ const LoadingModal = ({
                 label="Update Program Version (optional)"
                 onChange={
                   (e) => {
+                    setVersionError(null)
                     setVersionToCheck(e?.target?.value)
-                    setVersionFormatError(null)
-                    setVersionCollisionError(null)
                     updateVersion!(e?.target?.value)
-                    const versionErrorExists = !isValidSimpleSemver(e?.target?.value)
-                    if(versionErrorExists) {
-                      setVersionFormatError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
-                    } else if (matches) {
-                      setVersionCollisionError(e?.target?.value)
-                    } else {
-                      setVersionToCheck(e?.target?.value)
-                      setVersionFormatError(null)
-                      setVersionCollisionError(null)
-                    }
                   }
                 }
                 defaultValue={currentProgram?.version?.split('-draft')?.[0]}
                 helperMessage={'This version must be in semantic versioning format. Example: 3.0.2'}
-                errorMessage={versionErrorMessage(versionFormatError, matches, versionToCheck)}
+                errorMessage={versionError}
               />
               <TextArea
                 label="Description of Release"
@@ -211,7 +201,7 @@ const LoadingModal = ({
           onClick={() => {
             let currProgram = currentProgram
             if (actionType === 'release' && currProgram) {
-              if (versionFormatError) {
+              if (versionError) {
                 return
               }
               let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())

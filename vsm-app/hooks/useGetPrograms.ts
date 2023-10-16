@@ -1,3 +1,4 @@
+import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 import { ProgramApiResponse } from 'pages/api/programs'
 import { useState, useEffect } from 'react'
 
@@ -28,25 +29,30 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
   const { id, name, title, description, version, newProgram, refreshToggle } = fields
   useEffect(() => {
     async function getPrograms(): Promise<void> {
-      let endpoint = '/api/programs'
-      const query = buildQuery(fields)
-      if (query.length) {
-        endpoint = endpoint.concat('?', query)
-      }
-      try {
-        const response: Response = await fetch(endpoint)
-        if (!response.ok) {
-          setLibraries([])
-        } else {
-          const json = await response.json() as ProgramApiResponse
-          if ('error' in json) {
+      // early return if wrong format for version
+      if (version && !isValidSimpleSemver(version)) {
+        setLibraries([])
+      } else {
+        let endpoint = '/api/programs'
+        const query = buildQuery(fields)
+        if (query.length) {
+          endpoint = endpoint.concat('?', query)
+        }
+        try {
+          const response: Response = await fetch(endpoint)
+          if (!response.ok) {
             setLibraries([])
           } else {
-            setLibraries(json.programs)
+            const json = await response.json() as ProgramApiResponse
+            if ('error' in json) {
+              setLibraries([])
+            } else {
+              setLibraries(json.programs)
+            }
           }
+        } catch (e) {
+          setLibraries([])
         }
-      } catch (e) {
-        setLibraries([])
       }
     }
     void getPrograms()
