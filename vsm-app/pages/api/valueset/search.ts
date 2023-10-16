@@ -168,9 +168,9 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
       case 'url':
         // VSAC is not respecting status=active. The following request shows some draft VS:
         // http://cts.nlm.nih.gov/fhir/ValueSet?status=active
+        // VSAC also does not respect _sort
         searchParams = {
-          'url:contains': search,
-          _count: count,
+          url: search,
           status: 'active'
         } as SearchParams
 
@@ -185,7 +185,20 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
             })
 
             if (serverResponse.entry) {
-              responseInfo.valueSets = serverResponse.entry.map((item: any) => {
+              // since VSAC doesn't support _sort parameter
+              // and when searching by URL we only want one latest response
+              // sort here by version, return only single latest result
+              const sortedEntries = serverResponse.entry.length > 1
+                ? serverResponse.entry
+                  .sort((a: any, b: any) => {
+                    return b.resource.version.localeCompare(a.resource.version)
+                  })
+                : serverResponse.entry
+
+              // only return first, latest item
+              const latest = [sortedEntries[0]]
+
+              responseInfo.valueSets = latest.map((item: any) => {
                 return item.resource
               })
               // TODO need this for OID search too
