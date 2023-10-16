@@ -193,6 +193,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
                   .sort((a: any, b: any) => {
                     return b.resource.version.localeCompare(a.resource.version)
                   })
+                // don't need to sort if only 1 item
                 : serverResponse.entry
 
               // only return first, latest item
