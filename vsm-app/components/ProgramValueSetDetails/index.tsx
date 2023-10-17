@@ -22,14 +22,7 @@ import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/t
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
-import {
-  SelectInputContainer,
-  SelectInputTitle,
-  ReadOnlyContainer,
-  ReadOnlyTag,
-  LoadingMessage,
-  TableActions
-} from './styles'
+import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, TableActions } from './styles'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
@@ -82,16 +75,14 @@ interface SelectedRows {
   selectedRows: TableRow[]
 }
 
-type GrouperPayloadItem = string[]
-
 type DeletePayload = Record<string, string[]>
 
 const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
   const payload = {} as DeletePayload
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     const vsCanonical = row.valueSet.url!
-    const grouperIds = row.groups.map(g => g.id!)
+    const grouperIds = row.groups.map((g) => g.id!)
     if (payload[vsCanonical]) {
       payload[vsCanonical] = payload[vsCanonical].concat(grouperIds)
     } else {
@@ -107,7 +98,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   const [versionToUpdate, setVersionToUpdate] = useState({} as any)
-  const [versionUpdated, setVersionUpdated] = useState([])
+  const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
@@ -145,12 +136,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setIsDeleting(true)
 
     const body = JSON.stringify({ batchDelete: payload })
-  
+
     const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
       method: 'DELETE',
       body: body
     })
-    
+
     if (result.ok) {
       router.reload()
     } else {
@@ -226,15 +217,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
-    versionUpdated,
     ...debouncedFilters
   }) as Result
 
-  const {
-    programAndGrouperData,
-    programAndGrouperDataLoading
-  } = useGetProgramDetails({
-    id: programId, toggleRefresh: toggleUpdateData
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({
+    id: programId,
+    toggleRefresh: toggleUpdateData
   })
 
   // since query takes a while, expose loading state
@@ -310,7 +298,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     if (!versionToUpdate.grouperIds) {
       return
     }
-    let result
 
     const body = JSON.stringify({
       vsCanonical: versionToUpdate.vsCanonical,
@@ -322,19 +309,21 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     })
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      result = await fetch(`/api/valueset/versions`, {
+      const result = await fetch(`/api/valueset/versions`, {
         method: 'PUT',
         body
       }).then((res) => res.json())
       if (result) {
         setUpdatedGrouper(result)
       }
+      setVersionUpdateInFlight(false)
     }
 
     try {
       updateVersions()
     } catch (e) {
       console.error('error: ', e)
+      setVersionUpdateInFlight(false)
     }
     setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
   }, [versionToUpdate])
@@ -408,7 +397,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
               <Select
                 menuPlacement="top"
                 instanceId="version-selector"
+                isDisabled={versionUpdateInFlight}
                 onChange={(e) => {
+                  setVersionUpdateInFlight(true)
                   const grouperIds = row?.groups?.map((g) => g.id)
                   handleVersionChange({
                     selectedVsId: row?.valueSet?.id as string,
@@ -510,7 +501,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                menuPlacement={index === 0 ? 'bottom' : 'top' }
+                menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
                 isMulti={true}
                 options={buildConditionOptions(allConditions, selectedOptions)}
@@ -569,7 +560,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           ) : (
             <SelectInputContainer>
               <Select
-                menuPlacement={index === 0 ? 'bottom' : 'top' }
+                menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
                 classNamePrefix="groups"
                 inputId="groups-selector"
@@ -633,7 +624,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     <>
       <DeleteConfirmationModal
         isOpen={showConfirmationModal}
-        toggleModalOpen={() => setShowConfirmationModal(show => !show)}
+        toggleModalOpen={() => setShowConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
       />
@@ -660,15 +651,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
         />
-        <ErrorMessage
-          error={error}
-        />
+        <ErrorMessage error={error} />
         <DT
-          selectableRows={
-            Boolean (
-              programId
-              && isEditable            )
-          }
+          selectableRows={Boolean(programId && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           key={tableKey}

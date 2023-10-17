@@ -51,7 +51,7 @@ interface AddDetails {
   useContext: fhir4.UsageContext[]
   terminologyInfo: TermInfo
 }
-const addDetailsToLeaf = ({vs, useContext, terminologyInfo}: AddDetails): fhir4.ValueSet => {
+const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir4.ValueSet => {
   const clonedVs = cloneDeep(vs)
 
   const conditionsToAdd = useContext?.filter(
@@ -185,7 +185,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
     // @ts-ignore
     if (e?.response?.data?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
-      logger.warn(`ERROR: ${JSON.stringify(e)}`)  
+      logger.warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
       logger.error(`ERROR: ${JSON.stringify(e)}`)
       return res.status(400).json({
@@ -204,17 +204,23 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       )
     )
 
-    const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+    const updatedGroupers = groupersToUpdate
+      ?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+      .map((grouper) => ({
+        request: {
+          method: 'PUT',
+          url: `ValueSet/${grouper.id}`
+        } as fhir4.BundleEntryRequest,
+        resource: grouper as fhir4.ValueSet
+      }))
 
-    await Promise.all(
-      updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
-        fhirCdrClient.update({
-          resourceType: 'ValueSet',
-          id: grouperVs.id,
-          body: grouperVs
-        })
-      )
-    )
+    await fhirCdrClient.transaction({
+      body: {
+        resourceType: 'Bundle',
+        type: 'transaction',
+        entry: updatedGroupers
+      }
+    })
 
     return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
   } catch (e) {

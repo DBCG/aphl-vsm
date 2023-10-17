@@ -193,10 +193,18 @@ const EditManifestDetails = () => {
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
       const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
-      const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => res.json())
-      availableVersions[selectedSystem] = systemVersionData
-      setAvailableVersions(structuredClone(availableVersions))
-      setPageLoading(false)
+      try {
+        const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => {
+          if (res.ok) return res.json()
+          throw new Error('Error retrieving available versions for Code System, please try again later')
+        })
+        availableVersions[selectedSystem] = systemVersionData
+        setAvailableVersions(structuredClone(availableVersions))
+      } catch(e: any) {
+        toast.error(e?.message)
+      } finally {
+        setPageLoading(false)
+      }
     }
     if (selectedSystem && !availableVersions[selectedSystem]) {
       retrieveSelectedSystemVersions()

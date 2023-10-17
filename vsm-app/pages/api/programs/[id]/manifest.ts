@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
@@ -46,7 +47,8 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    logger.error('error:  ', e)
+    logger.error("An error occured likely from the VSAC side")
+    logSimpleError(e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
