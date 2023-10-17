@@ -91,7 +91,7 @@ const LoadingModal = ({
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
   const [versionError, setVersionError] = useState<string | null>(null)
-  const [versionToCheck, setVersionToCheck] = useState<string | null>(null)
+  const [versionToCheck, setVersionToCheck] = useState<string | null>(program?.version?.split('-draft')?.[0] || null)
 
   const matches = useGetPrograms({ version: versionToCheck || undefined })
 
