@@ -95,7 +95,7 @@ const LoadingModal = ({
 
   useEffect(() => {
     const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
-    if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '') {
+    if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck) {
       setVersionError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
     } else if (matches.length) {
       setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
@@ -108,6 +108,7 @@ const LoadingModal = ({
     // Need to set here because async
     if (program != null) {
       setProgram(program)
+      setVersionToCheck(program?.version?.split('-draft')?.[0])
       setReleaseDescription(getReleaseDescription(program))
       setReleaseLabel(getReleaseLabel(program))
       setEffectiveStartDate(program?.effectivePeriod?.start || null)
