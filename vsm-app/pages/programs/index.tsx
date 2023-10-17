@@ -208,7 +208,7 @@ const Programs: NextPage = () => {
               onClick={() => {
                 handleClickClone(row.id)
               }}
-              buttonContext={`clone-${row.status}`}
+              buttoncontext={`clone-${row.status}`}
             />
           </ButtonWrapper>
         )
@@ -229,7 +229,7 @@ const Programs: NextPage = () => {
                 setError({})
                 setProgramToRelease(row)
               }}
-              buttonContext={programToPublish?.approvalDate ? `release-${row.status}` : `mustApproveRelease-${row.status}`}
+              buttoncontext={programToPublish?.approvalDate ? `release-${row.status}` : `mustApproveRelease-${row.status}`}
             />
           </ButtonWrapper>
         )

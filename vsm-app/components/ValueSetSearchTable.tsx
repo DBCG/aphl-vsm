@@ -572,7 +572,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
             <IconButton
               style={{ alignSelf: 'center', marginTop: '12px' }}
               id={'submit-search-valueset-button'}
-              buttonContext="search"
+              buttoncontext="search"
               type="submit"
               onClick={(e) => {
                 e?.preventDefault()

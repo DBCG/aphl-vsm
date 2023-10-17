@@ -145,7 +145,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
                     grouperVsIdToRemove: row?.id
                   })
                 }}
-                buttonContext="delete"
+                buttoncontext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
               />
             </ButtonContainer>

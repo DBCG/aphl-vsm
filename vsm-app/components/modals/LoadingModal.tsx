@@ -97,7 +97,7 @@ const LoadingModal = ({
 
   useEffect(() => {
     const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
-    if (versionFormatErrorExists) {
+    if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '') {
       setVersionError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
       return
     } else if (matches.length) {
@@ -139,6 +139,7 @@ const LoadingModal = ({
         <DialogContentText>{text}</DialogContentText>
         <DialogContentText>
           {actionText}
+        </DialogContentText>
           {actionType === 'release' && (
             <>
               <SearchInput
@@ -189,7 +190,6 @@ const LoadingModal = ({
               />
             </>
           )}
-        </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />

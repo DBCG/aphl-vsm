@@ -145,7 +145,6 @@ const ProgramDetails = () => {
                   }
                 })
                 .catch((error) => {
-                  console.error(error)
                   setExportError('Error exporting artifact')
                 })
                 .finally(() => {
