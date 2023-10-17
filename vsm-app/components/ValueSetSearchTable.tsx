@@ -542,7 +542,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   instanceId={`${tableContext}-searchByVS`}
                   isMulti={false}
                   options={searchTypes}
-                  value={searchType}
+                  value={searchType} 
                   onChange={(e) => {
                     return setSearchType(e!)
                   }}
@@ -559,6 +559,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               label="Search Text"
               hasIcon={true}
               info={searchInfoText[searchType.value]}
+              helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
               errorMessage={
                 vsNumExceedsFilterLimit ? (
                   <ErrorText>
