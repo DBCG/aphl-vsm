@@ -81,8 +81,6 @@ const LoadingModal = ({
   program,
   updateVersion
 }: ModalInfo) => {
-  if (!isOpen) return null
-
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   const [currentProgram, setProgram] = useState(program)
@@ -91,20 +89,19 @@ const LoadingModal = ({
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
   const [versionError, setVersionError] = useState<string | null>(null)
-  const [versionToCheck, setVersionToCheck] = useState<string | null>(program?.version?.split('-draft')?.[0] || null)
+  const [versionToCheck, setVersionToCheck] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
 
-  const matches = useGetPrograms({ version: versionToCheck || undefined })
+  const matches = useGetPrograms({ version: versionToCheck })
 
   useEffect(() => {
     const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
     if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '') {
       setVersionError('Please ensure proper major.minor.patch version format. Numbers and periods only. Example: 3.14.1')
-      return
     } else if (matches.length) {
       setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
-      return
+    } else {
+      setVersionError(null)
     }
-    setVersionError(null)
   }, [versionToCheck, matches])
 
   useEffect(() => {
@@ -131,6 +128,8 @@ const LoadingModal = ({
       setDisableSubmission(false)
     }
   }, [actionType, releaseDescription.length, releaseLabel.length, effectiveStartDate])
+
+  if (!isOpen) return null
 
   return (
     <Dialog open={isOpen}>
