@@ -11,8 +11,8 @@ import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 
-const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttonContext }) => ({
-  'aria-label': buttonContext,
+const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttoncontext }) => ({
+  'aria-label': buttoncontext,
   component: 'label'
 }))<IButtonProps & IconButtonProps>`
   height: 36px;
@@ -33,7 +33,7 @@ const ImageContainer = styled.div`
 `
 
 interface IButtonProps extends IconButtonProps {
-  buttonContext?: string | undefined
+  buttoncontext?: string | undefined
   onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   color?: 'default' | 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | undefined
@@ -54,11 +54,11 @@ const btnTitleText = {
 
 type Key = keyof typeof btnTitleText
 
-const IconButton = ({ type, buttonContext, onClick, style, disabled = false, deletedItemDescription, ...props }: IButtonProps) => {
+const IconButton = ({ type, buttoncontext, onClick, style, disabled = false, deletedItemDescription, ...props }: IButtonProps) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   const handleClickIconButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    if (buttonContext === 'delete') {
+    if (buttoncontext === 'delete') {
       setModalOpen(true)
     } else {
       onClick(e)
@@ -71,19 +71,19 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
 
   let image = <PsychologyAltIcon />
 
-  if (buttonContext === 'edit') {
+  if (buttoncontext === 'edit') {
     image = <EditIcon/>
-  } else if (buttonContext === 'delete') {
+  } else if (buttoncontext === 'delete') {
     image = <DeleteForeverIcon/>
-  } else if (buttonContext === 'search') {
+  } else if (buttoncontext === 'search') {
     image = <SearchIcon/>
-  } else if (buttonContext?.toLowerCase()?.includes('clone')) {
+  } else if (buttoncontext?.toLowerCase()?.includes('clone')) {
     image = <ContentCopyIcon/>
-  } else if (buttonContext?.toLowerCase()?.includes('publish')) {
+  } else if (buttoncontext?.toLowerCase()?.includes('publish')) {
     image = <PublishIcon/>
-  } else if (buttonContext?.toLowerCase()?.includes('release')) {
+  } else if (buttoncontext?.toLowerCase()?.includes('release')) {
     image = <NewReleasesIcon/>
-  } else if (buttonContext === 'retire') {
+  } else if (buttoncontext === 'retire') {
     image = <DoNotTouchIcon/>
   }
 
@@ -96,12 +96,12 @@ const IconButton = ({ type, buttonContext, onClick, style, disabled = false, del
         itemToDelete={deletedItemDescription}
       />
       <StyledButton
-        title={btnTitleText[buttonContext as Key]}
+        title={btnTitleText[buttoncontext as Key]}
         disabled={disabled}
         type={type}
         // @ts-ignore
-        buttonContext={buttonContext}
-        data-button-context={buttonContext}
+        buttoncontext={buttoncontext}
+        data-button-context={buttoncontext}
         style={style}
         onClick={(e) => {
           !disabled && e ? handleClickIconButton(e) : null

@@ -19,7 +19,7 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse>) => {
+const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   const cache = appCache?.getInstance()
   try {
     // should program status only be draft here? or also active?
@@ -76,8 +76,13 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
 
       res.status(200).send({ programs, assessments })
     } else {
-      logger.error(searchResult)
-      res.status(404).send({ programs: [], assessments: [] })
+      // do not error out if version doesn't exist, it's just not found
+      if (req.query.version) {
+        return res.status(204).send({})
+      } else {
+        logger.error(searchResult)
+        return res.status(404).send({ programs: [], assessments: [] })
+      }
     }
   } catch (e: any) {
     const error = e as HapiError

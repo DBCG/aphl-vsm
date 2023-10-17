@@ -53,7 +53,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
             data-delete-manifest={`${row.system}|${row.version}`}
             deletedItemDescription={`system "${row.system}" version ${row.version}`}
             onClick={() => deleteFn(row)}
-            buttonContext="delete"
+            buttoncontext="delete"
             style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
           />
         )
@@ -75,7 +75,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
             <IconButton
               data-update-manifest={`${row.system}|${row.version}`}
               onClick={() => updateFn(row.version, row.system)}
-              buttonContext="update"
+              buttoncontext="update"
               style={{ backgroundColor: 'darkGreen', margin: '0 auto' }}
             />
           )

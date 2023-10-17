@@ -53,6 +53,7 @@ describe('semverHelpers', () => {
       expect(isValidSimpleSemver('20.10.10.92')).toBe(false)
       expect(isValidSimpleSemver('0.10')).toBe(false)
       expect(isValidSimpleSemver('invalid!')).toBe(false)
+      expect(isValidSimpleSemver('')).toBe(false)
     })
   })
 })

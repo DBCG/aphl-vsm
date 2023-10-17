@@ -88,7 +88,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
               deletedItemDescription={`valueset with id ${row.selectedValueSet.id} and version ${row.selectedValueSet.version}`}
               type="button"
               onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
-              buttonContext="delete"
+              buttoncontext="delete"
               style={{ backgroundColor: 'darkRed', margin: '0 auto', alignSelf: 'center' }}
             />
           </div>
