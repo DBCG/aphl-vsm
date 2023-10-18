@@ -67,6 +67,7 @@ const StyledForm = styled.form`
   align-items: center;
   justify-content: flex-start;
   column-gap: 12px;
+  row-gap: 15px;
   margin-bottom: 1rem;
   flex-wrap: wrap;
 `
@@ -128,6 +129,16 @@ const CopyButton = styled.button`
   top: 4px;
   right: 6px;
   padding: 0px 6px 4px 6px;
+`
+
+const TextAreaSubmitContainer = styled.div`
+  display: flex;
+  width: 100%;
+  max-width: 38.5rem;
+`
+
+const DropdownContainer = styled.div`
+  align-self: flex-start;
 `
 
 const paginationMaximum = 100
@@ -517,69 +528,72 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       <TitleRow>
         <Row>
           <StyledForm>
-            <div style={{ marginBottom: '15px', alignSelf: 'flex-start' }}>
-              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                Terminology Source
-              </StyledLabel>
-              <SelectInputContainer>
-                <Select
-                  instanceId={`${tableContext}-termServer`}
-                  isMulti={false}
-                  options={terminologyServerEndpoints}
-                  value={selectedTerminologyServer}
-                  onChange={(e) => {
-                    return setSelectedTerminologyServer(e!)
-                  }}
-                />
-              </SelectInputContainer>
-            </div>
-            <div style={{ marginBottom: '15px', alignSelf: 'flex-start' }}>
-              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                Search By ValueSet
-              </StyledLabel>
-              <SelectInputContainer>
-                <Select
-                  instanceId={`${tableContext}-searchByVS`}
-                  isMulti={false}
-                  options={searchTypes}
-                  value={searchType} 
-                  onChange={(e) => {
-                    return setSearchType(e!)
-                  }}
-                />
-              </SelectInputContainer>
-            </div>
-            <TextArea
-              onChange={(e) => (searchTerm.current = e.target.value)}
-              onKeyPress={(e) => {
-                e.preventDefault()
-                submitVSetSearch()
-              }}
-              id="vs-search"
-              label="Search Text"
-              hasIcon={true}
-              info={searchInfoText[searchType.value]}
-              helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
-              errorMessage={
-                vsNumExceedsFilterLimit ? (
-                  <ErrorText>
-                    {searchTotal} results
-                    <br />
-                    Refine search to enable filters (max {paginationMaximum} results)
-                  </ErrorText>
-                ) : null
-              }
-            />
-            <IconButton
-              style={{ alignSelf: 'center', marginTop: '12px' }}
-              id={'submit-search-valueset-button'}
-              buttoncontext="search"
-              type="submit"
-              onClick={(e) => {
-                e?.preventDefault()
-                submitVSetSearch()
-              }}
-            />
+              <DropdownContainer>
+                <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                  Terminology Source
+                </StyledLabel>
+                <SelectInputContainer>
+                  <Select
+                    instanceId={`${tableContext}-termServer`}
+                    isMulti={false}
+                    options={terminologyServerEndpoints}
+                    value={selectedTerminologyServer}
+                    onChange={(e) => {
+                      return setSelectedTerminologyServer(e!)
+                    }}
+                  />
+                </SelectInputContainer>
+              </DropdownContainer>
+              <DropdownContainer>
+                <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                  Search By ValueSet
+                </StyledLabel>
+                <SelectInputContainer>
+                  <Select
+                    instanceId={`${tableContext}-searchByVS`}
+                    isMulti={false}
+                    options={searchTypes}
+                    value={searchType} 
+                    onChange={(e) => {
+                      return setSearchType(e!)
+                    }}
+                  />
+                </SelectInputContainer>
+              </DropdownContainer>
+            <TextAreaSubmitContainer>
+              <TextArea
+                style={{ width: '100%' }}
+                onChange={(e) => (searchTerm.current = e.target.value)}
+                onKeyPress={(e) => {
+                  e.preventDefault()
+                  submitVSetSearch()
+                }}
+                id="vs-search"
+                label="Search Text"
+                hasIcon={true}
+                info={searchInfoText[searchType.value]}
+                helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
+                errorMessage={
+                  vsNumExceedsFilterLimit ? (
+                    <ErrorText>
+                      {searchTotal} results
+                      <br />
+                      Refine search to enable filters (max {paginationMaximum} results)
+                    </ErrorText>
+                  ) : null
+                }
+              />
+              <IconButton
+                style={{ alignSelf: 'center', height: '100%', borderRadius: '0 8px 8px 0' }}
+                id={'submit-search-valueset-button'}
+                buttoncontext="search"
+                type="submit"
+                onClick={(e) => {
+                  e?.preventDefault()
+                  submitVSetSearch()
+                }}
+              />
+            </TextAreaSubmitContainer>
             {fetchError?.errorType === 'failed-oids' ? (
               <ErrorBlock>
                 <ErrorBlockText>Search for these OIDs failed:</ErrorBlockText>
