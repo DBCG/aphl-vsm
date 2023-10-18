@@ -144,7 +144,7 @@ const LoadingModal = ({
             <>
               <SearchInput
                 style={{ marginTop: '2rem', marginBottom: '1rem' }}
-                label="Update Program Version (optional)"
+                label="Update Program Version *"
                 onChange={
                   (e) => {
                     setVersionError(null)
