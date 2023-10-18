@@ -584,7 +584,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 }
               />
               <IconButton
-                style={{ alignSelf: 'center', height: '100%', borderRadius: '0 8px 8px 0' }}
+                style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
                 id={'submit-search-valueset-button'}
                 buttoncontext="search"
                 type="submit"
