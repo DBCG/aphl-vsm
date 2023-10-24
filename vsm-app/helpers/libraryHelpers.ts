@@ -13,60 +13,10 @@ interface EditComposeInclude {
   action: 'add' | 'remove'
 }
 
-export enum USHealthVSPriority {
-  'Emergent' = 'emergent',
-  'Priority' = 'priority',
-  'Routine' = 'routine'
-}
-
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program?.relatedArtifact?.find((related) => related?.resource?.includes('/Library/'))?.resource
 }
 
-const setVSPriorityUsageContext = (target: fhir4.Library | fhir4.ValueSet, code: USHealthVSPriority) => {
-  const clonedTarget = cloneDeep(target)
-  const newUsageContextEntry: fhir4.UsageContext = {
-    code: {
-      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
-      code: 'priority'
-    },
-    valueCodeableConcept: {
-      coding: [
-        {
-          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-          code
-        }
-      ]
-    }
-  }
-
-  if (clonedTarget.useContext) {
-    const newUsageContextIndex = Math.max(
-      clonedTarget.useContext.findIndex((ctx) => {
-        const { system, code } = ctx?.code
-        if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-          return ctx
-        }
-      }),
-      0
-    )
-    clonedTarget.useContext[newUsageContextIndex] = newUsageContextEntry
-  } else {
-    clonedTarget.useContext = [newUsageContextEntry]
-  }
-
-  return clonedTarget
-}
-
-const getVSPriorityUsageContext = (library: fhir4.Library) => {
-  const context = library?.useContext?.find((ctx) => {
-    const { system, code } = ctx?.code
-    if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-      return ctx
-    }
-  })
-  return context?.valueCodeableConcept?.coding?.[0]?.code
-}
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
   return program?.extension?.find((ext) => ext?.url?.endsWith('artifact-releaseDescription'))?.valueString || ''
@@ -174,8 +124,6 @@ const validStartDate = (date: any): boolean => {
 
 export {
   getGrouperLibraryCanonical,
-  setVSPriorityUsageContext,
-  getVSPriorityUsageContext,
   getReleaseDescription,
   setReleaseDescription,
   missingFields,

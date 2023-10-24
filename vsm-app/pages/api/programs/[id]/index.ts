@@ -2,13 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import { fetchLeafValueSetsByGrouperCanonical } from '@/helpers/server/serverValueSetHelper'
-import {
-  getGrouperLibraryCanonical,
-  getVSPriorityUsageContext,
-  setVSPriorityUsageContext,
-  USHealthVSPriority
-} from '@/helpers/libraryHelpers'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
 
@@ -64,47 +58,13 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
       return
     }
     if (req.body.id === req.query['id']) {
-      const grouperLibraryCanonical = getGrouperLibraryCanonical(req.body)
-      if (grouperLibraryCanonical == null) {
-        return res.status(400).json({ error: 'Grouper Library Canonical Not Found' })
-      }
-      const leafValueSets = await fetchLeafValueSetsByGrouperCanonical(grouperLibraryCanonical)
-
-      const programConditionPriority = getVSPriorityUsageContext(req.body) // APHL-502 program sets priority for leaf valuesets
-      const batchBundle = []
-      if (programConditionPriority) {
-        leafValueSets?.forEach((vs) => {
-          const updatedVs = setVSPriorityUsageContext(vs, programConditionPriority as USHealthVSPriority)
-          batchBundle.push({
-            resource: updatedVs,
-            request: {
-              method: 'PUT',
-              url: `/ValueSet/${updatedVs.id}`
-            }
-          })
-        })
-      }
-
-      batchBundle.push({
-        resource: req.body,
-        request: {
-          method: 'PUT',
-          url: `/Library/${req.body.id}`
-        }
+      const response = await fhirCdrClient.update({
+        resourceType: 'Library',
+        id: req.body.id as string,
+        body: req.body
       })
 
-      // update the program by id
-
-      await fhirCdrClient.batch({
-        body: {
-          resourceType: 'Bundle',
-          type: 'batch',
-          entry: batchBundle
-        }
-      })
-
-      res.send(req.body as fhir4.Library) // UI is expecting the updated library as a response
-      return
+      return res.status(200).send(response) // UI is expecting the updated library as a response
     } else {
       // if the user wants to change the id of the Library (hence non-matching ids),
       // create a new Library with that name, then delete the original one
