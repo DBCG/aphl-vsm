@@ -1,8 +1,9 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
-import Select, { MultiValue } from 'react-select'
+import Select, { MultiValue, Options } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
@@ -13,7 +14,7 @@ import { Button } from '@/components/buttons/Button'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { getTerminologySource } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, setVSPriorityUsageContext } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -22,12 +23,13 @@ import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/t
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
-import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage, TableActions } from './styles'
+import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
+import TableActions from './TableActions'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
-import InfoIcon from '@mui/icons-material/Info'
-
 import { buildGroupOptions } from '@/helpers/selectHelpers'
+import { getVSPriorityUsageContext, USHealthVSPriority } from '@/helpers/valueSetHelpers'
+import BulkEditModal from './BulkEditModal'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -61,6 +63,17 @@ interface HandleVersionChange {
   grouperIds: string[]
   terminologyInfo: TerminologyResult
 }
+export interface OptionType {
+  label: string
+  value: string
+  id: string
+}
+
+export const priorityLevelOptions: Options<OptionType> = [
+  { label: 'Emergent', value: 'emergent', id: 'emergent' },
+  { label: 'Priority', value: 'priority', id: 'priority' },
+  { label: 'Routine', value: 'routine', id: 'routine' }
+] as const
 
 const DEFAULT_FILTERS = {
   findInOid: '',
@@ -68,7 +81,8 @@ const DEFAULT_FILTERS = {
   findInSteward: '',
   findInVersion: '',
   activeConditions: [],
-  activeGroups: []
+  activeGroups: [],
+  activePriority: []
 }
 
 interface SelectedRows {
@@ -109,16 +123,14 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
-  const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
 
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
-  const [toggleUpdateData, setToggleUpdateData] = useState(false)
-  const [tableKey, setTableKey] = useState(1)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   // handle error display
   const [error, setError] = useState<null | string>(null)
@@ -132,11 +144,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
-
     setIsDeleting(true)
-
     const body = JSON.stringify({ batchDelete: payload })
-
     const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
       method: 'DELETE',
       body: body
@@ -172,6 +181,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setSelectedRows(selectedRows)
   }
 
+  // Updates Conditions
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
     const postUpdate = async () => {
@@ -195,6 +205,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     postUpdate()
   }, [conditionToUpdate, programId])
 
+  // Updates Group ValueSets
   useEffect(() => {
     const endpoint = `/api/programs/${programId}/details/valuesets/groups`
     const postUpdate = async () => {
@@ -212,6 +223,23 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     postUpdate()
   }, [updateVsGroups.groupInfo, programId, updateVsGroups])
 
+  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: string) => {
+    setGrouperLoading(true)
+    const prioritySetVs = setVSPriorityUsageContext(vs, priority as USHealthVSPriority)
+    try {
+      const updatedVs = await fetch(`/api/valueset/${vs.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(prioritySetVs)
+      }).then((res) => res.json())
+      toast.success('Priority updated for ' + vs?.title)
+      setUpdatedGrouperValueSets(updatedVs)
+    } catch (e) {
+      toast.error('Error updating priority')
+    } finally {
+      setGrouperLoading(false)
+    }
+  }
+
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
     updatedValueSet, // this gets updated when a user adds a condition
@@ -222,17 +250,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({
     id: programId,
-    toggleRefresh: toggleUpdateData
+    toggleRefresh: false
   })
-
-  // since query takes a while, expose loading state
-  useEffect(() => {
-    setVSetsLoading(true)
-  }, [filters])
-
-  useEffect(() => {
-    setVSetsLoading(false)
-  }, [progValueSetDets])
 
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
@@ -348,6 +367,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         ),
         id: 'vs-title-search',
         selector: (row: TableRow) => row.title,
+        style: { fontSize: '14px' },
         sortable: false,
         maxWidth: '350px',
         wrap: true
@@ -369,8 +389,54 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
         sortable: false,
         style: { fontSize: '12px' },
-        maxWidth: '360px',
+        maxWidth: '225px',
         wrap: true
+      },
+      {
+        name: (
+          <SelectInputContainer>
+            Priority
+            <Select
+              menuPlacement="bottom"
+              placeholder="Filter Priority"
+              classNamePrefix="priority"
+              inputId="priority-selector"
+              instanceId="priority-selector"
+              isMulti
+              options={priorityLevelOptions}
+              onChange={(e) => handleFilterChange(e, 'activePriority')}
+            />
+          </SelectInputContainer>
+        ),
+        id: 'value-set-priority',
+        sortable: false,
+        allowOverflow: true,
+        wrap: true,
+        cell: (row: TableRow, index: number) => {
+          const currentPriority = getVSPriorityUsageContext(row?.valueSet)
+          const currentPriorityValue = priorityLevelOptions.find(i => i.id === currentPriority)
+          return row.programStatus === 'active' || !can(session, 'edit') ? (
+            <ReadOnlyContainer>
+              <ReadOnlyTag>{currentPriority || 'N/A'}</ReadOnlyTag>
+            </ReadOnlyContainer>
+          ) : (
+            <SelectInputContainer>
+              <Select
+                menuPlacement={index === 0 ? 'bottom' : 'top'}
+                isClearable={false}
+                classNamePrefix="priority"
+                inputId="priority-selector"
+                instanceId="priority-selector"
+                isLoading={updateVsGroups?.canonical === row?.canonical}
+                options={priorityLevelOptions}
+                value={currentPriorityValue}
+                onChange={(e) => {
+                  updateValueSetPriority(row?.valueSet, e?.value as string)
+                }}
+              />
+            </SelectInputContainer>
+          )
+        }
       },
       {
         name: (
@@ -429,6 +495,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </div>
         ),
         selector: (row: TableRow) => row.valueSet.publisher,
+        style: { fontSize: '12px' },
         sortable: true,
         maxWidth: '120px',
         wrap: true
@@ -620,6 +687,21 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     return null
   })()
 
+  const bulkUpdateFn = async (priority: USHealthVSPriority) => {
+    try {
+      const toUpdateVs = selectedRows.map((row) => setVSPriorityUsageContext(row.valueSet, priority))
+      await fetch(`/api/valueset/bulk`, {
+        method: 'PUT',
+        body: JSON.stringify({ valueSets: toUpdateVs })
+      }).then((res) => res.json())
+      toast.success(`Successfully updated ${selectedRows.length} ValueSet`)
+    } catch {
+      toast.error("Something went wrong when bulk updating ValueSets")
+    } finally {
+      router.reload()
+    }
+  }
+
   return (
     <>
       <DeleteConfirmationModal
@@ -627,6 +709,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         toggleModalOpen={() => setShowConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
+      />
+      <BulkEditModal
+        isOpen={showBulkEditModal}
+        selectedVs={selectedRows}
+        handleClose={() => setShowBulkEditModal(false)}
+        bulkUpdateFn={bulkUpdateFn}
       />
       <Row>
         <FlexRow style={{ width: '80%' }}>
@@ -647,6 +735,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
+          handleBulkEdit={() => setShowBulkEditModal(true)}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
@@ -656,7 +745,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           selectableRows={Boolean(programId && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
-          key={tableKey}
           // @ts-expect-error
           data={progValueSetDets?.data}
           keyField="canonical"
@@ -670,7 +758,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable')}
+          customStyles={customTableStyles('clickable', { fontSize: '12px'})}
           progressPending={pageLoading || programAndGrouperDataLoading}
           progressComponent={<LoadingIndicator />}
         />

@@ -1,6 +1,4 @@
 import styled from 'styled-components'
-import { Button } from '../buttons/Button'
-import { TableRow } from '@/types/valuesets'
 
 export const SelectInputContainer = styled.div`
   width: 100%;
@@ -34,59 +32,3 @@ export const ReadOnlyTag = styled.div`
 export const LoadingMessage = styled.p`
   color: blue;
 `
-
-export const TableActionContainer = styled.div`
-  display: flex;
-  border: 4px solid var(--theme-300);
-  padding: 4px 16px;
-  background-color: lightblue;
-  width: 100%;
-  font-weight: bold;
-  color: var(--theme-500);
-  column-gap: 24px;
-`
-
-const ActionContainerRow = styled.div`
-  display: flex;
-  align-items: center;
-`
-
-interface TableActions {
-  selectedRows: TableRow[]
-  handleDelete: (selectedRows: TableRow[]) => void
-  isDeleting: boolean
-  totalRows: number
-}
-
-export const TableActions = ({
-  selectedRows,
-  handleDelete,
-  isDeleting,
-  totalRows
-}: TableActions) => {
-  if (selectedRows?.length) {
-    const text = selectedRows.length === totalRows
-      ? `You have selected all ${totalRows} Valuesets in this Program`
-      : `You have selected ${selectedRows.length} out of ${totalRows} total Valuesets`
-    return (
-      <TableActionContainer>
-        <ActionContainerRow>
-          <p>
-            {text}
-          </p>
-        </ActionContainerRow>
-        <ActionContainerRow>
-          <Button
-            style={{ backgroundColor: 'var(--accent)' }}
-            text='Delete'
-            loading={isDeleting}
-            onClick={() => handleDelete(selectedRows)}
-            data-action='delete'
-          />
-        </ActionContainerRow>
-      </TableActionContainer>
-    )
-  } else {
-    return null
-  }
-}

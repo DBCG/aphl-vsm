@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import Select, { Options } from 'react-select'
-import { PickersActionBar } from '@mui/x-date-pickers/PickersActionBar'
+import { Options } from 'react-select'
 
 import { Grid } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
@@ -12,9 +11,6 @@ import {
   getReleaseLabel,
   setReleaseDescription,
   missingFields,
-  setVSPriorityUsageContext,
-  getVSPriorityUsageContext,
-  USHealthVSPriority,
   setTitleAndDerivedName
 } from '@/helpers/libraryHelpers'
 import { Form, ButtonContainer, buttonStyles } from './styles'
@@ -31,12 +27,6 @@ interface OptionType {
   label: string
   value: string
 }
-
-const priorityLevelOptions: Options<OptionType> = [
-  { label: 'Emergent', value: 'emergent' },
-  { label: 'Priority', value: 'priority' },
-  { label: 'Routine', value: 'routine' }
-] as const
 
 interface ErrorMessages {
   [key: string]: string
@@ -177,35 +167,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             onChange={(event) => handleFieldChange(event, 'releaseDescription')}
             placeholder={'No release description set'}
           />
-        </Grid>
-        <Grid item xs={12}>
-          {enableEditing ? (
-            <div>
-              <Select
-                placeholder="Select Priority Level"
-                classNamePrefix="priority-level-selector"
-                inputId="priority-level-selector"
-                defaultValue={priorityLevelOptions.find((i: any) => i.value === getVSPriorityUsageContext(editedProgram))}
-                instanceId="priority-level-selector"
-                options={priorityLevelOptions}
-                onChange={(e) => {
-                  const newPriority = e?.value as USHealthVSPriority
-                  const updatedProgram = setVSPriorityUsageContext(editedProgram, newPriority) as fhir4.Library
-                  setFormTouched(true)
-                  setEditedProgram(updatedProgram)
-                }}
-              />
-            </div>
-          ) : (
-            <TextArea
-              id="priority-level"
-              label="Priority Level"
-              readonly={true}
-              defaultValue={priorityLevelOptions.find((i) => i.value === getVSPriorityUsageContext(editedProgram))?.label}
-              placeholder={'No Priority set'}
-              style={{ flexBasis: '100%', maxWidth: '624px' }}
-            />
-          )}
         </Grid>
         <Grid item xs={12}>
           {editable && !enableEditing && !formTouched ? (

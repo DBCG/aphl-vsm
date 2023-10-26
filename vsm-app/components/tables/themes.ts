@@ -28,7 +28,7 @@ createTheme(
   'light'
 )
 
-const customTableStyles = (tableType: 'clickable' | 'readonly'): TableStyles => {
+const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles: any = {}): TableStyles => {
   const baseStyles = {
     headCells: {
       style: {
@@ -42,7 +42,8 @@ const customTableStyles = (tableType: 'clickable' | 'readonly'): TableStyles => 
         paddingTop: '12px',
         paddingBottom: '12px',
         overflow: 'visible',
-        fontSize: '120%'
+        fontSize: '120%',
+        ...additionalStyles
       }
     },
     rows: {
