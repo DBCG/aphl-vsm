@@ -282,7 +282,7 @@ const EditManifestDetails = () => {
         </Tooltip>
         <Button
           style={{ marginLeft: '10px' }}
-          text="Search for Updates"
+          text="Find Newest Versions"
           loading={isUpdating}
           onClick={() => {
             setIsUpdating(true)

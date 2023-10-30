@@ -7,8 +7,8 @@ import { fetcher } from '@/utils'
 import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
 import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
-import InfoIcon from '@mui/icons-material/Info'
-import { Typography, Modal, Tooltip, Box, Button } from '@mui/material'
+import { Typography, Modal, Tooltip, Box, Button as MuiButton } from '@mui/material'
+import { Button } from './buttons/Button'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
@@ -69,7 +69,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
             deletedItemDescription={`system "${row.system}" version ${row.version}`}
             onClick={() => deleteFn(row)}
             buttoncontext="delete"
-            style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
+            style={{ backgroundColor: 'darkRed' }}
           />
         )
       },
@@ -77,28 +77,23 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       wrap: true
     },
     {
-      name: 'Update Available',
+      name: 'Update to Latest',
       maxWidth: '200px',
       omit: noUpdatesAvailable,
-      sortable: true,
+      sortable: false,
       cell: (row: ManifestSystemVersionPair) => {
         const matchingVs = availableUpdates.find(
           (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
         )
         if (matchingVs) {
-          console.log(matchingVs)
           return (
-            <>
-              <IconButton
+            <div>
+              <Button
                 data-update-manifest={`${row.system}|${row.version}`}
                 onClick={() => setTargetedVsToUpdate(matchingVs)}
-                buttoncontext="update"
-                style={{ backgroundColor: 'darkGreen', margin: '0 auto' }}
+                text={`Update to ${matchingVs?.version}`}
               />
-              <Tooltip title={matchingVs?.version}>
-                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
-              </Tooltip>
-            </>
+            </div>
           )
         } else {
           return null
@@ -125,7 +120,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
             <b>{targetedVsToUpdate?.version}</b>?
           </Typography>
           <Box sx={{ display: 'flex', mt: 3, flexDirection: 'row-reverse' }}>
-            <Button
+            <MuiButton
               sx={{ ml: 2 }}
               onClick={() => {
                 updateFn(targetedVsToUpdate?.version, targetedVsToUpdate?.url)
@@ -133,8 +128,8 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
               }}
             >
               Update
-            </Button>
-            <Button onClick={() => setTargetedVsToUpdate(null)}>Cancel</Button>
+            </MuiButton>
+            <MuiButton onClick={() => setTargetedVsToUpdate(null)}>Cancel</MuiButton>
           </Box>
         </Box>
       </Modal>
