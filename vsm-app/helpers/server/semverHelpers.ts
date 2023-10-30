@@ -15,6 +15,7 @@ const addRevision = (version: string) => {
 }
 
 // returns the latest version between two options (not considering flags)
+// adds revision (as .0) if it doesn't exist already
 const latestVersion = (cdrVersion: string | any, templateVersion: string | any): string | null => {
   const noFlagsCdrSemver = removeFlags(cdrVersion)
   const noFlagsTemplateSemver = removeFlags(templateVersion)
@@ -24,7 +25,7 @@ const latestVersion = (cdrVersion: string | any, templateVersion: string | any):
 
   // if both options are valid semvers, return the one that is greater than the other
   if (validCdrSemver && validTemplateSemver) {
-    return semver.gt(noFlagsCdrSemver, noFlagsTemplateSemver) ? noFlagsCdrSemver : noFlagsTemplateSemver
+    return semver.gt(noFlagsCdrSemver, noFlagsTemplateSemver) ? addRevision(noFlagsCdrSemver) : addRevision(noFlagsTemplateSemver)
     // if neither option is valid, return null
   } else if (!validCdrSemver && !validTemplateSemver) {
     return null

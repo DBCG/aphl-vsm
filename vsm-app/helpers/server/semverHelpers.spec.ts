@@ -6,19 +6,19 @@ describe('semverHelpers', () => {
       const cdrSemver = '2.0.0'
       const templateSemver = '1.0.0'
       const result = latestVersion(cdrSemver, templateSemver)
-      expect(result).toBe('2.0.0')
+      expect(result).toBe('2.0.0.0')
     })
 
     it('returns only one semver if only one is valid', () => {
       const cdrSemverInvalid = 'eee'
       const templateSemver = '1.0.0'
       const result1 = latestVersion(cdrSemverInvalid, templateSemver)
-      expect(result1).toBe('1.0.0')
+      expect(result1).toBe('1.0.0.0')
 
       const cdrSemver = '2.0.0'
       const templateSemverInvalid = null
       const result2 = latestVersion(cdrSemver, templateSemverInvalid)
-      expect(result2).toBe('2.0.0')
+      expect(result2).toBe('2.0.0.0')
     })
 
     it('returns null if neither valid semver', () => {
@@ -30,13 +30,13 @@ describe('semverHelpers', () => {
 
     it('ignores "draft" designation in comparison', () => {
       const cdrSemverDraft = '2.0.0-draft'
-      const templateSemver = '2.0.0'
+      const templateSemver = '2.0.0.0'
       const result1 = latestVersion(cdrSemverDraft, templateSemver)
-      expect(result1).toBe('2.0.0')
+      expect(result1).toBe('2.0.0.0')
 
       const templateSemver2 = '1.0.0'
       const result2 = latestVersion(cdrSemverDraft, templateSemver2)
-      expect(result2).toBe('2.0.0')
+      expect(result2).toBe('2.0.0.0')
     })
   })
 
