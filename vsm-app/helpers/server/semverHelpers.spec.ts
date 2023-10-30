@@ -40,7 +40,7 @@ describe('semverHelpers', () => {
     })
   })
 
-  describe('isValidSimpleSemver', () => {
+  describe('isValidSimpleSemver with 3', () => {
     it('returns true if valid MAJOR.MINOR.PATCH semver format', () => {
       expect(isValidSimpleSemver('2.0.0')).toBe(true)
       expect(isValidSimpleSemver('20.10.10')).toBe(true)
@@ -50,10 +50,25 @@ describe('semverHelpers', () => {
 
     it('returns false if invalid format', () => {
       expect(isValidSimpleSemver('2.0.0-draft')).toBe(false)
-      expect(isValidSimpleSemver('20.10.10.92')).toBe(false)
       expect(isValidSimpleSemver('0.10')).toBe(false)
       expect(isValidSimpleSemver('invalid!')).toBe(false)
       expect(isValidSimpleSemver('')).toBe(false)
+    })
+  })
+
+  describe('isValidSimpleSemver with 4', () => {
+    it('returns true if valid MAJOR.MINOR.PATCH.TAG semver format', () => {
+      expect(isValidSimpleSemver('2.0.0.0')).toBe(true)
+      expect(isValidSimpleSemver('20.10.10.1')).toBe(true)
+      expect(isValidSimpleSemver('0.10.0.1000')).toBe(true)
+      expect(isValidSimpleSemver('20.10.101.90')).toBe(true)
+    })
+
+    it('returns false if invalid format', () => {
+      expect(isValidSimpleSemver('2.0.0.0-draft')).toBe(false)
+      expect(isValidSimpleSemver('0.10.0.-02')).toBe(false)
+      expect(isValidSimpleSemver('invalid!.0.0.0')).toBe(false)
+      expect(isValidSimpleSemver('0.0.0.0.0')).toBe(false)
     })
   })
 })

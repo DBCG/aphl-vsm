@@ -2,7 +2,7 @@ import semver from 'semver'
 
 const removeFlags = (item: any) => item?.split('-')?.[0]
 
-const simpleSemverRx = new RegExp('^(\\d+).(\\d+).(\\d+)$', 'gm')
+const simpleSemverRx = new RegExp('^(\\d+).(\\d+).(\\d+)(\.\\d+)?$', 'gm')
 
 const isValidSimpleSemver = (item: string) => Boolean(item.match(simpleSemverRx))
 
