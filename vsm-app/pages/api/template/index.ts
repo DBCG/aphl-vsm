@@ -41,7 +41,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   const latestIncrementedVersion = incrementSemver({
     valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
     incrementType: 'minor',
-    fallbackValue: '1.0.0'
+    fallbackValue: '1.0.0.0'
   })
 
   let versionToAttempt = latestIncrementedVersion
