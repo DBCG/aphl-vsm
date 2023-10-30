@@ -6,7 +6,7 @@ interface ErrorState {
 }
 
 type Error = {
-  error: string | null
+  error: string | string[] | null
   severity?: 'warning'
 }
 
@@ -32,10 +32,25 @@ const ErrorText = styled.p<Error>`
   color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
 `
 
+const ErrorContent = ({ error, severity }: Error) => {
+  if (typeof error === 'string') {
+    return (<ErrorText severity={severity} error={error}>{error}</ErrorText>)
+  } else if (Array.isArray(error)) {
+    const lines = error.map(e => <ErrorText severity={severity} error={e}>{e}</ErrorText>)
+
+    return (
+      <>
+        {lines}
+      </>
+    )
+  }
+  return null
+}
+
 const ErrorMessage = ({ error, severity }: Error) => {
   return (
     <ErrorContainer severity={severity} error={error}>
-      <ErrorText severity={severity} error={error}>{error}</ErrorText>
+      <ErrorContent severity={severity} error={error}/>
     </ErrorContainer>
   )
 }

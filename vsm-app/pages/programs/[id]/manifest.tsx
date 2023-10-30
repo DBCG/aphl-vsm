@@ -247,7 +247,10 @@ const EditManifestDetails = () => {
 
   const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
 
-  const errorMessage = `You have already added a version for this codesystem. To select another, please remove a version below with Code System ${selectedSystem}`
+  const errorMessage = [
+    `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`,
+    'Please delete this version from the Current Manifest below to add a new one.',
+  ]
 
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
   return (
@@ -279,7 +282,7 @@ const EditManifestDetails = () => {
         </Tooltip>
         <Button
           style={{ marginLeft: '10px' }}
-          text="Search for Updates"
+          text="Find Newest Versions"
           loading={isUpdating}
           onClick={() => {
             setIsUpdating(true)
@@ -348,6 +351,7 @@ const EditManifestDetails = () => {
           {!isUpdating && shouldDisableAddButton && (
             <ErrorMessage
               error={errorMessage}
+              severity='warning'
             />
           )}
           <ManifestDetailTable

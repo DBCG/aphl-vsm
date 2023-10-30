@@ -42,37 +42,10 @@ interface Error {
   error?: string
 }
 
-const customStyles = {
-  cells: {
-    style: {
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      fontFamily: 'Roboto',
-      fontSize: '120%'
-    }
-  },
-  headCells: {
-    style: {
-      fontFamily: 'Roboto'
-    }
-  },
-  rows: {
-    style: {
-      cursor: 'pointer'
-    },
-    highlightOnHoverStyle: {
-      backgroundColor: '#DBF0F3'
-    }
-  }
-}
 
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const [searchTermID, setSearchTermID] = useState('')
-  const [searchTermName, setSearchTermName] = useState('')
-  const [searchTermTitle, setSearchTermTitle] = useState('')
-  const [searchTermDescription, setSearchTermDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
@@ -88,10 +61,6 @@ const Programs: NextPage = () => {
   const toggleNewCloneExists = () => setNewCloneExists((exists) => !exists)
 
   const programs = useGetPrograms({
-    id: searchTermID,
-    name: searchTermName,
-    title: searchTermTitle,
-    description: searchTermDescription,
     newProgram: `${router?.query?.new}`,
     refreshToggle: newCloneExists
   })

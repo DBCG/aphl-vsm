@@ -14,6 +14,7 @@ interface BtnProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   btnType?: string
   style?: React.CSSProperties
   ['data-modal']?: string
+  ['data-update-manifest']?: string
   loading?: boolean
 }
 
