@@ -333,7 +333,7 @@ describe("Smoke Tests", () => {
 
     it("Downloads a JSON bundle using the Export button", () => {
       // click on the first Draft Library on the programs page
-      cy.get('[data-column-id="2"]')
+      cy.get('[data-column-id="3"]')
         .contains("Specification Library")
         // .parents("div")
         // .parents("div")
