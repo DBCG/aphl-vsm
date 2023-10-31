@@ -7,7 +7,6 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { incrementSemver } from '@/utils'
 import { HapiError } from '@/types/hapiError'
 import { is } from '@/helpers/is'
-import { OperationOutcome } from 'fhir/r4'
 
 interface ResponseItem {
   status: string
@@ -17,9 +16,9 @@ interface ResponseItem {
 }
 
 type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | { error: { message: string; type: string } }
-export type DraftAPIResponse = { message: string } | { error: string } | OperationOutcome
+
 // this code ingests a FHIR Library, and will POST a modified clone as a template
-const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>) => {
+const setDraft = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
   const latestProgram = await fhirCdrClient.search({
     resourceType: 'Library',
@@ -109,13 +108,11 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
           incrementVersionToAttempt()
           attempts = attempts - 1
           return await createDraftWithNewVersion()
+        } else if ('message' in e && 'type' in e) {
+          response = { error: { message: e.message, type: e.type } }
         } else {
-          return e.response.data
+          response = e.response
         }
-      } else if ('message' in e && 'type' in e) {
-        response = { error: { message: e.message, type: e.type } }
-      } else {
-        response = e.response
       }
     }
     // if all attempts are unsuccessful, this will be undefined
@@ -123,6 +120,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
   }
 
   const draftResponse = await createDraftWithNewVersion() // either null or a response
+
   if (is.operationOutcome(draftResponse)) {
     throw draftResponse
   } else if (!!draftResponse && ('error' in draftResponse)) {

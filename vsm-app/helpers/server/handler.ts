@@ -3,7 +3,6 @@ import { getSession } from 'next-auth/react'
 import logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
-import { is } from '../is'
 
 const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse) => {
   const session = <VSMSession>await getSession(res)
@@ -26,8 +25,8 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
     await action(req, res, session)
   } catch (error: any) {
     logSimpleError(error)
-    const diagnostics = is.operationOutcome(error) ? error?.issue?.[0]?.diagnostics : error?.response?.data?.issue?.[0]?.diagnostics
-    return res.status(500).json({ error: diagnostics || error?.error || JSON.stringify(error) || 'Unspecified error' })
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
   }
 }
 
