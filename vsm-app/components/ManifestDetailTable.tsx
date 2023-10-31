@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
+import InfoIcon from '@mui/icons-material/Info'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import useSWR from 'swr'
@@ -8,7 +9,6 @@ import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
 import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
 import { Typography, Modal, Tooltip, Box, Button as MuiButton } from '@mui/material'
-import { Button } from './buttons/Button'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
@@ -74,7 +74,11 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
         )
       },
       sortable: true,
-      wrap: true
+      style: {
+        alignContent: 'space-around',
+        justifyContent: 'center',
+        flexWrap: 'wrap'
+      }
     },
     {
       name: 'Update to Latest',
@@ -87,19 +91,30 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
         )
         if (matchingVs) {
           return (
-            <div>
-              <Button
+            <div style={{ position: 'relative' }}>
+              <IconButton
                 data-update-manifest={`${row.system}|${row.version}`}
                 onClick={() => setTargetedVsToUpdate(matchingVs)}
-                text={`Update to ${matchingVs?.version}`}
+                buttoncontext='update'
               />
+              <Tooltip
+                title={`Update to version: ${matchingVs.version}`}
+                style={{ position: 'absolute', top: '-1em', right: '-0.5em' }}
+              >
+                <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
+              </Tooltip>
             </div>
           )
         } else {
           return null
         }
       },
-      wrap: true
+      wrap: false,
+      style: {
+        display: 'flex',
+        alignContent: 'space-around',
+        justifyContent: 'center'
+      }
     }
   ]
 

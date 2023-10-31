@@ -7,6 +7,7 @@ import PublishIcon from '@mui/icons-material/Publish'
 import NewReleasesIcon from '@mui/icons-material/NewReleases'
 import PsychologyAltIcon from '@mui/icons-material/PsychologyAlt'
 import DoNotTouchIcon from '@mui/icons-material/DoNotTouch'
+import RefreshIcon from '@mui/icons-material/Refresh';
 import EditIcon from '@mui/icons-material/Edit'
 import styled from 'styled-components'
 import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
@@ -45,6 +46,7 @@ const btnTitleText = {
   edit: 'Edit',
   delete: 'Delete',
   search: 'Search',
+  update: 'Update',
   clone: 'Make a new program based on this one (must have active status)',
   release: 'Promote a program from draft to active status',
   mustApproveRelease: 'You must approve this draft to release it',
@@ -85,6 +87,8 @@ const IconButton = ({ type, buttoncontext, onClick, style, disabled = false, del
     image = <NewReleasesIcon/>
   } else if (buttoncontext === 'retire') {
     image = <DoNotTouchIcon/>
+  } else if (buttoncontext?.toLowerCase()?.includes('update')) {
+    image = <RefreshIcon/>
   }
 
   return (

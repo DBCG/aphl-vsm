@@ -63,6 +63,7 @@ const CodesystemSelectContainer = styled.div`
   display: flex;
   align-items: center;
   margin: 36px;
+  margin-bottom: 48px;
   margin-left: 0;
 `
 
@@ -276,8 +277,11 @@ const EditManifestDetails = () => {
           options={selectOptions}
         />
         { Boolean(Object.keys(currentSelectedData).length) && (
-          <>
-            <Tooltip title={`Search for updates to the latest version CodeSystem`}>
+          <div style={{ position: 'relative', alignSelf: 'flex-end', marginLeft: '2em' }}>
+            <Tooltip
+              title={`Search for updates to the latest version CodeSystem`}
+              style={{ position: 'absolute', top: '-1em', right: '-0.5em' }}
+            >
               <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
             </Tooltip>
             <Button
@@ -289,7 +293,7 @@ const EditManifestDetails = () => {
                 searchAvailableUpdates()
               }}
             />
-          </>
+          </div>
         )}
       </CodesystemSelectContainer>
       <DataTableContainer>
