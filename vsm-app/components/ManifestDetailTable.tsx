@@ -60,6 +60,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
     },
     {
       name: 'Remove',
+      center: true,
       omit: !deleteFn,
       maxWidth: '50px',
       cell: (row: ManifestSystemVersionPair) => {
@@ -73,7 +74,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
           />
         )
       },
-      sortable: true,
+      sortable: false,
       style: {
         alignContent: 'space-around',
         justifyContent: 'center',
@@ -85,6 +86,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       maxWidth: '200px',
       omit: noUpdatesAvailable,
       sortable: false,
+      center: true,
       cell: (row: ManifestSystemVersionPair) => {
         const matchingVs = availableUpdates.find(
           (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
