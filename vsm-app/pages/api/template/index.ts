@@ -7,7 +7,6 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { incrementSemver } from '@/utils'
 import { HapiError } from '@/types/hapiError'
 import { is } from '@/helpers/is'
-import { OperationOutcome } from 'fhir/r4'
 
 interface ResponseItem {
   status: string
@@ -17,7 +16,7 @@ interface ResponseItem {
 }
 
 type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | { error: { message: string; type: string } }
-export type DraftAPIResponse = { message: string } | { error: string } | OperationOutcome
+export type DraftAPIResponse = { message: string } | { error: string } | fhir4.OperationOutcome
 // this code ingests a FHIR Library, and will POST a modified clone as a template
 const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>) => {
   // create library template
