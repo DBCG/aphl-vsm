@@ -42,7 +42,6 @@ interface Error {
   error?: string
 }
 
-
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -84,13 +83,17 @@ const Programs: NextPage = () => {
         method: 'POST',
         body: json
       })
-
       if (res?.ok) {
         setModalOpen(false)
         toggleNewCloneExists()
       } else {
-        const json = await res.json()
-        setError({ error: json.error })
+        const json = (await res.json()) as { message: string } | { error: string }
+        if ('error' in json) {
+          setError({ error: json.error })
+        } else {
+          console.error(json)
+          throw new Error(JSON.stringify(json))
+        }
       }
     } catch (e) {
       setError({ error: `Error cloning program ${programId}` })
