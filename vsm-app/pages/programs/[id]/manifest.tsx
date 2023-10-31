@@ -189,7 +189,7 @@ const EditManifestDetails = () => {
   }
 
   useEffect(() => {
-    // Pulla the available versions for the selected CodeSystem
+    // Pull the available versions for the selected CodeSystem
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
       const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
@@ -247,12 +247,10 @@ const EditManifestDetails = () => {
 
   const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
 
-  const errorMessage = [
-    `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`,
-    'Please delete this version from the Current Manifest below to add a new one.',
-  ]
+  const errorMessage = `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`
 
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
+
   return (
     <>
       <Row>
@@ -277,18 +275,22 @@ const EditManifestDetails = () => {
           name="codesystems"
           options={selectOptions}
         />
-        <Tooltip title={`Search for updates to the latest version CodeSystem`}>
-          <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
-        </Tooltip>
-        <Button
-          style={{ marginLeft: '10px' }}
-          text="Find Newest Versions"
-          loading={isUpdating}
-          onClick={() => {
-            setIsUpdating(true)
-            searchAvailableUpdates()
-          }}
-        />
+        { Boolean(Object.keys(currentSelectedData).length) && (
+          <>
+            <Tooltip title={`Search for updates to the latest version CodeSystem`}>
+              <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
+            </Tooltip>
+            <Button
+              style={{ marginLeft: '10px' }}
+              text="Find Newest Versions"
+              loading={isUpdating}
+              onClick={() => {
+                setIsUpdating(true)
+                searchAvailableUpdates()
+              }}
+            />
+          </>
+        )}
       </CodesystemSelectContainer>
       <DataTableContainer>
         <MaxWidthContainer>
