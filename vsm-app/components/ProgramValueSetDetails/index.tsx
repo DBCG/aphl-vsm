@@ -384,6 +384,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
+          console.log('row!: ', row)
           if (progValueSetDets.programStatus === 'active') {
             return row?.valueSetPinnedVersion || 'latest'
           }
@@ -647,9 +648,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
+          handleEdit={() => {}}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
+          programId={programId}
         />
         <ErrorMessage error={error} />
         <DT

@@ -54,9 +54,11 @@ const buildConditionItem = (condition: Condition) => {
 // VALUESETS PAGE: you want to keep any existing conditions that you have added before
 // TODO there should be no useContext if it is an empty array
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
+  console.log('update conditions called')
   let vs = cloneDeep(valueSet)
 
   if (vs?.useContext) {
+    console.log('has usecontext')
     const nonConditionContexts = vs?.useContext?.filter(
       (ctx) => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus')
     )
@@ -79,12 +81,17 @@ const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], 
             )
         )
 
+        console.log('non: ', nonConditionContexts)
+        console.log('deduped: ', dedupedNewConditionContexts)
+        console.log('existing: ', existingConditionContexts)
+
         vs.useContext = [...nonConditionContexts, ...existingConditionContexts, ...dedupedNewConditionContexts]
       }
     } else {
       delete vs.useContext
     }
   } else if (!vs?.useContext && newConditions?.length) {
+    console.log('no usecontext')
     vs.useContext = newConditions?.map((c) => buildConditionItem(c))
   }
   return vs
