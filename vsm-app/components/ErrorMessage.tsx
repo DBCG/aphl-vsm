@@ -16,14 +16,14 @@ const ErrorContainer = styled.div<Error>`
   transition: max-height 1s ease;
   padding: .25em 1em;
   border: ${(props) => {
-    if(props?.severity === 'warning' && props?.error) {
-      return '1px solid orange';
+    if (props?.severity === 'warning' && props?.error) {
+      return '1px solid orange'
     } else if (props?.error) {
-      return '1px solid var(--accent)';
+      return '1px solid var(--accent)'
     } else {
-      return 'none';
+      return 'none'
     }
-  }}
+  }};
 `
 
 const ErrorText = styled.p<Error>`
@@ -35,15 +35,19 @@ const ErrorText = styled.p<Error>`
 
 const ErrorContent = ({ error, severity }: Error) => {
   if (typeof error === 'string') {
-    return (<ErrorText severity={severity} error={error}>{error}</ErrorText>)
-  } else if (Array.isArray(error)) {
-    const lines = error.map(e => <ErrorText severity={severity} error={e}>{e}</ErrorText>)
-
     return (
-      <>
-        {lines}
-      </>
+      <ErrorText severity={severity} error={error}>
+        {error}
+      </ErrorText>
     )
+  } else if (Array.isArray(error)) {
+    const lines = error.map((e, index) => (
+      <ErrorText severity={severity} error={e} key={index}>
+        {e}
+      </ErrorText>
+    ))
+
+    return <>{lines}</>
   }
   return null
 }
@@ -51,7 +55,7 @@ const ErrorContent = ({ error, severity }: Error) => {
 const ErrorMessage = ({ error, severity }: Error) => {
   return (
     <ErrorContainer severity={severity} error={error}>
-      <ErrorContent severity={severity} error={error}/>
+      <ErrorContent severity={severity} error={error} />
     </ErrorContainer>
   )
 }
