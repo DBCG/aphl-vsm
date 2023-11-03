@@ -25,7 +25,7 @@ export interface GroupItem {
 }
 
 export interface TerminologyResult {
-  value: string | undefined
+  value: string
   hasExtension: boolean
 }
 

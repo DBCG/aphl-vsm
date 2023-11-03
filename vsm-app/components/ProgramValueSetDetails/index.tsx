@@ -53,8 +53,8 @@ interface ProgramValueSetDetailsProps {
   router: NextRouter
 }
 
-interface HandleVersionChange {
-  useContext: fhir4.UsageContext
+export interface HandleVersionChange {
+  useContext: fhir4.UsageContext[]
   selectedVsId: string
   selectedVersion: string
   vsCanonical: string
@@ -95,13 +95,23 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
-  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
-  const [versionToUpdate, setVersionToUpdate] = useState({} as any)
+  const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
+    canonical: '',
+    version: ''
+  })
+  const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
+  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>({
+    vsCanonical: '',
+    useContext: [],
+    selectedVsId: '',
+    selectedVersion: '',
+    grouperIds: [],
+    terminologyInfo: { value: '', hasExtension: false }
+  })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
 
   // returned data from PUT operations
-  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
+  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
   const [updatedGrouper, setUpdatedGrouper] = useState(null)
 
@@ -152,10 +162,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const handleUpdateValueSets = async () => {
     const canonicalUrls: string[] = []
-    // @ts-ignore
-    for (const grouper of progValueSetDets?.groupsInProgram) {
-      const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
-      canonicalUrls.push(...urls)
+    if (progValueSetDets?.groupsInProgram?.length) {
+      for (const grouper of progValueSetDets?.groupsInProgram) {
+        const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+        canonicalUrls.push(...urls)
+      }
     }
 
     const job = await fetch(`/api/valueset/update`, {
@@ -235,7 +246,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }, [progValueSetDets])
 
   useEffect(() => {
-    const keys = Object.keys(progValueSetDets)
     setPageLoading(false)
   }, [progValueSetDets])
 
@@ -279,34 +289,12 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setLoadingVersionsForVs(null)
   }
 
-  // versionInput
-  const handleVersionChange = ({
-    selectedVersion,
-    vsCanonical,
-    grouperIds,
-    terminologyInfo,
-    selectedVsId,
-    useContext
-  }: HandleVersionChange) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
-
-    // update the grouper canonical version
-    setVersionToUpdate(data)
-  }
-
   useEffect(() => {
-    if (!versionToUpdate.grouperIds) {
+    if (!versionToUpdate.grouperIds?.length) {
       return
     }
 
-    const body = JSON.stringify({
-      vsCanonical: versionToUpdate.vsCanonical,
-      vsVersion: versionToUpdate.version,
-      grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo,
-      selectedVsId: versionToUpdate.selectedVsId,
-      useContext: versionToUpdate.useContext
-    })
+    const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
       const result = await fetch(`/api/valueset/versions`, {
@@ -324,7 +312,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     } catch (e) {
       setVersionUpdateInFlight(false)
     }
-    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
+    setVersionToUpdate({ vsCanonical: versionToUpdate.vsCanonical, selectedVersion: versionToUpdate.selectedVersion })
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
@@ -338,7 +326,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <SelectInputTitle>Valueset Title</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
-                // @ts-ignore-next-line
                 handleFilterChange(e.target.value, 'findInVsTitle')
               }}
               style={{ height: '30px' }}
@@ -357,7 +344,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <SelectInputTitle>OID</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
-                // @ts-ignore-next-line
                 handleFilterChange(e.target.value, 'findInOid')
               }}
               style={{ height: '30px' }}
@@ -400,11 +386,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 onChange={(e) => {
                   setVersionUpdateInFlight(true)
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange({
+                  setVersionToUpdate({
                     selectedVsId: row?.valueSet?.id as string,
                     selectedVersion: e?.value as string,
-                    // @ts-ignore
-                    useContext: row?.valueSet?.useContext,
+                    useContext: row?.valueSet?.useContext || [],
                     vsCanonical: row?.valueSet?.url as string,
                     grouperIds,
                     terminologyInfo
@@ -566,7 +551,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
                 instanceId="groups-selector"
                 isMulti={true}
                 isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
-                // @ts-expect-error
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
                 onChange={(e) => {
