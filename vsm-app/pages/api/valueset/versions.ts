@@ -16,6 +16,7 @@ interface MatchExists {
   vsCanonical: string
   versionToFind: string
 }
+export interface updateLeafResponse { message: string; grouperIds?: String[]; vsCanonical?: string }
 
 const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Promise<boolean> => {
   try {
@@ -146,10 +147,10 @@ const getLeafFromTermServer = async ({
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
-const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse<updateLeafResponse>): Promise<void> => {
   const body = await req.body
   const bodyJson = JSON.parse(body) as HandleVersionChange
-  const { vsCanonical, selectedVersion: vsVersion, grouperIds, terminologyInfo, useContext } = bodyJson
+  const { vsCanonical, selectedVersion, grouperIds, terminologyInfo, useContext } = bodyJson
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -181,11 +182,12 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         })
       }
     }
-  } catch (e) {
+  } catch (e: any) {
+    const maybeHapiError = e?.response?.data
     // Sometimes the server lags behind and has not yet indexed the search for a created valueset
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
-    // @ts-ignore
-    if (e?.response?.data?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
+    if (is.operationOutcome(maybeHapiError)
+      && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
       logger.warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
       logger.error(`ERROR: ${JSON.stringify(e)}`)
@@ -201,7 +203,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         fhirCdrClient.read({
           resourceType: 'ValueSet',
           id
-        })
+        }) as Promise<fhir4.ValueSet>
       )
     )
 

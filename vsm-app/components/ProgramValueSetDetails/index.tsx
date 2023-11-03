@@ -28,6 +28,7 @@ import { customTableStyles } from '../tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 
 import { buildGroupOptions } from '@/helpers/selectHelpers'
+import { updateLeafResponse } from '@/pages/api/valueset/versions'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -113,7 +114,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
   const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
-  const [updatedGrouper, setUpdatedGrouper] = useState(null)
+  const [updatedGrouper, setUpdatedGrouper] = useState<updateLeafResponse>({
+    message: ''
+  })
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
@@ -184,25 +187,20 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   useEffect(() => {
     let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
+    setUpdatedGrouperValueSets([])
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
-        try {
-          let json = await fetch(endpoint, {
-            method: 'PUT',
-            body: JSON.stringify(conditionToUpdate)
-          }).then((res) => res.json())
-
-          setUpdatedValueSet(json)
-        } catch (e) {
-          // handle error here
-          console.error('error: ', e)
-        }
-        setConditionLoading(false)
+        let json = await fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(conditionToUpdate)
+        }).then((res) => res.json())
+        setUpdatedValueSet(json)
       }
     }
-    setUpdatedGrouperValueSets([])
     postUpdate()
+      .catch((e) => console.error('error: ', e))
+      .finally(() => setConditionLoading(false))
   }, [conditionToUpdate, programId])
 
   useEffect(() => {
@@ -224,9 +222,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
-    updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
-    updatedGrouper,
     toggleUpdateData,
     ...debouncedFilters
   }) as Result
@@ -297,22 +293,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      const result = await fetch(`/api/valueset/versions`, {
+      const result = (await fetch(`/api/valueset/versions`, {
         method: 'PUT',
         body
-      }).then((res) => res.json())
+      }).then((res) => res.json())) as updateLeafResponse
       if (result) {
         setUpdatedGrouper(result)
       }
-      setVersionUpdateInFlight(false)
     }
 
-    try {
-      updateVersions()
-    } catch (e) {
-      setVersionUpdateInFlight(false)
-    }
-    setVersionToUpdate({ vsCanonical: versionToUpdate.vsCanonical, selectedVersion: versionToUpdate.selectedVersion })
+    updateVersions()
+      .catch((e) => console.error('error: ', e))
+      .finally(() => setVersionUpdateInFlight(false))
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
@@ -351,7 +343,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </div>
         ),
         id: 'vs-oid-search',
-        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
+        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1] || '',
         sortable: false,
         style: { fontSize: '12px' },
         maxWidth: '360px',
@@ -412,7 +404,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
           </div>
         ),
-        selector: (row: TableRow) => row.valueSet.publisher,
+        selector: (row: TableRow) => row.valueSet.publisher || '',
         sortable: true,
         maxWidth: '120px',
         wrap: true
@@ -424,7 +416,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <p style={{ fontSize: '90%', fontStyle: 'italic' }}>* source inferred by url</p>
           </div>
         ),
-        selector: (row: TableRow) => row.valueSet,
+        selector: (row: TableRow) => getTerminologySource(row.valueSet)?.value,
         sortable: true,
         maxWidth: '120px',
         wrap: true,
@@ -457,22 +449,23 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </SelectInputContainer>
         ),
         id: 'value-set-conditions',
-        selector: (row: TableRow) => row.valueSet,
+        selector: (row: TableRow) => !!row?.valueSet?.useContext?.length,
         sortable: false,
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.valueSet?.useContext
             ?.map((i) => {
               if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
-                return {
-                  label: i?.valueCodeableConcept?.text,
+                const condition: Condition = {
+                  label: i?.valueCodeableConcept?.text || '',
                   value: {
-                    system: i?.valueCodeableConcept?.coding?.[0]?.system,
-                    code: i?.valueCodeableConcept?.coding?.[0]?.code,
-                    version: i?.valueCodeableConcept?.coding?.[0]?.version,
+                    system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
+                    code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
+                    version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
                     text: i?.valueCodeableConcept?.text
                   }
                 }
+                return condition
               }
             })
             .filter((x) => x) as Condition[]
@@ -526,7 +519,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </SelectInputContainer>
         ),
         id: 'value-set-groups',
-        selector: (row: TableRow) => row.groups,
+        selector: (row: TableRow) => !!row?.groups?.length,
         sortable: false,
         allowOverflow: true,
         wrap: true,
@@ -642,11 +635,9 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           key={tableKey}
-          // @ts-expect-error
-          data={progValueSetDets?.data}
+          data={progValueSetDets?.data || []}
           keyField="canonical"
           persistTableHead={true}
-          // @ts-expect-error
           columns={columns}
           theme="aphl"
           pagination
