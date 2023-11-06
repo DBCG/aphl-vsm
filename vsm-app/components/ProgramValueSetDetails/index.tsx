@@ -366,7 +366,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </div>
         ),
         id: 'vs-version-search',
-        selector: (row: TableRow) => row.version,
         sortable: false,
         maxWidth: '160px',
         wrap: true,
@@ -426,7 +425,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
             <p style={{ fontSize: '90%', fontStyle: 'italic' }}>* source inferred by url</p>
           </div>
         ),
-        selector: (row: TableRow) => getTerminologySource(row.valueSet)?.value,
         sortable: true,
         maxWidth: '120px',
         wrap: true,
@@ -459,7 +457,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </SelectInputContainer>
         ),
         id: 'value-set-conditions',
-        selector: (row: TableRow) => !!row?.valueSet?.useContext?.length,
         sortable: false,
         wrap: true,
         cell: (row: TableRow, index: number) => {
@@ -529,7 +526,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           </SelectInputContainer>
         ),
         id: 'value-set-groups',
-        selector: (row: TableRow) => !!row?.groups?.length,
         sortable: false,
         allowOverflow: true,
         wrap: true,
