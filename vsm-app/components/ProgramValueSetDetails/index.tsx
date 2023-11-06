@@ -29,6 +29,8 @@ import InfoIcon from '@mui/icons-material/Info'
 
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { updateLeafResponse } from '@/pages/api/valueset/versions'
+import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
+import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -191,11 +193,15 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
-        let json = await fetch(endpoint, {
+        const json = (await fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(conditionToUpdate)
-        }).then((res) => res.json())
-        setUpdatedValueSet(json)
+        }).then((res) => res.json())) as conditionUpdateReturn
+        if ('error' in json) {
+          throw new Error(json.error)
+        } else {
+          setUpdatedValueSet(json)
+        }
       }
     }
     postUpdate()
@@ -208,16 +214,20 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         setGrouperLoading(true)
-        const updatedVs = await fetch(endpoint, {
+        const updatedVs = (await fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(updateVsGroups)
-        }).then((res) => res.json())
-
-        setUpdatedGrouperValueSets(updatedVs)
-        setGrouperLoading(false)
+        }).then((res) => res.json())) as retrieveGrouperSetsReturn
+        if ('error' in updatedVs) {
+          throw new Error(updatedVs.error)
+        } else {
+          setUpdatedGrouperValueSets(updatedVs)
+        }
       }
     }
     postUpdate()
+      .catch((e) => console.error('error: ', e))
+      .finally(() => setGrouperLoading(false))
   }, [updateVsGroups.groupInfo, programId, updateVsGroups])
 
   const progValueSetDets = useGetProgramValueSetDetails({

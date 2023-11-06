@@ -9,38 +9,41 @@ interface GroupInfoItem {
   label: string
   value: string
 }
-
-const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+export type retrieveGrouperSetsReturn = fhir4.ValueSet[] | { error: string }
+const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retrieveGrouperSetsReturn>): Promise<void> => {
   try {
-    let result = []
     // get all grouper valueSets from within a program
-    const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
-  
+    const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string }) as fhir4.Library
+
     const programStatus = programLibrary.status
-  
+
     const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
-      (art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
+      (art) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
     )?.resource
-  
+
+    if (!grouperLibraryCanonical) {
+      throw new Error('Could not get canonical reference')
+    }
     const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
-  
+
     let searchParams = {
       url: grouperLibUrl,
-      version: grouperLibVersion,
+      version: grouperLibVersion || "",
       status: programStatus
     }
-  
+
     const grouperLibrarySearchBundle = await fhirCdrClient.search({
       resourceType: 'Library',
       searchParams
     })
-  
+
     const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
-  
+
     const grouperValueSetCanonicals = library?.relatedArtifact
       ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
-      ?.map((item) => item?.resource) as string[]
-  
+      ?.map((item) => item?.resource)
+      ?.filter((ref) => !!ref) as string[]
+
     if (grouperValueSetCanonicals?.length) {
       const grouperValueSetSearchSets = await Promise.all(
         grouperValueSetCanonicals?.map((canonical: string) => {
@@ -49,18 +52,18 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse): Pro
             resourceType: 'ValueSet',
             searchParams: {
               url: url,
-              version: version,
+              version: version || "",
               status: programStatus,
               '_elements': WHITELIST_VALUESET_FIELDS.join(',')
             }
-          })
+          }) as Promise<fhir4.Bundle>
         })
       )
-  
-      const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
-      result = grouperVSets
-  
-      return res.status(200).send(result)
+
+      const grouperVSets = grouperValueSetSearchSets
+        ?.map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)
+        ?.filter((r) => !!r)
+      return res.status(200).send(grouperVSets)
     } else {
       logger.error(`No groupers found for Program Library ${req.query.id}`)
       return res.status(200).send([])
@@ -135,7 +138,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
           // remove from grouper
           groupersToUpdate.push(grouperWithVsRemoved)
         } else {
-          return res.status(400).send({ error: `Could not remove Valueset "${grouperValueSet.title}" from groupers`})
+          return res.status(400).send({ error: `Could not remove Valueset "${grouperValueSet.title}" from groupers` })
         }
       }
     }
