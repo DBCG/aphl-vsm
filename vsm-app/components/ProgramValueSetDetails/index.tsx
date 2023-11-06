@@ -124,7 +124,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
-  const [vSetsLoading, setVSetsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
@@ -242,15 +241,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     toggleRefresh: toggleUpdateData
   })
 
-  // since query takes a while, expose loading state
-  useEffect(() => {
-    setVSetsLoading(true)
-  }, [filters])
-
-  useEffect(() => {
-    setVSetsLoading(false)
-  }, [progValueSetDets])
-
   useEffect(() => {
     setPageLoading(false)
   }, [progValueSetDets])
@@ -286,7 +276,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     // otherwise, loading states and fetch
     setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'
-    // const existingVersion = '' // get existing version from grouper if set
     const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
       .then((res) => res.json())
       .then((versions) => [defaultVersion, ...versions].map((item) => ({ value: item, label: item })))
