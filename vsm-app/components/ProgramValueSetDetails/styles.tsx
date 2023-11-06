@@ -75,6 +75,13 @@ const ActionContainerRow = styled.div`
   width: 100%;
 `
 
+const ButtonRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  margin-top: 2em;
+`
+
 interface TableActions {
   selectedRows: TableRow[]
   handleDelete: (selectedRows: TableRow[]) => void
@@ -83,14 +90,6 @@ interface TableActions {
   isDeleting: boolean
   totalRows: number
   programId: string
-}
-
-interface EditParams {
-  editAction: 'delete' | 'add'
-  editDataType: 'grouper' | 'condition'
-  vsToEdit: TableRow[]
-  // two types of arr
-  itemsToAddOrRemove: []
 }
 
 export const TableActions = ({
@@ -163,6 +162,7 @@ export const TableActions = ({
     setEditInFlight(false)
     handleToggleUpdateData((t: boolean) => !t)
     handleCancelModal()
+    setKeyInd(k => k + 1)
   }
 
   // always memoize options to react-select to avoid duplicates sticking
@@ -219,9 +219,9 @@ export const TableActions = ({
           isEditing && (
             <FormGroup>
               <Typography>Property to edit:</Typography>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} alignItems="center" style={{ marginBottom: '1em' }}>
                   <Typography style={{ fontWeight: editType === 'condition' ? 'bold' : 'initial' }}>Conditions</Typography>
-                  <Switch 
+                  <Switch
                     inputProps={{ 'aria-label': 'ant design' }}
                     value='grouper'
                     onChange={(e) => handleEditTypeToggle(e)}
@@ -233,7 +233,7 @@ export const TableActions = ({
                     <Typography>Conditions</Typography>
                     <Select
                       menuPlacement="bottom"
-                      placeholder="Conditions"
+                      placeholder="Select Conditions"
                       classNamePrefix="conditions"
                       inputId="conditions-selector"
                       instanceId="conditions-selector"
@@ -256,7 +256,7 @@ export const TableActions = ({
                     <Typography>Groupers</Typography>
                     <Select
                       menuPlacement="bottom"
-                      placeholder="Filter groups"
+                      placeholder="Select groups"
                       classNamePrefix="groups"
                       inputId="groups-selector"
                       instanceId="groups-selector"
@@ -276,37 +276,39 @@ export const TableActions = ({
                     />
                   </SelectInputContainer>
                 )}
-              <Button
-                text='Cancel Edit'
-                onClick={() => {
-                  setKeyInd(k => k + 1)
-                  setIsEditing(false)
-                  setGroupsToEdit([])
-                  setConditionsToEdit([])
-                }}
-              />
-              {
-                (Boolean(conditionsToEdit.length || groupsToEdit.length)) && (
-                  <>
-                    <Button
-                      disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                      text={`Add ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
-                      onClick={() => {
-                        setActionType('add')
-                        setModalOpen(true)
-                      }}
-                    />
-                    <Button
-                      disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                      text={`Remove ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
-                      onClick={() => {
-                        setActionType('remove')
-                        setModalOpen(true)
-                      }}
-                    />
-                  </>
-                )
-              }
+              <ButtonRow>
+                <Button
+                  text='Cancel Edit'
+                  onClick={() => {
+                    setKeyInd(k => k + 1)
+                    setIsEditing(false)
+                    setGroupsToEdit([])
+                    setConditionsToEdit([])
+                  }}
+                />
+                {
+                  (Boolean(conditionsToEdit.length || groupsToEdit.length)) && (
+                    <>
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Add ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
+                        onClick={() => {
+                          setActionType('add')
+                          setModalOpen(true)
+                        }}
+                      />
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Remove ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
+                        onClick={() => {
+                          setActionType('remove')
+                          setModalOpen(true)
+                        }}
+                      />
+                    </>
+                  )
+                }
+              </ButtonRow>
             </FormGroup>
           )
         }
