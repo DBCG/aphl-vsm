@@ -2,21 +2,14 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
-import {
-  getReleaseDescription,
-  getReleaseLabel,
-  setReleaseLabel as releaseLabelSet,
-  setReleaseDescription as releaseDescriptionSet,
-  setEffectivePeriodStart,
-  validStartDate
-} from '@/helpers/libraryHelpers'
-import { TextArea } from '../TextArea'
-import DateInput from '../DateInput'
-import { SearchInput } from '../SearchInput'
-import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
-import { useGetPrograms } from '@/hooks/useGetPrograms'
 
-const generateText = (modalAction, dataType, totalVs) => {
+interface GenText {
+  modalAction: 'remove' | 'add' | null
+  dataType: 'grouper' | 'condition' | null
+  totalVs: number
+}
+
+const generateText = ({ modalAction, dataType, totalVs }: GenText) => {
   return ({
     title: `${modalAction} selected ${dataType}`,
     text: `${modalAction} ${modalAction === 'remove' ? 'from' : 'to'} all ${totalVs} Value Sets?`,
@@ -59,13 +52,9 @@ const EditModal = ({
   handleModalAction,
   totalVs
 }: ModalInfo) => {
-  const { title, text, actionText, modalLoadingText } = generateText(actionType, dataType, totalVs)
+  const { title, text, actionText } = generateText({ modalAction: actionType, dataType, totalVs })
 
-  const [releaseDescription, setReleaseDescription] = useState('')
-  const [releaseLabel, setReleaseLabel] = useState('')
-  const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
   const [disableSubmission, setDisableSubmission] = useState(false)
-  const [versionError, setVersionError] = useState<string | null>(null)
 
 
   // disable submission if no entries?
@@ -76,12 +65,9 @@ const EditModal = ({
       setDisableSubmission(false)
     }
   }, [totalVs])
-  console.log('here 1')
-  console.log('isOpen: ', isOpen)
-  console.log('dataType: ', dataType)
-  console.log('actionType: ', actionType)
+
   if (!isOpen || !dataType || !actionType) return null
-  console.log('here 2')
+
   return (
     <Dialog open={isOpen}>
       <DialogTitle style={{ textTransform: 'capitalize' }}>{title}</DialogTitle>

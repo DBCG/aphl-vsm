@@ -40,6 +40,7 @@ interface IButtonProps extends IconButtonProps {
   color?: 'default' | 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | undefined
   deletedItemDescription?: string
   ariaLabel?: string
+  loading?: boolean
 }
 
 const btnTitleText = {

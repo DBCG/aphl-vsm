@@ -1,13 +1,12 @@
-import { useMemo, useState } from 'react'
-import { FormControlLabel, FormGroup, Stack, Switch, Typography } from '@mui/material'
-import Select from 'react-select'
+import { SetStateAction, Dispatch, useMemo, useState } from 'react'
+import { FormGroup, Stack, Switch, Typography } from '@mui/material'
+import Select, { MultiValue } from 'react-select'
 import styled from 'styled-components'
 import { TableRow } from '@/types/valuesets'
-import { LoadingModal } from '../modals/LoadingModal'
 import { EditModal } from '../modals/EditModal'
 import { Button } from '../buttons/Button'
 import { IconButton } from '../buttons/IconButton'
-import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
@@ -80,6 +79,7 @@ interface TableActions {
   selectedRows: TableRow[]
   handleDelete: (selectedRows: TableRow[]) => void
   handleEdit: (editType: 'conditions' | 'groups', selectedRows: TableRow[]) => void
+  handleToggleUpdateData: Dispatch<SetStateAction<boolean>>
   isDeleting: boolean
   totalRows: number
   programId: string
@@ -96,7 +96,6 @@ interface EditParams {
 export const TableActions = ({
   selectedRows,
   handleDelete,
-  handleEdit,
   isDeleting,
   totalRows,
   programId,
@@ -105,15 +104,14 @@ export const TableActions = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition'| 'grouper'>('condition')
-  const [conditionsToEdit, setConditionsToEdit] = useState([])
-  const [groupsToEdit, setGroupsToEdit] = useState([])
+  const [conditionsToEdit, setConditionsToEdit] = useState<MultiValue<Condition>>([])
+  const [groupsToEdit, setGroupsToEdit] = useState<MultiValue<{ value: string | undefined; label: string | undefined; id: string | undefined; }>>([])
   const [actionType, setActionType] = useState<'add' | 'remove' | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [keyInd, setKeyInd] = useState(0)
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
-  console.log('allConditions!: ', allConditions) 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId
   }) as Result
@@ -128,7 +126,7 @@ export const TableActions = ({
       return 0
     }) || []
   
-  const handleEditTypeToggle = (e) => {
+  const handleEditTypeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
     // ensure data is cleared out of state when toggled
     setGroupsToEdit([])
     setConditionsToEdit([])
@@ -249,7 +247,6 @@ export const TableActions = ({
                       }}
                       options={conditionOptions}
                       onChange={(e) => {
-                        console.log('conditions: ', e)
                         setConditionsToEdit(e)
                       }}
                     />
@@ -267,7 +264,6 @@ export const TableActions = ({
                       options={buildGroupOptions(alphabetizedGroups)}
                       // @ts-ignore-next-line
                       onChange={(e) => {
-                        console.log('groups: ', e)
                         setGroupsToEdit(e)
                       }}
                       key={`groups-${keyInd}`}

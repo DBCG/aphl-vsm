@@ -11,6 +11,8 @@ interface Condition {
   }
 }
 
+type StringObj = Record<string, string[]>
+
 interface ConditionItem {
   system: string
   version: string
@@ -125,7 +127,7 @@ const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions
 }
 
 const condCodesBySystem = (conditionItems: Condition[]) => conditionItems.reduce(
-  (accumulator, currentValue) => {
+  (accumulator: StringObj, currentValue) => {
     const systemToUpdate = currentValue.value.system
     const currentValues = accumulator[systemToUpdate] || []
     const dedupedValues = [...new Set([currentValue.value.code, ...currentValues])]
@@ -149,6 +151,8 @@ const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[
     const isUsageCxtType = existingUcItems?.code?.system?.endsWith('/usage-context-type') && existingUcItems?.code?.code === 'focus'
     const systemToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.system
     const codeToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.code
+    // if no system or code, just keep this item since don't know if need to delete
+    if (systemToCheck === undefined || codeToCheck === undefined) return true
     const codeMatches = conditionsBySystem?.[systemToCheck]?.includes(codeToCheck)
     // we only want to keep useContext items that are either:
     // 1. not the type used for conditions

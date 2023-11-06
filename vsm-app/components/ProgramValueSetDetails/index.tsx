@@ -385,7 +385,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          console.log('row!: ', row)
           if (progValueSetDets.programStatus === 'active') {
             return row?.valueSetPinnedVersion || 'latest'
           }

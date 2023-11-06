@@ -1,32 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
+import { is } from '@/helpers/is'
 import { updateConditions, removeConditionsFromLeaf } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
-import cloneDeep from 'lodash.clonedeep'
-
-interface BodyItems {
-  leafIds: fhir4.ValueSet['id'][]
-  conditionsToUpdate: any
-  action: 'add' | 'remove'
-}
-
-// interface ConditionItem {
-//   value: {
-//     system: string
-//     version: string
-//     code: string
-//     text: string
-//   },
-//   label: string
-// }
 
 const handleVsetConditionUpdates = (
   vSets: fhir4.ValueSet[],
   action: 'add' | 'remove',
   conditions: any
 ) => {
-  console.log(action)
   if (action === 'add') {
     const updated = vSets.map(vs => {
       return updateConditions(vs, conditions, false)
@@ -43,73 +25,64 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
 
   const body = await JSON.parse(req.body)
 
-  try {
+  const leafIds = body.leafIds as fhir4.ValueSet['id'][]
+  const conditionsToUpdate = body.conditionsToUpdate
+  const action = body.action
 
-    const leafIds = body.leafIds as fhir4.ValueSet['id'][]
-    const conditionsToUpdate = body.conditionsToUpdate
-    const action = body.action
-
-    const getTransactionBody = leafIds.map(id => ({
-      request: {
-        method: 'GET',
-        url: `ValueSet/${id}`
-      }
-    }))
-
-    const getTransactionEntry = {
-      resourceType: 'Bundle',
-      type: 'transaction',
-      entry: getTransactionBody
+  const getTransactionBody = leafIds.map(id => ({
+    request: {
+      method: 'GET',
+      url: `ValueSet/${id}`
     }
+  }))
 
-    const allValueSetsToUpdate = await fhirCdrClient.transaction({
-      body: getTransactionEntry
-    })
+  const getTransactionEntry = {
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: getTransactionBody
+  } as fhir4.Resource & { type: 'transaction' }
 
-    const successfulVsets = allValueSetsToUpdate
-      ?.entry
-      ?.map(e => e?.resource)
-      ?.filter((item: fhir4.Resource) => item?.resourceType === 'ValueSet')
+  const allValueSetsToUpdate = await fhirCdrClient.transaction({
+    body: getTransactionEntry
+  })
+
+  const successfulVsets = allValueSetsToUpdate
+    ?.entry
+    ?.map((e: any) => e?.resource)
+    ?.filter((item: fhir4.Resource) => is.valueSet(item))
 
 
-    const updated = handleVsetConditionUpdates(
-      successfulVsets,
-      action,
-      conditionsToUpdate
-    ).filter(x => Boolean(x))
+  const updated = handleVsetConditionUpdates(
+    successfulVsets,
+    action,
+    conditionsToUpdate
+  ).filter(x => is.valueSet(x)) as fhir4.ValueSet[]
 
-    if (!updated) {
-      // if nothing is updated, there's an error
-      // this will throw to the handler
-      throw Error('No Valuesets Updated')
-    }
-
-    const putTransactionBody = updated?.map(updatedVs => ({
-      request: {
-        method: 'PUT',
-        url: `ValueSet/${updatedVs.id}`,
-      },
-      resource: updatedVs
-    }))
-
-    const putTransactionEntry = {
-      resourceType: 'Bundle',
-      type: 'transaction',
-      entry: putTransactionBody
-    }
-
-    const updatedVsets = await fhirCdrClient.transaction({
-      body: putTransactionEntry
-    }) 
-
-    console.log('updated: ', updatedVsets)
-
-    res.status(200).send({ message: 'success' })
-
-  } catch (e) {
-    console.error(e?.response?.data?.issue)
-    res.status(333).send('yikes')
+  if (!updated.length) {
+    // if nothing is updated, there's an error
+    // this will throw to the handler
+    throw Error('No Valuesets Updated')
   }
+
+  const putTransactionBody = updated.map(updatedVs => ({
+    request: {
+      method: 'PUT',
+      url: `ValueSet/${updatedVs.id}`,
+    },
+    resource: updatedVs
+  }))
+
+  const putTransactionEntry = {
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: putTransactionBody
+  } as fhir4.Resource & { type: 'transaction' }
+
+  await fhirCdrClient.transaction({
+    body: putTransactionEntry
+  }) 
+
+  res.status(200).send({ message: 'success' })
 }
 
 export default handler({
