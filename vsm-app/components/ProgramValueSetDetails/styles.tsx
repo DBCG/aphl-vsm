@@ -279,6 +279,7 @@ export const TableActions = ({
               <ButtonRow>
                 <Button
                   text='Cancel Edit'
+                  style={{ backgroundColor: 'gray' }}
                   onClick={() => {
                     setKeyInd(k => k + 1)
                     setIsEditing(false)
