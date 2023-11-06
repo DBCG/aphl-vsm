@@ -217,6 +217,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
+    toggleUpdateData,
     ...debouncedFilters
   }) as Result
 
@@ -653,6 +654,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
           programId={programId}
+          handleToggleUpdateData={setToggleUpdateData}
         />
         <ErrorMessage error={error} />
         <DT

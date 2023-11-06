@@ -99,16 +99,17 @@ export const TableActions = ({
   handleEdit,
   isDeleting,
   totalRows,
-  programId
+  programId,
+  handleToggleUpdateData
 }: TableActions) => {
   const [isEditing, setIsEditing] = useState(false)
+  const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition'| 'grouper'>('condition')
   const [conditionsToEdit, setConditionsToEdit] = useState([])
   const [groupsToEdit, setGroupsToEdit] = useState([])
   const [actionType, setActionType] = useState<'add' | 'remove' | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [keyInd, setKeyInd] = useState(0)
-  const [isProcessing, setIsProcessing] = useState(false)
 
   const conditions = useGetConditions()
   const allConditions = formatConditionsComposeInclude(conditions)
@@ -143,6 +144,7 @@ export const TableActions = ({
   }
 
   const handleEditItems = async () => {
+    setEditInFlight(true)
     if (editType === 'condition') {
 
       const body = JSON.stringify(
@@ -152,16 +154,17 @@ export const TableActions = ({
           action: actionType
         }
       )
-      const res = await fetch(
+      await fetch(
        `/api/programs/${programId}/details/valuesets/conditions/batch`,
        {
         method: 'PUT',
         body
       })
 
-      console.log('res from endpoint: ', res)
-
     }
+    setEditInFlight(false)
+    handleToggleUpdateData((t: boolean) => !t)
+    handleCancelModal()
   }
 
   // always memoize options to react-select to avoid duplicates sticking
@@ -181,7 +184,7 @@ export const TableActions = ({
           actionType={actionType}
           isOpen={modalOpen}
           handleCancelModal={handleCancelModal}
-          loading={isProcessing}
+          loading={editInFlight}
           program={null}
           handleModalAction={handleEditItems}
           dataType={editType}
@@ -309,7 +312,6 @@ export const TableActions = ({
                 )
               }
             </FormGroup>
-            
           )
         }
         </ActionContainerRow>

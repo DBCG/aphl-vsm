@@ -54,11 +54,9 @@ const buildConditionItem = (condition: Condition) => {
 // VALUESETS PAGE: you want to keep any existing conditions that you have added before
 // TODO there should be no useContext if it is an empty array
 const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
-  console.log('update conditions called')
   let vs = cloneDeep(valueSet)
 
   if (vs?.useContext) {
-    console.log('has usecontext')
     const nonConditionContexts = vs?.useContext?.filter(
       (ctx) => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus')
     )
@@ -81,17 +79,12 @@ const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], 
             )
         )
 
-        console.log('non: ', nonConditionContexts)
-        console.log('deduped: ', dedupedNewConditionContexts)
-        console.log('existing: ', existingConditionContexts)
-
         vs.useContext = [...nonConditionContexts, ...existingConditionContexts, ...dedupedNewConditionContexts]
       }
     } else {
       delete vs.useContext
     }
   } else if (!vs?.useContext && newConditions?.length) {
-    console.log('no usecontext')
     vs.useContext = newConditions?.map((c) => buildConditionItem(c))
   }
   return vs
@@ -131,5 +124,51 @@ const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions
   return result
 }
 
-export { updateConditions, formatConditionsComposeInclude, buildConditionOptions }
+const condCodesBySystem = (conditionItems: Condition[]) => conditionItems.reduce(
+  (accumulator, currentValue) => {
+    const systemToUpdate = currentValue.value.system
+    const currentValues = accumulator[systemToUpdate] || []
+    const dedupedValues = [...new Set([currentValue.value.code, ...currentValues])]
+    return Object.assign(accumulator, { [systemToUpdate]: dedupedValues })
+  },
+  {},
+);
+
+const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[]): fhir4.ValueSet | null => {
+  const clonedLeafVs = cloneDeep(leafVs)
+  const ucBlock = clonedLeafVs.useContext
+
+  // if no useContext at all, just return out
+  if (!ucBlock) {
+    return null
+  }
+
+  const conditionsBySystem = condCodesBySystem(conditions)
+
+  const filteredUsageContexts = cloneDeep(ucBlock).filter(existingUcItems => {
+    const isUsageCxtType = existingUcItems?.code?.system?.endsWith('/usage-context-type') && existingUcItems?.code?.code === 'focus'
+    const systemToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.system
+    const codeToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.code
+    const codeMatches = conditionsBySystem?.[systemToCheck]?.includes(codeToCheck)
+    // we only want to keep useContext items that are either:
+    // 1. not the type used for conditions
+    // 2. not matching the condition codes we want to delete
+    return !isUsageCxtType || !codeMatches
+  })
+
+  // if lengths are the same, no changes were made, return out
+  if (filteredUsageContexts?.length === ucBlock.length) {
+    return null
+  }
+
+  // if this operation deletes all useContext items, remove the key completely from the leaf vset
+  if (!filteredUsageContexts.length) {
+    delete clonedLeafVs.useContext
+  } else {
+    clonedLeafVs.useContext = filteredUsageContexts
+  }
+  return clonedLeafVs
+}
+
+export { updateConditions, formatConditionsComposeInclude, buildConditionOptions, removeConditionsFromLeaf }
 export type { Condition, ConditionItem, ConditionToUpdate }
