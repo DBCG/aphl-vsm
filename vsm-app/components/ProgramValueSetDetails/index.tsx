@@ -17,7 +17,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { can, VSMSession } from '@/helpers/rolesHelper'
+import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
@@ -28,7 +28,6 @@ import { customTableStyles } from '../tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 
 import { buildGroupOptions } from '@/helpers/selectHelpers'
-import { updateLeafResponse } from '@/pages/api/valueset/versions'
 import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
@@ -298,7 +297,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
-  const isEditable = progValueSetDets?.data?.[0]?.programStatus === 'draft' && can(session, 'edit')
+  const isEditable = allowEditing({ session, programStatus: progValueSetDets?.data?.[0]?.programStatus })
 
   const columns = useMemo(
     () => [
@@ -549,7 +548,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     [router, groupsInProgram, allConditions]
   )
 
-  const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
+  const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
 
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {

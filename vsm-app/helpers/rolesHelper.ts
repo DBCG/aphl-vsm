@@ -31,3 +31,12 @@ export const can = (session: VSMSession, requestedPermission: string) => {
   const role = session.user?.roles[0]
   return permissions?.[role]?.includes(requestedPermission.toLowerCase())
 }
+
+interface AllowToEdit {
+  session: VSMSession
+  programStatus: fhir4.Library['status'] | undefined
+}
+
+export const allowEditing = ({ session, programStatus }: AllowToEdit): boolean => {
+  return can(session, 'edit') && programStatus === 'draft'
+}
