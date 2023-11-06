@@ -162,6 +162,8 @@ export const TableActions = ({
     handleToggleUpdateData((t: boolean) => !t)
     handleCancelModal()
     setKeyInd(k => k + 1)
+    setGroupsToEdit([])
+    setConditionsToEdit([])
   }
 
   // always memoize options to react-select to avoid duplicates sticking
