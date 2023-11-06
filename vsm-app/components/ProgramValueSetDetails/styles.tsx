@@ -285,6 +285,7 @@ export const TableActions = ({
                     setIsEditing(false)
                     setGroupsToEdit([])
                     setConditionsToEdit([])
+                    handleToggleUpdateData(d => !d)
                   }}
                 />
                 {
