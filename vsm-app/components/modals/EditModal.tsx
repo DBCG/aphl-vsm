@@ -10,9 +10,17 @@ interface GenText {
 }
 
 const generateText = ({ modalAction, dataType, totalVs }: GenText) => {
+  // if fields unset, can't render
+  if (!modalAction || !dataType) return null
+
+  const text = {
+    'remove': ['Remove selected', 'Remove from'],
+    'add': ['Add selected', 'Add to']
+  }
+
   return ({
-    title: `${modalAction} selected ${dataType}`,
-    text: `${modalAction} ${modalAction === 'remove' ? 'from' : 'to'} all ${totalVs} Value Sets?`,
+    title: `${text[modalAction][0]} ${dataType}`,
+    text: `${text[modalAction][1]} ${totalVs} Value Set${totalVs === 1 ? '' : 's'}?`,
     actionText: ``,
     modalLoadingText: (
       <LoadingText>
@@ -52,7 +60,12 @@ const EditModal = ({
   handleModalAction,
   totalVs
 }: ModalInfo) => {
-  const { title, text, actionText } = generateText({ modalAction: actionType, dataType, totalVs })
+  
+  const modalText = generateText({ modalAction: actionType, dataType, totalVs })
+
+  if (!modalText) return null
+
+  const { title, text, actionText } = modalText
 
   const [disableSubmission, setDisableSubmission] = useState(false)
 
