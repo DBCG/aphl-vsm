@@ -150,6 +150,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     setIsDeleting(false)
   }
 
+  useEffect(() => {
+    setSelectedRows([])
+  }, [toggleUpdateData])
+
   const handleUpdateValueSets = async () => {
     const canonicalUrls: string[] = []
     // @ts-ignore
