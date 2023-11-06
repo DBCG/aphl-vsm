@@ -236,7 +236,6 @@ const SearchTable = ({
           )}
         </div>
       ),
-      id: 'vs-oid-search',
       wrap: true,
       minWidth: '20rem',
       selector: (row: TableData) => row?.oid?.split?.('-')?.[0]! || ''

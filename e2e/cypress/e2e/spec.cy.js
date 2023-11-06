@@ -194,7 +194,7 @@ describe("Smoke Tests", () => {
         cy.get("#react-select-search-page-groups-option-1").click();
 
         cy.get("#add-valueset-to-program").click();
-        cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsId).should("exist");
+        cy.get('.rdt_TableBody [data-column-id="5"]').first().contains(vsId).should("exist");
 
         // navigate back to program view
         cy.get("#breadcrumb-programs").click();
