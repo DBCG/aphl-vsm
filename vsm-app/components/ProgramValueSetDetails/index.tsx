@@ -646,7 +646,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={() => setShowConfirmationModal(true)}
-          handleEdit={() => {}}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}

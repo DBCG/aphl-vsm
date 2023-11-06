@@ -85,7 +85,6 @@ const ButtonRow = styled.div`
 interface TableActions {
   selectedRows: TableRow[]
   handleDelete: (selectedRows: TableRow[]) => void
-  handleEdit: (editType: 'conditions' | 'groups', selectedRows: TableRow[]) => void
   handleToggleUpdateData: Dispatch<SetStateAction<boolean>>
   isDeleting: boolean
   totalRows: number
