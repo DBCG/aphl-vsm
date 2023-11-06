@@ -45,9 +45,9 @@ interface Args {
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
-  activeGroups?: [] | Group[]
-  activeConditions?: [] | ConditionItem[]
-  updatedGrouperValueSets?: [] | fhir4.ValueSet[]
+  activeGroups?: Group[]
+  activeConditions?: ConditionItem[]
+  updatedGrouperValueSets?: fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
   toggleUpdateData?: boolean

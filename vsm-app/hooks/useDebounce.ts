@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 
 // implementation comes from here: https://usehooks.com/useDebounce/
-const useDebounce = (value: any, delay: number) => {
+const useDebounce = <T extends unknown>(value: T, delay: number) => {
   // State and setters for debounced value
-  const [debouncedValue, setDebouncedValue] = useState(value)
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
   useEffect(
     () => {
       // Update debounced value after delay

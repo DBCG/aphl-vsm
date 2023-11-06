@@ -28,7 +28,7 @@ interface UsageContextItem {
 interface ConditionToUpdate {
   canonical: string
   version: string
-  conditionInfo: Condition[]
+  conditionInfo?: Condition[]
 }
 
 const buildConditionItem = (condition: Condition) => {

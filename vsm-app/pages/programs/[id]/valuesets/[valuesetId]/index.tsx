@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import { useEffect, useState, useContext } from 'react'
 import ValueSetContents from '@/components/ValueSetContents'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { VSMSession, can } from '@/helpers/rolesHelper'
+import { VSMSession, allowEditing } from '@/helpers/rolesHelper'
 import { NavContext } from '@/components/NavBar'
 
 const ValueSetPageView = () => {
@@ -16,7 +16,7 @@ const ValueSetPageView = () => {
   const [currentValueSet, setCurrentValueSet] = useState<fhir4.ValueSet | null>(null)
   const { isGrouperView, changeGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const enableEditing = programAndGrouperData?.program?.status === 'draft' && can(session, 'edit')
+  const enableEditing = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
 
   const handleToggleUpdateData = () => {
     setToggleUpdateData((t) => !t)

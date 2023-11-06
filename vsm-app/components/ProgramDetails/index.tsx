@@ -10,7 +10,7 @@ import { is } from '@/helpers/is'
 import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
-import { can, VSMSession } from '@/helpers/rolesHelper'
+import { allowEditing, can, VSMSession } from '@/helpers/rolesHelper'
 import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { ApprovalDetailList } from '../ApprovalDetailList'
@@ -155,11 +155,11 @@ const ProgramDetails = () => {
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={can(session, 'edit') && status === 'draft'} />
+      <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={allowEditing({ session, programStatus: status })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          {can(session, 'edit') && status === 'draft' && (
+          {allowEditing({ session, programStatus: status}) && (
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
@@ -171,7 +171,7 @@ const ProgramDetails = () => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        {can(session, 'edit') && status === 'draft' && (
+        {allowEditing({ session, programStatus: status }) && (
           <Button
             id="create-new-grouper"
             text="Create New Grouper"
