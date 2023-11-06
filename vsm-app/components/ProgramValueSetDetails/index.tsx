@@ -115,10 +115,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
-  const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
-  const [updatedGrouper, setUpdatedGrouper] = useState<updateLeafResponse>({
-    message: ''
-  })
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
@@ -198,8 +194,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         }).then((res) => res.json())) as conditionUpdateReturn
         if ('error' in json) {
           throw new Error(json.error)
-        } else {
-          setUpdatedValueSet(json)
         }
       }
     }
@@ -292,13 +286,10 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      const result = (await fetch(`/api/valueset/versions`, {
+      await fetch(`/api/valueset/versions`, {
         method: 'PUT',
         body
-      }).then((res) => res.json())) as updateLeafResponse
-      if (result) {
-        setUpdatedGrouper(result)
-      }
+      })
     }
 
     updateVersions()
