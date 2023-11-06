@@ -113,7 +113,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
-
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
@@ -217,6 +216,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
+    toggleUpdateData,
     ...debouncedFilters
   }) as Result
 
@@ -322,7 +322,6 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     try {
       updateVersions()
     } catch (e) {
-      console.error('error: ', e)
       setVersionUpdateInFlight(false)
     }
     setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
@@ -650,6 +649,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
+          programId={programId}
+          handleToggleUpdateData={setToggleUpdateData}
         />
         <ErrorMessage error={error} />
         <DT
@@ -665,6 +666,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           columns={columns}
           theme="aphl"
           pagination
+          clearSelectedRows={toggleUpdateData}
           highlightOnHover={true}
           onRowClicked={(row) => {
             router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
