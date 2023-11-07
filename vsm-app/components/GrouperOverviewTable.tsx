@@ -127,7 +127,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         name: 'Remove Group',
         maxWidth: '10rem',
         center: true,
-        omit: allowEditing({ session, programStatus }),
+        omit: !allowEditing({ session, programStatus }),
         cell: (row: fhir4.ValueSet) => {
           return (
             <ButtonContainer>
