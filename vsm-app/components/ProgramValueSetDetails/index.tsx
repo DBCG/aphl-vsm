@@ -126,7 +126,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [tableKey, setTableKey] = useState(1)
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
   // handle error display
   const [error, setError] = useState<null | string>(null)
@@ -588,8 +588,8 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   return (
     <>
       <DeleteConfirmationModal
-        isOpen={showConfirmationModal}
-        toggleModalOpen={() => setShowConfirmationModal((show) => !show)}
+        isOpen={showDeleteConfirmationModal}
+        toggleModalOpen={() => setShowDeleteConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
       />
@@ -611,7 +611,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       </Row>
       <Box id="vs-table-detail">
         <TableActions
-          handleDelete={() => setShowConfirmationModal(true)}
+          handleDelete={() => setShowDeleteConfirmationModal(true)}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}

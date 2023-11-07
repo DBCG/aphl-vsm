@@ -15,15 +15,15 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
     toggleModalOpen()
   }
 
-  const handleConfirm = () => {
-    handleConfirmDelete()
+  const handleConfirm = async () => {
+    await handleConfirmDelete()
     toggleModalOpen()
   }
 
   return (
     <Dialog open={isOpen}>
       <ModalContent style={{ minWidth: '300px'}}>
-        <DialogTitle>Confirm</DialogTitle>
+        <DialogTitle>Delete Confirm</DialogTitle>
         <DialogContent>
           <DialogContentText>Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}</DialogContentText>
         </DialogContent>
@@ -43,23 +43,6 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
 const ModalContent = styled.div`
   justify-content: center;
   text-align: center;
-`
-
-const ModalTitle = styled.h1`
-  margin-bottom: 36px;
-`
-
-const ModalText = styled.p`
-  line-height: 140%;
-  margin: 0 auto;
-  margin-bottom: 12px;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-top: 36px;
 `
 
 export { DeleteConfirmationModal }
