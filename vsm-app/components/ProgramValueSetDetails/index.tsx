@@ -11,10 +11,9 @@ import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@/components/buttons/Button'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { getTerminologySource, setVSPriorityUsageContext } from '@/helpers/valueSetHelpers'
+import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -28,8 +27,8 @@ import TableActions from './TableActions'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
-import { getVSPriorityUsageContext, USHealthVSPriority } from '@/helpers/valueSetHelpers'
 import BulkEditModal from './BulkEditModal'
+import { USHealthVSPriority, getVSPriority, setVSPriority } from '@/helpers/libraryHelpers'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -51,7 +50,7 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
 }
 
 interface ProgramValueSetDetailsProps {
-  programId: string
+  program: fhir4.Library
   router: NextRouter
 }
 
@@ -71,7 +70,6 @@ export interface OptionType {
 
 export const priorityLevelOptions: Options<OptionType> = [
   { label: 'Emergent', value: 'emergent', id: 'emergent' },
-  { label: 'Priority', value: 'priority', id: 'priority' },
   { label: 'Routine', value: 'routine', id: 'routine' }
 ] as const
 
@@ -106,7 +104,7 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
   return payload
 }
 
-const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsProps) => {
+const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
@@ -140,13 +138,18 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
+  
+  let valueSetPriorityMap = {}
+  if (program) {
+    valueSetPriorityMap = getVSPriority(program)
+  }
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
     setIsDeleting(true)
     const body = JSON.stringify({ batchDelete: payload })
-    const result = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+    const result = await fetch(`/api/programs/${program?.id}/grouper/valueset`, {
       method: 'DELETE',
       body: body
     })
@@ -170,7 +173,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls, programId })
+      body: JSON.stringify({ urls: canonicalUrls, programId: program?.id })
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
@@ -183,7 +186,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   // Updates Conditions
   useEffect(() => {
-    let endpoint = `/api/programs/${programId}/details/valuesets/conditions`
+    let endpoint = `/api/programs/${program?.id}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
@@ -203,11 +206,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
     }
     setUpdatedGrouperValueSets([])
     postUpdate()
-  }, [conditionToUpdate, programId])
+  }, [conditionToUpdate, program?.id])
 
   // Updates Group ValueSets
   useEffect(() => {
-    const endpoint = `/api/programs/${programId}/details/valuesets/groups`
+    const endpoint = `/api/programs/${program?.id}/details/valuesets/groups`
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         setGrouperLoading(true)
@@ -221,15 +224,15 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
       }
     }
     postUpdate()
-  }, [updateVsGroups.groupInfo, programId, updateVsGroups])
+  }, [updateVsGroups.groupInfo, program?.id, updateVsGroups])
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: string) => {
     setGrouperLoading(true)
-    const prioritySetVs = setVSPriorityUsageContext(vs, priority as USHealthVSPriority)
+    const library = setVSPriority(program, priority as USHealthVSPriority, vs.url!)
     try {
-      const updatedVs = await fetch(`/api/valueset/${vs.id}`, {
+      const updatedVs = await fetch(`/api/library/${program?.id}`, {
         method: 'PUT',
-        body: JSON.stringify(prioritySetVs)
+        body: JSON.stringify(library)
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
       setUpdatedGrouperValueSets(updatedVs)
@@ -241,21 +244,16 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }
 
   const progValueSetDets = useGetProgramValueSetDetails({
-    id: programId,
+    id: program?.id,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
     ...debouncedFilters
   }) as Result
 
-  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({
-    id: programId,
-    toggleRefresh: false
-  })
-
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
-    setPageLoading(false)
+    setPageLoading(keys.length === 0)
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
@@ -413,7 +411,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const currentPriority = getVSPriorityUsageContext(row?.valueSet)
+          const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
           const currentPriorityValue = priorityLevelOptions.find(i => i.id === currentPriority)
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
@@ -659,7 +657,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
-    } else if (programAndGrouperData?.program?.status === 'active') {
+    } else if (program?.status === 'active') {
       return (
         <Button
           text="Code Search"
@@ -689,7 +687,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
 
   const bulkUpdateFn = async (priority: USHealthVSPriority) => {
     try {
-      const toUpdateVs = selectedRows.map((row) => setVSPriorityUsageContext(row.valueSet, priority))
+      const toUpdateVs = selectedRows.map((row) => setVSPriority(program, row.valueSet, priority))
       await fetch(`/api/valueset/bulk`, {
         method: 'PUT',
         body: JSON.stringify({ valueSets: toUpdateVs })
@@ -742,7 +740,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
         />
         <ErrorMessage error={error} />
         <DT
-          selectableRows={Boolean(programId && isEditable)}
+          selectableRows={Boolean(program?.id && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           // @ts-expect-error
@@ -755,11 +753,11 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
           pagination
           highlightOnHover={true}
           onRowClicked={(row) => {
-            router.push(`/programs/${programId}/valuesets/${row?.valueSet?.id}`)
+            router.push(`/programs/${program?.id}/valuesets/${row?.valueSet?.id}`)
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable', { fontSize: '12px'})}
-          progressPending={pageLoading || programAndGrouperDataLoading}
+          progressPending={pageLoading}
           progressComponent={<LoadingIndicator />}
         />
       </Box>

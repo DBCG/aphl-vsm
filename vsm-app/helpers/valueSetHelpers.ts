@@ -10,12 +10,6 @@ const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
 }
 
-export enum USHealthVSPriority {
-  'Emergent' = 'emergent',
-  'Priority' = 'priority',
-  'Routine' = 'routine'
-}
-
 const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
   if (!leafVsCanonical || leafVsCanonical.length === 0) {
     console.error('missing leaf to add')
@@ -336,58 +330,11 @@ const getKeywords = (valueset: fhir4.ValueSet) => {
   return keywordExtensions
 }
 
-const setVSPriorityUsageContext = (target: fhir4.ValueSet, code: USHealthVSPriority) => {
-  const clonedTarget = cloneDeep(target)
-  const newUsageContextEntry: fhir4.UsageContext = {
-    code: {
-      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
-      code: 'priority'
-    },
-    valueCodeableConcept: {
-      coding: [
-        {
-          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-          code
-        }
-      ]
-    }
-  }
-
-  if (clonedTarget.useContext) {
-    const newUsageContextIndex = Math.max(
-      clonedTarget.useContext.findIndex((ctx) => {
-        const { system, code } = ctx?.code
-        if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-          return ctx
-        }
-      }),
-      0
-    )
-    clonedTarget.useContext[newUsageContextIndex] = newUsageContextEntry
-  } else {
-    clonedTarget.useContext = [newUsageContextEntry]
-  }
-
-  return clonedTarget
-}
-
-const getVSPriorityUsageContext = (vs: fhir4.ValueSet) => {
-  const context = vs?.useContext?.find((ctx) => {
-    const { system, code } = ctx?.code
-    if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-      return ctx
-    }
-  })
-  return context?.valueCodeableConcept?.coding?.[0]?.code
-}
-
 export {
   getOid,
   addExtensionToVs,
   addValueSetToGrouper,
   authoritativeSourceExtensionUrl,
-  getVSPriorityUsageContext,
-  setVSPriorityUsageContext,
   getProgramManifestVersions,
   getTerminologySource,
   removeValueSetFromGrouper,
