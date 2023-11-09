@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash'
 import {
   getReleaseDescription,
   setReleaseDescription,
+  getVSPriority,
   missingFields,
   editComposeInclude,
   validStartDate,
@@ -75,9 +76,9 @@ describe('libraryHelpers', () => {
           {
             type: 'composed-of',
             resource: 'www.example.com|1.1',
-            extension:[
+            extension: [
               {
-                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
                 valueBoolean: true
               }
             ]
@@ -85,9 +86,9 @@ describe('libraryHelpers', () => {
           {
             type: 'composed-of',
             resource: 'www.secondExample.com',
-            extension:[
+            extension: [
               {
-                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
                 valueBoolean: true
               }
             ]
@@ -101,9 +102,9 @@ describe('libraryHelpers', () => {
           {
             type: 'composed-of',
             resource: 'www.secondExample.com',
-            extension:[
+            extension: [
               {
-                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
                 valueBoolean: true
               }
             ]
@@ -127,9 +128,9 @@ describe('libraryHelpers', () => {
           {
             type: 'composed-of',
             resource: 'www.example.com|1.1',
-            extension:[
+            extension: [
               {
-                url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
                 valueBoolean: true
               }
             ]
@@ -148,6 +149,13 @@ describe('libraryHelpers', () => {
       const editedRctc = editComposeInclude({ grouperLib: simple_lib, relatedArtifact: fieldToEdit, action: 'remove' })
 
       expect(editedRctc).toEqual(simple_lib_result)
+    })
+  })
+
+  describe('getVSPriority', () => {
+    it('should return the priority of the value set', () => {
+      const map = getVSPriority(FIXTURE_PROGRAM)
+      expect(map['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481']).toBe('emergent')
     })
   })
 })
@@ -259,11 +267,29 @@ const FIXTURE_PROGRAM = {
   ],
   relatedArtifact: [
     {
+      extension: [
+        {
+          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                code: 'emergent'
+              }
+            ],
+            text: 'Emergent'
+          }
+        }
+      ],
+      type: 'depends-on',
+      resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+    },
+    {
       type: 'composed-of',
       resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
-      extension:[
+      extension: [
         {
-          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
           valueBoolean: true
         }
       ]
@@ -271,9 +297,9 @@ const FIXTURE_PROGRAM = {
     {
       type: 'composed-of',
       resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
-      extension:[
+      extension: [
         {
-          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
           valueBoolean: true
         }
       ]

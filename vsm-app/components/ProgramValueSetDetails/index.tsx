@@ -245,9 +245,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
+    valueSetPriorityMap,
     ...debouncedFilters
   }) as Result
-
+  
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
     setPageLoading(keys.length === 0)
@@ -399,7 +400,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               instanceId="priority-selector"
               isMulti
               options={priorityLevelOptions}
-              onChange={(e) => handleFilterChange(e, 'activePriority')}
+              onChange={(e) => handleFilterChange(e.map(i => i.value), 'activePriority')}
             />
           </SelectInputContainer>
         ),

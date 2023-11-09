@@ -47,6 +47,8 @@ interface Args {
   findInSteward?: string
   activeGroups?: [] | Group[]
   activeConditions?: [] | ConditionItem[]
+  activePriority?: [] | string[]
+  valueSetPriorityMap?: Record<string, string>
   updatedGrouperValueSets?: [] | fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
@@ -60,6 +62,8 @@ const useGetProgramValueSetDetails = ({
   findInSteward,
   activeGroups,
   activeConditions,
+  activePriority,
+  valueSetPriorityMap = {},
   updatedGrouperValueSets,
   updatedGrouper,
   versionToUpdate
@@ -144,10 +148,20 @@ const useGetProgramValueSetDetails = ({
     findInOid,
     activeGroups,
     activeConditions,
+    activePriority,
     updatedGrouperValueSets,
     updatedGrouper,
     versionToUpdate
   ])
+  
+  if (activePriority && activePriority?.length > 0) {
+    const filteredData = data?.data?.filter((vs) => {
+      const currentPriority = valueSetPriorityMap[vs.valueSet.url]
+        // @ts-ignore
+        return activePriority?.includes(currentPriority)
+    })
+    data.data = filteredData
+  }
 
   return data
 }
