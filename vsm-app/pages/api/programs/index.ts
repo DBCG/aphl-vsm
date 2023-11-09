@@ -91,22 +91,8 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
   }
 }
 
-const updateLibrary = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
-  const library = req.body as fhir4.Library
-  
-  const response = await fhirCdrClient.update({
-    resourceType: 'Library',
-    id: library.id,
-    body: library
-  })
-  return res.status(200).send(response)
-}
-
 export default handler({
   GET: {
     action: getPrograms
-  },
-  PUT: {
-    action: updateLibrary, access: ['admin', 'editor']
   }
 })

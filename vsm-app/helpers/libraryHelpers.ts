@@ -146,11 +146,11 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
             }
           ],
           text: capitalizeFirstLetter(code)
-        },
-        type: 'depends-on',
-        resource
-      }
-    ]
+        }
+      },
+    ],
+    type: 'depends-on',
+    resource
   }
 
   const exisitingIndex = clonedTarget?.relatedArtifact?.findIndex((ctx) => {

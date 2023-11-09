@@ -111,6 +111,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
   const [versionToUpdate, setVersionToUpdate] = useState({} as any)
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
+  const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
@@ -138,18 +139,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
-  
-  let valueSetPriorityMap = {}
-  if (program) {
-    valueSetPriorityMap = getVSPriority(program)
-  }
+  const valueSetPriorityMap = getVSPriority(currentProgram)
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
     setIsDeleting(true)
     const body = JSON.stringify({ batchDelete: payload })
-    const result = await fetch(`/api/programs/${program?.id}/grouper/valueset`, {
+    const result = await fetch(`/api/programs/${currentProgram?.id}/grouper/valueset`, {
       method: 'DELETE',
       body: body
     })
@@ -173,7 +170,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls, programId: program?.id })
+      body: JSON.stringify({ urls: canonicalUrls, programId: currentProgram?.id })
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id)
@@ -186,7 +183,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // Updates Conditions
   useEffect(() => {
-    let endpoint = `/api/programs/${program?.id}/details/valuesets/conditions`
+    let endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/conditions`
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
@@ -206,11 +203,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
     setUpdatedGrouperValueSets([])
     postUpdate()
-  }, [conditionToUpdate, program?.id])
+  }, [conditionToUpdate, currentProgram?.id])
 
   // Updates Group ValueSets
   useEffect(() => {
-    const endpoint = `/api/programs/${program?.id}/details/valuesets/groups`
+    const endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/groups`
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         setGrouperLoading(true)
@@ -224,18 +221,18 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       }
     }
     postUpdate()
-  }, [updateVsGroups.groupInfo, program?.id, updateVsGroups])
+  }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: string) => {
     setGrouperLoading(true)
-    const library = setVSPriority(program, priority as USHealthVSPriority, vs.url!)
+    const library = setVSPriority(currentProgram, priority as USHealthVSPriority, vs.url!)
     try {
-      const updatedVs = await fetch(`/api/library/${program?.id}`, {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
         method: 'PUT',
         body: JSON.stringify(library)
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
-      setUpdatedGrouperValueSets(updatedVs)
+      setCurrentProgram(updatedLibrary)
     } catch (e) {
       toast.error('Error updating priority')
     } finally {
@@ -244,7 +241,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const progValueSetDets = useGetProgramValueSetDetails({
-    id: program?.id,
+    id: currentProgram?.id,
     updatedValueSet, // this gets updated when a user adds a condition
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     updatedGrouper,
@@ -448,7 +445,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          if (progValueSetDets.programStatus === 'active') {
+          if (currentProgram?.status === 'active') {
             return row?.valueSetPinnedVersion || 'latest'
           }
           const terminologyInfo = getTerminologySource(row.valueSet)
@@ -657,7 +654,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
-    } else if (program?.status === 'active') {
+    } else if (currentProgram?.status === 'active') {
       return (
         <Button
           text="Code Search"
@@ -687,7 +684,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const bulkUpdateFn = async (priority: USHealthVSPriority) => {
     try {
-      const toUpdateVs = selectedRows.map((row) => setVSPriority(program, row.valueSet, priority))
+      const toUpdateVs = selectedRows.map((row) => setVSPriority(currentProgram, row.valueSet, priority))
       await fetch(`/api/valueset/bulk`, {
         method: 'PUT',
         body: JSON.stringify({ valueSets: toUpdateVs })
@@ -740,7 +737,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         />
         <ErrorMessage error={error} />
         <DT
-          selectableRows={Boolean(program?.id && isEditable)}
+          selectableRows={Boolean(currentProgram?.id && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           // @ts-expect-error
@@ -753,7 +750,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           pagination
           highlightOnHover={true}
           onRowClicked={(row) => {
-            router.push(`/programs/${program?.id}/valuesets/${row?.valueSet?.id}`)
+            router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable', { fontSize: '12px'})}
