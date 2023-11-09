@@ -7,19 +7,10 @@ import { removeDraftFromVersionString } from '@/utils'
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const {releaseAsVersion, program } = JSON.parse(req?.body)
 
-  try {
     if (typeof releaseAsVersion === 'string') {
       program.version = releaseAsVersion
     }
 
-    await fhirCdrClient.update<fhir4.Library>({
-      resourceType: 'Library',
-      id: program.id as string,
-      body: program
-    })
-  } catch (e) {
-    throw(e)
-  }
   const releasePayload = {
     resourceType: 'Parameters',
     parameter: [
@@ -29,7 +20,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       },
       {
         name: 'versionBehavior',
-        valueCode: 'default'
+        valueCode: 'force'
       }
     ]
   }
