@@ -301,7 +301,7 @@ const ProgramValueSetDetails = ({ programId, router }: ProgramValueSetDetailsPro
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
-  const isEditable = allowEditing({ session, programStatus: progValueSetDets?.data?.[0]?.programStatus })
+  const isEditable = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
 
   const columns = useMemo(
     () => [
