@@ -23,7 +23,7 @@ import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
-import TableActions from './TableActions'
+import { TableActions } from './TableActions'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
@@ -258,14 +258,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const progValueSetDets = useGetProgramValueSetDetails({
-    id: currentProgram?.id,
-    updatedValueSet, // this gets updated when a user adds a condition
+    id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
-    updatedGrouper,
     valueSetPriorityMap,
     ...debouncedFilters
   }) as Result
-  
+
   useEffect(() => {
     const keys = Object.keys(progValueSetDets)
     setPageLoading(keys.length === 0)
@@ -330,7 +328,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
-  const isEditable = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
+  const isEditable = allowEditing({ session, programStatus: currentProgram.status })
 
   const columns = useMemo(
     () => [
@@ -384,7 +382,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               instanceId="priority-selector"
               isMulti
               options={priorityLevelOptions}
-              onChange={(e) => handleFilterChange(e.map(i => i.value), 'activePriority')}
+              onChange={(e) =>
+                handleFilterChange(
+                  e.map((i) => i.value),
+                  'activePriority'
+                )
+              }
             />
           </SelectInputContainer>
         ),
@@ -394,7 +397,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
-          const currentPriorityValue = priorityLevelOptions.find(i => i.id === currentPriority)
+          const currentPriorityValue = priorityLevelOptions.find((i) => i.id === currentPriority)
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
               <ReadOnlyTag>{currentPriority || 'N/A'}</ReadOnlyTag>
@@ -663,18 +666,19 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   })()
 
   const bulkUpdateFn = async (priority: USHealthVSPriority) => {
-    try {
-      const toUpdateVs = selectedRows.map((row) => setVSPriority(currentProgram, row.valueSet, priority))
-      await fetch(`/api/valueset/bulk`, {
-        method: 'PUT',
-        body: JSON.stringify({ valueSets: toUpdateVs })
-      }).then((res) => res.json())
-      toast.success(`Successfully updated ${selectedRows.length} ValueSet`)
-    } catch {
-      toast.error("Something went wrong when bulk updating ValueSets")
-    } finally {
-      router.reload()
-    }
+    // TODO: Reimplement in follow up work for bulk update
+    // try {
+    //   const toUpdateVs = selectedRows.map((row) => setVSPriority(currentProgram, row?.valueSet!, priority))
+    //   await fetch(`/api/valueset/bulk`, {
+    //     method: 'PUT',
+    //     body: JSON.stringify({ valueSets: toUpdateVs })
+    //   }).then((res) => res.json())
+    //   toast.success(`Successfully updated ${selectedRows.length} ValueSet`)
+    // } catch {
+    //   toast.error('Something went wrong when bulk updating ValueSets')
+    // } finally {
+    //   router.reload()
+    // }
   }
 
   return (
@@ -714,7 +718,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
-          programId={programId}
+          programId={currentProgram?.id!}
           handleToggleUpdateData={setToggleUpdateData}
         />
         <ErrorMessage error={error} />
@@ -735,7 +739,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable', { fontSize: '12px'})}
+          customStyles={customTableStyles('clickable', { fontSize: '12px' })}
           progressPending={pageLoading}
           progressComponent={<LoadingIndicator />}
         />
