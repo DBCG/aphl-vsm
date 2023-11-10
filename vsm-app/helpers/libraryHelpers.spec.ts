@@ -169,8 +169,8 @@ describe('validStartDate', () => {
 
   it('should be true for future date', () => {
     const todayDate = new Date()
-    const tomorrowString = `${todayDate.getFullYear()}-${todayDate.getMonth() + 1}-${todayDate.getDate() + 1}`
-    expect(validStartDate(tomorrowString)).toBe(true)
+    const nextYearString = `${todayDate.getFullYear() + 1}-${todayDate.getMonth()}-${todayDate.getDate()}`
+    expect(validStartDate(nextYearString)).toBe(true)
   })
 
   it('should be false for past date', () => {

@@ -45,13 +45,14 @@ interface Args {
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
-  activeGroups?: [] | Group[]
-  activeConditions?: [] | ConditionItem[]
   activePriority?: [] | string[]
   valueSetPriorityMap?: Record<string, string>
-  updatedGrouperValueSets?: [] | fhir4.ValueSet[]
+  activeGroups?: Group[]
+  activeConditions?: ConditionItem[]
+  updatedGrouperValueSets?: fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
+  toggleUpdateData?: boolean
 }
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({
@@ -66,7 +67,8 @@ const useGetProgramValueSetDetails = ({
   valueSetPriorityMap = {},
   updatedGrouperValueSets,
   updatedGrouper,
-  versionToUpdate
+  versionToUpdate,
+  toggleUpdateData
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
 
@@ -151,7 +153,8 @@ const useGetProgramValueSetDetails = ({
     activePriority,
     updatedGrouperValueSets,
     updatedGrouper,
-    versionToUpdate
+    versionToUpdate,
+    toggleUpdateData
   ])
   
   if (activePriority && activePriority?.length > 0) {

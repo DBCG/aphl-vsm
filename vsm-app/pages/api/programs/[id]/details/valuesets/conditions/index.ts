@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
-import { updateConditions } from '@/helpers/conditionHelpers'
+import { ConditionToUpdate, updateConditions } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-
-const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
-  const body = JSON.parse(req.body)
+export type conditionUpdateReturn = fhir4.ValueSet | { error: string }
+const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse<conditionUpdateReturn>) => {
+  const body = JSON.parse(req.body) as ConditionToUpdate
   // need to identify by version, too... can do w/ read?
   // ISSUE to be fixed by cache... thihs isn't immediately available
   const valueSetToUpdate = await fhirCdrClient.search({
@@ -14,11 +14,11 @@ const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) 
       url: body?.canonical,
       version: body?.version
     }
-  })
+  }) as fhir4.Bundle
 
-  const vs = valueSetToUpdate?.entry?.[0]?.resource
+  const vs = valueSetToUpdate?.entry?.[0]?.resource as fhir4.ValueSet
 
-  const updatedValueSet = updateConditions(vs, body.conditionInfo)
+  const updatedValueSet = updateConditions(vs, body.conditionInfo || [])
 
   let updated
   try {
@@ -29,7 +29,7 @@ const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) 
         version: body.version
       },
       body: updatedValueSet
-    })
+    }) as fhir4.ValueSet
     res.status(200).send(updated)
   } catch (e) {
     logger.error('error: ', e)

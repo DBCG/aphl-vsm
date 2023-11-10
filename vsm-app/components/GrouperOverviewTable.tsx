@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
-import { can, VSMSession } from '@/helpers/rolesHelper'
+import { allowEditing, can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
@@ -93,11 +93,6 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
     }
   }, [error, groupsError])
 
-  useEffect(() => {
-    {
-      can(session, 'edit') && status === 'draft'
-    }
-  })
 
   // whenever data coming from props changes, reset deleting state
   useEffect(() => {
@@ -132,7 +127,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         name: 'Remove Group',
         maxWidth: '10rem',
         center: true,
-        omit: !(can(session, 'edit') && programStatus === 'draft'),
+        omit: !allowEditing({ session, programStatus }),
         cell: (row: fhir4.ValueSet) => {
           return (
             <ButtonContainer>

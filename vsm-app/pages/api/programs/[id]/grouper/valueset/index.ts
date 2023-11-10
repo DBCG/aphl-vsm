@@ -130,9 +130,19 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           updateInput.entry.push(programUpdateJob)
         }
 
-        const updateGroupers = await fhirCdrClient.transaction({ body: updateInput })
+        console.log('check updateinput: ');
+        
+        let updateGroupers
+        try {
+          updateGroupers = await fhirCdrClient.transaction({
+            body: updateInput
+          })
+        } catch (e) {
+          console.log(e)
+        }
   
         if (is.operationOutcome(updateGroupers)) {
+          console.log('op outcome hit')
           // send failure response
           logger.error('error: ', updateGroupers)
           return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
@@ -146,6 +156,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
     // otherwise, you are deleting vsets one by one
     } else {
+      console.log('deleting one by one')
       try {
         const { vsCanonical, grouperInfo } = body
 

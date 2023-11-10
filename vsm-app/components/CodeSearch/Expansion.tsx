@@ -26,7 +26,10 @@ const Expansion = (props: Props) => {
     },
     {
       name: 'Canonical',
-      selector: (data: Row) => data.url
+      selector: (data: Row) => data.url,
+      cell: (data: Row) => {
+        return data.url
+      }
     },
     {
       name: 'Grouper',
@@ -37,12 +40,12 @@ const Expansion = (props: Props) => {
           ?.map((vs) => {
             const noSpacesTitle = vs?.title?.replace(' ', '') 
             return (
-              <div key={noSpacesTitle}>{vs?.title}</div>
+              <div style={{ borderRadius: '8px', backgroundColor: 'var(--theme-100)', marginBottom: '4px', padding: '4px 8px' }} key={noSpacesTitle}>{vs?.title}</div>
             )
           })
 
         return (
-          <div>{grouperMatches}</div>
+          <div style={{ margin: '1em 0'}}>{grouperMatches}</div>
         )
       }
     },

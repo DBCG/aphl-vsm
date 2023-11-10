@@ -42,37 +42,9 @@ interface Error {
   error?: string
 }
 
-const customStyles = {
-  cells: {
-    style: {
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      fontFamily: 'Roboto',
-      fontSize: '120%'
-    }
-  },
-  headCells: {
-    style: {
-      fontFamily: 'Roboto'
-    }
-  },
-  rows: {
-    style: {
-      cursor: 'pointer'
-    },
-    highlightOnHoverStyle: {
-      backgroundColor: '#DBF0F3'
-    }
-  }
-}
-
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const [searchTermID, setSearchTermID] = useState('')
-  const [searchTermName, setSearchTermName] = useState('')
-  const [searchTermTitle, setSearchTermTitle] = useState('')
-  const [searchTermDescription, setSearchTermDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
@@ -88,10 +60,6 @@ const Programs: NextPage = () => {
   const toggleNewCloneExists = () => setNewCloneExists((exists) => !exists)
 
   const programs = useGetPrograms({
-    id: searchTermID,
-    name: searchTermName,
-    title: searchTermTitle,
-    description: searchTermDescription,
     newProgram: `${router?.query?.new}`,
     refreshToggle: newCloneExists
   })
@@ -115,13 +83,17 @@ const Programs: NextPage = () => {
         method: 'POST',
         body: json
       })
-
       if (res?.ok) {
         setModalOpen(false)
         toggleNewCloneExists()
       } else {
-        const json = await res.json()
-        setError({ error: json.error })
+        const json = (await res.json()) as { message: string } | { error: string }
+        if ('error' in json) {
+          setError({ error: json.error })
+        } else {
+          console.error(json)
+          throw new Error(JSON.stringify(json))
+        }
       }
     } catch (e) {
       setError({ error: `Error cloning program ${programId}` })
@@ -148,14 +120,14 @@ const Programs: NextPage = () => {
       },
       {
         name: 'ID',
-        selector: (row: fhir4.Library) => row.id,
+        selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         maxWidth: '8rem',
-        wrap: true,
+        wrap: true
       },
       {
         name: 'Title',
-        selector: (row: fhir4.Library) => row.title,
+        selector: (row: fhir4.Library) => row.title || '',
         sortable: true,
         maxWidth: '15rem',
         minWidth: '10rem',
@@ -163,7 +135,7 @@ const Programs: NextPage = () => {
       },
       {
         name: 'Version',
-        selector: (row: fhir4.Library) => row.version,
+        selector: (row: fhir4.Library) => row.version || '',
         sortable: true,
         wrap: true,
         maxWidth: '8rem'
@@ -180,14 +152,14 @@ const Programs: NextPage = () => {
       },
       {
         name: 'Description',
-        selector: (row: fhir4.Library) => row.description,
+        selector: (row: fhir4.Library) => row.description || '',
         sortable: false,
         wrap: true,
         minWidth: '20rem'
       },
       {
         name: 'Steward',
-        selector: (row: fhir4.Library) => row.publisher,
+        selector: (row: fhir4.Library) => row.publisher || '',
         sortable: true,
         maxWidth: '15rem',
         minWidth: '10rem',
@@ -195,7 +167,7 @@ const Programs: NextPage = () => {
       },
       {
         name: 'Clone',
-        selector: (row: fhir4.Library) => row.name,
+        selector: (row: fhir4.Library) => row.name || '',
         sortable: false,
         omit: !can(session, 'clone'),
         wrap: true,
@@ -215,7 +187,7 @@ const Programs: NextPage = () => {
       },
       {
         name: 'Release',
-        selector: (row: fhir4.Library) => row.name,
+        selector: (row: fhir4.Library) => row.name || '',
         sortable: false,
         omit: !can(session, 'release'),
         wrap: true,
@@ -288,13 +260,11 @@ const Programs: NextPage = () => {
       <LoadingModal
         actionType="clone"
         isOpen={modalOpen}
-        handleModalAction={
-          async () => {
-            // throttle this action based on if it is already ongoing
-            if (cloneLoading) return
-            debouncedCloneProgram(progIdToClone)
-          }
-        }
+        handleModalAction={async () => {
+          // throttle this action based on if it is already ongoing
+          if (cloneLoading) return
+          debouncedCloneProgram(progIdToClone)
+        }}
         program={null}
         loading={cloneLoading}
         handleCancelModal={() => setModalOpen(false)}
@@ -314,7 +284,6 @@ const Programs: NextPage = () => {
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
-        // @ts-expect-error
         columns={columns}
         theme="aphl"
         pagination

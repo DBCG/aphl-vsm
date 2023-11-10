@@ -17,7 +17,7 @@ import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { can, VSMSession } from '@/helpers/rolesHelper'
+import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
@@ -29,6 +29,8 @@ import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
 import { USHealthVSPriority, getVSPriority, setVSPriority } from '@/helpers/libraryHelpers'
+import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
+import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -54,8 +56,8 @@ interface ProgramValueSetDetailsProps {
   router: NextRouter
 }
 
-interface HandleVersionChange {
-  useContext: fhir4.UsageContext
+export interface HandleVersionChange {
+  useContext: fhir4.UsageContext[]
   selectedVsId: string
   selectedVersion: string
   vsCanonical: string
@@ -107,16 +109,24 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState({} as ConditionToUpdate)
-  const [updateVsGroups, setUpdateVsGroups] = useState({} as GroupUpdateItem)
-  const [versionToUpdate, setVersionToUpdate] = useState({} as any)
+  const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
+    canonical: '',
+    version: ''
+  })
+  const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
+  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>({
+    vsCanonical: '',
+    useContext: [],
+    selectedVsId: '',
+    selectedVersion: '',
+    grouperIds: [],
+    terminologyInfo: { value: '', hasExtension: false }
+  })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
   // returned data from PUT operations
-  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState([])
-  const [updatedValueSet, setUpdatedValueSet] = useState<fhir4.ValueSet>()
-  const [updatedGrouper, setUpdatedGrouper] = useState(null)
+  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
 
   // loading states
   const [pageLoading, setPageLoading] = useState(true)
@@ -125,11 +135,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
-
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
+
+  const [toggleUpdateData, setToggleUpdateData] = useState(false)
+  const [tableKey, setTableKey] = useState(1)
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
   // handle error display
   const [error, setError] = useState<null | string>(null)
@@ -160,12 +173,17 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setIsDeleting(false)
   }
 
+  useEffect(() => {
+    setSelectedRows([])
+  }, [toggleUpdateData])
+
   const handleUpdateValueSets = async () => {
     const canonicalUrls: string[] = []
-    // @ts-ignore
-    for (const grouper of progValueSetDets?.groupsInProgram) {
-      const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
-      canonicalUrls.push(...urls)
+    if (progValueSetDets?.groupsInProgram?.length) {
+      for (const grouper of progValueSetDets?.groupsInProgram) {
+        const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+        canonicalUrls.push(...urls)
+      }
     }
 
     const job = await fetch(`/api/valueset/update`, {
@@ -184,25 +202,22 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   // Updates Conditions
   useEffect(() => {
     let endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/conditions`
+    setUpdatedGrouperValueSets([])
     const postUpdate = async () => {
       if (conditionToUpdate?.conditionInfo) {
         setConditionLoading(true)
-        try {
-          let json = await fetch(endpoint, {
-            method: 'PUT',
-            body: JSON.stringify(conditionToUpdate)
-          }).then((res) => res.json())
-
-          setUpdatedValueSet(json)
-        } catch (e) {
-          // handle error here
-          console.error('error: ', e)
+        const json = (await fetch(endpoint, {
+          method: 'PUT',
+          body: JSON.stringify(conditionToUpdate)
+        }).then((res) => res.json())) as conditionUpdateReturn
+        if ('error' in json) {
+          throw new Error(json.error)
         }
-        setConditionLoading(false)
       }
     }
-    setUpdatedGrouperValueSets([])
     postUpdate()
+      .catch((e) => console.error('error: ', e))
+      .finally(() => setConditionLoading(false))
   }, [conditionToUpdate, currentProgram?.id])
 
   // Updates Group ValueSets
@@ -211,13 +226,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const postUpdate = async () => {
       if (updateVsGroups?.groupInfo) {
         setGrouperLoading(true)
-        const updatedVs = await fetch(endpoint, {
+        const updatedVs = (await fetch(endpoint, {
           method: 'PUT',
           body: JSON.stringify(updateVsGroups)
-        }).then((res) => res.json())
-
-        setUpdatedGrouperValueSets(updatedVs)
-        setGrouperLoading(false)
+        }).then((res) => res.json())) as retrieveGrouperSetsReturn
+        if ('error' in updatedVs) {
+          throw new Error(updatedVs.error)
+        } else {
+          setUpdatedGrouperValueSets(updatedVs)
+        }
       }
     }
     postUpdate()
@@ -285,7 +302,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     // otherwise, loading states and fetch
     setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'
-    // const existingVersion = '' // get existing version from grouper if set
     const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
       .then((res) => res.json())
       .then((versions) => [defaultVersion, ...versions].map((item) => ({ value: item, label: item })))
@@ -294,57 +310,27 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setLoadingVersionsForVs(null)
   }
 
-  // versionInput
-  const handleVersionChange = ({
-    selectedVersion,
-    vsCanonical,
-    grouperIds,
-    terminologyInfo,
-    selectedVsId,
-    useContext
-  }: HandleVersionChange) => {
-    const data = { vsCanonical, version: selectedVersion, grouperIds, terminologyInfo, selectedVsId, useContext }
-
-    // update the grouper canonical version
-    setVersionToUpdate(data)
-  }
-
   useEffect(() => {
-    if (!versionToUpdate.grouperIds) {
+    if (!versionToUpdate.grouperIds?.length) {
       return
     }
 
-    const body = JSON.stringify({
-      vsCanonical: versionToUpdate.vsCanonical,
-      vsVersion: versionToUpdate.version,
-      grouperIds: versionToUpdate.grouperIds,
-      terminologyInfo: versionToUpdate.terminologyInfo,
-      selectedVsId: versionToUpdate.selectedVsId,
-      useContext: versionToUpdate.useContext
-    })
+    const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
-      const result = await fetch(`/api/valueset/versions`, {
+      await fetch(`/api/valueset/versions`, {
         method: 'PUT',
         body
-      }).then((res) => res.json())
-      if (result) {
-        setUpdatedGrouper(result)
-      }
-      setVersionUpdateInFlight(false)
+      })
     }
 
-    try {
-      updateVersions()
-    } catch (e) {
-      console.error('error: ', e)
-      setVersionUpdateInFlight(false)
-    }
-    setVersionToUpdate([versionToUpdate.vsCanonical, versionToUpdate.version])
+    updateVersions()
+      .catch((e) => console.error('error: ', e))
+      .finally(() => setVersionUpdateInFlight(false))
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
-  const isEditable = progValueSetDets?.data?.[0]?.programStatus === 'draft' && can(session, 'edit')
+  const isEditable = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
 
   const columns = useMemo(
     () => [
@@ -354,7 +340,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <SelectInputTitle>Valueset Title</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
-                // @ts-ignore-next-line
                 handleFilterChange(e.target.value, 'findInVsTitle')
               }}
               style={{ height: '30px' }}
@@ -374,7 +359,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <SelectInputTitle>OID</SelectInputTitle>
             <FilterInput
               onChange={(e) => {
-                // @ts-ignore-next-line
                 handleFilterChange(e.target.value, 'findInOid')
               }}
               style={{ height: '30px' }}
@@ -382,7 +366,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </div>
         ),
         id: 'vs-oid-search',
-        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1],
+        selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1] || '',
         sortable: false,
         style: { fontSize: '12px' },
         maxWidth: '225px',
@@ -441,7 +425,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </div>
         ),
         id: 'vs-version-search',
-        selector: (row: TableRow) => row.version,
         sortable: false,
         maxWidth: '160px',
         wrap: true,
@@ -463,11 +446,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 onChange={(e) => {
                   setVersionUpdateInFlight(true)
                   const grouperIds = row?.groups?.map((g) => g.id)
-                  handleVersionChange({
+                  setVersionToUpdate({
                     selectedVsId: row?.valueSet?.id as string,
                     selectedVersion: e?.value as string,
-                    // @ts-ignore
-                    useContext: row?.valueSet?.useContext,
+                    useContext: row?.valueSet?.useContext || [],
                     vsCanonical: row?.valueSet?.url as string,
                     grouperIds,
                     terminologyInfo
@@ -490,7 +472,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
           </div>
         ),
-        selector: (row: TableRow) => row.valueSet.publisher,
+        selector: (row: TableRow) => row.valueSet.publisher || '',
         style: { fontSize: '12px' },
         sortable: true,
         maxWidth: '120px',
@@ -503,7 +485,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <p style={{ fontSize: '90%', fontStyle: 'italic' }}>* source inferred by url</p>
           </div>
         ),
-        selector: (row: TableRow) => row.valueSet,
         sortable: true,
         maxWidth: '120px',
         wrap: true,
@@ -536,22 +517,22 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </SelectInputContainer>
         ),
         id: 'value-set-conditions',
-        selector: (row: TableRow) => row.valueSet,
         sortable: false,
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const selectedOptions = row?.valueSet?.useContext
             ?.map((i) => {
               if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
-                return {
-                  label: i?.valueCodeableConcept?.text,
+                const condition: Condition = {
+                  label: i?.valueCodeableConcept?.text || '',
                   value: {
-                    system: i?.valueCodeableConcept?.coding?.[0]?.system,
-                    code: i?.valueCodeableConcept?.coding?.[0]?.code,
-                    version: i?.valueCodeableConcept?.coding?.[0]?.version,
+                    system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
+                    code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
+                    version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
                     text: i?.valueCodeableConcept?.text
                   }
                 }
+                return condition
               }
             })
             .filter((x) => x) as Condition[]
@@ -605,7 +586,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </SelectInputContainer>
         ),
         id: 'value-set-groups',
-        selector: (row: TableRow) => row.groups,
         sortable: false,
         allowOverflow: true,
         wrap: true,
@@ -630,7 +610,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 instanceId="groups-selector"
                 isMulti={true}
                 isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
-                // @ts-expect-error
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
                 onChange={(e) => {
@@ -650,7 +629,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     [router, groupsInProgram, allConditions]
   )
 
-  const allowToEdit = can(session, 'edit') && progValueSetDets?.programStatus === 'draft'
+  const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
 
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
@@ -701,8 +680,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   return (
     <>
       <DeleteConfirmationModal
-        isOpen={showConfirmationModal}
-        toggleModalOpen={() => setShowConfirmationModal((show) => !show)}
+        isOpen={showDeleteConfirmationModal}
+        toggleModalOpen={() => setShowDeleteConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
       />
@@ -730,25 +709,27 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       </Row>
       <Box id="vs-table-detail">
         <TableActions
-          handleDelete={() => setShowConfirmationModal(true)}
+          handleDelete={() => setShowDeleteConfirmationModal(true)}
           handleBulkEdit={() => setShowBulkEditModal(true)}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
+          programId={programId}
+          handleToggleUpdateData={setToggleUpdateData}
         />
         <ErrorMessage error={error} />
         <DT
           selectableRows={Boolean(currentProgram?.id && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
-          // @ts-expect-error
-          data={progValueSetDets?.data}
+          key={tableKey}
+          data={progValueSetDets?.data || []}
           keyField="canonical"
           persistTableHead={true}
-          // @ts-expect-error
           columns={columns}
           theme="aphl"
           pagination
+          clearSelectedRows={toggleUpdateData}
           highlightOnHover={true}
           onRowClicked={(row) => {
             router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)

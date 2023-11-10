@@ -54,7 +54,7 @@ describe("Smoke Tests", () => {
 
       // Run assertions to check for persistence after reload
       cy.get("#prog-title").should("have.value", "Draft Library");
-      cy.get("#prog-version").should("have.value", "1.1.0-draft");
+      cy.get("#prog-version").should("have.value", "1.1.0.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
       cy.get("#priority-level").should("have.value", "Priority").should("be.visible");
@@ -194,7 +194,7 @@ describe("Smoke Tests", () => {
         cy.get("#react-select-search-page-groups-option-1").click();
 
         cy.get("#add-valueset-to-program").click();
-        cy.get('.rdt_TableBody [data-column-id="vs-oid-search"]').first().contains(vsId).should("exist");
+        cy.get('.rdt_TableBody [data-column-id="5"]').first().contains(vsId).should("exist");
 
         // navigate back to program view
         cy.get("#breadcrumb-programs").click();
@@ -231,7 +231,10 @@ describe("Smoke Tests", () => {
         cy.get('input[type="checkbox"]').eq(1).check({ force: true })
         // cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).click({ force: true });
         cy.get('[data-action="delete"]').click();
+        cy.wait(100)
         cy.get('[data-modal="yes"]').click();
+        // extra one just to get it working again
+        cy.get('[data-modal="yes"]').first().click();
         cy.go("back");
 
         // Check grouper to see valueset has been removed
@@ -333,7 +336,7 @@ describe("Smoke Tests", () => {
 
     it("Downloads a JSON bundle using the Export button", () => {
       // click on the first Draft Library on the programs page
-      cy.get('[data-column-id="2"]')
+      cy.get('[data-column-id="3"]')
         .contains("Specification Library")
         // .parents("div")
         // .parents("div")

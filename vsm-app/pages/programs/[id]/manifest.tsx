@@ -63,6 +63,7 @@ const CodesystemSelectContainer = styled.div`
   display: flex;
   align-items: center;
   margin: 36px;
+  margin-bottom: 48px;
   margin-left: 0;
 `
 
@@ -189,7 +190,7 @@ const EditManifestDetails = () => {
   }
 
   useEffect(() => {
-    // Pulla the available versions for the selected CodeSystem
+    // Pull the available versions for the selected CodeSystem
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
       const manifestUrlEndpoint = `/api/programs/${programId}/manifest?url=${selectedSystem}`
@@ -247,9 +248,10 @@ const EditManifestDetails = () => {
 
   const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
 
-  const errorMessage = `You have already added a version for this codesystem. To select another, please remove a version below with Code System ${selectedSystem}`
+  const errorMessage = `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`
 
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
+
   return (
     <>
       <Row>
@@ -274,18 +276,25 @@ const EditManifestDetails = () => {
           name="codesystems"
           options={selectOptions}
         />
-        <Tooltip title={`Search for updates to the latest version CodeSystem`}>
-          <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
-        </Tooltip>
-        <Button
-          style={{ marginLeft: '10px' }}
-          text="Search for Updates"
-          loading={isUpdating}
-          onClick={() => {
-            setIsUpdating(true)
-            searchAvailableUpdates()
-          }}
-        />
+        { Boolean(Object.keys(currentSelectedData).length) && (
+          <div style={{ position: 'relative', alignSelf: 'flex-end', marginLeft: '2em' }}>
+            <Tooltip
+              title={`Search for updates to the latest version CodeSystem`}
+              style={{ position: 'absolute', top: '-1em', right: '-0.5em' }}
+            >
+              <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '20px', height: '20px' }} />
+            </Tooltip>
+            <Button
+              style={{ marginLeft: '10px' }}
+              text="Find Newest Versions"
+              loading={isUpdating}
+              onClick={() => {
+                setIsUpdating(true)
+                searchAvailableUpdates()
+              }}
+            />
+          </div>
+        )}
       </CodesystemSelectContainer>
       <DataTableContainer>
         <MaxWidthContainer>
@@ -348,6 +357,7 @@ const EditManifestDetails = () => {
           {!isUpdating && shouldDisableAddButton && (
             <ErrorMessage
               error={errorMessage}
+              severity='warning'
             />
           )}
           <ManifestDetailTable

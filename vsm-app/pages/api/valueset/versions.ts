@@ -6,6 +6,7 @@ import logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
+import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -15,6 +16,7 @@ interface MatchExists {
   vsCanonical: string
   versionToFind: string
 }
+export interface updateLeafResponse { message: string; grouperIds?: String[]; vsCanonical?: string }
 
 const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Promise<boolean> => {
   try {
@@ -145,10 +147,10 @@ const getLeafFromTermServer = async ({
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
-const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse<updateLeafResponse>): Promise<void> => {
   const body = await req.body
-  const bodyJson = JSON.parse(body)
-  const { vsCanonical, vsVersion, grouperIds, terminologyInfo, useContext } = bodyJson
+  const bodyJson = JSON.parse(body) as HandleVersionChange
+  const { vsCanonical, selectedVersion, grouperIds, terminologyInfo, useContext } = bodyJson
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -159,13 +161,13 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
   // 4. merge use-context and extension info (authoritative src) with versioned vset
 
   try {
-    const versionedLeafExistsInCQF = await matchExistsInCQF({ vsCanonical, versionToFind: vsVersion })
+    const versionedLeafExistsInCQF = await matchExistsInCQF({ vsCanonical, versionToFind: selectedVersion })
     if (!versionedLeafExistsInCQF) {
-      const matchFromTermServer = await getLeafFromTermServer({ terminologyInfo, vsCanonical, versionToFind: vsVersion, useContext })
+      const matchFromTermServer = await getLeafFromTermServer({ terminologyInfo, vsCanonical, versionToFind: selectedVersion, useContext })
       if (!matchFromTermServer) {
         return res
           .status(404)
-          .json({ message: `Could not find ValueSet with url ${vsCanonical} of version ${vsVersion} in ${terminologyInfo.value}` })
+          .json({ message: `Could not find ValueSet with url ${vsCanonical} of version ${selectedVersion} in ${terminologyInfo.value}` })
       }
 
       // save match to CQF to be used
@@ -176,20 +178,21 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
       if (!is.valueSet(result)) {
         return res.status(400).json({
-          message: `Error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`
+          message: `Error occurred updating ValueSet with url ${vsCanonical} of version ${selectedVersion} from ${terminologyInfo.value}`
         })
       }
     }
-  } catch (e) {
+  } catch (e: any) {
+    const maybeHapiError = e?.response?.data
     // Sometimes the server lags behind and has not yet indexed the search for a created valueset
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
-    // @ts-ignore
-    if (e?.response?.data?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
+    if (is.operationOutcome(maybeHapiError)
+      && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
       logger.warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
       logger.error(`ERROR: ${JSON.stringify(e)}`)
       return res.status(400).json({
-        message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${vsVersion} from ${terminologyInfo.value}`
+        message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${selectedVersion} from ${terminologyInfo.value}`
       })
     }
   }
@@ -200,12 +203,12 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         fhirCdrClient.read({
           resourceType: 'ValueSet',
           id
-        })
+        }) as Promise<fhir4.ValueSet>
       )
     )
 
     const updatedGroupers = groupersToUpdate
-      ?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
+      ?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, selectedVersion))
       .map((grouper) => ({
         request: {
           method: 'PUT',

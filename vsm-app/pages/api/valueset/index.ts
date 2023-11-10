@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { set } from 'lodash'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
@@ -165,21 +166,24 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
   )
 
   try {
-    // this assumes grouper already has a compose/include block, will need to be updated
-    // when we allow users to create groupers
     const result = await Promise.all(
       groupersToUpdate.map(async (grouperVs) => {
-        const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs.compose.include
+        const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs?.compose?.include || []
 
         const newValueSetCanonicals = bodyJson.selectedValueSets
           .map((item: any) => urlWithoutVersion(item.url))
-          .filter((canonical) => originalComposeInclude?.find((item) => item?.valueSet?.[0] !== canonical))
+          // return only things that don't already exist
+          .filter((canonical) => {
+            if (originalComposeInclude.length == 0) return canonical
+            return originalComposeInclude?.find((item) => item?.valueSet?.[0] !== canonical)
+          })
 
         const newItems = newValueSetCanonicals?.map((c) => ({ valueSet: [c] }))
 
         let newComposeInclude = [...originalComposeInclude, ...newItems]
 
-        grouperVs.compose.include = newComposeInclude
+        // this sets the compose include whether it exists or not
+        set(grouperVs, 'compose.include', newComposeInclude)
 
         return await fhirCdrClient.update({
           resourceType: 'ValueSet',
