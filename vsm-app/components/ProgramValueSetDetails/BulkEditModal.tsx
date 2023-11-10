@@ -46,7 +46,6 @@ const BatchEditModal = ({ isOpen, handleClose, selectedVs = [], bulkUpdateFn }: 
             instanceId="priority-selector"
             options={priorityLevelOptions}
             value={selectedPriority}
-            // @ts-ignore
             onChange={setSelectedPriority}
           />
         </SelectInputContainer>
