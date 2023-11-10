@@ -154,12 +154,12 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
   }
 
   const exisitingIndex = clonedTarget?.relatedArtifact?.findIndex((ctx) => {
-    if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
+    if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
       return ctx
     }
-  })
+  }) || -1
 
-  if (exisitingIndex && clonedTarget.relatedArtifact) {
+  if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
     // @ts-ignore
     clonedTarget.relatedArtifact[exisitingIndex] = newPriority
   } else {
