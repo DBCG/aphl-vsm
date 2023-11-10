@@ -25,17 +25,6 @@ export type ErrorResponse = {
   resStatus: number
 }
 
-interface GrouperPayloadItem {
-  canonical: string
-  id: string
-}
-
-interface DeletePayload {
-  vsCanonical: string
-  grouperInfo: GrouperPayloadItem[]
-}
-
-// 
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
   const grouperIds = Array.from(new Set(Object.values(items).flat()))
 
@@ -71,11 +60,38 @@ const formatBatchGrouperUpdate = (
   })
 }
 
+const removeValueSetFromLibrary = async (programId: string, valuesetUrls: string[]) => {
+  const program = await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: programId
+  }) as fhir4.Library
+  if (!program) {
+    logger.error(`Could not find Program: ${programId}`)
+    throw new Error("Could not find Program: " + programId)
+  }
+
+  program.relatedArtifact = program.relatedArtifact?.filter((artifact) => {
+    if (artifact.type === 'depends-on' && artifact.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
+      return !valuesetUrls.includes(artifact.resource!)
+    }
+    return true
+  })
+
+  return {
+    resource: program,
+    request: {
+      method: 'PUT',
+      url: `Library/${program.id}`
+    }
+  } as fhir4.BundleEntry
+}
+
 // ---------------------------------------------------------------------------------
 // --------------------- ROUTE TO DELETE VSETS FROM EXISTING GROUPERS --------------
 // ---------------------------------------------------------------------------------
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
+    const programId = req.query.id as string
     const body = JSON.parse(req.body)
     // if you are deleting valuesets from groupers in a batch...
     if (body.batchDelete) {
@@ -107,17 +123,23 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
         }
 
         const updateInput = formatBatchGrouperUpdate(updatedGroupers)
-  
-        const updateGroupers = await fhirCdrClient.transaction({
-          body: updateInput
-        })
+
+        const programUpdateJob = await removeValueSetFromLibrary(programId, Object.keys(batchDelete))
+
+        if (programUpdateJob && updateInput?.entry) {
+          updateInput.entry.push(programUpdateJob)
+        }
+
+        const updateGroupers = await fhirCdrClient.transaction({ body: updateInput })
   
         if (is.operationOutcome(updateGroupers)) {
           // send failure response
+          logger.error('error: ', updateGroupers)
           return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
         }
         return res.status(200).send({})
       } catch (e) {
+        logger.error('error: ', JSON.stringify(e))
         return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
       }
 
