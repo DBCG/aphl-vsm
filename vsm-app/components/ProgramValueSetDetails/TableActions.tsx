@@ -46,9 +46,9 @@ const TableActions = ({ selectedRows, handleDelete, handleBulkEdit, isDeleting, 
             data-action="delete"
           />
         </ActionContainerRow>
-        <ActionContainerRow>
+        {/* <ActionContainerRow>
           <Button text="Bulk Edit" loading={isDeleting} onClick={() => handleBulkEdit()} data-action="bulk-edit" />
-        </ActionContainerRow>
+        </ActionContainerRow> */}
       </TableActionContainer>
     )
   } else {
