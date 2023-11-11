@@ -715,6 +715,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         <TableActions
           handleDelete={() => setShowDeleteConfirmationModal(true)}
           handleBulkEdit={() => setShowBulkEditModal(true)}
+          formattedConditions={allConditions}
+          groupsInProgram={progValueSetDets?.groupsInProgram!}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}

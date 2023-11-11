@@ -1,3 +1,4 @@
+import { Call } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 
 interface Group {
@@ -71,6 +72,7 @@ const useGetProgramValueSetDetails = ({
   toggleUpdateData
 }: Args): Result | {} => {
   const [data, setData] = useState<{} | Result>({})
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   useEffect(() => {
     async function getData(): Promise<void> {
@@ -123,6 +125,7 @@ const useGetProgramValueSetDetails = ({
       })
 
       try {
+        setRequestStatus('pending')
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
         if (!programJson.error) {
@@ -134,14 +137,17 @@ const useGetProgramValueSetDetails = ({
         }
       } catch (e) {
         console.error('error: ', e)
-        // handle error better
+        //TODO: handle error better
         setData({})
+      } finally {
+        setRequestStatus('idle')
       }
     }
 
-    void getData()
+    if (requestStatus === 'idle') {
+      getData()
+    }
     // disabled eslint here b/c including 'fields' obj results in infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     id,
     findInVsTitle,

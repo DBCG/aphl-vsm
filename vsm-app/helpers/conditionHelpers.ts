@@ -13,7 +13,7 @@ interface Condition {
 
 type StringObj = Record<string, string[]>
 
-interface ConditionItem {
+export interface ConditionItem {
   system: string
   version: string
   code: string

@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 
 const useGetConditions = (): [] | fhir4.ValueSetComposeInclude => {
   const [conditions, setConditions] = useState([])
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   useEffect(() => {
     async function getConditions(): Promise<void> {
       let endpoint = '/api/conditions'
 
       try {
+        setRequestStatus('pending')
         const response: Response = await fetch(endpoint)
         const json = await response.json()
         if (json.error) {
@@ -19,9 +21,13 @@ const useGetConditions = (): [] | fhir4.ValueSetComposeInclude => {
       } catch (e) {
         setConditions([])
         console.error('Error in useGetConditions: ', e)
+      } finally {
+        setRequestStatus('idle')
       }
     }
-    void getConditions()
+    if (requestStatus === 'idle') {
+      getConditions()
+    }
   }, [])
   // @ts-expect-error
   return conditions

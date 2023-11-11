@@ -7,9 +7,7 @@ import { FormGroup, Stack, Switch, Typography } from '@mui/material'
 import Select, { MultiValue } from 'react-select'
 import { EditModal } from '../modals/EditModal'
 import { IconButton } from '../buttons/IconButton'
-import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
-import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
-import { useGetConditions } from '@/hooks/useGetConditions'
+import { Condition, ConditionItem, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 
 const ActionContainerRow = styled.div`
@@ -38,6 +36,8 @@ const ActionTitle = styled(SelectInputTitle)`
 
 interface TableActions {
   selectedRows: TableRow[]
+  groupsInProgram: fhir4.ValueSet[],
+  formattedConditions: ConditionItem[],
   handleDelete: (selectedRows: TableRow[]) => void
   handleToggleUpdateData: Dispatch<SetStateAction<boolean>>
   handleBulkEdit: () => void
@@ -46,7 +46,7 @@ interface TableActions {
   programId: string
 }
 
-export const TableActions = ({ selectedRows, handleDelete, isDeleting, totalRows, programId, handleToggleUpdateData }: TableActions) => {
+export const TableActions = ({ selectedRows, handleDelete, formattedConditions, groupsInProgram, isDeleting, totalRows, programId, handleToggleUpdateData }: TableActions) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
@@ -57,13 +57,6 @@ export const TableActions = ({ selectedRows, handleDelete, isDeleting, totalRows
   const [actionType, setActionType] = useState<'add' | 'remove' | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [keyInd, setKeyInd] = useState(0)
-
-  const conditions = useGetConditions()
-  const allConditions = formatConditionsComposeInclude(conditions)
-  const progValueSetDets = useGetProgramValueSetDetails({
-    id: programId
-  }) as Result
-  const groupsInProgram = progValueSetDets?.groupsInProgram
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -113,8 +106,8 @@ export const TableActions = ({ selectedRows, handleDelete, isDeleting, totalRows
   // always memoize options to react-select to avoid duplicates sticking
   // around in options after you select them
   const conditionOptions = useMemo(() => {
-    return buildConditionOptions(allConditions)
-  }, [programId, conditions])
+    return buildConditionOptions(formattedConditions)
+  }, [formattedConditions])
 
   if (selectedRows?.length) {
     const text =
