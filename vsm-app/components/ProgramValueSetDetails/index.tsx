@@ -144,6 +144,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [tableKey, setTableKey] = useState(1)
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
+  // select portal target (z-index issues)
+  const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
+
   // handle error display
   const [error, setError] = useState<null | string>(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -172,6 +175,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
     setIsDeleting(false)
   }
+
+  useEffect(() => {
+    setMyDocument(document.body)
+  }, [])
 
   useEffect(() => {
     setSelectedRows([])
@@ -381,6 +388,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               inputId="priority-selector"
               instanceId="priority-selector"
               isMulti
+              menuPortalTarget={myDocument}
               options={priorityLevelOptions}
               onChange={(e) =>
                 handleFilterChange(
@@ -405,6 +413,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer>
               <Select
+                menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
                 classNamePrefix="priority"
@@ -443,6 +452,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               <Select
+                menuPortalTarget={myDocument}
                 menuPlacement="top"
                 instanceId="version-selector"
                 isDisabled={versionUpdateInFlight}
@@ -506,6 +516,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           <SelectInputContainer>
             Conditions
             <Select
+              menuPortalTarget={myDocument}
               menuPlacement="bottom"
               placeholder="Filter conditions"
               classNamePrefix="conditions"
@@ -548,6 +559,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
+                menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
                 isMulti={true}
@@ -574,6 +586,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           <SelectInputContainer>
             Groups
             <Select
+              menuPortalTarget={myDocument}
               menuPlacement="bottom"
               placeholder="Filter groups"
               classNamePrefix="groups"
@@ -606,6 +619,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer>
               <Select
+                menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
                 classNamePrefix="groups"
