@@ -7,6 +7,7 @@ import { is } from '@/helpers/is'
 import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
+import retry from '@/helpers/retryRequest'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -16,7 +17,11 @@ interface MatchExists {
   vsCanonical: string
   versionToFind: string
 }
-export interface updateLeafResponse { message: string; grouperIds?: String[]; vsCanonical?: string }
+export interface updateLeafResponse {
+  message: string
+  grouperIds?: String[]
+  vsCanonical?: string
+}
 
 const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Promise<boolean> => {
   try {
@@ -186,8 +191,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
     const maybeHapiError = e?.response?.data
     // Sometimes the server lags behind and has not yet indexed the search for a created valueset
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
-    if (is.operationOutcome(maybeHapiError)
-      && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
+    if (is.operationOutcome(maybeHapiError) && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
       logger.warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
       logger.error(`ERROR: ${JSON.stringify(e)}`)
@@ -199,11 +203,12 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
   try {
     const groupersToUpdate = await Promise.all(
-      grouperIds.map((id: string) =>
-        fhirCdrClient.read({
-          resourceType: 'ValueSet',
-          id
-        }) as Promise<fhir4.ValueSet>
+      grouperIds.map(
+        (id: string) =>
+          fhirCdrClient.read({
+            resourceType: 'ValueSet',
+            id
+          }) as Promise<fhir4.ValueSet>
       )
     )
 
@@ -217,13 +222,18 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         resource: grouper as fhir4.ValueSet
       }))
 
-    await fhirCdrClient.transaction({
-      body: {
-        resourceType: 'Bundle',
-        type: 'transaction',
-        entry: updatedGroupers
-      }
-    })
+    await retry(
+      // @ts-ignore
+      fhirCdrClient.transaction({
+        body: {
+          resourceType: 'Bundle',
+          type: 'transaction',
+          entry: updatedGroupers
+        }
+      }),
+      3,
+      2000
+    )
 
     return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
   } catch (e) {
