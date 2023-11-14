@@ -60,15 +60,7 @@ const EditModal = ({
   handleModalAction,
   totalVs
 }: ModalInfo) => {
-  
-  const modalText = generateText({ modalAction: actionType, dataType, totalVs })
-
-  if (!modalText) return null
-
-  const { title, text, actionText } = modalText
-
   const [disableSubmission, setDisableSubmission] = useState(false)
-
 
   // disable submission if no entries?
   useEffect(() => {
@@ -79,6 +71,10 @@ const EditModal = ({
     }
   }, [totalVs])
 
+  const modalText = generateText({ modalAction: actionType, dataType, totalVs })
+  if (!modalText) return null
+
+  const { title, text, actionText } = modalText
   if (!isOpen || !dataType || !actionType) return null
 
   return (
