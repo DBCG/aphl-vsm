@@ -25,6 +25,7 @@ export const ReadOnlyContainer = styled.div`
 `
 
 export const ReadOnlyTag = styled.div`
+  text-transform: capitalize;
   background-color: var(--theme-color-transparent);
   padding: 6px 8px;
   border-radius: 8px;

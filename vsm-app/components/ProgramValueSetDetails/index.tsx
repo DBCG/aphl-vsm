@@ -405,10 +405,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
-          const currentPriorityValue = priorityLevelOptions.find((i) => i.id === currentPriority)
+          const currentPriorityValue = currentPriority
+            ? priorityLevelOptions.find((i) => i.label === currentPriority)
+            // default to Routine, this option does not actually need to be set and will be inferred by default
+            // when running $package operation
+            : priorityLevelOptions[1]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
-              <ReadOnlyTag>{currentPriority || 'N/A'}</ReadOnlyTag>
+              <ReadOnlyTag>{currentPriority || 'Routine'}</ReadOnlyTag>
             </ReadOnlyContainer>
           ) : (
             <SelectInputContainer>

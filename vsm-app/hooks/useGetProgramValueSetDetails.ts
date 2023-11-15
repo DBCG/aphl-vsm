@@ -162,12 +162,12 @@ const useGetProgramValueSetDetails = ({
     versionToUpdate,
     toggleUpdateData
   ])
-  
+
   if (activePriority && activePriority?.length > 0) {
     const filteredData = data?.data?.filter((vs) => {
       const currentPriority = valueSetPriorityMap[vs.valueSet.url]
-        // @ts-ignore
-        return activePriority?.includes(currentPriority)
+      // @ts-ignore
+      return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
     })
     data.data = filteredData
   }
