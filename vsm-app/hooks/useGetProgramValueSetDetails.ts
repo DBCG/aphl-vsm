@@ -1,4 +1,3 @@
-import { Call } from '@mui/icons-material'
 import { useState, useEffect } from 'react'
 
 interface Group {
@@ -37,7 +36,7 @@ export interface Result {
   data?: DataItem[]
   totalLeafs?: number
   groupsInProgram?: fhir4.ValueSet[]
-  programStatus: fhir4.Library['status']
+  programStatus?: fhir4.Library['status']
 }
 
 interface Args {
@@ -46,7 +45,7 @@ interface Args {
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
-  activePriority?: [] | string[]
+  activePriority?: string[]
   valueSetPriorityMap?: Record<string, string>
   activeGroups?: Group[]
   activeConditions?: ConditionItem[]
@@ -71,7 +70,7 @@ const useGetProgramValueSetDetails = ({
   versionToUpdate,
   toggleUpdateData
 }: Args): Result | {} => {
-  const [data, setData] = useState<{} | Result>({})
+  const [data, setData] = useState<Result>({})
   const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   useEffect(() => {
@@ -147,7 +146,6 @@ const useGetProgramValueSetDetails = ({
     if (requestStatus === 'idle') {
       getData()
     }
-    // disabled eslint here b/c including 'fields' obj results in infinite loop
   }, [
     id,
     findInVsTitle,
@@ -164,11 +162,14 @@ const useGetProgramValueSetDetails = ({
   ])
 
   if (activePriority && activePriority?.length > 0) {
-    const filteredData = data?.data?.filter((vs) => {
-      const currentPriority = valueSetPriorityMap[vs.valueSet.url]
-      // @ts-ignore
-      return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
-    })
+    const filteredData = data?.data
+      ?.filter((vs) => {
+        if (!vs.valueSet.url) {
+          return false
+        }
+        const currentPriority = valueSetPriorityMap[vs.valueSet.url]
+        return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
+      })
     data.data = filteredData
   }
 

@@ -36,8 +36,8 @@ const ActionTitle = styled(SelectInputTitle)`
 
 interface TableActions {
   selectedRows: TableRow[]
-  groupsInProgram: fhir4.ValueSet[],
-  formattedConditions: ConditionItem[],
+  groupsInProgram: fhir4.ValueSet[]
+  formattedConditions: ConditionItem[]
   handleDelete: (selectedRows: TableRow[]) => void
   handleToggleUpdateData: Dispatch<SetStateAction<boolean>>
   handleBulkEdit: () => void
@@ -45,8 +45,23 @@ interface TableActions {
   totalRows: number
   programId: string
 }
+type editAction = 'add' | 'remove' | null
+export type batchEditData = {
+  leafIds: fhir4.ValueSet['id'][]
+  conditionsToUpdate: MultiValue<Condition>
+  action: editAction
+}
 
-export const TableActions = ({ selectedRows, handleDelete, formattedConditions, groupsInProgram, isDeleting, totalRows, programId, handleToggleUpdateData }: TableActions) => {
+export const TableActions = ({
+  selectedRows,
+  handleDelete,
+  formattedConditions,
+  groupsInProgram,
+  isDeleting,
+  totalRows,
+  programId,
+  handleToggleUpdateData
+}: TableActions) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
@@ -54,7 +69,7 @@ export const TableActions = ({ selectedRows, handleDelete, formattedConditions, 
   const [groupsToEdit, setGroupsToEdit] = useState<
     MultiValue<{ value: string | undefined; label: string | undefined; id: string | undefined }>
   >([])
-  const [actionType, setActionType] = useState<'add' | 'remove' | null>(null)
+  const [actionType, setActionType] = useState<editAction>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [keyInd, setKeyInd] = useState(0)
 
@@ -85,11 +100,12 @@ export const TableActions = ({ selectedRows, handleDelete, formattedConditions, 
   const handleEditItems = async () => {
     setEditInFlight(true)
     if (editType === 'condition') {
-      const body = JSON.stringify({
+      const batch: batchEditData = {
         leafIds: selectedRows.map((r) => r.valueSet.id) || [],
         conditionsToUpdate: conditionsToEdit,
         action: actionType
-      })
+      }
+      const body = JSON.stringify(batch)
       await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
         method: 'PUT',
         body

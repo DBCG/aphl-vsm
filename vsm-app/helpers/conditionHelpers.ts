@@ -13,7 +13,7 @@ interface Condition {
 
 type StringObj = Record<string, string[]>
 
-export interface ConditionItem {
+interface ConditionItem {
   system: string
   version: string
   code: string
@@ -134,7 +134,7 @@ const condCodesBySystem = (conditionItems: Condition[]) => conditionItems.reduce
     return Object.assign(accumulator, { [systemToUpdate]: dedupedValues })
   },
   {},
-);
+)
 
 const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[]): fhir4.ValueSet | null => {
   const clonedLeafVs = cloneDeep(leafVs)
