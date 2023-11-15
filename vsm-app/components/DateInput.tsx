@@ -1,10 +1,10 @@
 import { TextArea } from './TextArea'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { IconButton, Box } from '@mui/material'
 import CancelIcon from '@mui/icons-material/Cancel'
-import moment from 'moment'
+import dayjs from 'dayjs'
 interface DateInputProps {
   readonly: boolean
   defaultValue?: string
@@ -41,7 +41,7 @@ const DateInput = ({
         />
       ) : (
         <Box sx={{ width: '100%' }}>
-          <LocalizationProvider dateAdapter={AdapterMoment}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DesktopDatePicker
               {...props}
               className={'date-input'}
@@ -52,7 +52,7 @@ const DateInput = ({
                 fieldset: { borderColor: 'transparent', borderBottom: '2px  solid var(--theme-300)' }
               }}
               label={label}
-              value={defaultValue ? moment(defaultValue) : null}
+              value={defaultValue ? dayjs(defaultValue) : null}
               onChange={onChange}
               disablePast={disablePast}
               slotProps={{

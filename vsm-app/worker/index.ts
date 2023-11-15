@@ -8,7 +8,7 @@ import { Bundle, BundleEntry, ValueSet, UsageContext } from 'fhir/r4'
 import { is } from '@/helpers/is'
 import { getTerminologySource, idWithoutVersion } from '@/helpers/valueSetHelpers'
 import { sleep } from 'utils'
-import moment from 'moment'
+import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 
 type CDRResponseCollection = {
@@ -77,7 +77,7 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
       (vsComparatorResponses?.entry
         ?.map((bundleEntry: BundleEntry) => {
           const resource = bundleEntry.resource as ValueSet
-          if (resource?.version && is.valueSet(resource) && moment(resource.version) > moment(latestVersion)) {
+          if (resource?.version && is.valueSet(resource) && dayjs(resource.version).isAfter(latestVersion)) {
             console.log(`Adding new resource, latesr version found for: ${resource.name} version: ${resource.version}`)
             return resource
           }
@@ -113,7 +113,7 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
         cdrResponseCollection[url].valuesets.push(valueSet)
         cdrResponseCollection[url].versions.push(version)
         // Set the latest version and useContext
-        if (valueSet.useContext && moment(version) > moment(cdrResponseCollection[url].latestVersion)) {
+        if (valueSet.useContext && dayjs(version).isAfter(cdrResponseCollection[url].latestVersion)) {
           cdrResponseCollection[url].latestVersion = version
           cdrResponseCollection[url].latestVersionUseContext = valueSet.useContext
         }
