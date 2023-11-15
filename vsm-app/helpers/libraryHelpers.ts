@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash'
+import cloneDeep from 'lodash.clonedeep'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 import { requiredFields } from '@/components/ProgramMetadata'
 

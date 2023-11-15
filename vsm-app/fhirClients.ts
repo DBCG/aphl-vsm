@@ -2,7 +2,8 @@ import Client from 'fhir-kit-client'
 import FhirKitClient from 'fhir-kit-client'
 import { transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { is } from '@/helpers/is'
-import { cloneDeep } from 'lodash'
+import cloneDeep from 'lodash.clonedeep'
+
 const {
   FHIR_CDR_URL,
   VSAC_USERNAME,

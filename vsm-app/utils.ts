@@ -1,4 +1,4 @@
-import cloneDeep from "lodash.clonedeep"
+import cloneDeep from 'lodash.clonedeep'
 import { is } from "./helpers/is"
 
 // Usage: await sleep(1000);
