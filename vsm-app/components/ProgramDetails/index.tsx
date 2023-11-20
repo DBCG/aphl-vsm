@@ -28,7 +28,7 @@ const ProgramDetails = () => {
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [downloadLoading, setDownloadLoading] = useState(false)
-  
+
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
   }
@@ -145,6 +145,7 @@ const ProgramDetails = () => {
                   }
                 })
                 .catch((error) => {
+                  console.error(error)
                   setExportError('Error exporting artifact')
                 })
                 .finally(() => {
@@ -159,7 +160,7 @@ const ProgramDetails = () => {
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          {allowEditing({ session, programStatus: status}) && (
+          {allowEditing({ session, programStatus: status }) && (
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
