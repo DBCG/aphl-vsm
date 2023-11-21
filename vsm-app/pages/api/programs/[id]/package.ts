@@ -2,39 +2,61 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-export type expectedPackageBody = { parameters: fhir4.Parameters; json: boolean }
+import logger from '@/helpers/server/logger'
+
+export type expectedPackageBody = { parameters: fhir4.Parameters; json: boolean; useV2: boolean }
+
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
-const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
-  const { parameters, json } = req.body || {} as expectedPackageBody
+const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
+  const { parameters, json, useV2 } = JSON.parse(req.body || {}) as expectedPackageBody
   try {
-    if (json) {
-      const response = (await fhirCdrClient.operation({
-        name: '$package',
-        resourceType: 'Library',
-        id: req.query.id as string,
-        method: 'POST',
-        input: parameters
-      })) as fhir4.Bundle
-      res.send(response)
-    } else {
-      const response = await fetch(
-        `${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=application/fhir+xml`,
+    const format = json ? 'json' : 'xml'
+    const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$crmi.package?_format=${format}`, {
+      body: JSON.stringify(parameters),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/fhir+json',
+        // should be Basic Auth creds
+        ...fhirCdrClient.customHeaders
+      }
+    }).then((r) => json ? r.json() : r.text())
+
+    if (!useV2) {
+      logger.info('Generating v2 to v1 transform for download')
+      const planDefResource = response.entry?.find((e) => e.resource?.resourceType === 'PlanDefinition')?.resource
+
+      if (response == null || planDefResource == null) {
+        logger.error('Could not find either Plan Def or bundle in response')
+        return res.status(500).json({ error: 'Failed to export' })
+      }
+      const v1Response = await fetch(
+        `${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$ersd-v2-to-v1-transform?_format=${format}`,
         {
-          body: JSON.stringify(parameters),
+          body: JSON.stringify({
+            resourceType: 'Parameters',
+            parameter: [
+              {
+                name: 'bundle',
+                resource: response
+              },
+              {
+                name: 'planDefinition',
+                resource: planDefResource
+              }
+            ]
+          }),
           method: 'POST',
           headers: {
             'Content-Type': 'application/fhir+json',
             // should be Basic Auth creds
             ...fhirCdrClient.customHeaders
           }
-        }).then(data => {
-          if (data.ok) {
-            return data.text()
-          } else {
-            throw new Error('Server error')
-          }
-        })
+        }
+      ).then((r) => json ? r.json() : r.text())
+
+      res.send(v1Response)
+    } else {
       res.send(response)
     }
   } catch (error: any) {
@@ -46,7 +68,7 @@ const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bund
 
 export default handler({
   POST: {
-    action: crmi_package,
+    action: crmiPackage,
     access: ['admin']
   }
 })
