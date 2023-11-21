@@ -159,7 +159,7 @@ export const TableActions = ({
               data-action="delete"
             />
           </ActionCol>
-          <ActionCol>
+          {/* <ActionCol>
             <ActionTitle>Bulk Edit</ActionTitle>
             <IconButton
               buttoncontext="edit"
@@ -169,7 +169,7 @@ export const TableActions = ({
               data-action="edit"
               disabled={isEditing}
             />
-          </ActionCol>
+          </ActionCol> */}
         </ActionContainerRow>
         <ActionContainerRow>
           {isEditing && (
