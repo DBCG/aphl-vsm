@@ -90,11 +90,11 @@ const getLeafFromTermServer = async ({
   useContext
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    const server = terminologyInfo.value.toLowerCase()
-    if (!(server === 'vsac' || server === 'ontoserverR4')) {
+    const client = terminologyInfo.value.toLowerCase()
+    if (!(client === 'vsac' || client === 'ontoserverR4')) {
       throw "Invalid terminology server"
     }
-    terminologyClient.setClient(server)
+    terminologyClient.setClient(client)
     const terminologyClientInstance = terminologyClient.getClient()!
 
     const searchParams = {
