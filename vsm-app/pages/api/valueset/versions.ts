@@ -25,13 +25,12 @@ export interface updateLeafResponse {
 
 const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Promise<boolean> => {
   try {
-    const cqfSearchParams = {
+    const cqfSearchParams: { url: string; _sort: string; version?: string } = {
       url: vsCanonical,
       _sort: 'version'
     }
 
     if (versionToFind !== 'latest') {
-      // @ts-ignore
       cqfSearchParams.version = versionToFind
     }
 
@@ -91,8 +90,11 @@ const getLeafFromTermServer = async ({
   useContext
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    // @ts-ignore
-    terminologyClient.setClient(terminologyInfo.value.toLowerCase())
+    const server = terminologyInfo.value.toLowerCase()
+    if (!(server === 'vsac' || server === 'ontoserverR4')) {
+      throw "Invalid terminology server"
+    }
+    terminologyClient.setClient(server)
     const terminologyClientInstance = terminologyClient.getClient()!
 
     const searchParams = {
