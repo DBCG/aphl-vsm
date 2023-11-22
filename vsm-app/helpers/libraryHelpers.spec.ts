@@ -155,7 +155,7 @@ describe('libraryHelpers', () => {
   })
 
   describe('ValueSet Priority', () => {
-    let testProgram: fhir4.Library;
+    let testProgram: fhir4.Library
     beforeEach(() => {
       testProgram = cloneDeep(FIXTURE_PROGRAM)
     })
@@ -167,7 +167,7 @@ describe('libraryHelpers', () => {
       })
 
       it('should allow multiple valuesets with different oids to have the same priority', () => {
-        const newValueSetPriority = {
+        const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
               url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
@@ -185,7 +185,6 @@ describe('libraryHelpers', () => {
           type: 'depends-on',
           resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/33333'
         }
-        // @ts-ignore
         testProgram.relatedArtifact?.push(newValueSetPriority)
         const map = getVSPriority(testProgram)
         Object.values(map).forEach((curr) => expect(curr).toBe('emergent'))
@@ -198,7 +197,7 @@ describe('libraryHelpers', () => {
         const oldMap = getVSPriority(testProgram)
         expect(oldMap[newResourceUrl]).toBeUndefined()
 
-        const updatedProgram = setVSPriority(testProgram, 'routine' as USHealthVSPriority, newResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', newResourceUrl)
         const newMap = getVSPriority(updatedProgram)
         expect(newMap[newResourceUrl]).toBe('routine')
         expect(newMap['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481']).toBe('emergent') // the exisiting default value set should still be there
@@ -206,7 +205,7 @@ describe('libraryHelpers', () => {
 
       it('should update the priority of the VS Only', () => {
         const existingVsResourceUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
-        const updatedProgram = setVSPriority(testProgram, 'routine' as USHealthVSPriority, existingVsResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', existingVsResourceUrl)
         const newMap = getVSPriority(updatedProgram)
         expect(newMap[existingVsResourceUrl]).toBe('routine')
         expect(Object.keys(newMap).length).toBe(1) // only one value set should be in the map

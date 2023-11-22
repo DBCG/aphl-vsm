@@ -27,7 +27,7 @@ const modalStyle = {
 }
 
 const BatchEditModal = ({ isOpen, handleClose, selectedVs = [], bulkUpdateFn }: BatchEditModalProps) => {
-  const [selectedPriority, setSelectedPriority] = useState<OptionType | null>(null)
+  const [selectedPriority, setSelectedPriority] = useState<typeof priorityLevelOptions[number] | null>(null)
   const [updateInFlight, setUpdateInFlight] = useState(false)
   return (
     <Modal open={isOpen} onClose={handleClose}>
@@ -58,7 +58,7 @@ const BatchEditModal = ({ isOpen, handleClose, selectedVs = [], bulkUpdateFn }: 
             onClick={async () => {
               setUpdateInFlight(true)
               if (!selectedPriority) return
-              await bulkUpdateFn(selectedPriority?.value as USHealthVSPriority)
+              await bulkUpdateFn(selectedPriority?.value)
               setUpdateInFlight(false)
               handleClose()
             }}

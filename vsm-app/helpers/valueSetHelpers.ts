@@ -44,7 +44,7 @@ const urlWithoutPinnedVersion = (url: string): string => {
 
 const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): fhir4.ValueSet | null => {
   const vsCanonicalsWithoutPinned = vsCanonicals?.map(c => urlWithoutPinnedVersion(c))
-  let updatedComposeInclude = vs?.compose?.include
+  const updatedComposeInclude = vs?.compose?.include
     ?.map((item) => {
       const match = vsCanonicalsWithoutPinned.includes(urlWithoutPinnedVersion(item.valueSet![0]))
       if (match) {
@@ -53,9 +53,8 @@ const removeValueSetFromGrouper = (vs: fhir4.ValueSet, vsCanonicals: string[]): 
         return item
       }
     })
-    .filter((x) => !!x)
+    .filter((x) => !!x) as fhir4.ValueSetComposeInclude[]
   if (updatedComposeInclude && vs?.compose?.include) {
-    // @ts-ignore-next-line
     vs.compose.include = updatedComposeInclude
     return vs
   } else {

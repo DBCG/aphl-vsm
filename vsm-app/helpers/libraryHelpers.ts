@@ -1,5 +1,6 @@
 import { cloneDeep } from 'lodash'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
+import { requiredFields } from '@/components/ProgramMetadata'
 
 interface RelatedArtifactItem {
   url: string
@@ -7,10 +8,7 @@ interface RelatedArtifactItem {
   extension?: fhir4.Extension[]
 }
 
-export enum USHealthVSPriority {
-  'Emergent' = 'emergent',
-  'Routine' = 'routine'
-}
+export type USHealthVSPriority = "emergent" | "routine"
 
 interface EditComposeInclude {
   grouperLib: fhir4.Library
@@ -49,12 +47,11 @@ const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefine
 
 interface MissingFields {
   program: fhir4.Library
-  requiredFields: string[]
+  requiredFields: typeof requiredFields
 }
 
 const missingFields = ({ program, requiredFields }: MissingFields): string[] => {
   // this fn returns all required field names that do not have entries
-  // @ts-ignore-next-line
   return requiredFields.filter((field) => !Boolean(program?.[field]?.trim()))
 }
 
@@ -134,7 +131,7 @@ const validStartDate = (date: any): boolean => {
 
 const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource: string) => {
   const clonedTarget = cloneDeep(target)
-  const newPriority = {
+  const newPriority: fhir4.RelatedArtifact = {
     extension: [
       {
         url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
@@ -160,10 +157,8 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
   }) || -1
 
   if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
-    // @ts-ignore
     clonedTarget.relatedArtifact[exisitingIndex] = newPriority
   } else {
-    // @ts-ignore
     clonedTarget.relatedArtifact?.push(newPriority)
   }
 
@@ -171,11 +166,14 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
 }
 
 const getVSPriority = (library: fhir4.Library) => {
-  const vsPriorityMap = {} as Record<string, USHealthVSPriority>
+  const vsPriorityMap: Record<string, USHealthVSPriority> = {}
   library?.relatedArtifact?.forEach((ra) => {
     if (ra.type === 'depends-on' && ra.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
       const vs = ra.resource
-      const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code as USHealthVSPriority
+      const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
+      if (!(priority === "emergent" || priority === "routine")) {
+        throw "Unknown priority code!"
+      }
       if (vs && priority) {
         vsPriorityMap[vs] = priority
       }
