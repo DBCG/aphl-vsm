@@ -237,6 +237,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           method: 'PUT',
           body: JSON.stringify(updateVsGroups)
         }).then((res) => res.json())) as retrieveGrouperSetsReturn
+        setGrouperLoading(false)
         if ('error' in updatedVs) {
           throw new Error(updatedVs.error)
         } else {
