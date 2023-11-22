@@ -167,7 +167,7 @@ describe('libraryHelpers', () => {
       })
 
       it('should allow multiple valuesets with different oids to have the same priority', () => {
-        const newValueSetPriority = {
+        const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
               url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
@@ -185,7 +185,6 @@ describe('libraryHelpers', () => {
           type: 'depends-on',
           resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/33333'
         }
-        // @ts-ignore
         testProgram.relatedArtifact?.push(newValueSetPriority)
         const map = getVSPriority(testProgram)
         Object.values(map).forEach((curr) => expect(curr).toBe('emergent'))
