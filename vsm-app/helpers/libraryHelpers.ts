@@ -131,7 +131,7 @@ const validStartDate = (date: any): boolean => {
 
 const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource: string) => {
   const clonedTarget = cloneDeep(target)
-  const newPriority = {
+  const newPriority: fhir4.RelatedArtifact = {
     extension: [
       {
         url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
@@ -157,10 +157,8 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
   }) || -1
 
   if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
-    // @ts-ignore
     clonedTarget.relatedArtifact[exisitingIndex] = newPriority
   } else {
-    // @ts-ignore
     clonedTarget.relatedArtifact?.push(newPriority)
   }
 
