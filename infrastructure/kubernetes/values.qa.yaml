@@ -10,7 +10,7 @@ vsm_app:
 keycloak:
   app_url: "a1d10e780e7ea4e89b76c7ce0ff222e6-1746047961.us-east-1.elb.amazonaws.com"
   db_url: "jdbc:postgresql://vsm-keycloak-db-qa.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/keycloak"
-  image: "quay.io/keycloak/keycloak:21.1.1"
+  image: "quay.io/keycloak/keycloak:21.1.2"
 protocol: "http"
 aws:
   account_id: "912275679263"
