@@ -1,6 +1,6 @@
 {
   "name": "vsm-app",
-  "version": "0.1.70",
+  "version": "0.1.71",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
