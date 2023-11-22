@@ -224,9 +224,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         resource: grouper as fhir4.ValueSet
       }))
 
-    await retry(
-      // @ts-ignore
-      fhirCdrClient.transaction({
+    await retry(() => fhirCdrClient.transaction({
         body: {
           resourceType: 'Bundle',
           type: 'transaction',
