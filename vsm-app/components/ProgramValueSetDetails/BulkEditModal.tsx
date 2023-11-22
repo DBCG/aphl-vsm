@@ -3,10 +3,10 @@ import { Modal, Box, Typography } from '@mui/material'
 import { Button } from '../buttons/Button'
 import { SelectInputContainer } from './styles'
 
-import Select, { Options } from 'react-select'
+import Select from 'react-select'
 import { priorityLevelOptions, OptionType } from '.'
 import { TableRow } from '@/types/valuesets'
-import { USHealthVSPriority } from '@/helpers/valueSetHelpers'
+import { USHealthVSPriority } from '@/helpers/libraryHelpers'
 
 interface BatchEditModalProps {
   isOpen: boolean
