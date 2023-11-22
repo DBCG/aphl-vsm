@@ -70,11 +70,10 @@ export interface OptionType {
   id: string
 }
 
-export const priorityLevelOptions: Options<OptionType> = [
+export const priorityLevelOptions = [
   { label: 'Emergent', value: 'emergent', id: 'emergent' },
   { label: 'Routine', value: 'routine', id: 'routine' }
 ] as const
-
 const DEFAULT_FILTERS = {
   findInOid: '',
   findInVsTitle: '',
@@ -247,9 +246,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     postUpdate()
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
-  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: string) => {
+  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority) => {
     setGrouperLoading(true)
-    const library = setVSPriority(currentProgram, priority as USHealthVSPriority, vs.url!)
+    const library = setVSPriority(currentProgram, priority, vs.url!)
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
         method: 'PUT',
@@ -407,9 +406,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
-            // default to Routine, this option does not actually need to be set and will be inferred by default
-            // when running $package operation
-            : priorityLevelOptions[1]
+            : // default to Routine, this option does not actually need to be set and will be inferred by default
+              // when running $package operation
+              priorityLevelOptions[1]
           return row.programStatus === 'active' || !can(session, 'edit') ? (
             <ReadOnlyContainer>
               <ReadOnlyTag>{currentPriority || 'Routine'}</ReadOnlyTag>
@@ -427,7 +426,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 options={priorityLevelOptions}
                 value={currentPriorityValue}
                 onChange={(e) => {
-                  updateValueSetPriority(row?.valueSet, e?.value as string)
+                  if (!!e?.value) {
+                    updateValueSetPriority(row?.valueSet, e?.value)
+                  }
                 }}
               />
             </SelectInputContainer>

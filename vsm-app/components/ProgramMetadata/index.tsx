@@ -21,7 +21,7 @@ interface ProgramEditModalContentProps {
   editable: boolean
 }
 
-const requiredFields = ['description', 'title']
+export const requiredFields = ['description', 'title'] as const
 
 interface OptionType {
   label: string
@@ -59,7 +59,10 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
     }
   }
 
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string, fieldName: string) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string,
+    fieldName: 'releaseDescription' | 'effectiveStartDate' | 'title' | keyof fhir4.Library
+  ) => {
     let value
 
     if (typeof e === 'string' || e === null) {
@@ -69,7 +72,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
       value = e.target.value
     }
     setFormTouched(true)
-    let newProgram
+    let newProgram: fhir4.Library
 
     if (fieldName === 'releaseDescription') {
       newProgram = setReleaseDescription(editedProgram, value)
