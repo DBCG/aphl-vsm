@@ -1,10 +1,15 @@
 import { cloneDeep } from 'lodash'
-import { generateNameFromTitle } from './stringHelpers'
+import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 
 interface RelatedArtifactItem {
   url: string
   version?: string
   extension?: fhir4.Extension[]
+}
+
+export enum USHealthVSPriority {
+  'Emergent' = 'emergent',
+  'Routine' = 'routine'
 }
 
 interface EditComposeInclude {
@@ -13,60 +18,10 @@ interface EditComposeInclude {
   action: 'add' | 'remove'
 }
 
-export enum USHealthVSPriority {
-  'Emergent' = 'emergent',
-  'Priority' = 'priority',
-  'Routine' = 'routine'
-}
-
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program?.relatedArtifact?.find((related) => related?.resource?.includes('/Library/'))?.resource
 }
 
-const setVSPriorityUsageContext = (target: fhir4.Library | fhir4.ValueSet, code: USHealthVSPriority) => {
-  const clonedTarget = cloneDeep(target)
-  const newUsageContextEntry: fhir4.UsageContext = {
-    code: {
-      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
-      code: 'priority'
-    },
-    valueCodeableConcept: {
-      coding: [
-        {
-          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-          code
-        }
-      ]
-    }
-  }
-
-  if (clonedTarget.useContext) {
-    const newUsageContextIndex = Math.max(
-      clonedTarget.useContext.findIndex((ctx) => {
-        const { system, code } = ctx?.code
-        if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-          return ctx
-        }
-      }),
-      0
-    )
-    clonedTarget.useContext[newUsageContextIndex] = newUsageContextEntry
-  } else {
-    clonedTarget.useContext = [newUsageContextEntry]
-  }
-
-  return clonedTarget
-}
-
-const getVSPriorityUsageContext = (library: fhir4.Library) => {
-  const context = library?.useContext?.find((ctx) => {
-    const { system, code } = ctx?.code
-    if (system?.endsWith('us-ph-usage-context-type') && code === 'priority') {
-      return ctx
-    }
-  })
-  return context?.valueCodeableConcept?.coding?.[0]?.code
-}
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
   return program?.extension?.find((ext) => ext?.url?.endsWith('artifact-releaseDescription'))?.valueString || ''
@@ -100,7 +55,7 @@ interface MissingFields {
 const missingFields = ({ program, requiredFields }: MissingFields): string[] => {
   // this fn returns all required field names that do not have entries
   // @ts-ignore-next-line
-  return requiredFields.filter(field => !Boolean(program?.[field]?.trim()))
+  return requiredFields.filter((field) => !Boolean(program?.[field]?.trim()))
 }
 
 // currently used just for groupers, could make more flexible
@@ -163,21 +118,78 @@ const validStartDate = (date: any): boolean => {
   if (isNaN(parsedDate)) return false
 
   const [year, month, day] = date.split('-')
-  const today = new Intl.DateTimeFormat('en-US', {year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/New_York'}).format(Date.now())
+  const today = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'America/New_York'
+  }).format(Date.now())
   const [monthToday, dayToday, yearToday] = today.split('/')
 
   const testDate = Number(`${year}${month.padStart(2, '0')}${day.padStart(2, '0')}`)
   const todayDate = Number(`${yearToday}${monthToday}${dayToday}`)
 
-  return (testDate - todayDate > -1)
+  return testDate - todayDate > -1
+}
+
+const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource: string) => {
+  const clonedTarget = cloneDeep(target)
+  const newPriority = {
+    extension: [
+      {
+        url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+        valueCodeableConcept: {
+          coding: [
+            {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+              code
+            }
+          ],
+          text: capitalizeFirstLetter(code)
+        }
+      },
+    ],
+    type: 'depends-on',
+    resource
+  }
+
+  const exisitingIndex = clonedTarget?.relatedArtifact?.findIndex((ctx) => {
+    if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
+      return ctx
+    }
+  }) || -1
+
+  if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
+    // @ts-ignore
+    clonedTarget.relatedArtifact[exisitingIndex] = newPriority
+  } else {
+    // @ts-ignore
+    clonedTarget.relatedArtifact?.push(newPriority)
+  }
+
+  return clonedTarget
+}
+
+const getVSPriority = (library: fhir4.Library) => {
+  const vsPriorityMap = {} as Record<string, USHealthVSPriority>
+  library?.relatedArtifact?.forEach((ra) => {
+    if (ra.type === 'depends-on' && ra.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
+      const vs = ra.resource
+      const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code as USHealthVSPriority
+      if (vs && priority) {
+        vsPriorityMap[vs] = priority
+      }
+    }
+  })
+  return vsPriorityMap
 }
 
 export {
   getGrouperLibraryCanonical,
-  setVSPriorityUsageContext,
-  getVSPriorityUsageContext,
   getReleaseDescription,
   setReleaseDescription,
+  getVSPriority,
+  setVSPriority,
   missingFields,
   editComposeInclude,
   getReleaseLabel,

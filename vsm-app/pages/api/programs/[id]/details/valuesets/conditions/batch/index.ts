@@ -1,31 +1,34 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
-import { updateConditions, removeConditionsFromLeaf } from '@/helpers/conditionHelpers'
+import { updateConditions, removeConditionsFromLeaf, Condition } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
+import { batchEditData } from '@/components/ProgramValueSetDetails/TableActions'
+import { MultiValue } from 'react-select'
 
 const handleVsetConditionUpdates = (
   vSets: fhir4.ValueSet[],
-  action: 'add' | 'remove',
-  conditions: any
+  action: 'add' | 'remove' | null,
+  conditions: MultiValue<Condition>
 ) => {
   if (action === 'add') {
     const updated = vSets.map(vs => {
-      return updateConditions(vs, conditions, false)
+      // make conditions mutable
+      return updateConditions(vs, conditions as Condition[], false)
     })
 
     return updated
-  } else {
+  } else if (action === 'remove') {
     // delete from conditions, only want to update those that had changes
-    return vSets.map(leaf => removeConditionsFromLeaf(leaf, conditions)).filter(x => Boolean(x))
+    return vSets.map(leaf => removeConditionsFromLeaf(leaf, conditions as Condition[])).filter(x => Boolean(x))
   }
 }
 
 const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
 
-  const body = await JSON.parse(req.body)
+  const body = (await JSON.parse(req.body)) as batchEditData
 
-  const leafIds = body.leafIds as fhir4.ValueSet['id'][]
+  const leafIds = body.leafIds
   const conditionsToUpdate = body.conditionsToUpdate
   const action = body.action
 
@@ -52,11 +55,11 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
     ?.filter((item: fhir4.Resource) => is.valueSet(item))
 
 
-  const updated = handleVsetConditionUpdates(
+  const updated = (handleVsetConditionUpdates(
     successfulVsets,
     action,
     conditionsToUpdate
-  ).filter(x => is.valueSet(x)) as fhir4.ValueSet[]
+  )?.filter(x => is.valueSet(x)) || []) as fhir4.ValueSet[]
 
   if (!updated.length) {
     // if nothing is updated, there's an error
@@ -80,7 +83,7 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
 
   await fhirCdrClient.transaction({
     body: putTransactionEntry
-  }) 
+  })
 
   res.status(200).send({ message: 'success' })
 }

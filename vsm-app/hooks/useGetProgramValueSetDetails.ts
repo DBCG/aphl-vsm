@@ -36,7 +36,7 @@ export interface Result {
   data?: DataItem[]
   totalLeafs?: number
   groupsInProgram?: fhir4.ValueSet[]
-  programStatus: fhir4.Library['status']
+  programStatus?: fhir4.Library['status']
 }
 
 interface Args {
@@ -45,6 +45,8 @@ interface Args {
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
+  activePriority?: string[]
+  valueSetPriorityMap?: Record<string, string>
   activeGroups?: Group[]
   activeConditions?: ConditionItem[]
   updatedGrouperValueSets?: fhir4.ValueSet[]
@@ -61,12 +63,15 @@ const useGetProgramValueSetDetails = ({
   findInSteward,
   activeGroups,
   activeConditions,
+  activePriority,
+  valueSetPriorityMap = {},
   updatedGrouperValueSets,
   updatedGrouper,
   versionToUpdate,
   toggleUpdateData
 }: Args): Result | {} => {
-  const [data, setData] = useState<{} | Result>({})
+  const [data, setData] = useState<Result>({})
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   useEffect(() => {
     async function getData(): Promise<void> {
@@ -119,6 +124,7 @@ const useGetProgramValueSetDetails = ({
       })
 
       try {
+        setRequestStatus('pending')
         const response: Response = await fetch(endpoint)
         const programJson = await response.json()
         if (!programJson.error) {
@@ -130,14 +136,16 @@ const useGetProgramValueSetDetails = ({
         }
       } catch (e) {
         console.error('error: ', e)
-        // handle error better
+        //TODO: handle error better
         setData({})
+      } finally {
+        setRequestStatus('idle')
       }
     }
 
-    void getData()
-    // disabled eslint here b/c including 'fields' obj results in infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (requestStatus === 'idle') {
+      getData()
+    }
   }, [
     id,
     findInVsTitle,
@@ -146,11 +154,24 @@ const useGetProgramValueSetDetails = ({
     findInOid,
     activeGroups,
     activeConditions,
+    activePriority,
     updatedGrouperValueSets,
     updatedGrouper,
     versionToUpdate,
     toggleUpdateData
   ])
+
+  if (activePriority && activePriority?.length > 0) {
+    const filteredData = data?.data
+      ?.filter((vs) => {
+        if (!vs.valueSet.url) {
+          return false
+        }
+        const currentPriority = valueSetPriorityMap[vs.valueSet.url]
+        return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
+      })
+    data.data = filteredData
+  }
 
   return data
 }

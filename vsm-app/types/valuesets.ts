@@ -5,6 +5,7 @@ export interface GroupInfoItem {
 
 export interface GroupUpdateItem {
   canonical?: string
+  priority?: string
   groupInfo?: GroupInfoItem[]
 }
 

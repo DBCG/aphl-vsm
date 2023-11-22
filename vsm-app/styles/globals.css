@@ -424,6 +424,7 @@ button {
 }
 
 /* Edit table header overflow */
+[data-column-id='value-set-priority'].rdt_TableCol .rdt_TableCol_Sortable,
 [data-column-id='value-set-groups'].rdt_TableCol .rdt_TableCol_Sortable,
 [data-column-id='select-vs-status'].rdt_TableCol .rdt_TableCol_Sortable,
 [data-column-id='value-set-conditions'].rdt_TableCol .rdt_TableCol_Sortable {
