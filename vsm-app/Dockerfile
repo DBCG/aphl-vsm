@@ -1,4 +1,4 @@
-FROM node:18-alpine as Builder
+FROM node:20-alpine as Builder
 
 # Disable telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -24,9 +24,18 @@ RUN npm ci
 COPY ./ /opt/app
 RUN npm run build
 
-FROM node:18-alpine
-WORKDIR /opt/app
+FROM ubuntu:mantic
 
+RUN apt-get update && \
+	apt-get install curl -y
+
+RUN curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
+RUN chmod 500 nsolid_setup_deb.sh
+RUN ./nsolid_setup_deb.sh 20
+RUN apt-get install nodejs -y
+RUN apt-get clean
+
+WORKDIR /opt/app
 
 COPY --from=Builder /opt/app/node_modules /opt/app/node_modules
 COPY --from=Builder /opt/app/.next /opt/app/.next
