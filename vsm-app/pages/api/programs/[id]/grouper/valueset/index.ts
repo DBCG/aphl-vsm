@@ -130,8 +130,6 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           updateInput.entry.push(programUpdateJob)
         }
 
-        console.log('check updateinput: ');
-        
         let updateGroupers
         try {
           updateGroupers = await fhirCdrClient.transaction({
