@@ -35,10 +35,10 @@ interface ModalInfo {
   handleCancelModal: () => void
   handleModalAction: Function
   loading: boolean
-  program: fhir4.Library
+  program: fhir4.Library | null
   cancellable?: boolean
   updateVersion?: Dispatch<SetStateAction<string | null | undefined>>
-  setProgramToRelase: Dispatch<SetStateAction<fhir4.Library>>
+  setProgramToRelease: Dispatch<SetStateAction<fhir4.Library | null>>
 }
 
 const LoadingText = styled.p`
@@ -232,7 +232,7 @@ const ReleaseModal = ({
     setPageLoading(isLoading)
   }, [isLoading, systemAndVersionData, error])
 
-  if (!isOpen) return null
+  if (!isOpen || !program) return null
 
   const stepContents = [
     {
@@ -374,7 +374,7 @@ const ReleaseModal = ({
               loading={loading || false}
               onClick={() => {
                 let currProgram = currentProgram
-                if (versionError) {
+                if (versionError || !currProgram) {
                   return
                 }
                 let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
