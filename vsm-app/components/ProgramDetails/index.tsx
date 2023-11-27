@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import debounce from 'lodash.debounce'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -28,12 +27,14 @@ const ProgramDetails = () => {
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [downloadLoading, setDownloadLoading] = useState(false)
+  const [validationError, setValidationError] = useState(null)
 
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
   }
 
   useEffect(() => {
+    setValidationError(null)
     // Set initial program
     if (is.library(programAndGrouperData?.program)) {
       setProgram(programAndGrouperData?.program)
@@ -92,7 +93,7 @@ const ProgramDetails = () => {
   const { id = '', status } = program
   return (
     <Col>
-      {exportError && <ErrorMessage error={exportError} />}
+      {exportError && <ErrorMessage style={{ marginBottom: '2rem' }} error={exportError} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
@@ -139,14 +140,28 @@ const ProgramDetails = () => {
                     }
                   }
                   if ('error' in json) {
-                    throw new Error('Server error')
+                    console.log(json)
+                    setExportError(json.error)
+                    return
                   } else if (json) {
                     return downloadTextData(data, 'application/fhir+json')
                   }
                 })
                 .catch((error) => {
                   console.error(error)
-                  setExportError('Error exporting artifact')
+                  setExportError(error?.error ? error.error : 'Error exporting artifact')
+                })
+                .then(() => {
+                  fetch(`/api/programs/${router.query.id}/validate`, {
+                    method: 'POST',
+                    body: JSON.stringify({ programId, program })
+                  }).then(i => {
+                    return i.json()
+                  }).then(j => {
+                    if (j.error) {
+                      setValidationError(j.error)
+                    }
+                  })
                 })
                 .finally(() => {
                   setDownloadLoading(false)
