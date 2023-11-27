@@ -207,15 +207,13 @@ const ReleaseModal = ({
     // Initializes the current selected data
     if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
-      if (currentSelectedData) {
-        findAvailableUpdates({
-          programId: program?.id as string,
-          currentSelectedData,
-          systemAndVersionData,
-          setAvailableUpdates,
-          setIsUpdating
-        })
-      }
+      findAvailableUpdates({
+        programId: program?.id as string,
+        currentSelectedData,
+        systemAndVersionData,
+        setAvailableUpdates,
+        setIsUpdating
+      })
     }
   }, [program?.id, manifestData])
 
