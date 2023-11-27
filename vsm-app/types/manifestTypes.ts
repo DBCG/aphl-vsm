@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from 'react'
+
 interface SystemSelection {
   name: string
   uri: string
@@ -16,6 +18,10 @@ interface UpdateManifest {
   action: 'add' | 'delete'
   id?: string
   version?: string
+  programId: string
+  setCurrentSelectedData: Dispatch<SetStateAction<ManifestDataMap>>
+  setIsUpdating: Dispatch<SetStateAction<boolean>>
+
 }
 
 interface ManifestSystemVersionPair {
