@@ -1,11 +1,11 @@
-import { ManifestDataMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
+import { AvailableVersions, ManifestDataMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 
 interface SearchAvailUpdates {
   programId: string,
   currentSelectedData: ManifestDataMap
-  systemAndVersionData: fhir4.CodeSystem[]
+  systemAndVersionData: AvailableVersions
   setAvailableUpdates: Dispatch<SetStateAction<fhir4.CodeSystem[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
 }
@@ -26,7 +26,10 @@ const searchAvailableUpdates = async ({
   // Find all the latest versions for the chosen systems
   const availableLatestVersionsMap = {} as { [key: string]: string }
   Object.keys(currentSelectedData).forEach((system) => {
-    availableLatestVersionsMap[system] = systemAndVersionData.find((i: SystemSelection) => i.uri === system)?.latestVersion
+    if (system) {
+      // @ts-ignore
+      availableLatestVersionsMap[system] = systemAndVersionData.find((i: SystemSelection) => i.uri === system)?.latestVersion
+    }
   })
   try {
     const mData = await fetch(manifestEndpoint, {

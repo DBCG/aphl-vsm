@@ -5,6 +5,14 @@ interface SystemSelection {
   uri: string
 }
 
+interface AvailableVersionItem {
+  name: string
+  uri: string
+  latestVersion: string
+}
+
+type AvailableVersions = AvailableVersionItem[]
+
 interface ResultMap {
   [key: string]: string
 }
@@ -35,5 +43,6 @@ export type {
   ResultMap,
   ManifestDataMap,
   UpdateManifest,
-  ManifestSystemVersionPair
+  ManifestSystemVersionPair,
+  AvailableVersions
 }
