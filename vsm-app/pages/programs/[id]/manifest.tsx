@@ -17,8 +17,14 @@ import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { searchAvailableUpdates, updateManifest } from '@/helpers/manifestHelpers'
+import Typography from '@mui/material/Typography'
 
 const endWrapPx = 900
+
+export const getIdFromSystem = (system: string): string => {
+  return system?.split?.('/')?.slice?.(-1)?.[0] || ''
+}
 
 export const customStyles = {
   table: {
@@ -75,10 +81,6 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
     return availableVersionOptions?.filter((i: string) => !usedVersions.includes(i))
   }
   return availableVersionOptions
-}
-
-const getIdFromSystem = (system: string): string => {
-  return system?.split?.('/')?.slice?.(-1)?.[0] || ''
 }
 
 export const namesByUri = (systemVersionData: SystemSelection[]) => {
@@ -141,54 +143,6 @@ const EditManifestDetails = () => {
     }
   }, [programId, manifestData])
 
-  const updateManifest = async ({ currentSelectedData, action, id, version }: UpdateManifest) => {
-    const manifestEndpoint = `/api/programs/${programId}/manifest`
-    try {
-      const mData = await fetch(manifestEndpoint, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentSelectedData)
-      }).then((res) => res.json())
-      setCurrentSelectedData(mData)
-      const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
-      toast.success(notificationTxt)
-    } catch (err) {
-      console.error(err)
-      toast.error('Error adding manifest program version')
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const searchAvailableUpdates = async () => {
-    const manifestEndpoint = `/api/programs/${programId}/manifest`
-
-    // Find all the latest versions for the chosen systems
-    const availableLatestVersionsMap = {} as { [key: string]: string }
-    Object.keys(currentSelectedData).forEach((system) => {
-      availableLatestVersionsMap[system] = systemAndVersionData.find((i: SystemSelection) => i.uri === system)?.latestVersion
-    })
-    try {
-      const mData = await fetch(manifestEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(availableLatestVersionsMap)
-      }).then((res) => res.json())
-      // Because VSAC versions in the metadata do not match the version listed on ValueSet we need to double check
-      // that the versions we are offering to update are not already the latest
-      const filteredAvailableVersions = mData.filter((i: fhir4.ValueSet) => {
-        const currentVersions = currentSelectedData[i?.url!]
-        return !currentVersions?.includes(i?.version!)
-      })
-      setAvailableUpdates(filteredAvailableVersions)
-    } catch (err) {
-      console.error(err)
-      toast.error('Error finding available updates')
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
   useEffect(() => {
     // Pull the available versions for the selected CodeSystem
     const retrieveSelectedSystemVersions = async () => {
@@ -221,7 +175,15 @@ const EditManifestDetails = () => {
     const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
     clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
-    updateManifest({ currentSelectedData: clonedcurrentSelectedData, action: 'delete', id: deletedId, version })
+    updateManifest({
+      programId: program?.id as string,
+      currentSelectedData: clonedcurrentSelectedData,
+      setCurrentSelectedData,
+      setIsUpdating,
+      action: 'delete',
+      id: deletedId,
+      version
+    })
     setIsUpdating(false)
   }
 
@@ -239,7 +201,10 @@ const EditManifestDetails = () => {
     clonedcurrentSelectedData[targetedSystem] = toUpdateManifestVersions
 
     updateManifest({
+      programId: program?.id as string,
       currentSelectedData: clonedcurrentSelectedData,
+      setCurrentSelectedData,
+      setIsUpdating,
       action: 'add',
       id: getIdFromSystem(targetedSystem),
       version: newVersion
@@ -254,9 +219,15 @@ const EditManifestDetails = () => {
 
   return (
     <>
-      <Row>
+      <Row style={{ marginBottom: '1.5rem' }}>
         <Button id="back-to-program" text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
+      <Typography>
+        Manifest versions may be added to specify specific code system versions in this program.
+      </Typography>
+      <Typography style={{ display: 'inline-block' }}>
+        Any code systems not specified in the manifest will default to the <b>latest available version.</b>
+      </Typography>
       <CodesystemSelectContainer>
         <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
@@ -290,7 +261,13 @@ const EditManifestDetails = () => {
               loading={isUpdating}
               onClick={() => {
                 setIsUpdating(true)
-                searchAvailableUpdates()
+                searchAvailableUpdates({
+                  programId: program?.id as string,
+                  currentSelectedData,
+                  systemAndVersionData,
+                  setAvailableUpdates,
+                  setIsUpdating
+                })
               }}
             />
           </div>
