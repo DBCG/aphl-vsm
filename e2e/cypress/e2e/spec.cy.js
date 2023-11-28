@@ -45,8 +45,6 @@ describe("Smoke Tests", () => {
       cy.get(".date-input button").click();
       cy.get("button").contains('Today').click();
       cy.get("#prog-release-desc").clear().type("this is a release description for the draft library");
-      cy.get(".priority-level-selector__control").click();
-      cy.get("#react-select-priority-level-selector-option-1").click();
       cy.intercept("PUT", "**/api/programs/*").as("updateProgramMetadata");
       cy.get("#edit-metadata-save").click();
       cy.wait("@updateProgramMetadata");
@@ -57,7 +55,6 @@ describe("Smoke Tests", () => {
       cy.get("#prog-version").should("have.value", "1.1.0.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
-      cy.get("#priority-level").should("have.value", "Priority").should("be.visible");
       cy.get("#effectiveStartDate").should("have.value", moment().format("YYYY-MM-DD")).should("be.visible");
     });
 
