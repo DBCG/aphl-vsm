@@ -1,7 +1,17 @@
+import { Dispatch, SetStateAction } from 'react'
+
 interface SystemSelection {
   name: string
   uri: string
 }
+
+interface AvailableVersionItem {
+  name: string
+  uri: string
+  latestVersion: string
+}
+
+type AvailableVersions = AvailableVersionItem[]
 
 interface ResultMap {
   [key: string]: string
@@ -16,6 +26,10 @@ interface UpdateManifest {
   action: 'add' | 'delete'
   id?: string
   version?: string
+  programId: string
+  setCurrentSelectedData: Dispatch<SetStateAction<ManifestDataMap>>
+  setIsUpdating: Dispatch<SetStateAction<boolean>>
+
 }
 
 interface ManifestSystemVersionPair {
@@ -29,5 +43,6 @@ export type {
   ResultMap,
   ManifestDataMap,
   UpdateManifest,
-  ManifestSystemVersionPair
+  ManifestSystemVersionPair,
+  AvailableVersions
 }

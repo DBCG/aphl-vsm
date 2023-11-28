@@ -30,6 +30,15 @@ const modalStyle = {
   p: 4
 }
 
+const NoDataComponent = () => {
+  return (
+  <div style={{ display: 'flex', width: '100%', padding: '2rem 4rem', backgroundColor: 'white', justifyContent: 'center' }}>
+    <Typography style={{ textAlign: 'center' }}>No manifest data found</Typography>
+  </div>
+
+  )
+}
+
 const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, programId, availableUpdates }: any) => {
   const preppedData = prepData(manifestData)
   const [targetedVsToUpdate, setTargetedVsToUpdate] = useState<fhir4.ValueSet | null>(null)
@@ -151,6 +160,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
         </Box>
       </Modal>
       <DataTable
+        noDataComponent={<NoDataComponent/>}
         progressComponent={<LoadingIndicator />}
         progressPending={loading}
         columns={columns}

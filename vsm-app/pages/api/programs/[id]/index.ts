@@ -19,7 +19,7 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
     } catch (e: any) {
       const error = e as HapiError
       logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
-      res.status(error.response?.status).json({ error: 'Search for program by id failed.' })
+      res.status(error.response?.status || 400).json({ error: 'Search for program by id failed.' })
       return
     }
   } else {
@@ -32,6 +32,7 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
 const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
   try {
     // update the program by id
+
     const response = (await fhirCdrClient.update<fhir4.Library>({
       resourceType: 'Library',
       id: req.query['id'] as string,
@@ -51,45 +52,28 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
   try {
     // if the user does not want to change the id of the FHIR Library
     // simply update the values in the existing resource
-    if (req.body.status === 'active') {
+    const { id, status } = req.body
+    if (status === 'active') {
       logger.error('Cannot edit an active Program Library')
       return res.status(409).send({ error: 'Not allowed' })
     }
-    const body = await JSON.parse(req.body)
 
-    if (body.id === req.query['id']?.toString()) {
+    if (id === req.query['id']?.toString()) {
       const response = await fhirCdrClient.update({
         resourceType: 'Library',
-        id: body.id as string,
-        body
+        id: id as string,
+        body: req.body
       })
+
+      console.log('response: ', response)
 
       return res.status(200).send(response) // UI is expecting the updated library as a response
     }
-    //  else {
-    //   // if the user wants to change the id of the Library (hence non-matching ids),
-    //   // create a new Library with that name, then delete the original one
-    //   await fhirCdrClient
-    //     .update<fhir4.Library>({
-    //       resourceType: 'Library',
-    //       id: body.id as string,
-    //       body: req.body
-    //     })
-    //     .then((newLibraryData) => {
-    //       return fhirCdrClient.delete({
-    //         resourceType: 'Library',
-    //         id: req.query.id as string
-    //       })
-    //     })
-    //     .then((data) => {
-    //       res.send(data)
-    //     })
-    //   return
-    // }
+
   } catch (e: any) {
     const error = e as HapiError
     logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
-    return res.status(error.response?.status).json({ error: `Error changing ID` })
+    return res.status(error?.response?.status || 500).json({ error: `Error changing ID` })
   }
 }
 

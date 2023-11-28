@@ -10,6 +10,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
+import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
@@ -272,8 +273,17 @@ const Programs: NextPage = () => {
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
       </Row>
+      <ReleaseModal
+        isOpen={Boolean(programToRelease)}
+        loading={loading}
+        handleCancelModal={handleCancelModal}
+        handleModalAction={handleModalAction}
+        program={programToRelease}
+        updateVersion={setVersionToRelease}
+        setProgramToRelease={setProgramToRelease}
+      />
       <LoadingModal
-        isOpen={Boolean(programToRelease) || Boolean(programToPublish)}
+        isOpen={Boolean(programToPublish)}
         actionType={programToRelease ? 'release' : 'publish'}
         loading={loading}
         handleCancelModal={handleCancelModal}
