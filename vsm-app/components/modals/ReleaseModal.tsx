@@ -349,6 +349,7 @@ const ReleaseModal = ({
               style={{ width: 'fit-content' }}
               disabled={hasFormError()}
               onClick={handleNext}
+              data-modal='next'
             />
           ): (
             <>
