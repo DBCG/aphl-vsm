@@ -6,7 +6,7 @@ import { fetcher } from '@/utils'
 import {
   Dialog, DialogTitle, DialogContent,
   DialogContentText, DialogActions,
-  Stepper, Step, StepLabel, Box
+  Stepper, Step, StepLabel, Box, Typography
 } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import {
@@ -294,6 +294,12 @@ const ReleaseModal = ({
     label: 'Review Manifest Details',
     content: (
      <div>
+        <Typography>
+          Manifest versions may be added to specify specific code system versions in this program.
+        </Typography>
+        <Typography style={{ display: 'inline-block' }}>
+          Any code systems not specified in the manifest will default to the <b>latest available version.</b>
+        </Typography>
         <ManifestDetailTable
           programId={program?.id}
           className="detail-table"
@@ -367,7 +373,7 @@ const ReleaseModal = ({
             <Button
               text={`RELEASE`}
               data-modal={'confirm'}
-              disabled={hasFormError()}
+              disabled={hasFormError() || isLoading || loading}
               loading={loading || false}
               onClick={() => {
                 let currProgram = currentProgram
