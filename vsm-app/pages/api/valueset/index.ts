@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { set } from 'lodash'
+import set from 'lodash.set'
 import { fhirCdrClient } from 'fhirClients'
 import { updateConditions } from '@/helpers/conditionHelpers'
 import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'

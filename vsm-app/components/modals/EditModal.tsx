@@ -60,7 +60,7 @@ const EditModal = ({
   handleModalAction,
   totalVs
 }: ModalInfo) => {
-  
+
   const modalText = generateText({ modalAction: actionType, dataType, totalVs })
 
   const [disableSubmission, setDisableSubmission] = useState(false)
