@@ -52,7 +52,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
   try {
     // if the user does not want to change the id of the FHIR Library
     // simply update the values in the existing resource
-    const { id, status } = JSON.parse(req.body)
+    const { id, status } = req.body
     if (status === 'active') {
       logger.error('Cannot edit an active Program Library')
       return res.status(409).send({ error: 'Not allowed' })
