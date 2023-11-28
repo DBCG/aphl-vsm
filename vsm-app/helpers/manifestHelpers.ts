@@ -44,6 +44,7 @@ const searchAvailableUpdates = async ({
       const currentVersions = currentSelectedData[i?.url!]
       return !currentVersions?.includes(i?.version!)
     })
+
     setAvailableUpdates(filteredAvailableVersions)
   } catch (err) {
     console.error(err)

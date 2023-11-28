@@ -200,22 +200,20 @@ const ReleaseModal = ({
   }, [releaseDescription.length, releaseLabel.length, effectiveStartDate])
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
-
-  const findAvailableUpdates = useCallback(searchAvailableUpdates, [currentSelectedData])
   
   useEffect(() => {
     // Initializes the current selected data
-    if (manifestData && Object.keys(manifestData).length !== 0) {
+    if (manifestData && Object.keys(manifestData).length !== 0 && systemAndVersionData.length) {
       setCurrentSelectedData(manifestData)
-      findAvailableUpdates({
+      searchAvailableUpdates({
         programId: program?.id as string,
-        currentSelectedData,
+        currentSelectedData: manifestData,
         systemAndVersionData,
         setAvailableUpdates,
         setIsUpdating
       })
     }
-  }, [program?.id, manifestData])
+  }, [program?.id, manifestData, systemAndVersionData])
 
   useEffect(() => {
     // Initializes the available CodeSystem Options from VSAC
