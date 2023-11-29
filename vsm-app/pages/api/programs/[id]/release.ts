@@ -26,7 +26,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   }
 
   await fhirCdrClient.operation({
-    name: '$crmi.release',
+    name: '$release',
     resourceType: 'Library',
     id: req.query.id as string,
     method: 'POST',
