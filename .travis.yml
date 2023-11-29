@@ -1,19 +1,15 @@
 language: python
+dist: jammy
 python:
   - "3.8"
+services:
+  - docker
+
 cache:
   directories:
     - $HOME/.cache/yarn
     - node_modules
     - .next/cache
-
-before_install:
-  - sudo systemctl stop docker.service && sudo systemctl stop docker.socket
-  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  - yes | sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  - sudo apt-get update
-  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
-  - docker version
 
 install:
   - cd $TRAVIS_BUILD_DIR
