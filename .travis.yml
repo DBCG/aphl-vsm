@@ -14,9 +14,19 @@ cache:
 install:
   - cd $TRAVIS_BUILD_DIR
   - ./bin/install_ci_dependencies.sh
-
+  - docker build -t cqf-ruler:$TRAVIS_COMMIT 
 jobs:
   include:
+    - stage: build-plugin
+      if: commit_message =~ /^update-plugin-.+$/
+      script: 
+      - cd $TRAVIS_BUILD_DIR/ecr
+      - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
+    - stage: deploy-plugin
+      if: commit_message =~ /^update-plugin-.+$/
+      script:
+      - cd $TRAVIS_BUILD_DIR/ecr
+      - ../bin/deploy-plugin.sh
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
