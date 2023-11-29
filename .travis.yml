@@ -26,6 +26,7 @@ jobs:
       if: branch IN (main)
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
+        - git config user.name 'Travis CI User'
         - git remote set-url origin https://$GITHUB_TOKEN@github.com/DBCG/aphl-vsm.git
         - npm version patch
         - git add .
