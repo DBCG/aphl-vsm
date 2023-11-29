@@ -13,34 +13,16 @@ export const config = {
   ]
 }
 
-const isJsonRoute = (pathsToSkip: string[], path: string): boolean => {
-  return Boolean(pathsToSkip.find(p => !path.toLowerCase().includes(p.toLowerCase())))
-}
-
-function addJsonMiddleware(req: NextRequest): NextRequest {
-  // in case you want to avoid adding json header to some api paths
-  const pathsToSkip = ['/auth']
-  const { pathname } = req.nextUrl
-
-  const addHeader = isJsonRoute(pathsToSkip, pathname)
-    // Clone the request headers and set a new header for `application/json`
-    // in most circumstances
-    if (addHeader) {
-      const requestHeaders = new Headers(req.headers)
-      requestHeaders.set('Content-Type', 'application/json')
-      console.log('headers: ', requestHeaders)
-    }
-    console.log('req: ', req)
-    return req
-}
-
-const middleWares = [withAuth, addJsonMiddleware]
-
-export default async function middleware(req: NextRequest) {
-  let reqToSend = req
-  for await (const fn of middleWares) {
-    reqToSend = await fn(req)
+export default withAuth(function middleware(req: NextRequest) {
+  const addHeader = ['POST', 'PUT'].includes(req.method)
+  if (addHeader) {
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('Content-Type', 'application/json')
+    return NextResponse.next({
+      request: {
+        // New request headers
+        headers: requestHeaders,
+      },
+    })
   }
-  return NextResponse.next()
-}
-
+})

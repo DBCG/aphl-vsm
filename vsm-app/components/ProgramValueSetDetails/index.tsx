@@ -253,9 +253,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify(library)
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
