@@ -14,7 +14,6 @@ cache:
 install:
   - cd $TRAVIS_BUILD_DIR
   - ./bin/install_ci_dependencies.sh
-  - docker build -t cqf-ruler:$TRAVIS_COMMIT 
 jobs:
   include:
     - stage: build-plugin
