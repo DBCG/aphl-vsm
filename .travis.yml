@@ -25,7 +25,8 @@ jobs:
       if: commit_message =~ /^update-plugin-.+$/
       script:
       - cd $TRAVIS_BUILD_DIR/ecr
-      - ../bin/deploy-plugin.sh
+      - cd ../
+      - ./bin/deploy-plugin.sh
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
