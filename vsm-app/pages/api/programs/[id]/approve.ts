@@ -27,7 +27,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
 
   try {
     const response = (await fhirCdrClient.operation({
-      name: '$crmi.approve',
+      name: '$approve',
       resourceType: 'Library',
       id: req.query.id as string,
       method: 'POST',

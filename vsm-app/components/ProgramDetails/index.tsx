@@ -135,7 +135,7 @@ const ProgramDetails = () => {
                     if (data?.[0] === '<') {
                       return downloadTextData(data, 'application/fhir+xml')
                     } else {
-                      throw new Error('Unable to parse $crmi.package response')
+                      throw new Error('Unable to parse $package response')
                     }
                   }
                   if ('error' in json) {

@@ -10,7 +10,7 @@ const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bund
   try {
     if (json) {
       const response = (await fhirCdrClient.operation({
-        name: '$crmi.package',
+        name: '$package',
         resourceType: 'Library',
         id: req.query.id as string,
         method: 'POST',
@@ -19,7 +19,7 @@ const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bund
       res.send(response)
     } else {
       const response = await fetch(
-        `${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$crmi.package?_format=application/fhir+xml`,
+        `${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=application/fhir+xml`,
         {
           body: JSON.stringify(parameters),
           method: 'POST',
