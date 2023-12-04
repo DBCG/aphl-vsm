@@ -16,6 +16,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
+import { ExperimentalBanner } from '@/components/data-display/ExperimentalBanner'
 
 const Col = styled.div`
   display: flex;
@@ -34,6 +35,17 @@ const ButtonWrapper = styled.div`
   justify-content: center;
   width: 100%;
 `
+
+const conditionalRowStyles = [
+  {
+    when: (row: fhir4.Library) => row.experimental,
+    style: {
+      '&::before': {
+        content: 'TESTWORDS'
+      }
+    }
+  }
+]
 
 export interface StatusProps {
   status: string
@@ -116,7 +128,12 @@ const Programs: NextPage = () => {
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
-          return <StatusChip label={row.status} />
+          return (
+            <>
+              <ExperimentalBanner experimental={Boolean(row.experimental)}/>
+              <StatusChip label={row.status} />
+            </>
+          )
         }
       },
       {

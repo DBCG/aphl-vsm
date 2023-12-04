@@ -4,6 +4,7 @@ import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
@@ -52,10 +53,27 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
   try {
     // if the user does not want to change the id of the FHIR Library
     // simply update the values in the existing resource
-    const { id, status } = req.body
+    const { id, status, experimental, version } = req.body
     if (status === 'active') {
       logger.error('Cannot edit an active Program Library')
       return res.status(409).send({ error: 'Not allowed' })
+    }
+
+    if (experimental !== req.query['experimental']?.toString()) {
+      // update owned resources if experimental value doesn't match
+      const experimentalValue = req.query.experimental || experimental || false
+      // update in body for separate PUT
+      req.body.experimental = experimentalValue
+      const body = JSON.stringify({
+        programVersion: version,
+        programStatus: status,
+        isExperimental: experimentalValue
+      })
+    
+      await fetch(`${process.env.FHIR_CDR_URL}/api/programs/${req.body.id}/owned`, {
+        method: 'PUT',
+        body
+      })
     }
 
     if (id === req.query['id']?.toString()) {
@@ -65,14 +83,12 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
         body: req.body
       })
 
-      console.log('response: ', response)
-
       return res.status(200).send(response) // UI is expecting the updated library as a response
     }
 
   } catch (e: any) {
     const error = e as HapiError
-    logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+    logSimpleError(error)
     return res.status(error?.response?.status || 500).json({ error: `Error changing ID` })
   }
 }

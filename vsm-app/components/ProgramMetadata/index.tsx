@@ -1,7 +1,5 @@
-import { useState } from 'react'
-import { Options } from 'react-select'
-
-import { Grid } from '@mui/material'
+import { useState, useEffect } from 'react'
+import { Checkbox, FormControlLabel, Grid } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
@@ -38,12 +36,17 @@ const errorMessages: ErrorMessages = {
   startDate: 'Cannot be a past date'
 }
 
+const getExperimentalStatus = (program: fhir4.Library) => {
+  return Boolean(program?.experimental)
+}
+
 // editable will be a prop
 const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEditModalContentProps) => {
   const [editedProgram, setEditedProgram] = useState<fhir4.Library>(program)
   const [formTouched, setFormTouched] = useState(false)
   const [enableEditing, setEnableEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isExperimental, setIsExperimental] = useState(getExperimentalStatus(program))
   const [key, setKey] = useState(1)
 
   const initialErrorState = missingFields({ program, requiredFields })
@@ -53,11 +56,18 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const effectiveStartDate = editedProgram?.effectivePeriod?.start
   const releaseDescription = getReleaseDescription(program)
   const releaseLabel = getReleaseLabel(program)
+
   const getErrorText = (fieldName: string) => {
     if (errorFields.includes(fieldName)) {
       return errorMessages[fieldName]
     }
   }
+
+  useEffect(() => {
+    if(isExperimental !== program.experimental) {
+      setFormTouched(true)
+    }
+  }, [isExperimental])
 
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | string,
@@ -134,7 +144,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             />
           )}
         </Grid>
-        <Grid item xs={12}>
+        <Grid item xs={6}>
           <DateInput
             label={'Effective Start Date'}
             id="effectiveStartDate"
@@ -148,6 +158,20 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             readonly={!editable || !enableEditing}
             errorText={errorMessages.startDate}
           />
+        </Grid>
+        <Grid item xs={6}>
+        <FormControlLabel
+          label='Experimental?'
+          control={
+            <Checkbox
+              readOnly={!editable || !enableEditing}
+              disabled={!editable || !enableEditing}
+              defaultChecked={isExperimental}
+              value={true}
+              onChange={(e) =>  setIsExperimental(e.target.checked)}
+            />
+          }
+        />
         </Grid>
         <Grid item xs={12}>
           <TextArea
@@ -206,7 +230,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 onClick={async (e) => {
                   setIsSaving(true)
                   e.preventDefault()
-                  await handleSubmit(editedProgram)
+                  await handleSubmit({ program: editedProgram, isExperimental })
                   setEnableEditing(false)
                   setFormTouched(false)
                   setIsSaving(false)

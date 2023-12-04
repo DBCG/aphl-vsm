@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import debounce from 'lodash.debounce'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -40,17 +39,14 @@ const ProgramDetails = () => {
     }
   }, [programId, programAndGrouperData?.program])
 
-  const handleSubmit = async (submittedProgram: fhir4.Library) => {
-    await updateProgram(submittedProgram)
-  }
-
-  const updateProgram = async (toUpdateProgram: fhir4.Library) => {
-    const response = await fetch(`/api/programs/${router.query.id}`, {
+  const updateProgram = async ({ program, isExperimental }: {program: fhir4.Library, isExperimental: boolean }) => {
+    const endPoint = `/api/programs/${router.query.id}?experimental=${isExperimental}`
+    const response = await fetch(endPoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(toUpdateProgram)
+      body: JSON.stringify(program)
     })
 
     // If there is an error in the PUT request to update the library, reset the program to default
@@ -156,7 +152,7 @@ const ProgramDetails = () => {
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={allowEditing({ session, programStatus: status })} />
+      <ProgramMetadata program={program} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>

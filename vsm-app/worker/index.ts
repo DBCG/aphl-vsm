@@ -78,7 +78,7 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
         ?.map((bundleEntry: BundleEntry) => {
           const resource = bundleEntry.resource as ValueSet
           if (resource?.version && is.valueSet(resource) && dayjs(resource.version).isAfter(latestVersion)) {
-            console.log(`Adding new resource, latesr version found for: ${resource.name} version: ${resource.version}`)
+            console.log(`Adding new resource, latest version found for: ${resource.name} version: ${resource.version}`)
             return resource
           }
         })
