@@ -23,14 +23,13 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 
 const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
   const body = await req.body
-  const bodyJson: LeafsToAdd = JSON.parse(body)
 
   let vSetsToUpdate: { method: 'PUT' | 'POST'; valueSet: fhir4.ValueSet }[] = []
   let vsToUpdate
 
   // check fhir server first to see if we already have the selected valueSets
   const serverResponses = await Promise.allSettled(
-    bodyJson?.selectedValueSets?.map((item) =>
+    body?.selectedValueSets?.map((item) =>
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
@@ -47,7 +46,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
   const filteredVSets = existingVSetBundles?.map((item) => item?.entry?.[0]?.resource)?.filter((z) => Boolean(z)) as fhir4.ValueSet[]
 
-  for (const selectedVS of bodyJson.selectedValueSets) {
+  for (const selectedVS of body.selectedValueSets) {
     const matchingValueSetInCQF = filteredVSets?.find(
       (vs) => vs?.url === selectedVS?.url?.split('|')?.[0] && vs?.version === selectedVS?.version
     )
@@ -57,7 +56,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
     } else {
       try {
-        terminologyClient.setClient(bodyJson.selectedTerminologyServer)
+        terminologyClient.setClient(body.selectedTerminologyServer)
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
           let url = idWithoutVersion(selectedVS?.url as string)
@@ -83,7 +82,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
                 const authSrcUrl = terminologyServerEndpoints?.find(
-                  (grp) => grp.value.title.toLowerCase() === bodyJson.selectedTerminologyServer.toLowerCase()
+                  (grp) => grp.value.title.toLowerCase() === body.selectedTerminologyServer.toLowerCase()
                 )?.value?.url
 
                 if (authSrcUrl) {
@@ -119,7 +118,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
   // handle if no vsets to update, too
   // add conditions to valueSet
   const valueSetItemsToUpdate = vSetsToUpdate?.map((vs) => {
-    const updatedVs = updateConditions(vs.valueSet, bodyJson.selectedConditions, false)
+    const updatedVs = updateConditions(vs.valueSet, body.selectedConditions, false)
     return {
       valueSet: updatedVs,
       method: vs.method
@@ -157,7 +156,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
   // get groupers
   const groupersToUpdate = await Promise.all(
-    bodyJson.selectedGroupers.map(async (grouperItem: any) => {
+    body.selectedGroupers.map(async (grouperItem: any) => {
       return await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: grouperItem.id
@@ -170,7 +169,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       groupersToUpdate.map(async (grouperVs) => {
         const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs?.compose?.include || []
 
-        const newValueSetCanonicals = bodyJson.selectedValueSets
+        const newValueSetCanonicals = body.selectedValueSets
           .map((item: any) => urlWithoutVersion(item.url))
           // return only things that don't already exist
           .filter((canonical) => {

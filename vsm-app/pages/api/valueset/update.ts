@@ -10,7 +10,7 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
         Use progValueSetDets.data to know which ValueSets to update
   */
   try {
-    const { urls = [], programId } = JSON.parse(req.body)
+    const { urls = [], programId } = req.body
     if (programId == null) {
       res.status(400).send({ error: 'programId is required' })
     }

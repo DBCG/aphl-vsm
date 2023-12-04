@@ -9,7 +9,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 // this sets approvalDate and date and optionally
 // creates an artifactCommentExtension
 const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>): Promise<void> => {
-  const parameters = JSON.parse(req.body || {})
+  const parameters = req.body || {}
   const session = await getServerSession(req, res, AuthOptions)
   const userEmail = session?.user?.email
 

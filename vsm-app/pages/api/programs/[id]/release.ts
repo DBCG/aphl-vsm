@@ -5,7 +5,7 @@ import { removeDraftFromVersionString } from '@/utils'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const {releaseAsVersion, program } = JSON.parse(req?.body)
+  const {releaseAsVersion, program } = req.body
 
     if (typeof releaseAsVersion === 'string') {
       program.version = releaseAsVersion

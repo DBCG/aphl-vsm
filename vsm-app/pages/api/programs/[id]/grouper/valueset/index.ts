@@ -92,7 +92,7 @@ const removeValueSetFromLibrary = async (programId: string, valuesetUrls: string
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const programId = req.query.id as string
-    const body = JSON.parse(req.body)
+    const body = req.body
     // if you are deleting valuesets from groupers in a batch...
     if (body.batchDelete) {
       try {
@@ -212,7 +212,7 @@ interface BodyInfo {
 // -------------------------- ROUTE TO ADD NEW GROUPER -----------------------------
 // ---------------------------------------------------------------------------------
 const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const body: BodyInfo = JSON.parse(req.body)
+  const body: BodyInfo = req.body
 
   // programId will always be a string
   const programId = req.query.id as string
@@ -526,7 +526,7 @@ const updateProgramLibraryWithGrouperRef = async (
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
-    const body = JSON.parse(req.body)
+    const body = req.body
     const { grouperId, originalGrouperVersion, metadata } = body
 
     // there should only be one result here if any

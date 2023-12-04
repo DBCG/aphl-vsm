@@ -31,7 +31,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
     }
   })
 
-  let body = JSON.parse(req.body)
+  let body = req.body
 
   const semverFromTemplateProgram = body?.version
 

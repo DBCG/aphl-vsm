@@ -26,7 +26,7 @@ const handleVsetConditionUpdates = (
 
 const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
 
-  const body = (await JSON.parse(req.body)) as batchEditData
+  const body = req.body as batchEditData
 
   const leafIds = body.leafIds
   const conditionsToUpdate = body.conditionsToUpdate

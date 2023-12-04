@@ -5,7 +5,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const payload = JSON.parse(req.body)
+    const payload = req.body
     
     const batchPrepVs = payload?.valueSets.map((vs: fhir4.ValueSet) => ({
       resource: vs,
