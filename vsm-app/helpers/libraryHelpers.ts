@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash.clonedeep'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 import { requiredFields } from '@/components/ProgramMetadata'
+import { Condition } from './conditionHelpers'
 
 interface RelatedArtifactItem {
   url: string
@@ -8,7 +9,11 @@ interface RelatedArtifactItem {
   extension?: fhir4.Extension[]
 }
 
-export type USHealthVSPriority = "emergent" | "routine"
+export type USHealthVSPriority = 'emergent' | 'routine'
+
+export interface ValueSetConditionsMap {
+  [key: string]: { id: string; valueCodeableConcept: fhir4.CodeableConcept }[]
+}
 
 interface EditComposeInclude {
   grouperLib: fhir4.Library
@@ -144,17 +149,18 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
           ],
           text: capitalizeFirstLetter(code)
         }
-      },
+      }
     ],
     type: 'depends-on',
     resource
   }
 
-  const exisitingIndex = clonedTarget?.relatedArtifact?.findIndex((ctx) => {
-    if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
-      return ctx
-    }
-  }) || -1
+  const exisitingIndex =
+    clonedTarget?.relatedArtifact?.findIndex((ctx) => {
+      if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
+        return ctx
+      }
+    }) || -1
 
   if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
     clonedTarget.relatedArtifact[exisitingIndex] = newPriority
@@ -171,8 +177,8 @@ const getVSPriority = (library: fhir4.Library) => {
     if (ra.type === 'depends-on' && ra.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
       const vs = ra.resource
       const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
-      if (!(priority === "emergent" || priority === "routine")) {
-        throw "Unknown priority code!"
+      if (!(priority === 'emergent' || priority === 'routine')) {
+        throw 'Unknown priority code!'
       }
       if (vs && priority) {
         vsPriorityMap[vs] = priority
@@ -182,12 +188,61 @@ const getVSPriority = (library: fhir4.Library) => {
   return vsPriorityMap
 }
 
+const getVSConditions = (program: fhir4.Library) => {
+  const vsConditions = {} as ValueSetConditionsMap
+  program.relatedArtifact?.forEach((artifact) => {
+    if (artifact?.type === 'depends-on' && artifact?.extension?.[0]?.url.endsWith('vsm-valueset-condition')) {
+      const vsUrl = artifact.resource as string
+      const condCodeableConcept = artifact.extension?.[0]?.valueCodeableConcept
+      const conditionIdentifier = `${condCodeableConcept?.coding?.[0]?.system}|${condCodeableConcept?.coding?.[0]?.code}`
+      if (!vsConditions[vsUrl]) {
+        vsConditions[vsUrl] = [{ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! }]
+      } else {
+        vsConditions[vsUrl].push({ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! })
+      }
+    }
+  })
+  return vsConditions
+}
+
+const setVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+  const clonedProgram = cloneDeep(program)
+  const newConditions: fhir4.RelatedArtifact[] =
+    conditions.map((i) => ({
+      extension: [
+        {
+          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: i.value.system,
+                code: i.value.code
+              }
+            ],
+            text: i.label
+          }
+        }
+      ],
+      type: 'depends-on',
+      resource: vsUrl
+    })) || []
+  const clearedArtifactFilters = clonedProgram?.relatedArtifact?.filter(
+    (i) => i?.resource !== vsUrl || !i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')
+  )
+
+  clonedProgram.relatedArtifact = [...(clearedArtifactFilters || []), ...newConditions]
+
+  return clonedProgram
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
   setReleaseDescription,
   getVSPriority,
   setVSPriority,
+  getVSConditions,
+  setVSConditions,
   missingFields,
   editComposeInclude,
   getReleaseLabel,

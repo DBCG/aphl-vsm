@@ -1,5 +1,5 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
-import Select, { MultiValue, Options } from 'react-select'
+import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
@@ -28,7 +28,7 @@ import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
-import { USHealthVSPriority, getVSPriority, setVSPriority } from '@/helpers/libraryHelpers'
+import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
 import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
@@ -138,7 +138,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  // const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
@@ -167,6 +167,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   || priorityLoading
   || versionUpdateInFlight
 
+  const conditionsMap = getVSConditions(currentProgram)
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
@@ -216,26 +217,25 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows(selectedRows)
   }
 
-  // Updates Conditions
-  useEffect(() => {
-    let endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/conditions`
-    setUpdatedGrouperValueSets([])
-    const postUpdate = async () => {
-      if (conditionToUpdate?.conditionInfo) {
-        setConditionLoading(true)
-        const json = (await fetch(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(conditionToUpdate)
-        }).then((res) => res.json())) as conditionUpdateReturn
-        if ('error' in json) {
-          throw new Error(json.error)
-        }
-      }
+  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string) => {
+    setConditionLoading(true)
+    const library = setVSConditions(currentProgram, conditions, vsUrl)
+    try {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(library)
+      }).then((res) => res.json())
+      toast.success('Added new condition:  ' + conditions?.[conditions.length-1]?.label)
+      setCurrentProgram(updatedLibrary)
+    } catch (e) {
+      toast.error('Error updating priority')
+    } finally {
+      setConditionLoading(false)
     }
-    postUpdate()
-      .catch((e) => console.error('error: ', e))
-      .finally(() => setConditionLoading(false))
-  }, [conditionToUpdate, currentProgram?.id])
+  }
 
   // Updates Group ValueSets
   useEffect(() => {
@@ -555,19 +555,17 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         sortable: false,
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const selectedOptions = row?.valueSet?.useContext
+          const vsConditions = conditionsMap[row?.valueSet?.url!]
+          const selectedOptions = vsConditions
             ?.map((i) => {
-              if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
-                const condition: Condition = {
-                  label: i?.valueCodeableConcept?.text || '',
-                  value: {
-                    system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
-                    code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
-                    version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
-                    text: i?.valueCodeableConcept?.text
-                  }
+              return {
+                label: i?.valueCodeableConcept?.text || '',
+                value: {
+                  system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
+                  code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
+                  version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
+                  text: i?.valueCodeableConcept?.text
                 }
-                return condition
               }
             })
             .filter((x) => x) as Condition[]
@@ -589,14 +587,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
-                onChange={(e) => {
+                onChange={async (e) => {
                   const conditionInfo = e as Condition[]
-                  conditionInfo &&
-                    setConditionToUpdate({
-                      canonical: row.canonical,
-                      version: row.version,
-                      conditionInfo
-                    })
+                  conditionInfo && await updateVSConditions(conditionInfo, row.canonical)
                 }}
               />
             </SelectInputContainer>
@@ -666,7 +659,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions]
+    [router, groupsInProgram, allConditions, conditionsMap]
   )
 
   const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
