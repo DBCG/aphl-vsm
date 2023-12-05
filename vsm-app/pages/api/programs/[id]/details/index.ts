@@ -48,11 +48,13 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
     })
     if (is.library(grouperLibrary)) {
       const grouperUrls = grouperLibrary?.relatedArtifact?.map((i) => i?.resource)?.filter((i) => !!i) as string[]
-
-      const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls }).then((bundles) =>
-        bundles.map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)
-      )
-
+      const grouperValueSets = await fetchGrouperValueSets({ canonicals: grouperUrls })
+        .then((bundles) =>
+          bundles
+            .map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)
+            // sometimes the groupers aren't owned
+            .filter(res => !!res)
+        )
       const formattedValueSets = grouperValueSets?.map((vs) => ({
         id: vs.id,
         name: vs.name,
