@@ -14,7 +14,7 @@ export const config = {
 }
 
 export default withAuth(function middleware(req: NextRequest) {
-  const addHeader = ['POST', 'PUT'].includes(req.method)
+  const addHeader = ['POST', 'PUT', 'DELETE'].includes(req.method)
   if (addHeader) {
     const requestHeaders = new Headers(req.headers)
     requestHeaders.set('Content-Type', 'application/json')
