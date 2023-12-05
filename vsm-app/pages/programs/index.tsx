@@ -18,6 +18,10 @@ import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { ExperimentalBanner } from '@/components/data-display/ExperimentalBanner'
 
+interface ContainerProps {
+  experimental: boolean
+}
+
 const Col = styled.div`
   display: flex;
   flex-direction: column;
@@ -36,16 +40,13 @@ const ButtonWrapper = styled.div`
   width: 100%;
 `
 
-const conditionalRowStyles = [
-  {
-    when: (row: fhir4.Library) => row.experimental,
-    style: {
-      '&::before': {
-        content: 'TESTWORDS'
-      }
-    }
-  }
-]
+const Container = styled.div<ContainerProps>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: ${props => props.experimental ? 'space-between' : 'center' };
+  height: 100%;
+`
 
 export interface StatusProps {
   status: string
@@ -129,10 +130,10 @@ const Programs: NextPage = () => {
         center: true,
         cell: (row: fhir4.Library) => {
           return (
-            <>
+            <Container experimental={Boolean(row.experimental)}>
               <ExperimentalBanner experimental={Boolean(row.experimental)}/>
               <StatusChip label={row.status} />
-            </>
+            </Container>
           )
         }
       },

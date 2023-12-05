@@ -7,6 +7,7 @@ interface Chip {
 
 const StyledChip = styled(Chip)`
   font-size: 80%;
+  width: fit-content;
   background-color: ${(props) =>
     typeof props.label === 'string' && props?.label?.toLowerCase() === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'rgba(252, 186, 3, 0.3)'};
 `
