@@ -47,6 +47,7 @@ interface Args {
   findInSteward?: string
   activePriority?: string[]
   valueSetPriorityMap?: Record<string, string>
+  conditionsMap?: Record<string, {id: string}[]>
   activeGroups?: Group[]
   activeConditions?: ConditionItem[]
   updatedGrouperValueSets?: fhir4.ValueSet[]
@@ -65,6 +66,7 @@ const useGetProgramValueSetDetails = ({
   activeConditions,
   activePriority,
   valueSetPriorityMap = {},
+  conditionsMap = {},
   updatedGrouperValueSets,
   updatedGrouper,
   versionToUpdate,
@@ -103,12 +105,6 @@ const useGetProgramValueSetDetails = ({
         const canonicals = activeGroups.map((g) => g.value)
         const result = canonicals.join(',')
         queries.push(`groups=${encodeURIComponent(result)}`)
-      }
-
-      if (activeConditions?.length) {
-        const codes = activeConditions.map((g) => g.value.code)
-        const result = codes.join(',')
-        queries.push(`conditions=${encodeURIComponent(result)}`)
       }
 
       if (updatedGrouperValueSets?.length) {
@@ -171,6 +167,21 @@ const useGetProgramValueSetDetails = ({
         return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
       })
     data.data = filteredData
+  }
+
+  if (activeConditions && activeConditions?.length > 0) {
+    const activeConditionsMap = activeConditions.map(i => i.value.system + '|' + i.value.code)
+    const filteredConditionData = data?.data?.filter((vs) => {
+      if (!vs.valueSet.url) {
+        return false
+      }
+
+      const currentConditions = conditionsMap[vs.valueSet.url]?.map((i) => i?.id)
+      // Test for intersection of either array
+      return currentConditions.filter(value => activeConditionsMap.includes(value)).length > 0;
+    })
+
+    data.data = filteredConditionData
   }
 
   return data

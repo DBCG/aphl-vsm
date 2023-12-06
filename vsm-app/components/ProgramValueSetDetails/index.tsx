@@ -282,6 +282,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     valueSetPriorityMap,
     toggleUpdateData,
+    conditionsMap,
     ...debouncedFilters
   }) as Result
 
