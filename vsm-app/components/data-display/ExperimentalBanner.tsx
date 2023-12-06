@@ -1,5 +1,6 @@
 import { styled } from '@mui/system'
 import Image from 'next/image'
+import ScienceIcon from '@mui/icons-material/Science';
 import { Box } from '@mui/material'
 import Tt from '@mui/material/Tooltip'
 
@@ -8,15 +9,16 @@ interface IsExperimental {
 }
 
 const Banner = styled(Box)<IsExperimental>`
-  display: ${(props) => props.experimental ? 'flex' : 'none'};
+  position: absolute;
+  top: 0;
   font-size: 80%;
+  width: 100%;
   padding: 4px 8px;
-  border-radius: 8px;
-  margin-bottom: 4px;
   width: 100%;
   white-space: nowrap;
+  text-align: center;
   background-color: ${(props) =>
-    props.experimental ? 'var(--warning-medium)' : 'none'
+    props.experimental ? '#81c951' : 'none'
   };
 `
 
@@ -25,7 +27,8 @@ const ExperimentalBanner = ({ experimental }: IsExperimental) => {
     <Tt placement='top' title='Experimental programs rely on resources that may be subject to change.'>
       <Banner experimental={experimental}>
         Experimental
-        <Image width={16} height={16} alt="" src="/images/information-circle.svg" />
+        <ScienceIcon fontSize='12px' style={{ transform: 'translateY(1px)'}}/>
+        {/* <Image width={16} height={16} alt="" src="/images/information-circle.svg" /> */}
       </Banner>
     </Tt>
   )

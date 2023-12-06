@@ -16,11 +16,6 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/StatusChip'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
-import { ExperimentalBanner } from '@/components/data-display/ExperimentalBanner'
-
-interface ContainerProps {
-  experimental: boolean
-}
 
 const Col = styled.div`
   display: flex;
@@ -40,11 +35,11 @@ const ButtonWrapper = styled.div`
   width: 100%;
 `
 
-const Container = styled.div<ContainerProps>`
+const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: ${props => props.experimental ? 'space-between' : 'center' };
+  justify-content: center;
   height: 100%;
 `
 
@@ -129,10 +124,10 @@ const Programs: NextPage = () => {
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
+          const experimental = Boolean(row.experimental)
           return (
-            <Container experimental={Boolean(row.experimental)}>
-              <ExperimentalBanner experimental={Boolean(row.experimental)}/>
-              <StatusChip label={row.status} />
+            <Container>
+              <StatusChip experimental={experimental} style={{ justifySelf: 'center' }} label={row.status} />
             </Container>
           )
         }
