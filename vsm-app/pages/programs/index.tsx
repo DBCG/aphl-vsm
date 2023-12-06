@@ -13,7 +13,7 @@ import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { StatusChip } from '@/components/data-display/StatusChip'
+import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 
@@ -45,6 +45,7 @@ const Container = styled.div`
 
 export interface StatusProps {
   status: string
+  experimental: boolean
 }
 
 interface Error {

@@ -11,6 +11,7 @@ import { TextArea } from './TextArea'
 import { getOid } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
 import { getKeywords } from '@/helpers/valueSetHelpers'
+import { StatusChip } from './data-display/Chips'
 
 const maxFormWidth = '1000px'
 
@@ -181,38 +182,28 @@ export default function ValueSetContents({
     <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px', maxWidth: maxFormWidth }}>
         <FormControl>
-          <Grid container justifyContent="flex-end" spacing={2}>
-            <Grid item xs={12} sm={2}>
-              <Typography
-                sx={{
-                  background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
-                  color: 'white',
-                  padding: '4px 10px',
-                  textAlign: 'center',
-                  borderRadius: '8px'
-                }}
-              >
-                {isGrouperValueSet ? 'Grouper' : 'Leaf'}
-              </Typography>
-            </Grid>
+          <Grid item xs={12} sm={2}>
+            <Grid container justifyContent='flex-end' alignItems='flex-start' spacing={2}>
+                <Typography
+                  sx={{
+                    background: isGrouperValueSet ? 'var(--accent)' : 'var(--theme-300)',
+                    color: 'white',
+                    padding: '4px 10px',
+                    textAlign: 'center',
+                    borderRadius: '8px'
+                  }}
+                >
+                  {isGrouperValueSet ? 'Grouper' : 'Leaf'}
+                </Typography>
+              </Grid>
             <Grid item xs={12} sm={10}>
-              <PageTitle id={'page-title'}>{currentValueSet.title}</PageTitle>
+              <PageTitle style={{ marginBottom: '1rem' }} id={'page-title'}>{currentValueSet.title}</PageTitle>
             </Grid>
           </Grid>
           <InputContainer>
             <Grid container justifyContent="flex-end">
               {isDraftProgram && (
-                <Typography
-                  style={{
-                    background: '#FAA024',
-                    color: 'white',
-                    padding: '4px 10px',
-                    borderRadius: '8px',
-                    height: 'max-content'
-                  }}
-                >
-                  Draft
-                </Typography>
+                <StatusChip label='draft' experimental={Boolean(programAndGrouperInfo?.program?.experimental)}/>
               )}
             </Grid>
             <Grid container alignItems="flex-start" spacing={2}>

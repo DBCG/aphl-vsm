@@ -24,9 +24,10 @@ interface GrouperTable {
   toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
   programStatus: fhir4.Library['status']
+  isExperimental: boolean
 }
 
-const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => {
+const GrouperOverviewTable = ({ grouperLibId, programStatus, isExperimental }: GrouperTable) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)

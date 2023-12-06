@@ -16,6 +16,7 @@ import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { PackageDetailsModal } from '../modals/PackageDetailsModal'
 import { expectedPackageBody } from '@/pages/api/programs/[id]/package'
+import { StatusChip } from '../data-display/Chips'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -85,14 +86,14 @@ const ProgramDetails = () => {
     )
   }
 
-  const { id = '', status } = program
+  const { id = '', status, experimental } = program
   return (
     <Col>
       {exportError && <ErrorMessage error={exportError} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusTag status={status}>{status}</StatusTag>
+          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }}label={status} experimental={Boolean(experimental)} />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button

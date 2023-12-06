@@ -387,6 +387,7 @@ body {
   --theme-300: rgba(1, 161, 175, 1);
   --theme-200: rgba(81, 189, 201, 1);
   --theme-100: rgba(237, 248, 249, 1);
+  --draft: #ffeecc;
   --accent: #d32f2f;
   --warning-light: #f4cb92;
   --warning-medium: rgb(250, 160, 36);
