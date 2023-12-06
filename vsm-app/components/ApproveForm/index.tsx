@@ -5,7 +5,6 @@ import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { toast } from 'react-toastify'
 import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
@@ -18,11 +17,12 @@ import {
 } from './styles'
 import { approvalFormParams, artifactAssessmentInfoTypeOptions, artifactAssessmentInfoTypes } from './types'
 
+type ApproveFormProps = {
+  programAndGrouperData: any
+}
 
-export const ApproveForm = () => {
+export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
   const router = useRouter()
-  const programId = router.query.id as string
-  const { programAndGrouperData } = useGetProgramDetails({ id: programId })
   const [loading, setLoading] = useState(false)
   const [approvalFormData, setApprovalFormData] = useState<approvalFormParams>({
     approvalDate: new Date(),

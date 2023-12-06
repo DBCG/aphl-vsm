@@ -33,7 +33,10 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         if (program) {
           logger.debug(`cache hit for ${programKey}`)
           //TODO: shoudln't be in this array, need to fixup the apis
-          return res.status(200).json({ programs: [JSON.parse(program)], assessments: [] })
+          return res.status(200).json({
+            programs: [program],
+            assessments: []
+          })
         }
       }
       queries['_id:contains'] = req.query['id'] as string

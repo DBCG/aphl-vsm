@@ -76,7 +76,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retri
 }
 
 const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const body = JSON.parse(req.body)
+  const body = req.body
   const { groupInfo } = body
   const leafValuesetId = body?.canonical?.split('/ValueSet/')?.[1]
 

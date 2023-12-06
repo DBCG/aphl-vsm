@@ -18,7 +18,7 @@ interface BodyInfo {
 
 const updateGrouperLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const body = JSON.parse(req.body)
+    const body = req.body
 
     const { libraryId, editingInfo }: BodyInfo = body
 

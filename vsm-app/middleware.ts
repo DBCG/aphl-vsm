@@ -1,3 +1,6 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { withAuth } from 'next-auth/middleware'
+
 export const config = {
   matcher: [
     /*
@@ -10,4 +13,16 @@ export const config = {
   ]
 }
 
-export { default } from 'next-auth/middleware'
+export default withAuth(function middleware(req: NextRequest) {
+  const addHeader = ['POST', 'PUT', 'DELETE'].includes(req.method)
+  if (addHeader) {
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('Content-Type', 'application/json')
+    return NextResponse.next({
+      request: {
+        // New request headers
+        headers: requestHeaders,
+      },
+    })
+  }
+})

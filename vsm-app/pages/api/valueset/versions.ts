@@ -155,9 +155,8 @@ const getLeafFromTermServer = async ({
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
 const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse<updateLeafResponse>): Promise<void> => {
-  const body = await req.body
-  const bodyJson = JSON.parse(body) as HandleVersionChange
-  const { vsCanonical, selectedVersion, grouperIds, terminologyInfo, useContext } = bodyJson
+  const body = await req.body as HandleVersionChange
+  const { vsCanonical, selectedVersion, grouperIds, terminologyInfo, useContext } = body
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 

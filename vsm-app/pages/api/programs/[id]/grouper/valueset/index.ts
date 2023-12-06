@@ -92,7 +92,7 @@ const removeValueSetFromLibrary = async (programId: string, valuesetUrls: string
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const programId = req.query.id as string
-    const body = JSON.parse(req.body)
+    const body = await req.body
     // if you are deleting valuesets from groupers in a batch...
     if (body.batchDelete) {
       try {
@@ -156,8 +156,10 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
     } else {
       console.log('deleting one by one')
       try {
-        const { vsCanonical, grouperInfo } = body
-
+        const { vsCanonical, grouperInfo } = JSON.parse(`${body}`)
+        console.log('body: ', body)
+        console.log('grouperInfo: ', grouperInfo)
+        console.log('vsCanonical: ', vsCanonical)
         const groupersToUpdate = []
         for (const grouperC of grouperInfo) {
           const grouperValueSetBundle = (await fhirCdrClient.search({
@@ -175,7 +177,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
     
           if (grouperVsToUpdate) {
             const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, [vsCanonical])
-    
+            console.log('groupervstoupdate: ', grouperVsToUpdate)
             groupersToUpdate.push(updatedGrouper)
             await Promise.all(
               groupersToUpdate.map((grouperVs) =>
@@ -191,7 +193,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
         return res.status(200).send(groupersToUpdate)
 
       } catch (e) {
-        logger.error('error: ', e)
+        logSimpleError(e)
         res.status(400).send({ error: 'Error deleting grouper' })
       }
     }
@@ -212,7 +214,7 @@ interface BodyInfo {
 // -------------------------- ROUTE TO ADD NEW GROUPER -----------------------------
 // ---------------------------------------------------------------------------------
 const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const body: BodyInfo = JSON.parse(req.body)
+  const body: BodyInfo = req.body
 
   // programId will always be a string
   const programId = req.query.id as string
@@ -526,7 +528,7 @@ const updateProgramLibraryWithGrouperRef = async (
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
-    const body = JSON.parse(req.body)
+    const body = req.body
     const { grouperId, originalGrouperVersion, metadata } = body
 
     // there should only be one result here if any

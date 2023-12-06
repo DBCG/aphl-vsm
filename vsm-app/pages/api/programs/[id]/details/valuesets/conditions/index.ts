@@ -5,7 +5,7 @@ import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 export type conditionUpdateReturn = fhir4.ValueSet | { error: string }
 const handleConditionUpdate = async (req: NextApiRequest, res: NextApiResponse<conditionUpdateReturn>) => {
-  const body = JSON.parse(req.body) as ConditionToUpdate
+  const body = req.body as ConditionToUpdate
   // need to identify by version, too... can do w/ read?
   // ISSUE to be fixed by cache... thihs isn't immediately available
   const valueSetToUpdate = await fhirCdrClient.search({

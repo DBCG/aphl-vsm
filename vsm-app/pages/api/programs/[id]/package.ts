@@ -6,7 +6,7 @@ export type expectedPackageBody = { parameters: fhir4.Parameters; json: boolean 
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 const crmi_package = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
-  const { parameters, json } = JSON.parse(req.body || {}) as expectedPackageBody
+  const { parameters, json } = req.body || {} as expectedPackageBody
   try {
     if (json) {
       const response = (await fhirCdrClient.operation({
