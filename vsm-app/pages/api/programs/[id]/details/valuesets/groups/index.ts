@@ -77,10 +77,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retri
 
 const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = req.body
-  const { selectedGroups } = body
-  // is this just the ID or does it also have the version? probably.
-  const leafValuesetId = body?.canonical?.split('/ValueSet/')?.[1]
-  console.log('leafValueSetId: ', leafValuesetId)
+  const { groupInfo } = body
 
   const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
@@ -123,8 +120,6 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
 
     // this is not currently handling versions right
     for (const grouperValueSet of grouperVSets) {
-      console.log(`Grouper compose include for grouperValueSet ${grouperValueSet.title}`, grouperValueSet?.compose?.include)
-      console.log(`grouper`, grouperValueSet)
       const leafVSetsInGroup = grouperValueSet?.compose?.include
         ?.map((item: any) => item?.valueSet)
         ?.filter((x: string | undefined) => x)
@@ -145,17 +140,13 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
         return (canonicalInGrouper === canonicalInLeaf) && (versionInGrouper !== versionInLeaf)
       })
 
-      const leafShouldExistInGrouper = selectedGroups?.find((i: GroupInfoItem) => {
-        return i?.value === grouperValueSet?.id
-      })
-
-      // if wrong leaf version in the grouper, just remove it
-      if (wrongLeafVersionInGrouper) {
-
-      }
+      const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => (
+        i?.value === grouperValueSet?.id
+      ))
 
       if (!leafExistsInGrouper && leafShouldExistInGrouper) {
         let currentGrouper = grouperValueSet
+        // if the wrong leaf version exists in the grouper already
         if (wrongLeafVersionInGrouper) {
           currentGrouper = removeValueSetFromGrouper(grouperValueSet, [body.canonical])
         }

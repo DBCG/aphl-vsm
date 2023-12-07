@@ -418,8 +418,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          console.log('updateVsgroups.canonical: ', updateVsGroups.canonical)
-          console.log('row.canonical: ', row.canonical)
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
