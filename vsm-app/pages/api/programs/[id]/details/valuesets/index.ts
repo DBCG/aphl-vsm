@@ -130,7 +130,13 @@ const getLeafValueSets = async ({
       leafValueSetCanonicals.push(url)
     })
   })
-  if (!leafValueSetCanonicals.length) return { error: `No leaf Valuesets found.` }
+  if (!leafValueSetCanonicals.length) {
+      return ({
+        leafValueSets: [],
+        leafVersionsByCanonical: {},
+        totalLeafs: 0
+    })
+  }
 
   const leafValueSets = await fetchLeafValueSets({
     leafValueSetCanonicals,
