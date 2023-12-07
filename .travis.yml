@@ -17,10 +17,12 @@ install:
 jobs:
   include:
     - stage: build-plugin
+      if: commit_message =~ /^update-plugin-.+$/
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
     - stage: deploy-plugin
+      if: commit_message =~ /^update-plugin-.+$/
       script:
       - cd $TRAVIS_BUILD_DIR/ecr
       - cd ../
