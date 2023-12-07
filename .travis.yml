@@ -25,6 +25,7 @@ jobs:
       if: commit_message =~ /^update-plugin-.+$/
       script:
       - cd $TRAVIS_BUILD_DIR/ecr
+      - docker build -t cqf-ruler:$TRAVIS_COMMIT .
       - cd ../
       - ./bin/deploy_plugin.sh
     - stage: test
