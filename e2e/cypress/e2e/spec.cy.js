@@ -4,6 +4,17 @@ const downloadsFolder = Cypress.config('downloadsFolder')
 const deleteDownloadsFolder = () => {
   cy.task('deleteFolder', downloadsFolder)
 }
+
+const clickDraftProgramRow = () => {
+  cy.get('[data-column-id="1"]')
+  .contains("DRAFT")
+  .parents("div")
+  .parents("div")
+  .parents("div")
+  .first()
+  .click(200,0, { force: true });
+}
+
 describe("Smoke Tests", () => {
   before(() => {
     cy.setupData();
@@ -31,19 +42,14 @@ describe("Smoke Tests", () => {
     });
 
     it("Edit Program Metadata", () => {
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
       cy.get("#edit-metadata").click();
-
       // Set program metadata values
       cy.get("#prog-title").clear().type("Draft Library");
       cy.get("#prog-desc").clear().type("Draft Library description");
       cy.get(".date-input button").click();
       cy.get("button").contains('Today').click();
+      cy.get("span").contains('Experimental?').click();
       cy.get("#prog-release-desc").clear().type("this is a release description for the draft library");
       cy.intercept("PUT", "**/api/programs/*").as("updateProgramMetadata");
       cy.get("#edit-metadata-save").click();
@@ -54,17 +60,13 @@ describe("Smoke Tests", () => {
       cy.get("#prog-title").should("have.value", "Draft Library");
       cy.get("#prog-version").should("have.value", "1.1.0.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
+      cy.get("#experimental-indicator input").should("not.be.checked");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
       cy.get("#effectiveStartDate").should("have.value", moment().format("YYYY-MM-DD")).should("be.visible");
     });
 
     it("Adds a manifest to library", () => {
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#edit-manifest").click();
       cy.get("#code-system-selector").click();
@@ -95,12 +97,7 @@ describe("Smoke Tests", () => {
     });
 
     it("Creates, Edits, and Deletes new grouper", () => {
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#create-new-grouper").click();
 
@@ -140,12 +137,7 @@ describe("Smoke Tests", () => {
 
       // Navigate back to program view
       cy.get("#breadcrumb-programs").click();
-      cy.get('[data-column-id="1"]')
-      .contains("DRAFT")
-      .parents("div")
-      .parents("div")
-      .first()
-      .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       // Now remove newly created grouper
       cy.get('[data-button-context="delete"]').last().click();
@@ -154,12 +146,7 @@ describe("Smoke Tests", () => {
     });
 
     it("Adds a new valueset to multiple program groupers then removes it", () => {
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#view-valuesets").click();
       cy.get("#add-valueset").click();
@@ -195,16 +182,11 @@ describe("Smoke Tests", () => {
 
         // navigate back to program view
         cy.get("#breadcrumb-programs").click();
-        cy.get('[data-column-id="1"]')
-          .contains("DRAFT")
-          .parents("div")
-          .parents("div")
-          .first()
-          .click(50, 0, { force: true });
+        clickDraftProgramRow()
 
         // Check grouper to see if version exists
         cy.get("@grouper1").then((grouper1) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
         });
         cy.wait(3000) // Wait for valueset to load due to async nature of the call above
         cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
@@ -214,7 +196,7 @@ describe("Smoke Tests", () => {
 
         // // Check second grouper to see if version exists
         cy.get("@grouper2").then((grouper2) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(200,10, { force: true });
         });
         cy.wait(3000)
 
@@ -236,7 +218,7 @@ describe("Smoke Tests", () => {
 
         // Check grouper to see valueset has been removed
         cy.get("@grouper1").then((grouper1) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(50, 10, { force: true });
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
           cy.get('#page-title').contains(grouper1).should("exist")
         });
         cy.wait(3000)
@@ -248,7 +230,7 @@ describe("Smoke Tests", () => {
 
         // Check second grouper to see valueset has been removed
         cy.get("@grouper2").then((grouper2) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(50, 10, { force: true });
+          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(200,10, { force: true });
           cy.get('#page-title').contains(grouper2).should("exist")
         });
         cy.wait(3000)
@@ -258,12 +240,7 @@ describe("Smoke Tests", () => {
     });
 
     it("Ability to filter Valuesets by OID, Name, or Version", () => {
-      cy.get('[data-column-id="1"]')
-      .contains("DRAFT")
-      .parents("div")
-      .parents("div")
-      .first()
-      .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#view-valuesets").click();
       // Search By Name
@@ -278,12 +255,7 @@ describe("Smoke Tests", () => {
     })
 
     it("Adds and Removes conditions from valuesets", {scrollBehavior: false}, () => {
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#view-valuesets").click();
       cy.wait(3000);
@@ -303,12 +275,7 @@ describe("Smoke Tests", () => {
 
     it("Creates approval for draft library and release", () => {
       // View first draft program
-      cy.get('[data-column-id="1"]')
-        .contains("DRAFT")
-        .parents("div")
-        .parents("div")
-        .first()
-        .click(50, 0, { force: true });
+      clickDraftProgramRow()
 
       cy.get("#approve").click();
       
@@ -341,7 +308,7 @@ describe("Smoke Tests", () => {
     //     // .parents("div")
     //     // .parents("div")
     //     // .first()
-    //     .click(50, 0, { force: true });
+    //     .click(200,0, { force: true });
     //   // click the Export button
     //   cy.get('button').contains('Export').click()
     //   // if we don't wait here the program data is lost somewhere
@@ -363,7 +330,7 @@ describe("Smoke Tests", () => {
     //     .parents("div")
     //     .parents("div")
     //     .first()
-    //     .click(50, 0, { force: true });
+    //     .click(200,0, { force: true });
     //   // click the Export button
     //   cy.get('button').contains('Export').click()
     //   // if we don't wait here the program data is lost somewhere
