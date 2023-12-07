@@ -36,7 +36,6 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
       body: batchReqBundle
     })
 
-    console.log('allOwned: ', allOwned)
     // if the GET fails to get anything, this doesn't cause
     // operationOutcome... is there a way to force opOutcome behavior?
     const ownedResources = allOwned
