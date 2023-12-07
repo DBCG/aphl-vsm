@@ -110,8 +110,6 @@ const AddGrouper = () => {
     setGrouperVSets(updatedVSets)
   }
 
-  const version = new Date().toISOString().substring(0, 10)
-
   useEffect(() => {
     const formattedName = capitalizeFirstLetter(stripFromName(title))
     setName(formattedName)
