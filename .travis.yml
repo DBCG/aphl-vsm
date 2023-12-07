@@ -16,15 +16,11 @@ install:
   - ./bin/install_ci_dependencies.sh
 jobs:
   include:
-    - stage: build-plugin
+    - stage: build-and-deploy-plugin
       if: commit_message =~ /^update-plugin-.+$/
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
-    - stage: deploy-plugin
-      if: commit_message =~ /^update-plugin-.+$/
-      script:
-      - cd $TRAVIS_BUILD_DIR/ecr
       - docker build -t cqf-ruler:$TRAVIS_COMMIT .
       - cd ../
       - ./bin/deploy_plugin.sh
