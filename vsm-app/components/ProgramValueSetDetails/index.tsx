@@ -74,6 +74,7 @@ export const priorityLevelOptions = [
   { label: 'Emergent', value: 'emergent', id: 'emergent' },
   { label: 'Routine', value: 'routine', id: 'routine' }
 ] as const
+
 const DEFAULT_FILTERS = {
   findInOid: '',
   findInVsTitle: '',
@@ -131,6 +132,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
+  const [priorityLoading, setPriorityLoading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
@@ -156,6 +158,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   // debounce changes to avoid extra server reqs
   const debouncedFilters = useDebounce(filters, 300)
   const valueSetPriorityMap = getVSPriority(currentProgram)
+
+  // don't allow editing if any loading in progress
+  const blockChanges = pageLoading
+  || grouperLoading
+  || conditionLoading
+  || isDeleting
+  || priorityLoading
+  || versionUpdateInFlight
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
@@ -251,6 +261,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority) => {
     setGrouperLoading(true)
     const library = setVSPriority(currentProgram, priority, vs.url!)
+    setPriorityLoading(true)
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
         method: 'PUT',
@@ -262,6 +273,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       toast.error('Error updating priority')
     } finally {
       setGrouperLoading(false)
+      setPriorityLoading(false)
     }
   }
 
@@ -406,6 +418,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow, index: number) => {
+          console.log('updateVsgroups.canonical: ', updateVsGroups.canonical)
+          console.log('row.canonical: ', row.canonical)
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
@@ -425,7 +439,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 classNamePrefix="priority"
                 inputId="priority-selector"
                 instanceId="priority-selector"
-                isLoading={updateVsGroups?.canonical === row?.canonical}
+                isLoading={priorityLoading}
+                isDisabled={blockChanges}
                 options={priorityLevelOptions}
                 value={currentPriorityValue}
                 onChange={(e) => {
@@ -463,7 +478,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPortalTarget={myDocument}
                 menuPlacement="top"
                 instanceId="version-selector"
-                isDisabled={versionUpdateInFlight}
+                isDisabled={blockChanges}
                 onChange={(e) => {
                   setVersionUpdateInFlight(true)
                   const grouperIds = row?.groups?.map((g) => g.id)
