@@ -13,12 +13,12 @@ import {
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
-import { updateConditions } from '@/helpers/conditionHelpers'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import uniqBy from 'lodash.uniqby'
+import { setVSConditions } from '@/helpers/libraryHelpers'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -237,14 +237,10 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       sendError(matchesInCqf)
     }
 
-    // update those cached leafs with newly added conditions (if any)
-    const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
-
     /**
      * Start Creating Payloads here as a Transaction Bundle to submit to CDR
      */
     const cqfUpdatesPayload = await submitUpdatesToCQF({
-      updatedVS: updatedValueSetsFromCache,
       grouperVSets,
       matchesInCqf
     })
@@ -261,7 +257,14 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(400).send('Error creating new grouper valueset')
     }
     const grouperVsUrl = `${newGrouper?.url}|${newGrouper?.version}`
-    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl)
+
+    // Set Conditions onto the program library
+    let conditionModifiedProgram = program as fhir4.Library
+    grouperVSets.forEach((vs) => {
+      conditionModifiedProgram = setVSConditions(conditionModifiedProgram, vs.selectedConditions, vs.selectedValueSet.url!)
+    })
+
+    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(conditionModifiedProgram as fhir4.Library, grouperVsUrl)
     if (is.errorResponse(programLibUpdatePayload)) {
       sendError(programLibUpdatePayload)
     } else {
@@ -282,15 +285,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 // ---------------------------------------------------------------------------------
 // ---------------------- HELPER FUNCTIONS USED IN ROUTES --------------------------
 // ---------------------------------------------------------------------------------
-const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
-  return vsets.map((vs) => ({
-    resource: vs,
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${vs.id}`
-    }
-  }))
-}
 
 const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library | ErrorResponse> => {
   try {
@@ -347,37 +341,20 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
   }
 }
 
-const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: FlatGrouperVSet[]): fhir4.ValueSet[] | undefined => {
-  if (!matchesInCqf || is.errorResponse(matchesInCqf)) return
-
-  return matchesInCqf.map((cachedVS) => {
-    const conditionsToAdd = grouperVSets
-      .find((item) => idWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
-      ?.selectedConditions?.filter((x) => Boolean(x))
-    // if user does not include conditions, just return unchanged vs
-    if (!conditionsToAdd?.length) {
-      return cachedVS
-    }
-    const vsWithConditions = updateConditions(cachedVS, conditionsToAdd, false)
-    return vsWithConditions
-  })
-}
-
 interface SubmitUpdatesToCQF {
-  updatedVS: fhir4.ValueSet[] | undefined
   matchesInCqf: MatchesInCQF
   grouperVSets: FlatGrouperVSet[]
 }
 
 const submitUpdatesToCQF = async ({
-  updatedVS,
   matchesInCqf,
-  grouperVSets
+  grouperVSets,
 }: SubmitUpdatesToCQF): Promise<fhir4.BundleEntry[] | [] | ErrorResponse> => {
-  if (!updatedVS || !matchesInCqf || is.errorResponse(matchesInCqf)) {
+  if (!matchesInCqf || is.errorResponse(matchesInCqf)) {
     return []
   }
-  const transactionEntries = buildBatchVSPut(updatedVS)
+
+  const transactionEntries = [] as fhir4.BundleEntry[]
   const matchesInCqfUrls = matchesInCqf?.map((vs) => vs.url)
   // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
@@ -408,9 +385,6 @@ const submitUpdatesToCQF = async ({
           id: idNoVersion
         })
 
-        // add optional conditions to valueset from term server (VSAC)
-        const vsWithConditions = updateConditions(valueSetToAdd as fhir4.ValueSet, flatGrouperItem.selectedConditions, false)
-
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
         const authSrcUrl = terminologyServerEndpoints?.find(
@@ -418,7 +392,7 @@ const submitUpdatesToCQF = async ({
         )?.value?.url
 
         // handle if no matching authoritativeSource url
-        const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl as string)
+        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, authoritativeSourceExtensionUrl, authSrcUrl as string)
 
         const vsAddedToCache = {
           resource: vsWithAuthSource,
