@@ -162,6 +162,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
         <Grid item xs={6}>
         <FormControlLabel
           label='Experimental?'
+          id='experimental-indicator'
           control={
             <Checkbox
               readOnly={!editable || !enableEditing}
