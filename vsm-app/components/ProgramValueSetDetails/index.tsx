@@ -582,6 +582,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
+                isDisabled={blockChanges}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
@@ -642,6 +643,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer>
               <Select
+                isDisabled={blockChanges}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
