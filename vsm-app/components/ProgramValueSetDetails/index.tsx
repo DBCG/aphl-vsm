@@ -143,6 +143,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [tableKey, setTableKey] = useState(1)
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
+  const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
 
@@ -268,6 +269,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     valueSetPriorityMap,
+    toggleUpdateData,
     ...debouncedFilters
   }) as Result
 
@@ -741,7 +743,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
           programId={currentProgram?.id!}
-          handleToggleUpdateData={setToggleUpdateData}
+          handleToggleUpdateData={handleToggleUpdateData}
         />
         <ErrorMessage error={error} />
         <DT

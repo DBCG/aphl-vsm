@@ -39,7 +39,7 @@ interface TableActions {
   groupsInProgram: fhir4.ValueSet[]
   formattedConditions: ConditionItem[]
   handleDelete: (selectedRows: TableRow[]) => void
-  handleToggleUpdateData: Dispatch<SetStateAction<boolean>>
+  handleToggleUpdateData: Dispatch<SetStateAction<void>>
   handleBulkEdit: () => void
   isDeleting: boolean
   totalRows: number
@@ -112,7 +112,7 @@ export const TableActions = ({
       })
     }
     setEditInFlight(false)
-    handleToggleUpdateData((t: boolean) => !t)
+    handleToggleUpdateData()
     handleCancelModal()
     setKeyInd((k) => k + 1)
     setGroupsToEdit([])
@@ -159,7 +159,7 @@ export const TableActions = ({
               data-action="delete"
             />
           </ActionCol>
-          {/* <ActionCol>
+          <ActionCol>
             <ActionTitle>Bulk Edit</ActionTitle>
             <IconButton
               buttoncontext="edit"
@@ -169,7 +169,7 @@ export const TableActions = ({
               data-action="edit"
               disabled={isEditing}
             />
-          </ActionCol> */}
+          </ActionCol>
         </ActionContainerRow>
         <ActionContainerRow>
           {isEditing && (
@@ -237,7 +237,7 @@ export const TableActions = ({
                     setIsEditing(false)
                     setGroupsToEdit([])
                     setConditionsToEdit([])
-                    handleToggleUpdateData((d) => !d)
+                    handleToggleUpdateData()
                   }}
                 />
                 {Boolean(conditionsToEdit.length || groupsToEdit.length) && (
