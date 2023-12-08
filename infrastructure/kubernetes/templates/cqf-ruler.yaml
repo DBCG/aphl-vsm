@@ -30,7 +30,7 @@ spec:
         app: cqf-ruler-vsm
     spec:
       containers:
-        - image: {{ .Values.cqf_ruler.image }}
+        - image: {{ .Values.aws.account_id }}.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:{{ .Values.tag }}
           imagePullPolicy: Always
           name: cqf-ruler-vsm
           env:
