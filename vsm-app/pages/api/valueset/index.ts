@@ -29,7 +29,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
   // check fhir server first to see if we already have the selected valueSets
   const serverResponses = await Promise.allSettled(
-    body?.selectedValueSets?.map((item) =>
+    body?.selectedValueSets?.map((item: fhir4.ValueSet) =>
       fhirCdrClient.search({
         resourceType: 'ValueSet',
         searchParams: {
@@ -172,12 +172,12 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
         const newValueSetCanonicals = body.selectedValueSets
           .map((item: any) => urlWithoutVersion(item.url))
           // return only things that don't already exist
-          .filter((canonical) => {
+          .filter((canonical: string) => {
             if (originalComposeInclude.length == 0) return canonical
             return originalComposeInclude?.find((item) => item?.valueSet?.[0] !== canonical)
           })
 
-        const newItems = newValueSetCanonicals?.map((c) => ({ valueSet: [c] }))
+        const newItems = newValueSetCanonicals?.map((c: string) => ({ valueSet: [c] }))
 
         let newComposeInclude = [...originalComposeInclude, ...newItems]
 
