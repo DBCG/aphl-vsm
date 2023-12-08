@@ -12,4 +12,4 @@ The Dockerfile builds on top of the base cqf-ruler image and simply copies the j
 
 ## Setup
 
-A V1 PlanDefinition skeleton must be uploaded with ID : `plandefinition-ersd-skeleton`
+If a V1 PlanDefinition is not provided as a parameter a fallback value can be used. The fallback V1 PlanDefinition skeleton must be uploaded with ID : `plandefinition-ersd-skeleton`
