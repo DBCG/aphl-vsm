@@ -75,7 +75,7 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
   } catch (e: any) {
     const error = e as HapiError
     logSimpleError(error)
-    return res.status(error?.response?.status || 500).json({ error: `Error changing ID` })
+    return res.status(error?.response?.status || 500).json({ error: `Error occurred updating owned resources for program` })
   }
 }
 
