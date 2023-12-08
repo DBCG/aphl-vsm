@@ -8,9 +8,14 @@ import { is } from '@/helpers/is'
 import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { setVSConditions } from '@/helpers/libraryHelpers'
 
 const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
   const body = await req.body
+
+  if (bodyJson?.selectedConditions?.length > 0 && !req.query.programId) {
+    return res.status(400).json({ error: 'missing program Id required for conditions' })
+  }
 
   let vSetsToUpdate: { valueSet: fhir4.ValueSet }[] = []
 
@@ -102,23 +107,41 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
   }
 
   try {
-    const vsUpdatePayload = vSetsToUpdate.map((vs) => ({
-      resource: vs.valueSet,
+
+    let program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: req.query.programId as string
+    }) as fhir4.Library
+
+    const bundlePayload = []
+    vSetsToUpdate.forEach((vs) => {
+      program = setVSConditions(program, bodyJson.selectedConditions, vs.valueSet.url!)
+      bundlePayload.push({
+        resource: vs.valueSet,
+        request: {
+          method: 'PUT',
+          url: `ValueSet/${vs.valueSet.id}`
+        }
+      })
+    })
+
+    bundlePayload.push({
+      resource: program,
       request: {
         method: 'PUT',
-        url: `ValueSet/${vs.valueSet.id}`
+        url: `Library/${program.id}`
       }
-    }))
+    })
 
     const performedUpdate = await fhirCdrClient.transaction({
       body: {
         resourceType: 'Bundle',
         type: 'transaction',
-        entry: vsUpdatePayload
+        entry: bundlePayload
       }
     })
 
-    const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
+    const failedUpdates = performedUpdate?.filter((promiseItem: { status: string }) => promiseItem.status === 'rejected')
     if (failedUpdates && failedUpdates?.length > 0) {
       logger.error('failed updates: \n' + JSON.stringify(failedUpdates, null, 2))
       // @ts-ignore
