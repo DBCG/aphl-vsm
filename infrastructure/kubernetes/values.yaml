@@ -2,7 +2,6 @@ tag: ""
 namespace: "vsm"
 cqf_ruler:
   db_url: "jdbc:postgresql://vsm-cqf-ruler-db.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
-  image: "alphora/cqf-ruler:cqf-ruler-vsm"
 vsm_app:
   app_url: "a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com"
   redis_host_url: "redis-cache.5hhpo0.ng.0001.use1.cache.amazonaws.com"
