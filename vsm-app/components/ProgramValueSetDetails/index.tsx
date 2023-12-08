@@ -29,7 +29,6 @@ import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
 import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
-import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
