@@ -10,6 +10,17 @@ import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 
+const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
+  try {
+    const response = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
+
+    res.status(200).send(response)
+  } catch (e) {
+    logger.error(e)
+    res.status(400).json({ error: 'Loading ValueSets failed' })
+  }
+}
+
 const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
   const body = await req.body
 
@@ -203,5 +214,6 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 }
 
 export default handler({
+  GET: { action: getValueSet },
   PUT: { action: updateValueSet, access: ['admin', 'editor'] }
 })
