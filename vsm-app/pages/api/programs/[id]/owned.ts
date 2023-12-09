@@ -4,6 +4,7 @@ import logger from '@/helpers/server/logger'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { getOwnedCanonicals, getOwnedReferences } from '@/helpers/ownedHelpers'
 
 const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{} | { error: string }>) => {
   try {
@@ -13,8 +14,7 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
       return res.status(409).send({ error: 'Not allowed' })
     }
     const resourcesToSearch = ['ValueSet', 'PlanDefinition', 'Library']
-    // question -- can we just search all resources for a version?
-
+    
     const getTransactionBody: fhir4.BundleEntry[] = resourcesToSearch.map((resourceType) => {
       const url = `${resourceType}?version=${programVersion}`
       return ({
@@ -31,24 +31,30 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
       type: 'transaction',
       entry: getTransactionBody
     }
-  
-    const allOwned = await fhirCdrClient.transaction({
+    
+    const versionMatches = await fhirCdrClient.transaction({
       body: batchReqBundle
     })
 
-    // if the GET fails to get anything, this doesn't cause
-    // operationOutcome... is there a way to force opOutcome behavior?
-    const ownedResources = allOwned
+    const resourcesWithMatchingVersion = versionMatches
       ?.entry?.map((i: any) => {
         return (i?.resource?.entry)?.flat()
           ?.map((r: any) => r?.resource)
-          ?.filter((x: any) => Boolean(x))
-      })
-        
-    if (!ownedResources.length) {
+          ?.filter((item: any) => !Boolean(item))
+    })
+
+    if (!resourcesWithMatchingVersion.length) {
       return res.status(400).send({ error: `No owned resources found with version ${programVersion}` }) 
     }
 
+    // filter to make sure that each resource we got here is definitively
+    // referenced by a parent as an owned item in relatedArtifact
+    const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourcetype === 'Library' && r?.id === req.query.id)
+    const ownedCanonicals = getOwnedCanonicals(programLib, resourcesWithMatchingVersion)
+
+    const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url))
+
+    console.log('owned: ', ownedResources)
     const resourcesToUpdate = ownedResources.map((resource: fhir4.ValueSet | fhir4.PlanDefinition | fhir4.Library) => {
       resource.experimental = isExperimental
       const url = `/${resource.resourceType}/${resource.id}`
