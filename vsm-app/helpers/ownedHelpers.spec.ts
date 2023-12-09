@@ -191,7 +191,7 @@ const TEST_GROUPER_LIB = {
         ]
       },
     ]
-  }
+  } as fhir4.Library
 
   const TEST_GROUPER_VS_OSTC = {
     resourceType: "ValueSet",
@@ -270,7 +270,7 @@ const TEST_GROUPER_LIB = {
       }
     ],
     purpose: "Nominal laboratory result values documented in a clinical record."
-  }
+  } as fhir4.ValueSet
 
   const TEST_GROUPER_DXTC = {
     resourceType: "ValueSet",
@@ -308,7 +308,7 @@ const TEST_GROUPER_LIB = {
     status: "active",
     experimental: true,
     publisher: "Association of Public Health Laboratories (APHL)"
-  }
+  } as fhir4.ValueSet
 
   const TEST_PLAN_DEF = {
     resourceType: "PlanDefinition",
@@ -383,7 +383,7 @@ const TEST_GROUPER_LIB = {
         resource: "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0"
       }
     ]
-  }
+  } as fhir4.PlanDefinition
 
 
 describe('owned helpers', () => {

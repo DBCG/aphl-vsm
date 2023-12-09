@@ -52,7 +52,7 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
     const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourcetype === 'Library' && r?.id === req.query.id)
     const ownedCanonicals = getOwnedCanonicals(programLib, resourcesWithMatchingVersion)
 
-    const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url))
+    const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url!))
 
     const resourcesToUpdate = ownedResources.map((resource: fhir4.ValueSet | fhir4.PlanDefinition | fhir4.Library) => {
       resource.experimental = isExperimental
