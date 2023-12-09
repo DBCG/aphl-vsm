@@ -67,7 +67,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       sortable: true,
       wrap: true,
       cell: (row: ManifestSystemVersionPair) => {
-        const isLatest = !Boolean(availableUpdates.find(
+        const isLatest = !Boolean(availableUpdates?.find(
           (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
         ))
         return (
