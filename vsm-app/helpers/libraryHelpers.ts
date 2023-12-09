@@ -235,12 +235,37 @@ const setVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
   return clonedProgram
 }
 
+const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+  const clonedProgram = cloneDeep(program)
+  // Create two buckets, one with targeted valueset url and one with the rest.
+  const targetedVSCondition = [] as fhir4.RelatedArtifact[]
+  const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
+  clonedProgram?.relatedArtifact?.forEach((i) => {
+    if (i?.resource == vsUrl && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')) {
+      targetedVSCondition.push(i)
+    } else {
+      otherRelatedArtifacts.push(i)
+    }
+  })
+  // Filter out only the conditions we want to keep
+  const filteredConditions = targetedVSCondition.filter((i) => {
+    const system = i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system
+    const code = i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
+    const condition = conditions.find((j) => j.value.system === system && j.value.code === code)
+    return !condition
+  })
+  clonedProgram.relatedArtifact = [...otherRelatedArtifacts, ...filteredConditions]
+
+  return clonedProgram
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
   setReleaseDescription,
   getVSPriority,
   setVSPriority,
+  removeVSConditions,
   getVSConditions,
   setVSConditions,
   missingFields,

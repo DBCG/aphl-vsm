@@ -1,35 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
-import { removeConditionsFromLeaf, Condition } from '@/helpers/conditionHelpers'
+import { Condition } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
 import { batchEditData } from '@/components/ProgramValueSetDetails/TableActions'
-import { MultiValue } from 'react-select'
-import { setVSConditions } from '@/helpers/libraryHelpers'
-
-// const handleVsetConditionUpdates = (
-//   vSets: fhir4.ValueSet[],
-//   action: 'add' | 'remove' | null,
-//   conditions: MultiValue<Condition>
-// ) => {
-//   if (action === 'add') {
-//     const updated = vSets.forEach(vs => {
-//       // make conditions mutable
-//       return updateConditions(vs, conditions as Condition[], false)
-//     })
-
-//     return updated
-//   } else if (action === 'remove') {
-//     // delete from conditions, only want to update those that had changes
-//     return vSets.map(leaf => removeConditionsFromLeaf(leaf, conditions as Condition[])).filter(x => Boolean(x))
-//   }
-// }
+import { removeVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
 
 const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const body = req.body as batchEditData
   const programId = req.query.id as string
-  let program = await fhirCdrClient.read({ resourceType: 'Library', id: programId }) as fhir4.Library
+  let program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
   if (!is.library(program)) {
     return res.status(404).send({ message: 'Program not found for updating conditions' })
   }
@@ -57,9 +38,15 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
 
   const successfulVsets = allValueSetsToUpdate?.entry?.map((e: any) => e?.resource)?.filter((item: fhir4.Resource) => is.valueSet(item))
 
-  successfulVsets.forEach((vs: fhir4.ValueSet) => {
-    program = setVSConditions(program, conditionsToUpdate as Condition[], vs.url!)
-  })
+  if (action === 'add') {
+    successfulVsets.forEach((vs: fhir4.ValueSet) => {
+      program = setVSConditions(program, conditionsToUpdate as Condition[], vs.url!)
+    })
+  } else if (action === 'remove') {
+    successfulVsets.forEach((vs: fhir4.ValueSet) => {
+      program = removeVSConditions(program, conditionsToUpdate as Condition[], vs.url!)
+    })
+  }
   res.status(200).send({ message: 'success' })
 }
 

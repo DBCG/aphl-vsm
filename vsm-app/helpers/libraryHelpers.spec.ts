@@ -8,8 +8,9 @@ import {
   validStartDate,
   setEffectivePeriodStart,
   setVSPriority,
-  USHealthVSPriority
+  setVSConditions
 } from './libraryHelpers'
+import { Condition } from './conditionHelpers'
 
 describe('libraryHelpers', () => {
   describe('getReleaseDescription', () => {
@@ -254,6 +255,42 @@ describe('libraryHelpers', () => {
       } as fhir4.Library
       const programWithEffective = setEffectivePeriodStart(testProgram, '2020-12-12')
       expect(programWithEffective?.effectivePeriod?.start).toEqual('2020-12-12')
+    })
+  })
+
+  describe('ValueSet Conditions', () => {
+    let testProgram: fhir4.Library
+    beforeEach(() => {
+      testProgram = cloneDeep(FIXTURE_PROGRAM)
+    })
+
+    describe('setVSConditions', () => {
+      it('should add conditions to the leaf value set', () => {
+        const testProgram = cloneDeep(FIXTURE_PROGRAM)
+        const conditions = [
+          {
+            value: {
+              system: 'http://snomed.info/sct',
+              version: 'http://snomed.info/sct/731000124108',
+              code: '731000124108'
+            },
+            label: 'COVID-19'
+          }
+        ] as Condition[]
+        const updatedProgram = setVSConditions(
+          testProgram,
+          conditions,
+          'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+        )
+        const addedCondition = updatedProgram.relatedArtifact?.find(
+          (i) =>
+            i?.resource === 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481' &&
+            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+        )
+        expect(addedCondition).toBeDefined()
+      })
     })
   })
 })
