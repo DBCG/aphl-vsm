@@ -54,7 +54,6 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
 
     const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url))
 
-    console.log('owned: ', ownedResources)
     const resourcesToUpdate = ownedResources.map((resource: fhir4.ValueSet | fhir4.PlanDefinition | fhir4.Library) => {
       resource.experimental = isExperimental
       const url = `/${resource.resourceType}/${resource.id}`
