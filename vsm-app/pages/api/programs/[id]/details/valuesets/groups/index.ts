@@ -78,7 +78,6 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retri
 const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const body = req.body
   const { groupInfo } = body
-  const leafValuesetId = body?.canonical?.split('/ValueSet/')?.[1]
 
   const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
 
@@ -119,19 +118,40 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
     const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource)
     const groupersToUpdate = []
 
+    // this is not currently handling versions right
     for (const grouperValueSet of grouperVSets) {
       const leafVSetsInGroup = grouperValueSet?.compose?.include
         ?.map((item: any) => item?.valueSet)
         ?.filter((x: string | undefined) => x)
         .flat()
 
-      const leafExistsInGrouper = leafVSetsInGroup?.find((canonical: string) => canonical?.endsWith(leafValuesetId))
+      // TODO: this is not specific enough, could match other things
+      const leafExistsInGrouper = leafVSetsInGroup?.find((canonicalWithPossibleVersion: string) => {
+        const [canonicalInGrouper, versionInGrouper] = canonicalWithPossibleVersion.split('|')
+        const canonicalInLeaf = canonicalWithPossibleVersion.split('|')[0]
+        const versionInLeaf = body.version
+        return (canonicalInGrouper === canonicalInLeaf) && (versionInGrouper === versionInLeaf)
+      })
 
-      const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => i?.value === grouperValueSet?.id)
+      const wrongLeafVersionInGrouper = leafVSetsInGroup?.find((canonicalWithPossibleVersion: string) => {
+        const [canonicalInGrouper, versionInGrouper] = canonicalWithPossibleVersion.split('|')
+        const canonicalInLeaf = canonicalWithPossibleVersion.split('|')[0]
+        const versionInLeaf = body.version
+        return (canonicalInGrouper === canonicalInLeaf) && (versionInGrouper !== versionInLeaf)
+      })
+
+      const leafShouldExistInGrouper = groupInfo?.find((i: GroupInfoItem) => (
+        i?.value === grouperValueSet?.id
+      ))
 
       if (!leafExistsInGrouper && leafShouldExistInGrouper) {
+        let currentGrouper = grouperValueSet
+        // if the wrong leaf version exists in the grouper already
+        if (wrongLeafVersionInGrouper) {
+          currentGrouper = removeValueSetFromGrouper(grouperValueSet, [body.canonical])
+        }
         // add the grouper
-        groupersToUpdate.push(addValueSetToGrouper(grouperValueSet, body.canonical))
+        groupersToUpdate.push(addValueSetToGrouper(currentGrouper, body.canonical))
       } else if (leafExistsInGrouper && !leafShouldExistInGrouper) {
         const grouperWithVsRemoved = removeValueSetFromGrouper(grouperValueSet, [body.canonical])
         if (grouperWithVsRemoved) {

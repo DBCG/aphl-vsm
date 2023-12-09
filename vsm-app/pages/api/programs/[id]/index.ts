@@ -65,8 +65,6 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
         body: req.body
       })
 
-      console.log('response: ', response)
-
       return res.status(200).send(response) // UI is expecting the updated library as a response
     }
 
