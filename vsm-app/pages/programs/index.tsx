@@ -13,7 +13,7 @@ import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { StatusChip } from '@/components/data-display/StatusChip'
+import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 
@@ -35,8 +35,17 @@ const ButtonWrapper = styled.div`
   width: 100%;
 `
 
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+`
+
 export interface StatusProps {
   status: string
+  experimental: boolean
 }
 
 interface Error {
@@ -116,7 +125,12 @@ const Programs: NextPage = () => {
         wrap: true,
         center: true,
         cell: (row: fhir4.Library) => {
-          return <StatusChip label={row.status} />
+          const experimental = Boolean(row.experimental)
+          return (
+            <Container>
+              <StatusChip experimental={experimental} style={{ justifySelf: 'center' }} label={row.status} />
+            </Container>
+          )
         }
       },
       {

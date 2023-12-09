@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import debounce from 'lodash.debounce'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
@@ -17,6 +16,7 @@ import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { PackageDetailsModal } from '../modals/PackageDetailsModal'
 import { expectedPackageBody } from '@/pages/api/programs/[id]/package'
+import { StatusChip } from '../data-display/Chips'
 
 const ProgramDetails = () => {
   const router = useRouter()
@@ -40,17 +40,14 @@ const ProgramDetails = () => {
     }
   }, [programId, programAndGrouperData?.program])
 
-  const handleSubmit = async (submittedProgram: fhir4.Library) => {
-    await updateProgram(submittedProgram)
-  }
-
-  const updateProgram = async (toUpdateProgram: fhir4.Library) => {
-    const response = await fetch(`/api/programs/${router.query.id}`, {
+  const updateProgram = async ({ program, isExperimental }: {program: fhir4.Library, isExperimental: boolean }) => {
+    const endPoint = `/api/programs/${router.query.id}?experimental=${isExperimental}`
+    const response = await fetch(endPoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(toUpdateProgram)
+      body: JSON.stringify(program)
     })
 
     // If there is an error in the PUT request to update the library, reset the program to default
@@ -89,14 +86,14 @@ const ProgramDetails = () => {
     )
   }
 
-  const { id = '', status } = program
+  const { id = '', status, experimental } = program
   return (
     <Col>
       {exportError && <ErrorMessage error={exportError} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusTag status={status}>{status}</StatusTag>
+          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }}label={status} experimental={Boolean(experimental)} />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button
@@ -156,7 +153,7 @@ const ProgramDetails = () => {
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={program} handleSubmit={handleSubmit} editable={allowEditing({ session, programStatus: status })} />
+      <ProgramMetadata program={program} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>

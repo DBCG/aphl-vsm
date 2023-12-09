@@ -136,7 +136,8 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
             body: updateInput
           })
         } catch (e) {
-          console.log(e)
+          logSimpleError(e)
+          return res.status(400).send({ error: 'Error encountered while deleting Valuesets from grouper references' })
         }
   
         if (is.operationOutcome(updateGroupers)) {
@@ -153,7 +154,6 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
     // otherwise, you are deleting vsets one by one
     } else {
-      console.log('deleting one by one')
       try {
         const { vsCanonical, grouperInfo } = JSON.parse(`${body}`)
         const groupersToUpdate = []

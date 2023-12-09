@@ -1,5 +1,6 @@
 import styled from 'styled-components'
 import { StatusProps } from '../../pages/programs'
+import { IconChip } from '../data-display/Chips'
 
 export const Row = styled.div`
   display: flex;
@@ -33,10 +34,9 @@ export const MetadataTitle = styled.div`
   align-items: center;
 `
 
-export const StatusTag = styled.div<StatusProps>`
+const StatusTagInternal = styled.div<StatusProps>`
   border-radius: 8px;
   padding: 6px 8px;
-  margin-bottom: 24px;
   height: fit-content;
   margin-left: 8px;
   font-size: 80%;
@@ -44,7 +44,25 @@ export const StatusTag = styled.div<StatusProps>`
   font-weight: bold;
   text-transform: uppercase;
   background-color: ${(props) => (props.status === 'active' ? 'rgba(46, 192, 205, 1)' : 'white')};
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  height: fit-content;
 `
+
+interface StatTag {
+  status: fhir4.ValueSet['status']
+  experimental: boolean
+}
+
+export const StatusTag = ({ status, experimental }: StatTag) => {
+  return (
+    <StatusTagInternal status={status} experimental={experimental}>
+      <p>{status}</p>
+      <IconChip experimental={experimental} indicatorType='experimental'/>
+    </StatusTagInternal>
+  )
+}
 
 export const ItemWrapper = styled.div`
   color: var(--theme-500);

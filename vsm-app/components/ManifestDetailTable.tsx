@@ -65,7 +65,18 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       name: 'Version',
       selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
-      wrap: true
+      wrap: true,
+      cell: (row: ManifestSystemVersionPair) => {
+        const isLatest = !Boolean(availableUpdates?.find(
+          (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
+        ))
+        return (
+          <div>
+            <p style={{ marginBottom: '0', marginTop: '0' }}>{row.version}</p>
+            { isLatest && <i>(latest)</i> }
+          </div>
+        )
+      },
     },
     {
       name: 'Remove',
@@ -91,7 +102,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       }
     },
     {
-      name: 'Update to Latest',
+      name: 'Pin to Latest',
       maxWidth: '200px',
       omit: noUpdatesAvailable,
       sortable: false,
