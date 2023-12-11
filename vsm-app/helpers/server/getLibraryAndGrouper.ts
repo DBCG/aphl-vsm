@@ -53,7 +53,8 @@ const getLibraryAndGrouper = async (programId: string) => {
     const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)?.filter((r) => !!r)
     return { grouperVSets, programLibrary }
   } else {
-    throw new Error("Groupers not found from given program id: " + programId)
+    console.warn("Groupers not found from given program id: " + programId)
+    return { grouperVSets: [], programLibrary }
   }
 }
 
