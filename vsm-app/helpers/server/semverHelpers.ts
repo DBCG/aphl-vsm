@@ -35,4 +35,11 @@ const latestVersion = (cdrVersion: string | any, templateVersion: string | any):
   }
 }
 
+// const convertSemverForSemverCompare = (str: string) => {
+
+//   return (
+//     'test'
+//   )
+// }
+
 export { latestVersion, isValidSimpleSemver }

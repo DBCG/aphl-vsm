@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import debounce from 'lodash.debounce'
 import DT from 'react-data-table-component'
@@ -16,6 +16,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
+import sort from 'semver/functions/sort'
 
 const Col = styled.div`
   display: flex;
@@ -73,6 +74,13 @@ const Programs: NextPage = () => {
     newProgram: `${router?.query?.new}`,
     refreshToggle: newCloneExists
   })
+
+  useEffect(() => {
+    const versions = ['2.2.0', '2.2.0-tag', '1.0.0', '2.2.1+2-tag', '']
+    console.log('original: ', versions)
+    const sorted = sort(versions)
+    console.log('sorted: ', sorted)
+  }, [programs])
 
   const handleClickClone = (programId: string | undefined) => {
     if (!programId) return
@@ -274,6 +282,7 @@ const Programs: NextPage = () => {
     <Col>
       <LoadingModal
         actionType="clone"
+        latestVersion=""
         isOpen={modalOpen}
         handleModalAction={async () => {
           // throttle this action based on if it is already ongoing
