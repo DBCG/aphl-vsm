@@ -1,4 +1,5 @@
 import semver from 'semver'
+import sort from 'semver/functions/sort'
 
 const removeFlags = (item: any) => item?.split('-')?.[0]
 
@@ -35,11 +36,8 @@ const latestVersion = (cdrVersion: string | any, templateVersion: string | any):
   }
 }
 
-// const convertSemverForSemverCompare = (str: string) => {
-
-//   return (
-//     'test'
-//   )
-// }
+const getLatestFromList = (versions: string[]) => {
+  
+}
 
 export { latestVersion, isValidSimpleSemver }
