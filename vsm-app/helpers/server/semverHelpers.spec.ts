@@ -1,4 +1,4 @@
-import { latestVersion, isValidSimpleSemver } from './semverHelpers'
+import { latestVersion, isValidSimpleSemver, getLatestFromList } from './semverHelpers'
 
 describe('semverHelpers', () => {
   describe('latestVersion', () => {
@@ -69,6 +69,32 @@ describe('semverHelpers', () => {
       expect(isValidSimpleSemver('0.10.0.-02')).toBe(false)
       expect(isValidSimpleSemver('invalid!.0.0.0')).toBe(false)
       expect(isValidSimpleSemver('0.0.0.0.0')).toBe(false)
+    })
+  })
+
+  describe('getLatestFromList', () => {
+    const UNSORTED_1 = ['0.1.2', '2.3.4', '0.0.0', '3.4.5']
+    const EXPECTED_1 = '3.4.5'
+    it('returns the latest semver taking into account three compartments', () => {
+      expect(getLatestFromList(UNSORTED_1)).toBe(EXPECTED_1)
+    })
+
+    const UNSORTED_2 = ['0.1.2.4', '2.3.4', '3.4.5.6', '0.0.0', '3.4.5']
+    const EXPECTED_2 = '3.4.5.6'
+    it('returns the latest semver taking into account three or 4 compartments', () => {
+      expect(getLatestFromList(UNSORTED_2)).toBe(EXPECTED_2)
+    })
+
+    const UNSORTED_3 = ['0.1.2.4', '2.3.4-draft', '3.4.5-draft', '0.0.0', '3.4.5.0-draft']
+    const EXPECTED_3 = '3.4.5.0-draft'
+    it('returns the latest semver taking into account three or 4 compartments with tag', () => {
+      expect(getLatestFromList(UNSORTED_3)).toBe(EXPECTED_3)
+    })
+
+    const UNSORTED_4 = ['0.1.2.4', 'eee', '2.3.4-draft', '3.4.5-draft', '0.0.0', '3.4.5.0-draft']
+    const EXPECTED_4 = '3.4.5.0-draft'
+    it('ignores versions with incorrect syntax and does not throw', () => {
+      expect(getLatestFromList(UNSORTED_4)).toBe(EXPECTED_4)
     })
   })
 })
