@@ -11,6 +11,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.PlanDefinition;
@@ -44,11 +45,11 @@ public class TransformProvider implements OperationProvider {
 	@Description(shortDefinition = "Converts a v2 ERSD bundle into a v1 ERSD bundle", value = "Converts a v2 ERSD bundle into a v1 ERSD bundle")
 	@Operation(idempotent = true, name = "$ersd-v2-to-v1-transform")
 	public Bundle convert_v1(
-		RequestDetails requestDetails,
-		@OperationParam(name = "bundle") IBaseResource maybeBundle,
-		@OperationParam(name = "planDefinition") IBaseResource maybePlanDefinition,
-		@OperationParam(name = "targetVersion") String targetVersion
-		) throws UnprocessableEntityException {
+			RequestDetails requestDetails,
+			@OperationParam(name = "bundle") IBaseResource maybeBundle,
+			@OperationParam(name = "planDefinition") IBaseResource maybePlanDefinition,
+			@OperationParam(name = "targetVersion") String targetVersion
+	) throws UnprocessableEntityException {
 		if (maybeBundle == null) {
 			throw new UnprocessableEntityException("Resource is missing");
 		}
@@ -58,16 +59,25 @@ public class TransformProvider implements OperationProvider {
 		if (maybePlanDefinition != null && !(maybePlanDefinition instanceof PlanDefinition)) {
 			throw new UnprocessableEntityException("Provided v1 PlanDefinition is not a PlanDefinition resource");
 		}
-		Bundle v2 = (Bundle) maybeBundle;
-		final PlanDefinition v1PlanDefinition = maybePlanDefinition != null ? (PlanDefinition) maybePlanDefinition : getV1PlanDefinition(requestDetails);
-		removeRootSpecificationLibrary(v2);
-		v2.getEntry().stream()
+		Bundle v2Bundle = (Bundle) maybeBundle;
+		final PlanDefinition v1PlanDefinition = (PlanDefinition) maybePlanDefinition;
+		IdType targetPlanDefinitionId = v1PlanDefinition != null ? v1PlanDefinition.getIdElement() : getCurrentPlanDefinition(v2Bundle).getIdElement();
+
+		removeRootSpecificationLibrary(v2Bundle);
+		v2Bundle.getEntry().stream()
 			.forEach(entry -> {
 				if (entry.getResource() instanceof MetadataResource) {
 					MetadataResource resource = (MetadataResource) entry.getResource();
-					checkAndUpdateV2PlanDefinition(entry, v1PlanDefinition);
-					updateV2GroupersUseContext(resource,v1PlanDefinition.getIdElement());
-					updateV2TriggeringValueSets(resource, v1PlanDefinition.getUrl());
+
+					if (v1PlanDefinition != null
+							&& entry.getResource().getResourceType() == ResourceType.PlanDefinition
+							&& entry.getResource().hasMeta()
+							&& entry.getResource().getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains("/ersd-plandefinition"))) {
+						checkAndUpdateV2PlanDefinition(entry, v1PlanDefinition);
+					}
+
+					updateV2GroupersUseContext(resource, targetPlanDefinitionId);
+					updateV2TriggeringValueSets(resource);
 					updateV2TriggeringValueSetLibrary(resource);
 					resource.setExperimentalElement(null);
 					if (targetVersion != null) {
@@ -75,15 +85,15 @@ public class TransformProvider implements OperationProvider {
 					}
 				}
 			});
-		return v2;
+		return v2Bundle;
 	}
+
 	private void updateV2GroupersUseContext(MetadataResource resource, IIdType planDefinitionId) {
-		// if resourc is a vs
+		// if resource is a ValueSet
 		if (resource.getResourceType() == ResourceType.ValueSet) {
 			ValueSet valueSet = (ValueSet) resource;
-			// if vs is a grouper
-			if (valueSet.hasCompose()
-			&& valueSet.getCompose().getIncludeFirstRep().getValueSet().size() > 0) {
+			// if ValueSet is a grouper
+			if (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() > 0) {
 				List<UsageContext> usageContexts = valueSet.getUseContext();
 				UsageContext program = usageContexts.stream().filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.hl7UsageContextType) && useContext.getCode().getCode().equals("program")).findFirst().orElseGet(() -> {
 					UsageContext retval = new UsageContext(new Coding(TransformProperties.hl7UsageContextType, "program", null), null);
@@ -94,12 +104,14 @@ public class TransformProvider implements OperationProvider {
 			}
 		 }
 	}
+
 	private void removeRootSpecificationLibrary(Bundle v2) {
 		List<BundleEntryComponent> filteredRootLib = v2.getEntry().stream()
 			.filter(entry -> entry.hasResource())
 			.filter(entry -> !(entry.getResource().hasMeta() && entry.getResource().getMeta().hasProfile(TransformProperties.usPHSpecLibProfile))).collect(Collectors.toList());
 		v2.setEntry(filteredRootLib);
 	}
+
 	private void checkAndUpdateV2PlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
 		if (entry.getResource().getResourceType() == ResourceType.PlanDefinition
 			&& entry.getResource().hasMeta()
@@ -110,6 +122,7 @@ public class TransformProvider implements OperationProvider {
 			entry.setFullUrl(url + "|" + version);
 		}
 	}
+
 	/**
 	 * Remove all instances of an old profile and add one instance of a new profile
 	 * @param meta the meta object to update
@@ -126,6 +139,7 @@ public class TransformProvider implements OperationProvider {
 		}
 		meta.setProfile(updatedProfiles);
 	}
+
 	private void updateV2TriggeringValueSetLibrary(MetadataResource resource) {
 		if (resource.getResourceType() == ResourceType.Library
 			&& resource.hasMeta() 
@@ -142,7 +156,8 @@ public class TransformProvider implements OperationProvider {
 			resource.setUseContext(filteredUseContexts);
 		}
 	}
-	private void updateV2TriggeringValueSets(MetadataResource resource, String v1PlanDefinitionUrl) {
+
+	private void updateV2TriggeringValueSets(MetadataResource resource) {
 		if (resource.getResourceType() == ResourceType.ValueSet
 		 && resource.hasMeta() 
 		 && resource.getMeta().hasProfile(TransformProperties.usPHTriggeringVSProfile)) {
@@ -157,17 +172,23 @@ public class TransformProvider implements OperationProvider {
 			resource.setUseContext(filteredUseContexts);
 		}
 	}
-	private PlanDefinition getV1PlanDefinition(RequestDetails requestDetails) throws ResourceNotFoundException {
-		Optional<PlanDefinition> maybePlanDefinition = Optional.ofNullable(null);
-		try {
-			PlanDefinition v1PlanDefinition = (PlanDefinition) transformProperties
-				.getDaoRegistry()
-				.getResourceDao(TransformProperties.v1PlanDefinitionId.getResourceType())
-				.read(TransformProperties.v1PlanDefinitionId, requestDetails);	
-			maybePlanDefinition = Optional.of(v1PlanDefinition);
-		} catch (ResourceNotFoundException | ResourceGoneException e) {
-			throw new ResourceNotFoundException("Could not find V1 PlanDefinition");
+
+	private static PlanDefinition getCurrentPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
+		List<PlanDefinition> planDefinitions = bundle.getEntry().stream()
+				.map(BundleEntryComponent::getResource)
+				.filter(resource -> resource.getResourceType() == ResourceType.PlanDefinition
+						&& resource.hasMeta()
+						&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains("/ersd-plandefinition"))
+				)
+				.map(resource -> (PlanDefinition) resource)
+				.collect(Collectors.toList());
+
+		if (planDefinitions.isEmpty()) {
+			throw new UnprocessableEntityException("No eRSD PlanDefinition found in the source Bundle.");
+		} else if (planDefinitions.size() > 1) {
+			throw new UnprocessableEntityException("More than one eRSD PlanDefinition found in the source Bundle.");
 		}
-		return maybePlanDefinition.orElseThrow(() -> new ResourceNotFoundException("Could not find V1 PlanDefinition"));
+
+		return planDefinitions.get(0);
 	}
 }
