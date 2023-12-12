@@ -66,9 +66,8 @@ export const incrementSemver = ({
       revision = incrementStringValue(revision) || revision || '0'
       break
   }
-  const result = `${major}.${minor}.${patch}${revision ? "." + revision : ""}`
-  console.log('result: ', result)
-  // only append revision if it exists
+  // add a revision if it doesn't already exist
+  const result = `${major}.${minor}.${patch}${revision ? "." + revision : ".0"}`
   return result
 }
 
