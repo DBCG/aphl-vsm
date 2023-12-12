@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { latestVersion } from '@/helpers/server/semverHelpers'
+import { getLatestFromList, latestVersion } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
@@ -33,13 +33,17 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
 
   let body = req.body
 
-  const semverFromTemplateProgram = body?.version
+  const { libraryData, latestProgramVersion } = body
+
+  const semverFromTemplateProgram = libraryData?.version
 
   const latestSemverFromCdr = latestProgram
     ?.entry?.[0]?.resource?.version
+  
+  const latestSemver = getLatestFromList([latestSemverFromCdr, latestProgramVersion])
 
   const latestIncrementedVersion = incrementSemver({
-    valueToIncrement: latestVersion(latestSemverFromCdr, semverFromTemplateProgram),
+    valueToIncrement: latestVersion(latestSemver, semverFromTemplateProgram),
     incrementType: 'minor',
     fallbackValue: '1.0.0.0'
   })
@@ -79,7 +83,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
       const clientResponse = await fhirCdrClient.operation({
         name: '$draft',
         method: 'POST',
-        id: `Library/${body.id}`,
+        id: `Library/${libraryData.id}`,
         options: {
           headers: {
             'content-type': 'application/json'
@@ -89,7 +93,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
       }) as fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] }
       if (!clientResponse?.entry?.length && attempts > 0) {
         logger.error(`
-          Error: could not $draft Library/${body.id} with version ${versionToAttempt}.
+          Error: could not $draft Library/${libraryData.id} with version ${versionToAttempt}.
           Attempt #${attempts}/5.
         `)
         attempts = attempts - 1
