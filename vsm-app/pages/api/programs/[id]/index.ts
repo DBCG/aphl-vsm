@@ -5,7 +5,7 @@ import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import updateOwnedResources from './owned'
+import updateOwnedResources from '@/helpers/server/owned'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
