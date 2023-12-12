@@ -286,7 +286,6 @@ const Programs: NextPage = () => {
     <Col>
       <LoadingModal
         actionType="clone"
-        latestVersion=""
         isOpen={modalOpen}
         handleModalAction={async () => {
           // throttle this action based on if it is already ongoing

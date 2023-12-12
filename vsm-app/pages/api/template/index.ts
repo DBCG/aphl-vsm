@@ -35,15 +35,13 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
 
   const { libraryData, latestProgramVersion } = body
 
-  const semverFromTemplateProgram = libraryData?.version
-
   const latestSemverFromCdr = latestProgram
     ?.entry?.[0]?.resource?.version
   
   const latestSemver = getLatestFromList([latestSemverFromCdr, latestProgramVersion])
 
   const latestIncrementedVersion = incrementSemver({
-    valueToIncrement: latestVersion(latestSemver, semverFromTemplateProgram),
+    valueToIncrement: latestSemver,
     incrementType: 'minor',
     fallbackValue: '1.0.0.0'
   })
