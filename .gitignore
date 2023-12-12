@@ -7,3 +7,6 @@ eRSDTransformerWorkspace/plandefinition/plandefinition-us-ecr-specification.xml
 *.out
 *.tfstate.backup
 terraform.tfstate
+.idea
+ecr/.idea
+ecr/target
