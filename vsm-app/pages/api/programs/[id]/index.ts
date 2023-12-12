@@ -5,6 +5,7 @@ import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import updateOwnedResources from './owned'
 
 // this only gets the program library
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
@@ -59,21 +60,19 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
       return res.status(409).send({ error: 'Not allowed' })
     }
 
+    // if experimental status was updated, you need to update it on all owned resources
     if (experimental !== req.query['experimental']?.toString()) {
       // update owned resources if experimental value doesn't match
       const experimentalValue = req.query.experimental || experimental || false
-      // update in body for separate PUT
+      // update in body for separate PUT because library may have other changes to metadata
       req.body.experimental = experimentalValue
-      const body = JSON.stringify({
-        programVersion: version,
-        programStatus: status,
-        isExperimental: experimentalValue
-      })
-    
-      await fetch(`${process.env.FHIR_CDR_URL}/api/programs/${req.body.id}/owned`, {
-        method: 'PUT',
-        body
-      })
+
+      // update experimental on children resources first, do library if successful
+      const ownedUpdate = await updateOwnedResources({programId: req.query.id as string, programVersion: version, isExperimental: experimentalValue })
+
+      if (ownedUpdate.error) {
+        return res.status(500).json({ error: ownedUpdate.error })
+      }
     }
 
     if (id === req.query['id']?.toString()) {

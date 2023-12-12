@@ -1,18 +1,16 @@
-import { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from '@/fhirClients'
-import logger from '@/helpers/server/logger'
-import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getOwnedCanonicals, getOwnedReferences } from '@/helpers/ownedHelpers'
+import { getOwnedCanonicals } from '@/helpers/ownedHelpers'
 
-const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{} | { error: string }>) => {
+interface UpdateOwned {
+  programId: string
+  programVersion: string
+  isExperimental: boolean
+}
+const updateOwnedResources = async ({ programId, programVersion, isExperimental }: UpdateOwned) => {
   try {
-    const { programVersion, programStatus, isExperimental } = JSON.parse(req.body)
-    if (programStatus === 'active') {
-      logger.error('Cannot edit an active Program Library')
-      return res.status(409).send({ error: 'Not allowed' })
-    }
+
     const resourcesToSearch = ['ValueSet', 'PlanDefinition', 'Library']
     
     const getTransactionBody: fhir4.BundleEntry[] = resourcesToSearch.map((resourceType) => {
@@ -38,18 +36,18 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
 
     const resourcesWithMatchingVersion = versionMatches
       ?.entry?.map((i: any) => {
-        return (i?.resource?.entry)?.flat()
+        return (i?.resource?.entry)
           ?.map((r: any) => r?.resource)
-          ?.filter((item: any) => !Boolean(item))
-    })
+    }).flat()
+
 
     if (!resourcesWithMatchingVersion.length) {
-      return res.status(400).send({ error: `No owned resources found with version ${programVersion}` }) 
+      return ({ error: 'Did not find resources with matching version' })
     }
 
     // filter to make sure that each resource we got here is definitively
     // referenced by a parent as an owned item in relatedArtifact
-    const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourcetype === 'Library' && r?.id === req.query.id)
+    const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourcetype === 'Library' && r?.id === programId)
     const ownedCanonicals = getOwnedCanonicals(programLib, resourcesWithMatchingVersion)
 
     const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url!))
@@ -66,7 +64,7 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
       })
     })
 
-    await fhirCdrClient.transaction({
+    const result = await fhirCdrClient.transaction({
       body: {
         resourceType: 'Bundle',
         type: 'transaction',
@@ -74,16 +72,13 @@ const updateOwnedResources = async (req: NextApiRequest, res: NextApiResponse<{}
       }
     })
 
-    return res.status(200).send({})
-
+    return result
 
   } catch (e: any) {
     const error = e as HapiError
     logSimpleError(error)
-    return res.status(error?.response?.status || 500).json({ error: `Error occurred updating owned resources for program` })
+    return ({ error: `Error occurred updating owned resources for program` })
   }
 }
 
-export default handler({
-  PUT: { action: updateOwnedResources }
-})
+export default updateOwnedResources
