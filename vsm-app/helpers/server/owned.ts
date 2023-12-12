@@ -8,6 +8,7 @@ interface UpdateOwned {
   programVersion: string
   isExperimental: boolean
 }
+
 const updateOwnedResources = async ({ programId, programVersion, isExperimental }: UpdateOwned) => {
   try {
 
@@ -40,18 +41,16 @@ const updateOwnedResources = async ({ programId, programVersion, isExperimental 
           ?.map((r: any) => r?.resource)
     }).flat()
 
-
     if (!resourcesWithMatchingVersion.length) {
       return ({ error: 'Did not find resources with matching version' })
     }
 
     // filter to make sure that each resource we got here is definitively
     // referenced by a parent as an owned item in relatedArtifact
-    const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourcetype === 'Library' && r?.id === programId)
+    const programLib = resourcesWithMatchingVersion?.find((r: any) => r?.resourceType === 'Library' && r?.id === programId)
     const ownedCanonicals = getOwnedCanonicals(programLib, resourcesWithMatchingVersion)
 
     const ownedResources = resourcesWithMatchingVersion.filter((res: fhir4.Library | fhir4.PlanDefinition | fhir4.ValueSet) => ownedCanonicals.includes(res.url!))
-
     const resourcesToUpdate = ownedResources.map((resource: fhir4.ValueSet | fhir4.PlanDefinition | fhir4.Library) => {
       resource.experimental = isExperimental
       const url = `/${resource.resourceType}/${resource.id}`
