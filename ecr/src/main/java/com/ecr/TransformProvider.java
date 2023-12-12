@@ -61,14 +61,13 @@ public class TransformProvider implements OperationProvider {
 		}
 		Bundle v2Bundle = (Bundle) maybeBundle;
 		final PlanDefinition v1PlanDefinition = (PlanDefinition) maybePlanDefinition;
+		IdType targetPlanDefinitionId = v1PlanDefinition != null ? v1PlanDefinition.getIdElement() : getCurrentPlanDefinition(v2Bundle).getIdElement();
 
 		removeRootSpecificationLibrary(v2Bundle);
 		v2Bundle.getEntry().stream()
 			.forEach(entry -> {
 				if (entry.getResource() instanceof MetadataResource) {
 					MetadataResource resource = (MetadataResource) entry.getResource();
-
-					IdType targetPlanDefinitionId = v1PlanDefinition != null ? v1PlanDefinition.getIdElement() : getCurrentPlanDefinition(v2Bundle).getIdElement();
 
 					if (v1PlanDefinition != null
 							&& entry.getResource().getResourceType() == ResourceType.PlanDefinition
