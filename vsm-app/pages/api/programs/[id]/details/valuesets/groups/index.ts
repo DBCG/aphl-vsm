@@ -3,7 +3,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-import getLibraryAndGrouper from '@/helpers/server/getLibraryAndGrouper'
+import getLibraryAndGrouper from '@/helpers/server/getProgramAndGrouper'
 
 interface GroupInfoItem {
   label: string

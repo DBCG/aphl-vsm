@@ -205,8 +205,69 @@ const getVSConditions = (program: fhir4.Library) => {
   return vsConditions
 }
 
-const setVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+const setVSConditions = (
+  program: fhir4.Library,
+  conditions: Condition[],
+  vsUrl: string,
+  action: 'add' | 'remove' | 'override' = 'override'
+) => {
   const clonedProgram = cloneDeep(program)
+  switch (action) {
+    case 'add':
+      return addVSConditions(clonedProgram, conditions, vsUrl)
+    case 'remove':
+      return removeVSConditions(clonedProgram, conditions, vsUrl)
+    case 'override':
+      return overrideVSConditions(clonedProgram, conditions, vsUrl)
+  }
+}
+
+const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+  // Create two buckets, one with targeted valueset url and one with the rest.
+  const targetedVSCondition = [] as fhir4.RelatedArtifact[]
+  const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
+  program?.relatedArtifact?.forEach((i) => {
+    if (i?.resource == vsUrl && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')) {
+      targetedVSCondition.push(i)
+    } else {
+      otherRelatedArtifacts.push(i)
+    }
+  })
+  // Loop through conditions and check if they already exist in the targetedVSCondition bucket
+  // If they do then ignore otherwise add it to the bucket
+  conditions.forEach((condition) => {
+    const exists = targetedVSCondition.find(
+      (i) =>
+        i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === condition.value.system &&
+        i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === condition.value.code
+    )
+    if (!exists) {
+      targetedVSCondition.push({
+        extension: [
+          {
+            url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: condition.value.system,
+                  code: condition.value.code
+                }
+              ],
+              text: condition.label
+            }
+          }
+        ],
+        type: 'depends-on',
+        resource: vsUrl
+      })
+    }
+  })
+  program.relatedArtifact = [...otherRelatedArtifacts, ...targetedVSCondition]
+  return program
+}
+
+// Remove any existing conditions for the given valueset and add the new conditions
+const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
   const newConditions: fhir4.RelatedArtifact[] =
     conditions.map((i) => ({
       extension: [
@@ -226,21 +287,20 @@ const setVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
       type: 'depends-on',
       resource: vsUrl
     })) || []
-  const clearedArtifactFilters = clonedProgram?.relatedArtifact?.filter(
+  const clearedArtifactFilters = program?.relatedArtifact?.filter(
     (i) => i?.resource !== vsUrl || !i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')
   )
 
-  clonedProgram.relatedArtifact = [...(clearedArtifactFilters || []), ...newConditions]
+  program.relatedArtifact = [...(clearedArtifactFilters || []), ...newConditions]
 
-  return clonedProgram
+  return program
 }
 
 const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
-  const clonedProgram = cloneDeep(program)
   // Create two buckets, one with targeted valueset url and one with the rest.
   const targetedVSCondition = [] as fhir4.RelatedArtifact[]
   const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
-  clonedProgram?.relatedArtifact?.forEach((i) => {
+  program?.relatedArtifact?.forEach((i) => {
     if (i?.resource == vsUrl && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')) {
       targetedVSCondition.push(i)
     } else {
@@ -254,9 +314,9 @@ const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsU
     const condition = conditions.find((j) => j.value.system === system && j.value.code === code)
     return !condition
   })
-  clonedProgram.relatedArtifact = [...otherRelatedArtifacts, ...filteredConditions]
+  program.relatedArtifact = [...otherRelatedArtifacts, ...filteredConditions]
 
-  return clonedProgram
+  return program
 }
 
 export {
@@ -265,7 +325,6 @@ export {
   setReleaseDescription,
   getVSPriority,
   setVSPriority,
-  removeVSConditions,
   getVSConditions,
   setVSConditions,
   missingFields,

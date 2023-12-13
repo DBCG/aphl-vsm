@@ -1,7 +1,7 @@
 import { fhirCdrClient } from '@/fhirClients'
 import { WHITELIST_VALUESET_FIELDS } from '@/pages/api/programs/[id]/details/valuesets'
 
-const getLibraryAndGrouper = async (programId: string) => {
+const getProgramAndGrouper = async (programId: string) => {
   // get all grouper valueSets from within a program
   const programLibrary = (await fhirCdrClient.read({ resourceType: 'Library', id: programId as string })) as fhir4.Library
 
@@ -58,4 +58,4 @@ const getLibraryAndGrouper = async (programId: string) => {
   }
 }
 
-export default getLibraryAndGrouper
+export default getProgramAndGrouper

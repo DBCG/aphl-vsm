@@ -109,7 +109,7 @@ export const TableActions = ({
       await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
         method: 'PUT',
         body
-      })
+      }).then((res) => window.location.reload())
     }
     setEditInFlight(false)
     handleToggleUpdateData()
