@@ -23,6 +23,7 @@ services:
       - hapi.fhir.cql.cql_logging_enabled=true
       - hapi.fhir.fhir_version=R4
       - hapi.fhir.allow_multiple_delete=true
+      - hapi.fhir.reuse_cached_search_results_millis=-1
       # - hapi.fhir.security.enabled=true
       # - hapi.fhir.security.basic_auth.enabled=true
       # - hapi.fhir.security.basic_auth.username=admin

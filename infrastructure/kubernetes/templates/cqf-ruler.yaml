@@ -50,6 +50,8 @@ spec:
               value: dbadmin
             - name: hapi.fhir.security.enabled
               value: "true"
+            - name: hapi.fhir.reuse_cached_search_results_millis
+              value: -1
             - name: hapi.fhir.security.basic_auth.enabled
               value: "true"
             - name: hapi.fhir.security.basic_auth.username
