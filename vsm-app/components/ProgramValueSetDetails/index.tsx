@@ -218,7 +218,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows(selectedRows)
   }
 
-  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds) => {
+  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds: string[]) => {
     setConditionLoading(true)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {

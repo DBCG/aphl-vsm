@@ -51,7 +51,7 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
       logger.error('Could not find valueset canonical set in Grouper')
       throw new Error('Could not find valueset canonical set in Grouper')
     }
-    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action)
+    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action!)
   })
 
   await fhirCdrClient.update({
