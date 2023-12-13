@@ -6,7 +6,7 @@ describe('incrementSemver', () => {
       valueToIncrement: '1.0.0',
       incrementType: 'major',
       fallbackValue: '3.0.0'
-    })).toBe('2.0.0')
+    })).toBe('2.0.0.0')
 
     // with revision
     expect(incrementSemver({
@@ -21,7 +21,7 @@ describe('incrementSemver', () => {
       valueToIncrement: '1.0.0',
       incrementType: 'minor',
       fallbackValue: '2.0.0'
-    })).toBe('1.1.0')
+    })).toBe('1.1.0.0')
 
     // with revision
     expect(incrementSemver({
@@ -36,7 +36,7 @@ describe('incrementSemver', () => {
       valueToIncrement: '1.0.0',
       incrementType: 'patch',
       fallbackValue: '3.0.0'
-    })).toBe('1.0.1')
+    })).toBe('1.0.1.0')
 
     // with revision
     expect(incrementSemver({

@@ -1,5 +1,5 @@
 import cloneDeep from 'lodash.clonedeep'
-import { is } from "./helpers/is"
+import { isValidSimpleSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);
 export const sleep = (millis: number) => {
@@ -47,7 +47,7 @@ export const incrementSemver = ({
   const semverWithoutTag = valueToIncrement.split('-')[0]
 
   // if value is not semver format, return fallback
-  if (!is.semver(semverWithoutTag)) return fallbackValue
+  if (!isValidSimpleSemver(semverWithoutTag)) return fallbackValue
 
   let [major, minor, patch, revision] = semverWithoutTag.split('.')
 
@@ -65,8 +65,9 @@ export const incrementSemver = ({
       revision = incrementStringValue(revision) || revision || '0'
       break
   }
-  // only append revision if it exists
-  return `${major}.${minor}.${patch}${revision ? "." + revision : ""}`
+  // add a revision if it doesn't already exist
+  const result = `${major}.${minor}.${patch}${revision ? "." + revision : ".0"}`
+  return result
 }
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')

@@ -481,7 +481,7 @@ const updateProgramLibraryWithGrouperRef = async (
     })
 
     if (!vsLib.entry) {
-      return { resStatus: 404, errorMessage: `Could not find Library with url ${url}` }
+      return { resStatus: 404, errorMessage: `Could not find Library with url ${url} and version ${version}` }
     }
 
     // there will only be one result because only one draft allowed currently

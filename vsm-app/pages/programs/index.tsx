@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import debounce from 'lodash.debounce'
 import DT from 'react-data-table-component'
@@ -16,6 +16,8 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
+import sort from 'semver/functions/sort'
+import { getLatestFromList } from '@/helpers/server/semverHelpers'
 
 const Col = styled.div`
   display: flex;
@@ -60,6 +62,7 @@ const Programs: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [versionToRelease, setVersionToRelease] = useState<null | string | undefined>(null)
   const [error, setError] = useState<Error>({})
+  const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
 
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
@@ -74,6 +77,15 @@ const Programs: NextPage = () => {
     refreshToggle: newCloneExists
   })
 
+  useEffect(() => {
+    const programList = programs?.map(p => p.version)
+    if (programs.length) {
+      setLatestProgramVersion(getLatestFromList(programList as string[]))
+    } else {
+      setLatestProgramVersion(null)
+    }
+  }, [programs])
+
   const handleClickClone = (programId: string | undefined) => {
     if (!programId) return
     setProgIdToClone(programId)
@@ -86,7 +98,7 @@ const Programs: NextPage = () => {
     setError({})
     let libraryData: any = ''
     libraryData = programs.find((p) => p.id === programId)
-    const json = JSON.stringify(libraryData)
+    const json = JSON.stringify({ libraryData, latestProgramVersion })
 
     try {
       const res = await fetch('/api/template', {
