@@ -154,9 +154,10 @@ const getLeafFromTermServer = async ({
 // this endpoint needs to:
 // update the grouper valueset canonicals to point to the right valueset version
 // add + remove versions from canonicals
+// update condition and priority on program
 const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiResponse<updateLeafResponse>): Promise<void> => {
   const body = await req.body as HandleVersionChange
-  const { vsCanonical, selectedVersion, grouperIds, terminologyInfo, useContext } = body
+  const { vsCanonical, selectedVersion, grouperIds, programId, terminologyInfo, useContext } = body
   // save that particular version valueSet to the HAPI server
   // we must place the conditions & authoritative source on the valueset
 
@@ -222,6 +223,22 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         } as fhir4.BundleEntryRequest,
         resource: grouper as fhir4.ValueSet
       }))
+
+    const program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
+    program.relatedArtifact?.forEach((i) => {
+      if (i?.resource?.split('|')?.[0] === vsCanonical) {
+        i.resource = selectedVersion === 'latest' ? vsCanonical : `${vsCanonical}|${selectedVersion}`
+      }
+    })
+
+    updatedGroupers.push({
+      request: {
+        method: 'PUT',
+        url: `Library/${programId}`
+      } as fhir4.BundleEntryRequest,
+      // @ts-ignore
+      resource: program 
+    })
 
     await retry(() => fhirCdrClient.transaction({
         body: {

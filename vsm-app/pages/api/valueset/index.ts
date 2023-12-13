@@ -24,7 +24,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
   const body = await req.body
 
-  if (bodyJson?.selectedConditions?.length > 0 && !req.query.programId) {
+  if (body?.selectedConditions?.length > 0 && !req.query.programId) {
     return res.status(400).json({ error: 'missing program Id required for conditions' })
   }
 
@@ -126,7 +126,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
     const bundlePayload = []
     vSetsToUpdate.forEach((vs) => {
-      program = setVSConditions(program, bodyJson.selectedConditions, vs.valueSet.url!)
+      program = setVSConditions(program, body.selectedConditions, vs.valueSet.url!)
       bundlePayload.push({
         resource: vs.valueSet,
         request: {

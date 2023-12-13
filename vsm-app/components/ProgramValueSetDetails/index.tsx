@@ -56,6 +56,7 @@ interface ProgramValueSetDetailsProps {
 }
 
 export interface HandleVersionChange {
+  programId: string
   useContext: fhir4.UsageContext[]
   selectedVsId: string
   selectedVersion: string
@@ -119,6 +120,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     selectedVsId: '',
     selectedVersion: '',
     grouperIds: [],
+    programId: '',
     terminologyInfo: { value: '', hasExtension: false }
   })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
@@ -216,16 +218,16 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows(selectedRows)
   }
 
-  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string) => {
+  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds) => {
     setConditionLoading(true)
-    const library = setVSConditions(currentProgram, conditions, vsUrl)
+    const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, { 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(library)
+        body
       }).then((res) => res.json())
       toast.success('Added new condition:  ' + conditions?.[conditions.length-1]?.label)
       setCurrentProgram(updatedLibrary)
@@ -257,14 +259,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     postUpdate()
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
-  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority) => {
+  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
     setGrouperLoading(true)
-    const library = setVSPriority(currentProgram, priority, vs.url!)
+    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     setPriorityLoading(true)
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
-        body: JSON.stringify(library)
+        body
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
       setCurrentProgram(updatedLibrary)
@@ -333,7 +335,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     if (!versionToUpdate.grouperIds?.length) {
       return
     }
-
     const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -443,7 +444,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 value={currentPriorityValue}
                 onChange={(e) => {
                   if (!!e?.value) {
-                    updateValueSetPriority(row?.valueSet, e?.value)
+                    updateValueSetPriority(row?.valueSet, e?.value, row.groups.map((g) => g.id))
                   }
                 }}
               />
@@ -485,6 +486,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                     selectedVersion: e?.value as string,
                     useContext: row?.valueSet?.useContext || [],
                     vsCanonical: row?.valueSet?.url as string,
+                    programId: currentProgram?.id as string,
                     grouperIds,
                     terminologyInfo
                   })
@@ -560,6 +562,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             ?.map((i) => {
               return {
                 label: i?.valueCodeableConcept?.text || '',
+                groupIds: row.groups.map(i => i.id) || [],
                 value: {
                   system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
                   code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
@@ -589,7 +592,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 // TODO should block add if already exists
                 onChange={async (e) => {
                   const conditionInfo = e as Condition[]
-                  conditionInfo && await updateVSConditions(conditionInfo, row.canonical)
+                  conditionInfo && await updateVSConditions(conditionInfo, row.canonical, row.groups.map(i => i.id))
                 }}
               />
             </SelectInputContainer>

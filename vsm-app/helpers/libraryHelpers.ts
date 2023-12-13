@@ -175,13 +175,13 @@ const getVSPriority = (library: fhir4.Library) => {
   const vsPriorityMap: Record<string, USHealthVSPriority> = {}
   library?.relatedArtifact?.forEach((ra) => {
     if (ra.type === 'depends-on' && ra.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
-      const vs = ra.resource
+      const vsUrl = ra.resource?.split('|')?.[0] as string
       const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
       if (!(priority === 'emergent' || priority === 'routine')) {
         throw 'Unknown priority code!'
       }
-      if (vs && priority) {
-        vsPriorityMap[vs] = priority
+      if (vsUrl && priority) {
+        vsPriorityMap[vsUrl] = priority
       }
     }
   })
@@ -192,7 +192,7 @@ const getVSConditions = (program: fhir4.Library) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
     if (artifact?.type === 'depends-on' && artifact?.extension?.[0]?.url.endsWith('vsm-valueset-condition')) {
-      const vsUrl = artifact.resource as string
+      const vsUrl = artifact.resource?.split('|')?.[0] as string
       const condCodeableConcept = artifact.extension?.[0]?.valueCodeableConcept
       const conditionIdentifier = `${condCodeableConcept?.coding?.[0]?.system}|${condCodeableConcept?.coding?.[0]?.code}`
       if (!vsConditions[vsUrl]) {
