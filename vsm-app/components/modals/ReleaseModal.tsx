@@ -74,7 +74,6 @@ const ReleaseModal = ({
   const [releaseDescription, setReleaseDescription] = useState('')
   const [releaseLabel, setReleaseLabel] = useState('')
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
-  const [disableSubmission, setDisableSubmission] = useState(false)
   const [versionError, setVersionError] = useState<string | null>(null)
   const [versionToCheck, setVersionToCheck] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
   const [activeStep, setActiveStep] = useState(0)
@@ -162,7 +161,8 @@ const ReleaseModal = ({
 
   const checkForVersionErrors = () => {
     const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
-    if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck) {
+    const shouldShowVersionError = versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck
+    if (shouldShowVersionError) {
       setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0.0 are valid')
     } else if (matches.length) {
       setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
@@ -190,14 +190,6 @@ const ReleaseModal = ({
       setEffectiveStartDate(program?.effectivePeriod?.start || null)
     }
   }, [program])
-
-  useEffect(() => {
-    if (hasFormError()) {
-      setDisableSubmission(true)
-    } else {
-      setDisableSubmission(false)
-    }
-  }, [releaseDescription.length, releaseLabel.length, effectiveStartDate])
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   
@@ -230,6 +222,8 @@ const ReleaseModal = ({
 
   if (!isOpen || !program) return null
 
+  const defaultVersion = program?.version?.split('-')?.[0]
+
   const stepContents = [
     {
       label: 'Review Program Details',
@@ -250,7 +244,7 @@ const ReleaseModal = ({
                   updateVersion!(e?.target?.value)
                 }
               }
-              defaultValue={currentProgram?.version?.split('-draft')?.[0]}
+              defaultValue={defaultVersion}
               helperMessage={'This version must be in 3 or 4-digit semantic versioning format. Example: 3.0.2 or 10.1.2.3'}
               errorMessage={versionError}
             />
