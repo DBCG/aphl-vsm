@@ -78,9 +78,9 @@ const Programs: NextPage = () => {
   })
 
   useEffect(() => {
-    const programList = programs?.map(p => p.version)
+    const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
     if (programs.length) {
-      setLatestProgramVersion(getLatestFromList(programList as string[]))
+      setLatestProgramVersion(getLatestFromList(programList))
     } else {
       setLatestProgramVersion(null)
     }

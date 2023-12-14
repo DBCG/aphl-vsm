@@ -57,7 +57,7 @@ const getLatestFromList = (versions: string[]) => {
   const filteredVersions = versions.filter(v => isValidSimpleSemver(removeFlags(v)))
   const mappedVersions = filteredVersions.map(v => convertSemverForPackage(v))
   const sorted = sort(mappedVersions)
-  return convertBackToCqfSemver(sorted[sorted.length - 1])
+  return convertBackToCqfSemver(sorted[sorted.length - 1] || "")
 }
 
 export {
