@@ -18,15 +18,6 @@ Cypress.Commands.add('login', (username, password) => {
 })
 
 Cypress.Commands.add('setupData', () => { 
-  cy.request('POST', 'http://localhost:8082/fhir/$expunge',{
-    "resourceType": "Parameters",
-    "parameter": [
-      {
-        "name": "expungeEverything",
-        "valueBoolean": true
-      }
-    ]
-  })
   cy.exec('../bin/load-data.sh')
 })
 //

@@ -266,6 +266,7 @@ describe('libraryHelpers', () => {
 
     describe('setVSConditions', () => {
       it('should add conditions to the leaf value set', () => {
+        const targetedVsUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
         const testProgram = cloneDeep(FIXTURE_PROGRAM)
         const conditions = [
           {
@@ -280,16 +281,119 @@ describe('libraryHelpers', () => {
         const updatedProgram = setVSConditions(
           testProgram,
           conditions,
-          'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+          targetedVsUrl
         )
         const addedCondition = updatedProgram.relatedArtifact?.find(
           (i) =>
-            i?.resource === 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481' &&
+            i?.resource === targetedVsUrl &&
             i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
             i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
             i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
         )
         expect(addedCondition).toBeDefined()
+      })
+
+      it('should remove conditions from the leaf value set', () => {
+        const targetedVsUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+        const conditions = [
+          {
+            value: {
+              system: 'http://snomed.info/sct',
+              version: 'http://snomed.info/sct/731000124108',
+              code: '731000124108'
+            },
+            label: 'COVID-19'
+          }
+        ] as Condition[]
+        const updatedProgram = setVSConditions(
+          testProgram,
+          conditions,
+          targetedVsUrl
+        )
+        const addedCondition = updatedProgram.relatedArtifact?.find(
+          (i) =>
+            i?.resource === targetedVsUrl &&
+            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+        )
+        expect(addedCondition).toBeDefined()
+        
+        const removedProgram = setVSConditions(
+          updatedProgram,
+          conditions,
+          targetedVsUrl,
+          'remove'
+        )
+        const removedCondition = removedProgram.relatedArtifact?.find(
+          (i) =>
+            i?.resource === targetedVsUrl &&
+            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+        )
+        expect(removedCondition).toBeUndefined()
+      })
+
+      it('should add additional conditions to the program and not duplicate', () => {
+        const targetedVsUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+        const conditions = [
+          {
+            label: 'Acanthamoeba',
+            groupIds: ['2210', '2211'],
+            value: {
+              system: 'http://snomed.info/sct',
+              code: '49649001',
+              version: '',
+              text: 'Acanthamoeba'
+            }
+          },
+          {
+            label: 'Acute Flaccid Myelitis (AFM)',
+            groupIds: ['2210', '2211'],
+            value: {
+              system: 'http://snomed.info/sct',
+              code: '897031002',
+              version: '',
+              text: 'Acute Flaccid Myelitis (AFM)'
+            }
+          },
+          {
+            value: {
+              system: 'http://snomed.info/sct',
+              version: '2023-03',
+              code: '398565003',
+              text: 'Botulism'
+            },
+            label: 'Botulism'
+          }
+        ] as Condition[]
+        const updatedProgram = setVSConditions(
+          testProgram,
+          conditions,
+          targetedVsUrl
+        )
+        const additionalCondition = [
+          {
+            value: {
+              system: 'http://snomed.info/sct',
+              version: 'http://snomed.info/sct/731000124108',
+              code: '731000124108'
+            },
+            label: 'COVID-19'
+          }
+        ] as Condition[]
+
+        const finalProgram = setVSConditions(updatedProgram, additionalCondition, targetedVsUrl, 'add')
+        const addedCondition = finalProgram.relatedArtifact?.find(
+          (i) =>
+            i?.resource === targetedVsUrl &&
+            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+        )
+        expect(addedCondition).toBeDefined()
+
       })
     })
   })
