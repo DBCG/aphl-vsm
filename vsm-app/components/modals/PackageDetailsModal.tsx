@@ -1,5 +1,6 @@
-import React, { useRef } from 'react'
+import React, { useState } from 'react'
 import {
+  Box,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -13,27 +14,104 @@ import {
   Radio,
   RadioGroup
 } from '@mui/material'
+import { toast } from 'react-toastify'
 import styled from 'styled-components'
 
 interface ModalInfo {
   isOpen: boolean
+  program: fhir4.Library
   toggleModalOpen: () => void
-  handleDownloadClick: (useV2: boolean, json: boolean) => void
+  setDownloadLoading: (loading: boolean) => void
+  setExportError: (error: string) => void
 }
 
-const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: ModalInfo) => {
-  const json = useRef<HTMLInputElement>(null)
-  const useV1 = useRef<HTMLInputElement>(null)
-  const useV2 = useRef<HTMLInputElement>(null)
+const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, setDownloadLoading }: ModalInfo) => {
+  const [fileType, setFileType] = useState<'json' | 'xml'>('json')
+  const [versionRadioValue, setVersionRadioValue] = useState('v2')
+  const [fileUpload, setFileUpload] = useState<File | undefined>(undefined)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
   }
 
-  const handleDownload = () => {
-    handleDownloadClick(!!useV2.current?.checked, !!json.current?.checked)
+  const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`) => {
+    // https://stackoverflow.com/a/55613750/8144343
+    const blob = new Blob([data], { type: type })
+    const href = URL.createObjectURL(blob)
+    // create "a" HTLM element with href to file
+    const link = document.createElement('a')
+    link.href = href
+    link.download = `${program?.name || program?.id}-bundle.${type.includes('json') ? 'json' : 'xml'}`
+    document.body.appendChild(link)
+    link.click()
+
+    // clean up "a" element & remove ObjectURL
+    document.body.removeChild(link)
+    URL.revokeObjectURL(href)
+  }
+
+  const readFile = (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        try {
+          const result = JSON.parse(event?.target?.result as string)
+          resolve(result)
+        } catch (e) {
+          toast.error('File is not valid JSON')
+          reject()
+        }
+      }
+      reader.onerror = () => reject()
+      reader.readAsText(file)
+    })
+  }
+
+  const handleDownload = async () => {
+    setDownloadLoading(true)
+    const body = {
+      data: { parameters: { resourceType: 'Parameters' }, json: fileType === 'json', useV2: versionRadioValue === 'v2' }
+    }
+
+    if (versionRadioValue === 'v1' && fileUpload) {
+      const result = await readFile(fileUpload)
+      body.planDefinition = result
+    }
+    // try {
+    const data = await fetch(`/api/programs/${program?.id}/package`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    }).then((resp) => resp.text())
+    // } catch (error) {
+    //   console.error(error)
+    //   setExportError('Error exporting artifact')
+    //   return
+    // } finally {
+    //   setDownloadLoading(false)
+    // }
+
+    let json
+    try {
+      // if it's not JSON this will throw an error
+      json = JSON.parse(data)
+    } catch (error) {
+      // all XML starts with <
+      if (data?.[0] === '<') {
+        return downloadTextData(data, 'application/fhir+xml')
+      } else {
+        toast.error('Unable to parse $package response')
+      }
+    }
+
+    if ('error' in json) {
+      throw new Error('Server error')
+    } else if (json) {
+      return downloadTextData(data, 'application/fhir+json')
+    }
+
     toggleModalOpen()
   }
+
   return (
     <Dialog open={isOpen}>
       <ModalContent style={{ minWidth: '300px' }}>
@@ -45,7 +123,7 @@ const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: M
               {
                 <Switch
                   defaultChecked={true}
-                  inputRef={json}
+                  onChange={(e) => setFileType(e?.target?.checked ? 'json' : 'xml')}
                   sx={{
                     '& .MuiSwitch-thumb, & .MuiSwitch-track': { backgroundColor: 'var(--theme-300)' }
                   }}
@@ -53,17 +131,40 @@ const PackageDetailsModal = ({ isOpen, toggleModalOpen, handleDownloadClick }: M
               }
               <Typography>JSON</Typography>
             </Stack>
-            <RadioGroup row defaultValue="v2" name="radio-buttons-group">
-              <FormControlLabel inputRef={useV1} value="v1" control={<Radio />} label="V1" />
-              <FormControlLabel inputRef={useV2} value="v2" control={<Radio />} label="V2" />
+            <RadioGroup
+              row
+              value={versionRadioValue}
+              name="radio-buttons-export-group"
+              onChange={(e) => setVersionRadioValue(e?.target?.value)}
+            >
+              <FormControlLabel value="v1" control={<Radio />} label="V1" />
+              <FormControlLabel value="v2" control={<Radio />} label="V2" />
             </RadioGroup>
           </FormGroup>
+          {fileUpload && versionRadioValue === 'v1' && (
+            <Typography sx={{ textAlign: 'left' }} variant={'h6'}>
+              {fileUpload?.name}
+            </Typography>
+          )}
+          {versionRadioValue === 'v1' && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3 }}>
+              <Button component="label" variant="contained">
+                Upload Plan Definition
+                <VisuallyHiddenInput type="file" onChange={(e) => setFileUpload(e?.target?.files?.[0])} />
+              </Button>
+              {fileUpload == null && (
+                <Typography sx={{ textAlign: 'left', color: 'red' }} variant={'caption'}>
+                  required *
+                </Typography>
+              )}
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'flex-end' }}>
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <Button data-modal={'Download'} onClick={handleDownload}>
+          <Button disabled={versionRadioValue === 'v1' && !fileUpload} data-modal={'Download'} onClick={handleDownload}>
             Download
           </Button>
         </DialogActions>
@@ -77,21 +178,16 @@ const ModalContent = styled.div`
   text-align: center;
 `
 
-const ModalTitle = styled.h1`
-  margin-bottom: 36px;
-`
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1
+})
 
-const ModalText = styled.p`
-  line-height: 140%;
-  margin: 0 auto;
-  margin-bottom: 12px;
-`
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 24px;
-  justify-content: center;
-  margin-top: 36px;
-`
-
-export { PackageDetailsModal }
+export { ExportPackageDetailsModal }
