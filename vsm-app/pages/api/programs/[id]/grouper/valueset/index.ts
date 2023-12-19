@@ -13,12 +13,12 @@ import {
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
-import { updateConditions } from '@/helpers/conditionHelpers'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import uniqBy from 'lodash.uniqby'
+import { setVSConditions } from '@/helpers/libraryHelpers'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -28,46 +28,44 @@ export type ErrorResponse = {
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
   const grouperIds = Array.from(new Set(Object.values(items).flat()))
 
-  const itemsToGet = grouperIds.map(id => ({
+  const itemsToGet = grouperIds.map((id) => ({
     request: {
       method: 'GET',
       url: `ValueSet/${id}`
     } as fhir4.BundleEntryRequest
-  })) 
+  }))
 
-  return ({
+  return {
     resourceType: 'Bundle',
     type: 'transaction',
     entry: itemsToGet
-  })
+  }
 }
 
-const formatBatchGrouperUpdate = (
-  groupers: fhir4.ValueSet[]
-): fhir4.Bundle & { type: 'transaction' } => {
-  const itemsToUpdate = groupers.map(grouper => ({
+const formatBatchGrouperUpdate = (groupers: fhir4.ValueSet[]): fhir4.Bundle & { type: 'transaction' } => {
+  const itemsToUpdate = groupers.map((grouper) => ({
     request: {
       method: 'PUT',
       url: `ValueSet/${grouper.id}`
     } as fhir4.BundleEntryRequest,
     resource: grouper as fhir4.ValueSet
-  })) 
+  }))
 
-  return ({
+  return {
     resourceType: 'Bundle',
     type: 'transaction',
     entry: itemsToUpdate
-  })
+  }
 }
 
 const removeValueSetFromLibrary = async (programId: string, valuesetUrls: string[]) => {
-  const program = await fhirCdrClient.read({
+  const program = (await fhirCdrClient.read({
     resourceType: 'Library',
     id: programId
-  }) as fhir4.Library
+  })) as fhir4.Library
   if (!program) {
     logger.error(`Could not find Program: ${programId}`)
-    throw new Error("Could not find Program: " + programId)
+    throw new Error('Could not find Program: ' + programId)
   }
 
   program.relatedArtifact = program.relatedArtifact?.filter((artifact) => {
@@ -98,7 +96,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
       try {
         const { batchDelete } = body
         const searchInput = formatTransactionSearchEntry(batchDelete)
-      
+
         // grab all the groupers that need to be updated from CQF
         const grouperBatchEntryToUpdate = await fhirCdrClient.transaction({
           body: searchInput
@@ -108,18 +106,17 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           // send failure response
           return res.status(400).send({ error: 'Error finding groupers to update' })
         }
-  
+
         // just return the valueSet resource itself
-        const grouperList = grouperBatchEntryToUpdate.entry
-          .map((i: any) => i.resource)
+        const grouperList = grouperBatchEntryToUpdate.entry.map((i: any) => i.resource)
 
         const updatedGroupers = grouperList.map((g: any) => {
           const allVsUrlsToDelete = Object.keys(batchDelete)
           return removeValueSetFromGrouper(g, allVsUrlsToDelete)
         })
 
-        if (updatedGroupers.find((g: any) => g == null )) {
-          return res.status(400).send({ error: 'Error removing Valueset(s) from grouper' }) 
+        if (updatedGroupers.find((g: any) => g == null)) {
+          return res.status(400).send({ error: 'Error removing Valueset(s) from grouper' })
         }
 
         const updateInput = formatBatchGrouperUpdate(updatedGroupers)
@@ -139,7 +136,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           logSimpleError(e)
           return res.status(400).send({ error: 'Error encountered while deleting Valuesets from grouper references' })
         }
-  
+
         if (is.operationOutcome(updateGroupers)) {
           // send failure response
           logger.error('error: ', updateGroupers)
@@ -151,8 +148,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
         return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
       }
 
-
-    // otherwise, you are deleting vsets one by one
+      // otherwise, you are deleting vsets one by one
     } else {
       try {
         const { vsCanonical, grouperInfo } = JSON.parse(`${body}`)
@@ -165,12 +161,10 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
               _id: grouperC.id
             }
           })) as fhir4.Bundle
-    
+
           // there is an issue in the sample data where grouper valuesets have the exact same url
-          const grouperVsToUpdate = grouperValueSetBundle
-            ?.entry?.[0]
-            ?.resource as fhir4.ValueSet
-    
+          const grouperVsToUpdate = grouperValueSetBundle?.entry?.[0]?.resource as fhir4.ValueSet
+
           if (grouperVsToUpdate) {
             const updatedGrouper = removeValueSetFromGrouper(grouperVsToUpdate, [vsCanonical])
             groupersToUpdate.push(updatedGrouper)
@@ -186,13 +180,11 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
           }
         }
         return res.status(200).send(groupersToUpdate)
-
       } catch (e) {
         logSimpleError(e)
         res.status(400).send({ error: 'Error deleting grouper' })
       }
     }
-
   } catch (e) {
     console.error(e)
     logger.error('error: ', e)
@@ -237,14 +229,10 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       sendError(matchesInCqf)
     }
 
-    // update those cached leafs with newly added conditions (if any)
-    const updatedValueSetsFromCache = addConditionsToCachedLeafs(matchesInCqf, grouperVSets)
-
     /**
      * Start Creating Payloads here as a Transaction Bundle to submit to CDR
      */
     const cqfUpdatesPayload = await submitUpdatesToCQF({
-      updatedVS: updatedValueSetsFromCache,
       grouperVSets,
       matchesInCqf
     })
@@ -261,14 +249,33 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(400).send('Error creating new grouper valueset')
     }
     const grouperVsUrl = `${newGrouper?.url}|${newGrouper?.version}`
-    const programLibUpdatePayload = await updateProgramLibraryWithGrouperRef(program as fhir4.Library, grouperVsUrl)
-    if (is.errorResponse(programLibUpdatePayload)) {
-      sendError(programLibUpdatePayload)
+
+    // Set Conditions onto the program library
+    let conditionModifiedProgram = program as fhir4.Library
+    grouperVSets.forEach((vs) => {
+      // these leaf valuesets are set to the latest version and will not have a version in their canonical url
+      conditionModifiedProgram = setVSConditions(conditionModifiedProgram, vs.selectedConditions, vs.selectedValueSet.url!)
+    })
+
+    const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(conditionModifiedProgram as fhir4.Library, grouperVsUrl)
+
+    if (is.errorResponse(rctcProgramLibUpdatePayload)) {
+      sendError(rctcProgramLibUpdatePayload)
     } else {
       const putRequestBundle: fhir4.Bundle & { type: 'transaction' } = {
         resourceType: 'Bundle',
         type: 'transaction',
-        entry: [...cqfUpdatesPayload, programLibUpdatePayload]
+        entry: [
+          ...cqfUpdatesPayload,
+          rctcProgramLibUpdatePayload,
+          {
+            resource: conditionModifiedProgram,
+            request: {
+              method: 'PUT',
+              url: `Library/${conditionModifiedProgram.id}`
+            }
+          }
+        ]
       }
       const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
       return res.status(200).send({ message: responsesFromTransaction })
@@ -282,15 +289,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 // ---------------------------------------------------------------------------------
 // ---------------------- HELPER FUNCTIONS USED IN ROUTES --------------------------
 // ---------------------------------------------------------------------------------
-const buildBatchVSPut = (vsets: fhir4.ValueSet[]): fhir4.BundleEntry[] => {
-  return vsets.map((vs) => ({
-    resource: vs,
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${vs.id}`
-    }
-  }))
-}
 
 const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library | ErrorResponse> => {
   try {
@@ -347,42 +345,25 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
   }
 }
 
-const addConditionsToCachedLeafs = (matchesInCqf: MatchesInCQF, grouperVSets: FlatGrouperVSet[]): fhir4.ValueSet[] | undefined => {
-  if (!matchesInCqf || is.errorResponse(matchesInCqf)) return
-
-  return matchesInCqf.map((cachedVS) => {
-    const conditionsToAdd = grouperVSets
-      .find((item) => idWithoutVersion(item.selectedValueSet.url!) === cachedVS.url)
-      ?.selectedConditions?.filter((x) => Boolean(x))
-    // if user does not include conditions, just return unchanged vs
-    if (!conditionsToAdd?.length) {
-      return cachedVS
-    }
-    const vsWithConditions = updateConditions(cachedVS, conditionsToAdd, false)
-    return vsWithConditions
-  })
-}
-
 interface SubmitUpdatesToCQF {
-  updatedVS: fhir4.ValueSet[] | undefined
   matchesInCqf: MatchesInCQF
   grouperVSets: FlatGrouperVSet[]
 }
 
 const submitUpdatesToCQF = async ({
-  updatedVS,
   matchesInCqf,
   grouperVSets
 }: SubmitUpdatesToCQF): Promise<fhir4.BundleEntry[] | [] | ErrorResponse> => {
-  if (!updatedVS || !matchesInCqf || is.errorResponse(matchesInCqf)) {
+  if (!matchesInCqf || is.errorResponse(matchesInCqf)) {
     return []
   }
-  const transactionEntries = buildBatchVSPut(updatedVS)
+
+  const transactionEntries = [] as fhir4.BundleEntry[]
   const matchesInCqfUrls = matchesInCqf?.map((vs) => vs.url)
   // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
-    ?.map((vs) => (urlWithoutVersion(vs.selectedValueSet.url!)))
+    ?.map((vs) => urlWithoutVersion(vs.selectedValueSet.url!))
     ?.filter((url) => !matchesInCqfUrls?.includes(url))
     ?.filter((item) => Boolean(item))
 
@@ -408,9 +389,6 @@ const submitUpdatesToCQF = async ({
           id: idNoVersion
         })
 
-        // add optional conditions to valueset from term server (VSAC)
-        const vsWithConditions = updateConditions(valueSetToAdd as fhir4.ValueSet, flatGrouperItem.selectedConditions, false)
-
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
         const authSrcUrl = terminologyServerEndpoints?.find(
@@ -418,7 +396,7 @@ const submitUpdatesToCQF = async ({
         )?.value?.url
 
         // handle if no matching authoritativeSource url
-        const vsWithAuthSource = addExtensionToVs(vsWithConditions, authoritativeSourceExtensionUrl, authSrcUrl as string)
+        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, authoritativeSourceExtensionUrl, authSrcUrl as string)
 
         const vsAddedToCache = {
           resource: vsWithAuthSource,
@@ -456,7 +434,7 @@ const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][]
 
 const updateProgramLibraryWithGrouperRef = async (
   program: fhir4.Library,
-  grouperRef: fhir4.ValueSet['url'],
+  grouperRef: fhir4.ValueSet['url']
 ): Promise<fhir4.BundleEntry | ErrorResponse> => {
   try {
     // only one relatedArtifact will be the vs library
@@ -494,13 +472,12 @@ const updateProgramLibraryWithGrouperRef = async (
     libResource.relatedArtifact.push({
       type: 'composed-of',
       resource: grouperRef?.split('|')[0], // use unversioned
-      extension:[
+      extension: [
         {
-          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
           valueBoolean: true
         }
       ]
-
     })
 
     // at this point, the grouper's valueset library is updated, save & return 200 if success
@@ -521,7 +498,6 @@ const updateProgramLibraryWithGrouperRef = async (
 // -------------------------- ROUTE TO UPDATE EXISTING GROUPER ---------------------
 // ---------------------------------------------------------------------------------
 const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiResponse) => {
-
   try {
     const body = req.body
     const { grouperId, originalGrouperVersion, metadata } = body
@@ -565,7 +541,6 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     }
 
     return res.status(200).send({ message: `Grouper ${grouperId} updated` })
-    
   } catch (e) {
     logSimpleError(e, 'updateExistingGrouper')
     res.status(400).send({ error: 'error' })

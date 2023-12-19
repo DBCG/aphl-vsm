@@ -6,6 +6,7 @@ import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
+import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 export type programDetailsEndpointReturn =
   | {
       valueSets: {
@@ -76,6 +77,39 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
   }
 }
 
+const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
+  const body = await req.body
+  const { grouperIds, conditions = [], priority, programId, vsUrl } = body
+  try {
+    let program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
+    const groupers = await Promise.allSettled(
+      grouperIds.map((id: string) => fhirCdrClient.read({ resourceType: 'ValueSet', id })) as fhir4.ValueSet[]
+    )
+    // @ts-ignore
+    groupers.map(i => i.value).forEach((grouper: fhir4.ValueSet) => {
+      let vsUrlToSet = vsUrl
+      // We need to check grouper canonicals for the version since that is where they are stored
+      const valuesetUrl = grouper?.compose?.include.find((i) => i.valueSet?.[0]?.split('|')?.[0] === vsUrl)?.valueSet?.[0]
+
+      if (valuesetUrl) {
+        vsUrlToSet = valuesetUrl
+      }
+      if (conditions.length > 0) {
+        program = setVSConditions(program, conditions, vsUrlToSet)
+      } else {
+        program = setVSPriority(program, priority, vsUrlToSet)
+      }
+    })
+
+    const updatedProgram = await fhirCdrClient.update({ resourceType: 'Library', id: programId, body: program })
+    return res.status(200).send(updatedProgram)
+  } catch (e) {
+    logger.error(`error in PUT programs/programId/details:  ${JSON.stringify(e)}`)
+    res.status(400).json({ error: 'Update of program details failed.' })
+  }
+}
+
 export default handler({
-  GET: { action: getProgramDetails }
+  GET: { action: getProgramDetails },
+  PUT: { action: updateProgramDetails, access: ['admin', 'editor'] }
 })

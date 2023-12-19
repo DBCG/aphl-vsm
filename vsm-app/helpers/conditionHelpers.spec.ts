@@ -1,23 +1,6 @@
-import { updateConditions, removeConditionsFromLeaf } from './conditionHelpers'
+import { removeConditionsFromLeaf } from './conditionHelpers'
 
 describe('conditionHelpers', () => {
-
-  describe('updateConditions', () => {
-    it('Adds a new condition without overriding existing', () => {
-      const newCondition = [{
-        label: 'test1',
-        value: {
-          system: 'www.example.com',
-          version: 'abc',
-          code: '123',
-          text: 'test1'
-        }
-      }]
-      const result = updateConditions(VALUESET_WITH_CONDITIONS_AND_SOURCE, newCondition, false)
-      expect(result.useContext).toStrictEqual(result1)
-    })
-  })
-
   describe('removeConditionsFromLeaf', () => {
     it('removes one condition and leaves other that does not match', () => {
       const conditionToRemove = [{

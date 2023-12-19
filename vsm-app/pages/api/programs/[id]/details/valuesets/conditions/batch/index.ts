@@ -1,38 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
-import { updateConditions, removeConditionsFromLeaf, Condition } from '@/helpers/conditionHelpers'
+import { Condition } from '@/helpers/conditionHelpers'
 import handler from '@/helpers/server/handler'
 import { batchEditData } from '@/components/ProgramValueSetDetails/TableActions'
-import { MultiValue } from 'react-select'
-
-const handleVsetConditionUpdates = (
-  vSets: fhir4.ValueSet[],
-  action: 'add' | 'remove' | null,
-  conditions: MultiValue<Condition>
-) => {
-  if (action === 'add') {
-    const updated = vSets.map(vs => {
-      // make conditions mutable
-      return updateConditions(vs, conditions as Condition[], false)
-    })
-
-    return updated
-  } else if (action === 'remove') {
-    // delete from conditions, only want to update those that had changes
-    return vSets.map(leaf => removeConditionsFromLeaf(leaf, conditions as Condition[])).filter(x => Boolean(x))
-  }
-}
+import { setVSConditions } from '@/helpers/libraryHelpers'
+import getProgramAndGrouper from '@/helpers/server/getProgramAndGrouper'
+import logger from '@/helpers/server/logger'
 
 const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
-
   const body = req.body as batchEditData
+  const programId = req.query.id as string
+  let { grouperVSets, programLibrary } = await getProgramAndGrouper(programId)
+  if (!is.library(programLibrary)) {
+    return res.status(404).send({ message: 'Program not found for updating conditions' })
+  }
 
   const leafIds = body.leafIds
   const conditionsToUpdate = body.conditionsToUpdate
   const action = body.action
 
-  const getTransactionBody = leafIds.map(id => ({
+  const getTransactionBody = leafIds.map((id) => ({
     request: {
       method: 'GET',
       url: `ValueSet/${id}`
@@ -45,46 +33,32 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
     entry: getTransactionBody
   } as fhir4.Resource & { type: 'transaction' }
 
-  const allValueSetsToUpdate = await fhirCdrClient.transaction({
-    body: getTransactionEntry
+  const allValueSetsToUpdate = await fhirCdrClient.transaction({ body: getTransactionEntry })
+  const successfulVsets = allValueSetsToUpdate?.entry?.map((e: any) => e?.resource)?.filter((item: fhir4.Resource) => is.valueSet(item))
+
+  // Construct a map of all the grouper value sets and their versions if available
+  const grouperVSUrlVersionMap = {} as Record<string, string>
+  grouperVSets.forEach((vs: fhir4.ValueSet) => {
+    vs.compose?.include?.forEach((include) => {
+      const fullCanonical = include?.valueSet?.[0] || ''
+      const [url, version] = fullCanonical.split('|')
+      grouperVSUrlVersionMap[url] = version ? url : `${url}|${version}`
+    })
   })
 
-  const successfulVsets = allValueSetsToUpdate
-    ?.entry
-    ?.map((e: any) => e?.resource)
-    ?.filter((item: fhir4.Resource) => is.valueSet(item))
-
-
-  const updated = (handleVsetConditionUpdates(
-    successfulVsets,
-    action,
-    conditionsToUpdate
-  )?.filter(x => is.valueSet(x)) || []) as fhir4.ValueSet[]
-
-  if (!updated.length) {
-    // if nothing is updated, there's an error
-    // this will throw to the handler
-    throw Error('No Valuesets Updated')
-  }
-
-  const putTransactionBody = updated.map(updatedVs => ({
-    request: {
-      method: 'PUT',
-      url: `ValueSet/${updatedVs.id}`,
-    },
-    resource: updatedVs
-  }))
-
-  const putTransactionEntry = {
-    resourceType: 'Bundle',
-    type: 'transaction',
-    entry: putTransactionBody
-  } as fhir4.Resource & { type: 'transaction' }
-
-  await fhirCdrClient.transaction({
-    body: putTransactionEntry
+  successfulVsets.forEach((vs: fhir4.ValueSet) => {
+    if (!grouperVSUrlVersionMap[vs.url!]) {
+      logger.error('Could not find valueset canonical set in Grouper')
+      throw new Error('Could not find valueset canonical set in Grouper')
+    }
+    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action!)
   })
 
+  await fhirCdrClient.update({
+    resourceType: 'Library',
+    id: programId,
+    body: programLibrary
+  })
   res.status(200).send({ message: 'success' })
 }
 

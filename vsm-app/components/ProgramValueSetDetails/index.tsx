@@ -1,5 +1,5 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
-import Select, { MultiValue, Options } from 'react-select'
+import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
@@ -28,8 +28,7 @@ import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
-import { USHealthVSPriority, getVSPriority, setVSPriority } from '@/helpers/libraryHelpers'
-import { conditionUpdateReturn } from '@/pages/api/programs/[id]/details/valuesets/conditions'
+import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
@@ -57,6 +56,7 @@ interface ProgramValueSetDetailsProps {
 }
 
 export interface HandleVersionChange {
+  programId: string
   useContext: fhir4.UsageContext[]
   selectedVsId: string
   selectedVersion: string
@@ -120,6 +120,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     selectedVsId: '',
     selectedVersion: '',
     grouperIds: [],
+    programId: '',
     terminologyInfo: { value: '', hasExtension: false }
   })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
@@ -138,7 +139,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  // const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
@@ -167,6 +168,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   || priorityLoading
   || versionUpdateInFlight
 
+  const conditionsMap = getVSConditions(currentProgram)
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
@@ -216,26 +218,25 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows(selectedRows)
   }
 
-  // Updates Conditions
-  useEffect(() => {
-    let endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/conditions`
-    setUpdatedGrouperValueSets([])
-    const postUpdate = async () => {
-      if (conditionToUpdate?.conditionInfo) {
-        setConditionLoading(true)
-        const json = (await fetch(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(conditionToUpdate)
-        }).then((res) => res.json())) as conditionUpdateReturn
-        if ('error' in json) {
-          throw new Error(json.error)
-        }
-      }
+  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds: string[]) => {
+    setConditionLoading(true)
+    const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
+    try {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, { 
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body
+      }).then((res) => res.json())
+      toast.success('Added new condition:  ' + conditions?.[conditions.length-1]?.label)
+      setCurrentProgram(updatedLibrary)
+    } catch (e) {
+      toast.error('Error updating priority')
+    } finally {
+      setConditionLoading(false)
     }
-    postUpdate()
-      .catch((e) => console.error('error: ', e))
-      .finally(() => setConditionLoading(false))
-  }, [conditionToUpdate, currentProgram?.id])
+  }
 
   // Updates Group ValueSets
   useEffect(() => {
@@ -258,14 +259,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     postUpdate()
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
-  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority) => {
+  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
     setGrouperLoading(true)
-    const library = setVSPriority(currentProgram, priority, vs.url!)
+    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     setPriorityLoading(true)
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}`, {
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
-        body: JSON.stringify(library)
+        body
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
       setCurrentProgram(updatedLibrary)
@@ -282,6 +283,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     valueSetPriorityMap,
     toggleUpdateData,
+    conditionsMap,
     ...debouncedFilters
   }) as Result
 
@@ -333,7 +335,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     if (!versionToUpdate.grouperIds?.length) {
       return
     }
-
     const body = JSON.stringify(versionToUpdate)
     // you want to update the associated grouper valuesets, adding or removing versions
     async function updateVersions() {
@@ -443,7 +444,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 value={currentPriorityValue}
                 onChange={(e) => {
                   if (!!e?.value) {
-                    updateValueSetPriority(row?.valueSet, e?.value)
+                    updateValueSetPriority(row?.valueSet, e?.value, row.groups.map((g) => g.id))
                   }
                 }}
               />
@@ -485,6 +486,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                     selectedVersion: e?.value as string,
                     useContext: row?.valueSet?.useContext || [],
                     vsCanonical: row?.valueSet?.url as string,
+                    programId: currentProgram?.id as string,
                     grouperIds,
                     terminologyInfo
                   })
@@ -555,19 +557,18 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         sortable: false,
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const selectedOptions = row?.valueSet?.useContext
+          const vsConditions = conditionsMap[row?.valueSet?.url!]
+          const selectedOptions = vsConditions
             ?.map((i) => {
-              if (i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')) {
-                const condition: Condition = {
-                  label: i?.valueCodeableConcept?.text || '',
-                  value: {
-                    system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
-                    code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
-                    version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
-                    text: i?.valueCodeableConcept?.text
-                  }
+              return {
+                label: i?.valueCodeableConcept?.text || '',
+                groupIds: row.groups.map(i => i.id) || [],
+                value: {
+                  system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
+                  code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
+                  version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
+                  text: i?.valueCodeableConcept?.text
                 }
-                return condition
               }
             })
             .filter((x) => x) as Condition[]
@@ -589,14 +590,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
-                onChange={(e) => {
+                onChange={async (e) => {
                   const conditionInfo = e as Condition[]
-                  conditionInfo &&
-                    setConditionToUpdate({
-                      canonical: row.canonical,
-                      version: row.version,
-                      conditionInfo
-                    })
+                  conditionInfo && await updateVSConditions(conditionInfo, row.canonical, row.groups.map(i => i.id))
                 }}
               />
             </SelectInputContainer>
@@ -666,7 +662,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions]
+    [router, groupsInProgram, allConditions, conditionsMap]
   )
 
   const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })

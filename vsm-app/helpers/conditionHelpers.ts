@@ -52,46 +52,6 @@ const buildConditionItem = (condition: Condition) => {
   return conditionItem
 }
 
-// DETAILS PAGE: you want to override existing ones each time
-// VALUESETS PAGE: you want to keep any existing conditions that you have added before
-// TODO there should be no useContext if it is an empty array
-const updateConditions = (valueSet: fhir4.ValueSet, newConditions: Condition[], overrideExisting: boolean = true) => {
-  const vs = cloneDeep(valueSet)
-
-  if (vs?.useContext) {
-    const nonConditionContexts = vs?.useContext?.filter(
-      (ctx) => !ctx?.code?.system?.endsWith('/usage-context-type') && !(ctx?.code?.code === 'focus')
-    )
-    const newConditionContexts = newConditions?.map((c) => buildConditionItem(c))
-    if (nonConditionContexts?.length || newConditionContexts?.length) {
-      if (overrideExisting) {
-        vs.useContext = [...nonConditionContexts, ...newConditionContexts]
-      } else {
-        // if a new condition matches one that already exists, filter it out
-        const existingConditionContexts = vs?.useContext?.filter(
-          (ctx) => ctx?.code?.system?.endsWith('/usage-context-type') && ctx?.code?.code === 'focus'
-        )
-
-        const dedupedNewConditionContexts = newConditionContexts?.filter(
-          (newCondition) =>
-            !existingConditionContexts?.find(
-              (ec) =>
-                ec?.valueCodeableConcept?.coding?.[0]?.code === newCondition?.valueCodeableConcept?.coding?.[0].code &&
-                ec?.valueCodeableConcept?.coding?.[0]?.system === newCondition?.valueCodeableConcept?.coding?.[0].system
-            )
-        )
-
-        vs.useContext = [...nonConditionContexts, ...existingConditionContexts, ...dedupedNewConditionContexts]
-      }
-    } else {
-      delete vs.useContext
-    }
-  } else if (!vs?.useContext && newConditions?.length) {
-    vs.useContext = newConditions?.map((c) => buildConditionItem(c))
-  }
-  return vs
-}
-
 const formatConditionsComposeInclude = (conditionsList: any) => {
   const list = conditionsList
     ?.map((c: any) =>
@@ -174,5 +134,5 @@ const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[
   return clonedLeafVs
 }
 
-export { updateConditions, formatConditionsComposeInclude, buildConditionOptions, removeConditionsFromLeaf }
+export { formatConditionsComposeInclude, buildConditionOptions, removeConditionsFromLeaf }
 export type { Condition, ConditionItem, ConditionToUpdate }

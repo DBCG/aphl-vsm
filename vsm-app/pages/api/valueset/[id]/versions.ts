@@ -77,40 +77,6 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-const updateVsVersion = async (req: NextApiRequest, res: NextApiResponse) => {
-  try {
-    const body = await req.body
-    const { vsCanonical, vsVersion, grouperIds } = body
-
-    const groupersToUpdate = await Promise.all(
-      grouperIds.map((grouperVsId: string) =>
-        fhirCdrClient.read({
-          resourceType: 'ValueSet',
-          id: grouperVsId
-        })
-      )
-    )
-
-    const updatedGroupers = groupersToUpdate?.map((grouperVs: fhir4.ValueSet) => updateLeafVsVersion(grouperVs, vsCanonical, vsVersion))
-
-    await Promise.all(
-      updatedGroupers.map((grouperVs: fhir4.ValueSet) =>
-        fhirCdrClient.update({
-          resourceType: 'ValueSet',
-          id: grouperVs.id,
-          body: grouperVs
-        })
-      )
-    )
-
-    res.status(200).json({ message: 'Update valueset versions completed' })
-  } catch (e) {
-    logger.error(e)
-    res.status(500).json({ error: 'Error updating valueset versions' })
-  }
-}
-
 export default handler({
-  GET: { action: getVersions },
-  PUT: { action: updateVsVersion, access: ['admin', 'editor'] }
+  GET: { action: getVersions }
 })

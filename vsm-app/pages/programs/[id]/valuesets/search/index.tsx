@@ -18,18 +18,6 @@ const LinkText = styled.a`
   cursor: pointer;
 `
 
-interface SubmitProps {
-  hide: boolean
-}
-
-export const SubmitSelectedForm = styled.form<SubmitProps>`
-  padding: 12px 18px;
-  background-color: var(--theme-100);
-  max-height: ${(props) => (props.hide ? '0' : '1000px')};
-  padding: ${(props) => (props.hide ? '0' : 'auto')};
-  transition: all 0.3s;
-`
-
 const ValueSets = () => {
   const router = useRouter()
   const programId = router.query.id as string

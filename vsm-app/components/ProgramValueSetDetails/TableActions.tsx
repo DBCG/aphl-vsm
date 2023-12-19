@@ -109,14 +109,8 @@ export const TableActions = ({
       await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
         method: 'PUT',
         body
-      })
+      }).then((res) => window.location.reload())
     }
-    setEditInFlight(false)
-    handleToggleUpdateData()
-    handleCancelModal()
-    setKeyInd((k) => k + 1)
-    setGroupsToEdit([])
-    setConditionsToEdit([])
   }
 
   // always memoize options to react-select to avoid duplicates sticking

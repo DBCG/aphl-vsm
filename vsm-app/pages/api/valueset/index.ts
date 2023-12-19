@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import set from 'lodash.set'
 import { fhirCdrClient } from 'fhirClients'
-import { updateConditions } from '@/helpers/conditionHelpers'
 import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
@@ -9,6 +8,7 @@ import { is } from '@/helpers/is'
 import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { setVSConditions } from '@/helpers/libraryHelpers'
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
@@ -24,8 +24,11 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
   const body = await req.body
 
-  let vSetsToUpdate: { method: 'PUT' | 'POST'; valueSet: fhir4.ValueSet }[] = []
-  let vsToUpdate
+  if (body?.selectedConditions?.length > 0 && !req.query.programId) {
+    return res.status(400).json({ error: 'missing program Id required for conditions' })
+  }
+
+  let vSetsToUpdate: { valueSet: fhir4.ValueSet }[] = []
 
   // check fhir server first to see if we already have the selected valueSets
   const serverResponses = await Promise.allSettled(
@@ -52,8 +55,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     )
     // valueset already exists in our server, don't need to call other terminology server
     if (matchingValueSetInCQF) {
-      vsToUpdate = matchingValueSetInCQF
-      vSetsToUpdate.push({ method: 'PUT', valueSet: matchingValueSetInCQF })
+      vSetsToUpdate.push({ valueSet: matchingValueSetInCQF })
     } else {
       try {
         terminologyClient.setClient(body.selectedTerminologyServer)
@@ -91,7 +93,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
                   matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, authSrcUrl)
                 }
 
-                vSetsToUpdate.push({ method: 'POST', valueSet: matchingVSetFromRemoteServer })
+                vSetsToUpdate.push({ valueSet: matchingVSetFromRemoteServer })
               } else {
                 logger.error('no match found')
                 res.status(400).json({ error: `no match found` })
@@ -115,35 +117,42 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     }
   }
 
-  // handle if no vsets to update, too
-  // add conditions to valueSet
-  const valueSetItemsToUpdate = vSetsToUpdate?.map((vs) => {
-    const updatedVs = updateConditions(vs.valueSet, body.selectedConditions, false)
-    return {
-      valueSet: updatedVs,
-      method: vs.method
-    }
-  })
-
   try {
-    const performedUpdate = await Promise.allSettled(
-      valueSetItemsToUpdate.map(async (item) => {
-        if (item.method === 'PUT') {
-          await fhirCdrClient.update({
-            resourceType: 'ValueSet',
-            id: item.valueSet.id,
-            body: item.valueSet
-          })
-        } else {
-          await fhirCdrClient.create({
-            resourceType: 'ValueSet',
-            body: item.valueSet
-          })
+
+    let program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: req.query.programId as string
+    }) as fhir4.Library
+
+    const bundlePayload = []
+    vSetsToUpdate.forEach((vs) => {
+      program = setVSConditions(program, body.selectedConditions, vs.valueSet.url!)
+      bundlePayload.push({
+        resource: vs.valueSet,
+        request: {
+          method: 'PUT',
+          url: `ValueSet/${vs.valueSet.id}`
         }
       })
-    )
+    })
 
-    const failedUpdates = performedUpdate?.filter((promiseItem) => promiseItem.status === 'rejected')
+    bundlePayload.push({
+      resource: program,
+      request: {
+        method: 'PUT',
+        url: `Library/${program.id}`
+      }
+    })
+
+    const performedUpdate = await fhirCdrClient.transaction({
+      body: {
+        resourceType: 'Bundle',
+        type: 'transaction',
+        entry: bundlePayload
+      }
+    })
+
+    const failedUpdates = performedUpdate?.filter((promiseItem: { status: string }) => promiseItem.status === 'rejected')
     if (failedUpdates && failedUpdates?.length > 0) {
       logger.error('failed updates: \n' + JSON.stringify(failedUpdates, null, 2))
       // @ts-ignore
@@ -192,17 +201,16 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       })
     )
 
-    const validResults = result?.filter(r => r.resourceType === 'ValueSet')
+    const validResults = result?.filter((r) => r.resourceType === 'ValueSet')
     if (validResults?.length && validResults?.length > 0) {
       return res.status(200).send(200)
     } else {
-      res.status(400).json({ error: 'could not update valueset' }) 
+      res.status(400).json({ error: 'could not update valueset' })
     }
   } catch (e) {
     logger.error('error 4: ', e)
     res.status(400).json({ error: 'failed to update valueSet' })
   }
-
 }
 
 export default handler({

@@ -489,7 +489,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       const leafPutBody = JSON.stringify(leafsToAdd)
 
       // needs some error handling down here
-      const leafsUpdated = await fetch('/api/valueset', {
+      const leafsUpdated = await fetch('/api/valueset?programId='+ router.query.id, {
         method: 'PUT',
         body: leafPutBody
       })
