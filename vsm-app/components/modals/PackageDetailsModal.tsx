@@ -70,25 +70,29 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleDownload = async () => {
     setDownloadLoading(true)
     const body = {
-      data: { parameters: { resourceType: 'Parameters' }, json: fileType === 'json', useV2: versionRadioValue === 'v2' }
+      data: { parameters: { resourceType: 'Parameters' }, 
+      json: fileType === 'json', 
+      useV2: versionRadioValue === 'v2' },
     }
 
     if (versionRadioValue === 'v1' && fileUpload) {
       const result = await readFile(fileUpload)
+      // @ts-ignore
       body.planDefinition = result
     }
-    // try {
-    const data = await fetch(`/api/programs/${program?.id}/package`, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    }).then((resp) => resp.text())
-    // } catch (error) {
-    //   console.error(error)
-    //   setExportError('Error exporting artifact')
-    //   return
-    // } finally {
-    //   setDownloadLoading(false)
-    // }
+    let data
+    try {
+        data = await fetch(`/api/programs/${program?.id}/package`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      }).then((resp) => resp.text())
+    } catch (error) {
+      console.error(error)
+      setExportError('Error exporting artifact')
+      return
+    } finally {
+      setDownloadLoading(false)
+    }
 
     let json
     try {
@@ -97,7 +101,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     } catch (error) {
       // all XML starts with <
       if (data?.[0] === '<') {
-        return downloadTextData(data, 'application/fhir+xml')
+        downloadTextData(data, 'application/fhir+xml')
       } else {
         toast.error('Unable to parse $package response')
       }
@@ -106,9 +110,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     if ('error' in json) {
       throw new Error('Server error')
     } else if (json) {
-      return downloadTextData(data, 'application/fhir+json')
+      downloadTextData(data, 'application/fhir+json')
     }
-
     toggleModalOpen()
   }
 
