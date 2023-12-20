@@ -2,7 +2,7 @@ import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
-import { buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
 import { ConditionsHandler } from 'pages/programs/[id]/grouper'
 import { FlatGrouperVSet } from '../types/grouperTypes'
 import { Dispatch, SetStateAction } from 'react'
@@ -16,7 +16,7 @@ interface TableProps {
 
 const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {
   const conditions = useGetConditions()
-  const allConditions = formatConditionsComposeInclude(conditions)
+  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
 
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
     const filtered = vsToAdd.filter((vs) => {

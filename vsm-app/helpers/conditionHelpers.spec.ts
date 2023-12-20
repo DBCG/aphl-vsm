@@ -1,4 +1,8 @@
-import { removeConditionsFromLeaf, formatConditionsComposeInclude } from './conditionHelpers'
+import {
+  removeConditionsFromLeaf,
+  formatConditionsComposeInclude,
+  removeConditionsWithoutDisplay
+} from './conditionHelpers'
 
 describe('conditionHelpers', () => {
   describe('removeConditionsFromLeaf', () => {
@@ -56,6 +60,12 @@ describe('conditionHelpers', () => {
   describe('formatConditionsComposeInclude', () => {
     it('prefers synonym as display, then display, then empty string', () => {
       expect(formatConditionsComposeInclude(CONDITIONS_ITEMS)).toEqual(expected_1)
+    })
+  })
+
+  describe('removeConditionsWithoutDisplay', () => {
+    it('removes condition items that have no display value for FE purposes', () => {
+      expect(removeConditionsWithoutDisplay(expected_1)).toHaveLength(expected_1.length - 1)
     })
   })
 })

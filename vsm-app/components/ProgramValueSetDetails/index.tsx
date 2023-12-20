@@ -15,7 +15,7 @@ import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValue
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
+import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
@@ -293,7 +293,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }, [progValueSetDets])
 
   const conditions = useGetConditions()
-  const allConditions = formatConditionsComposeInclude(conditions)
+  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
   const groupsInProgram = progValueSetDets?.groupsInProgram
   const totalLeafs = progValueSetDets?.totalLeafs
 

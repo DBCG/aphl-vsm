@@ -71,6 +71,8 @@ const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInc
   )
 }
 
+const removeConditionsWithoutDisplay = (flatConditions: ConditionItem[]) => flatConditions.filter(i => i.display.trim() !== '')
+
 const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions?: Condition[] | []): MultiValue<Condition> => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter((x) => !!x)
   const flattenedConditions = conditions?.flat(2)
@@ -136,5 +138,10 @@ const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[
   return clonedLeafVs
 }
 
-export { formatConditionsComposeInclude, buildConditionOptions, removeConditionsFromLeaf }
+export {
+  formatConditionsComposeInclude,
+  buildConditionOptions,
+  removeConditionsFromLeaf,
+  removeConditionsWithoutDisplay
+}
 export type { Condition, ConditionItem, ConditionToUpdate }

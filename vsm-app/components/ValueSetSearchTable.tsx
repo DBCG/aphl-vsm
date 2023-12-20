@@ -7,7 +7,7 @@ import styled from 'styled-components'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { Condition, buildConditionOptions, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { Condition, buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/InputLabel'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -239,7 +239,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   const conditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
-  const allConditions = formatConditionsComposeInclude(conditions)
+  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
 
   const formattedGroups = useMemo(() => {
     if (!groups) return []
