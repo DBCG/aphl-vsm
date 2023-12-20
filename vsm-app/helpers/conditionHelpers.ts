@@ -52,20 +52,20 @@ const buildConditionItem = (condition: Condition) => {
   return conditionItem
 }
 
-const formatConditionsComposeInclude = (conditionsList: any) => {
+const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]) => {
   const list = conditionsList
-    ?.map((c: any) =>
-      c?.concept?.map((item: any) => ({
+    ?.map((c) =>
+      c?.concept?.map((item) => ({
         system: c.system,
         version: c.version,
         code: item.code,
-        display: item?.designation?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')?.value || c?.display || ''
+        display: item?.designation?.find((d) => d?.use?.code === 'synonym')?.value || ''
       }))
     )
     .flat()
   // sort by display
-  return list?.sort((firstItem: ConditionItem, secondItem: ConditionItem) =>
-    firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase())
+  return list?.sort((firstItem, secondItem) =>
+    (firstItem?.display || '').toUpperCase()?.localeCompare((secondItem?.display || '').toUpperCase())
   )
 }
 
