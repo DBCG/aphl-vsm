@@ -54,12 +54,8 @@ describe('conditionHelpers', () => {
   })
 
   describe('formatConditionsComposeInclude', () => {
-    it('provides synonym values as display if present', () => {
-      expect(formatConditionsComposeInclude(CONDITIONS_WITH_SYNONYMS)).toEqual(expected_1)
-    })
-
-    it('provides synonym values as display if present', () => {
-      expect(formatConditionsComposeInclude(CONDITIONS_WITH_SYNONYMS)).toEqual(expected_1)
+    it('prefers synonym as display, then display, then empty string', () => {
+      expect(formatConditionsComposeInclude(CONDITIONS_ITEMS)).toEqual(expected_1)
     })
   })
 })
@@ -91,7 +87,7 @@ const expected_1 = [
   }
 ]
 
-const CONDITIONS_WITH_SYNONYMS = [
+const CONDITIONS_ITEMS = [
   {
     concept: [
       {
