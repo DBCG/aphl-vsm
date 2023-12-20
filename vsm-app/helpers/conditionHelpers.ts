@@ -55,18 +55,19 @@ const buildConditionItem = (condition: Condition) => {
 const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]) => {
   const list = conditionsList
     ?.flatMap((c) =>
-      c?.concept?.map((item) => {
+      // ignore missing concept
+      (c.concept || []).map((item) => {
         return {
-          system: c.system,
-          version: c.version,
-          code: item.code,
+          system: c.system || '',
+          version: c.version || '',
+          code: item.code || '',
           display: item?.designation?.find((d) => d?.use?.code === 'synonym')?.value || item.display || ''
         }
       })
     )
   // sort by display
   return list?.sort((firstItem, secondItem) =>
-    (firstItem?.display || '').toUpperCase()?.localeCompare((secondItem?.display || '').toUpperCase())
+    firstItem.display.toUpperCase()?.localeCompare(secondItem?.display.toUpperCase())
   )
 }
 
