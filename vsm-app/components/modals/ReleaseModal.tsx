@@ -29,6 +29,7 @@ import { searchAvailableUpdates, updateManifest } from '@/helpers/manifestHelper
 import { ManifestDataMap, ManifestSystemVersionPair, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
 import { namesByUri } from '@/pages/programs/[id]/manifest'
+import ManifestDescription from '../ManifestDescription'
 
 interface ModalInfo {
   isOpen: boolean
@@ -291,9 +292,7 @@ const ReleaseModal = ({
         <Typography>
           Manifest versions may be added to specify specific code system versions in this program.
         </Typography>
-        <Typography style={{ display: 'inline-block' }}>
-          Any code systems not specified in the manifest will default to the <b>latest available version.</b>
-        </Typography>
+        <ManifestDescription context='release-modal'/>
         <ManifestDetailTable
           programId={program?.id}
           className="detail-table"
