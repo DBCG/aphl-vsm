@@ -308,15 +308,6 @@ const Programs: NextPage = () => {
         updateVersion={setVersionToRelease}
         setProgramToRelease={setProgramToRelease}
       />}
-      {/* <LoadingModal
-        isOpen={Boolean(programToPublish)}
-        actionType={programToRelease ? 'release' : 'publish'}
-        loading={loading}
-        handleCancelModal={handleCancelModal}
-        handleModalAction={handleModalAction}
-        program={programToPublish || programToRelease}
-        updateVersion={setVersionToRelease}
-      /> */}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
