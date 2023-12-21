@@ -245,12 +245,12 @@ describe("Smoke Tests", () => {
       cy.get("#view-valuesets").click();
       // Search By Name
       cy.get('[data-column-id="vs-title-search"] input').clear().type("covid");
-      cy.get('[id="cell-vs-title-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
+      cy.get('[data-column-id="vs-title-search"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
       cy.get('[data-column-id="vs-title-search"] input').clear()
 
       // Search By OID
       cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
-      cy.get('[id="cell-vs-title-search-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
+      cy.get('[data-column-id="vs-title-search"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
       cy.get('[data-column-id="vs-oid-search"] input').clear();
     })
 

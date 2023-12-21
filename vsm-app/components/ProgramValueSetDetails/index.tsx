@@ -635,17 +635,17 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               ))}
             </ReadOnlyContainer>
           ) : (
-            <SelectInputContainer>
+            <SelectInputContainer id={`group-selector-${row.valueSet.id}`}>
               <Select
                 isDisabled={blockChanges}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
                 classNamePrefix="groups"
-                inputId="groups-selector"
-                instanceId="groups-selector"
+                inputId={`groups-selector-input-${row.canonical}`}
+                instanceId={`groups-selector-input-${row.canonical}`}
                 isMulti={true}
-                isLoading={grouperLoading && updateVsGroups?.canonical === row?.canonical}
+                isLoading={grouperLoading && updateVsGroups?.leafCanonical === row?.canonical}
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
                 onChange={(e) => {
@@ -654,7 +654,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                     return
                   }
                   const groupInfo = e as GroupInfoItem[]
-                  setUpdateVsGroups({ canonical: row?.canonical, groupInfo })
+                  setUpdateVsGroups({ leafCanonical: row?.canonical, leafVersion: row?.version, groupInfo })
                 }}
               />
             </SelectInputContainer>
@@ -763,7 +763,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           className="vs-table-detail"
           key={tableKey}
           data={progValueSetDets?.data || []}
-          keyField="canonical"
           persistTableHead={true}
           columns={columns}
           theme="aphl"
