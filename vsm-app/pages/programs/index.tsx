@@ -79,7 +79,7 @@ const Programs: NextPage = () => {
 
   useEffect(() => {
     const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
-    if (programs.length) {
+    if (programs?.length) {
       setLatestProgramVersion(getLatestFromList(programList))
     } else {
       setLatestProgramVersion(null)
@@ -284,7 +284,7 @@ const Programs: NextPage = () => {
 
   return (
     <Col>
-      <LoadingModal
+      {modalOpen && <LoadingModal
         actionType="clone"
         isOpen={modalOpen}
         handleModalAction={async () => {
@@ -295,11 +295,11 @@ const Programs: NextPage = () => {
         program={null}
         loading={cloneLoading}
         handleCancelModal={() => setModalOpen(false)}
-      />
+      />}
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
       </Row>
-      <ReleaseModal
+      {programToRelease && <ReleaseModal
         isOpen={Boolean(programToRelease)}
         loading={loading}
         handleCancelModal={handleCancelModal}
@@ -307,16 +307,7 @@ const Programs: NextPage = () => {
         program={programToRelease}
         updateVersion={setVersionToRelease}
         setProgramToRelease={setProgramToRelease}
-      />
-      <LoadingModal
-        isOpen={Boolean(programToPublish)}
-        actionType={programToRelease ? 'release' : 'publish'}
-        loading={loading}
-        handleCancelModal={handleCancelModal}
-        handleModalAction={handleModalAction}
-        program={programToPublish || programToRelease}
-        updateVersion={setVersionToRelease}
-      />
+      />}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
@@ -327,7 +318,7 @@ const Programs: NextPage = () => {
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
         customStyles={customTableStyles('clickable')}
-        progressPending={!programs.length}
+        progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
       />
     </Col>
