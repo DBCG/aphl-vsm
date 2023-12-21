@@ -763,7 +763,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           className="vs-table-detail"
           key={tableKey}
           data={progValueSetDets?.data || []}
-          keyField="canonical"
           persistTableHead={true}
           columns={columns}
           theme="aphl"
