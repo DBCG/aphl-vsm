@@ -4,7 +4,8 @@ export interface GroupInfoItem {
 }
 
 export interface GroupUpdateItem {
-  canonical?: string
+  leafCanonical?: string
+  leafVersion?: string | undefined
   priority?: string
   groupInfo?: GroupInfoItem[]
 }
