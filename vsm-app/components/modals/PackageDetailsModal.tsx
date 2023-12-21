@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { ChangeEvent, useState } from 'react'
 import {
   Box,
   Dialog,
@@ -14,6 +14,7 @@ import {
   Radio,
   RadioGroup
 } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
 
@@ -21,14 +22,14 @@ interface ModalInfo {
   isOpen: boolean
   program: fhir4.Library
   toggleModalOpen: () => void
-  setDownloadLoading: (loading: boolean) => void
   setExportError: (error: string) => void
 }
 
-const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, setDownloadLoading }: ModalInfo) => {
+const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError }: ModalInfo) => {
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
+  const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
-  const [fileUpload, setFileUpload] = useState<File | undefined>(undefined)
+  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string, content: string }>(undefined)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
@@ -56,6 +57,10 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       reader.onload = (event) => {
         try {
           const result = JSON.parse(event?.target?.result as string)
+          if (result.resourceType !== 'PlanDefinition') {
+            toast.error('File is not a PlanDefinition Resource')
+            reject()
+          }
           resolve(result)
         } catch (e) {
           toast.error('File is not valid JSON')
@@ -70,19 +75,16 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleDownload = async () => {
     setDownloadLoading(true)
     const body = {
-      data: { parameters: { resourceType: 'Parameters' }, 
-      json: fileType === 'json', 
-      useV2: versionRadioValue === 'v2' },
+      data: { parameters: { resourceType: 'Parameters' }, json: fileType === 'json', useV2: versionRadioValue === 'v2' }
     }
 
-    if (versionRadioValue === 'v1' && fileUpload) {
-      const result = await readFile(fileUpload)
+    if (versionRadioValue === 'v1' && fileUploadContent) {
       // @ts-ignore
-      body.planDefinition = result
+      body.planDefinition = fileUploadContent.content
     }
     let data
     try {
-        data = await fetch(`/api/programs/${program?.id}/package`, {
+      data = await fetch(`/api/programs/${program?.id}/package`, {
         method: 'POST',
         body: JSON.stringify(body)
       }).then((resp) => resp.text())
@@ -90,29 +92,32 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       console.error(error)
       setExportError('Error exporting artifact')
       return
-    } finally {
-      setDownloadLoading(false)
     }
 
-    let json
     try {
       // if it's not JSON this will throw an error
-      json = JSON.parse(data)
+      JSON.parse(data)
+      // Download JSON
+      downloadTextData(data, 'application/fhir+json')
     } catch (error) {
       // all XML starts with <
       if (data?.[0] === '<') {
+        // Download XML
         downloadTextData(data, 'application/fhir+xml')
       } else {
         toast.error('Unable to parse $package response')
+        setExportError('Unable to parse $package response')
       }
+    } finally {
+      toggleModalOpen()
+      setDownloadLoading(false)
     }
+  }
 
-    if ('error' in json) {
-      throw new Error('Server error')
-    } else if (json) {
-      downloadTextData(data, 'application/fhir+json')
-    }
-    toggleModalOpen()
+  const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e?.target?.files?.[0] as File
+    const content = await readFile(file) as string
+    setFileUploadContent({ fileName: file?.name, content })
   }
 
   return (
@@ -144,18 +149,18 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
               <FormControlLabel value="v2" control={<Radio />} label="V2" />
             </RadioGroup>
           </FormGroup>
-          {fileUpload && versionRadioValue === 'v1' && (
+          {fileUploadContent && versionRadioValue === 'v1' && (
             <Typography sx={{ textAlign: 'left' }} variant={'h6'}>
-              {fileUpload?.name}
+              {fileUploadContent.fileName}
             </Typography>
           )}
           {versionRadioValue === 'v1' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3 }}>
               <Button component="label" variant="contained">
                 Upload Plan Definition
-                <VisuallyHiddenInput type="file" onChange={(e) => setFileUpload(e?.target?.files?.[0])} />
+                <VisuallyHiddenInput accept=".json" type="file" onChange={onUpload} />
               </Button>
-              {fileUpload == null && (
+              {fileUploadContent == null && (
                 <Typography sx={{ textAlign: 'left', color: 'red' }} variant={'caption'}>
                   required *
                 </Typography>
@@ -167,9 +172,14 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <Button disabled={versionRadioValue === 'v1' && !fileUpload} data-modal={'Download'} onClick={handleDownload}>
+          <LoadingButton
+            loading={downloadLoading}
+            disabled={(versionRadioValue === 'v1' && !fileUploadContent) || downloadLoading}
+            data-modal={'Download'}
+            onClick={handleDownload}
+          >
             Download
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </ModalContent>
     </Dialog>

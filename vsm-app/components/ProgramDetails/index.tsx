@@ -26,7 +26,6 @@ const ProgramDetails = () => {
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
-  const [downloadLoading, setDownloadLoading] = useState(false)
 
   const toggleRefreshData = () => {
     setRefreshData(!refreshData)
@@ -85,8 +84,6 @@ const ProgramDetails = () => {
             style={{ marginBottom: '15px' }}
           />
           <Button
-            loading={downloadLoading}
-            disabled={downloadLoading}
             text={'Export'}
             onClick={() => {
               setExportError(null)
@@ -96,8 +93,8 @@ const ProgramDetails = () => {
           <ExportPackageDetailsModal
             isOpen={showExportOptionsModal}
             program={program}
+            setExportError={setExportError}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
-            setDownloadLoading={setDownloadLoading}
           />
         </Col>
       </Row>

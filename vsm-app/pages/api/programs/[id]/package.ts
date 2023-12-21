@@ -26,7 +26,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
     if (!useV2) {
       format = json ? 'json' : 'xml' // reset to actual format for v1
       logger.info('Generating v2 to v1 transform for download')
-      const planDefResourceIndex = response.entry?.findIndex((e) => e.resource?.resourceType === 'PlanDefinition')
+      const planDefResourceIndex = response.entry?.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
       if (planDefResourceIndex === undefined || planDefResourceIndex === -1) {
         response.entry.push({
           fullUrl: planDefinition.url,
