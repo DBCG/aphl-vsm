@@ -52,22 +52,26 @@ const buildConditionItem = (condition: Condition) => {
   return conditionItem
 }
 
-const formatConditionsComposeInclude = (conditionsList: any) => {
+const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]) => {
   const list = conditionsList
-    ?.map((c: any) =>
-      c?.concept?.map((item: any) => ({
-        system: c.system,
-        version: c.version,
-        code: item.code,
-        display: item?.designation?.find((d: fhir4.CodeSystemConceptDesignation) => d?.use?.code === 'synonym')?.value || c?.display || ''
-      }))
+    ?.flatMap((c) =>
+      // ignore missing concept
+      (c.concept || []).map((item) => {
+        return {
+          system: c.system || '',
+          version: c.version || '',
+          code: item.code || '',
+          display: item?.designation?.find((d) => d?.use?.code === 'synonym')?.value || item.display || ''
+        }
+      })
     )
-    .flat()
   // sort by display
-  return list?.sort((firstItem: ConditionItem, secondItem: ConditionItem) =>
-    firstItem.display.toUpperCase().localeCompare(secondItem.display.toUpperCase())
+  return list?.sort((firstItem, secondItem) =>
+    firstItem.display.toUpperCase()?.localeCompare(secondItem?.display.toUpperCase())
   )
 }
+
+const removeConditionsWithoutDisplay = (flatConditions: ConditionItem[]) => flatConditions.filter(i => i.display.trim() !== '')
 
 const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions?: Condition[] | []): MultiValue<Condition> => {
   const selectedCodes = selectedOptions?.map((s) => s?.value?.code)?.filter((x) => !!x)
@@ -134,5 +138,10 @@ const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[
   return clonedLeafVs
 }
 
-export { formatConditionsComposeInclude, buildConditionOptions, removeConditionsFromLeaf }
+export {
+  formatConditionsComposeInclude,
+  buildConditionOptions,
+  removeConditionsFromLeaf,
+  removeConditionsWithoutDisplay
+}
 export type { Condition, ConditionItem, ConditionToUpdate }
