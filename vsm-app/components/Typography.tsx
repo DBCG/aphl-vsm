@@ -11,6 +11,26 @@ const PageP = styled(Typography).attrs({
   variant: 'body1'
 })`
   color: var(--theme-300);
+  display: inline-block;
+`
+
+const AccordionP = styled(Typography).attrs({
+  variant: 'body1'
+})`
+  display: block;
+  margin-bottom: .5rem;
+  color: var(--theme-400);
+  max-width: 40rem;
+`
+
+const AccordionHeading = styled(Typography).attrs({
+  variant: 'body1'
+})`
+  display: block;
+  color: var(--theme-400);
+  font-weight: bold;
+  margin-top: 1.5em;
+  margin-bottom: .3em;
 `
 
 const FormErrorText = styled(Typography).attrs({
@@ -22,4 +42,4 @@ const FormErrorText = styled(Typography).attrs({
 `
 
 
-export { PageTitle, PageP, FormErrorText }
+export { PageTitle, PageP, FormErrorText, AccordionP, AccordionHeading }

@@ -19,6 +19,7 @@ import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { searchAvailableUpdates, updateManifest } from '@/helpers/manifestHelpers'
 import Typography from '@mui/material/Typography'
+import ManifestDescription from '@/components/ManifestDescription'
 
 const endWrapPx = 900
 
@@ -222,13 +223,8 @@ const EditManifestDetails = () => {
       <Row style={{ marginBottom: '1.5rem' }}>
         <Button id="back-to-program" text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
-      <Typography>
-        Manifest versions may be added to specify specific code system versions in this program.
-      </Typography>
-      <Typography style={{ display: 'inline-block' }}>
-        Any code systems not specified in the manifest will default to the <b>latest available version.</b>
-      </Typography>
-      <CodesystemSelectContainer>
+      <ManifestDescription context='manifest-page'/>
+      <CodesystemSelectContainer style={{ marginTop: '3rem' }}>
         <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
           isLoading={pageLoading}
