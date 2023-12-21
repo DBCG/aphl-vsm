@@ -108,8 +108,8 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
         } else {
           return res.status(400).send({ error: `Could not remove Valueset "${grouperValueSet.title}" from groupers` })
         }
+      // if the grouper exists with the wrong version, update that version on the reference
       } else if (leafCanonicalExistsInGrouper && wrongLeafVersionInGrouper) {
-        // first, delete the leaf from the grouper, then add back proper one
         const editedVsVersionGrouper = updateLeafVsVersion(grouperValueSet, body.leafCanonical, body.leafVersion)
         groupersToUpdate.push(editedVsVersionGrouper)
       }
