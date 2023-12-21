@@ -58,7 +58,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
         try {
           const result = JSON.parse(event?.target?.result as string)
           if (result.resourceType !== 'PlanDefinition') {
-            toast.error('File is not a PlanDefinition Resource')
+            toast.error(`${file?.name} is not a PlanDefinition Resource`)
             reject()
           }
           resolve(result)
