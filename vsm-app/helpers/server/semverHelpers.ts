@@ -6,9 +6,9 @@ const removeFlags = (item: any) => item?.split('-')?.[0]
 const simpleSemverRx = new RegExp('^(\\d+).(\\d+).(\\d+)(\.\\d+)?$', 'gm')
 const threeCompartmentSemver = new RegExp('^(\\d+).(\\d+).(\\d+)$', 'gm')
 
-const isValidSimpleSemver = (item: string) => Boolean(item.match(simpleSemverRx))
+const isValidSimpleSemver = (item: string) => Boolean(item?.match(simpleSemverRx))
 
-const needsRevision = (version: string) => Boolean(version.match(threeCompartmentSemver))
+const needsRevision = (version: string) => Boolean(version?.match(threeCompartmentSemver))
 
 const addRevision = (version: string) => {
   if (!needsRevision(version)) return version
