@@ -127,7 +127,7 @@ export const fetchLeafValueSets = async ({
         ...searchParams
       }
       if (version) {
-        searchParameters.version = version
+        searchParameters._version = version
       }
       return fhirCdrClient.search({
         resourceType: 'ValueSet',

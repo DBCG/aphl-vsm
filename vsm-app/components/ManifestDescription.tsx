@@ -46,7 +46,7 @@ const ManifestDescription = ({ context }: ManifestDesc) => {
           At authoring time it is often the case that authors want the program specification to use the latest version of code systems as of the time of publication.
         </AccordionP>
         <AccordionP>
-          Sometimes, though, the determination is made that for a given code system a specific version should be used wherever it is referenced in the program specification. To facilitate this explicit "pinning" of a code system, an author can specify here in the manifest which version of the code system should be used.
+          Sometimes, though, the determination is made that for a given code system a specific version should be used wherever it is referenced in the program specification. To facilitate this explicit &ldquo;pinning&ldquo; of a code system, an author can specify here in the manifest which version of the code system should be used.
         </AccordionP>
       </AccordionDetails>
     </Accordion>
