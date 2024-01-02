@@ -224,7 +224,6 @@ describe('libraryHelpers', () => {
     it('should be true for future date', () => {
       const todayDate = new Date()
       const nextYearString = `${todayDate.getFullYear() + 1}-${todayDate.getMonth() + 1}-${todayDate.getDate()}`
-      console.log('nextYearString: ', nextYearString)
       expect(validStartDate(nextYearString)).toBe(true)
     })
 
