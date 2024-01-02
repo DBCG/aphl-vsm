@@ -199,6 +199,7 @@ export const TableActions = ({
                 </SelectInputContainer>
               ) : (
                 <SelectInputContainer>
+                  <i style={{ display: 'block', color: 'var(--accent)' }}>***Batch Grouper functionality is not added yet, will not work</i>
                   <Typography>Groupers</Typography>
                   <Select
                     menuPlacement="bottom"
