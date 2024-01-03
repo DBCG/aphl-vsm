@@ -3,52 +3,29 @@ import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
 import Select from 'react-select'
-import DT, { TableStyles } from 'react-data-table-component'
+import DT from 'react-data-table-component'
 import { Button } from '@/components/buttons/Button'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { Row } from '@/styles'
-import { SystemSelection, ResultMap, ManifestDataMap, UpdateManifest, ManifestSystemVersionPair } from '@/types/manifestTypes'
+import { Row, modalStyle } from '@/styles'
+import { SystemSelection, ResultMap, ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
-import { searchAvailableUpdates, updateManifest } from '@/helpers/manifestHelpers'
-import Typography from '@mui/material/Typography'
+import { searchAvailableUpdates, searchLeafValueSets, updateManifest } from '@/helpers/manifestHelpers'
 import ManifestDescription from '@/components/ManifestDescription'
+import { Box, Modal, Typography } from '@mui/material'
 
 const endWrapPx = 900
 
 export const getIdFromSystem = (system: string): string => {
   return system?.split?.('/')?.slice?.(-1)?.[0] || ''
 }
-
-export const customStyles = {
-  table: {
-    style: {
-      minHeight: '100px'
-    }
-  },
-  headCells: {
-    style: {
-      padding: '12px',
-      fontWeight: 'bold',
-      overflow: 'visible'
-    }
-  },
-  cells: {
-    style: {
-      paddingTop: '12px',
-      paddingBottom: '12px',
-      whiteSpace: 'normal !important',
-      overflow: 'visible'
-    }
-  }
-} as unknown as TableStyles
 
 const DataTableContainer = styled.div`
   display: flex;
@@ -103,10 +80,16 @@ const EditManifestDetails = () => {
   const router = useRouter()
   const programId = router.query.id as string
   const program = useGetProgramById({ programId })
+
+  if (program?.status === 'active') {
+    router.push(`/programs/${programId}`)
+  }
+
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
-  const [availableUpdates, setAvailableUpdates] = useState([])
+  const [availableUpdates, setAvailableUpdates] = useState<{ system: string; version: string }[]>([])
+  const [availableLeafValueSetCodeSystems, setAvailableLeafValueSetCodeSystems] = useState([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
@@ -114,7 +97,7 @@ const EditManifestDetails = () => {
     data: systemAndVersionData = [],
     isLoading,
     error
-  } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
+  } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher, { revalidateOnFocus: false })
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   // loading states
@@ -168,7 +151,7 @@ const EditManifestDetails = () => {
         })
         availableVersions[selectedSystem] = systemVersionData
         setAvailableVersions(structuredClone(availableVersions))
-      } catch(e: any) {
+      } catch (e: any) {
         toast.error(e?.message)
       } finally {
         setPageLoading(false)
@@ -235,7 +218,73 @@ const EditManifestDetails = () => {
       <Row style={{ marginBottom: '1.5rem' }}>
         <Button id="back-to-program" text="&#8592; Back to program" onClick={() => router.push(`/programs/${programId}`)} />
       </Row>
-      <ManifestDescription context='manifest-page'/>
+      <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>
+        <Box sx={{ ...modalStyle, width: 800, flexDirection: 'column', display: 'flex' }}>
+          <Typography variant="h6" component="h2" sx={{ marginBottom: '1rem'}}>
+            Found CodeSystem From ValueSets
+          </Typography>
+          <DT
+            data={availableLeafValueSetCodeSystems}
+            highlightOnHover
+            defaultSortAsc={false}
+            defaultSortFieldId={3}
+            columns={[
+              {
+                name: 'Name',
+                selector: (row) => getNameByUri(row?.system, systemNamesByUri),
+                maxWidth: '150px',
+                sortable: true,
+                wrap: true
+              },
+              {
+                name: 'System',
+                selector: (row) => row?.system,
+                maxWidth: '250px',
+                sortable: true,
+                wrap: true
+              },
+              {
+                name: 'Versions',
+                maxWidth: '500px',
+                selector: (row) => row.version,
+                sortable: true,
+                // Some code systems have urls for their versions with the date at the end
+                // @ts-ignore
+                sortFunction: (a: string, b: string) => a.split('/')?.pop()?.localeCompare(b.split('/').pop()),
+                wrap: true
+              },
+              {
+                cell: (row) => {
+                  const disabled = currentSelectedData[row.system] != null && currentSelectedData[row.system].includes(row.version)
+                  return (
+                    <Button
+                      data-tag="allowRowEvents"
+                      disabled={disabled}
+                      data-add-manifest={`${row.system}|${row.version}`}
+                      text={currentSelectedData[row.system] && !disabled ? "Update To Latest" : "Add"}
+                      onClick={() => {
+                        onClickAddHandler(row.version, row.system)}
+                      }
+                    />
+                  )
+                },
+                sortable: true,
+                wrap: true
+              }
+            ]}
+            theme="aphl"
+            fixedHeader
+            customStyles={customTableStyles('readonly')}
+            className="detail-table"
+          />
+          <Button
+            style={{ marginTop: '1rem', maxWidth: '50px', alignSelf: 'flex-end'}}
+            text="Close"
+            onClick={() => setAvailableLeafValueSetCodeSystems([])}
+          />
+        </Box>
+      </Modal>
+      <ManifestDescription context="manifest-page" />
       <CodesystemSelectContainer style={{ marginTop: '3rem' }}>
         <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
         <Select
@@ -255,7 +304,7 @@ const EditManifestDetails = () => {
           name="codesystems"
           options={selectOptions}
         />
-        { Boolean(Object.keys(currentSelectedData).length) && (
+        {Boolean(Object.keys(currentSelectedData).length) && (
           <div style={{ position: 'relative', alignSelf: 'flex-end', marginLeft: '2em' }}>
             <Tooltip
               title={`Search for updates to the latest version CodeSystem`}
@@ -266,9 +315,12 @@ const EditManifestDetails = () => {
             <Button
               style={{ marginLeft: '10px' }}
               text="Find Newest Versions"
+              disabled={isUpdating}
               loading={isUpdating}
               onClick={() => {
                 setIsUpdating(true)
+                // Set empty to avoid conflicts
+                setAvailableLeafValueSetCodeSystems([])
                 searchAvailableUpdates({
                   programId: program?.id as string,
                   currentSelectedData,
@@ -280,6 +332,23 @@ const EditManifestDetails = () => {
             />
           </div>
         )}
+        <Button
+          style={{ marginLeft: '10px' }}
+          text="Search ValueSets"
+          disabled={isUpdating}
+          loading={isUpdating}
+          onClick={() => {
+            setIsUpdating(true)
+            // Set empty to avoid conflicts
+            setAvailableUpdates([])
+            searchLeafValueSets({
+              programId: program?.id as string,
+              currentSelectedData,
+              setAvailableLeafValueSetCodeSystems,
+              setIsUpdating
+            })
+          }}
+        />
       </CodesystemSelectContainer>
       <DataTableContainer>
         <MaxWidthContainer>
@@ -339,12 +408,7 @@ const EditManifestDetails = () => {
         </MaxWidthContainer>
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
-          {!isUpdating && shouldDisableAddButton && (
-            <ErrorMessage
-              error={errorMessage}
-              severity='warning'
-            />
-          )}
+          {!isUpdating && shouldDisableAddButton && <ErrorMessage error={errorMessage} severity="warning" />}
           <ManifestDetailTable
             programId={programId}
             className="detail-table"
@@ -353,11 +417,11 @@ const EditManifestDetails = () => {
             availableUpdates={availableUpdates}
             loading={manifestData == null}
             updateFn={(version: string, system: string) => {
-              const targetedVsIndex = availableUpdates.findIndex((i: fhir4.ValueSet) => i.url === system)
-              const targetedVs = availableUpdates[targetedVsIndex] as fhir4.ValueSet
-              onClickAddHandler(targetedVs?.version as string, system)
+              const targetedCodeSystemIndex = availableUpdates.findIndex((i) => i.system === system)
+              const targetedCodeSystem = availableUpdates[targetedCodeSystemIndex]
+              onClickAddHandler(targetedCodeSystem?.version, system)
               // Remove the update from the available updates list
-              availableUpdates.splice(targetedVsIndex, 1)
+              availableUpdates.splice(targetedCodeSystemIndex, 1)
               const newUpdates = [...availableUpdates]
               setAvailableUpdates(newUpdates)
               setIsUpdating(false)

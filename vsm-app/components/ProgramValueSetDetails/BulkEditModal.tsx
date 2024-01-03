@@ -7,23 +7,13 @@ import Select from 'react-select'
 import { priorityLevelOptions, OptionType } from '.'
 import { TableRow } from '@/types/valuesets'
 import { USHealthVSPriority } from '@/helpers/libraryHelpers'
+import { modalStyle } from '@/styles'
 
 interface BatchEditModalProps {
   isOpen: boolean
   handleClose: () => void
   selectedVs: TableRow[]
   bulkUpdateFn: (priority: USHealthVSPriority) => Promise<void>
-}
-
-const modalStyle = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 600,
-  bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: 4
 }
 
 const BatchEditModal = ({ isOpen, handleClose, selectedVs = [], bulkUpdateFn }: BatchEditModalProps) => {

@@ -9,6 +9,7 @@ import { getNameByUri, namesByUri } from '@/pages/programs/[id]/manifest'
 import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
 import { Typography, Modal, Tooltip, Box, Button as MuiButton } from '@mui/material'
+import { modalStyle } from '@/styles'
 
 const prepData = (data: ManifestDataMap) => {
   if (!data) return []
@@ -19,30 +20,18 @@ const prepData = (data: ManifestDataMap) => {
   return preparedData
 }
 
-const modalStyle = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 600,
-  bgcolor: 'background.paper',
-  boxShadow: 24,
-  p: 4
-}
-
 const NoDataComponent = () => {
   return (
-  <div style={{ display: 'flex', width: '100%', padding: '2rem 4rem', backgroundColor: 'white', justifyContent: 'center' }}>
+  <div style={{ display: 'flex', width: '100%', padding: '1.2rem', backgroundColor: 'white', justifyContent: 'center' }}>
     <Typography style={{ textAlign: 'center' }}>No manifest data found</Typography>
   </div>
-
   )
 }
 
 const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, programId, availableUpdates }: any) => {
   const preppedData = prepData(manifestData)
   const [targetedVsToUpdate, setTargetedVsToUpdate] = useState<fhir4.ValueSet | null>(null)
-  const { data: systemAndVersionData = [] } = useSWR(`/api/programs/${programId}/manifest`, fetcher, { revalidateOnFocus: false })
+  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher, { revalidateOnFocus: false })
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)
   const noUpdatesAvailable = !Boolean(availableUpdates?.length)
@@ -65,18 +54,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       name: 'Version',
       selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
-      wrap: true,
-      cell: (row: ManifestSystemVersionPair) => {
-        const isLatest = !Boolean(availableUpdates?.find(
-          (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
-        ))
-        return (
-          <div>
-            <p style={{ marginBottom: '0', marginTop: '0' }}>{row.version}</p>
-            { isLatest && <i>(latest)</i> }
-          </div>
-        )
-      },
+      wrap: true
     },
     {
       name: 'Remove',
@@ -109,7 +87,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       center: true,
       cell: (row: ManifestSystemVersionPair) => {
         const matchingVs = availableUpdates.find(
-          (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
+          (vs: fhir4.ValueSet) => vs.system === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
         )
         if (matchingVs) {
           return (
