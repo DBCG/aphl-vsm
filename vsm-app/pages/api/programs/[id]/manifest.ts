@@ -66,13 +66,14 @@ const collectLeafValueSetCodeSystems = async () => {
     const vs = i?.resource?.useContext?.find(
       (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
     )
-    return vs.valueCodeableConcept.coding[0]
-  })
+
+    return vs?.valueCodeableConcept?.coding?.[0]
+  }).filter((i)=> i)
   codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
 
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
-  logger.info('Looking up latest versions for: ', codeSystemsList)
+  logger.info('Looking up latest versions for: ' + codeSystemsList.map(i => i?.system))
   const latestVersions = await activeTerminologyClient?.batch({
     body: {
       resourceType: 'Bundle',
@@ -138,7 +139,7 @@ const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiRespo
       return res.status(200).json(latestVersionCodeSystems)
     }
   } catch (e) {
-    logger.error('error:  ', JSON.stringify(e, null, 2))
+    logger.error('error:  ' + JSON.stringify(e, null, 2))
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
