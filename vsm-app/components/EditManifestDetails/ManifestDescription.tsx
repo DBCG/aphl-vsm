@@ -2,7 +2,7 @@ import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import { AccordionP, AccordionHeading } from './Typography'
+import { AccordionP, AccordionHeading } from '../Typography'
 
 interface ManifestDesc {
   context: 'release-modal' | 'manifest-page'

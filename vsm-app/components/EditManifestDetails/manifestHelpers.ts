@@ -1,4 +1,4 @@
-import { AvailableVersions, ManifestDataMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
+import { AvailableVersions, ManifestDataMap, ManifestSystemVersionPair, ResultMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 
@@ -6,15 +6,34 @@ interface SearchAvailUpdates {
   programId: string
   currentSelectedData: ManifestDataMap
   systemAndVersionData: AvailableVersions
-  setAvailableUpdates: Dispatch<SetStateAction<fhir4.CodeSystem[]>> | Dispatch<SetStateAction<never[]>>
+  setAvailableUpdates: Dispatch<SetStateAction<ManifestSystemVersionPair[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
 }
 
 interface SearchAvailLeafUpdates {
   programId: string
   currentSelectedData: ManifestDataMap
-  setAvailableLeafValueSetCodeSystems: Dispatch<SetStateAction<fhir4.CodeSystem[]>> | Dispatch<SetStateAction<never[]>>
+  setAvailableLeafValueSetCodeSystems: Dispatch<SetStateAction<ManifestSystemVersionPair[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
+}
+
+const getIdFromSystem = (system: string): string => {
+  return system?.split?.('/')?.slice?.(-1)?.[0] || ''
+}
+
+const namesByUri = (systemVersionData: SystemSelection[]) => {
+  const result = {} as ResultMap
+  if (systemVersionData.length) {
+    systemVersionData.forEach((item) => {
+      result[item.uri] = item.name
+    })
+  }
+  return result
+}
+
+const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
+  const match = namesByUri[uri]
+  return match || ''
 }
 
 const searchLeafValueSets = async ({
@@ -90,6 +109,10 @@ const searchAvailableUpdates = async ({
       return !currentVersions?.includes(i?.version!)
     })
 
+    if (filteredAvailableVersions.length === 0) {
+      toast.info('No new versions found')
+    }
+
     setAvailableUpdates(filteredAvailableVersions)
   } catch (err) {
     console.error(err)
@@ -126,4 +149,4 @@ const updateManifest = async ({
   }
 }
 
-export { searchAvailableUpdates, updateManifest, searchLeafValueSets }
+export { searchAvailableUpdates, updateManifest, searchLeafValueSets, getIdFromSystem, namesByUri, getNameByUri }

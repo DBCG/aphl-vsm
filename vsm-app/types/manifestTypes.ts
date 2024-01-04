@@ -35,7 +35,7 @@ interface UpdateManifest {
 interface ManifestSystemVersionPair {
   system: string
   version: string
-  id: string
+  id?: string
 }
 
 export type {
