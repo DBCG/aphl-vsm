@@ -12,11 +12,14 @@ import {
   Stack,
   Typography,
   Radio,
-  RadioGroup
+  RadioGroup,
+  Input,
+  InputLabel
 } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
+import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
 
 interface ModalInfo {
   isOpen: boolean
@@ -29,7 +32,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
-  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string, content: string }>(undefined)
+  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: string }>(undefined)
+  const [targetVersion, setTargetVersion] = useState<string>('')
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
@@ -74,14 +78,15 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const handleDownload = async () => {
     setDownloadLoading(true)
-    const body = {
+    const body: ExpectedPackageBody = {
       data: { parameters: { resourceType: 'Parameters' }, json: fileType === 'json', useV2: versionRadioValue === 'v2' }
     }
 
     if (versionRadioValue === 'v1' && fileUploadContent) {
-      // @ts-ignore
       body.planDefinition = fileUploadContent.content
+      body.targetVersion = targetVersion
     }
+
     let data
     try {
       data = await fetch(`/api/programs/${program?.id}/package`, {
@@ -116,7 +121,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e?.target?.files?.[0] as File
-    const content = await readFile(file) as string
+    const content = (await readFile(file)) as string
     setFileUploadContent({ fileName: file?.name, content })
   }
 
@@ -165,6 +170,20 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
                   required *
                 </Typography>
               )}
+              <InputLabel sx={{ textAlign: 'left', mt: 2 }} htmlFor="target-version">
+                Target Version
+              </InputLabel>
+              <Input
+                sx={{ textAlign: 'left' }}
+                id="target-version"
+                placeholder="e.g. 2023-06-04"
+                onChange={(e) => setTargetVersion(e?.target?.value)}
+                type="text"
+                inputProps={{ maxLength: 10 }}
+              />
+              <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
+                (Optional)
+              </Typography>
             </Box>
           )}
         </DialogContent>
