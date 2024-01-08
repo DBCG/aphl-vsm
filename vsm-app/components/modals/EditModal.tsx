@@ -4,8 +4,8 @@ import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } 
 import { Button } from '@/components/buttons/Button'
 
 interface GenText {
-  modalAction: 'remove' | 'add' | null
-  dataType: 'grouper' | 'condition' | null
+  modalAction: 'remove' | 'add' | 'update' | null
+  dataType: 'groupers' | 'conditions' | 'priority' | null
   totalVs: number
 }
 
@@ -14,6 +14,7 @@ const generateText = ({ modalAction, dataType, totalVs }: GenText) => {
   if (!modalAction || !dataType) return null
 
   const text = {
+    'update': ['Update selected', 'Update'],
     'remove': ['Remove selected', 'Remove from'],
     'add': ['Add selected', 'Add to']
   }
@@ -33,8 +34,8 @@ const generateText = ({ modalAction, dataType, totalVs }: GenText) => {
 }
 
 interface ModalInfo {
-  actionType: 'remove' | 'add' | null
-  dataType: 'condition' | 'grouper' | null
+  actionType: 'remove' | 'add' | 'update' | null
+  dataType: 'conditions' | 'groupers' | 'priority' | null
   totalVs: number
   isOpen: boolean
   handleCancelModal: () => void

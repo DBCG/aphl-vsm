@@ -134,40 +134,69 @@ const validStartDate = (date: any): boolean => {
   return testDate - todayDate > -1
 }
 
-const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource: string) => {
+const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resources: string[]) => {
   const clonedTarget = cloneDeep(target)
-  const newPriority: fhir4.RelatedArtifact = {
-    extension: [
-      {
-        url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-        valueCodeableConcept: {
-          coding: [
-            {
-              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-              code
-            }
-          ],
-          text: capitalizeFirstLetter(code)
-        }
-      }
-    ],
-    type: 'depends-on',
-    resource
-  }
 
-  const exisitingIndex =
-    clonedTarget?.relatedArtifact?.findIndex((ctx) => {
-      if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
+  const findExistingIndex = (tg: fhir4.Library, resourceUrl: string) =>
+    tg?.relatedArtifact?.findIndex((ctx) => {
+      console.log('ctx: ', ctx)
+      if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resourceUrl) {
+        console.log('match found')
         return ctx
       }
-    }) || -1
+    })
 
-  if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
-    clonedTarget.relatedArtifact[exisitingIndex] = newPriority
-  } else {
-    clonedTarget.relatedArtifact?.push(newPriority)
+  // make array if it's not one
+  if (!clonedTarget?.relatedArtifact) {
+    clonedTarget.relatedArtifact = []
   }
 
+  const mappedRA = clonedTarget.relatedArtifact?.map((artifact, index) => {
+    console.log('artifact: ', artifact)
+    console.log('resources: ', resources)
+    if (!resources?.includes(artifact.resource!) || artifact.type !== 'depends-on') {
+      return artifact
+    } else {
+      // const foundIndex = findExistingIndex(clonedTarget, artifact.resource!)
+      // console.log('found index: ', foundIndex)
+      // console.log('art.resource: ', artifact.resource)
+      const newPriority: fhir4.RelatedArtifact = {
+        extension: [
+          {
+            url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                  code
+                }
+              ],
+              text: capitalizeFirstLetter(code)
+            }
+          }
+        ],
+        type: 'depends-on',
+        resource: artifact.resource
+      }
+
+      if (resources.includes(artifact.resource)) {
+
+        // console.log('gets here')
+        // console.log('ra: ', clonedTarget.relatedArtifact)
+        // console.log('old: ', clonedTarget.relatedArtifact[foundIndex])
+        // console.log('old code: ', clonedTarget.relatedArtifact[foundIndex].extension[0].valueCodeableConcept)
+        // console.log('new: ', newPriority)
+        // console.log('new code: ', newPriority.extension[0].valueCodeableConcept)
+        clonedTarget.relatedArtifact[foundIndex] = newPriority
+      } else {
+        if (!clonedTarget.relatedArtifact) {
+          clonedTarget.relatedArtifact = []
+        }
+        clonedTarget.relatedArtifact?.push(newPriority)
+      }
+    }
+  })
+  console.log('clonedTarget: ', clonedTarget)
   return clonedTarget
 }
 

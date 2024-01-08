@@ -198,15 +198,17 @@ describe('libraryHelpers', () => {
         const oldMap = getVSPriority(testProgram)
         expect(oldMap[newResourceUrl]).toBeUndefined()
 
-        const updatedProgram = setVSPriority(testProgram, 'routine', newResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', [newResourceUrl])
+        console.log('updated: ', updatedProgram.relatedArtifact[0].extension[0])
         const newMap = getVSPriority(updatedProgram)
+        console.log('newMap: ', newMap)
         expect(newMap[newResourceUrl]).toBe('routine')
         expect(newMap['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481']).toBe('emergent') // the exisiting default value set should still be there
       })
 
       it('should update the priority of the VS Only', () => {
         const existingVsResourceUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
-        const updatedProgram = setVSPriority(testProgram, 'routine', existingVsResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', [existingVsResourceUrl])
         const newMap = getVSPriority(updatedProgram)
         expect(newMap[existingVsResourceUrl]).toBe('routine')
         expect(Object.keys(newMap).length).toBe(1) // only one value set should be in the map
