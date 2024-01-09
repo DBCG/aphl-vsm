@@ -199,9 +199,7 @@ describe('libraryHelpers', () => {
         expect(oldMap[newResourceUrl]).toBeUndefined()
 
         const updatedProgram = setVSPriority(testProgram, 'routine', [newResourceUrl])
-        console.log('updated: ', updatedProgram.relatedArtifact[0].extension[0])
         const newMap = getVSPriority(updatedProgram)
-        console.log('newMap: ', newMap)
         expect(newMap[newResourceUrl]).toBe('routine')
         expect(newMap['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481']).toBe('emergent') // the exisiting default value set should still be there
       })
