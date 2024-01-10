@@ -274,6 +274,15 @@ describe("Smoke Tests", () => {
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
     });
 
+    it("Sets Priority on a valueset", {scrollBehavior: false}, () => {
+      clickDraftProgramRow()
+      cy.get("#view-valuesets").click();
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').should('not.include.text', 'Emergent')
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').click()
+
+      cy.get('#react-select-priority-selector-option-0').click()
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').should('include.text', 'Emergent')
+    });
     it("Creates approval for draft library and release", () => {
       // View first draft program
       clickDraftProgramRow()
