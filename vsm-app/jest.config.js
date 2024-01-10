@@ -9,6 +9,11 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleDirectories: ["node_modules", "<rootDir>"],
+  collectCoverageFrom: [
+    '<rootDir>/{helpers,utils,pages/api}/**/*.{ts,js}',
+    '<rootDir>/fhirClients.ts',
+    '!**/node_modules/**',
+  ],
   moduleNameMapper: {
     // Handle module aliases (this will be automatically configured for you soon)
     

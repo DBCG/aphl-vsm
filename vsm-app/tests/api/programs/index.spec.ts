@@ -5,6 +5,11 @@ import handler from '@/pages/api/programs/index'
 jest.mock('fhirClients')
 
 describe('/api/programs', () => {
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
   test('returns all the progrmas', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 

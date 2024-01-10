@@ -6,7 +6,7 @@
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
-    "test": "jest --watch",
+    "test": "jest --watchAll --coverage",
     "test-ci": "jest --ci",
     "lint": "next lint"
   },
