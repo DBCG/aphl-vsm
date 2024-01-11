@@ -25,4 +25,5 @@ export default withAuth(function middleware(req: NextRequest) {
       },
     })
   }
+  return NextResponse.next()
 })
