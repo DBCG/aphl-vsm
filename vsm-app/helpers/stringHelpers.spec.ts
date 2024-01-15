@@ -3,7 +3,8 @@ import {
   startsAlphabetically,
   capitalizeFirstLetter,
   generateNameFromTitle,
-  isFhirDateTime
+  isFhirDateTime,
+  splitCanonical
 } from './stringHelpers'
 
 describe('stringHelpers', () => {
@@ -78,6 +79,19 @@ describe('stringHelpers', () => {
 
     it('returns false if invalid dateTime format', () => {
       expect(isFhirDateTime('20201212')).toBe(false)
+    })
+  })
+
+  describe('splitCanonical', () => {
+    it('returns the url and version from a canonical', () => {
+      const testInput1 = 'https://example.com/ValueSet|1.0.0'
+      const expected1 = ['https://example.com/ValueSet', '1.0.0']
+
+      const testInput2 = 'https://example.com/ValueSet'
+      const expected2 = ['https://example.com/ValueSet', undefined]
+
+      expect(splitCanonical(testInput1)).toEqual(expected1)
+      expect(splitCanonical(testInput2)).toEqual(expected2)
     })
   })
 })

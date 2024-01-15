@@ -6,10 +6,6 @@ jest.mock('fhirClients')
 
 describe('/api/programs', () => {
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
   test('returns all the progrmas', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 
@@ -40,7 +36,6 @@ describe('/api/programs', () => {
 
     const response = await handler(req, res)
     expect(response.statusCode).toBe(200)
-
-    // expect(response._getData().programs.length).toBe(1)
+    expect(response._getData().programs.length).toBe(1)
   })
 })
