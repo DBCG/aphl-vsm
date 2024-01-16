@@ -79,7 +79,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
 
 const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   const body = await req.body
-  const { grouperIds, conditions = [], priority, programId, vsUrl } = body
+  const { grouperIds, conditions, priority, programId, vsUrl } = body
   try {
     let program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
     const groupers = await Promise.allSettled(
@@ -94,9 +94,9 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
       if (valuesetUrl) {
         vsUrlToSet = valuesetUrl
       }
-      if (conditions.length > 0) {
+      if (conditions != null) {
         program = setVSConditions(program, conditions, vsUrlToSet)
-      } else {
+      } else if(priority != null) {
         program = setVSPriority(program, priority, vsUrlToSet)
       }
     })
