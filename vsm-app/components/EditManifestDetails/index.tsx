@@ -9,7 +9,7 @@ import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { modalStyle } from '@/styles'
-import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
+import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap } from '@/types/manifestTypes'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
@@ -70,7 +70,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [availableLeafValueSetCodeSystems, setAvailableLeafValueSetCodeSystems] = useState<ManifestSystemVersionPair[]>([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
-  const [systemNamesByUri, setSystemNamesByUri] = useState({})
+  const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const {
     data: systemAndVersionData = [],
     isLoading,
@@ -99,7 +99,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     if (manifestData && Object.keys(manifestData).length !== 0) {
       setCurrentSelectedData(manifestData)
     }
-  }, [program?.id, manifestData])
+  }, [manifestData])
 
   useEffect(() => {
     // Pull the available versions for the selected CodeSystem
@@ -119,7 +119,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         setPageLoading(false)
       }
     }
-    if (selectedSystem && !availableVersions[selectedSystem]) {
+    if (program?.id && selectedSystem && !availableVersions[selectedSystem]) {
       retrieveSelectedSystemVersions()
     }
   }, [selectedSystem, availableVersions, program?.id])
@@ -180,7 +180,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
       <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>
         <Box sx={{ ...modalStyle, width: 800, flexDirection: 'column', display: 'flex' }}>
           <Typography variant="h6" component="h2" sx={{ marginBottom: '1rem' }}>
-            Found CodeSystem From ValueSets
+            ValueSets in this program contain the following version(s) of CodeSystem . If you would like all of your expansions to conform to an existing version, you may select one her
           </Typography>
           <DT
             data={availableLeafValueSetCodeSystems}

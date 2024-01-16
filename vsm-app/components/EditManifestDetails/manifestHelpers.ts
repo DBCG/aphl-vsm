@@ -1,4 +1,4 @@
-import { AvailableVersions, ManifestDataMap, ManifestSystemVersionPair, ResultMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
+import { AvailableVersions, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 
@@ -22,7 +22,7 @@ const getIdFromSystem = (system: string): string => {
 }
 
 const namesByUri = (systemVersionData: SystemSelection[]) => {
-  const result = {} as ResultMap
+  const result = {} as ManifestUrlNameMap
   if (systemVersionData.length) {
     systemVersionData.forEach((item) => {
       result[item.uri] = item.name
@@ -31,7 +31,7 @@ const namesByUri = (systemVersionData: SystemSelection[]) => {
   return result
 }
 
-const getNameByUri = (uri: string, namesByUri: ResultMap): string => {
+const getNameByUri = (uri: string, namesByUri: ManifestUrlNameMap): string => {
   const match = namesByUri[uri]
   return match || ''
 }
