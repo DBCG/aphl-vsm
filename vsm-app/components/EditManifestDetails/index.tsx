@@ -71,6 +71,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
   const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
+  const [pageLoading, setPageLoading] = useState(true)
   const {
     data: systemAndVersionData = [],
     isLoading,
@@ -79,7 +80,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   // loading states
-  const [pageLoading, setPageLoading] = useState(true)
 
   useEffect(() => {
     // Initializes the available CodeSystem Options from VSAC
