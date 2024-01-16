@@ -15,7 +15,8 @@ import {
   RadioGroup,
   Input,
   InputLabel,
-  Tooltip
+  Tooltip,
+  TextField
 } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import LoadingButton from '@mui/lab/LoadingButton'
@@ -36,6 +37,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
   const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: string }>(undefined)
   const [targetVersion, setTargetVersion] = useState<string>('')
+  const [inputError, setInputError] = useState<boolean>(false)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
@@ -177,7 +179,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
                 <Tooltip
                   placement="right-start"
                   title={`The version to be applied for components in the download output (i.e., 'RCTC' Library and grouping value sets)`}
-                  sx={{mt: 1}}
+                  sx={{ mt: 1 }}
                 >
                   <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '15px', height: '15px' }} />
                 </Tooltip>
@@ -186,13 +188,30 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
                 sx={{ textAlign: 'left' }}
                 id="target-version"
                 placeholder="e.g. 2023-06-04"
-                onChange={(e) => setTargetVersion(e?.target?.value)}
+                onChange={(e) => {
+                  const regex = new RegExp('\\d{4}-\\d{2}-\\d{2}')
+                  if (!regex.test(e?.target?.value)) {
+                    setInputError(true)
+                  } else {
+                    setInputError(false)
+                  }
+                  setTargetVersion(e?.target?.value)
+                }}
                 type="text"
-                inputProps={{ maxLength: 10 }}
+                inputProps={{
+                  maxLength: 10,
+                  pattern: '\\d{4}-\\d{2}-\\d{2}'
+                }}
               />
-              <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
-                (Optional)
-              </Typography>
+              {inputError ? (
+                <Typography sx={{ textAlign: 'left', color: 'red' }} variant={'caption'}>
+                  Must be in the format of YYYY-MM-DD
+                </Typography>
+              ) : (
+                <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
+                  (Optional)
+                </Typography>
+              )}
             </Box>
           )}
         </DialogContent>
