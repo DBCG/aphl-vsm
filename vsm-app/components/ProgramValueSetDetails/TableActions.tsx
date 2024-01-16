@@ -3,7 +3,7 @@ import { TableRow } from '@/types/valuesets'
 import styled from 'styled-components'
 import { TableActionContainer, SelectInputContainer, SelectInputTitle, FlexCol } from './styles'
 import { SetStateAction, Dispatch, useMemo, useState, useEffect } from 'react'
-import { FormGroup, Stack, Switch, Typography, Radio, RadioGroup, FormControlLabel, FormLabel } from '@mui/material'
+import { FormGroup, Typography, Radio, RadioGroup, FormControlLabel, FormLabel } from '@mui/material'
 import Select, { MultiValue } from 'react-select'
 import { EditModal } from '../modals/EditModal'
 import { IconButton } from '../buttons/IconButton'
@@ -120,12 +120,13 @@ export const TableActions = ({
         method: 'PUT',
         body
       }).then((res) => window.location.reload())
+    
     } else if (editType === 'priority') {
-      console.log('got here: ', 'eee')
-      console.log('updatedPriority', updatedPriority)
-      console.log('selectedRows', selectedRows)
       const batch: batchEditData = {
-        leafIds: selectedRows.map((r) => r.valueSet.id) || [],
+        leafUrls: selectedRows.map((r) => {
+          const pinnedVersion = r?.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
+          return `${r.valueSet.url}${pinnedVersion}`
+      }) || [],
         priority: updatedPriority,
         action: actionType
       } 
@@ -136,7 +137,9 @@ export const TableActions = ({
           method: 'PUT',
           body
         }).then((res) => {
-          // window.location.reload()
+          setEditInFlight(false)
+          handleToggleUpdateData()
+          window.location.reload()
       })
 
       console.log('result: ', result)
@@ -144,6 +147,7 @@ export const TableActions = ({
         console.error('error: ', e)
       }
     }
+    setEditInFlight(false)
   }
 
   // always memoize options to react-select to avoid duplicates sticking
