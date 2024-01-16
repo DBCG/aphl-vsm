@@ -537,7 +537,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <Select
                     instanceId={`${tableContext}-termServer`}
                     isMulti={false}
-                    styles={reactSelectOptionStyle}
+                    styles={reactSelectOptionStyle()}
                     options={terminologyServerEndpoints}
                     value={selectedTerminologyServer}
                     onChange={(e) => {
@@ -554,7 +554,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <Select
                     instanceId={`${tableContext}-searchByVS`}
                     isMulti={false}
-                    styles={reactSelectOptionStyle}
+                    styles={reactSelectOptionStyle()}
                     options={searchTypes}
                     value={searchType} 
                     onChange={(e) => {
@@ -627,7 +627,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               <Select
                 instanceId={`${tableContext}-conditions`}
                 isMulti={true}
-                styles={reactSelectOptionStyle}
+                styles={reactSelectOptionStyle()}
                 options={buildConditionOptions(allConditions, selectedConditions)}
                 value={selectedConditions}
                 onChange={(e) => {
@@ -645,7 +645,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               <Select
                 instanceId={`${tableContext}-groups`}
                 isMulti={true}
-                styles={reactSelectOptionStyle}
+                styles={reactSelectOptionStyle()}
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e) => {
