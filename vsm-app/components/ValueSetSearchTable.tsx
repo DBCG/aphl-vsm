@@ -22,6 +22,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import uniqBy from 'lodash.uniqby'
+import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -536,6 +537,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <Select
                     instanceId={`${tableContext}-termServer`}
                     isMulti={false}
+                    styles={reactSelectOptionStyle}
                     options={terminologyServerEndpoints}
                     value={selectedTerminologyServer}
                     onChange={(e) => {
@@ -552,6 +554,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <Select
                     instanceId={`${tableContext}-searchByVS`}
                     isMulti={false}
+                    styles={reactSelectOptionStyle}
                     options={searchTypes}
                     value={searchType} 
                     onChange={(e) => {
@@ -624,6 +627,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               <Select
                 instanceId={`${tableContext}-conditions`}
                 isMulti={true}
+                styles={reactSelectOptionStyle}
                 options={buildConditionOptions(allConditions, selectedConditions)}
                 value={selectedConditions}
                 onChange={(e) => {
@@ -641,6 +645,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               <Select
                 instanceId={`${tableContext}-groups`}
                 isMulti={true}
+                styles={reactSelectOptionStyle}
                 options={formattedGroups}
                 value={selectedGroupers}
                 onChange={(e) => {

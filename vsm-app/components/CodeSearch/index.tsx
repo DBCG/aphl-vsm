@@ -183,6 +183,7 @@ const CodeSearch = ({ programId, router }: Props) => {
                 (e) => { setGroupersToSearch(e) }
               }
               isMulti={true}
+              styles={reactSelectOptionStyle}
               value={groupersToSearch}
               menuPlacement="top"
               instanceId="grouper-selector"

@@ -30,6 +30,7 @@ import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
 import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
+import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -460,7 +461,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         ),
         id: 'vs-version-search',
         sortable: false,
-        maxWidth: '160px',
+        minWidth: '200px',
         wrap: true,
         cell: (row: TableRow) => {
           if (currentProgram?.status === 'active') {
@@ -494,6 +495,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                 isMulti={false}
+                styles={reactSelectOptionStyle}
                 options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
                 defaultValue={defaultOption}
               />
@@ -586,6 +588,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
                 isMulti={true}
+                styles={reactSelectOptionStyle}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
@@ -645,6 +648,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 inputId={`groups-selector-input-${row.canonical}`}
                 instanceId={`groups-selector-input-${row.canonical}`}
                 isMulti={true}
+                styles={reactSelectOptionStyle}
                 isLoading={grouperLoading && updateVsGroups?.leafCanonical === row?.canonical}
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
