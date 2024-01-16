@@ -11,4 +11,4 @@ import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-dotenv.config({ path: './.env.local' });
+dotenv.config({ path: './.env.local.example' });
