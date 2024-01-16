@@ -14,8 +14,10 @@ import {
   Radio,
   RadioGroup,
   Input,
-  InputLabel
+  InputLabel,
+  Tooltip
 } from '@mui/material'
+import InfoIcon from '@mui/icons-material/Info'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
@@ -173,6 +175,13 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
               )}
               <InputLabel sx={{ textAlign: 'left', mt: 2 }} htmlFor="target-version">
                 Target Version
+                <Tooltip
+                  placement="right-start"
+                  title={`The version to be applied for components in the download output (i.e., 'RCTC' Library and grouping value sets)`}
+                  sx={{mt: 1}}
+                >
+                  <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '15px', height: '15px' }} />
+                </Tooltip>
               </InputLabel>
               <Input
                 sx={{ textAlign: 'left' }}
