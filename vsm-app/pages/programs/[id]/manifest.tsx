@@ -141,7 +141,8 @@ const EditManifestDetails = () => {
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       setSystemNamesByUri(sysNamesByUri)
-      retrieveAvailableUpdates()
+      // comment out until fix
+      // retrieveAvailableUpdates()
     } else if (error) {
       toast.error('Error retrieving Code System data from VSAC')
     }
