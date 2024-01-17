@@ -124,23 +124,15 @@ const EditManifestDetails = () => {
     router.push(`/programs/${programId}`)
   }
 
-  // essentially, the retrieveAvailableupdates is not being called
-  // need to do this before render in its own PR without
-  // interfering with the other data fetching fns
-  // useEffect(() => {
-  //   setIsUpdating(true)
-  //   const retrieveAvailableUpdates = async () => {
-  //     await searchAvailableUpdates({
-  //       programId: program?.id as string,
-  //       currentSelectedData,
-  //       systemAndVersionData,
-  //       setAvailableUpdates,
-  //       setIsUpdating
-  //     })
-  //   }
-
-  //   retrieveAvailableUpdates()
-  // }, [currentSelectedData, programId, systemAndVersionData])
+  const retrieveAvailableUpdates = async () => {
+    await searchAvailableUpdates({
+      programId: program?.id as string,
+      currentSelectedData,
+      systemAndVersionData,
+      setAvailableUpdates,
+      setIsUpdating
+    })
+  }
 
   useEffect(() => {
     // Initializes the available CodeSystem Options from VSAC
@@ -149,6 +141,7 @@ const EditManifestDetails = () => {
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       setSystemNamesByUri(sysNamesByUri)
+      retrieveAvailableUpdates()
     } else if (error) {
       toast.error('Error retrieving Code System data from VSAC')
     }

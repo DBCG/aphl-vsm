@@ -193,11 +193,6 @@ const ReleaseModal = ({
   }, [program])
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
-
-  // grab available updates before any changes are made
-  useEffect(() => {
-
-  })
   
   useEffect(() => {
     console.log('is this called')
