@@ -195,7 +195,6 @@ const ReleaseModal = ({
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   
   useEffect(() => {
-    console.log('is this called')
     // Initializes the current selected data
     if (manifestData && Object.keys(manifestData).length !== 0 && systemAndVersionData.length) {
       setCurrentSelectedData(manifestData)
