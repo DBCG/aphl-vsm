@@ -143,7 +143,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
-  const [tableKey, setTableKey] = useState(1)
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
   const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
@@ -761,7 +760,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           selectableRows={Boolean(currentProgram?.id && isEditable)}
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
-          key={tableKey}
+          keyField={'keyField'}
           data={progValueSetDets?.data || []}
           persistTableHead={true}
           columns={columns}

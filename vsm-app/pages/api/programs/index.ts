@@ -77,7 +77,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       // Cache the results
       programs.forEach((program: fhir4.Library) => program.id && cache?.set(`Library/${program.id}`, JSON.stringify(program)))
 
-      res.status(200).send({ programs, assessments })
+      return res.status(200).send({ programs, assessments })
     } else {
       // do not error out if version doesn't exist, it's just not found
       if (req.query.version) {

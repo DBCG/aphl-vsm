@@ -23,7 +23,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
       logger.error(`Role: ${role} is not authorized for ${req?.url}`)
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    await action(req, res, session)
+    return await action(req, res, session)
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = is.operationOutcome(error) ? error?.issue?.[0]?.diagnostics : error?.response?.data?.issue?.[0]?.diagnostics

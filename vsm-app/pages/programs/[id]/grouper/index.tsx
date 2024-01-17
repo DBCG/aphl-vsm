@@ -89,6 +89,7 @@ const AddGrouper = () => {
 
     // flatten the format
     const leafsToAdd = selectedValueSets.map((selectedValueSet) => ({
+      id: selectedValueSet.id, // needed for the react-data-table component
       selectedValueSet,
       selectedGroupers,
       selectedConditions,
