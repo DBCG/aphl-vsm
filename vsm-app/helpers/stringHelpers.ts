@@ -7,6 +7,15 @@ const stripFromName = (str: string) => {
   return cleaned
 }
 
+const splitCanonical = (canonical: string): string[] => {
+  const [url, version] = canonical?.split('|')
+  if (url && version) {
+    return [url, version]
+  } else {
+    return [url]
+  }
+}
+
 const startsAlphabetically = (title: string) => {
   const regex = /^[A-Za-z]/
   return Boolean(title?.trim().match(regex))
@@ -64,5 +73,6 @@ export {
   startsAlphabetically,
   capitalizeFirstLetter,
   generateNameFromTitle,
+  splitCanonical,
   isFhirDateTime
 }

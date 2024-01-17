@@ -189,7 +189,7 @@ describe("Smoke Tests", () => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
         });
         cy.wait(3000) // Wait for valueset to load due to async nature of the call above
-        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
+        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // navigate back to program view
         cy.go("back");
@@ -200,7 +200,7 @@ describe("Smoke Tests", () => {
         });
         cy.wait(3000)
 
-        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
+        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // Remove same leaf from program
         cy.go("back");
@@ -223,7 +223,7 @@ describe("Smoke Tests", () => {
         });
         cy.wait(3000)
 
-        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("not.exist");
+        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("not.exist");
 
         // navigate back to program view
         cy.go("back");
@@ -235,7 +235,7 @@ describe("Smoke Tests", () => {
         });
         cy.wait(3000)
 
-        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
       });
     });
 
@@ -258,19 +258,39 @@ describe("Smoke Tests", () => {
       clickDraftProgramRow()
 
       cy.get("#view-valuesets").click();
-      cy.wait(3000);
-      cy.get("#vs-table-detail").children().eq(1).scrollTo("right")
-      
+
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topRight", {duration: 500})
+
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"],[id="#react-select-condition-selector-input"]').click()
+      
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').get('#react-select-condition-selector-live-region').parent().click();
 
       cy.get("#react-select-condition-selector-listbox").contains("California Serogroup Virus Disease").scrollIntoView().click()
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "California Serogroup Virus Disease")
 
       // Removes condition from valueset
-      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click()
-      cy.get('body').click(0,0, {force: true}); // For blurring the element
+      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click({force: true})
+      cy.get('body').click(0,0, {force: true}); // For bluring the element
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
+
+      // Removing last condition on valueset should not break page
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topRight", {duration: 500})
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "Anthrax (disorder)")
+      cy.get('[aria-label="Remove Anthrax (disorder)"]').first().click({force: true})
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "Anthrax (disorder)")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('exist')
+    });
+
+    it("Sets Priority on a valueset", {scrollBehavior: false}, () => {
+      clickDraftProgramRow()
+      cy.get("#view-valuesets").click();
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
+
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('not.include.text', 'Emergent')
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').click()
+
+      cy.get('#react-select-priority-selector-option-0').click()
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('include.text', 'Emergent')
     });
 
     it("Creates approval for draft library and release", () => {
@@ -299,52 +319,51 @@ describe("Smoke Tests", () => {
       cy.get('[data-button-context="mustApproveRelease-active"]').first().should("exist")
     });
 
-    // CURRENTLY BROKEN because of work done to $package
-    // re-enable these tests when conditions are placed outside of valuesets
-    // it("Downloads a JSON bundle using the Export button", () => {
-    //   // click on the first Draft Library on the programs page
-    //   cy.get('[data-column-id="3"]')
-    //     .contains("Specification Library")
-    //     // .parents("div")
-    //     // .parents("div")
-    //     // .first()
-    //     .click(200,0, { force: true });
-    //   // click the Export button
-    //   cy.get('button').contains('Export').click()
-    //   // if we don't wait here the program data is lost somewhere
-    //   cy.wait(3000)
-    //   // click the Download button
-    //   cy.get('button').contains('Download').click()
-    //   // file path is relative to the working folder
-    //   const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.json')
-    //   cy.readFile(filename, { timeout: 30000 })
-    //   // actually checking contents is memory intensive
-    //   //.should('have.a.property','resourceType')
-    //   deleteDownloadsFolder()
-    // });
+    it("Downloads a JSON bundle using the Export button", () => {
+      // click on the first Draft Library on the programs page
+      cy.get('[data-column-id="3"]')
+        .contains("Specification Library")
+        // .parents("div")
+        // .parents("div")
+        // .first()
+        .click(200,0, { force: true });
+      // click the Export button
+      cy.get('button').contains('Export').click()
+      // if we don't wait here the program data is lost somewhere
+      cy.wait(3000)
+      // click the Download button
+      cy.get('button').contains('Download').click()
+      // file path is relative to the working folder
+      const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.json')
+      cy.readFile(filename, { timeout: 30000 }).should('exist')
+      // actually checking contents is memory intensive
+      //.should('have.a.property','resourceType')
+      deleteDownloadsFolder()
+    });
 
-    // it("Downloads an XML bundle using the Export button", () => {
-    //   // click on the first Draft Library on the programs page
-    //   cy.get('[data-column-id="1"]')
-    //     .contains("ACTIVE")
-    //     .parents("div")
-    //     .parents("div")
-    //     .first()
-    //     .click(200,0, { force: true });
-    //   // click the Export button
-    //   cy.get('button').contains('Export').click()
-    //   // if we don't wait here the program data is lost somewhere
-    //   cy.wait(3000)
-    //   // move the toggle to XML
-    //   cy.get('input[type="checkbox"]').click()
-    //   // click the Download button
-    //   cy.get('button').contains('Download').click()
-    //   // file path is relative to the working folder
-    //   const filename = path.join(downloadsFolder, 'Draft_Library-bundle.xml')
-    //   cy.readFile(filename, { timeout: 30000 })
-    //   // actually checking contents is memory intensive
-    //   //.should('have.length.gt',50).and('contain.text','<')
-    //   deleteDownloadsFolder()
-    // });
+    it("Downloads an XML bundle using the Export button", () => {
+      // click on the first Draft Library on the programs page
+      cy.get('[data-column-id="1"]')
+        .contains("ACTIVE")
+        .parents("div")
+        .parents("div")
+        .parents("div")
+        .first()
+        .click(200,0, { force: true });
+      // click the Export button
+      cy.get('button').contains('Export').click()
+      // if we don't wait here the program data is lost somewhere
+      cy.wait(3000)
+      // move the toggle to XML
+      cy.get('[data-switch="file-type"]').click()
+      // click the Download button
+      cy.get('button').contains('Download').click()
+      // file path is relative to the working folder
+      const filename = path.join(downloadsFolder, 'Draft_Library-bundle.xml')
+      cy.readFile(filename, { timeout: 30000 })
+      // actually checking contents is memory intensive
+      //.should('have.length.gt',50).and('contain.text','<')
+      deleteDownloadsFolder()
+    });
   });
 });

@@ -216,6 +216,11 @@ describe('libraryHelpers', () => {
   })
 
   describe('validStartDate', () => {
+    beforeEach(() => {
+      jest.useFakeTimers()
+      jest.setSystemTime(new Date('2021-02-12'))
+    })
+
     it('should be true for today', () => {
       const todayDate = new Date()
       const todayAsString = `${todayDate.getFullYear()}-${todayDate.getMonth() + 1}-${todayDate.getDate()}`

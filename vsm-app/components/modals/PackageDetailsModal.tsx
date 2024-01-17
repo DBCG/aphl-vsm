@@ -131,6 +131,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
               {
                 <Switch
                   defaultChecked={true}
+                  data-switch={'file-type'}
                   onChange={(e) => setFileType(e?.target?.checked ? 'json' : 'xml')}
                   sx={{
                     '& .MuiSwitch-thumb, & .MuiSwitch-track': { backgroundColor: 'var(--theme-300)' }
