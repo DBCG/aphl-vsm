@@ -272,17 +272,27 @@ describe("Smoke Tests", () => {
       cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click({force: true})
       cy.get('body').click(0,0, {force: true}); // For bluring the element
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
+
+      // Removing last condition on valueset should not break page
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topRight", {duration: 500})
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "Anthrax (disorder)")
+      cy.get('[aria-label="Remove Anthrax (disorder)"]').first().click({force: true})
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "Anthrax (disorder)")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('exist')
     });
 
     it("Sets Priority on a valueset", {scrollBehavior: false}, () => {
       clickDraftProgramRow()
       cy.get("#view-valuesets").click();
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').should('not.include.text', 'Emergent')
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').click()
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
+
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('not.include.text', 'Emergent')
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').click()
 
       cy.get('#react-select-priority-selector-option-0').click()
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481-2022-10-19-0"]').should('include.text', 'Emergent')
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('include.text', 'Emergent')
     });
+
     it("Creates approval for draft library and release", () => {
       // View first draft program
       clickDraftProgramRow()
