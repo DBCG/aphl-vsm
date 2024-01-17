@@ -193,8 +193,14 @@ const ReleaseModal = ({
   }, [program])
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
+
+  // grab available updates before any changes are made
+  useEffect(() => {
+
+  })
   
   useEffect(() => {
+    console.log('is this called')
     // Initializes the current selected data
     if (manifestData && Object.keys(manifestData).length !== 0 && systemAndVersionData.length) {
       setCurrentSelectedData(manifestData)

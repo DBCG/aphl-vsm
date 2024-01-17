@@ -68,7 +68,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
           isMulti={true}
           defaultValue={row.selectedConditions}
           menuPortalTarget={document.body}
-          styles={reactSelectOptionStyle}
+          styles={reactSelectOptionStyle()}
           onChange={(e) => {
             handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })
           }}
