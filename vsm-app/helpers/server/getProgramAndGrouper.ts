@@ -10,7 +10,6 @@ const getProgramAndGrouper = async (programId: string) => {
   const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
     (art) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
   )?.resource
-
   if (!grouperLibraryCanonical) {
     throw new Error('Could not get canonical reference')
   }
@@ -21,19 +20,16 @@ const getProgramAndGrouper = async (programId: string) => {
     version: grouperLibVersion || '',
     status: programStatus
   }
-
   const grouperLibrarySearchBundle = await fhirCdrClient.search({
     resourceType: 'Library',
     searchParams
   })
 
   const library: fhir4.Library = grouperLibrarySearchBundle?.entry?.[0]?.resource
-
   const grouperValueSetCanonicals = library?.relatedArtifact
     ?.filter((art) => art.type === 'composed-of' && art?.resource?.includes('/ValueSet/'))
     ?.map((item) => item?.resource)
     ?.filter((ref) => !!ref) as string[]
-
   if (grouperValueSetCanonicals?.length) {
     const grouperValueSetSearchSets = await Promise.all(
       grouperValueSetCanonicals?.map((canonical: string) => {
@@ -43,13 +39,11 @@ const getProgramAndGrouper = async (programId: string) => {
           searchParams: {
             url: url,
             version: version || '',
-            status: programStatus,
             _elements: WHITELIST_VALUESET_FIELDS.join(',')
           }
         }) as Promise<fhir4.Bundle>
       })
     )
-
     const grouperVSets = grouperValueSetSearchSets?.map((bundle) => bundle?.entry?.[0]?.resource as fhir4.ValueSet)?.filter((r) => !!r)
     return { grouperVSets, programLibrary }
   } else {
