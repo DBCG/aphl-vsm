@@ -191,14 +191,20 @@ const getVSPriority = (library: fhir4.Library) => {
 const getVSConditions = (program: fhir4.Library) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
-    if (artifact?.type === 'depends-on' && artifact?.extension?.[0]?.url.endsWith('vsm-valueset-condition')) {
-      const vsUrl = artifact.resource?.split('|')?.[0] as string
-      const condCodeableConcept = artifact.extension?.[0]?.valueCodeableConcept
-      const conditionIdentifier = `${condCodeableConcept?.coding?.[0]?.system}|${condCodeableConcept?.coding?.[0]?.code}`
-      if (!vsConditions[vsUrl]) {
-        vsConditions[vsUrl] = [{ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! }]
-      } else {
-        vsConditions[vsUrl].push({ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! })
+    if (artifact?.type === 'depends-on') {
+      if (artifact.extension) {
+        for (const ext of artifact.extension) {
+          if (ext?.url.endsWith('vsm-valueset-condition')) {
+            const vsUrl = artifact.resource?.split('|')?.[0] as string
+            const condCodeableConcept = ext?.valueCodeableConcept
+            const conditionIdentifier = `${condCodeableConcept?.coding?.[0]?.system}|${condCodeableConcept?.coding?.[0]?.code}`
+            if (!vsConditions[vsUrl]) {
+              vsConditions[vsUrl] = [{ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! }]
+            } else {
+              vsConditions[vsUrl].push({ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! })
+            }
+          }
+        }
       }
     }
   })
