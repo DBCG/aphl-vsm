@@ -568,8 +568,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const selectedOptions = vsConditions
             ?.map((i) => {
               return {
-                label: i?.valueCodeableConcept?.text || '',
-                groupIds: row.groups.map(i => i.id) || [],
+                label: i?.valueCodeableConcept?.text || '[missing condition text]',
+                groupIds: row.groups.map((i) => i.id) || [],
                 value: {
                   system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
                   code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
