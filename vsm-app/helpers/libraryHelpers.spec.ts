@@ -8,14 +8,15 @@ import {
   validStartDate,
   setEffectivePeriodStart,
   setVSPriority,
-  setVSConditions
+  setVSConditions,
+  getVSConditions
 } from './libraryHelpers'
 import { Condition } from './conditionHelpers'
 
 describe('libraryHelpers', () => {
   describe('getReleaseDescription', () => {
     it('should extract valueString text from resource', () => {
-      const releaseDescription = getReleaseDescription(FIXTURE_PROGRAM)
+      const releaseDescription = getReleaseDescription(FIXTURE_PROGRAM_1)
       expect(releaseDescription).toBe('testtesttest')
     })
 
@@ -30,7 +31,7 @@ describe('libraryHelpers', () => {
   describe('setReleaseDescription', () => {
     let testFixture: fhir4.Library
     beforeEach(() => {
-      testFixture = cloneDeep(FIXTURE_PROGRAM)
+      testFixture = cloneDeep(FIXTURE_PROGRAM_1)
     })
 
     it('should set extension when none present', () => {
@@ -60,13 +61,13 @@ describe('libraryHelpers', () => {
   describe('missingFields', () => {
     it('should return true if fields are present', () => {
       const fieldsToCheck = ['resourceType', 'publisher']
-      const result = missingFields({ program: FIXTURE_PROGRAM, requiredFields: fieldsToCheck })
+      const result = missingFields({ program: FIXTURE_PROGRAM_1, requiredFields: fieldsToCheck })
       expect(result).toStrictEqual([])
     })
 
     it('should return false if fields are missing', () => {
       const fieldsToCheck = ['resourceType', 'nonexistentfield']
-      const result = missingFields({ program: FIXTURE_PROGRAM, requiredFields: fieldsToCheck })
+      const result = missingFields({ program: FIXTURE_PROGRAM_1, requiredFields: fieldsToCheck })
       expect(result).toStrictEqual(['nonexistentfield'])
     })
   })
@@ -158,7 +159,7 @@ describe('libraryHelpers', () => {
   describe('ValueSet Priority', () => {
     let testProgram: fhir4.Library
     beforeEach(() => {
-      testProgram = cloneDeep(FIXTURE_PROGRAM)
+      testProgram = cloneDeep(FIXTURE_PROGRAM_1)
     })
 
     describe('getVSPriority', () => {
@@ -266,13 +267,13 @@ describe('libraryHelpers', () => {
   describe('ValueSet Conditions', () => {
     let testProgram: fhir4.Library
     beforeEach(() => {
-      testProgram = cloneDeep(FIXTURE_PROGRAM)
+      testProgram = cloneDeep(FIXTURE_PROGRAM_1)
     })
 
     describe('setVSConditions', () => {
       it('should add conditions to the leaf value set', () => {
         const targetedVsUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
-        const testProgram = cloneDeep(FIXTURE_PROGRAM)
+        const testProgram = cloneDeep(FIXTURE_PROGRAM_1)
         const conditions = [
           {
             value: {
@@ -400,11 +401,19 @@ describe('libraryHelpers', () => {
         expect(addedCondition).toBeDefined()
 
       })
+    }),
+    describe('getVsConditions', () => {
+      it('gets all available conditions in a program', () => {
+        expect(getVSConditions(FIXTURE_PROGRAM_CONDITIONS_1)).toStrictEqual(FIXTURE_PROGRAM_CONDITIONS_1_RESULT)
+      })
+      it('Returns an empty object if there are no conditions in a program', () => {
+        expect(getVSConditions(FIXTURE_PROGRAM_1)).toStrictEqual({})
+      })
     })
   })
 })
 
-const FIXTURE_PROGRAM = {
+const FIXTURE_PROGRAM_1 = {
   resourceType: 'Library',
   id: 'SpecificationLibrary',
   meta: {
@@ -506,3 +515,225 @@ const FIXTURE_PROGRAM = {
     }
   ]
 } as fhir4.Library
+
+const FIXTURE_PROGRAM_CONDITIONS_1 = {
+  resourceType: 'Library',
+  id: 'SpecificationLibrary',
+  meta: {
+    versionId: '1',
+    lastUpdated: '2022-11-21T17:46:17.533+00:00',
+    source: '#iDfokAiN5VipZbmc',
+    profile: ['http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library']
+  },
+  url: 'http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary',
+  version: '2022-10-19',
+  name: 'SpecificationLibrary',
+  title: 'Specification Library',
+  extension: [
+    {
+      url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
+      valueString: 'testtesttest'
+    }
+  ],
+  status: 'draft',
+  experimental: true,
+  type: {
+    coding: [
+      {
+        system: 'http://terminology.hl7.org/CodeSystem/library-type',
+        code: 'asset-collection'
+      }
+    ]
+  },
+  publisher: 'Association of Public Health Laboratories (APHL)',
+  description: 'Defines the asset-collection library containing the US Public Health specification assets.',
+  useContext: [
+    {
+      code: {
+        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+        code: 'reporting'
+      },
+      valueCodeableConcept: {
+        coding: [
+          {
+            system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+            code: 'triggering'
+          }
+        ]
+      }
+    },
+    {
+      code: {
+        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+        code: 'specification-type'
+      },
+      valueCodeableConcept: {
+        coding: [
+          {
+            system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+            code: 'program'
+          }
+        ]
+      }
+    }
+  ],
+  relatedArtifact: [
+    {
+      extension: [
+        {
+          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                code: 'emergent'
+              }
+            ],
+            text: 'Emergent'
+          }
+        }
+      ],
+      type: 'depends-on',
+      resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+    },
+    {
+      type: 'composed-of',
+      resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
+      extension: [
+        {
+          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          valueBoolean: true
+        }
+      ]
+    },
+    {
+      type: 'composed-of',
+      resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
+      extension: [
+        {
+          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          valueBoolean: true
+        }
+      ]
+    },
+    {
+      extension: [
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                code: "emergent"
+              }
+            ],
+            text: "Emergent"
+          }
+        },
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://snomed.info/sct",
+                code: "49649001"
+              }
+            ],
+            text: "Infection caused by Acanthamoeba (disorder)"
+          }
+        },
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://snomed.info/sct",
+                code: "767146004"
+              }
+            ],
+            text: "Toxic effect of arsenic and/or arsenic compound"
+          }
+        }
+      ],
+      type: "depends-on",
+      resource: "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
+    },
+    {
+      extension: [
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                code: "routine"
+              }
+            ],
+            text: "Routine"
+          }
+        },
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://snomed.info/sct",
+                code: "678910"
+              }
+            ],
+            text: "Really unpleasant infection"
+          }
+        },
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                system: "http://snomed.info/sct",
+                code: "123456"
+              }
+            ],
+            text: "Toxic stuff over here"
+          }
+        }
+      ],
+      type: "depends-on",
+      resource: "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.123"
+    }
+  ]
+} as fhir4.Library
+
+const FIXTURE_PROGRAM_CONDITIONS_1_RESULT =     {
+  'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6': [
+    {
+      id: 'http://snomed.info/sct|49649001',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '49649001' } ],
+        text: 'Infection caused by Acanthamoeba (disorder)'
+      }
+    },
+    {
+      id: 'http://snomed.info/sct|767146004',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '767146004' } ],
+        text: 'Toxic effect of arsenic and/or arsenic compound'
+      }
+    }
+  ],
+  'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.123': [
+    {
+      id: 'http://snomed.info/sct|678910',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '678910' } ],
+        text: 'Really unpleasant infection'
+      }
+    },
+    {
+      id: 'http://snomed.info/sct|123456',
+      valueCodeableConcept: {
+        coding: [ { system: 'http://snomed.info/sct', code: '123456' } ],
+        text: 'Toxic stuff over here'
+      }
+    }
+  ]
+}
