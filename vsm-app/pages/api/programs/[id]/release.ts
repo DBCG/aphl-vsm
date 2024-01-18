@@ -2,10 +2,27 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from '@/fhirClients'
 import { removeDraftFromVersionString } from '@/utils'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { getReleaseDescription, getReleaseLabel } from '@/helpers/libraryHelpers'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const {releaseAsVersion, program } = req.body
+
+    if (!getReleaseLabel(program) || !getReleaseDescription(program)) {
+      return res.status(400).send({ error: 'Release must have label and description set' })
+    }
+
+    try {
+      await fhirCdrClient.update({
+        resourceType: 'Library',
+        id: program.id,
+        body: program
+      })
+    } catch (e) {
+      logSimpleError(e)
+      return res.status(500).send({ error: 'Error encountered updating Library for release' })
+    }
 
     if (typeof releaseAsVersion === 'string') {
       program.version = releaseAsVersion
