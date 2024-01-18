@@ -101,7 +101,8 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
