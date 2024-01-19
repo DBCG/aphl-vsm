@@ -81,12 +81,25 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   // loading states
 
+  const retrieveAvailableUpdates = async () => {
+    await searchAvailableUpdates({
+      programId: program?.id as string,
+      currentSelectedData,
+      systemAndVersionData,
+      setAvailableUpdates,
+      setIsUpdating
+    })
+  }
+
+
   useEffect(() => {
     // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setSystemSelections(systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
+      // comment out until fix
+      // retrieveAvailableUpdates()
       setSystemNamesByUri(sysNamesByUri)
     } else if (error) {
       toast.error('Error retrieving Code System data from VSAC')
