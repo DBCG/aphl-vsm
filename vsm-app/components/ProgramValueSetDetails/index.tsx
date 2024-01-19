@@ -229,10 +229,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         },
         body
       }).then((res) => res.json())
-      toast.success('Added new condition:  ' + conditions?.[conditions.length-1]?.label)
+      
+      const oldConditions = conditionsMap[vsUrl]
+      const conditionAction = oldConditions?.length > conditions?.length ? 'removed' : `added ${conditions?.[conditions.length-1]?.label}`;
+      const toastMessage = `Successfully ${conditionAction} condition`
+      toast.success(toastMessage)
       setCurrentProgram(updatedLibrary)
     } catch (e) {
-      toast.error('Error updating priority')
+      toast.error('Error updating condition')
     } finally {
       setConditionLoading(false)
     }

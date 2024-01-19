@@ -158,7 +158,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360|20180620"
           },
           {
             "extension": [
@@ -176,7 +176,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.360|20180620"
           },
           {
             "extension": [
@@ -248,7 +248,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
           },
           {
             "extension": [
@@ -266,7 +266,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
           },
           {
             "extension": [
@@ -320,7 +320,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.362|20181031"
           },
           {
             "extension": [
@@ -464,7 +464,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
           },
           {
             "extension": [
@@ -482,7 +482,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.120|20191227"
           },
           {
             "extension": [
@@ -518,7 +518,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1063|20191227"
           },
           {
             "extension": [
@@ -554,7 +554,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
           },
           {
             "extension": [
@@ -590,7 +590,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
           },
           {
             "extension": [
@@ -626,7 +626,7 @@
               }
             ],
             "type": "depends-on",
-            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446"
+            "resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20220118"
           },
           {
             "extension": [
