@@ -24,6 +24,7 @@ jobs:
       - docker build -t cqf-ruler:$TRAVIS_COMMIT .
       - cd ../
       - ./bin/deploy_plugin.sh
+      - ./bin/deploy_plugin_dockerhub.sh
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
