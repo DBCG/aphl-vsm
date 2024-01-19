@@ -4,12 +4,15 @@ import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
 
-export type expectedPackageBody = { parameters: fhir4.Parameters; json: boolean; useV2: boolean }
-
+export interface ExpectedPackageBody {
+  data?: { parameters: { resourceType: 'Parameters' }; json: boolean; useV2: boolean }
+  planDefinition?: string
+  targetVersion?: string
+}
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
-  const { data, planDefinition } = req.body || ({} as expectedPackageBody)
+  const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
   const { parameters, json, useV2 } = data
   try {
     let format = json || !useV2 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
@@ -36,16 +39,24 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         response.entry[planDefResourceIndex].resource = planDefinition
       }
 
+      const v1BundleBody:fhir4.Parameters = {
+        resourceType: 'Parameters',
+        parameter: [
+          {
+            name: 'bundle',
+            resource: response
+          }
+        ]
+      }
+      
+      if (targetVersion?.length > 0) {
+        v1BundleBody.parameter?.push({
+          name: 'targetVersion',
+          valueString: targetVersion
+        })
+      }
       const v1Response = await fetch(`${fhirCdrClient.baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
-        body: JSON.stringify({
-          resourceType: 'Parameters',
-          parameter: [
-            {
-              name: 'bundle',
-              resource: response
-            }
-          ]
-        }),
+        body: JSON.stringify(v1BundleBody),
         method: 'POST',
         headers: {
           'Content-Type': 'application/fhir+json',
