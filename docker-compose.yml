@@ -12,7 +12,7 @@ services:
     ports:
     - 6379:6379
   cqf-ruler-vsm:
-    image: alphora/cqf-ruler:cqf-ruler-vsm
+    image: alphora/cqf-ruler:cqf-ruler-vsm-ecr
     environment:
       - spring.datasource.url=jdbc:postgresql://cqf-db:5432/cqfruler
       - spring.datasource.driverClassName=org.postgresql.Driver
