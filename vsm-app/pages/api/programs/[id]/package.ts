@@ -50,8 +50,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       } as fhir4.Parameters
       
       if (targetVersion?.length > 0) {
-        // @ts-ignore
-        v1BundleBody.parameter.push({
+        v1BundleBody.parameter?.push({
           name: 'targetVersion',
           valueString: targetVersion
         })
