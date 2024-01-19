@@ -39,7 +39,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         response.entry[planDefResourceIndex].resource = planDefinition
       }
 
-      const v1BundleBody = {
+      const v1BundleBody:fhir4.Parameters = {
         resourceType: 'Parameters',
         parameter: [
           {
@@ -47,7 +47,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
             resource: response
           }
         ]
-      } as fhir4.Parameters
+      }
       
       if (targetVersion?.length > 0) {
         v1BundleBody.parameter?.push({
