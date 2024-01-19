@@ -124,6 +124,16 @@ const EditManifestDetails = () => {
     router.push(`/programs/${programId}`)
   }
 
+  const retrieveAvailableUpdates = async () => {
+    await searchAvailableUpdates({
+      programId: program?.id as string,
+      currentSelectedData,
+      systemAndVersionData,
+      setAvailableUpdates,
+      setIsUpdating
+    })
+  }
+
   useEffect(() => {
     // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
@@ -131,6 +141,8 @@ const EditManifestDetails = () => {
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       setSystemNamesByUri(sysNamesByUri)
+      // comment out until fix
+      // retrieveAvailableUpdates()
     } else if (error) {
       toast.error('Error retrieving Code System data from VSAC')
     }

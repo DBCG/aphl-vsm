@@ -1,7 +1,7 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
-import DT from 'react-data-table-component'
+import DT, { TableColumn } from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import uniqBy from 'lodash.uniqby'
@@ -30,6 +30,7 @@ import { buildGroupOptions } from '@/helpers/selectHelpers'
 import BulkEditModal from './BulkEditModal'
 import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
+import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -366,7 +367,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </div>
         ),
         id: 'vs-title-search',
-        selector: (row: TableRow) => row.title,
+        selector: (row: TableRow) => row.valueSet.title,
         style: { fontSize: '14px' },
         sortable: false,
         maxWidth: '350px',
@@ -416,6 +417,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         id: 'value-set-priority',
         sortable: false,
         allowOverflow: true,
+        maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
@@ -493,6 +495,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 isLoading={loadingVersionsForVs === row?.valueSet?.id}
                 loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                 isMulti={false}
+                styles={reactSelectOptionStyle()}
                 options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
                 defaultValue={defaultOption}
               />
@@ -521,7 +524,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </div>
         ),
         sortable: true,
-        maxWidth: '120px',
+        maxWidth: '100px',
         wrap: true,
         cell: (row: TableRow) => {
           const terminologyInfo = getTerminologySource(row.valueSet)
@@ -555,6 +558,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         id: 'value-set-conditions',
         sortable: false,
         wrap: true,
+        minWidth: '210px',
         cell: (row: TableRow, index: number) => {
           const vsConditions = conditionsMap[row?.valueSet?.url!]
           const selectedOptions = vsConditions
@@ -585,6 +589,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
                 isMulti={true}
+                styles={reactSelectOptionStyle({ minWidth: '200px'})}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
@@ -620,6 +625,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         ),
         id: 'value-set-groups',
         sortable: false,
+        minWidth: '210px',
         allowOverflow: true,
         wrap: true,
         cell: (row: TableRow, index: number) => {
@@ -644,6 +650,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 inputId={`groups-selector-input-${row.canonical}`}
                 instanceId={`groups-selector-input-${row.canonical}`}
                 isMulti={true}
+                styles={reactSelectOptionStyle()}
                 isLoading={grouperLoading && updateVsGroups?.leafCanonical === row?.canonical}
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
@@ -662,7 +669,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       }
     ],
     [router, groupsInProgram, allConditions, conditionsMap]
-  )
+  ) as TableColumn<TableRow>[]
 
   const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
 
