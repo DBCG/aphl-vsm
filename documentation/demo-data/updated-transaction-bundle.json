@@ -10495,6 +10495,68 @@
 				"method": "PUT",
 				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1438"
 			}
-		}
+		},
+    {
+      "fullUrl": "http://localhost:8082/fhir/Basic/approval1428",
+      "resource": {
+        "resourceType": "Basic",
+        "id": "approval1428",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2023-08-08T01:11:33.529+00:00",
+          "source": "#bojbBl7a7T0wm1Eh",
+          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessment"]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentArtifact",
+            "valueReference": {
+              "reference": "Library/SpecificationLibrary"
+            }
+          },
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentContent",
+            "extension": [
+              {
+                "url": "informationType",
+                "valueCode": "comment"
+              },
+              {
+                "url": "summary",
+                "valueMarkdown": "test comment text"
+              },
+              {
+                "url": "relatedArtifact",
+                "valueRelatedArtifact": {
+                  "type": "citation",
+                  "resource": "test program reference text"
+                }
+              },
+              {
+                "url": "author",
+                "valueReference": {
+                  "reference": "test user text"
+                }
+              },
+              {
+                "url": "relatedArtifact",
+                "valueRelatedArtifact": {
+                  "type": "derived-from",
+                  "resource": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.0.0"
+                }
+              }
+            ]
+          },
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentDate",
+            "valueDateTime": "2023-08-08T01:11:33+00:00"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Basic/approval1428"
+      }
+    }
 	]
 }
