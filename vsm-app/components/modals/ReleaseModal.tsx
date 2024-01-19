@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { toast } from 'react-toastify'
@@ -6,7 +6,7 @@ import { fetcher } from '@/utils'
 import {
   Dialog, DialogTitle, DialogContent,
   DialogContentText, DialogActions,
-  Stepper, Step, StepLabel, Box, Typography
+  Stepper, Step, StepLabel, Typography
 } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import {
@@ -17,7 +17,6 @@ import {
   setEffectivePeriodStart,
   validStartDate
 } from '@/helpers/libraryHelpers'
-import { getIdFromSystem } from '@/pages/programs/[id]/manifest'
 import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
 import { SearchInput } from '../SearchInput'
@@ -25,11 +24,10 @@ import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 import ManifestDetailTable from '../ManifestDetailTable'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
-import { searchAvailableUpdates, updateManifest } from '@/helpers/manifestHelpers'
+import { getIdFromSystem, namesByUri, searchAvailableUpdates, updateManifest } from '@/components/EditManifestDetails/manifestHelpers'
 import { ManifestDataMap, ManifestSystemVersionPair, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
-import { namesByUri } from '@/pages/programs/[id]/manifest'
-import ManifestDescription from '../ManifestDescription'
+import ManifestDescription from '../EditManifestDetails/ManifestDescription'
 
 interface ModalInfo {
   isOpen: boolean

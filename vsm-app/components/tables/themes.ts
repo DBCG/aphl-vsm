@@ -30,6 +30,12 @@ createTheme(
 
 const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles: any = {}): TableStyles => {
   const baseStyles = {
+    table: {
+      style: {
+        fontFamily: 'Roboto',
+        minHeight: '70px',
+      }
+    },
     headCells: {
       style: {
         padding: '16px',
