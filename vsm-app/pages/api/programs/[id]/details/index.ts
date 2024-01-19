@@ -95,8 +95,8 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
         vsUrlToSet = valuesetUrl
       }
       if (conditions != null) {
-        program = setVSConditions(program, conditions, vsUrlToSet)
-      } else if(priority != null) {
+        program = setVSConditions(program, conditions, vsUrlToSet, 'override')
+      } else if (priority != null) {
         program = setVSPriority(program, priority, vsUrlToSet)
       }
     })
@@ -104,7 +104,8 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
     const updatedProgram = await fhirCdrClient.update({ resourceType: 'Library', id: programId, body: program })
     return res.status(200).send(updatedProgram)
   } catch (e) {
-    logger.error(`error in PUT programs/programId/details:  ${JSON.stringify(e)}`)
+    const error = e instanceof Error ? e.stack : JSON.stringify(e)
+    logger.error(`error in PUT programs/programId/details:  \n${error}`)
     res.status(400).json({ error: 'Update of program details failed.' })
   }
 }
