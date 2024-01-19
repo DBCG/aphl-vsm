@@ -50,7 +50,7 @@ const searchLeafValueSets = async ({
     }).then((res) => res.json())
 
     const newCodeSystems: { system: string; version: string }[] = []
-    leafVSCodeSystems.forEach((i) => {
+    leafVSCodeSystems.forEach((i: any) => {
       const { system, version } = i
       const currentVersions = currentSelectedData[system]
       if (currentVersions == null) {
@@ -62,6 +62,7 @@ const searchLeafValueSets = async ({
         }
       }
     })
+    // @ts-ignore
     setAvailableLeafValueSetCodeSystems(newCodeSystems)
     if (newCodeSystems.length === 0) {
       toast.info('No new CodeSystems from ValueSets found')

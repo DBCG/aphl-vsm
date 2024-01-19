@@ -68,12 +68,12 @@ const collectLeafValueSetCodeSystems = async () => {
     )
 
     return vs?.valueCodeableConcept?.coding?.[0]
-  }).filter((i)=> i)
+  }).filter((i: any)=> i)
   codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
 
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
-  logger.info('Looking up latest versions for: ' + codeSystemsList.map(i => i?.system))
+  logger.info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
   const latestVersions = await activeTerminologyClient?.batch({
     body: {
       resourceType: 'Bundle',
@@ -91,6 +91,7 @@ const collectLeafValueSetCodeSystems = async () => {
   })
 
   const foundVersions = latestVersions?.entry?.map(
+    // @ts-ignore
     (i: fhir4.Parameters) => i?.resource?.parameter?.find((j: fhir4.ParametersParameter) => j.name === 'version')?.valueString
   )
 
@@ -102,7 +103,7 @@ const collectLeafValueSetCodeSystems = async () => {
         return { system: i.system, version }
       }
     })
-    .filter((i) => i)
+    .filter((i:any) => i)
 }
 
 const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
