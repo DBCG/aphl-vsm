@@ -35,7 +35,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
-  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: string }>(undefined)
+  const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
   const [targetVersion, setTargetVersion] = useState<string>('')
   const [inputError, setInputError] = useState<boolean>(false)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -83,7 +83,13 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleDownload = async () => {
     setDownloadLoading(true)
     const body: ExpectedPackageBody = {
-      data: { parameters: { resourceType: 'Parameters' }, json: fileType === 'json', useV2: versionRadioValue === 'v2' }
+      data: {
+        parameters: {
+          resourceType: 'Parameters'
+        },
+        json: fileType === 'json',
+        useV2: versionRadioValue === 'v2'
+      }
     }
 
     if (versionRadioValue === 'v1' && fileUploadContent) {
@@ -125,7 +131,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e?.target?.files?.[0] as File
-    const content = (await readFile(file)) as string
+    const content = (await readFile(file)) as fhir4.PlanDefinition
     setFileUploadContent({ fileName: file?.name, content })
   }
 
