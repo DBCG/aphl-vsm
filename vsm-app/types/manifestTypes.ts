@@ -13,12 +13,12 @@ interface AvailableVersionItem {
 
 type AvailableVersions = AvailableVersionItem[]
 
-interface ResultMap {
-  [key: string]: string
-}
-
 interface ManifestDataMap {
   [key: string]: string[]
+}
+
+interface ManifestUrlNameMap {
+  [url: string]: string
 }
 
 interface UpdateManifest {
@@ -35,14 +35,14 @@ interface UpdateManifest {
 interface ManifestSystemVersionPair {
   system: string
   version: string
-  id: string
+  id?: string
 }
 
 export type {
   SystemSelection,
-  ResultMap,
   ManifestDataMap,
   UpdateManifest,
   ManifestSystemVersionPair,
+  ManifestUrlNameMap,
   AvailableVersions
 }

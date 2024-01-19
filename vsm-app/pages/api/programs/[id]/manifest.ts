@@ -5,6 +5,7 @@ import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
+import uniqBy from 'lodash.uniqby'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -47,38 +48,98 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    logger.error("An error occured likely from the VSAC side")
+    logger.error('An error occured likely from the VSAC side')
     logSimpleError(e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
 
-const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
+const collectLeafValueSetCodeSystems = async () => {
+  const valuesets = await fhirCdrClient.search({
+    resourceType: 'ValueSet',
+    searchParams: {
+      _elements: 'useContext.valueCodeableConcept.coding'
+    }
+  })
+  let codeSystemsList = valuesets.entry.map((i: fhir4.BundleEntry) => {
+    // @ts-ignore
+    const vs = i?.resource?.useContext?.find(
+      (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
+    )
+
+    return vs?.valueCodeableConcept?.coding?.[0]
+  }).filter((i)=> i)
+  codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
+
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
-  try {
-   const latestVersions = await activeTerminologyClient?.batch({
-      body: {
-        resourceType: 'Bundle',
-        type: 'batch',
-        entry: Object.entries(req.body).map((i) => {
-          const [system, version] = i
-          return {
-            request: {
-              method: 'GET',
-              url: `/CodeSystem?system=${system}&version=${version}`
-            }
+  logger.info('Looking up latest versions for: ' + codeSystemsList.map(i => i?.system))
+  const latestVersions = await activeTerminologyClient?.batch({
+    body: {
+      resourceType: 'Bundle',
+      type: 'batch',
+      entry: codeSystemsList.map((i: fhir4.Coding) => {
+        const { system, code } = i
+        return {
+          request: {
+            method: 'GET',
+            url: `/CodeSystem/$lookup?system=${system}&code=${code}`
           }
-        })
-      }
-    });
+        }
+      })
+    }
+  })
 
-    // Parse a bundle of bundle into a list of CodeSystems
-    //@ts-ignore
-    const latestVersionCodeSystems = latestVersions?.entry?.map((i: fhir4.BundleEntry) => i.resource?.entry?.[0]?.resource)
-    return res.status(200).json(latestVersionCodeSystems)
+  const foundVersions = latestVersions?.entry?.map(
+    (i: fhir4.Parameters) => i?.resource?.parameter?.find((j: fhir4.ParametersParameter) => j.name === 'version')?.valueString
+  )
+
+  // We need to return the system to reference the version because it is not included in the $lookup response
+  return codeSystemsList
+    .map((i: fhir4.Coding, index: number) => {
+      const version = foundVersions[index]
+      if (version) {
+        return { system: i.system, version }
+      }
+    })
+    .filter((i) => i)
+}
+
+const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    if (req.query.leafValueSets) {
+      // Check all leaf ValueSets and collect their CodeSystem's
+      const list = await collectLeafValueSetCodeSystems()
+      return res.status(200).json(list)
+    } else {
+      terminologyClient.setClient('vsac')
+      const activeTerminologyClient = terminologyClient.getClient()
+      const latestVersions = await activeTerminologyClient?.batch({
+        body: {
+          resourceType: 'Bundle',
+          type: 'batch',
+          entry: Object.entries(req.body).map((i) => {
+            const [system, version] = i
+            return {
+              request: {
+                method: 'GET',
+                url: `/CodeSystem?system=${system}&version=${version}`
+              }
+            }
+          })
+        }
+      })
+
+      // Parse a bundle of bundle into a list of CodeSystems
+      //@ts-ignore
+      const latestVersionCodeSystems = latestVersions?.entry?.map((i) => ({
+        system: i.resource?.entry?.[0]?.resource?.url,
+        version: i.resource?.entry?.[0]?.resource?.version
+      }))
+      return res.status(200).json(latestVersionCodeSystems)
+    }
   } catch (e) {
-    logger.error('error:  ', e)
+    logger.error('error:  ' + JSON.stringify(e, null, 2))
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
