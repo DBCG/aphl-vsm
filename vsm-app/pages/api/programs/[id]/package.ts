@@ -5,15 +5,21 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
 
 export interface ExpectedPackageBody {
-  data?: { parameters: { resourceType: 'Parameters' }; json: boolean; useV2: boolean }
-  planDefinition?: string
+  data?: {
+    parameters: fhir4.Parameters,
+    json: boolean,
+    useV2: boolean
+  }
+  planDefinition?: fhir4.PlanDefinition
   targetVersion?: string
 }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
   const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
-  const { parameters, json, useV2 } = data
+  const parameters = data?.parameters
+  const json = data?.json
+  const useV2 = data?.useV2
   try {
     let format = json || !useV2 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
     const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${format}`, {
@@ -32,7 +38,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       const planDefResourceIndex = response.entry?.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
       if (planDefResourceIndex === undefined || planDefResourceIndex === -1) {
         response.entry.push({
-          fullUrl: planDefinition.url,
+          fullUrl: planDefinition?.url,
           resource: planDefinition
         })
       } else {
@@ -49,7 +55,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         ]
       }
       
-      if (targetVersion?.length > 0) {
+      if (targetVersion && targetVersion?.length > 0) {
         v1BundleBody.parameter?.push({
           name: 'targetVersion',
           valueString: targetVersion
