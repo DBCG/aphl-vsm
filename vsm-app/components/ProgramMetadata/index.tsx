@@ -57,6 +57,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   const releaseDescription = getReleaseDescription(program)
   const releaseLabel = getReleaseLabel(program)
 
+  console.log('release description: ', releaseDescription)
+
   const getErrorText = (fieldName: string) => {
     if (errorFields.includes(fieldName)) {
       return errorMessages[fieldName]
