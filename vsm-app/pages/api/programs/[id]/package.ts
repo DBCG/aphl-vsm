@@ -5,7 +5,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
 
 export interface ExpectedPackageBody {
-  data: { parameters: { resourceType: 'Parameters' }; json: boolean; useV2: boolean }
+  data?: { parameters: { resourceType: 'Parameters' }; json: boolean; useV2: boolean }
   planDefinition?: string
   targetVersion?: string
 }
