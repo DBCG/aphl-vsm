@@ -26,10 +26,10 @@
 				},
 				"url": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary",
 				"version": "1.0.0.23",
-				"approvalDate": "1990-01-01",
+				"approvalDate": "2023-08-08",
 				"effectivePeriod": {
-					"start": "2023-01-01",
-					"end": "2023-12-01"
+					"start": "2023-09-01",
+					"end": "2024-12-01"
 				},
 				"extension": [
 					{
