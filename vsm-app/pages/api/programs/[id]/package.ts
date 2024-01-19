@@ -12,7 +12,7 @@ export interface ExpectedPackageBody {
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
-  const { data, planDefinition, targetVersion } = req.body || ({} as ExpectedPackageBody)
+  const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
   const { parameters, json, useV2 } = data
   try {
     let format = json || !useV2 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
