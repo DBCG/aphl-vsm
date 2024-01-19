@@ -80,6 +80,8 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
       name: 'Remove',
       selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.id!,
       sortable: false,
+      minWidth: '100px',
+      center: true,
       style: {
         rowWrap: 'wrap'
       },
