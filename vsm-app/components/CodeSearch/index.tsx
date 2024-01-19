@@ -12,6 +12,7 @@ import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '../ErrorMessage'
+import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 
 interface Props {
   programId: string
@@ -183,6 +184,7 @@ const CodeSearch = ({ programId, router }: Props) => {
                 (e) => { setGroupersToSearch(e) }
               }
               isMulti={true}
+              styles={reactSelectOptionStyle()}
               value={groupersToSearch}
               menuPlacement="top"
               instanceId="grouper-selector"

@@ -1,11 +1,12 @@
 import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import Select from 'react-select'
+import Select, { StylesConfig } from 'react-select'
+import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 import { buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
 import { ConditionsHandler } from 'pages/programs/[id]/grouper'
 import { FlatGrouperVSet } from '../types/grouperTypes'
-import { Dispatch, SetStateAction } from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { customTableStyles } from './tables/themes'
 
 interface TableProps {
@@ -55,7 +56,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Conditions',
       wrap: true,
-      minWidth: '200px',
+      minWidth: '350px',
       selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map((c) => c?.label)?.join() || '',
       sortable: false,
       style: {
@@ -67,6 +68,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
           isMulti={true}
           defaultValue={row.selectedConditions}
           menuPortalTarget={document.body}
+          styles={reactSelectOptionStyle()}
           onChange={(e) => {
             handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })
           }}

@@ -176,6 +176,12 @@ const ValueSetDetailsTables = ({
 
     definitionColumns = [
       {
+        name: 'Code',
+        selector: (row: any) => row?.code!,
+        sortable: true,
+        wrap: true
+      },
+      {
         name: 'Display',
         selector: (row: any) => row?.display!,
         sortable: true,
@@ -190,12 +196,6 @@ const ValueSetDetailsTables = ({
       {
         name: 'Version',
         selector: (row: any) => memberSet?.[0]?.version,
-        sortable: true,
-        wrap: true
-      },
-      {
-        name: 'Code',
-        selector: (row: any) => row?.code!,
         sortable: true,
         wrap: true
       }

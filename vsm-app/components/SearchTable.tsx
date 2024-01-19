@@ -18,6 +18,7 @@ interface TableData {
   version: ValueSet['version']
   id: ValueSet['id']
   status: ValueSet['status']
+  valueSet: fhir4.ValueSet
 }
 
 export interface BundleEntryItem {
@@ -135,7 +136,7 @@ const SearchTable = ({
       ),
       wrap: true,
       minWidth: '20rem',
-      selector: (row: TableData) => row.name!,
+      selector: (row: TableData) => row.valueSet.title!,
       sortable: false,
       style: {
         rowWrap: 'wrap'
