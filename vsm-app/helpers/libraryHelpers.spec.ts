@@ -424,7 +424,7 @@ const FIXTURE_PROGRAM_1 = {
   extension: [
     {
       url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
-      valueString: 'testtesttest'
+      valueMarkdown: 'testtesttest'
     }
   ],
   status: 'draft',
@@ -527,7 +527,7 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
   extension: [
     {
       url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
-      valueString: 'testtesttest'
+      valueMarkdown: 'testtesttest'
     }
   ],
   status: 'draft',
