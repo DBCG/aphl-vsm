@@ -56,7 +56,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         })
       }
       const v1Response = await fetch(`${fhirCdrClient.baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
-        body: v1BundleBody,
+        body: JSON.stringify(v1BundleBody),
         method: 'POST',
         headers: {
           'Content-Type': 'application/fhir+json',
