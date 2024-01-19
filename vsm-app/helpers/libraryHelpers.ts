@@ -27,12 +27,12 @@ const getGrouperLibraryCanonical = (program: fhir4.Library) => {
 
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
   // Run some more checks on the type of library
-  return program?.extension?.find((ext) => ext?.url?.endsWith('artifact-releaseDescription'))?.valueString || ''
+  return program?.extension?.find((ext) => ext?.url?.endsWith('artifact-releaseDescription'))?.valueMarkdown || ''
 }
 
 const setReleaseDescription = (program: fhir4.Library, releaseDescription: string = ''): fhir4.Library => {
   const releaseDescriptionExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription'
-  return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription)
+  return setExtension(program, releaseDescriptionExtensionUrl, releaseDescription, 'valueMarkdown')
 }
 
 const setEffectivePeriodStart = (program: fhir4.Library, date: string) => {
@@ -87,11 +87,14 @@ const getReleaseLabel = (program: fhir4.Library | null | undefined) => {
   return program?.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString || ''
 }
 
-const setExtension = (program: fhir4.Library, url: string, valueString: string) => {
+
+
+const setExtension = (program: fhir4.Library, url: string, value: string, valueType='valueString') => {
   const clonedProgram = cloneDeep(program)
+
   const newExtensionEntry = {
     url,
-    valueString
+    [valueType]: value
   }
 
   if (clonedProgram?.extension == null) {
