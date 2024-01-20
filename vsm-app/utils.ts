@@ -65,6 +65,10 @@ export const incrementSemver = ({
       revision = incrementStringValue(revision) || revision || '0'
       break
   }
+
+  // clear out revision on increment if you are incrementing another field
+  if (incrementType !== 'revision') revision = '0'
+
   // add a revision if it doesn't already exist
   const result = `${major}.${minor}.${patch}${revision ? "." + revision : ".0"}`
   return result
