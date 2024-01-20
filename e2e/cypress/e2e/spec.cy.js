@@ -261,16 +261,16 @@ describe("Smoke Tests", () => {
       cy.wait(3000);
       cy.get("#vs-table-detail").children().eq(1).scrollTo("right")
       
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"],[id="#react-select-condition-selector-input"]').click()
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"],[id="#react-select-condition-selector-input"]').click()
 
       cy.get("#react-select-condition-selector-listbox").contains("California Serogroup Virus Disease").scrollIntoView().click()
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('include.text', "California Serogroup Virus Disease")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "California Serogroup Virus Disease")
 
       // Removes condition from valueset
       cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click()
-      cy.get('body').click(0,0, {force: true}); // For bluring the element
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.360"]').should('not.include.text', "California Serogroup Virus Disease")
+      cy.get('body').click(0,0, {force: true}); // For blurring the element
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
     });
 
     it("Creates approval for draft library and release", () => {
