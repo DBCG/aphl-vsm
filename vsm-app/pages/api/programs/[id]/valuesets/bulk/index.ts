@@ -13,15 +13,10 @@ interface Query extends NextApiRequestQuery {
 // bulk update for conditions, groupers, and priority
 // currently will only handle one update type at a time
 const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('this called')
   try {
     const payload = req.body
     const { leafIds, priority, leafUrls } = payload
     const { id: programId } = req.query as Query
-    console.log(payload)
-    // if (!leafIds?.length) {
-    //   return res.status(400).json({ error: 'No Value Sets submitted for update' })
-    // }
 
     // priority is set on the base Program Library
     if (priority) {
@@ -45,63 +40,9 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(500).json({ error: 'Priority update failed' })
       }
     } else {
-      // handle leaf-based changes
-      const allLeafReqs = leafIds.map((id: string[]) => ({
-        request: {
-          method: 'GET',
-          url: `/ValueSet/${id}`
-        }
-      }))
-  
-      // some bulk operations need to update the program's relatedArtifacts
-      // not the leafs
-      const allLeafs = await fhirCdrClient.batch({
-        body: {
-          resourceType: 'Bundle',
-          type: 'batch',
-          entry: allLeafReqs
-        }
-      })
-  
-      // create success or failure groups in case can't find valueset, etc
-      const resultGroups = allLeafs?.entry?.reduce((acc, current) => {
-        if (current?.resource) {
-          const newSuccess = [...acc.success, current.resource]
-          acc.success = newSuccess
-        } else {
-          const failureText = current?.response?.outcome?.issue?.[0]?.diagnostics
-          const newFailure = [...acc.failure, failureText]
-          acc.failure = newFailure 
-        }
-        return acc
-      }, {success: [], failure: []})
-
+      return res.status(501).json({ error: 'Bulk update not implemented for this item' }) 
     }
-
-
-
-    
-    // const batchPrepVs = payload?.valueSets.map((vs: fhir4.ValueSet) => ({
-    //   resource: vs,
-    //   request: {
-    //     method: 'PUT',
-    //     url: `/ValueSet/${vs.id}`
-    //   }
-    // }))
-
-    // console.log('batch: ', allLeafs)
-
-    // const response = await fhirCdrClient.batch({body: {
-    //   resourceType: 'Bundle',
-    //   type: 'batch',
-    //   entry: batchPrepVs
-    // }})
-    // const errors = response.entry.find((i: any) => !i.response?.status.includes('200'))
-    // if (errors) {
-    //   throw new Error(`Error updating ValueSets: ${JSON.stringify(errors)}`)
-    // }
   } catch (e) {
-    console.log('e: ', e)
     logSimpleError(e)
     res.status(400).json({ error: 'Bulk ValueSet update failed' })
   }

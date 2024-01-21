@@ -51,8 +51,10 @@ interface TableActions {
 type editAction = 'add' | 'remove' | 'update' | null
 
 export type batchEditData = {
-  leafIds: fhir4.ValueSet['id'][]
-  conditionsToUpdate: MultiValue<Condition>
+  leafIds?: fhir4.ValueSet['id'][]
+  leafUrls?: fhir4.ValueSet['url'][]
+  priority?: 'emergent' | 'routine' | null
+  conditionsToUpdate?: MultiValue<Condition>
   action: editAction
 }
 
@@ -133,7 +135,7 @@ export const TableActions = ({
       
       const body = JSON.stringify(batch)
       try {
-        const result = await fetch(`/api/programs/${programId}/valuesets/bulk`, {
+        await fetch(`/api/programs/${programId}/valuesets/bulk`, {
           method: 'PUT',
           body
         }).then((res) => {
@@ -142,7 +144,6 @@ export const TableActions = ({
           window.location.reload()
       })
 
-      console.log('result: ', result)
       } catch (e) {
         console.error('error: ', e)
       }

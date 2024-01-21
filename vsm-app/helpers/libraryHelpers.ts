@@ -179,7 +179,6 @@ const createNewPriorityItem = (priorityCode: USHealthVSPriority, resourceUrl: st
 
 const setVSPriority = (programLib: fhir4.Library, code: USHealthVSPriority, urlsToUpdate: string[]) => {
   const clonedProgramLib = cloneDeep(programLib)
-  console.log('urls to update: ', urlsToUpdate)
   // if RA block doesn't exist (which is unlikely) just set it
   // since you'll be setting priorities there anyway
   if (!clonedProgramLib.relatedArtifact) {
@@ -224,14 +223,22 @@ const getVSPriority = (library: fhir4.Library) => {
   return vsPriorityMap
 }
 
-const getConditionText = (conditionItem, currentConditionExtension) => {
-  return conditionItem?.designation?.find(d => d?.use?.code === 'synonym')?.value ||
-  conditionItem?.display ||
-  currentConditionExtension?.valueCodeableConcept?.text
+interface ConditionsData {
+  system: string
+  version: string
+  code: string
+  display: string
 }
 
-// need to work on all these functions
-const getVSConditions = (program: fhir4.Library, conditionsData) => {
+const getConditionText = (conditionItem: ConditionsData | undefined, currentConditionExtension: fhir4.Extension) => {
+  const noTextResult = 'No display value for this condition'
+
+  return conditionItem?.display ||
+  currentConditionExtension?.valueCodeableConcept?.text ||
+  noTextResult
+}
+
+const getVSConditions = (program: fhir4.Library, conditionsDataFromRCKMS: ConditionsData[]) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
     const conditionExtensions = artifact?.extension?.filter(ext => ext?.url?.endsWith('vsm-valueset-condition'))
@@ -240,10 +247,15 @@ const getVSConditions = (program: fhir4.Library, conditionsData) => {
 
       const arrangedConditions = conditionExtensions.map(ext => {
         const itemCode = ext?.valueCodeableConcept?.coding?.[0]?.code
-      const conditionItem = conditionsData?.find(
-        i => i?.system === ext?.valueCodeableConcept?.coding?.[0]?.system
-      )?.concept?.find(item => item?.code === itemCode)
 
+      const conditionItem = conditionsDataFromRCKMS?.find(
+        i => (
+          i?.system === ext?.valueCodeableConcept?.coding?.[0]?.system &&
+          i?.code === ext?.valueCodeableConcept?.coding?.[0]?.code
+        )
+      ) as ConditionsData | undefined
+
+      // gets text from synonym if available, otherwise provides "text" field
       const conditionText = getConditionText(conditionItem, ext)
 
       const updatedCodeableConcept = Object.assign(ext?.valueCodeableConcept || {}, { text: conditionText })
@@ -258,7 +270,7 @@ const getVSConditions = (program: fhir4.Library, conditionsData) => {
       }
     }
   })
-  // some conditions missing text here (demodata?)
+
   return vsConditions
 }
 
@@ -266,9 +278,9 @@ const setVSConditions = (
   program: fhir4.Library,
   conditions: Condition[],
   vsUrl: string,
-  action: 'add' | 'remove' | 'override' = 'override',
-  allConditions?: any
+  action: 'add' | 'remove' | 'override' | 'update' | null
 ) => {
+  if (!action) action = 'override'
   const clonedProgram = cloneDeep(program)
   switch (action) {
     case 'add':
@@ -276,8 +288,10 @@ const setVSConditions = (
     case 'remove':
       return removeVSConditions(clonedProgram, conditions, vsUrl)
     case 'override':
-      return overrideVSConditions(clonedProgram, conditions, vsUrl, allConditions)
+      return overrideVSConditions(clonedProgram, conditions, vsUrl)
   }
+  // just return library if none of the above apply
+  return program
 }
 
 const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
@@ -286,9 +300,7 @@ const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
   const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
   program?.relatedArtifact?.forEach((i) => {
     const hasConditions = i?.extension?.find(ext => ext?.url?.endsWith('vsm-valueset-condition'))
-    if (i?.resource == vsUrl
-      // && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')
-    ) {
+    if (i?.resource == vsUrl) {
       targetedVSCondition.push(i)
     } else {
       otherRelatedArtifacts.push(i)
@@ -304,11 +316,9 @@ const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
             ext?.valueCodeableConcept?.coding?.[0]?.system === condition.value.system
           )
         )
-        // i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === condition.value.code
-        // i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === condition.value.system &&
       }
     )
-    console.log('exists: ', exists)
+
     if (!exists) {
       targetedVSCondition.push({
         extension: [
@@ -335,10 +345,9 @@ const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
 }
 
 // Remove any existing conditions for the given valueset and add the new conditions
-const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string, allConditions) => {
+const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
   const newConditions: fhir4.RelatedArtifact[] =
     conditions.map((i) => {
-      const conditionText = getConditionText(i, allConditions)
       return ({
         extension: [
           {
@@ -358,6 +367,8 @@ const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], v
         resource: vsUrl
       })
     }) || []
+  
+  // this isn't right, can't depend upon [0] being the condition anymore
   const clearedArtifactFilters = program?.relatedArtifact?.filter(
     (i) => i?.resource !== vsUrl || !i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')
   )

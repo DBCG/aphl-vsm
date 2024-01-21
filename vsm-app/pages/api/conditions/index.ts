@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 export type ConditionsAPIResponse = fhir4.ValueSetComposeInclude[] | { error: string }
 const getConditions = async (req: NextApiRequest, res: NextApiResponse<ConditionsAPIResponse>) => {
@@ -18,7 +19,7 @@ const getConditions = async (req: NextApiRequest, res: NextApiResponse<Condition
     const valueSet = (<fhir4.ValueSet>data?.entry?.[0]?.resource)?.compose?.include || []
     res.status(200).send(valueSet)
   } catch (e: any) {
-    logger.error('error:  ', e?.response?.data?.text)
+    logSimpleError(e)
     res.status(400).json({ error: 'Search for conditions valueset failed.' })
   }
 }

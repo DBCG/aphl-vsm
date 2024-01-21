@@ -16,7 +16,7 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
     return res.status(404).send({ message: 'Program not found for updating conditions' })
   }
 
-  const leafIds = body.leafIds
+  const leafIds = body.leafIds as fhir4.ValueSet['id'][]
   const conditionsToUpdate = body.conditionsToUpdate
   const action = body.action
 
@@ -51,7 +51,7 @@ const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiRespo
       logger.error('Could not find valueset canonical set in Grouper')
       throw new Error('Could not find valueset canonical set in Grouper')
     }
-    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action!)
+    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action)
   })
 
   await fhirCdrClient.update({

@@ -126,7 +126,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
 
     const bundlePayload = []
     vSetsToUpdate.forEach((vs) => {
-      program = setVSConditions(program, body.selectedConditions, vs.valueSet.url!)
+      program = setVSConditions(program, body.selectedConditions, vs.valueSet.url!, 'override')
       bundlePayload.push({
         resource: vs.valueSet,
         request: {

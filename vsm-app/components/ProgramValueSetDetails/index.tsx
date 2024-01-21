@@ -160,6 +160,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const debouncedFilters = useDebounce(filters, 300)
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
+  const conditionsDataFromRCKMS = useGetConditions()
+
+  // the formatConditionsComposeInclude fn prefers synonym as text if available
+  const allRCKMSConditions = removeConditionsWithoutDisplay(
+    formatConditionsComposeInclude(conditionsDataFromRCKMS)
+  )
+
   // don't allow editing if any loading in progress
   const blockChanges = pageLoading
   || grouperLoading
@@ -168,7 +175,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   || priorityLoading
   || versionUpdateInFlight
 
-  const conditionsMap = getVSConditions(currentProgram)
+  const conditionsMap = getVSConditions(currentProgram, allRCKMSConditions)
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
@@ -296,8 +303,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setPageLoading(keys.length === 0)
   }, [progValueSetDets])
 
-  const conditions = useGetConditions()
-  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
   const groupsInProgram = progValueSetDets?.groupsInProgram
   const totalLeafs = progValueSetDets?.totalLeafs
 
@@ -552,7 +557,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               inputId="conditions-selector"
               instanceId="conditions-selector"
               isMulti
-              options={buildConditionOptions(allConditions)}
+              options={buildConditionOptions(allRCKMSConditions)}
               onChange={(e) => {
                 handleFilterChange(e, 'activeConditions')
               }}
@@ -594,7 +599,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 instanceId="condition-selector"
                 isMulti={true}
                 styles={reactSelectOptionStyle({ minWidth: '200px'})}
-                options={buildConditionOptions(allConditions, selectedOptions)}
+                options={buildConditionOptions(allRCKMSConditions, selectedOptions)}
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
@@ -672,7 +677,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap]
+    [router, groupsInProgram, allRCKMSConditions, conditionsMap]
   ) as TableColumn<TableRow>[]
 
   const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
@@ -758,7 +763,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         <TableActions
           handleDelete={() => setShowDeleteConfirmationModal(true)}
           handleBulkEdit={() => setShowBulkEditModal(true)}
-          formattedConditions={allConditions}
+          formattedConditions={allRCKMSConditions}
           groupsInProgram={progValueSetDets?.groupsInProgram!}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
