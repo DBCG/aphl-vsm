@@ -300,6 +300,25 @@ describe("Smoke Tests", () => {
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('include.text', 'Emergent')
     });
 
+    it("Sets Priority on multiple valuesets", {scrollBehavior: false}, () => {
+      clickDraftProgramRow()
+      cy.get("#view-valuesets").click();
+      cy.wait(1000)
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500, offset: {top: 150}})
+      
+      cy.get('[aria-label="select-all-rows"]').click()
+      cy.get('[aria-label="edit"]').click()
+      cy.get('input[value="priority"]').click()
+      cy.get('.priority__input-container').first().click()
+      cy.get('.priority__option').first().click({ force: true })
+      cy.get('.MuiButton-root').contains('Update Value Set Priority').click()
+      cy.get('.MuiButton-root').contains('YES, update').click()
+      cy.wait(2000)
+      // all should now be emergent
+      cy.get('.priority-option__single-value').each((item) => cy.wrap(item).contains('Emergent'))
+
+    });
+
     it("Creates approval for draft library and release", () => {
       // View first draft program
       clickDraftProgramRow()
