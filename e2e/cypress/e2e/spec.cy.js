@@ -189,7 +189,7 @@ describe("Smoke Tests", () => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
         });
         cy.wait(3000) // Wait for valueset to load due to async nature of the call above
-        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // navigate back to program view
         cy.go("back");
@@ -199,8 +199,8 @@ describe("Smoke Tests", () => {
           cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(200,10, { force: true });
         });
         cy.wait(3000)
-
-        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
+        cy.scrollTo('bottom')
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
 
         // Remove same leaf from program
         cy.go("back");
@@ -223,7 +223,7 @@ describe("Smoke Tests", () => {
         });
         cy.wait(3000)
 
-        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("not.exist");
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("not.exist");
 
         // navigate back to program view
         cy.go("back");
@@ -235,7 +235,7 @@ describe("Smoke Tests", () => {
         });
         cy.wait(3000)
 
-        cy.get('[data-column-id="3"]').contains(`https://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
+        cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}"]`).should("not.exist");
       });
     });
 
@@ -245,12 +245,12 @@ describe("Smoke Tests", () => {
       cy.get("#view-valuesets").click();
       // Search By Name
       cy.get('[data-column-id="vs-title-search"] input').clear().type("covid");
-      cy.get('[data-column-id="vs-title-search"]').contains("COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod")
+      cy.get('[data-column-id="vs-title-search"]').contains("COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)")
       cy.get('[data-column-id="vs-title-search"] input').clear()
 
       // Search By OID
       cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
-      cy.get('[data-column-id="vs-title-search"]').contains("AnthraxTestsforBacillisanthracisAntibody").should("exist");
+      cy.get('[data-column-id="vs-title-search"]').contains("Anthrax (Tests for Bacillis anthracis Antibody)").should("exist");
       cy.get('[data-column-id="vs-oid-search"] input').clear();
     })
 
@@ -269,27 +269,34 @@ describe("Smoke Tests", () => {
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "California Serogroup Virus Disease")
 
       // Removes condition from valueset
-      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').click({force: true})
+      cy.get('[aria-label="Remove California Serogroup Virus Disease"]').first().click({force: true})
       cy.get('body').click(0,0, {force: true}); // For bluring the element
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "California Serogroup Virus Disease")
 
       // Removing last condition on valueset should not break page
       cy.get("#vs-table-detail").children().eq(1).scrollTo("topRight", {duration: 500})
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "Anthrax (disorder)")
-      cy.get('[aria-label="Remove Anthrax (disorder)"]').first().click({force: true})
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "Anthrax (disorder)")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('include.text', "Anthrax")
+      cy.get('[aria-label="Remove Anthrax"]').first().click({force: true})
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('not.include.text', "Anthrax")
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.481"]').should('exist')
     });
 
-    it("Sets Priority on a valueset", {scrollBehavior: false}, () => {
+    it("Sets Priority on an individual valueset", {scrollBehavior: false}, () => {
       clickDraftProgramRow()
       cy.get("#view-valuesets").click();
-      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
+      cy.wait(1000)
+      cy.get("#vs-table-detail").children().eq(1).scrollTo("top", {duration: 500, offset: {top: 150}})
 
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('not.include.text', 'Emergent')
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').click()
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('include.text', 'Routine')
+      // how to click on an individual priority item?
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1')
+        .find('.priority-option__control')
+        .click({force: true})
 
-      cy.get('#react-select-priority-selector-option-0').click()
+      cy.get('.priority-option__menu-portal').find('.priority-option__option').first().click({ force: true })
+
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('not.include.text', 'Routine')
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480-2022-10-19-1"]').should('include.text', 'Emergent')
     });
 

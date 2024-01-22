@@ -97,7 +97,7 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
       if (conditions != null) {
         program = setVSConditions(program, conditions, vsUrlToSet, 'override')
       } else if (priority != null) {
-        program = setVSPriority(program, priority, vsUrlToSet)
+        program = setVSPriority(program, priority, [vsUrlToSet])
       }
     })
 

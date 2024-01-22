@@ -426,7 +426,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         id: 'value-set-priority',
         sortable: false,
         allowOverflow: true,
-        maxWidth: '150px',
+        minWidth: '200px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
@@ -445,12 +445,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
-                classNamePrefix="priority"
-                inputId="priority-selector"
-                instanceId="priority-selector"
+                classNamePrefix="priority-option"
+                inputId="priority-selector-item"
+                instanceId="priority-selector-item"
                 isLoading={priorityLoading}
                 isDisabled={blockChanges}
                 options={priorityLevelOptions}
+                styles={reactSelectOptionStyle({ minWidth: '150px' })}
                 value={currentPriorityValue}
                 onChange={(e) => {
                   if (!!e?.value) {
