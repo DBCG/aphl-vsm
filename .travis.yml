@@ -28,7 +28,6 @@ jobs:
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
       - docker build -t cqf-ruler:$TRAVIS_COMMIT .
       - cd ../
-      - ./bin/deploy_plugin.sh
       - ./bin/deploy_plugin_dockerhub.sh
     - stage: build-and-deploy-plugin-amd
       # if: commit_message =~ /^update-plugin-.+$/
