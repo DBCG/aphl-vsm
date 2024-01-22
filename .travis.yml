@@ -21,7 +21,7 @@ jobs:
       # if: commit_message =~ /^update-plugin-.+$/
       arch:
       - amd64
-      - arm64  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
+      - arm64-graviton2  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
