@@ -1,10 +1,6 @@
 language: python
 dist: jammy
 
-arch:
-  - amd64
-  - arm64  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
-
 python:
   - "3.8"
 services:
@@ -23,6 +19,9 @@ jobs:
   include:
     - stage: build-and-deploy-plugin
       # if: commit_message =~ /^update-plugin-.+$/
+      arch:
+      - amd64
+      - arm64  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
