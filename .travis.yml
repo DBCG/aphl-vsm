@@ -17,11 +17,21 @@ install:
   - ./bin/install_ci_dependencies.sh
 jobs:
   include:
-    - stage: build-and-deploy-plugin
+    - stage: build-and-deploy-plugin-arm
       # if: commit_message =~ /^update-plugin-.+$/
       arch:
       - arm64  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
-      - amd64  # please note arm64-graviton2 requires explicit virt: [lxd|vm] tag so it's recommended for jobs.include, see below
+      script: 
+      - cd $TRAVIS_BUILD_DIR/ecr
+      - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
+      - docker build -t cqf-ruler:$TRAVIS_COMMIT .
+      - cd ../
+      - ./bin/deploy_plugin.sh
+      - ./bin/deploy_plugin_dockerhub.sh
+    - stage: build-and-deploy-plugin-amd
+      # if: commit_message =~ /^update-plugin-.+$/
+      arch:
+      - amd64  # default
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
