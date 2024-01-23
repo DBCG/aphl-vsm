@@ -22,7 +22,13 @@ install:
   - ./bin/install_ci_dependencies.sh
 jobs:
   include:
+    - stage: test
+      script: 
+      - cd $TRAVIS_BUILD_DIR/vsm-app
+      - npm ci && npm run test-ci
+      install: skip
     - stage: build-and-deploy-plugin
+      if: branch IN (main)
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
@@ -34,11 +40,6 @@ jobs:
       # Deploy to Docker Hub
       - docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
       - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
-    - stage: test
-      script: 
-      - cd $TRAVIS_BUILD_DIR/vsm-app
-      - npm ci && npm run test-ci
-      install: skip
     - stage: deploy
       if: branch IN (main)
       script:
