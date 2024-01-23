@@ -18,11 +18,10 @@ install:
 jobs:
   include:
     - stage: build-and-deploy-plugin-arm
-      # if: commit_message =~ /^update-plugin-.+$/
     - os: linux
-      arch: amd64
-    - os: linux
-      arch: arm64-graviton2
+      arch: 
+        - amd64
+        - arm64-graviton2
       virt: lxd
       group: edge
       script: 
