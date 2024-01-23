@@ -359,7 +359,7 @@ describe("Smoke Tests", () => {
       // click the Download button
       cy.get('button').contains('Download').click()
       // file path is relative to the working folder
-      const filename = path.join(downloadsFolder, 'Draft_Library-bundle.xml')
+      const filename = path.join(downloadsFolder, 'Draft-Library-bundle.xml')
       cy.readFile(filename, { timeout: 30000 })
       // actually checking contents is memory intensive
       //.should('have.length.gt',50).and('contain.text','<')

@@ -50,7 +50,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     // create "a" HTLM element with href to file
     const link = document.createElement('a')
     link.href = href
-    link.download = `${program?.name || program?.id}-bundle.${type.includes('json') ? 'json' : 'xml'}`
+    const regex = /[\s_]/gi
+    link.download = `${program?.name || program?.id}-bundle.${type.includes('json') ? 'json' : 'xml'}`.replaceAll(regex, '-')
     document.body.appendChild(link)
     link.click()
 
