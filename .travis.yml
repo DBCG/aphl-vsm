@@ -18,7 +18,7 @@ install:
 jobs:
   include:
     - stage: build-and-deploy-plugin-arm
-    - os: linux
+      os: linux
       arch: 
         - amd64
         - arm64-graviton2
