@@ -11,23 +11,22 @@ cache:
     - $HOME/.cache/yarn
     - node_modules
     - .next/cache
+before_install:
+  - mkdir -vp ~/.docker/cli-plugins/
+  - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.3.0/buildx-v0.3.0.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker buildx version
 
 install:
   - cd $TRAVIS_BUILD_DIR
   - ./bin/install_ci_dependencies.sh
 jobs:
   include:
-    - stage: build-and-deploy-plugin-arm
-      os: linux
-      arch: 
-        - amd64
-        - arm64-graviton2
-      virt: lxd
-      group: edge
+    - stage: build-and-deploy-plugin
       script: 
       - cd $TRAVIS_BUILD_DIR/ecr
       - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
-      - docker build -t cqf-ruler:$TRAVIS_COMMIT .
+      - docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 -t cqf-ruler:$TRAVIS_COMMIT .
       - cd ../
       - ./bin/deploy_plugin.sh
       - ./bin/deploy_plugin_dockerhub.sh
