@@ -1,5 +1,6 @@
 language: python
 dist: jammy
+
 python:
   - "3.8"
 services:
@@ -10,26 +11,35 @@ cache:
     - $HOME/.cache/yarn
     - node_modules
     - .next/cache
+before_install:
+  - mkdir -vp ~/.docker/cli-plugins/
+  - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.3.0/buildx-v0.3.0.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker buildx version
 
 install:
   - cd $TRAVIS_BUILD_DIR
   - ./bin/install_ci_dependencies.sh
 jobs:
   include:
-    - stage: build-and-deploy-plugin
-      # if: commit_message =~ /^update-plugin-.+$/
-      script: 
-      - cd $TRAVIS_BUILD_DIR/ecr
-      - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
-      - docker build -t cqf-ruler:$TRAVIS_COMMIT .
-      - cd ../
-      - ./bin/deploy_plugin.sh
-      - ./bin/deploy_plugin_dockerhub.sh
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
       - npm ci && npm run test-ci
       install: skip
+    - stage: build-and-deploy-plugin
+      if: branch IN (main)
+      script: 
+      - cd $TRAVIS_BUILD_DIR/ecr
+      - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
+      - docker buildx create --use
+      # Deploy to AWS
+      - aws sts get-caller-identity
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+      - docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:$TRAVIS_COMMIT --push .
+      # Deploy to Docker Hub
+      - docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
+      - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
     - stage: deploy
       if: branch IN (main)
       script:
