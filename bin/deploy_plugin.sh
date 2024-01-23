@@ -5,6 +5,12 @@ set -o pipefail
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+ARCH=$(uname -m)
+if [ "$ARCH" != "x86_64" ]; then
+  echo "This script is intended to be run on amd64 architecture only."
+  exit 0
+fi
+
 # Login to ECR
 aws sts get-caller-identity
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
