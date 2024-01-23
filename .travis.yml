@@ -33,7 +33,7 @@ jobs:
       - docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:$TRAVIS_COMMIT --push .
       # Deploy to Docker Hub
       - docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
-      - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr .
+      - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
