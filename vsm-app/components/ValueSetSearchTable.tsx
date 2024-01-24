@@ -519,6 +519,23 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   // search page requires the target grouper to be selected, 'add-grouper' context does not
   const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length
 
+  let errorMessageComponent = null
+  if (vsNumExceedsFilterLimit) {
+    errorMessageComponent = (
+      <ErrorText>
+        {searchTotal} results
+        <br />
+        Refine search to enable filters (max {paginationMaximum} results)
+      </ErrorText>
+    )
+  } else if (searchTerm.length < 3 && searchTerm.length > 0) {
+    errorMessageComponent = (
+      <ErrorText>
+        Minimum 3 characters required
+      </ErrorText>
+    )
+  }
+
   return (
     <Col>
       <Dialog open={addedValueSetsLoading}>
@@ -577,19 +594,12 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 hasIcon={true}
                 info={searchInfoText[searchType.value]}
                 helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
-                errorMessage={
-                  vsNumExceedsFilterLimit ? (
-                    <ErrorText>
-                      {searchTotal} results
-                      <br />
-                      Refine search to enable filters (max {paginationMaximum} results)
-                    </ErrorText>
-                  ) : null
-                }
+                errorMessage={errorMessageComponent}
               />
               <IconButton
                 style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
                 id={'submit-search-valueset-button'}
+                disabled={searchTerm.length < 3 || searchTerm.length === 0}
                 buttoncontext="search"
                 type="submit"
                 onClick={(e) => {
