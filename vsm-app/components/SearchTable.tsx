@@ -1,4 +1,3 @@
-import styled from 'styled-components'
 import { ValueSet } from 'fhir/r4'
 import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
@@ -24,10 +23,6 @@ interface TableData {
 export interface BundleEntryItem {
   fullUrl: string
   resource: fhir4.ValueSet
-}
-
-interface StatusProps {
-  status: 'active' | 'draft' | 'retired' | 'unknown'
 }
 
 const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
@@ -240,7 +235,7 @@ const SearchTable = ({
       data={tableData}
       selectableRows
       pagination
-      paginationServer={searchType == 'name'}
+      paginationServer={searchType == 'title'}
       paginationPerPage={resultsPerPage}
       progressPending={isLoading}
       progressComponent={<LoadingIndicator />}
