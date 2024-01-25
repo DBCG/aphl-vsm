@@ -231,101 +231,89 @@ const setVSConditions = (
   }
 }
 
-const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
-  // Create two buckets, one with targeted valueset url and one with the rest.
-  const targetedVSCondition = [] as fhir4.RelatedArtifact[]
-  const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
-  program?.relatedArtifact?.forEach((i) => {
-    if (i?.resource == vsUrl && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')) {
-      targetedVSCondition.push(i)
-    } else {
-      otherRelatedArtifacts.push(i)
+const buildConditionExtensionItem = (code: string, system: string, text: string = 'no condition description provided') => {
+  return ({
+    url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+    valueCodeableConcept: {
+      coding: [
+        {
+          system,
+          code
+        }
+      ],
+      text
     }
   })
-  // Loop through conditions and check if they already exist in the targetedVSCondition bucket
-  // If they do then ignore otherwise add it to the bucket
-  conditions.forEach((condition) => {
-    const exists = targetedVSCondition.find(
-      (i) =>
-        i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === condition.value.system &&
-        i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === condition.value.code
-    )
-    if (!exists) {
-      targetedVSCondition.push({
-        extension: [
-          {
-            url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
-            valueCodeableConcept: {
-              coding: [
-                {
-                  system: condition.value.system,
-                  code: condition.value.code
-                }
-              ],
-              text: condition.label
-            }
+}
+
+// assumes valuesets already exist as depends-on block
+const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrl: string) => {
+  const clonedProgram = cloneDeep(program)
+
+  const updatedRA = clonedProgram.relatedArtifact?.map(item => {
+    if (item?.type === 'depends-on' && item?.resource === vsUrl) {
+      if (!item.extension) {
+        item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
+      } else {
+        conditionsToAdd.forEach(condition => {
+          const matchingCondition = item?.extension?.find(ext => {
+            return (
+              ext?.valueCodeableConcept?.coding?.[0]?.system == condition.value.system &&
+              ext?.valueCodeableConcept?.coding?.[0]?.code == condition.value.code
+            )
+          })
+
+          // if condition doesn't already exist, add it
+          if (!matchingCondition) {
+            const newExtensionItem = buildConditionExtensionItem(condition.value.code, condition.value.system, condition.value.text || condition.label || 'No condition label found' )
+            item.extension!.push(newExtensionItem)
           }
-        ],
-        type: 'depends-on',
-        resource: vsUrl
-      })
+        })
+      }
     }
+
+    return item
   })
-  program.relatedArtifact = [...otherRelatedArtifacts, ...targetedVSCondition]
-  return program
+
+  clonedProgram.relatedArtifact = updatedRA
+  return clonedProgram
 }
 
 // Remove any existing conditions for the given valueset and add the new conditions
 const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
-  const newConditions: fhir4.RelatedArtifact[] =
-    conditions.map((i) => ({
-      extension: [
-        {
-          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: i.value.system,
-                code: i.value.code
-              }
-            ],
-            text: i.label
-          }
-        }
-      ],
-      type: 'depends-on',
-      resource: vsUrl
-    })) || []
-  const clearedArtifactFilters = program?.relatedArtifact?.filter(
-    (i) => i?.resource !== vsUrl || !i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')
-  )
+  const clonedProgram = cloneDeep(program)
 
-  program.relatedArtifact = [...(clearedArtifactFilters || []), ...newConditions]
+  const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
+    if (ra.type === 'depends-on' && ra.resource == vsUrl && ra.extension) {
+      ra.extension = ra.extension.filter(xt => !xt.url.endsWith('vsm-valueset-condition'))
+    }
+    return ra
+  })
+  
+  clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
+  const progWithCondAdded = addVSConditions(clonedProgram, conditions, vsUrl)
 
-  return program
+  return progWithCondAdded
 }
 
 const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
-  // Create two buckets, one with targeted valueset url and one with the rest.
-  const targetedVSCondition = [] as fhir4.RelatedArtifact[]
-  const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
-  program?.relatedArtifact?.forEach((i) => {
-    if (i?.resource == vsUrl && i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition')) {
-      targetedVSCondition.push(i)
-    } else {
-      otherRelatedArtifacts.push(i)
-    }
-  })
-  // Filter out only the conditions we want to keep
-  const filteredConditions = targetedVSCondition.filter((i) => {
-    const system = i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system
-    const code = i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
-    const condition = conditions.find((j) => j.value.system === system && j.value.code === code)
-    return !condition
-  })
-  program.relatedArtifact = [...otherRelatedArtifacts, ...filteredConditions]
+  const clonedProgram = cloneDeep(program)
 
-  return program
+  const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
+    if (ra.type === 'depends-on' && ra.resource == vsUrl && ra.extension) {
+      ra.extension = ra.extension.filter(xt => (
+        xt?.url?.endsWith('vsm-valueset-condition') && !conditions.find(cond => (
+          xt?.valueCodeableConcept?.coding?.[0]?.system == cond.value.system &&
+          xt?.valueCodeableConcept?.coding?.[0]?.code == cond.value.code
+        )
+        )
+      ))
+    }
+    return ra
+  })
+
+  clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
+  return clonedProgram
 }
 
 export {
@@ -342,5 +330,6 @@ export {
   setReleaseLabel,
   setTitleAndDerivedName,
   setEffectivePeriodStart,
-  validStartDate
+  validStartDate,
+  addVSConditions
 }
