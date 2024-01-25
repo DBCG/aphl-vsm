@@ -194,7 +194,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
 					},
 					{
 						"extension": [
@@ -212,7 +212,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
 					},
 					{
 						"extension": [
@@ -230,7 +230,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
 					},
 					{
 						"extension": [
@@ -248,7 +248,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
 					},
 					{
 						"extension": [
@@ -266,7 +266,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
 					},
 					{
 						"extension": [
@@ -284,7 +284,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
 					},
 					{
 						"extension": [
@@ -302,7 +302,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
 					},
 					{
 						"extension": [
@@ -320,7 +320,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
 					},
 					{
 						"extension": [
@@ -338,7 +338,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
 					},
 					{
 						"extension": [
@@ -356,7 +356,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
 					},
 					{
 						"extension": [
@@ -374,7 +374,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 					},
 					{
 						"extension": [
@@ -392,7 +392,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 					},
 					{
 						"extension": [
@@ -410,7 +410,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
 					},
 					{
 						"extension": [
@@ -428,7 +428,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
 					},
 					{
 						"extension": [
@@ -446,7 +446,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
 					},
 					{
 						"extension": [
@@ -464,7 +464,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
 					},
 					{
 						"extension": [
@@ -482,7 +482,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
 					},
 					{
 						"extension": [
@@ -500,7 +500,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
 					},
 					{
 						"extension": [
@@ -518,7 +518,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
 					},
 					{
 						"extension": [
@@ -536,7 +536,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
 					},
 					{
 						"extension": [
@@ -554,7 +554,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
 					},
 					{
 						"extension": [
@@ -572,7 +572,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
 					},
 					{
 						"extension": [
@@ -590,7 +590,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
 					},
 					{
 						"extension": [
@@ -608,7 +608,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
 					},
 					{
 						"extension": [
@@ -626,7 +626,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
 					},
 					{
 						"extension": [
@@ -644,7 +644,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
 					},
 					{
 						"extension": [
@@ -662,7 +662,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
 					},
 					{
 						"extension": [
@@ -680,7 +680,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
 					}
 				]
 			},
@@ -1965,27 +1965,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
 							]
 						}
 					]
@@ -2407,27 +2407,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
 							]
 						}
 					]
@@ -2659,27 +2659,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 							]
 						}
 					]
@@ -3491,27 +3491,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
 							]
 						}
 					]
@@ -3803,27 +3803,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
 							]
 						}
 					]
@@ -4335,27 +4335,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
 							]
 						}
 					]
@@ -4402,7 +4402,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1506",
@@ -4436,7 +4436,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1506"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersICD10CM",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (ICD10CM)",
 				"status": "active",
@@ -4528,7 +4528,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1505",
@@ -4562,7 +4562,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1505"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20240123",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersSNOMED",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
 				"status": "active",
@@ -4726,7 +4726,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1508",
@@ -4760,7 +4760,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1508"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "ArsenicExposureandToxicityDisordersICD10CM",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (ICD10CM)",
 				"status": "active",
@@ -4915,7 +4915,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1507",
@@ -4949,7 +4949,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1507"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230125",
 				"name": "ArsenicExposureandToxicityDisordersSNOMED",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (SNOMED)",
 				"status": "active",
@@ -5203,7 +5203,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.6",
@@ -5237,7 +5237,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.6"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230602",
 				"name": "DiphtheriaDisordersSNOMED",
 				"title": "Diphtheria (Disorders) (SNOMED)",
 				"status": "active",
@@ -5518,7 +5518,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.480",
@@ -5552,7 +5552,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.480"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20180620",
 				"name": "AnthraxTestsforBacillisanthracisAntigen",
 				"title": "Anthrax (Tests for Bacillis anthracis Antigen)",
 				"status": "active",
@@ -5680,7 +5680,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.481",
@@ -5714,7 +5714,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.481"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20180620",
 				"name": "AnthraxTestsforBacillisanthracisAntibody",
 				"title": "Anthrax (Tests for Bacillis anthracis Antibody)",
 				"status": "active",
@@ -5896,7 +5896,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.761",
@@ -5930,7 +5930,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.761"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220119",
 				"name": "MumpsTestPanelsformumpsvirusNucleicAcid",
 				"title": "Mumps (Test Panels for mumps virus Nucleic Acid)",
 				"status": "active",
@@ -6022,7 +6022,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1223",
@@ -6056,7 +6056,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1223"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210528",
 				"name": "COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod",
 				"title": "COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)",
 				"status": "active",
@@ -6148,7 +6148,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.762",
@@ -6182,7 +6182,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.762"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20191227",
 				"name": "MumpsTestPanelsformumpsvirusIgMIgGAntibody",
 				"title": "Mumps (Test Panels for mumps virus IgM IgG Antibody)",
 				"status": "active",
@@ -6292,7 +6292,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1182",
@@ -6326,7 +6326,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1182"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220602",
 				"name": "PowassanVirusDiseaseTestsforPowassanVirusAntibodyQuantitative",
 				"title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6535,7 +6535,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1181",
@@ -6569,7 +6569,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1181"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210526",
 				"name": "EasternEquineEncephalitisVirusDiseaseTestsforEasternEquineEncephalitisVirusAntibodyQuantitative",
 				"title": "Eastern Equine Encephalitis Virus Disease (Tests for Eastern Equine Encephalitis Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6886,7 +6886,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1184",
@@ -6920,7 +6920,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1184"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210526",
 				"name": "CaliforniaSerogroupVirusDiseasesTestsforCaliforniaSerogroupVirusAntibodyQuantitative",
 				"title": "California Serogroup Virus Diseases (Tests for California Serogroup Virus Antibody [Quantitative])",
 				"status": "active",
@@ -7732,7 +7732,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1601",
@@ -7766,7 +7766,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1601"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVBoostersCYP3A4InhibitorRXNORM",
 				"title": "HIV Infection (ARV Boosters [CYP3A4 Inhibitor]) (RXNORM)",
 				"status": "active",
@@ -7930,7 +7930,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1600",
@@ -7964,7 +7964,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1600"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230602",
 				"name": "HIVInfectionARVIntegraseStrandTransferInhibitorsINSTIsRXNORM",
 				"title": "HIV Infection (ARV Integrase Strand Transfer Inhibitors [INSTIs]) (RXNORM)",
 				"status": "active",
@@ -8236,7 +8236,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1603",
@@ -8270,7 +8270,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1603"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVAttachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Attachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8362,7 +8362,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1602",
@@ -8396,7 +8396,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1602"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVPostattachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Postattachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8488,7 +8488,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1082",
@@ -8522,7 +8522,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1082"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20200513",
 				"name": "AnthraxVaccineRXNORM",
 				"title": "Anthrax Vaccine (RXNORM)",
 				"status": "active",
@@ -8614,7 +8614,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.528",
@@ -8648,7 +8648,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.528"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20200516",
 				"name": "DengueVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -8848,7 +8848,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.408",
@@ -8882,7 +8882,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.408"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "HepatitisBVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis B Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9160,7 +9160,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.409",
@@ -9194,7 +9194,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.409"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210527",
 				"name": "HepatitisCVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis C Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9538,7 +9538,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1469",
@@ -9572,7 +9572,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1469"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "EnterococcusfaeciumorEfaecalisOrganismorSubstanceinLabResults",
 				"title": "Enterococcus faecium or E. faecalis (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9772,7 +9772,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1468",
@@ -9806,7 +9806,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1468"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20240123",
 				"name": "EnterococcusgallinarumorEcasseliflavusEflavescensOrganismorSubstanceinLabResults",
 				"title": "Enterococcus gallinarum or E. casseliflavus/E. flavescens (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9907,7 +9907,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1439",
@@ -9941,7 +9941,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1439"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "RabiesSuspectedDisordersSNOMED",
 				"title": "Rabies [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10033,7 +10033,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1436",
@@ -10067,7 +10067,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1436"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "MeaslesSuspectedDisordersSNOMED",
 				"title": "Measles [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10150,7 +10150,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1435",
@@ -10184,7 +10184,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1435"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "DiphtheriaSuspectedDisordersSNOMED",
 				"title": "Diphtheria [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10267,7 +10267,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1446",
@@ -10301,7 +10301,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1446"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "ViralHemorrhagicFeverSuspectedDisordersSNOMED",
 				"title": "Viral Hemorrhagic Fever [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10384,7 +10384,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|1.0.0",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1438",
@@ -10418,7 +10418,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1438"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "PoliomyelitisSuspectedDisordersSNOMED",
 				"title": "Poliomyelitis [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
