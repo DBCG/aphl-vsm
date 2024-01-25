@@ -690,11 +690,7 @@
 			}
 		},
 		{
-<<<<<<< HEAD
 			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23",
-=======
-			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|0.1",
->>>>>>> f8e21cd ([APHL-830] updated demo data)
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "plandefinition-ersd-instance-example",
