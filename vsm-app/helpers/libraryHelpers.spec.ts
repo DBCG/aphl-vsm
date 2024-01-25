@@ -9,7 +9,8 @@ import {
   setEffectivePeriodStart,
   setVSPriority,
   setVSConditions,
-  getVSConditions
+  getVSConditions,
+  addVSConditions
 } from './libraryHelpers'
 import { Condition } from './conditionHelpers'
 
@@ -291,10 +292,13 @@ describe('libraryHelpers', () => {
         )
         const addedCondition = updatedProgram.relatedArtifact?.find(
           (i) =>
-            i?.resource === targetedVsUrl &&
-            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+            i?.resource === targetedVsUrl && (
+             i?.extension?.find(xt => (
+               xt?.url?.endsWith('vsm-valueset-condition') &&
+               xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+               xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+             )) 
+            )
         )
         expect(addedCondition).toBeDefined()
       })
@@ -318,10 +322,15 @@ describe('libraryHelpers', () => {
         )
         const addedCondition = updatedProgram.relatedArtifact?.find(
           (i) =>
-            i?.resource === targetedVsUrl &&
-            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+            i?.resource === targetedVsUrl && (
+              i?.extension?.find(
+                xt => (
+                  xt?.url?.endsWith('vsm-valueset-condition') &&
+                  xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+                  xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+                )
+              )
+            )
         )
         expect(addedCondition).toBeDefined()
         
@@ -333,10 +342,15 @@ describe('libraryHelpers', () => {
         )
         const removedCondition = removedProgram.relatedArtifact?.find(
           (i) =>
-            i?.resource === targetedVsUrl &&
-            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+            i?.resource === targetedVsUrl && (
+              i?.extension?.find(
+                xt => (
+                  xt?.url?.endsWith('vsm-valueset-condition') &&
+                  xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+                  xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+                )
+              )
+            )
         )
         expect(removedCondition).toBeUndefined()
       })
@@ -394,12 +408,12 @@ describe('libraryHelpers', () => {
         const addedCondition = finalProgram.relatedArtifact?.find(
           (i) =>
             i?.resource === targetedVsUrl &&
-            i?.extension?.[0]?.url?.endsWith('vsm-valueset-condition') &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-            i?.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
-        )
+            i?.extension?.find(ext => (
+              ext?.url?.endsWith('vsm-valueset-condition') &&
+              ext.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+              ext.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+          )))
         expect(addedCondition).toBeDefined()
-
       })
     }),
     describe('getVsConditions', () => {
@@ -408,6 +422,104 @@ describe('libraryHelpers', () => {
       })
       it('Returns an empty object if there are no conditions in a program', () => {
         expect(getVSConditions(FIXTURE_PROGRAM_1)).toStrictEqual({})
+      })
+    })
+    describe('addVsConditions', () => {
+      const testCondition1 = {
+        label: 'Test condition label',
+        value: {
+          system: 'http://test-system',
+          version: '1.0.0',
+          code: 'test-code',
+          text: 'test text'
+        }
+      }
+      const testCondition2 = {
+        label: 'Test condition label 2',
+        value: {
+          system: 'http://test-system2',
+          version: '1.0.0.2',
+          code: 'test-code-2',
+          text: 'test text 2'
+        }
+      }
+
+      const testResult1 = [
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+          valueCodeableConcept: {
+            coding: [
+              {
+                code: "emergent",
+                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context"
+              }
+            ],
+            text: "Emergent"
+          }
+        },
+        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                code: "test-code",
+                system: "http://test-system"
+              }
+            ],
+            text: "test text"
+          }
+        }
+      ]
+
+      it('adds a condition to a vs that has no other conditions', () => {
+        const conditionExtensions = FIXTURE_PROGRAM_1.relatedArtifact
+          ?.find((art: fhir4.RelatedArtifact) => art?.type === 'depends-on' && art?.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481')
+          ?.extension
+
+        expect(conditionExtensions).toHaveLength(1)
+        const updatedProgram = (
+          addVSConditions(FIXTURE_PROGRAM_1, [testCondition1], 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481')
+        )
+        const updatedVsConditionExtensions = updatedProgram.relatedArtifact
+          ?.find((art: fhir4.RelatedArtifact) => art?.type === 'depends-on' && art?.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481')
+          ?.extension
+
+        expect(updatedVsConditionExtensions).toHaveLength(2)
+        expect(updatedVsConditionExtensions).toStrictEqual(testResult1)
+      })
+
+      it('adds a condition to a vs that has other conditions', () => {
+        // http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526
+        const conditionExtensions = FIXTURE_PROGRAM_CONDITIONS_1.relatedArtifact
+          ?.find((art: fhir4.RelatedArtifact) => art?.type === 'depends-on' && art?.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+          ?.extension
+
+        expect(conditionExtensions).toHaveLength(3)
+
+        const updatedProgram = (
+          addVSConditions(FIXTURE_PROGRAM_CONDITIONS_1, [testCondition2], 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+        )
+
+        const updatedVsConditionExtensions = updatedProgram.relatedArtifact
+          ?.find((art: fhir4.RelatedArtifact) => art?.type === 'depends-on' && art?.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+          ?.extension
+        
+        expect(updatedVsConditionExtensions).toHaveLength(4)
+
+        const addedExtension = updatedVsConditionExtensions?.find((ext: fhir4.Extension) => ext?.valueCodeableConcept?.text == 'test text 2')
+
+        expect(addedExtension).toStrictEqual(        {
+          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+          valueCodeableConcept: {
+            coding: [
+              {
+                code: "test-code-2",
+                system: "http://test-system2"
+              }
+            ],
+            text: "test text 2"
+          }
+        })
       })
     })
   })
