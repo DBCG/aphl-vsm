@@ -19,8 +19,14 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
         }
       })
 
-      //@ts-ignore
-      const versions = results?.entry?.map((i: fhir4.BundleEntry) => i?.resource?.version)
+      const versions = results?.entry?.map((i: fhir4.BundleEntry) => ({
+        //@ts-ignore
+        version: i?.resource?.version,
+        //@ts-ignore
+        id: i?.resource?.id + '-' + i?.resource?.version,
+        //@ts-ignore
+        date: i?.resource?.date
+      }))
       return res.status(200).json(versions)
     }
 
@@ -61,14 +67,16 @@ const collectLeafValueSetCodeSystems = async () => {
       _elements: 'useContext.valueCodeableConcept.coding'
     }
   })
-  let codeSystemsList = valuesets.entry.map((i: fhir4.BundleEntry) => {
-    // @ts-ignore
-    const vs = i?.resource?.useContext?.find(
-      (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
-    )
+  let codeSystemsList = valuesets.entry
+    .map((i: fhir4.BundleEntry) => {
+      // @ts-ignore
+      const vs = i?.resource?.useContext?.find(
+        (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
+      )
 
-    return vs?.valueCodeableConcept?.coding?.[0]
-  }).filter((i: any)=> i)
+      return vs?.valueCodeableConcept?.coding?.[0]
+    })
+    .filter((i: any) => i)
   codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
 
   terminologyClient.setClient('vsac')
@@ -103,7 +111,7 @@ const collectLeafValueSetCodeSystems = async () => {
         return { system: i.system, version }
       }
     })
-    .filter((i:any) => i)
+    .filter((i: any) => i)
 }
 
 const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {

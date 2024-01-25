@@ -25,7 +25,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import ManifestDetailTable from '../ManifestDetailTable'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { getIdFromSystem, namesByUri, searchAvailableUpdates, updateManifest } from '@/components/EditManifestDetails/manifestHelpers'
-import { ManifestDataMap, ManifestSystemVersionPair, SystemSelection } from '@/types/manifestTypes'
+import { ManifestSystemVersionPair, SelectedManifestDataVersion, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
 import ManifestDescription from '../EditManifestDetails/ManifestDescription'
 
@@ -77,7 +77,7 @@ const ReleaseModal = ({
   const [versionToCheck, setVersionToCheck] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
   const [activeStep, setActiveStep] = useState(0)
   const [stepsCompleted, setStepsCompleted] = useState([false, false])
-  const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
+  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>({})
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [systemNamesByUri, setSystemNamesByUri] = useState({})
   const [pageLoading, setPageLoading] = useState(true)
@@ -299,9 +299,9 @@ const ReleaseModal = ({
           availableUpdates={availableUpdates}
           loading={manifestData == null}
           updateFn={(version: string, system: string) => {
-            const targetedVsIndex = availableUpdates.findIndex((i: fhir4.ValueSet) => i.url === system)
-            const targetedVs = availableUpdates[targetedVsIndex] as fhir4.ValueSet
-            onClickAddHandler(targetedVs?.version as string, system)
+            const targetedVsIndex = availableUpdates.findIndex((i: ManifestSystemVersionPair) => i.system === system)
+            const targetedVs = availableUpdates[targetedVsIndex] as ManifestSystemVersionPair
+            onClickAddHandler(targetedVs?.version, system)
             // Remove the update from the available updates list
             availableUpdates.splice(targetedVsIndex, 1)
             const newUpdates = [...availableUpdates]

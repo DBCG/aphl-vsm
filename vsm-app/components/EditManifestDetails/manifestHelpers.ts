@@ -1,10 +1,10 @@
-import { AvailableVersions, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
+import { AvailableVersions, SelectedManifestDataVersion, ManifestSystemVersionPair, ManifestUrlNameMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 
 interface SearchAvailUpdates {
   programId: string
-  currentSelectedData: ManifestDataMap
+  currentSelectedData: SelectedManifestDataVersion
   systemAndVersionData: AvailableVersions
   setAvailableUpdates: Dispatch<SetStateAction<ManifestSystemVersionPair[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
@@ -12,7 +12,7 @@ interface SearchAvailUpdates {
 
 interface SearchAvailLeafUpdates {
   programId: string
-  currentSelectedData: ManifestDataMap
+  currentSelectedData: SelectedManifestDataVersion
   setAvailableLeafValueSetCodeSystems: Dispatch<SetStateAction<ManifestSystemVersionPair[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
 }
