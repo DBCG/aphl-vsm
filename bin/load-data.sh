@@ -2,7 +2,7 @@
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-SPECIFICATION=${DIR}/../documentation/demo-data/ersdv2-active-specification-bundle-trimmed.json
+SPECIFICATION=${DIR}/../documentation/demo-data/updated-transaction-bundle.json
 CONDITIONS=${DIR}/../documentation/demo-data/valueset-rckms-condition-codes.json
 SEARCHPARAMS=${DIR}/../documentation/demo-data/search-parameters.json
 USERRESOURCES=${DIR}/../documentation/demo-data/user-resources.json
