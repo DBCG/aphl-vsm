@@ -348,9 +348,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                 maxWidth: '120px',
                 selector: (row: ManifestData) => row.version,
                 sortable: true,
-                // Some code systems have urls for their versions with the date at the end
-                // @ts-ignore
-                sortFunction: (a: string, b: string) => Date.parse(a.date) - Date.parse(b.date),
+                sortFunction: (a, b) => Date.parse(a?.date) - Date.parse(b?.date),
                 wrap: true
               },
               {
