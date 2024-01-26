@@ -50,8 +50,13 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     // create "a" HTLM element with href to file
     const link = document.createElement('a')
     link.href = href
-    const regex = /[\s_]/gi
-    link.download = `${program?.name || program?.id}-bundle.${type.includes('json') ? 'json' : 'xml'}`.replaceAll(regex, '-')
+    const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
+    const spaceAndUnderscoreRx = /[\s_]/gi
+    // first, remove special characters that are not - or _
+    // next, replace all _ with -
+    const cleanedFileName = ((program?.title || program?.id || 'program').replaceAll(specialCharRx, '')).replaceAll(spaceAndUnderscoreRx, '-')
+    const fileExtension = type.includes('json') ? 'json' : 'xml'
+    link.download = `${cleanedFileName}-bundle.${fileExtension}`
     document.body.appendChild(link)
     link.click()
 
