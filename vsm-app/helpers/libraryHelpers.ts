@@ -299,7 +299,6 @@ const addVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl:
   const targetedVSCondition = [] as fhir4.RelatedArtifact[]
   const otherRelatedArtifacts = [] as fhir4.RelatedArtifact[]
   program?.relatedArtifact?.forEach((i) => {
-    const hasConditions = i?.extension?.find(ext => ext?.url?.endsWith('vsm-valueset-condition'))
     if (i?.resource == vsUrl) {
       targetedVSCondition.push(i)
     } else {
