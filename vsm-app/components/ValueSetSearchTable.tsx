@@ -7,7 +7,12 @@ import styled from 'styled-components'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { Condition, buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
+import {
+  Condition,
+  buildConditionOptions,
+  formatConditionsComposeInclude,
+  removeConditionsWithoutDisplay
+} from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/InputLabel'
 import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -211,7 +216,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const [addedValueSetsLoading, setAddedValueSetsLoading] = useState<boolean>(false)
 
   // Paging & search info
-  const searchTerm = useRef<string>('')
+  // const searchTerm = useRef<string>('')
+  const [searchTerm, setSearchTerm] = useState<string>('')
   const [searchTotal, setSearchTotal] = useState<null | number>(null)
   const offsets = useRef<Offset>(defaultOffsets)
   const [currentPage, setCurrentPage] = useState({ type: 'first', page: 1 })
@@ -247,6 +253,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     return formatGrouperValueSets(groups)
   }, [groups])
 
+  const clearPage = () => {
+    setCurrentPage({ type: 'first', page: 1 })
+    setSearchTotal(null)
+    setResultsPerPage(10)
+  }
   // take the response from the server and parse the important data
 
   const filterExists = useMemo(
@@ -264,106 +275,104 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by title/OID/steward
    */
-  const submitVSetSearch = useCallback(
-    async (searchContext: 'filter' | 'search' = 'search') => {
-      setToggledClearRows(true)
+  const submitVSetSearch = async ({
+    searchContext = 'search',
+    pageNumber
+  }: {
+    searchContext?: 'filter' | 'search'
+    pageNumber?: number
+  }) => {
+    setToggledClearRows(true)
 
-      let response
-      if (!searchTerm.current?.trim()) {
+    let response
+    if (!searchTerm.trim()) {
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+
+    let searchStr = ''
+
+    if (searchType.value === 'oid') {
+      const trimmedWords = searchTerm
+        ?.trim()
+        ?.split(',')
+        ?.map((term) => term?.trim())
+      const dedupedOids = dedupeArray(trimmedWords)
+      // if more than 100 OIDs, exit with error
+      if (dedupedOids?.length > paginationMaximum) {
+        const message = `OID search maximum is ${paginationMaximum} at a time.`
         setIsLoading(false)
+        toast.error(message)
         return
       }
+      searchStr = dedupedOids?.join(',')
+    } else if (searchType.value === 'title') {
+      searchStr = searchTerm.trim()
+    } else if (searchType.value === 'url') {
+      searchStr = searchTerm.trim()
+    }
 
-      setIsLoading(true)
+    // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber being passed in
+    const offset = ((pageNumber || currentPage?.page) - 1) * resultsPerPage
 
-      let searchStr = ''
+    let queryStringItems = {
+      searchType: searchType?.value,
+      count: resultsPerPage,
+      sortBy: sortParams?.column,
+      sortDirection: sortParams?.direction,
+      offset: offset,
+      terminologyServer: selectedTerminologyServer?.value?.title
+    }
 
-      if (searchType.value === 'oid') {
-        const trimmedWords = searchTerm.current
-          ?.trim()
-          ?.split(',')
-          ?.map((term) => term?.trim())
-        const dedupedOids = dedupeArray(trimmedWords)
-        // if more than 100 OIDs, exit with error
-        if (dedupedOids?.length > paginationMaximum) {
-          const message = `OID search maximum is ${paginationMaximum} at a time.`
-          setIsLoading(false)
-          toast.error(message)
-          return
-        }
-        searchStr = dedupedOids?.join(',')
-      } else if (searchType.value === 'title') {
-        searchStr = searchTerm.current.trim()
-      } else if (searchType.value === 'url') {
-        searchStr = searchTerm.current.trim()
+    let queryString = ''
+
+    Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
+
+    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+
+    response = await fetch(endpoint)
+    await handleSearchResponse({ searchContext, response })
+    setToggledClearRows(false)
+    setSelectedValueSets([])
+    setIsLoading(false)
+  }
+
+  const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
+    if (response?.ok) {
+      const valueSetResponse = (await response.json()) as SearchResponse
+      const newOffsets = {
+        first: valueSetResponse?.first || null,
+        next: valueSetResponse?.next || null,
+        previous: valueSetResponse?.previous || null,
+        last: valueSetResponse?.last || null
+      }
+      if (!shallowEqual(offsets.current, newOffsets)) {
+        offsets.current = newOffsets
       }
 
-      const offset = offsets.current?.[currentPage?.type] || ''
-
-      let queryStringItems = {
-        searchType: searchType?.value,
-        count: resultsPerPage,
-        sortBy: sortParams?.column,
-        sortDirection: sortParams?.direction,
-        offset: offset,
-        terminologyServer: selectedTerminologyServer?.value?.title
+      if (searchContext === 'filter') {
+        setFilteredVSets(valueSetResponse.valueSets)
+        setFetchError(valueSetResponse.error || null)
+        // what to do with total when filtered? probably fine
+      } else {
+        setValueSets(valueSetResponse.valueSets?.filter((i) => !currentSelectedVSId?.includes(i?.id as string)))
+        setSearchTotal(valueSetResponse.total)
+        setFetchError(valueSetResponse.error || null)
       }
-
-      let queryString = ''
-
-      Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
-
-      const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
-
-      response = await fetch(endpoint)
-      await handleSearchResponse({ searchContext, response })
-      setToggledClearRows(false)
-      setSelectedValueSets([])
-      async function handleSearchResponse({ searchContext, response }: SearchReponseParams) {
-        if (response?.ok) {
-          const valueSetResponse = (await response.json()) as SearchResponse
-          const newOffsets = {
-            first: valueSetResponse?.first || null,
-            next: valueSetResponse?.next || null,
-            previous: valueSetResponse?.previous || null,
-            last: valueSetResponse?.last || null
-          }
-          if (!shallowEqual(offsets.current, newOffsets)) {
-            offsets.current = newOffsets
-          }
-
-          if (searchContext === 'filter') {
-            setFilteredVSets(valueSetResponse.valueSets)
-            setFetchError(valueSetResponse.error || null)
-            // what to do with total when filtered? probably fine
-          } else {
-            setValueSets(valueSetResponse.valueSets?.filter((i) => !currentSelectedVSId?.includes(i?.id as string)))
-            setSearchTotal(valueSetResponse.total)
-            setFetchError(valueSetResponse.error || null)
-          }
-        } else if (response && !response?.ok) {
-          const valueSetResponse = await response.json()
-          setValueSets([])
-          setFetchError(valueSetResponse)
-        } else {
-          setValueSets([])
-          setFetchError({
-            errorType: 'fetch-error',
-            message: 'No response for search'
-          })
-        }
-        setIsLoading(false)
-      }
-    },
-    [
-      currentPage?.type,
-      resultsPerPage,
-      searchType.value,
-      selectedTerminologyServer?.value?.title,
-      sortParams?.column,
-      sortParams?.direction
-    ]
-  )
+    } else if (response && !response?.ok) {
+      const valueSetResponse = await response.json()
+      setValueSets([])
+      setFetchError(valueSetResponse)
+    } else {
+      setValueSets([])
+      setFetchError({
+        errorType: 'fetch-error',
+        message: 'No response for search'
+      })
+    }
+  }
 
   // handle filters
   useEffect(() => {
@@ -377,7 +386,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     // if the number of valuesets are more than the max allowed,
     // send out a request to the server to filter
     if (valueSets.length > paginationMaximum) {
-      submitVSetSearch('filter')
+      submitVSetSearch({ searchContext: 'filter' })
       // if there are less than paginationMaximum, filter in FE synchronously
       // this is not ideal, but VSAC does not allow us to combine multiple search params
     } else {
@@ -413,15 +422,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       filteredValueSets = filteredValueSets.filter((i) => !currentSelectedVSId?.includes(i?.id as string))
       setFilteredVSets(filteredValueSets)
     }
-  }, [valueSets, findInTitle, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists, submitVSetSearch])
-
-  useEffect(() => {
-    setIsLoading(true)
-    submitVSetSearch()
-    return () => {
-      setIsLoading(false)
-    }
-  }, [submitVSetSearch])
+  }, [valueSets, findInTitle, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -433,7 +434,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     })
   }
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = async (newPage: number) => {
     // don't call if same page
     if (newPage == currentPage.page) return
     let type = 'first'
@@ -452,8 +453,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       page: newPage,
       type
     }
-
     setCurrentPage(pageChangeState)
+    await submitVSetSearch({ searchContext: 'search', pageNumber: newPage })
   }
 
   const submitAddVSet = async (e: SyntheticEvent) => {
@@ -490,7 +491,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       const leafPutBody = JSON.stringify(leafsToAdd)
 
       // needs some error handling down here
-      const leafsUpdated = await fetch('/api/valueset?programId='+ router.query.id, {
+      const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
         method: 'PUT',
         body: leafPutBody
       })
@@ -505,7 +506,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       setAddedValueSetsLoading(false)
     }
     setSelectedValueSets([])
-    searchTerm.current = ''
+    setSearchTerm('')
     setSelectedConditions([])
     setSelectedGroupers([])
   }
@@ -518,6 +519,23 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   // search page requires the target grouper to be selected, 'add-grouper' context does not
   const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length
 
+  let errorMessageComponent = null
+  if (vsNumExceedsFilterLimit) {
+    errorMessageComponent = (
+      <ErrorText>
+        {searchTotal} results
+        <br />
+        Refine search to enable filters (max {paginationMaximum} results)
+      </ErrorText>
+    )
+  } else if (searchTerm.length < 3 && searchTerm.length > 0) {
+    errorMessageComponent = (
+      <ErrorText>
+        Minimum 3 characters required
+      </ErrorText>
+    )
+  }
+
   return (
     <Col>
       <Dialog open={addedValueSetsLoading}>
@@ -529,71 +547,65 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       <TitleRow>
         <Row>
           <StyledForm>
-              <DropdownContainer>
-                <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                  Terminology Source
-                </StyledLabel>
-                <SelectInputContainer>
-                  <Select
-                    instanceId={`${tableContext}-termServer`}
-                    isMulti={false}
-                    styles={reactSelectOptionStyle()}
-                    options={terminologyServerEndpoints}
-                    value={selectedTerminologyServer}
-                    onChange={(e) => {
-                      return setSelectedTerminologyServer(e!)
-                    }}
-                  />
-                </SelectInputContainer>
-              </DropdownContainer>
-              <DropdownContainer>
-                <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
-                  Search By ValueSet
-                </StyledLabel>
-                <SelectInputContainer>
-                  <Select
-                    instanceId={`${tableContext}-searchByVS`}
-                    isMulti={false}
-                    styles={reactSelectOptionStyle()}
-                    options={searchTypes}
-                    value={searchType} 
-                    onChange={(e) => {
-                      return setSearchType(e!)
-                    }}
-                  />
-                </SelectInputContainer>
-              </DropdownContainer>
+            <DropdownContainer>
+              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                Terminology Source
+              </StyledLabel>
+              <SelectInputContainer>
+                <Select
+                  instanceId={`${tableContext}-termServer`}
+                  isMulti={false}
+                  styles={reactSelectOptionStyle()}
+                  options={terminologyServerEndpoints}
+                  value={selectedTerminologyServer}
+                  onChange={(e) => {
+                    return setSelectedTerminologyServer(e!)
+                  }}
+                />
+              </SelectInputContainer>
+            </DropdownContainer>
+            <DropdownContainer>
+              <StyledLabel id="aria-label" htmlFor="terminology-server-selector">
+                Search By ValueSet
+              </StyledLabel>
+              <SelectInputContainer>
+                <Select
+                  instanceId={`${tableContext}-searchByVS`}
+                  isMulti={false}
+                  styles={reactSelectOptionStyle()}
+                  options={searchTypes}
+                  value={searchType}
+                  onChange={(e) => {
+                    return setSearchType(e!)
+                  }}
+                />
+              </SelectInputContainer>
+            </DropdownContainer>
             <TextAreaSubmitContainer>
               <TextArea
                 style={{ width: '100%' }}
-                onChange={(e) => (searchTerm.current = e.target.value)}
                 onKeyPress={(e) => {
                   e.preventDefault()
-                  submitVSetSearch()
+                  submitVSetSearch({ searchContext: 'search' })
                 }}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 id="vs-search"
                 label="Search Text"
                 hasIcon={true}
                 info={searchInfoText[searchType.value]}
                 helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
-                errorMessage={
-                  vsNumExceedsFilterLimit ? (
-                    <ErrorText>
-                      {searchTotal} results
-                      <br />
-                      Refine search to enable filters (max {paginationMaximum} results)
-                    </ErrorText>
-                  ) : null
-                }
+                errorMessage={errorMessageComponent}
               />
               <IconButton
                 style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
                 id={'submit-search-valueset-button'}
+                disabled={searchTerm.length < 3 || searchTerm.length === 0}
                 buttoncontext="search"
                 type="submit"
                 onClick={(e) => {
                   e?.preventDefault()
-                  submitVSetSearch()
+                  clearPage()
+                  submitVSetSearch({ searchContext: 'search' })
                 }}
               />
             </TextAreaSubmitContainer>

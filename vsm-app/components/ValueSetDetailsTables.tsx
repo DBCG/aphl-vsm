@@ -236,7 +236,6 @@ const ValueSetDetailsTables = ({
   const filteredDefinitionData = filteredDefinitions(definitionData)
 
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
-
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -275,7 +274,7 @@ const ValueSetDetailsTables = ({
         />
         <DataTable
           columns={definitionColumns}
-          keyField={'valueSet'}
+          keyField={isGrouperValueSet ? 'oid': 'code'}
           data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}
@@ -299,6 +298,7 @@ const ValueSetDetailsTables = ({
         />
         <DataTable
           columns={expansionColumns}
+          keyField={'code'}
           defaultSortFieldId={'code'}
           data={filteredExpansionData as ExpansionTableData[]}
           pagination

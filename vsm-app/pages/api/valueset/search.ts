@@ -70,7 +70,6 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
           _count: count,
           _offset: typeof offset === 'string' && offset
         }
-
         if (activeTerminologyClient) {
           try {
             const serverResponse = await retry(() =>

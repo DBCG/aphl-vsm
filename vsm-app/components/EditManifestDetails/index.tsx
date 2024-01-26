@@ -9,7 +9,7 @@ import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { modalStyle } from '@/styles'
-import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap } from '@/types/manifestTypes'
+import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, ManifestData, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
@@ -53,11 +53,11 @@ const CodesystemSelectContainer = styled.div`
 `
 
 // Removes already selected versions from the available list
-const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelectedData: ManifestDataMap, selectedSystem: string) => {
+const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelectedData: SelectedManifestDataVersion, selectedSystem: string) => {
   const availableVersionOptions = availableVersions[selectedSystem]
   if (currentSelectedData[selectedSystem]) {
     const usedVersions = currentSelectedData[selectedSystem]
-    return availableVersionOptions?.filter((i: string) => !usedVersions.includes(i))
+    return availableVersionOptions?.filter((i: ManifestData) => !usedVersions.includes(i.version))
   }
   return availableVersionOptions
 }
@@ -69,7 +69,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [availableUpdates, setAvailableUpdates] = useState<ManifestSystemVersionPair[]>([])
   const [availableLeafValueSetCodeSystems, setAvailableLeafValueSetCodeSystems] = useState<ManifestSystemVersionPair[]>([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
-  const [currentSelectedData, setCurrentSelectedData] = useState<ManifestDataMap>({})
+  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>({})
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const [pageLoading, setPageLoading] = useState(true)
   const {
@@ -187,7 +187,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const errorMessage = `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`
 
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
-
+  console.log(currentSelectedData)
   return (
     <>
       <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>
@@ -346,11 +346,9 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
               {
                 name: 'Versions',
                 maxWidth: '120px',
-                selector: (row) => row,
+                selector: (row: ManifestData) => row.version,
                 sortable: true,
-                // Some code systems have urls for their versions with the date at the end
-                // @ts-ignore
-                sortFunction: (a: string, b: string) => a.split('/')?.pop()?.localeCompare(b.split('/').pop()),
+                sortFunction: (a, b) => Date.parse(a?.date) - Date.parse(b?.date),
                 wrap: true
               },
               {
@@ -359,9 +357,9 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                     <Button
                       data-tag="allowRowEvents"
                       disabled={shouldDisableAddButton}
-                      data-add-manifest={`${selectedSystem}|${newVersion}`}
+                      data-add-manifest={`${selectedSystem}|${newVersion.version}`}
                       text="Add"
-                      onClick={() => onClickAddHandler(newVersion)}
+                      onClick={() => onClickAddHandler(newVersion.version)}
                     />
                   )
                 },
