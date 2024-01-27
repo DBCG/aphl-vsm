@@ -4,7 +4,6 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle } from '@/components/ProgramValueSetDetails/styles'
 import { formatValuesetDate } from '@/helpers/formatDates'
-import { PaginationChangePage } from 'react-data-table-component/dist/src/DataTable/types'
 import { TableContextType } from './ValueSetSearchTable'
 import { customTableStyles } from './tables/themes'
 
@@ -75,7 +74,7 @@ interface Input {
   setFindInLastUpdated: (eventItem: any) => void
   findInVersion: string
   setFindInVersion: (eventItem: any) => void
-  handlePageChange: PaginationChangePage
+  handlePageChange: (eventItem: any) => void
   handlePerRowsChange: (eventItem: any) => void
   clearSelectedRows: boolean
   searchType: string

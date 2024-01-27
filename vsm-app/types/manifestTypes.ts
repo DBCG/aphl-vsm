@@ -32,12 +32,12 @@ interface ManifestUrlNameMap {
 }
 
 interface UpdateManifest {
-  currentSelectedData: ManifestDataMap
+  currentSelectedData: SelectedManifestDataVersion
   action: 'add' | 'delete'
   id?: string
   version?: string
   programId: string
-  setCurrentSelectedData: Dispatch<SetStateAction<ManifestDataMap>>
+  setCurrentSelectedData: Dispatch<SetStateAction<SelectedManifestDataVersion>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
 
 }

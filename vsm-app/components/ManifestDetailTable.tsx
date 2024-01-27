@@ -5,13 +5,13 @@ import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { ManifestDataMap, ManifestSystemVersionPair } from '@/types/manifestTypes'
+import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
 import { Typography, Modal, Tooltip, Box, Button as MuiButton } from '@mui/material'
 import { modalStyle } from '@/styles'
 import { namesByUri, getNameByUri } from './EditManifestDetails/manifestHelpers'
 
-const prepData = (data: ManifestDataMap) => {
+const prepData = (data: SelectedManifestDataVersion) => {
   if (!data) return []
   const preparedData: ManifestSystemVersionPair[] = []
   Object.entries(data).forEach(([system, value]) => {

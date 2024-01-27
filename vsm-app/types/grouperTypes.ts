@@ -1,6 +1,6 @@
 import { Condition } from '@/helpers/conditionHelpers';
 import { ToString } from '@/hooks/useGetProgramDetails';
-import { ManifestDataMap } from './manifestTypes';
+import { SelectedManifestDataVersion } from './manifestTypes';
 import { approvalFormParams } from '@/components/ApproveForm/types';
 
 interface GrouperMetadata {
@@ -77,7 +77,7 @@ interface ProgramDetails {
   program: fhir4.Library | null;
   grouperData: GrouperItem[];
   grouperLibrary: fhir4.Library | null;
-  manifestData: ManifestDataMap;
+  manifestData: SelectedManifestDataVersion;
   artifactAssessments: ToString<Partial<approvalFormParams>>[];
 }
 
