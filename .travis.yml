@@ -25,6 +25,8 @@ jobs:
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
+      - npm install
+      - npm run build ## Test for typescript issues
       - npm ci && npm run test-ci
       install: skip
     - stage: build-and-deploy-plugin
