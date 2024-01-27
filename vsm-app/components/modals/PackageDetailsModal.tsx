@@ -1,4 +1,5 @@
 import React, { ChangeEvent, useState } from 'react'
+import ClearIcon from '@mui/icons-material/Clear'
 import {
   Box,
   Dialog,
@@ -112,6 +113,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     } catch (error) {
       console.error(error)
       setExportError('Error exporting artifact')
+      setDownloadLoading(false)
       return
     }
 
@@ -172,19 +174,23 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
             </RadioGroup>
           </FormGroup>
           {fileUploadContent && versionRadioValue === 'v1' && (
-            <Typography sx={{ textAlign: 'left' }} variant={'h6'}>
-              {fileUploadContent.fileName}
-            </Typography>
+            <Box style={{ display: 'flex' }}>
+              <Typography sx={{ textAlign: 'left' }} variant={'h6'}>
+                {fileUploadContent.fileName}
+              </Typography>
+              <ClearIcon onClick={(e) => setFileUploadContent(undefined)} />
+            </Box>
           )}
           {versionRadioValue === 'v1' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3 }}>
               <Button component="label" variant="contained">
                 Upload Plan Definition
-                <VisuallyHiddenInput accept=".json" type="file" onChange={onUpload} />
+                {/* We need this key to track rerendering of file type input */}
+                <VisuallyHiddenInput key={fileUploadContent?.fileName} accept=".json" type="file" onChange={onUpload} />
               </Button>
               {fileUploadContent == null && (
-                <Typography sx={{ textAlign: 'left', color: 'red' }} variant={'caption'}>
-                  required *
+                <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
+                  (optional)
                 </Typography>
               )}
               <InputLabel sx={{ textAlign: 'left', mt: 2 }} htmlFor="target-version">
@@ -232,12 +238,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <LoadingButton
-            loading={downloadLoading}
-            disabled={(versionRadioValue === 'v1' && !fileUploadContent) || downloadLoading}
-            data-modal={'Download'}
-            onClick={handleDownload}
-          >
+          <LoadingButton loading={downloadLoading} disabled={downloadLoading} data-modal={'Download'} onClick={handleDownload}>
             Download
           </LoadingButton>
         </DialogActions>

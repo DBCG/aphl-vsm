@@ -6,8 +6,8 @@ import logger from '@/helpers/server/logger'
 
 export interface ExpectedPackageBody {
   data?: {
-    parameters: fhir4.Parameters,
-    json: boolean,
+    parameters: fhir4.Parameters
+    json: boolean
     useV2: boolean
   }
   planDefinition?: fhir4.PlanDefinition
@@ -35,17 +35,23 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
     if (!useV2) {
       format = json ? 'json' : 'xml' // reset to actual format for v1
       logger.info('Generating v2 to v1 transform for download')
+
       const planDefResourceIndex = response.entry?.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
-      if (planDefResourceIndex === undefined || planDefResourceIndex === -1) {
+      const planDefFromV2Exist = planDefResourceIndex ==! undefined && planDefResourceIndex ==! !-1
+      if (!planDefFromV2Exist && planDefinition != null) {
         response.entry.push({
           fullUrl: planDefinition?.url,
           resource: planDefinition
         })
-      } else {
+      } else if (planDefFromV2Exist) {
         response.entry[planDefResourceIndex].resource = planDefinition
+      } else {
+        return res
+          .status(400)
+          .json({ error: 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request' })
       }
 
-      const v1BundleBody:fhir4.Parameters = {
+      const v1BundleBody: fhir4.Parameters = {
         resourceType: 'Parameters',
         parameter: [
           {
@@ -54,7 +60,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
           }
         ]
       }
-      
+
       if (targetVersion && targetVersion?.length > 0) {
         v1BundleBody.parameter?.push({
           name: 'targetVersion',
