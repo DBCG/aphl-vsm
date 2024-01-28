@@ -10,7 +10,7 @@
 	"timestamp": "2022-04-05T10:06:42.482-04:00",
 	"entry": [
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary|1.0.0.23",
 			"resource": {
 				"resourceType": "Library",
 				"id": "SpecificationLibrary",
@@ -26,7 +26,10 @@
 				},
 				"url": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary",
 				"version": "1.0.0.23",
-				"approvalDate": "1990-01-01",
+				"approvalDate": "2023-08-08",
+				"effectivePeriod": {
+					"start": "2023-09-01"
+				},
 				"extension": [
 					{
 						"url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel",
@@ -90,7 +93,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|0.1"
+						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
 					},
 					{
 						"extension": [
@@ -100,7 +103,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|2019-06-17"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
 					},
 					{
 						"type": "composed-of",
@@ -108,11 +111,11 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|0.1"
+						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|2019-06-17"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
@@ -124,27 +127,27 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
 					},
 					{
 						"type": "depends-on",
@@ -184,12 +187,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
 					},
 					{
 						"extension": [
@@ -201,12 +205,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
 					},
 					{
 						"extension": [
@@ -218,12 +223,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
 					},
 					{
 						"extension": [
@@ -235,12 +241,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
 					},
 					{
 						"extension": [
@@ -252,12 +259,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
 					},
 					{
 						"extension": [
@@ -269,12 +277,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
 					},
 					{
 						"extension": [
@@ -286,12 +295,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
 					},
 					{
 						"extension": [
@@ -303,12 +313,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
 					},
 					{
 						"extension": [
@@ -320,12 +331,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
 					},
 					{
 						"extension": [
@@ -337,12 +349,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
 					},
 					{
 						"extension": [
@@ -354,12 +367,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 					},
 					{
 						"extension": [
@@ -371,12 +385,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 					},
 					{
 						"extension": [
@@ -388,12 +403,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
 					},
 					{
 						"extension": [
@@ -405,12 +421,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
 					},
 					{
 						"extension": [
@@ -422,12 +439,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
 					},
 					{
 						"extension": [
@@ -439,12 +457,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
 					},
 					{
 						"extension": [
@@ -456,12 +475,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
 					},
 					{
 						"extension": [
@@ -473,12 +493,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
 					},
 					{
 						"extension": [
@@ -490,12 +511,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
 					},
 					{
 						"extension": [
@@ -507,12 +529,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
 					},
 					{
 						"extension": [
@@ -524,12 +547,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
 					},
 					{
 						"extension": [
@@ -541,12 +565,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
 					},
 					{
 						"extension": [
@@ -558,12 +583,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
 					},
 					{
 						"extension": [
@@ -575,12 +601,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
 					},
 					{
 						"extension": [
@@ -592,12 +619,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
 					},
 					{
 						"extension": [
@@ -609,12 +637,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
 					},
 					{
 						"extension": [
@@ -626,12 +655,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
 					},
 					{
 						"extension": [
@@ -643,12 +673,13 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
 								}
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|1.0.0"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
 					}
 				]
 			},
@@ -658,7 +689,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23",
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "plandefinition-ersd-instance-example",
@@ -682,7 +713,7 @@
 					}
 				],
 				"url": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
-				"version": "0.1",
+				"version": "1.0.0.23",
 				"name": "PlanDefinition_eRSD_Instance_Example",
 				"title": "eRSD PlanDefinition Instance Example",
 				"type": {
@@ -718,7 +749,7 @@
 					{
 						"type": "depends-on",
 						"label": "RCTC Value Set Library of Trigger Codes",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|2019-06-17"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
 					},
 					{
 						"type": "composed-of",
@@ -857,7 +888,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
 											}
 										]
 									},
@@ -873,7 +904,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
 											}
 										]
 									},
@@ -889,7 +920,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 											}
 										]
 									}
@@ -1008,7 +1039,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
 											}
 										]
 									},
@@ -1024,7 +1055,7 @@
 										"codeFilter": [
 											{
 												"path": "reasonCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
 											}
 										]
 									},
@@ -1040,7 +1071,7 @@
 										"codeFilter": [
 											{
 												"path": "vaccineCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 											}
 										]
 									},
@@ -1056,7 +1087,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
 											}
 										]
 									},
@@ -1072,7 +1103,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
 											}
 										]
 									},
@@ -1088,7 +1119,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
 											}
 										]
 									},
@@ -1104,7 +1135,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
 											}
 										]
 									},
@@ -1120,7 +1151,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
 											}
 										]
 									},
@@ -1136,7 +1167,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 											}
 										]
 									},
@@ -1152,7 +1183,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 											}
 										]
 									},
@@ -1168,7 +1199,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
 											}
 										]
 									},
@@ -1184,7 +1215,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
 											}
 										]
 									},
@@ -1200,7 +1231,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
 											}
 										]
 									}
@@ -1683,7 +1714,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|2019-06-17",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23",
 			"resource": {
 				"resourceType": "Library",
 				"id": "library-rctc-example",
@@ -1706,7 +1737,7 @@
 						"value": "urn:oid:2.16.840.1.114222.4.11.7508"
 					}
 				],
-				"version": "2019-06-17",
+				"version": "1.0.0.23",
 				"name": "Reportable_Condition_Trigger_Codes",
 				"title": "Reportable Condition Trigger Codes (RCTC) Example Library",
 				"status": "active",
@@ -1774,7 +1805,7 @@
 				"relatedArtifact": [
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1784,7 +1815,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1794,7 +1825,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1804,7 +1835,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1814,7 +1845,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1824,7 +1855,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -1844,7 +1875,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "dxtc",
@@ -1878,10 +1909,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.627"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "Diagnosis_ProblemTriggersforPublicHealthReporting",
 				"title": "Diagnosis_Problem Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains diagnoses or problems that represent that the patient may have a potentially reportable condition. For example, these may be diagnoses recorded in an EHR problem list and diagnosis codes used for billing for the encounter. Purpose: Data Element Scope - Diagnoses or problems documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -1929,27 +1960,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
 							]
 						}
 					]
@@ -2286,7 +2317,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lotc",
@@ -2320,10 +2351,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1056"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "LabOrderTestTriggersforPublicHealthReporting",
 				"title": "Lab Order Test Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains laboratory test names that may be used for placing a lab order for a test that represents that the patient may have a potentially reportable condition. These pertain to laboratory orders placed, coded in LOINC, where the lab order includes at least one test for a condition reportable upon suspicion of the condition. Purpose: Data Element Scope - Laboratory test names used in orders documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -2371,27 +2402,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
 							]
 						}
 					]
@@ -2538,7 +2569,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lrtc",
@@ -2572,10 +2603,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1057"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "LabObsTestTriggersforPublicHealthReporting",
 				"title": "Lab Obs Test Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains laboratory observation test names that may represent that the patient may have a potentially reportable condition. These pertain to resulted laboratory reports, where the lab test name, coded in LOINC, is specific to a reportable condition. Purpose: Data Element Scope - Laboratory test names used in observations documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -2623,27 +2654,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
 							]
 						}
 					]
@@ -3370,7 +3401,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "mrtc",
@@ -3404,10 +3435,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1060"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "MedicationsTriggersforPublicHealthReporting",
 				"title": "Medications Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains CVX,RXNORM,SNOMED medication codes that may represent that the patient may have a potentially reportable condition. These pertain to medications administered and medications prescribed, where the medication, coded in CVX,RXNORM,SNOMED, may be indicative of a reportable condition. Purpose: Data Element Scope - Prescription drugs names used in observations documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -3455,27 +3486,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
 							]
 						}
 					]
@@ -3682,7 +3713,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "ostc",
@@ -3716,10 +3747,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1059"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "Organism_SubstanceReleaseTriggersforPublicHealthReporting",
 				"title": "Organism_Substance Release Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains organism and substance names received in a laboratory results report, that may represent that the patient has a potentially reportable condition. These pertain to resulted laboratory reports, where the test method is a non-specific test (e.g., general cultures not specific to a condition) and the result value, coded in SNOMED, includes the organism or substance name. Purpose: Data Element Scope - Nominal laboratory result values documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -3767,27 +3798,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
 							]
 						}
 					]
@@ -4214,7 +4245,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "sdtc",
@@ -4248,10 +4279,10 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1479"
 					}
 				],
-				"version": "1.0.0",
+				"version": "1.0.0.23",
 				"name": "Suspected_DisorderTriggersforPublicHealthReporting",
 				"title": "Suspected_Disorder Triggers for Public Health Reporting",
-				"status": "draft",
+				"status": "active",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains suspected diagnoses or problems that represent that the patient may have a potentially reportable condition. For example, these may be diagnoses recorded in an EHR problem list and diagnosis codes used for billing for the encounter. Purpose: Data Element Scope - Suspected diagnoses or problems documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
@@ -4299,27 +4330,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
 							]
 						}
 					]
@@ -4366,7 +4397,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1506",
@@ -4400,7 +4431,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1506"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersICD10CM",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (ICD10CM)",
 				"status": "active",
@@ -4492,7 +4523,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1505",
@@ -4526,7 +4557,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1505"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20240123",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersSNOMED",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
 				"status": "active",
@@ -4690,7 +4721,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1508",
@@ -4724,7 +4755,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1508"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "ArsenicExposureandToxicityDisordersICD10CM",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (ICD10CM)",
 				"status": "active",
@@ -4879,7 +4910,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1507",
@@ -4913,7 +4944,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1507"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230125",
 				"name": "ArsenicExposureandToxicityDisordersSNOMED",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (SNOMED)",
 				"status": "active",
@@ -5167,7 +5198,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.6",
@@ -5201,7 +5232,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.6"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230602",
 				"name": "DiphtheriaDisordersSNOMED",
 				"title": "Diphtheria (Disorders) (SNOMED)",
 				"status": "active",
@@ -5482,7 +5513,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.480",
@@ -5516,7 +5547,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.480"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20180620",
 				"name": "AnthraxTestsforBacillisanthracisAntigen",
 				"title": "Anthrax (Tests for Bacillis anthracis Antigen)",
 				"status": "active",
@@ -5644,7 +5675,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.481",
@@ -5678,7 +5709,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.481"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20180620",
 				"name": "AnthraxTestsforBacillisanthracisAntibody",
 				"title": "Anthrax (Tests for Bacillis anthracis Antibody)",
 				"status": "active",
@@ -5860,7 +5891,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.761",
@@ -5894,7 +5925,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.761"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220119",
 				"name": "MumpsTestPanelsformumpsvirusNucleicAcid",
 				"title": "Mumps (Test Panels for mumps virus Nucleic Acid)",
 				"status": "active",
@@ -5986,7 +6017,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1223",
@@ -6020,7 +6051,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1223"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210528",
 				"name": "COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod",
 				"title": "COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)",
 				"status": "active",
@@ -6112,7 +6143,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.762",
@@ -6146,7 +6177,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.762"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20191227",
 				"name": "MumpsTestPanelsformumpsvirusIgMIgGAntibody",
 				"title": "Mumps (Test Panels for mumps virus IgM IgG Antibody)",
 				"status": "active",
@@ -6256,7 +6287,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1182",
@@ -6290,7 +6321,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1182"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220602",
 				"name": "PowassanVirusDiseaseTestsforPowassanVirusAntibodyQuantitative",
 				"title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6499,7 +6530,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1181",
@@ -6533,7 +6564,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1181"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210526",
 				"name": "EasternEquineEncephalitisVirusDiseaseTestsforEasternEquineEncephalitisVirusAntibodyQuantitative",
 				"title": "Eastern Equine Encephalitis Virus Disease (Tests for Eastern Equine Encephalitis Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6850,7 +6881,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1184",
@@ -6884,7 +6915,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1184"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210526",
 				"name": "CaliforniaSerogroupVirusDiseasesTestsforCaliforniaSerogroupVirusAntibodyQuantitative",
 				"title": "California Serogroup Virus Diseases (Tests for California Serogroup Virus Antibody [Quantitative])",
 				"status": "active",
@@ -7696,7 +7727,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1601",
@@ -7730,7 +7761,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1601"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVBoostersCYP3A4InhibitorRXNORM",
 				"title": "HIV Infection (ARV Boosters [CYP3A4 Inhibitor]) (RXNORM)",
 				"status": "active",
@@ -7894,7 +7925,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1600",
@@ -7928,7 +7959,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1600"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230602",
 				"name": "HIVInfectionARVIntegraseStrandTransferInhibitorsINSTIsRXNORM",
 				"title": "HIV Infection (ARV Integrase Strand Transfer Inhibitors [INSTIs]) (RXNORM)",
 				"status": "active",
@@ -8200,7 +8231,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1603",
@@ -8234,7 +8265,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1603"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVAttachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Attachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8326,7 +8357,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1602",
@@ -8360,7 +8391,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1602"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "HIVInfectionARVPostattachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Postattachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8452,7 +8483,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1082",
@@ -8486,7 +8517,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1082"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20200513",
 				"name": "AnthraxVaccineRXNORM",
 				"title": "Anthrax Vaccine (RXNORM)",
 				"status": "active",
@@ -8578,7 +8609,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.528",
@@ -8612,7 +8643,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.528"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20200516",
 				"name": "DengueVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -8812,7 +8843,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.408",
@@ -8846,7 +8877,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.408"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "HepatitisBVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis B Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9124,7 +9155,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.409",
@@ -9158,7 +9189,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.409"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20210527",
 				"name": "HepatitisCVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis C Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9502,7 +9533,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1469",
@@ -9536,7 +9567,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1469"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "EnterococcusfaeciumorEfaecalisOrganismorSubstanceinLabResults",
 				"title": "Enterococcus faecium or E. faecalis (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9736,7 +9767,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1468",
@@ -9770,7 +9801,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1468"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20240123",
 				"name": "EnterococcusgallinarumorEcasseliflavusEflavescensOrganismorSubstanceinLabResults",
 				"title": "Enterococcus gallinarum or E. casseliflavus/E. flavescens (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9871,7 +9902,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1439",
@@ -9905,7 +9936,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1439"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "RabiesSuspectedDisordersSNOMED",
 				"title": "Rabies [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -9997,7 +10028,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1436",
@@ -10031,7 +10062,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1436"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "MeaslesSuspectedDisordersSNOMED",
 				"title": "Measles [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10114,7 +10145,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1435",
@@ -10148,7 +10179,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1435"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "DiphtheriaSuspectedDisordersSNOMED",
 				"title": "Diphtheria [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10231,7 +10262,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1446",
@@ -10265,7 +10296,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1446"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20230122",
 				"name": "ViralHemorrhagicFeverSuspectedDisordersSNOMED",
 				"title": "Viral Hemorrhagic Fever [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10348,7 +10379,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1438",
@@ -10382,7 +10413,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1438"
 					}
 				],
-				"version": "1.0.0",
+				"version": "20220118",
 				"name": "PoliomyelitisSuspectedDisordersSNOMED",
 				"title": "Poliomyelitis [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10463,6 +10494,68 @@
 				"method": "PUT",
 				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1438"
 			}
-		}
+		},
+    {
+      "fullUrl": "http://localhost:8082/fhir/Basic/approval1428",
+      "resource": {
+        "resourceType": "Basic",
+        "id": "approval1428",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2023-08-08T01:11:33.529+00:00",
+          "source": "#bojbBl7a7T0wm1Eh",
+          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessment"]
+        },
+        "extension": [
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentArtifact",
+            "valueReference": {
+              "reference": "Library/SpecificationLibrary"
+            }
+          },
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentContent",
+            "extension": [
+              {
+                "url": "informationType",
+                "valueCode": "comment"
+              },
+              {
+                "url": "summary",
+                "valueMarkdown": "test comment text"
+              },
+              {
+                "url": "relatedArtifact",
+                "valueRelatedArtifact": {
+                  "type": "citation",
+                  "resource": "test program reference text"
+                }
+              },
+              {
+                "url": "author",
+                "valueReference": {
+                  "reference": "test user text"
+                }
+              },
+              {
+                "url": "relatedArtifact",
+                "valueRelatedArtifact": {
+                  "type": "derived-from",
+                  "resource": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.0.0"
+                }
+              }
+            ]
+          },
+          {
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentDate",
+            "valueDateTime": "2023-08-08T01:11:33+00:00"
+          }
+        ]
+      },
+      "request": {
+        "method": "PUT",
+        "url": "Basic/approval1428"
+      }
+    }
 	]
 }

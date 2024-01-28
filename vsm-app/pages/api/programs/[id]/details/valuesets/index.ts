@@ -122,7 +122,6 @@ const getLeafValueSets = async ({
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
     const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-
     // add groups to the leaf URLs
     leafUrlsInGrouper?.forEach((url) => {
       if (!url || leafValueSetCanonicals?.includes(url)) return

@@ -403,9 +403,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <Select
               menuPlacement="bottom"
               placeholder="Filter Priority"
-              classNamePrefix="priority"
-              inputId="priority-selector"
-              instanceId="priority-selector"
+              classNamePrefix="priority-filter"
+              inputId="priority-filter"
+              instanceId="priority-filter"
               isMulti
               menuPortalTarget={myDocument}
               options={priorityLevelOptions}
@@ -440,7 +440,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
-                classNamePrefix="priority"
+                classNamePrefix="priority-selector"
                 inputId="priority-selector"
                 instanceId="priority-selector"
                 isLoading={priorityLoading}
@@ -548,9 +548,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               menuPortalTarget={myDocument}
               menuPlacement="bottom"
               placeholder="Filter conditions"
-              classNamePrefix="conditions"
-              inputId="conditions-selector"
-              instanceId="conditions-selector"
+              classNamePrefix="conditions-filter"
+              inputId="conditions-filter"
+              instanceId="conditions-filter"
               isMulti
               options={buildConditionOptions(allConditions)}
               onChange={(e) => {
@@ -568,8 +568,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const selectedOptions = vsConditions
             ?.map((i) => {
               return {
-                label: i?.valueCodeableConcept?.text || '',
-                groupIds: row.groups.map(i => i.id) || [],
+                label: i?.valueCodeableConcept?.text || '[missing condition text]',
+                groupIds: row.groups.map((i) => i.id) || [],
                 value: {
                   system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
                   code: i?.valueCodeableConcept?.coding?.[0]?.code || '',

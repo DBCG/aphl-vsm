@@ -28,7 +28,7 @@ describe('incrementSemver', () => {
       valueToIncrement: '1.0.0.3',
       incrementType: 'minor',
       fallbackValue: '2.0.0.1'
-    })).toBe('1.1.0.3')
+    })).toBe('1.1.0.0')
   })
 
   it('increments patch if well-formed', () => {
@@ -43,7 +43,7 @@ describe('incrementSemver', () => {
       valueToIncrement: '1.0.0.9',
       incrementType: 'patch',
       fallbackValue: '3.0.0.8'
-    })).toBe('1.0.1.9')
+    })).toBe('1.0.1.0')
   })
 
   it('increments revision if well-formed', () => {
