@@ -2,10 +2,11 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
+import useSWR from 'swr'
 import styled from 'styled-components'
 import debounce from 'lodash.debounce'
 import DT from 'react-data-table-component'
-import { useGetPrograms } from '@/hooks/useGetPrograms'
+import { fetchWithProgram } from '@/utils'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -16,7 +17,6 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
-import sort from 'semver/functions/sort'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 
 const Col = styled.div`
@@ -64,18 +64,38 @@ const Programs: NextPage = () => {
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
 
+  // Table Pagination
+  const [pagination, setPagination] = useState({
+    page: 1,
+    countPerPage: 10,
+    searchTotal: null
+  })
+
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
-  const [newCloneExists, setNewCloneExists] = useState(false)
 
-  const toggleNewCloneExists = () => setNewCloneExists((exists) => !exists)
+  const { data = {}, mutate } = useSWR(
+    {
+      url: '/api/programs',
+      args: {
+        offset: pagination?.page > 1 ? (pagination?.page - 1) * 10 : null,
+        count: pagination?.countPerPage
+      }
+    },
+    fetchWithProgram,
+    { revalidateOnFocus: false }
+  )
+  const { programs, total } = data
 
-  const programs = useGetPrograms({
-    newProgram: `${router?.query?.new}`,
-    refreshToggle: newCloneExists
-  })
+  useEffect(() => {
+    // We only want to set the total on the initial load
+    // because first load will have the correct unfiltered total
+    if (total && pagination.searchTotal === null) {
+      setPagination({ ...pagination, searchTotal: total })
+    }
+  }, [total, pagination.searchTotal, setPagination, pagination])
 
   useEffect(() => {
     const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
@@ -85,6 +105,8 @@ const Programs: NextPage = () => {
       setLatestProgramVersion(null)
     }
   }, [programs])
+
+  const handlePageChange = (newPage: number) => setPagination({ ...pagination, page: newPage })
 
   const handleClickClone = (programId: string | undefined) => {
     if (!programId) return
@@ -105,10 +127,8 @@ const Programs: NextPage = () => {
         method: 'POST',
         body: json
       })
-      if (res?.ok) {
-        setModalOpen(false)
-        toggleNewCloneExists()
-      } else {
+
+      if (!res?.ok) {
         const json = (await res.json()) as { message: string } | { error: string }
         if ('error' in json) {
           setError({ error: json.error })
@@ -119,10 +139,12 @@ const Programs: NextPage = () => {
       }
     } catch (e) {
       setError({ error: `Error cloning program ${programId}` })
+    } finally {
+      setPagination({ ...pagination, searchTotal: null })
+      mutate()
+      setModalOpen(false)
+      setCloneLoading(false)
     }
-
-    setModalOpen(false)
-    setCloneLoading(false)
   }
 
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
@@ -282,38 +304,51 @@ const Programs: NextPage = () => {
     setVersionToRelease(null)
   }
 
+  if (!data) return <LoadingIndicator />
+
   return (
     <Col>
-      {modalOpen && <LoadingModal
-        actionType="clone"
-        isOpen={modalOpen}
-        handleModalAction={async () => {
-          // throttle this action based on if it is already ongoing
-          if (cloneLoading) return
-          debouncedCloneProgram(progIdToClone)
-        }}
-        program={null}
-        loading={cloneLoading}
-        handleCancelModal={() => setModalOpen(false)}
-      />}
+      {modalOpen && (
+        <LoadingModal
+          actionType="clone"
+          isOpen={modalOpen}
+          handleModalAction={async () => {
+            // throttle this action based on if it is already ongoing
+            if (cloneLoading) return
+            debouncedCloneProgram(progIdToClone)
+          }}
+          program={null}
+          loading={cloneLoading}
+          handleCancelModal={() => setModalOpen(false)}
+        />
+      )}
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Programs</PageTitle>
       </Row>
-      {programToRelease && <ReleaseModal
-        isOpen={Boolean(programToRelease)}
-        loading={loading}
-        handleCancelModal={handleCancelModal}
-        handleModalAction={handleModalAction}
-        program={programToRelease}
-        updateVersion={setVersionToRelease}
-        setProgramToRelease={setProgramToRelease}
-      />}
+      {programToRelease && (
+        <ReleaseModal
+          isOpen={Boolean(programToRelease)}
+          loading={loading}
+          handleCancelModal={handleCancelModal}
+          handleModalAction={handleModalAction}
+          program={programToRelease}
+          updateVersion={setVersionToRelease}
+          setProgramToRelease={setProgramToRelease}
+        />
+      )}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
         columns={columns}
         theme="aphl"
         pagination
+        paginationServer
+        paginationTotalRows={pagination.searchTotal || 0}
+        paginationPerPage={pagination.countPerPage}
+        onChangePage={handlePageChange}
+        onChangeRowsPerPage={(currentRowsPerPage, currentPage) =>
+          setPagination({ ...pagination, page: currentPage, countPerPage: currentRowsPerPage })
+        }
         fixedHeader
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
