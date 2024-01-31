@@ -80,6 +80,7 @@ const Programs: NextPage = () => {
     {
       url: '/api/programs',
       args: {
+        list: true, // use this so on the server side we don't need to load all details of the program
         offset: pagination?.page > 1 ? (pagination?.page - 1) * 10 : null,
         count: pagination?.countPerPage
       }

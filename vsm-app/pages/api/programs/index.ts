@@ -20,6 +20,8 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
+const PROGRAM_LIST_ELEMENTS = ['id', 'name', 'description', 'status', 'approvalDate', 'experimental', 'title', 'version', 'publisher']
+
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
     // should program status only be draft here? or also active?
@@ -57,7 +59,8 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       searchParams: {
         context: 'program',
         _sort: ['-_lastUpdated'],
-        // _revinclude: 'Basic:artifact',
+        ...(!req.query['list'] && {_revinclude: 'Basic:artifact'}),
+        ...(req.query['list'] && { _elements: PROGRAM_LIST_ELEMENTS }), // Optimization: only return the fields we need for list view
         ...queries
       }
     }) as fhir4.Bundle
