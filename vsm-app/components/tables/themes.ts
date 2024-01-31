@@ -30,6 +30,13 @@ createTheme(
 
 const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles: any = {}): TableStyles => {
   const baseStyles = {
+    responsiveWrapper: {
+      style: {
+        overflowY: 'hidden',
+        minHeight: '100%',
+        maxHeight: '100%'
+      }
+    },
     table: {
       style: {
         fontFamily: 'Roboto',
