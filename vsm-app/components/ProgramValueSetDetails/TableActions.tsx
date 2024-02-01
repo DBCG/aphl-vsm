@@ -1,11 +1,13 @@
 import { Button } from '../buttons/Button'
 import { TableRow } from '@/types/valuesets'
 import styled from 'styled-components'
-import { TableActionContainer, SelectInputContainer, SelectInputTitle, FlexCol } from './styles'
+import { TableActionContainer, SelectInputContainer,
+  SelectInputTitle,FlexCol
+} from './styles'
 import React, { SetStateAction, Dispatch, useMemo, useState } from 'react'
 import {
-  FormGroup, Stack, Switch, Typography,
-  Radio, RadioGroup, FormControlLabel, FormLabel
+  FormGroup, Typography, Radio,
+  RadioGroup, FormControlLabel, FormLabel
 } from '@mui/material'
 import Select, { MultiValue } from 'react-select'
 import { EditModal } from '../modals/EditModal'
@@ -122,7 +124,7 @@ const BulkUpdateForm = ({
             classNamePrefix={bulkEditType}
             inputId={`${bulkEditType}-selector`}
             instanceId={`${bulkEditType}-selector`}
-            isMulti
+            isMulti={bulkEditType !== 'priority'}
             key={`${bulkEditType}-key`}
             styles={{
               menu: (baseStyles) => ({
@@ -167,7 +169,7 @@ const BulkUpdateForm = ({
               />
             </>
           )}
-          {Boolean(priorityToEdit) && (
+          {Boolean(bulkEditType === 'priority') && (
             <Button
               disabled={!priorityToEdit?.length}
               text={`Update ${bulkEditType}`}
@@ -217,6 +219,9 @@ export const TableActions = ({
     }) || []
 
   const handleBulkRadioToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupsToEdit([])
+    setConditionsToEdit([])
+    setPriorityToEdit([])
     setBulkEditType(e.target.value)
   }
 
