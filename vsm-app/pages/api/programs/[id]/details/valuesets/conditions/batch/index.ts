@@ -29,13 +29,11 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // update priority
     if (priorityToEdit) {
-      clonedProgram = setVSPriority(clonedProgram, priorityToEdit, leafUrls)
+      clonedProgram = setVSPriority(clonedProgram, priorityToEdit.value, leafUrls)
     // update conditions
     } else if (conditionsToUpdate?.length) {
-      console.log('CONDITIONS!')
       clonedProgram = setVSConditions(clonedProgram, conditionsToUpdate as Condition[], leafUrls, action)
     } else if (groupersToUpdate?.length) {
-      console.log('GROUPERS!')
       const allGrouperIdsForUpdate = groupersToUpdate.map(i => i.id)
       const grouperReqItems = allGrouperIdsForUpdate?.map((id) => ({
         request: {
@@ -51,21 +49,17 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         entry: grouperReqItems
       }})
 
-      console.log('response.entry: ', response.entry)
-
       const errors = response.entry.find((i: any) => !i?.response?.status?.includes('200'))
       if (errors) {
         throw new Error(`Error retrieving groupers with ids: ${JSON.stringify(allGrouperIdsForUpdate)}`)
       }
 
       const groupers = response.entry.map(e => e.resource)
-      console.log('groupers: ', groupers)
       const updatedGroupers = groupers.map(grouper => {
         return updateGrouperLeafs(grouper, leafUrls, action).grouper
       })
 
       const formattedUpdate = formatBatchGrouperUpdate(updatedGroupers)
-      console.log('formattedUpdate: ', formattedUpdate)
       let grouperUpdateResponse
       try {
         grouperUpdateResponse = await fhirCdrClient.transaction({
@@ -76,7 +70,6 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(e.response.data.issue)
       }
 
-      console.log('grouper update response: ', grouperUpdateResponse)
       if (grouperUpdateResponse.entry) {
         return res.status(200).json(grouperUpdateResponse) 
       } else {

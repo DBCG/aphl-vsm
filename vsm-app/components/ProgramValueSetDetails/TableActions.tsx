@@ -233,7 +233,6 @@ export const TableActions = ({
   const handleEditItems = async () => {
     setEditInFlight(true)
       const batch: batchEditData = {
-        leafIds: selectedRows.map((r) => r.valueSet.id) || [],
         leafUrls: selectedRows.map((r) => {
           const appendLatest = r.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
           const versionedUrl = `${r.valueSet.url}${appendLatest}`
@@ -250,7 +249,6 @@ export const TableActions = ({
         method: 'PUT',
         body
       }).then((res) => {
-        // handleToggleUpdateData()
         window.location.reload()
       })
 
