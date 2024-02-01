@@ -191,43 +191,74 @@ const getVSPriority = (library: fhir4.Library) => {
   return vsPriorityMap
 }
 
-const getVSConditions = (program: fhir4.Library) => {
+interface ConditionsData {
+  system: string
+  version: string
+  code: string
+  display: string
+}
+
+const getConditionText = (conditionItem: ConditionsData | undefined, currentConditionExtension: fhir4.Extension) => {
+  const noTextResult = 'No display value for this condition'
+
+  return conditionItem?.display ||
+  currentConditionExtension?.valueCodeableConcept?.text ||
+  noTextResult
+}
+
+const getVSConditions = (program: fhir4.Library, conditionsDataFromRCKMS: ConditionsData[]) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
-    if (artifact?.type === 'depends-on') {
-      if (artifact.extension) {
-        for (const ext of artifact.extension) {
-          if (ext?.url.endsWith('vsm-valueset-condition')) {
-            const vsUrl = artifact.resource?.split('|')?.[0] as string
-            const condCodeableConcept = ext?.valueCodeableConcept
-            const conditionIdentifier = `${condCodeableConcept?.coding?.[0]?.system}|${condCodeableConcept?.coding?.[0]?.code}`
-            if (!vsConditions[vsUrl]) {
-              vsConditions[vsUrl] = [{ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! }]
-            } else {
-              vsConditions[vsUrl].push({ id: conditionIdentifier, valueCodeableConcept: condCodeableConcept! })
-            }
-          }
-        }
+    const conditionExtensions = artifact?.extension?.filter(ext => ext?.url?.endsWith('vsm-valueset-condition'))
+    if (artifact?.type === 'depends-on' && conditionExtensions?.length) {
+      const vsUrl = artifact.resource?.split('|')?.[0] as string
+
+      const arrangedConditions = conditionExtensions.map(ext => {
+        const itemCode = ext?.valueCodeableConcept?.coding?.[0]?.code
+
+      const conditionItem = conditionsDataFromRCKMS?.find(
+        i => (
+          i?.system === ext?.valueCodeableConcept?.coding?.[0]?.system &&
+          i?.code === ext?.valueCodeableConcept?.coding?.[0]?.code
+        )
+      ) as ConditionsData | undefined
+
+      // gets text from synonym if available, otherwise provides "text" field
+      const conditionText = getConditionText(conditionItem, ext)
+
+      const updatedCodeableConcept = Object.assign(ext?.valueCodeableConcept || {}, { text: conditionText })
+      return ({
+        id: `${ext?.valueCodeableConcept?.coding?.[0]?.system}|${itemCode}`!,
+        valueCodeableConcept: updatedCodeableConcept
+      })})
+      if (!vsConditions[vsUrl]) {
+        vsConditions[vsUrl] = arrangedConditions
+      } else {
+        vsConditions[vsUrl] = vsConditions[vsUrl].concat(arrangedConditions)
       }
     }
   })
+
   return vsConditions
 }
 
 const setVSConditions = (
   program: fhir4.Library,
   conditions: Condition[],
-  vsUrl: string,
-  action: 'add' | 'remove' | 'override' = 'override'
+  vsUrls: string[],
+  action: 'add' | 'remove' | 'override' | null
 ) => {
+  if (!action) {
+    action = 'override'
+  }
   const clonedProgram = cloneDeep(program)
   switch (action) {
     case 'add':
-      return addVSConditions(clonedProgram, conditions, vsUrl)
+      return addVSConditions(clonedProgram, conditions, vsUrls)
     case 'remove':
-      return removeVSConditions(clonedProgram, conditions, vsUrl)
+      return removeVSConditions(clonedProgram, conditions, vsUrls)
     case 'override':
-      return overrideVSConditions(clonedProgram, conditions, vsUrl)
+      return overrideVSConditions(clonedProgram, conditions, vsUrls)
   }
 }
 
@@ -247,11 +278,11 @@ const buildConditionExtensionItem = (code: string, system: string, text: string 
 }
 
 // assumes valuesets already exist as depends-on block
-const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrl: string) => {
+const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrls: string[]) => {
   const clonedProgram = cloneDeep(program)
 
   const updatedRA = clonedProgram.relatedArtifact?.map(item => {
-    if (item?.type === 'depends-on' && item?.resource === vsUrl) {
+    if (item?.type === 'depends-on' && item.resource && vsUrls.includes(item.resource)) {
       if (!item.extension) {
         item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
       } else {
@@ -280,27 +311,27 @@ const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], v
 }
 
 // Remove any existing conditions for the given valueset and add the new conditions
-const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrls: string[]) => {
   const clonedProgram = cloneDeep(program)
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
-    if (ra.type === 'depends-on' && ra.resource == vsUrl && ra.extension) {
+    if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
       ra.extension = ra.extension.filter(xt => !xt.url.endsWith('vsm-valueset-condition'))
     }
     return ra
   })
   
   clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
-  const progWithCondAdded = addVSConditions(clonedProgram, conditions, vsUrl)
+  const progWithCondAdded = addVSConditions(clonedProgram, conditions, vsUrls)
 
   return progWithCondAdded
 }
 
-const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrl: string) => {
+const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsUrls: string[]) => {
   const clonedProgram = cloneDeep(program)
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
-    if (ra.type === 'depends-on' && ra.resource == vsUrl && ra.extension) {
+    if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
       ra.extension = ra.extension.filter(xt => (
         xt?.url?.endsWith('vsm-valueset-condition') && !conditions.find(cond => (
           xt?.valueCodeableConcept?.coding?.[0]?.system == cond.value.system &&

@@ -288,7 +288,8 @@ describe('libraryHelpers', () => {
         const updatedProgram = setVSConditions(
           testProgram,
           conditions,
-          targetedVsUrl
+          [targetedVsUrl],
+          'add'
         )
         const addedCondition = updatedProgram.relatedArtifact?.find(
           (i) =>
@@ -318,9 +319,10 @@ describe('libraryHelpers', () => {
         const updatedProgram = setVSConditions(
           testProgram,
           conditions,
-          targetedVsUrl
+          [targetedVsUrl],
+          'add'
         )
-        const addedCondition = updatedProgram.relatedArtifact?.find(
+        const conditionAdded = updatedProgram.relatedArtifact?.find(
           (i) =>
             i?.resource === targetedVsUrl && (
               i?.extension?.find(
@@ -332,12 +334,12 @@ describe('libraryHelpers', () => {
               )
             )
         )
-        expect(addedCondition).toBeDefined()
+        expect(conditionAdded).toBeDefined()
         
         const removedProgram = setVSConditions(
           updatedProgram,
           conditions,
-          targetedVsUrl,
+          [targetedVsUrl],
           'remove'
         )
         const removedCondition = removedProgram.relatedArtifact?.find(
@@ -391,7 +393,8 @@ describe('libraryHelpers', () => {
         const updatedProgram = setVSConditions(
           testProgram,
           conditions,
-          targetedVsUrl
+          [targetedVsUrl],
+          'add'
         )
         const additionalCondition = [
           {
@@ -404,7 +407,7 @@ describe('libraryHelpers', () => {
           }
         ] as Condition[]
 
-        const finalProgram = setVSConditions(updatedProgram, additionalCondition, targetedVsUrl, 'add')
+        const finalProgram = setVSConditions(updatedProgram, additionalCondition, [targetedVsUrl], 'add')
         const addedCondition = finalProgram.relatedArtifact?.find(
           (i) =>
             i?.resource === targetedVsUrl &&
@@ -478,7 +481,7 @@ describe('libraryHelpers', () => {
 
         expect(conditionExtensions).toHaveLength(1)
         const updatedProgram = (
-          addVSConditions(FIXTURE_PROGRAM_1, [testCondition1], 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481')
+          addVSConditions(FIXTURE_PROGRAM_1, [testCondition1], ['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'])
         )
         const updatedVsConditionExtensions = updatedProgram.relatedArtifact
           ?.find((art: fhir4.RelatedArtifact) => art?.type === 'depends-on' && art?.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481')
@@ -497,7 +500,7 @@ describe('libraryHelpers', () => {
         expect(conditionExtensions).toHaveLength(3)
 
         const updatedProgram = (
-          addVSConditions(FIXTURE_PROGRAM_CONDITIONS_1, [testCondition2], 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+          addVSConditions(FIXTURE_PROGRAM_CONDITIONS_1, [testCondition2], ['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526'])
         )
 
         const updatedVsConditionExtensions = updatedProgram.relatedArtifact
