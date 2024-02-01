@@ -274,7 +274,7 @@ const findMatchingVsetUrls = async ({
           ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text)
 
         return ({
-        leafDisplay: i?.name,
+        leafDisplay: i?.title || i?.name,
         groupersBelongsTo: grouperInfo,
         url: vsUrl,
         matchingCodes: findMatches({ vs: i, codeToFind, systemToFind }).codeMatches,

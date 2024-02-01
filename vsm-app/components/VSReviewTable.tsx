@@ -1,7 +1,7 @@
 import Table from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import Select, { StylesConfig } from 'react-select'
+import Select from 'react-select'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 import { buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
 import { ConditionsHandler } from 'pages/programs/[id]/grouper'
@@ -30,10 +30,10 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
 
   const columns = [
     {
-      name: 'Name',
+      name: 'Title',
       minWidth: '20rem',
       wrap: true,
-      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.name!
+      selector: (row: FlatGrouperVSet) => row?.selectedValueSet?.valueSet?.title || row?.selectedValueSet?.name || 'Untitled'
     },
     {
       name: 'ID',
@@ -56,7 +56,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
     {
       name: 'Conditions',
       wrap: true,
-      minWidth: '350px',
+      minWidth: '250px',
       selector: (row: FlatGrouperVSet) => row?.selectedConditions?.map((c) => c?.label)?.join() || '',
       sortable: false,
       style: {

@@ -179,7 +179,8 @@ const ValueSetDetailsTables = ({
         name: 'Code',
         selector: (row: any) => row?.code!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        maxWidth: '5em'
       },
       {
         name: 'Display',
