@@ -22,6 +22,18 @@ export const shallowEqual = (object1: any, object2: any) => {
 // @ts-ignore
 export const fetcher = (...args) => fetch(...args).then((res) => res.json())
 
+const removeNullProperties = (obj: any) => {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key, value]) => value !== null)
+  );
+}
+
+export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
+  const finalArgs = removeNullProperties(args) as any
+  const finalUrl = url + (finalArgs ? '?' + new URLSearchParams(finalArgs) : '')
+  return fetch(finalUrl).then((res) => res.json())
+}
+
 interface IncrementParams {
   valueToIncrement: any
   incrementType: 'major' | 'minor' | 'patch' | 'revision'
