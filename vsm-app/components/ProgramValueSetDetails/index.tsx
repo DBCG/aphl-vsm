@@ -424,7 +424,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const currentPriority = valueSetPriorityMap[row?.valueSet?.url!] as string
+          const priorityKey = `${row.valueSet.url}${row.valueSetPinnedVersion ? `|${row.valueSetPinnedVersion}` : ''}`
+          const currentPriority = valueSetPriorityMap[priorityKey] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
             : // default to Routine, this option does not actually need to be set and will be inferred by default
