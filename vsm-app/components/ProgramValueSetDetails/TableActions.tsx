@@ -67,7 +67,7 @@ const BulkUpdateForm = ({
   conditionOptions, grouperOptions, priorityOptions,
   setGroupersToEdit, setPriorityToEdit, setIsEditing,
   handleToggleUpdateData, conditionsToEdit, groupsToEdit,
-  priorityToEdit, setActionType, setModalOpen, isEditing
+  priorityToEdit, setActionType, setModalOpen, isEditing, setEditType
 }) => {
 
   if (!isEditing) return null
@@ -219,6 +219,7 @@ export const TableActions = ({
     }) || []
 
   const handleBulkRadioToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ensure data cleared out of state when toggled
     setGroupsToEdit([])
     setConditionsToEdit([])
     setPriorityToEdit([])
@@ -229,6 +230,7 @@ export const TableActions = ({
     // ensure data is cleared out of state when toggled
     setGroupsToEdit([])
     setConditionsToEdit([])
+    setEditType(e.target.value)
     if (e?.target?.checked) {
       setEditType('grouper')
     } else {
@@ -245,6 +247,12 @@ export const TableActions = ({
     if (editType === 'condition') {
       const batch: batchEditData = {
         leafIds: selectedRows.map((r) => r.valueSet.id) || [],
+        leafUrls: selectedRows.map((r) => {
+          const appendLatest = r.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
+          const versionedUrl = `${r.valueSet.url}${appendLatest}`
+          console.log('versioned url: ', versionedUrl)
+          return versionedUrl
+      }) || [],
         conditionsToUpdate: conditionsToEdit,
         action: actionType
       }
@@ -310,7 +318,7 @@ export const TableActions = ({
           <BulkUpdateForm
             setIsEditing={setIsEditing}
             isEditing={isEditing}
-            bulkToggleFn={handleBulkRadioToggle}
+            bulkToggleFn={handleEditTypeToggle}
             bulkEditType={bulkEditType}
             conditionOptions={conditionOptions}
             grouperOptions={buildGroupOptions(alphabetizedGroups)}
