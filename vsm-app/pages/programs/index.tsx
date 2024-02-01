@@ -54,6 +54,17 @@ interface Error {
   error?: string
 }
 
+interface ProgramListResponse {
+  programs: fhir4.Library[]
+  total: number
+}
+
+interface PaginationState {
+  page: number
+  countPerPage: number
+  searchTotal: number | null
+}
+
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -65,7 +76,7 @@ const Programs: NextPage = () => {
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
 
   // Table Pagination
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     countPerPage: 10,
     searchTotal: null
@@ -88,7 +99,7 @@ const Programs: NextPage = () => {
     fetchWithProgram,
     { revalidateOnFocus: false }
   )
-  const { programs, total } = data
+  const { programs, total } = data as ProgramListResponse
 
   useEffect(() => {
     // We only want to set the total on the initial load

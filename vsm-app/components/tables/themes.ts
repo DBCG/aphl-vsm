@@ -32,7 +32,7 @@ const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles
   const baseStyles = {
     responsiveWrapper: {
       style: {
-        overflowY: 'hidden',
+        OverflowY: 'hidden',
         minHeight: '100%',
         maxHeight: '100%'
       }
