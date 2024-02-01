@@ -173,9 +173,6 @@ describe('libraryHelpers', () => {
         const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
-              testItem: 'test'
-            },
-            {
               url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
               valueCodeableConcept: {
                 coding: [

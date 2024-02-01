@@ -2,9 +2,12 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { is } from '@/helpers/is'
+import { formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 
 export type ConditionsAPIResponse = fhir4.ValueSetComposeInclude[] | { error: string }
-const getConditions = async (req: NextApiRequest, res: NextApiResponse<ConditionsAPIResponse>) => {
+
+const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<ConditionsAPIResponse>) => {
   try {
     const data = await fhirCdrClient.search({
       resourceType: 'ValueSet',
@@ -15,8 +18,14 @@ const getConditions = async (req: NextApiRequest, res: NextApiResponse<Condition
 
     // this will return a set of code/display pairs, along with their system info
     // e.g. SNOMED, ICD-10, etc. (our data is just snomed)
-    const valueSet = (<fhir4.ValueSet>data?.entry?.[0]?.resource)?.compose?.include || []
-    res.status(200).send(valueSet)
+    const maybeValueSet = data?.entry?.[0]?.resource
+    if (is.valueSet(maybeValueSet)) {
+      const conditions = maybeValueSet.compose?.include || []
+      const formatted = formatConditionsComposeInclude(conditions)
+      return res.status(200).send(formatted)
+    } else {
+      return res.status(400).send({ error: 'Could not retrieve conditions data'}) 
+    }
   } catch (e: any) {
     logger.error('error:  ', e?.response?.data?.text)
     res.status(400).json({ error: 'Search for conditions valueset failed.' })
@@ -25,6 +34,6 @@ const getConditions = async (req: NextApiRequest, res: NextApiResponse<Condition
 
 export default handler({
   GET: {
-    action: getConditions
+    action: getAllConditions
   }
 })

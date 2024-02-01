@@ -5,6 +5,7 @@ const useGetConditions = (): fhir4.ValueSetComposeInclude[] => {
   const [conditions, setConditions] = useState<fhir4.ValueSetComposeInclude[]>([])
   const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
+  // get all conditions from RCKMS valueset
   useEffect(() => {
     async function getConditions(): Promise<void> {
       let endpoint = '/api/conditions'

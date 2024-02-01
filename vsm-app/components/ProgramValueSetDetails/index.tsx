@@ -15,7 +15,7 @@ import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValue
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { formatConditionsComposeInclude, buildConditionOptions, ConditionToUpdate, Condition, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
+import { buildConditionOptions, ConditionToUpdate, Condition } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
@@ -75,6 +75,8 @@ export const priorityLevelOptions = [
   { label: 'Emergent', value: 'emergent', id: 'emergent' },
   { label: 'Routine', value: 'routine', id: 'routine' }
 ] as const
+
+export type PriorityLevelOption = typeof priorityLevelOptions[number]
 
 const DEFAULT_FILTERS = {
   findInOid: '',
@@ -146,6 +148,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
+  const rckmsConditionsData = useGetConditions()
   const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
@@ -168,7 +171,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   || priorityLoading
   || versionUpdateInFlight
 
-  const conditionsMap = getVSConditions(currentProgram)
+  const conditionsMap = useMemo(() => {
+    return getVSConditions(currentProgram)
+  }, [currentProgram])
+
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
     const payload = formatDeletePayload(itemsToDelete)
@@ -296,8 +302,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setPageLoading(keys.length === 0)
   }, [progValueSetDets])
 
-  const conditions = useGetConditions()
-  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
+  const allConditions = useGetConditions()
   const groupsInProgram = progValueSetDets?.groupsInProgram
   const totalLeafs = progValueSetDets?.totalLeafs
 

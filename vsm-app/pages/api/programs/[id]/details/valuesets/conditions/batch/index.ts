@@ -12,6 +12,12 @@ interface Query extends NextApiRequestQuery {
   id: string
 }
 
+interface GrouperItem {
+  value: string | undefined
+  label: string | undefined
+  id: string
+}
+
 // bulk update for conditions, groupers, and priority
 // currently will only handle one update type at a time
 const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -20,22 +26,11 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
     const { priorityToEdit, leafUrls, conditionsToUpdate, action, groupersToUpdate } = payload
     const { id: programId } = req.query as Query
 
-    const programToUpdate = await fhirCdrClient.read({
-      resourceType: 'Library', 
-      id: programId
-    }) as fhir4.Library
-
-    let clonedProgram = cloneDeep(programToUpdate)
-
-    // update priority
-    if (priorityToEdit) {
-      clonedProgram = setVSPriority(clonedProgram, priorityToEdit.value, leafUrls)
-    // update conditions
-    } else if (conditionsToUpdate?.length) {
-      clonedProgram = setVSConditions(clonedProgram, conditionsToUpdate as Condition[], leafUrls, action)
-    } else if (groupersToUpdate?.length) {
-      const allGrouperIdsForUpdate = groupersToUpdate.map(i => i.id)
-      const grouperReqItems = allGrouperIdsForUpdate?.map((id) => ({
+    // update valueset groupers
+    // grouper updates happen at the grouper level, not program
+    if (groupersToUpdate?.length) {
+      const allGrouperIdsForUpdate = groupersToUpdate.map((i: GrouperItem) => i.id)
+      const grouperReqItems = allGrouperIdsForUpdate?.map((id: string) => ({
         request: {
           resourceType: 'ValueSet',
           method: 'GET',
@@ -54,8 +49,9 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         throw new Error(`Error retrieving groupers with ids: ${JSON.stringify(allGrouperIdsForUpdate)}`)
       }
 
-      const groupers = response.entry.map(e => e.resource)
-      const updatedGroupers = groupers.map(grouper => {
+      const groupers = response.entry.map((e: fhir4.BundleEntry) => e.resource)
+
+      const updatedGroupers = groupers.map((grouper: fhir4.ValueSet) => {
         return updateGrouperLeafs(grouper, leafUrls, action).grouper
       })
 
@@ -67,15 +63,30 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         })
 
       } catch (e) {
-        console.log(e.response.data.issue)
+        logSimpleError(e, 'bulkUpdate function')
       }
 
-      if (grouperUpdateResponse.entry) {
+      if (grouperUpdateResponse?.entry) {
         return res.status(200).json(grouperUpdateResponse) 
       } else {
         return res.status(501).json({ error: 'Failed to update groupers' })  
       }
+    }
 
+    // handle priority and conditions which both need the program library
+    const programToUpdate = await fhirCdrClient.read({
+      resourceType: 'Library', 
+      id: programId
+    }) as fhir4.Library
+
+    let clonedProgram = cloneDeep(programToUpdate)
+
+    // update priority
+    if (priorityToEdit) {
+      clonedProgram = setVSPriority(clonedProgram, priorityToEdit.value, leafUrls)
+    // update conditions
+    } else if (conditionsToUpdate?.length) {
+      clonedProgram = setVSConditions(clonedProgram, conditionsToUpdate as Condition[], leafUrls, action)
     } else {
       return res.status(501).json({ error: 'Bulk update not implemented for this item' }) 
     }

@@ -14,7 +14,7 @@ import { EditModal } from '../modals/EditModal'
 import { IconButton } from '../buttons/IconButton'
 import { Condition, ConditionItem, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
-import { priorityLevelOptions } from '.'
+import { PriorityLevelOption, priorityLevelOptions } from '.'
 
 const ActionContainerRow = styled.div`
   display: flex;
@@ -51,138 +51,24 @@ interface TableActions {
   totalRows: number
   programId: string
 }
+
 type editAction = 'add' | 'remove' | 'update' | null
-export type batchEditData = {
-  leafIds: fhir4.ValueSet['id'][]
+
+interface GrouperItem {
+  value: string | undefined
+  label: string | undefined
+  id: string
+}
+
+type BatchEditData = {
+  leafUrls: fhir4.ValueSet['url'][]
   conditionsToUpdate: MultiValue<Condition>
   action: editAction
+  priorityToEdit: PriorityLevelOption | null
+  groupersToUpdate: MultiValue<GrouperItem>
 }
 
-interface BulkUpdateFrm {
-  bulkToggleFn: () => void
-}
-
-const BulkUpdateForm = ({
-  bulkToggleFn, bulkEditType, setConditionsToEdit,
-  conditionOptions, grouperOptions, priorityOptions,
-  setGroupersToEdit, setPriorityToEdit, setIsEditing,
-  handleToggleUpdateData, conditionsToEdit, groupsToEdit,
-  priorityToEdit, setActionType, setModalOpen, isEditing, setEditType
-}) => {
-
-  if (!isEditing) return null
- 
-  const selectInfo = {
-    conditions: { data: conditionOptions, fn: setConditionsToEdit },
-    groupers: { data: grouperOptions, fn: setGroupersToEdit },
-    priority: { data: priorityOptions, fn: setPriorityToEdit }
-  }
-
-  return (
-    <FormGroup>
-      <FormLabel id='bulk-form-label'>Property to edit:</FormLabel>
-      <RadioGroup
-        aria-aria-labelledby='bulk-form-label'
-        defaultValue='conditions'
-        name='bulk-selection-radio-group'
-      >
-        <FormControlLabel
-          value='conditions'
-          control={
-            <Radio
-              onChange={bulkToggleFn}
-            />
-          }
-          label='Conditions'
-        />
-        <FormControlLabel
-          value='priority'
-          control={
-            <Radio
-              onChange={bulkToggleFn}
-            />
-          }
-          label='Priority'
-        />
-        <FormControlLabel
-          value='groupers'
-          control={
-            <Radio
-              onChange={bulkToggleFn}
-            />
-          }
-          label='Groupers'
-        />
-      </RadioGroup>
-      <SelectInputContainer>
-        <Typography style={{ textTransform: 'capitalize' }}>
-          {bulkEditType}
-        </Typography>
-          <Select
-            menuPlacement="bottom"
-            placeholder={`Select ${bulkEditType}`}
-            classNamePrefix={bulkEditType}
-            inputId={`${bulkEditType}-selector`}
-            instanceId={`${bulkEditType}-selector`}
-            isMulti={bulkEditType !== 'priority'}
-            key={`${bulkEditType}-key`}
-            styles={{
-              menu: (baseStyles) => ({
-                ...baseStyles,
-                zIndex: 10
-              })
-            }}
-            options={selectInfo[bulkEditType].data}
-            onChange={(e) => {
-              selectInfo[bulkEditType].fn(e)
-            }}
-          />
-        </SelectInputContainer>
-        <ButtonRow>
-          <Button
-            text="Cancel Edit"
-            style={{ backgroundColor: 'gray' }}
-            onClick={() => {
-              setIsEditing(false)
-              setGroupersToEdit([])
-              setConditionsToEdit([])
-              handleToggleUpdateData()
-            }}
-          />
-          {Boolean(conditionsToEdit.length || groupsToEdit.length) && (
-            <>
-              <Button
-                disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                text={`Add ${bulkEditType}`}
-                onClick={() => {
-                  setActionType('add')
-                  setModalOpen(true)
-                }}
-              />
-              <Button
-                disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                text={`Remove ${bulkEditType}`}
-                onClick={() => {
-                  setActionType('remove')
-                  setModalOpen(true)
-                }}
-              />
-            </>
-          )}
-          {Boolean(bulkEditType === 'priority') && (
-            <Button
-              disabled={!priorityToEdit}
-              text={`Update ${bulkEditType}`}
-              onClick={() => {
-                setActionType('update')
-                setModalOpen(true)
-              }}
-            />
-          )}
-        </ButtonRow>
-    </FormGroup>
-  )
-}
+type BulkOptions = 'conditions' | 'groupers' | 'priority'
 
 export const TableActions = ({
   selectedRows,
@@ -198,15 +84,12 @@ export const TableActions = ({
   const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
   const [conditionsToEdit, setConditionsToEdit] = useState<MultiValue<Condition>>([])
-  const [priorityToEdit, setPriorityToEdit] = useState<MultiValue<Condition>>(null)
-  const [groupsToEdit, setGroupsToEdit] = useState<
-    MultiValue<{ value: string | undefined; label: string | undefined; id: string | undefined }>
-  >([])
+  const [priorityToEdit, setPriorityToEdit] = useState<PriorityLevelOption | null>(null)
+  const [groupsToEdit, setGroupsToEdit] = useState<MultiValue<GrouperItem>>([])
   const [actionType, setActionType] = useState<editAction>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
   // bulk actions
-  type BulkOptions = 'conditions' | 'groupers' | 'priority'
   const [bulkEditType, setBulkEditType] = useState<BulkOptions>('conditions')
 
   const alphabetizedGroups =
@@ -223,7 +106,7 @@ export const TableActions = ({
     setGroupsToEdit([])
     setConditionsToEdit([])
     setPriorityToEdit(null)
-    setBulkEditType(e.target.value)
+    setBulkEditType(e.target.value as BulkOptions)
   }
 
   const handleCancelModal = () => {
@@ -232,7 +115,7 @@ export const TableActions = ({
 
   const handleEditItems = async () => {
     setEditInFlight(true)
-      const batch: batchEditData = {
+      const batch: BatchEditData = {
         leafUrls: selectedRows.map((r) => {
           const appendLatest = r.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
           const versionedUrl = `${r.valueSet.url}${appendLatest}`
@@ -265,6 +148,12 @@ export const TableActions = ({
       selectedRows.length === totalRows
         ? `You have selected all ${totalRows} Valuesets in this Program`
         : `You have selected ${selectedRows.length} out of ${totalRows} total Valuesets`
+
+  const selectInfo = {
+    conditions: { data: conditionOptions, fn: setConditionsToEdit },
+    groupers: { data: buildGroupOptions(alphabetizedGroups), fn: setGroupsToEdit },
+    priority: { data: priorityLevelOptions, fn: setPriorityToEdit }
+  }
 
     return (
       <TableActionContainer>
@@ -305,24 +194,98 @@ export const TableActions = ({
           </ActionCol>
         </ActionContainerRow>
         <ActionContainerRow>
-          <BulkUpdateForm
-            setIsEditing={setIsEditing}
-            isEditing={isEditing}
-            bulkToggleFn={handleBulkRadioToggle}
-            bulkEditType={bulkEditType}
-            conditionOptions={conditionOptions}
-            grouperOptions={buildGroupOptions(alphabetizedGroups)}
-            priorityOptions={priorityLevelOptions}
-            setConditionsToEdit={setConditionsToEdit}
-            setGroupersToEdit={setGroupsToEdit}
-            setPriorityToEdit={setPriorityToEdit}
-            handleToggleUpdateData={handleToggleUpdateData}
-            conditionsToEdit={conditionsToEdit}
-            groupsToEdit={groupsToEdit}
-            priorityToEdit={priorityToEdit}
-            setActionType={setActionType}
-            setModalOpen={setModalOpen}
-          />
+          { isEditing && (
+            <FormGroup>
+              <FormLabel id='bulk-form-label'>Property to edit:</FormLabel>
+              <RadioGroup
+                aria-aria-labelledby='bulk-form-label'
+                defaultValue='conditions'
+                name='bulk-selection-radio-group'
+              >
+                <FormControlLabel
+                  value='conditions'
+                  control={<Radio onChange={handleBulkRadioToggle}/>}
+                  label='Conditions'
+                />
+                <FormControlLabel
+                  value='priority'
+                  control={<Radio onChange={handleBulkRadioToggle} />}
+                  label='Priority'
+                />
+                <FormControlLabel
+                  value='groupers'
+                  control={<Radio onChange={handleBulkRadioToggle}/>}
+                  label='Groupers'
+                />
+              </RadioGroup>
+              <SelectInputContainer>
+                <Typography style={{ textTransform: 'capitalize' }}>
+                  {bulkEditType}
+                </Typography>
+                  <Select
+                    menuPlacement="bottom"
+                    placeholder={`Select ${bulkEditType}`}
+                    classNamePrefix={bulkEditType}
+                    inputId={`${bulkEditType}-selector`}
+                    instanceId={`${bulkEditType}-selector`}
+                    isMulti={bulkEditType !== 'priority'}
+                    key={`${bulkEditType}-key`}
+                    styles={{
+                      menu: (baseStyles) => ({
+                        ...baseStyles,
+                        zIndex: 10
+                      })
+                    }}
+                    options={selectInfo[bulkEditType].data as any}
+                    onChange={(e) => {
+                      selectInfo[bulkEditType].fn(e as any)
+                    }}
+                  />
+                </SelectInputContainer>
+                <ButtonRow>
+                  <Button
+                    text="Cancel Edit"
+                    style={{ backgroundColor: 'gray' }}
+                    onClick={() => {
+                      setIsEditing(false)
+                      setGroupsToEdit([])
+                      setConditionsToEdit([])
+                      handleToggleUpdateData()
+                    }}
+                  />
+                  {Boolean(conditionsToEdit.length || groupsToEdit.length) && (
+                    <>
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Add ${bulkEditType}`}
+                        onClick={() => {
+                          setActionType('add')
+                          setModalOpen(true)
+                        }}
+                      />
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Remove ${bulkEditType}`}
+                        onClick={() => {
+                          setActionType('remove')
+                          setModalOpen(true)
+                        }}
+                      />
+                    </>
+                  )}
+                  {Boolean(bulkEditType === 'priority') && (
+                    <Button
+                      disabled={!priorityToEdit}
+                      text={`Update ${bulkEditType}`}
+                      onClick={() => {
+                        setActionType('update')
+                        setModalOpen(true)
+                      }}
+                    />
+                  )}
+                </ButtonRow>
+            </FormGroup>
+          )}
         </ActionContainerRow>
       </TableActionContainer>
     )

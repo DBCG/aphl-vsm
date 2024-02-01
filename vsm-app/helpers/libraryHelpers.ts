@@ -52,11 +52,12 @@ const setTitleAndDerivedName = (program: fhir4.Library, title: string | undefine
 
 interface MissingFields {
   program: fhir4.Library
-  requiredFields: typeof requiredFields
+  requiredFields: string[]
 }
 
 const missingFields = ({ program, requiredFields }: MissingFields): string[] => {
   // this fn returns all required field names that do not have entries
+  // @ts-ignore
   return requiredFields.filter((field) => !Boolean(program?.[field]?.trim()))
 }
 
@@ -86,8 +87,6 @@ const editComposeInclude = ({ grouperLib, relatedArtifact, action }: EditCompose
 const getReleaseLabel = (program: fhir4.Library | null | undefined) => {
   return program?.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString || ''
 }
-
-
 
 const setExtension = (program: fhir4.Library, url: string, value: string, valueType='valueString') => {
   const clonedProgram = cloneDeep(program)
@@ -137,7 +136,7 @@ const validStartDate = (date: any): boolean => {
   return testDate - todayDate > -1
 }
 
-const createPriorityItem = (code) => (
+const createPriorityItem = (code: string) => (
   {
     url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
     valueCodeableConcept: {
@@ -213,7 +212,8 @@ const getConditionText = (conditionItem: ConditionsData | undefined, currentCond
   noTextResult
 }
 
-const getVSConditions = (program: fhir4.Library, conditionsDataFromRCKMS: ConditionsData[]) => {
+// get all conditions by url
+const getVSConditions = (program: fhir4.Library) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
     const conditionExtensions = artifact?.extension?.filter(ext => ext?.url?.endsWith('vsm-valueset-condition'))
@@ -223,20 +223,9 @@ const getVSConditions = (program: fhir4.Library, conditionsDataFromRCKMS: Condit
       const arrangedConditions = conditionExtensions.map(ext => {
         const itemCode = ext?.valueCodeableConcept?.coding?.[0]?.code
 
-      const conditionItem = conditionsDataFromRCKMS?.find(
-        i => (
-          i?.system === ext?.valueCodeableConcept?.coding?.[0]?.system &&
-          i?.code === ext?.valueCodeableConcept?.coding?.[0]?.code
-        )
-      ) as ConditionsData | undefined
-
-      // gets text from synonym if available, otherwise provides "text" field
-      const conditionText = getConditionText(conditionItem, ext)
-
-      const updatedCodeableConcept = Object.assign(ext?.valueCodeableConcept || {}, { text: conditionText })
       return ({
         id: `${ext?.valueCodeableConcept?.coding?.[0]?.system}|${itemCode}`!,
-        valueCodeableConcept: updatedCodeableConcept
+        valueCodeableConcept: ext?.valueCodeableConcept || {}
       })})
       if (!vsConditions[vsUrl]) {
         vsConditions[vsUrl] = arrangedConditions
@@ -353,9 +342,13 @@ const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsU
   return clonedProgram
 }
 
+interface ErrorType {
+  canonical: string
+  grouper: string
+}
 const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: string[], action: 'add' | 'remove') => {
   const clonedGrouper = cloneDeep(grouperVs)
-  let errors = []
+  let errors = [] as ErrorType[]
   // if compose include doesn't exist for some reason
   // but this really shouldn't happen after a grouper is created
   if (!clonedGrouper?.compose?.include) {
@@ -370,7 +363,7 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
       clonedGrouper.compose!.include.push({valueSet: [canonical]})
     } else if (action === 'remove' && matchIndex > -1) {
       if (clonedGrouper.compose!.include.length === 1) {
-        const grouperError = { canonical, grouper: clonedGrouper?.title || clonedGrouper?.name || null}
+        const grouperError = { canonical, grouper: clonedGrouper?.title || clonedGrouper.name! }
         errors.push(grouperError)
       } else {
         // only delete if not the last one
