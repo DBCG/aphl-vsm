@@ -22,7 +22,10 @@ const Expansion = (props: Props) => {
   const columns = [
     {
       name: 'Name',
-      selector: (data: Row) => data.leafDisplay
+      selector: (data: Row) => {
+        return data.leafDisplay
+      },
+      cell: (data: Row) => <>{data.leafDisplay}</>
     },
     {
       name: 'Canonical',
