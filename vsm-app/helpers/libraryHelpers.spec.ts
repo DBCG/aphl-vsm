@@ -173,6 +173,9 @@ describe('libraryHelpers', () => {
         const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
+              testItem: 'test'
+            },
+            {
               url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
               valueCodeableConcept: {
                 coding: [
@@ -196,22 +199,21 @@ describe('libraryHelpers', () => {
 
     describe('setVSPriority', () => {
       it('should set the priority of the VS', () => {
-        const newResourceUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/999'
+        const urlToCheck = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
         const oldMap = getVSPriority(testProgram)
-        expect(oldMap[newResourceUrl]).toBeUndefined()
+        expect(oldMap[urlToCheck]).toBe('emergent')
 
-        const updatedProgram = setVSPriority(testProgram, 'routine', newResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', [urlToCheck])
         const newMap = getVSPriority(updatedProgram)
-        expect(newMap[newResourceUrl]).toBe('routine')
-        expect(newMap['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481']).toBe('emergent') // the exisiting default value set should still be there
+        expect(newMap[urlToCheck]).toBe('routine')
       })
 
       it('should update the priority of the VS Only', () => {
         const existingVsResourceUrl = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
-        const updatedProgram = setVSPriority(testProgram, 'routine', existingVsResourceUrl)
+        const updatedProgram = setVSPriority(testProgram, 'routine', [existingVsResourceUrl])
         const newMap = getVSPriority(updatedProgram)
         expect(newMap[existingVsResourceUrl]).toBe('routine')
-        expect(Object.keys(newMap).length).toBe(1) // only one value set should be in the map
+        expect(Object.keys(newMap).length).toBe(1)
       })
     })
   })

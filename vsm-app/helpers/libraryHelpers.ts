@@ -137,39 +137,44 @@ const validStartDate = (date: any): boolean => {
   return testDate - todayDate > -1
 }
 
-const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource: string) => {
-  const clonedTarget = cloneDeep(target)
-  const newPriority: fhir4.RelatedArtifact = {
-    extension: [
-      {
-        url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-        valueCodeableConcept: {
-          coding: [
-            {
-              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-              code
-            }
-          ],
-          text: capitalizeFirstLetter(code)
+const createPriorityItem = (code) => (
+  {
+    url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+    valueCodeableConcept: {
+      coding: [
+        {
+          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+          code
         }
-      }
-    ],
-    type: 'depends-on',
-    resource
+      ],
+      text: capitalizeFirstLetter(code)
+    }
   }
+)
 
-  const exisitingIndex =
-    clonedTarget?.relatedArtifact?.findIndex((ctx) => {
-      if (ctx?.extension?.[0]?.url?.endsWith('vsm-valueset-priority') && ctx?.resource === resource) {
-        return ctx
+const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonicals: string[]) => {
+  const clonedTarget = cloneDeep(target)
+
+  const newRA = clonedTarget.relatedArtifact?.map(item => {
+    // find the matching relatedArtifact by canonical
+    if (item?.resource && canonicals.includes(item.resource) && item.type === 'depends-on') {
+
+      // set if doesn't exist
+      if (!item.extension) item.extension = []
+      const matchIndex = item.extension?.findIndex(i => i.url.endsWith('vsm-valueset-priority'))
+      
+      const itemToAdd = createPriorityItem(code)
+      if (matchIndex > -1) {
+        item.extension[matchIndex] = itemToAdd
+      } else {
+        item.extension.push(itemToAdd)
       }
-    }) || -1
+    }
 
-  if (exisitingIndex > -1 && clonedTarget.relatedArtifact) {
-    clonedTarget.relatedArtifact[exisitingIndex] = newPriority
-  } else {
-    clonedTarget.relatedArtifact?.push(newPriority)
-  }
+    return item
+  })
+
+  clonedTarget.relatedArtifact = newRA
 
   return clonedTarget
 }
@@ -177,9 +182,11 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, resource
 const getVSPriority = (library: fhir4.Library) => {
   const vsPriorityMap: Record<string, USHealthVSPriority> = {}
   library?.relatedArtifact?.forEach((ra) => {
-    if (ra.type === 'depends-on' && ra.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
-      const vsUrl = ra.resource?.split('|')?.[0] as string
-      const priority = ra.extension?.[0]?.valueCodeableConcept?.coding?.[0]?.code
+    const priorityExtensionIndex = ra.extension?.findIndex(ext => ext?.url?.endsWith('vsm-valueset-priority'))
+    // if priority already exists
+    if (ra.type === 'depends-on' && typeof priorityExtensionIndex === 'number' && priorityExtensionIndex > -1) {
+      const vsUrl = ra.resource as string
+      const priority = ra.extension?.[priorityExtensionIndex]?.valueCodeableConcept?.coding?.[0]?.code
       if (!(priority === 'emergent' || priority === 'routine')) {
         throw 'Unknown priority code!'
       }
@@ -279,11 +286,8 @@ const buildConditionExtensionItem = (code: string, system: string, text: string 
 
 // assumes valuesets already exist as depends-on block
 const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrls: string[]) => {
-  console.log('add called')
   const clonedProgram = cloneDeep(program)
-  console.log('vs urls: ', vsUrls)
   const updatedRA = clonedProgram.relatedArtifact?.map(item => {
-    console.log('item: ', item)
     if (item?.type === 'depends-on' && item.resource && vsUrls.includes(item.resource)) {
       if (!item.extension) {
         item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
@@ -296,7 +300,6 @@ const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], v
             )
           })
 
-          console.log('matching condition: ', matchingCondition)
           // if condition doesn't already exist, add it
           if (!matchingCondition) {
             const newExtensionItem = buildConditionExtensionItem(condition.value.code, condition.value.system, condition.value.text || condition.label || 'No condition label found' )
@@ -375,7 +378,6 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
       }
     }
   })
-  console.log('clonedgrouper.compose.include: ', clonedGrouper.compose.include)
   return ({ grouper: clonedGrouper, errors })
 }
 
