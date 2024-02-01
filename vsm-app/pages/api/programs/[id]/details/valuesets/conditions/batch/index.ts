@@ -1,70 +1,110 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
-import { is } from '@/helpers/is'
+import { fhirCdrClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
+import { setVSPriority, setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
-import { batchEditData } from '@/components/ProgramValueSetDetails/TableActions'
-import { setVSConditions } from '@/helpers/libraryHelpers'
-import getProgramAndGrouper from '@/helpers/server/getProgramAndGrouper'
-import logger from '@/helpers/server/logger'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import cloneDeep from 'lodash.clonedeep'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiRequestQuery } from 'next/dist/server/api-utils'
+import { formatBatchGrouperUpdate } from '../../../../grouper/valueset'
 
-const handleBatchConditionUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
-  const body = req.body as batchEditData
-  const programId = req.query.id as string
-  let { grouperVSets, programLibrary } = await getProgramAndGrouper(programId)
-  if (!is.library(programLibrary)) {
-    return res.status(404).send({ message: 'Program not found for updating conditions' })
-  }
+interface Query extends NextApiRequestQuery {
+  id: string
+}
 
-  const leafIds = body.leafIds
-  const conditionsToUpdate = body.conditionsToUpdate
-  const action = body.action
+// bulk update for conditions, groupers, and priority
+// currently will only handle one update type at a time
+const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const payload = req.body
+    const { priorityToEdit, leafUrls, conditionsToUpdate, action, groupersToUpdate } = payload
+    const { id: programId } = req.query as Query
 
-  const getTransactionBody = leafIds.map((id) => ({
-    request: {
-      method: 'GET',
-      url: `ValueSet/${id}`
+    const programToUpdate = await fhirCdrClient.read({
+      resourceType: 'Library', 
+      id: programId
+    }) as fhir4.Library
+
+    let clonedProgram = cloneDeep(programToUpdate)
+
+    // update priority
+    if (priorityToEdit) {
+      clonedProgram = setVSPriority(clonedProgram, priorityToEdit, leafUrls)
+    // update conditions
+    } else if (conditionsToUpdate?.length) {
+      console.log('CONDITIONS!')
+      clonedProgram = setVSConditions(clonedProgram, conditionsToUpdate as Condition[], leafUrls, action)
+    } else if (groupersToUpdate?.length) {
+      console.log('GROUPERS!')
+      const allGrouperIdsForUpdate = groupersToUpdate.map(i => i.id)
+      const grouperReqItems = allGrouperIdsForUpdate?.map((id) => ({
+        request: {
+          resourceType: 'ValueSet',
+          method: 'GET',
+          url: `/ValueSet/${id}`
+        }
+      }))
+      
+      const response = await fhirCdrClient.batch({body: {
+        resourceType: 'Bundle',
+        type: 'batch',
+        entry: grouperReqItems
+      }})
+
+      console.log('response.entry: ', response.entry)
+
+      const errors = response.entry.find((i: any) => !i?.response?.status?.includes('200'))
+      if (errors) {
+        throw new Error(`Error retrieving groupers with ids: ${JSON.stringify(allGrouperIdsForUpdate)}`)
+      }
+
+      const groupers = response.entry.map(e => e.resource)
+      console.log('groupers: ', groupers)
+      const updatedGroupers = groupers.map(grouper => {
+        return updateGrouperLeafs(grouper, leafUrls, action).grouper
+      })
+
+      const formattedUpdate = formatBatchGrouperUpdate(updatedGroupers)
+      console.log('formattedUpdate: ', formattedUpdate)
+      let grouperUpdateResponse
+      try {
+        grouperUpdateResponse = await fhirCdrClient.transaction({
+          body: formattedUpdate
+        })
+
+      } catch (e) {
+        console.log(e.response.data.issue)
+      }
+
+      console.log('grouper update response: ', grouperUpdateResponse)
+      if (grouperUpdateResponse.entry) {
+        return res.status(200).json(grouperUpdateResponse) 
+      } else {
+        return res.status(501).json({ error: 'Failed to update groupers' })  
+      }
+
+    } else {
+      return res.status(501).json({ error: 'Bulk update not implemented for this item' }) 
     }
-  }))
 
-  const getTransactionEntry = {
-    resourceType: 'Bundle',
-    type: 'transaction',
-    entry: getTransactionBody
-  } as fhir4.Resource & { type: 'transaction' }
-
-  const allValueSetsToUpdate = await fhirCdrClient.transaction({ body: getTransactionEntry })
-  const successfulVsets = allValueSetsToUpdate?.entry?.map((e: any) => e?.resource)?.filter((item: fhir4.Resource) => is.valueSet(item))
-
-  // Construct a map of all the grouper value sets and their versions if available
-  const grouperVSUrlVersionMap = {} as Record<string, string>
-  grouperVSets.forEach((vs: fhir4.ValueSet) => {
-    vs.compose?.include?.forEach((include) => {
-      const fullCanonical = include?.valueSet?.[0] || ''
-      const [url, version] = fullCanonical.split('|')
-      grouperVSUrlVersionMap[url] = version ? url : `${url}|${version}`
+    const updated = await fhirCdrClient.update({
+      resourceType: 'Library',
+      id: programId,
+      body: clonedProgram
     })
-  })
 
-  successfulVsets.forEach((vs: fhir4.ValueSet) => {
-    if (!grouperVSUrlVersionMap[vs.url!]) {
-      logger.error('Could not find valueset canonical set in Grouper')
-      throw new Error('Could not find valueset canonical set in Grouper')
+    if (updated.resourceType === 'Library') {
+      return res.status(200).json({ success: true })
+    } else {
+      logSimpleError('Error attempting bulk update')
+      return res.status(500).json({ error: 'Bulk update failed' })
     }
-    programLibrary = setVSConditions(programLibrary, conditionsToUpdate as Condition[], vs.url!, action!)
-  })
-
-  await fhirCdrClient.update({
-    resourceType: 'Library',
-    id: programId,
-    body: programLibrary
-  })
-  res.status(200).send({ message: 'success' })
+  } catch (e) {
+    logSimpleError(e)
+    res.status(400).json({ error: 'Bulk ValueSet update failed' })
+  }
 }
 
 export default handler({
-  PUT: {
-    action: handleBatchConditionUpdate,
-    access: ['admin', 'editor']
-  }
+  PUT: { action: bulkUpdate, access: ['admin', 'editor'] }
 })

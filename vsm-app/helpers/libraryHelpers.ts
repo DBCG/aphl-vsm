@@ -279,9 +279,11 @@ const buildConditionExtensionItem = (code: string, system: string, text: string 
 
 // assumes valuesets already exist as depends-on block
 const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrls: string[]) => {
+  console.log('add called')
   const clonedProgram = cloneDeep(program)
-
+  console.log('vs urls: ', vsUrls)
   const updatedRA = clonedProgram.relatedArtifact?.map(item => {
+    console.log('item: ', item)
     if (item?.type === 'depends-on' && item.resource && vsUrls.includes(item.resource)) {
       if (!item.extension) {
         item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
@@ -294,6 +296,7 @@ const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], v
             )
           })
 
+          console.log('matching condition: ', matchingCondition)
           // if condition doesn't already exist, add it
           if (!matchingCondition) {
             const newExtensionItem = buildConditionExtensionItem(condition.value.code, condition.value.system, condition.value.text || condition.label || 'No condition label found' )
@@ -347,6 +350,35 @@ const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsU
   return clonedProgram
 }
 
+const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: string[], action: 'add' | 'remove') => {
+  const clonedGrouper = cloneDeep(grouperVs)
+  let errors = []
+  // if compose include doesn't exist for some reason
+  // but this really shouldn't happen after a grouper is created
+  if (!clonedGrouper?.compose?.include) {
+    clonedGrouper.compose = {include: []}
+  }
+  canonicalsToUpdate.forEach(canonical => {
+    const findMatch = clonedGrouper.compose!.include
+      .findIndex(i => i?.valueSet?.[0] === canonical)
+    const matchIndex = typeof findMatch === 'number' ? findMatch : -1
+
+    if (action === 'add' && matchIndex === -1) {
+      clonedGrouper.compose!.include.push({valueSet: [canonical]})
+    } else if (action === 'remove' && matchIndex > -1) {
+      if (clonedGrouper.compose!.include.length === 1) {
+        const grouperError = { canonical, grouper: clonedGrouper?.title || clonedGrouper?.name || null}
+        errors.push(grouperError)
+      } else {
+        // only delete if not the last one
+        delete clonedGrouper.compose!.include[matchIndex]
+      }
+    }
+  })
+  console.log('clonedgrouper.compose.include: ', clonedGrouper.compose.include)
+  return ({ grouper: clonedGrouper, errors })
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
@@ -362,5 +394,6 @@ export {
   setTitleAndDerivedName,
   setEffectivePeriodStart,
   validStartDate,
-  addVSConditions
+  addVSConditions,
+  updateGrouperLeafs
 }

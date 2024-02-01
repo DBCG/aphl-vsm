@@ -171,7 +171,7 @@ const BulkUpdateForm = ({
           )}
           {Boolean(bulkEditType === 'priority') && (
             <Button
-              disabled={!priorityToEdit?.length}
+              disabled={!priorityToEdit}
               text={`Update ${bulkEditType}`}
               onClick={() => {
                 setActionType('update')
@@ -198,7 +198,7 @@ export const TableActions = ({
   const [editInFlight, setEditInFlight] = useState(false)
   const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
   const [conditionsToEdit, setConditionsToEdit] = useState<MultiValue<Condition>>([])
-  const [priorityToEdit, setPriorityToEdit] = useState<MultiValue<Condition>>([])
+  const [priorityToEdit, setPriorityToEdit] = useState<MultiValue<Condition>>(null)
   const [groupsToEdit, setGroupsToEdit] = useState<
     MultiValue<{ value: string | undefined; label: string | undefined; id: string | undefined }>
   >([])
@@ -222,20 +222,8 @@ export const TableActions = ({
     // ensure data cleared out of state when toggled
     setGroupsToEdit([])
     setConditionsToEdit([])
-    setPriorityToEdit([])
+    setPriorityToEdit(null)
     setBulkEditType(e.target.value)
-  }
-
-  const handleEditTypeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ensure data is cleared out of state when toggled
-    setGroupsToEdit([])
-    setConditionsToEdit([])
-    setEditType(e.target.value)
-    if (e?.target?.checked) {
-      setEditType('grouper')
-    } else {
-      setEditType('condition')
-    }
   }
 
   const handleCancelModal = () => {
@@ -244,24 +232,28 @@ export const TableActions = ({
 
   const handleEditItems = async () => {
     setEditInFlight(true)
-    if (editType === 'condition') {
       const batch: batchEditData = {
         leafIds: selectedRows.map((r) => r.valueSet.id) || [],
         leafUrls: selectedRows.map((r) => {
           const appendLatest = r.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
           const versionedUrl = `${r.valueSet.url}${appendLatest}`
-          console.log('versioned url: ', versionedUrl)
           return versionedUrl
       }) || [],
         conditionsToUpdate: conditionsToEdit,
-        action: actionType
+        action: actionType,
+        priorityToEdit,
+        groupersToUpdate: groupsToEdit
+
       }
       const body = JSON.stringify(batch)
       await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
         method: 'PUT',
         body
-      }).then((res) => window.location.reload())
-    }
+      }).then((res) => {
+        // handleToggleUpdateData()
+        window.location.reload()
+      })
+
   }
 
   // always memoize options to react-select to avoid duplicates sticking
@@ -318,7 +310,7 @@ export const TableActions = ({
           <BulkUpdateForm
             setIsEditing={setIsEditing}
             isEditing={isEditing}
-            bulkToggleFn={handleEditTypeToggle}
+            bulkToggleFn={handleBulkRadioToggle}
             bulkEditType={bulkEditType}
             conditionOptions={conditionOptions}
             grouperOptions={buildGroupOptions(alphabetizedGroups)}
