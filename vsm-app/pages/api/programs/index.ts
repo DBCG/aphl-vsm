@@ -59,7 +59,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       searchParams: {
         context: 'program',
         _sort: ['-_lastUpdated'],
-        ...(!req.query['list'] && {_revinclude: 'Basic:artifact'}),
+        ...(!req.query['list'] && {['_revinclude:iterate']: 'Basic:artifact'}),
         ...(req.query['list'] && { _elements: PROGRAM_LIST_ELEMENTS }), // Optimization: only return the fields we need for list view
         ...queries
       }
