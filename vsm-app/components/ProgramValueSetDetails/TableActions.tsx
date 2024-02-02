@@ -128,7 +128,7 @@ export const TableActions = ({
 
       }
       const body = JSON.stringify(batch)
-      await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
+      await fetch(`/api/programs/${programId}/details/valuesets/batch`, {
         method: 'PUT',
         body
       }).then((res) => {

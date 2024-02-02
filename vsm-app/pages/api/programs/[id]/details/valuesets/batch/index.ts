@@ -6,7 +6,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import cloneDeep from 'lodash.clonedeep'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { NextApiRequestQuery } from 'next/dist/server/api-utils'
-import { formatBatchGrouperUpdate } from '../../../../grouper/valueset'
+import { formatBatchGrouperUpdate } from '../../../grouper/valueset'
 
 interface Query extends NextApiRequestQuery {
   id: string

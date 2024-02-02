@@ -57,7 +57,6 @@ const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInc
     ?.flatMap((c) =>
       // ignore missing concept
       (c.concept || []).map((item) => {
-        console.log('item.designation: ', item.designation)
         return {
           system: c.system || '',
           version: c.version || '',
