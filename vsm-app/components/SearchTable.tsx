@@ -75,7 +75,7 @@ interface Input {
   findInVersion: string
   setFindInVersion: (eventItem: any) => void
   handlePageChange: (eventItem: any) => void
-  handlePerRowsChange: (eventItem: any) => void
+  handlePerRowsChange: (newPerPage: number, page: number) => void
   clearSelectedRows: boolean
   searchType: string
   paginationTotalRows: number
