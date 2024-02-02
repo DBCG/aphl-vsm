@@ -357,6 +357,7 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
   canonicalsToUpdate.forEach(canonical => {
     const findMatch = clonedGrouper.compose!.include
       .findIndex(i => i?.valueSet?.[0] === canonical)
+
     const matchIndex = typeof findMatch === 'number' ? findMatch : -1
 
     if (action === 'add' && matchIndex === -1) {
@@ -366,8 +367,9 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
         const grouperError = { canonical, grouper: clonedGrouper?.title || clonedGrouper.name! }
         errors.push(grouperError)
       } else {
+        const filtered = clonedGrouper.compose!.include.filter(i => i.valueSet![0] !== canonical)
         // only delete if not the last one
-        delete clonedGrouper.compose!.include[matchIndex]
+        clonedGrouper.compose!.include = filtered
       }
     }
   })

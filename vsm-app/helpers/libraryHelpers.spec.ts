@@ -10,7 +10,8 @@ import {
   setVSPriority,
   setVSConditions,
   getVSConditions,
-  addVSConditions
+  addVSConditions,
+  updateGrouperLeafs
 } from './libraryHelpers'
 import { Condition } from './conditionHelpers'
 
@@ -525,7 +526,41 @@ describe('libraryHelpers', () => {
       })
     })
   })
+  describe('updateGrouperLeafs', () => {
+    const FIXTURE_GROUPER_VS_1 = {
+      resourceType: 'ValueSet',
+      compose: {
+        include: [
+          { valueSet: ['some-leaf-url.com'] },
+          { valueSet: ['another-leaf-url.com'] },
+          { valueSet: ['some-other-leaf-url.com'] }
+        ]
+      }
+    } as fhir4.ValueSet
+    it('removes more than 1 url from a grouper', () => {
+      const urls = ['some-leaf-url.com', 'another-leaf-url.com']
+      const result = updateGrouperLeafs(FIXTURE_GROUPER_VS_1, urls, 'remove')
+      const resItem = result?.grouper?.compose?.include
+      expect(resItem).toHaveLength(1)
+      expect(resItem).toStrictEqual([{ valueSet: ['some-other-leaf-url.com'] }])
+    })
+    it('adds more than 1 url from a grouper', () => {
+      const urls = ['new-url.com', 'new-url-2.com']
+      const result = updateGrouperLeafs(FIXTURE_GROUPER_VS_1, urls, 'add')
+      const resItem = result?.grouper?.compose?.include
+      expect(resItem).toHaveLength(5)
+      expect(resItem).toStrictEqual([
+        { valueSet: ['some-leaf-url.com'] },
+        { valueSet: ['another-leaf-url.com'] },
+        { valueSet: ['some-other-leaf-url.com'] },
+        { valueSet: ['new-url.com'] },
+        { valueSet: ['new-url-2.com'] }
+      ])
+    })
+
+  })
 })
+
 
 const FIXTURE_PROGRAM_1 = {
   resourceType: 'Library',
