@@ -262,8 +262,8 @@ describe("Smoke Tests", () => {
 
       // changes this valueset's priority from emergent to routine
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').should('include.text', 'Emergent')
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').click()
-
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"] .priority-selector__control').click()
+      cy.wait(1000)
       cy.get('#react-select-priority-selector-option-1').click()
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').should('not.include.text', 'Emergent')
     });
@@ -275,18 +275,15 @@ describe("Smoke Tests", () => {
       cy.wait(1000)
       cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
 
-      cy.get('[id="react-select-condition-selector-placeholder"]').first().click({ force: true })
-
+      
       // Removing last condition on valueset should not break page
-      cy.get("#react-select-condition-selector-listbox").contains("Acanthamoeba").click()
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('include.text', "Acanthamoeba")
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true }).type('{backspace}')
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true }).type('{backspace}')
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('exist')
-      cy.get('[aria-label="Remove Acanthamoeba"]').first().click({force: true})
-      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('not.include.text', "Acanthamoeba")
-
-
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('include.text', "Select...")
+      
       // add it back because conditions cannot be empty for release
-      cy.get('[id="react-select-condition-selector-placeholder"]').first().click({ force: true })
+      cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true })
       cy.get("#react-select-condition-selector-listbox").contains("Acanthamoeba").click()
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('include.text', "Acanthamoeba")
     });
