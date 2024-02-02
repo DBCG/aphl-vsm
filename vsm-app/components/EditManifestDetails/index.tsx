@@ -187,7 +187,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const errorMessage = `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`
 
   const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
-  console.log(currentSelectedData)
   return (
     <>
       <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>

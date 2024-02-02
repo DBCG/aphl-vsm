@@ -4,6 +4,7 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { HapiError } from '@/types/hapiError'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 interface Query {
   '_id:contains'?: string
@@ -60,7 +61,6 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         context: 'program',
         _sort: ['-_lastUpdated'],
         ...(!req.query['list'] && {['_revinclude:iterate']: 'Basic:artifact'}),
-        ...(req.query['list'] && { _elements: PROGRAM_LIST_ELEMENTS }), // Optimization: only return the fields we need for list view
         ...queries
       }
     }) as fhir4.Bundle
@@ -69,7 +69,6 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       const resources = searchResult?.entry?.map((e) => e?.resource)
       const programs = resources?.filter(is.library)
       const assessments = resources?.filter(is.basic)
-
       return res.status(200).send({ programs, total: searchResult?.total, assessments })
     } else {
       // do not error out if version doesn't exist, it's just not found
@@ -81,8 +80,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       }
     }
   } catch (e: any) {
-    const error = e as HapiError
-    logger.error('ERROR: ' + error.response?.data?.issue?.[0]?.code + ":" + error.response?.data?.issue?.[0]?.diagnostics)
+    logSimpleError(e)
     res.status(400).json({ error: 'Search for program failed.' })
   }
 }
