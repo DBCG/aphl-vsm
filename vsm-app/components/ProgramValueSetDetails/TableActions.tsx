@@ -4,10 +4,10 @@ import styled from 'styled-components'
 import { TableActionContainer, SelectInputContainer,
   SelectInputTitle,FlexCol
 } from './styles'
-import React, { SetStateAction, Dispatch, useMemo, useState } from 'react'
+import React, { SetStateAction, Dispatch, useMemo, useState, useEffect } from 'react'
 import {
-  FormGroup, Typography, Radio,
-  RadioGroup, FormControlLabel, FormLabel
+  FormGroup, Typography, Radio, List, ListItem,
+  RadioGroup, FormControlLabel, FormLabel, Box
 } from '@mui/material'
 import Select, { MultiValue } from 'react-select'
 import { EditModal } from '../modals/EditModal'
@@ -68,7 +68,22 @@ type BatchEditData = {
   groupersToUpdate: MultiValue<GrouperItem>
 }
 
-type BulkOptions = 'conditions' | 'groupers' | 'priority'
+type BulkOptions = 'condition' | 'grouper' | 'priority'
+
+const valueSetsCannotRemoveGrouper = (selectedRows: TableRow[], grouperIdsToDelete: string[]) => {
+  const cannotDelete = selectedRows.filter(r => r.groups.filter(g => !grouperIdsToDelete.includes(g.id)).length == 0)
+  return cannotDelete
+}
+
+interface ErrorItem {
+  title: string
+  id: string
+  referenceUrl: string
+}
+
+const composeUrlWithPinnedVersion = (url: string, pinnedVersion: string | undefined) => {
+  return `${url}${pinnedVersion ? `|${pinnedVersion}` : ''}`
+}
 
 export const TableActions = ({
   selectedRows,
@@ -82,15 +97,15 @@ export const TableActions = ({
 }: TableActions) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editInFlight, setEditInFlight] = useState(false)
-  const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
   const [conditionsToEdit, setConditionsToEdit] = useState<MultiValue<Condition>>([])
   const [priorityToEdit, setPriorityToEdit] = useState<PriorityLevelOption | null>(null)
   const [groupsToEdit, setGroupsToEdit] = useState<MultiValue<GrouperItem>>([])
   const [actionType, setActionType] = useState<editAction>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [grouperDeleteErrors, setGrouperDeleteErrors] = useState<ErrorItem[] | []>([])
 
   // bulk actions
-  const [bulkEditType, setBulkEditType] = useState<BulkOptions>('conditions')
+  const [bulkEditType, setBulkEditType] = useState<BulkOptions>('condition')
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -113,14 +128,38 @@ export const TableActions = ({
     setModalOpen(false)
   }
 
+  useEffect(() => {
+    const grouperIds = groupsToEdit.map(g => g.id)
+    const cannotRemove = valueSetsCannotRemoveGrouper(selectedRows, grouperIds)
+    
+    if (cannotRemove.length) {
+      const errorItems = cannotRemove.map(i => ({
+        title: i.valueSet.title || i.valueSet.name!,
+        id: i.valueSet.id!,
+        referenceUrl: composeUrlWithPinnedVersion(i.valueSet.url!, i.valueSetPinnedVersion)
+      }))
+      setGrouperDeleteErrors(errorItems)
+    } else {
+      setGrouperDeleteErrors([])
+    }
+  }, [groupsToEdit, selectedRows])
+
   const handleEditItems = async () => {
     setEditInFlight(true)
+      // get all the versioned canonicals (if pinned) for the rows
+      let updateableLeafs = selectedRows.map((r) => {
+        const versionedUrl = composeUrlWithPinnedVersion(r.valueSet.url!, r.valueSetPinnedVersion)
+        return versionedUrl
+    }) || []
+
+    // do not update a valueset's groupers if it will remove all of them
+    if (grouperDeleteErrors && actionType === 'remove') {
+      const errorUrls = grouperDeleteErrors.map(i => i.referenceUrl!)
+      updateableLeafs = updateableLeafs.filter(l => !errorUrls.includes(l))
+    }
+
       const batch: BatchEditData = {
-        leafUrls: selectedRows.map((r) => {
-          const appendLatest = r.valueSetPinnedVersion ? `|${r.valueSetPinnedVersion}` : ''
-          const versionedUrl = `${r.valueSet.url}${appendLatest}`
-          return versionedUrl
-      }) || [],
+        leafUrls: updateableLeafs,
         conditionsToUpdate: conditionsToEdit,
         action: actionType,
         priorityToEdit,
@@ -134,7 +173,6 @@ export const TableActions = ({
       }).then((res) => {
         window.location.reload()
       })
-
   }
 
   // always memoize options to react-select to avoid duplicates sticking
@@ -150,8 +188,8 @@ export const TableActions = ({
         : `You have selected ${selectedRows.length} out of ${totalRows} total Valuesets`
 
   const selectInfo = {
-    conditions: { data: conditionOptions, fn: setConditionsToEdit },
-    groupers: { data: buildGroupOptions(alphabetizedGroups), fn: setGroupsToEdit },
+    condition: { data: conditionOptions, fn: setConditionsToEdit },
+    grouper: { data: buildGroupOptions(alphabetizedGroups), fn: setGroupsToEdit },
     priority: { data: priorityLevelOptions, fn: setPriorityToEdit }
   }
 
@@ -164,8 +202,9 @@ export const TableActions = ({
           loading={editInFlight}
           program={null}
           handleModalAction={handleEditItems}
-          dataType={editType}
+          dataType={bulkEditType}
           totalVs={selectedRows?.length || 0}
+          grouperDeleteErrors={grouperDeleteErrors?.map(g => g.title!)}
         />
         <ActionContainerRow>
           <span>{text}</span>
@@ -199,11 +238,11 @@ export const TableActions = ({
               <FormLabel id='bulk-form-label'>Property to edit:</FormLabel>
               <RadioGroup
                 aria-aria-labelledby='bulk-form-label'
-                defaultValue='conditions'
+                defaultValue='condition'
                 name='bulk-selection-radio-group'
               >
                 <FormControlLabel
-                  value='conditions'
+                  value='condition'
                   control={<Radio onChange={handleBulkRadioToggle}/>}
                   label='Conditions'
                 />
@@ -213,7 +252,7 @@ export const TableActions = ({
                   label='Priority'
                 />
                 <FormControlLabel
-                  value='groupers'
+                  value='grouper'
                   control={<Radio onChange={handleBulkRadioToggle}/>}
                   label='Groupers'
                 />
@@ -266,10 +305,10 @@ export const TableActions = ({
                       <Button
                         disabled={!conditionsToEdit.length && !groupsToEdit.length}
                         text={`Remove ${bulkEditType}`}
-                        onClick={() => {
+                        onClick={(() => {
                           setActionType('remove')
                           setModalOpen(true)
-                        }}
+                        })}
                       />
                     </>
                   )}
