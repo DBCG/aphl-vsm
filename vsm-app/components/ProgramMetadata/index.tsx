@@ -19,7 +19,7 @@ interface ProgramEditModalContentProps {
   editable: boolean
 }
 
-export const requiredFields = ['description', 'title'] as const
+export const requiredFields = ['description', 'title']
 
 interface OptionType {
   label: string

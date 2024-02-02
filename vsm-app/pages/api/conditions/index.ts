@@ -3,9 +3,9 @@ import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
-import { formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
+import { ConditionItem, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 
-export type ConditionsAPIResponse = fhir4.ValueSetComposeInclude[] | { error: string }
+export type ConditionsAPIResponse = ConditionItem[] | { error: string }
 
 const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<ConditionsAPIResponse>) => {
   try {

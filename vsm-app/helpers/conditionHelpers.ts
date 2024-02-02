@@ -52,7 +52,7 @@ const buildConditionItem = (condition: Condition) => {
   return conditionItem
 }
 
-const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]) => {
+const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]): ConditionItem[] => {
   const list = conditionsList
     ?.flatMap((c) =>
       // ignore missing concept

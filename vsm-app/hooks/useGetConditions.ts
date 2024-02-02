@@ -1,8 +1,9 @@
+import { ConditionItem } from '@/helpers/conditionHelpers'
 import { ConditionsAPIResponse } from '@/pages/api/conditions'
 import { useState, useEffect } from 'react'
 
-const useGetConditions = (): fhir4.ValueSetComposeInclude[] => {
-  const [conditions, setConditions] = useState<fhir4.ValueSetComposeInclude[]>([])
+const useGetConditions = (): ConditionItem[] => {
+  const [conditions, setConditions] = useState<ConditionItem[]>([])
   const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
   // get all conditions from RCKMS valueset
