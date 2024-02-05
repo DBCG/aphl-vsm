@@ -163,8 +163,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
-    return pageLoading
-    || grouperLoading
+    return grouperLoading
     || conditionLoading
     || isDeleting
     || priorityLoading
@@ -763,7 +762,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable', { fontSize: '12px' })}
-          progressPending={pageLoading}
+          progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
         />
       </Box>
