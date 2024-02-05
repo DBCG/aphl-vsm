@@ -164,12 +164,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
   // don't allow editing if any loading in progress
-  const blockChanges = pageLoading
-  || grouperLoading
-  || conditionLoading
-  || isDeleting
-  || priorityLoading
-  || versionUpdateInFlight
+  const blockChanges = (pageLoading
+      || grouperLoading
+      || conditionLoading
+      || isDeleting
+      || priorityLoading
+      || versionUpdateInFlight)
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
@@ -265,14 +265,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           setUpdatedGrouperValueSets(updatedVs)
         }
       }
+      setGrouperLoading(false)
     }
     postUpdate()
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
-    setGrouperLoading(true)
-    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     setPriorityLoading(true)
+    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
@@ -283,7 +283,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error('Error updating priority')
     } finally {
-      setGrouperLoading(false)
       setPriorityLoading(false)
     }
   }
@@ -714,22 +713,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     return null
   })()
 
-  const bulkUpdateFn = async (priority: USHealthVSPriority) => {
-    // TODO: Reimplement in follow up work for bulk update
-    // try {
-    //   const toUpdateVs = selectedRows.map((row) => setVSPriority(currentProgram, row?.valueSet!, priority))
-    //   await fetch(`/api/valueset/bulk`, {
-    //     method: 'PUT',
-    //     body: JSON.stringify({ valueSets: toUpdateVs })
-    //   }).then((res) => res.json())
-    //   toast.success(`Successfully updated ${selectedRows.length} ValueSet`)
-    // } catch {
-    //   toast.error('Something went wrong when bulk updating ValueSets')
-    // } finally {
-    //   router.reload()
-    // }
-  }
-
   return (
     <>
       <DeleteConfirmationModal
@@ -737,12 +720,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         toggleModalOpen={() => setShowDeleteConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
-      />
-      <BulkEditModal
-        isOpen={showBulkEditModal}
-        selectedVs={selectedRows}
-        handleClose={() => setShowBulkEditModal(false)}
-        bulkUpdateFn={bulkUpdateFn}
       />
       <Row>
         <FlexRow style={{ width: '80%' }}>
