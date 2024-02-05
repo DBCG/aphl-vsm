@@ -270,6 +270,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           setUpdatedGrouperValueSets(updatedVs)
         }
       }
+      setGrouperLoading(false)
     }
     postUpdate()
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
