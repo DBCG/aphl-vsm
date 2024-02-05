@@ -102,9 +102,7 @@ const Programs: NextPage = () => {
   const { programs, total } = data as ProgramListResponse
 
   useEffect(() => {
-    // We only want to set the total on the initial load
-    // because first load will have the correct unfiltered total
-    if (total && pagination.searchTotal === null) {
+    if (total !== pagination?.searchTotal) {
       setPagination({ ...pagination, searchTotal: total })
     }
   }, [total, pagination.searchTotal, setPagination, pagination])
