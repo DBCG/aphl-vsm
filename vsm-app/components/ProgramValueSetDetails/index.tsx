@@ -164,17 +164,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
   // don't allow editing if any loading in progress
-  const blockChanges = useMemo(() => {
-    return (pageLoading
+  const blockChanges = (pageLoading
       || grouperLoading
       || conditionLoading
       || isDeleting
       || priorityLoading
       || versionUpdateInFlight)
-  }, [
-    pageLoading, grouperLoading, conditionLoading, isDeleting,
-    priorityLoading, versionUpdateInFlight
-  ])
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
@@ -276,9 +271,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
-    setGrouperLoading(true)
-    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     setPriorityLoading(true)
+    const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
@@ -289,7 +283,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error('Error updating priority')
     } finally {
-      setGrouperLoading(false)
       setPriorityLoading(false)
     }
   }
