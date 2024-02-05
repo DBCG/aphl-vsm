@@ -164,12 +164,17 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
   // don't allow editing if any loading in progress
-  const blockChanges = pageLoading
-  || grouperLoading
-  || conditionLoading
-  || isDeleting
-  || priorityLoading
-  || versionUpdateInFlight
+  const blockChanges = useMemo(() => {
+    return (pageLoading
+      || grouperLoading
+      || conditionLoading
+      || isDeleting
+      || priorityLoading
+      || versionUpdateInFlight)
+  }, [
+    pageLoading, grouperLoading, conditionLoading, isDeleting,
+    priorityLoading, versionUpdateInFlight
+  ])
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
@@ -714,22 +719,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     return null
   })()
 
-  const bulkUpdateFn = async (priority: USHealthVSPriority) => {
-    // TODO: Reimplement in follow up work for bulk update
-    // try {
-    //   const toUpdateVs = selectedRows.map((row) => setVSPriority(currentProgram, row?.valueSet!, priority))
-    //   await fetch(`/api/valueset/bulk`, {
-    //     method: 'PUT',
-    //     body: JSON.stringify({ valueSets: toUpdateVs })
-    //   }).then((res) => res.json())
-    //   toast.success(`Successfully updated ${selectedRows.length} ValueSet`)
-    // } catch {
-    //   toast.error('Something went wrong when bulk updating ValueSets')
-    // } finally {
-    //   router.reload()
-    // }
-  }
-
   return (
     <>
       <DeleteConfirmationModal
@@ -737,12 +726,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         toggleModalOpen={() => setShowDeleteConfirmationModal((show) => !show)}
         handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
         itemToDelete={`${selectedRows.length} Valueset(s)`}
-      />
-      <BulkEditModal
-        isOpen={showBulkEditModal}
-        selectedVs={selectedRows}
-        handleClose={() => setShowBulkEditModal(false)}
-        bulkUpdateFn={bulkUpdateFn}
       />
       <Row>
         <FlexRow style={{ width: '80%' }}>
