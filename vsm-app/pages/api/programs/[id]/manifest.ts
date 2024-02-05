@@ -69,6 +69,7 @@ const collectLeafValueSetCodeSystems = async () => {
       _elements: 'useContext.valueCodeableConcept.coding'
     }
   })
+  // @ts-ignore
   for (let b = vsResponse; (b = await fhirCdrClient.nextPage(b)); ) {
     allValueSets.push(...b.entry)
   }
