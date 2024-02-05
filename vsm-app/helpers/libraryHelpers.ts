@@ -1,6 +1,5 @@
 import cloneDeep from 'lodash.clonedeep'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
-import { requiredFields } from '@/components/ProgramMetadata'
 import { Condition } from './conditionHelpers'
 
 interface RelatedArtifactItem {
@@ -355,10 +354,8 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
     clonedGrouper.compose = {include: []}
   }
   canonicalsToUpdate.forEach(canonical => {
-    const findMatch = clonedGrouper.compose!.include
+    const matchIndex = clonedGrouper.compose!.include
       .findIndex(i => i?.valueSet?.[0] === canonical)
-
-    const matchIndex = typeof findMatch === 'number' ? findMatch : -1
 
     if (action === 'add' && matchIndex === -1) {
       clonedGrouper.compose!.include.push({valueSet: [canonical]})
