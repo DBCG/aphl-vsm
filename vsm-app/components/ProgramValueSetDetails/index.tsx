@@ -164,12 +164,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
   // don't allow editing if any loading in progress
-  const blockChanges = (pageLoading
-      || grouperLoading
-      || conditionLoading
-      || isDeleting
-      || priorityLoading
-      || versionUpdateInFlight)
+  const blockChanges = useMemo(() => (pageLoading
+    || grouperLoading
+    || conditionLoading
+    || isDeleting
+    || priorityLoading
+    || versionUpdateInFlight
+  ), [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
