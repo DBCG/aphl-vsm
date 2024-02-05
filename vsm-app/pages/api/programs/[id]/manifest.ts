@@ -61,14 +61,20 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 }
 
 const collectLeafValueSetCodeSystems = async () => {
-  const valuesets = await fhirCdrClient.search({
+  const allValueSets = []
+  const vsResponse = await fhirCdrClient.search({
     resourceType: 'ValueSet',
     searchParams: {
+      _count: 1000,
       _elements: 'useContext.valueCodeableConcept.coding'
     }
   })
-  let codeSystemsList = valuesets.entry
-    .map((i: fhir4.BundleEntry) => {
+  for (let b = vsResponse; (b = await fhirCdrClient.nextPage(b)); ) {
+    allValueSets.push(...b.entry)
+  }
+  allValueSets.push(...vsResponse.entry)
+  let codeSystemsList = allValueSets
+    .map((i: fhir4.ValueSet) => {
       // @ts-ignore
       const vs = i?.resource?.useContext?.find(
         (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
@@ -77,6 +83,7 @@ const collectLeafValueSetCodeSystems = async () => {
       return vs?.valueCodeableConcept?.coding?.[0]
     })
     .filter((i: any) => i)
+
   codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
 
   terminologyClient.setClient('vsac')
