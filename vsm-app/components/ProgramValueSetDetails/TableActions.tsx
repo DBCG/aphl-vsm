@@ -1,14 +1,20 @@
 import { Button } from '../buttons/Button'
 import { TableRow } from '@/types/valuesets'
 import styled from 'styled-components'
-import { TableActionContainer, SelectInputContainer, SelectInputTitle, FlexCol } from './styles'
-import { SetStateAction, Dispatch, useMemo, useState } from 'react'
-import { FormGroup, Stack, Switch, Typography } from '@mui/material'
+import { TableActionContainer, SelectInputContainer,
+  SelectInputTitle,FlexCol
+} from './styles'
+import React, { SetStateAction, Dispatch, useMemo, useState, useEffect } from 'react'
+import {
+  FormGroup, Typography, Radio, List, ListItem,
+  RadioGroup, FormControlLabel, FormLabel, Box
+} from '@mui/material'
 import Select, { MultiValue } from 'react-select'
 import { EditModal } from '../modals/EditModal'
 import { IconButton } from '../buttons/IconButton'
 import { Condition, ConditionItem, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
+import { PriorityLevelOption, priorityLevelOptions } from '.'
 
 const ActionContainerRow = styled.div`
   display: flex;
@@ -45,11 +51,38 @@ interface TableActions {
   totalRows: number
   programId: string
 }
-type editAction = 'add' | 'remove' | null
-export type batchEditData = {
-  leafIds: fhir4.ValueSet['id'][]
+
+type editAction = 'add' | 'remove' | 'update' | null
+
+interface GrouperItem {
+  value: string | undefined
+  label: string | undefined
+  id: string
+}
+
+type BatchEditData = {
+  leafUrls: fhir4.ValueSet['url'][]
   conditionsToUpdate: MultiValue<Condition>
   action: editAction
+  priorityToEdit: PriorityLevelOption | null
+  groupersToUpdate: MultiValue<GrouperItem>
+}
+
+type BulkOptions = 'condition' | 'grouper' | 'priority'
+
+const valueSetsCannotRemoveGrouper = (selectedRows: TableRow[], grouperIdsToDelete: string[]) => {
+  const cannotDelete = selectedRows.filter(r => r.groups.filter(g => !grouperIdsToDelete.includes(g.id)).length == 0)
+  return cannotDelete
+}
+
+interface ErrorItem {
+  title: string
+  id: string
+  referenceUrl: string
+}
+
+const composeUrlWithPinnedVersion = (url: string, pinnedVersion: string | undefined) => {
+  return `${url}${pinnedVersion ? `|${pinnedVersion}` : ''}`
 }
 
 export const TableActions = ({
@@ -64,14 +97,15 @@ export const TableActions = ({
 }: TableActions) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editInFlight, setEditInFlight] = useState(false)
-  const [editType, setEditType] = useState<'condition' | 'grouper'>('condition')
   const [conditionsToEdit, setConditionsToEdit] = useState<MultiValue<Condition>>([])
-  const [groupsToEdit, setGroupsToEdit] = useState<
-    MultiValue<{ value: string | undefined; label: string | undefined; id: string | undefined }>
-  >([])
+  const [priorityToEdit, setPriorityToEdit] = useState<PriorityLevelOption | null>(null)
+  const [groupsToEdit, setGroupsToEdit] = useState<MultiValue<GrouperItem>>([])
   const [actionType, setActionType] = useState<editAction>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [keyInd, setKeyInd] = useState(0)
+  const [grouperDeleteErrors, setGrouperDeleteErrors] = useState<ErrorItem[] | []>([])
+
+  // bulk actions
+  const [bulkEditType, setBulkEditType] = useState<BulkOptions>('condition')
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -82,35 +116,63 @@ export const TableActions = ({
       return 0
     }) || []
 
-  const handleEditTypeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // ensure data is cleared out of state when toggled
+  const handleBulkRadioToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ensure data cleared out of state when toggled
     setGroupsToEdit([])
     setConditionsToEdit([])
-    if (e?.target?.checked) {
-      setEditType('grouper')
-    } else {
-      setEditType('condition')
-    }
+    setPriorityToEdit(null)
+    setBulkEditType(e.target.value as BulkOptions)
   }
 
   const handleCancelModal = () => {
     setModalOpen(false)
   }
 
+  useEffect(() => {
+    const grouperIds = groupsToEdit.map(g => g.id)
+    const cannotRemove = valueSetsCannotRemoveGrouper(selectedRows, grouperIds)
+    
+    if (cannotRemove.length) {
+      const errorItems = cannotRemove.map(i => ({
+        title: i.valueSet.title || i.valueSet.name!,
+        id: i.valueSet.id!,
+        referenceUrl: composeUrlWithPinnedVersion(i.valueSet.url!, i.valueSetPinnedVersion)
+      }))
+      setGrouperDeleteErrors(errorItems)
+    } else {
+      setGrouperDeleteErrors([])
+    }
+  }, [groupsToEdit, selectedRows])
+
   const handleEditItems = async () => {
     setEditInFlight(true)
-    if (editType === 'condition') {
-      const batch: batchEditData = {
-        leafIds: selectedRows.map((r) => r.valueSet.id) || [],
+      // get all the versioned canonicals (if pinned) for the rows
+      let updateableLeafs = selectedRows.map((r) => {
+        const versionedUrl = composeUrlWithPinnedVersion(r.valueSet.url!, r.valueSetPinnedVersion)
+        return versionedUrl
+    }) || []
+
+    // do not update a valueset's groupers if it will remove all of them
+    if (grouperDeleteErrors && actionType === 'remove') {
+      const errorUrls = grouperDeleteErrors.map(i => i.referenceUrl!)
+      updateableLeafs = updateableLeafs.filter(l => !errorUrls.includes(l))
+    }
+
+      const batch: BatchEditData = {
+        leafUrls: updateableLeafs,
         conditionsToUpdate: conditionsToEdit,
-        action: actionType
+        action: actionType,
+        priorityToEdit,
+        groupersToUpdate: groupsToEdit
+
       }
       const body = JSON.stringify(batch)
-      await fetch(`/api/programs/${programId}/details/valuesets/conditions/batch`, {
+      await fetch(`/api/programs/${programId}/details/valuesets/batch`, {
         method: 'PUT',
         body
-      }).then((res) => window.location.reload())
-    }
+      }).then((res) => {
+        window.location.reload()
+      })
   }
 
   // always memoize options to react-select to avoid duplicates sticking
@@ -125,6 +187,12 @@ export const TableActions = ({
         ? `You have selected all ${totalRows} Valuesets in this Program`
         : `You have selected ${selectedRows.length} out of ${totalRows} total Valuesets`
 
+  const selectInfo = {
+    condition: { data: conditionOptions, fn: setConditionsToEdit },
+    grouper: { data: buildGroupOptions(alphabetizedGroups), fn: setGroupsToEdit },
+    priority: { data: priorityLevelOptions, fn: setPriorityToEdit }
+  }
+
     return (
       <TableActionContainer>
         <EditModal
@@ -134,8 +202,9 @@ export const TableActions = ({
           loading={editInFlight}
           program={null}
           handleModalAction={handleEditItems}
-          dataType={editType}
+          dataType={bulkEditType}
           totalVs={selectedRows?.length || 0}
+          grouperDeleteErrors={grouperDeleteErrors?.map(g => g.title!)}
         />
         <ActionContainerRow>
           <span>{text}</span>
@@ -145,7 +214,6 @@ export const TableActions = ({
               buttoncontext="delete"
               style={{ backgroundColor: 'var(--accent)' }}
               disabled={isEditing}
-              // add a loading state to iconButton blocking clicks, etc
               loading={isDeleting}
               onClick={() => {
                 handleDelete(selectedRows)
@@ -157,7 +225,6 @@ export const TableActions = ({
             <ActionTitle>Bulk Edit</ActionTitle>
             <IconButton
               buttoncontext="edit"
-              // add a loading state to iconButton blocking clicks, etc
               loading={isDeleting}
               onClick={() => setIsEditing(true)}
               data-action="edit"
@@ -166,96 +233,96 @@ export const TableActions = ({
           </ActionCol>
         </ActionContainerRow>
         <ActionContainerRow>
-          {isEditing && (
+          { isEditing && (
             <FormGroup>
-              <Typography>Property to edit:</Typography>
-              <Stack direction="row" spacing={1} alignItems="center" style={{ marginBottom: '1em' }}>
-                <Typography style={{ fontWeight: editType === 'condition' ? 'bold' : 'initial' }}>Conditions</Typography>
-                <Switch inputProps={{ 'aria-label': 'ant design' }} value="grouper" onChange={(e) => handleEditTypeToggle(e)} />
-                <Typography style={{ fontWeight: editType === 'grouper' ? 'bold' : 'initial' }}>Groupers</Typography>
-              </Stack>
-              {editType === 'condition' ? (
-                <SelectInputContainer>
-                  <Typography>Conditions</Typography>
+              <FormLabel id='bulk-form-label'>Property to edit:</FormLabel>
+              <RadioGroup
+                aria-aria-labelledby='bulk-form-label'
+                defaultValue='condition'
+                name='bulk-selection-radio-group'
+              >
+                <FormControlLabel
+                  value='condition'
+                  control={<Radio onChange={handleBulkRadioToggle}/>}
+                  label='Conditions'
+                />
+                <FormControlLabel
+                  value='priority'
+                  control={<Radio onChange={handleBulkRadioToggle} />}
+                  label='Priority'
+                />
+                <FormControlLabel
+                  value='grouper'
+                  control={<Radio onChange={handleBulkRadioToggle}/>}
+                  label='Groupers'
+                />
+              </RadioGroup>
+              <SelectInputContainer>
+                <Typography style={{ textTransform: 'capitalize' }}>
+                  {bulkEditType}
+                </Typography>
                   <Select
                     menuPlacement="bottom"
-                    placeholder="Select Conditions"
-                    classNamePrefix="conditions"
-                    inputId="conditions-selector"
-                    instanceId="conditions-selector"
-                    isMulti
-                    key={`conditions-${keyInd}`}
+                    placeholder={`Select ${bulkEditType}`}
+                    classNamePrefix={bulkEditType}
+                    inputId={`${bulkEditType}-selector`}
+                    instanceId={`${bulkEditType}-selector`}
+                    isMulti={bulkEditType !== 'priority'}
+                    key={`${bulkEditType}-key`}
                     styles={{
                       menu: (baseStyles) => ({
                         ...baseStyles,
                         zIndex: 10
                       })
                     }}
-                    options={conditionOptions}
+                    options={selectInfo[bulkEditType].data as any}
                     onChange={(e) => {
-                      setConditionsToEdit(e)
+                      selectInfo[bulkEditType].fn(e as any)
                     }}
                   />
                 </SelectInputContainer>
-              ) : (
-                <SelectInputContainer>
-                  <i style={{ display: 'block', color: 'var(--accent)' }}>***Batch Grouper functionality is not added yet, will not work</i>
-                  <Typography>Groupers</Typography>
-                  <Select
-                    menuPlacement="bottom"
-                    placeholder="Select groups"
-                    classNamePrefix="groups"
-                    inputId="groups-selector"
-                    instanceId="groups-selector"
-                    isMulti
-                    options={buildGroupOptions(alphabetizedGroups)}
-                    // @ts-ignore-next-line
-                    onChange={(e) => {
-                      setGroupsToEdit(e)
-                    }}
-                    key={`groups-${keyInd}`}
-                    styles={{
-                      menu: (baseStyles, state) => ({
-                        ...baseStyles,
-                        zIndex: 10
-                      })
+                <ButtonRow>
+                  <Button
+                    text="Cancel Edit"
+                    style={{ backgroundColor: 'gray' }}
+                    onClick={() => {
+                      setIsEditing(false)
+                      setGroupsToEdit([])
+                      setConditionsToEdit([])
+                      handleToggleUpdateData()
                     }}
                   />
-                </SelectInputContainer>
-              )}
-              <ButtonRow>
-                <Button
-                  text="Cancel Edit"
-                  style={{ backgroundColor: 'gray' }}
-                  onClick={() => {
-                    setKeyInd((k) => k + 1)
-                    setIsEditing(false)
-                    setGroupsToEdit([])
-                    setConditionsToEdit([])
-                    handleToggleUpdateData()
-                  }}
-                />
-                {Boolean(conditionsToEdit.length || groupsToEdit.length) && (
-                  <>
+                  {Boolean(conditionsToEdit.length || groupsToEdit.length) && (
+                    <>
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Add ${bulkEditType}`}
+                        onClick={() => {
+                          setActionType('add')
+                          setModalOpen(true)
+                        }}
+                      />
+                      <Button
+                        disabled={!conditionsToEdit.length && !groupsToEdit.length}
+                        text={`Remove ${bulkEditType}`}
+                        onClick={(() => {
+                          setActionType('remove')
+                          setModalOpen(true)
+                        })}
+                      />
+                    </>
+                  )}
+                  {Boolean(bulkEditType === 'priority') && (
                     <Button
-                      disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                      text={`Add ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
+                      disabled={!priorityToEdit}
+                      text={`Update ${bulkEditType}`}
                       onClick={() => {
-                        setActionType('add')
+                        setActionType('update')
                         setModalOpen(true)
                       }}
                     />
-                    <Button
-                      disabled={!conditionsToEdit.length && !groupsToEdit.length}
-                      text={`Remove ${editType === 'grouper' ? 'Groupers' : 'Conditions'}`}
-                      onClick={() => {
-                        setActionType('remove')
-                        setModalOpen(true)
-                      }}
-                    />
-                  </>
-                )}
-              </ButtonRow>
+                  )}
+                </ButtonRow>
             </FormGroup>
           )}
         </ActionContainerRow>

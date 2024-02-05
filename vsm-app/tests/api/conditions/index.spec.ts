@@ -1,5 +1,6 @@
 import handler from '@/pages/api/conditions'
 import { fhirCdrClient } from 'fhirClients'
+import { NextApiRequest, NextApiResponse } from 'next'
 
 jest.mock('fhirClients')
 // Mock Auth for Setup
@@ -12,17 +13,35 @@ jest.mock('next-auth/next', () => ({
   }))
 }))
 
+interface Request extends NextApiRequest {
+  method: 'GET'
+}
+
 describe('GET /api/conditions', () => {
   it('should get a list of conditions', async () => {
     const req = {
       method: 'GET'
-    }
+    } as Request
+
     const res = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn()
-    }
+    } as any
 
-    fhirCdrClient.search = jest.fn()
+    // @ts-ignore-next-line
+    fhirCdrClient.search = jest.fn(() => ({
+      entry: [ {
+        resource: {
+          resourceType: 'ValueSet',
+          compose: {
+            include: [
+              { valueSet: ['www.test-vs.com/ValueSet/12345']},
+              { valueSet: ['www.test-vs.com/ValueSet/123456']}
+            ]
+          }
+        }
+      }]
+    }))
 
     await handler(req, res)
     expect(fhirCdrClient.search).toHaveBeenCalledWith({
@@ -33,6 +52,5 @@ describe('GET /api/conditions', () => {
     })
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.send).toHaveBeenCalled()
-
   })
 })

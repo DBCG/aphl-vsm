@@ -10,7 +10,7 @@ type Error = {
   severity?: 'warning'
 }
 
-const ErrorContainer = styled.div<Error>`
+export const ErrorContainer = styled.div<Error>`
   max-height: ${(props) => (props.error ? '500px' : '0')};
   background-color: ${(props) => (props.severity === 'warning' ? 'var(--warning-light)' : 'white')};
   transition: max-height 1s ease;
@@ -26,7 +26,7 @@ const ErrorContainer = styled.div<Error>`
   }};
 `
 
-const ErrorText = styled.p<Error>`
+export const ErrorText = styled.p<Error>`
   display: ${(props) => (props.error ? 'inherit' : 'none')};
   color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
   word-break: break-all;

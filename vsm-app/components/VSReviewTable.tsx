@@ -3,7 +3,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
-import { buildConditionOptions, formatConditionsComposeInclude, removeConditionsWithoutDisplay } from '@/helpers/conditionHelpers'
+import { buildConditionOptions } from '@/helpers/conditionHelpers'
 import { ConditionsHandler } from 'pages/programs/[id]/grouper'
 import { FlatGrouperVSet } from '../types/grouperTypes'
 import React, { Dispatch, SetStateAction } from 'react'
@@ -16,8 +16,7 @@ interface TableProps {
 }
 
 const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {
-  const conditions = useGetConditions()
-  const allConditions = removeConditionsWithoutDisplay(formatConditionsComposeInclude(conditions))
+  const allConditions = useGetConditions()
 
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
     const filtered = vsToAdd.filter((vs) => {

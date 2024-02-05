@@ -42,7 +42,7 @@ const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'trans
   }
 }
 
-const formatBatchGrouperUpdate = (groupers: fhir4.ValueSet[]): fhir4.Bundle & { type: 'transaction' } => {
+export const formatBatchGrouperUpdate = (groupers: fhir4.ValueSet[]): fhir4.Bundle & { type: 'transaction' } => {
   const itemsToUpdate = groupers.map((grouper) => ({
     request: {
       method: 'PUT',
@@ -254,7 +254,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     let conditionModifiedProgram = program as fhir4.Library
     grouperVSets.forEach((vs) => {
       // these leaf valuesets are set to the latest version and will not have a version in their canonical url
-      conditionModifiedProgram = setVSConditions(conditionModifiedProgram, vs.selectedConditions, vs.selectedValueSet.url!)
+      conditionModifiedProgram = setVSConditions(conditionModifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
     })
 
     const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(conditionModifiedProgram as fhir4.Library, grouperVsUrl)
