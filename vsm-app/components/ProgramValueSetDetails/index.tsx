@@ -27,8 +27,7 @@ import { TableActions } from './TableActions'
 import { NextRouter } from 'next/router'
 import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
-import BulkEditModal from './BulkEditModal'
-import { USHealthVSPriority, getVSPriority, setVSPriority, getVSConditions, setVSConditions } from '@/helpers/libraryHelpers'
+import { USHealthVSPriority, getVSPriority, getVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 
@@ -133,7 +132,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
 
   // loading states
-  const [pageLoading, setPageLoading] = useState(true)
   const [grouperLoading, setGrouperLoading] = useState(false)
   const [conditionLoading, setConditionLoading] = useState(false)
   const [priorityLoading, setPriorityLoading] = useState(false)
@@ -164,13 +162,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
   // don't allow editing if any loading in progress
-  const blockChanges = useMemo(() => (pageLoading
-    || grouperLoading
+  const blockChanges = useMemo(() => {
+    return grouperLoading
     || conditionLoading
     || isDeleting
     || priorityLoading
     || versionUpdateInFlight
-  ), [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
+}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
+
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
@@ -296,11 +295,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     conditionsMap,
     ...debouncedFilters
   }) as Result
-
-  useEffect(() => {
-    const keys = Object.keys(progValueSetDets)
-    setPageLoading(keys.length === 0)
-  }, [progValueSetDets])
 
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
@@ -768,7 +762,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           customStyles={customTableStyles('clickable', { fontSize: '12px' })}
-          progressPending={pageLoading}
+          progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
         />
       </Box>
