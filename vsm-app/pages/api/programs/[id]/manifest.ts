@@ -6,6 +6,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
 import uniqBy from 'lodash.uniqby'
+import { getProgramDetailsValuesets } from './details/valuesets'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -60,27 +61,14 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
   }
 }
 
-const collectLeafValueSetCodeSystems = async () => {
-  const allValueSets = []
-  const vsResponse = await fhirCdrClient.search({
-    resourceType: 'ValueSet',
-    searchParams: {
-      _count: 1000,
-      _elements: 'useContext.valueCodeableConcept.coding'
-    }
-  })
+const collectLeafValueSetCodeSystems = async (programId: string) => {
+  const leafVs = await getProgramDetailsValuesets({id: programId})
+
   // @ts-ignore
-  for (let b = vsResponse; (b = await fhirCdrClient.nextPage(b)); ) {
-    allValueSets.push(...(b?.entry || []))
-  }
-  allValueSets.push(...(vsResponse?.entry || []))
-  let codeSystemsList = allValueSets
-    .map((i: fhir4.ValueSet) => {
-      // @ts-ignore
-      const vs = i?.resource?.useContext?.find(
+  let codeSystemsList = leafVs?.payload?.data?.map((i) => {
+      const vs = i?.valueSet?.useContext?.find(
         (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
       )
-
       return vs?.valueCodeableConcept?.coding?.[0]
     })
     .filter((i: any) => i)
@@ -125,8 +113,10 @@ const collectLeafValueSetCodeSystems = async () => {
 const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     if (req.query.leafValueSets) {
+      const programId = req.query.id as string
+
       // Check all leaf ValueSets and collect their CodeSystem's
-      const list = await collectLeafValueSetCodeSystems()
+      const list = await collectLeafValueSetCodeSystems(programId)
       return res.status(200).json(list)
     } else {
       terminologyClient.setClient('vsac')
