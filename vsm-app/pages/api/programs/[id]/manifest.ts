@@ -71,9 +71,9 @@ const collectLeafValueSetCodeSystems = async () => {
   })
   // @ts-ignore
   for (let b = vsResponse; (b = await fhirCdrClient.nextPage(b)); ) {
-    allValueSets.push(...b.entry)
+    allValueSets.push(...(b?.entry || []))
   }
-  allValueSets.push(...vsResponse.entry)
+  allValueSets.push(...(vsResponse?.entry || []))
   let codeSystemsList = allValueSets
     .map((i: fhir4.ValueSet) => {
       // @ts-ignore
