@@ -60,6 +60,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       searchParams: {
         context: 'program',
         _sort: ['-_lastUpdated'],
+        _total: 'accurate',
         ...(!req.query['list'] && {['_revinclude:iterate']: 'Basic:artifact'}),
         ...queries
       }
