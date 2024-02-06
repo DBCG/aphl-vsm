@@ -252,6 +252,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     setSearchTotal(null)
     setResultsPerPage(10)
   }
+
+  const handleSetResultsPerPage = async (newResults: number, newPage: number) => {
+    setResultsPerPage(newResults)
+    await submitVSetSearch({ searchContext: 'search', pageNumber: newPage, newResultsPerPage: newResults })
+  }
   // take the response from the server and parse the important data
 
   const filterExists = useMemo(
@@ -271,10 +276,12 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
    */
   const submitVSetSearch = async ({
     searchContext = 'search',
-    pageNumber
+    pageNumber,
+    newResultsPerPage,
   }: {
     searchContext?: 'filter' | 'search'
     pageNumber?: number
+    newResultsPerPage?: number
   }) => {
     setToggledClearRows(true)
 
@@ -308,12 +315,12 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       searchStr = searchTerm.trim()
     }
 
-    // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber being passed in
-    const offset = ((pageNumber || currentPage?.page) - 1) * resultsPerPage
+    // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber and newResultsPerPage being passed in
+    const offset = ((pageNumber || currentPage?.page) - 1) * (newResultsPerPage || resultsPerPage)
 
     let queryStringItems = {
       searchType: searchType?.value,
-      count: resultsPerPage,
+      count: (newResultsPerPage ||resultsPerPage),
       sortBy: sortParams?.column,
       sortDirection: sortParams?.direction,
       offset: offset,
@@ -695,7 +702,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         resultsPerPage={resultsPerPage}
         paginationTotalRows={searchTotal || 0}
         handlePageChange={handlePageChange}
-        handlePerRowsChange={setResultsPerPage}
+        handlePerRowsChange={handleSetResultsPerPage}
       />
     </Col>
   )
