@@ -92,7 +92,7 @@ const Programs: NextPage = () => {
       url: '/api/programs',
       args: {
         list: true, // use this so on the server side we don't need to load all details of the program
-        offset: pagination?.page > 1 ? (pagination?.page - 1) * 10 : null,
+        offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : null,
         count: pagination?.countPerPage
       }
     },
@@ -356,9 +356,7 @@ const Programs: NextPage = () => {
         paginationTotalRows={pagination.searchTotal || 0}
         paginationPerPage={pagination.countPerPage}
         onChangePage={handlePageChange}
-        onChangeRowsPerPage={(currentRowsPerPage, currentPage) =>
-          setPagination({ ...pagination, page: currentPage, countPerPage: currentRowsPerPage })
-        }
+        onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
         highlightOnHover={true}
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
