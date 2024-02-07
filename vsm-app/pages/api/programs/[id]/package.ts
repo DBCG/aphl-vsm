@@ -19,9 +19,9 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
   const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
   const parameters = data?.parameters
   const json = data?.json
-  const useV2 = data?.useV2
+  const useV1 = !data?.useV2
   try {
-    let format = json || !useV2 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
+    let format = json || useV1 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
     const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${format}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
@@ -30,9 +30,9 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         // should be Basic Auth creds
         ...fhirCdrClient.customHeaders
       }
-    }).then((r) => (json || !useV2 ? r.json() : r.text()))
+    }).then((r) => (json || useV1 ? r.json() : r.text()))
 
-    if (!useV2) {
+    if (useV1) {
       format = json ? 'json' : 'xml' // reset to actual format for v1
       logger.info('Generating v2 to v1 transform for download')
 
