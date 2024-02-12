@@ -8,9 +8,10 @@ vsm_app:
   redis_host_url: "redis-cache.5hhpo0.ng.0001.use1.cache.amazonaws.com"
   redis_db: "3"
 keycloak:
-  app_url: "a1d10e780e7ea4e89b76c7ce0ff222e6-1746047961.us-east-1.elb.amazonaws.com"
-  db_url: "jdbc:postgresql://vsm-keycloak-db-qa.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/keycloak"
-  image: "quay.io/keycloak/keycloak:21.1.2"
+  app_url: "aa991ab66ca5841a1a65bc6f37293203-2009854043.us-east-1.elb.amazonaws.com"
+  # We will share this keycloak with ersd, no need to deploy here anymore
+  # db_url: "jdbc:postgresql://vsm-keycloak-db-qa.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/keycloak"
+  # image: "quay.io/keycloak/keycloak:21.1.2"
 protocol: "http"
 aws:
   account_id: "912275679263"
