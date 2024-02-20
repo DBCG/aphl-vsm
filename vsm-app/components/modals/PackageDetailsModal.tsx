@@ -87,29 +87,86 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     })
   }
 
-  const handleDownload = async () => {
-    setDownloadLoading(true)
-    const body: ExpectedPackageBody = {
+  interface BodyFormatter {
+    isJson: boolean
+    isV2: boolean
+    targetVersion: string | undefined
+    fileUploadContent: { content: fhir4.PlanDefinition } | undefined
+  }
+
+  const formatBody = ({
+    isJson,
+    isV2,
+    targetVersion,
+    fileUploadContent
+  }: BodyFormatter): ExpectedPackageBody => {
+    const body = {
       data: {
         parameters: {
           resourceType: 'Parameters'
         },
-        json: fileType === 'json',
-        useV2: versionRadioValue === 'v2'
+        json: isJson,
+        useV2: isV2
       }
-    }
+    } as ExpectedPackageBody
 
     if (versionRadioValue === 'v1' && fileUploadContent) {
       body.planDefinition = fileUploadContent.content
       body.targetVersion = targetVersion
     }
+    return body
+  }
 
-    let data
+  const handleDownload = async () => {
+    setDownloadLoading(true)
+    const bodyForPackage = formatBody({
+      isJson: fileType === 'json',
+      isV2: versionRadioValue === 'v2',
+      targetVersion,
+      fileUploadContent
+    })
+
+    let bodyForValidate = bodyForPackage
+    if (fileType === 'xml') {
+      // force JSON format for validation data
+      bodyForValidate = formatBody({
+        isJson: true,
+        isV2: versionRadioValue === 'v2',
+        targetVersion,
+        fileUploadContent
+      }) 
+    }
+
+    let packageResponse
     try {
-      data = await fetch(`/api/programs/${program?.id}/package`, {
+      // this stringifies the response body
+      packageResponse = await fetch(`/api/programs/${program?.id}/package`, {
         method: 'POST',
-        body: JSON.stringify(body)
-      }).then((resp) => resp.text())
+        body: JSON.stringify(bodyForPackage)
+      }).then((resp) => fileType === 'json' ? resp.json() : resp.text())
+
+      const jsonDataForValidation = async () => {
+        const jsonPackageResponse = await fetch(`/api/programs/${program?.id}/package`, {
+          method: 'POST',
+          body: JSON.stringify(bodyForPackage)
+        }).then((resp) => resp.json())
+        return jsonPackageResponse
+      }
+
+      const validationBody = {
+        pkg: fileType === 'json' ? packageResponse : await jsonDataForValidation(),
+        formatType: 'json'
+      }
+      // need to handle errors
+      // only validate JSON, xml too many problems...
+      const validation = await fetch(`/api/programs/${program?.id}/validate`, {
+        method: 'POST',
+        body: JSON.stringify(validationBody)
+      }).then((resp) => resp.json())
+
+      console.log('validation: ', validation)
+
+  
     } catch (error) {
       console.error(error)
       setExportError('Error exporting artifact')
@@ -118,15 +175,18 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     }
 
     try {
+      // console.log('data: ', data)
       // if it's not JSON this will throw an error
-      JSON.parse(data)
+      // JSON.parse(data)
       // Download JSON
-      downloadTextData(data, 'application/fhir+json')
+      downloadTextData(packageResponse, 'application/fhir+json')
     } catch (error) {
+      console.log('error in parse: ', error)
       // all XML starts with <
-      if (data?.[0] === '<') {
+      if (packageResponse?.[0] === '<') {
+        console.log('data: ', packageResponse)
         // Download XML
-        downloadTextData(data, 'application/fhir+xml')
+        downloadTextData(packageResponse, 'application/fhir+xml')
       } else {
         toast.error('Unable to parse $package response')
         setExportError('Unable to parse $package response')
