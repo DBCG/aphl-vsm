@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useState, useEffect } from 'react'
 import ClearIcon from '@mui/icons-material/Clear'
 import {
   Box,
@@ -32,6 +32,36 @@ interface ModalInfo {
   setExportError: (error: string) => void
 }
 
+interface BodyFormatter {
+  isJson: boolean
+  isV2: boolean
+  targetVersion: string | undefined
+  fileUploadContent: { content: fhir4.PlanDefinition } | undefined
+}
+
+const formatBody = ({
+  isJson,
+  isV2,
+  targetVersion,
+  fileUploadContent
+}: BodyFormatter): ExpectedPackageBody => {
+  const body = {
+    data: {
+      parameters: {
+        resourceType: 'Parameters'
+      },
+      json: isJson,
+      useV2: isV2
+    }
+  } as ExpectedPackageBody
+
+  if (!isV2 && fileUploadContent) {
+    body.planDefinition = fileUploadContent.content
+    body.targetVersion = targetVersion
+  }
+  return body
+}
+
 const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError }: ModalInfo) => {
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
@@ -39,9 +69,20 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
   const [targetVersion, setTargetVersion] = useState<string>('')
   const [inputError, setInputError] = useState<boolean>(false)
+
+  const handleResetState = () => {
+    setFileType('json')
+    setDownloadLoading(false)
+    setVersionRadioValue('v2')
+    setFileUploadContent(undefined)
+    setTargetVersion('')
+    setInputError(false)
+  }
+
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
+    handleResetState()
   }
 
   const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`) => {
@@ -87,35 +128,29 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     })
   }
 
-  interface BodyFormatter {
-    isJson: boolean
-    isV2: boolean
-    targetVersion: string | undefined
-    fileUploadContent: { content: fhir4.PlanDefinition } | undefined
+  const downloadFile = async () => {
+    setDownloadLoading(true)
   }
 
-  const formatBody = ({
-    isJson,
-    isV2,
-    targetVersion,
-    fileUploadContent
-  }: BodyFormatter): ExpectedPackageBody => {
-    const body = {
-      data: {
-        parameters: {
-          resourceType: 'Parameters'
-        },
-        json: isJson,
-        useV2: isV2
-      }
-    } as ExpectedPackageBody
+  const packageProgram = async () => {
+    let packageResponse
 
-    if (versionRadioValue === 'v1' && fileUploadContent) {
-      body.planDefinition = fileUploadContent.content
-      body.targetVersion = targetVersion
-    }
-    return body
+    const bodyForPackage = formatBody({
+      isJson: fileType === 'json',
+      isV2: versionRadioValue === 'v2',
+      targetVersion,
+      fileUploadContent
+    })
+
+    packageResponse = await fetch(`/api/programs/${program?.id}/package`, {
+      method: 'POST',
+      body: JSON.stringify(bodyForPackage)
+    }).then((resp) => fileType === 'json' ? resp.json() : resp.text())
+
+    // check for operationOutcome errors here, return error object if present
+
   }
+
 
   const handleDownload = async () => {
     setDownloadLoading(true)
@@ -148,11 +183,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       const jsonDataForValidation = async () => {
         const jsonPackageResponse = await fetch(`/api/programs/${program?.id}/package`, {
           method: 'POST',
-          body: JSON.stringify(bodyForPackage)
+          body: JSON.stringify(bodyForValidate)
         }).then((resp) => resp.json())
         return jsonPackageResponse
       }
-
+      
       const validationBody = {
         pkg: fileType === 'json' ? packageResponse : await jsonDataForValidation(),
         formatType: 'json'
@@ -168,16 +203,13 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   
     } catch (error) {
-      console.error(error)
+      console.error('error encountered: ', error)
       setExportError('Error exporting artifact')
       setDownloadLoading(false)
       return
     }
 
     try {
-      // console.log('data: ', data)
-      // if it's not JSON this will throw an error
-      // JSON.parse(data)
       // Download JSON
       downloadTextData(packageResponse, 'application/fhir+json')
     } catch (error) {
@@ -208,6 +240,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
+          <p>{fileType}</p>
           <FormGroup>
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography>XML</Typography>
