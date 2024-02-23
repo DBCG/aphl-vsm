@@ -28,7 +28,7 @@ RUN npm prune --omit=dev
 FROM ubuntu:mantic
 
 RUN apt-get update && \
-	apt-get install curl -y \
+	apt-get install curl -y && \
 	apt-get upgrade -y
 
 RUN curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
