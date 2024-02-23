@@ -213,7 +213,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       programId: program.id!
     })
 
-    const validationResult = await validatePackage(packageToValidate, program.id!)
+    const validationResult = await validatePackage(packageToValidate)
 
     // document validation errors
     if (validationResult?.error?.length) {
