@@ -9,7 +9,9 @@ interface ErrorResponse {
 }
 
 // confirmed only need to validate JSON
-const validatePackage = async (req: NextApiRequest, res: NextApiResponse<[] | ErrorResponse>): Promise<void> => {
+const validatePackage = async (
+  req: NextApiRequest,
+  res: NextApiResponse<[] | ErrorResponse>): Promise<void> => {
   try {
     const { pkg } = req.body
 
@@ -28,9 +30,9 @@ const validatePackage = async (req: NextApiRequest, res: NextApiResponse<[] | Er
       input: JSON.stringify(validateParameters),
       method: 'POST',
       options: {
-        headers:{
+        headers: {
           'Content-Type': `application/fhir+json`,
-          ...fhirCdrClient.customHeaders
+          // ...fhirCdrClient.customHeaders
         }
       }
     })

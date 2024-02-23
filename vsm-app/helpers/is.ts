@@ -58,10 +58,10 @@ const is = {
   },
   hapiErrorHttpRes: (error: any): error is HapiHttpErrorRes => {
     return (
-      typeof error.timestamp === 'number' &&
-      typeof error.status === 'number' &&
-      typeof error.error === 'string' &&
-      typeof error.path === 'string'
+      typeof error?.timestamp === 'number' &&
+      typeof error?.status === 'number' &&
+      typeof error?.error === 'string' &&
+      typeof error?.path === 'string'
     )
   },
   library: (resource?: fhir4.Library | any): resource is fhir4.Library => {

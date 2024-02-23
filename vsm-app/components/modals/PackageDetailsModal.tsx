@@ -91,10 +91,10 @@ const formatBody = ({
   return body
 }
 
-const validatePackage = async (pkgBundle: fhir4.Bundle, programId: string) => {
+const validatePackage = async (pkgBundle: fhir4.Bundle) => {
   try {
     const body = { pkg: pkgBundle }
-    return await fetch(`/api/programs/${programId}/validate`, {
+    return await fetch(`/api/programs/validate`, {
       method: 'POST',
       body: JSON.stringify(body)
     }).then((res) => res.json())

@@ -1,5 +1,4 @@
 import { generateErrorMessage } from './generateErrorMessage'
-import { hapiErrorCodes } from './hapiErrorCodes'
 
 describe('generateErrorMessage', () => {
   it('generates the proper message when it exists in hapiErrorCodes.ts', () => {

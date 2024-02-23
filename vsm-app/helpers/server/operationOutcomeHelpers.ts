@@ -8,14 +8,14 @@ interface ParsedIssueItem {
   severity: { '@_value': string }
   code: { '@_value': string }
   diagnostics: { '@_value': string }
-  location: { '@_value': string[] }
+  location?: { '@_value': string[] }
 }
 
 interface IssueItem {
   severity: string
   code: string
   diagnostics: string
-  location: string[]
+  location?: string[]
 }
 
 const validationOptions = {
@@ -28,8 +28,11 @@ const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => {
     severity: item.severity['@_value'],
     code: item.code['@_value'],
     diagnostics: item.diagnostics['@_value'],
-    location: item.location['@_value'],
-  })
+  }) as IssueItem
+
+  if (item.location) {
+    res.location = item.location['@_value'] 
+  }
 
   return res
 }
