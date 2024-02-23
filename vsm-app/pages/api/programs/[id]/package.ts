@@ -45,12 +45,12 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         })
       } else if (planDefFromV2Exist) {
         response.entry[planDefResourceIndex].resource = planDefinition
-      } else {
+      } else if(!planDefFromV2Exist && planDefinition == null) {
+        logger.error('No PlanDefinition resource found in v2 package response nor was uploaded as part of the request')
         return res
           .status(400)
           .json({ error: 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request' })
       }
-
       const v1BundleBody: fhir4.Parameters = {
         resourceType: 'Parameters',
         parameter: [
