@@ -118,7 +118,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     setFileUploadContent(undefined)
     setTargetVersion('')
     setInputError(false)
-    // setExportError(null)
   }
 
   useEffect(() => {
@@ -177,6 +176,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleExitExportModal = () => {
     setDownloadLoading(false)
     toggleModalOpen()
+    handleResetState()
   }
 
   const handleClickExport = async () => {
@@ -248,7 +248,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={isOpen} onClose={handleResetState}>
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
