@@ -1,4 +1,6 @@
 import styled from 'styled-components'
+import { Alert } from '@mui/material'
+import cloneDeep from 'lodash.clonedeep'
 
 interface ErrorState {
   message: string
@@ -8,6 +10,8 @@ interface ErrorState {
 type Error = {
   error: string | string[] | null
   severity?: 'warning'
+  handleClose?: () => void
+  style?: React.CSSProperties
 }
 
 export const ErrorContainer = styled.div<Error>`
@@ -31,6 +35,7 @@ export const ErrorText = styled.p<Error>`
   color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
   word-break: break-all;
   line-height: 1.5em;
+  max-width: 100ch;
 `
 
 const ErrorContent = ({ error, severity }: Error) => {
@@ -48,15 +53,54 @@ const ErrorContent = ({ error, severity }: Error) => {
     ))
 
     return <>{lines}</>
+  } else if (error && typeof error === 'object') {
+    const clonedErrors = cloneDeep(error)
+    let errorCategories = Object.keys(error)
+    errorCategories.forEach(category => {
+      if (!error[category]?.length) {
+        delete clonedErrors[category]
+      }
+    })
+
+    // if there are no errors at all, return null
+    if (!Object.keys(clonedErrors).length) return null
+
+    errorCategories = Object.keys(clonedErrors)
+  
+    const itemsForDisplay = {} as Record<string, React.ReactElement | React.ReactElement[]>
+
+    errorCategories.forEach(cat => {
+      if (typeof error[cat] === 'string') {
+        itemsForDisplay[cat] = (
+          <ErrorText severity={severity} error={error[cat]} key={0}>
+            {error[cat]}
+          </ErrorText>
+        )
+      } else if (Array.isArray(error[cat])) {
+        const listItems = error[cat].map((e, ind) => (
+          <ErrorText severity={severity} error={e} key={ind}>
+            {e}
+          </ErrorText>
+        ))
+        itemsForDisplay[cat] = listItems
+      }
+    })
+
+    return Object.keys(itemsForDisplay).map(title => (
+        <>
+          <p style={{ marginTop: 0 }}>{title}</p>
+          {itemsForDisplay[title]}
+        </>
+    ))
   }
   return null
 }
 
-const ErrorMessage = ({ error, severity }: Error) => {
+const ErrorMessage = ({ error, severity, handleClose, style }: Error) => {
   return (
-    <ErrorContainer severity={severity} error={error}>
-      <ErrorContent severity={severity} error={error} />
-    </ErrorContainer>
+      <Alert variant='outlined' severity='error' sx={{ bgcolor: 'background.paper' }} onClose={handleClose} style={style}>
+        <ErrorContent severity={severity} error={error} />
+      </Alert>
   )
 }
 
