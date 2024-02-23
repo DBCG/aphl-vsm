@@ -23,18 +23,17 @@ const validatePackage = async (req: NextApiRequest, res: NextApiResponse<[] | Er
       ]
     }
 
-    // validate returns an OperationOutcome whether there are issues or not
-    // if it's successful, it just returns one informational issue (severity: information)
-    const validateResponse = await fetch(`${fhirCdrClient.baseUrl}/$validate`, {
-      body: JSON.stringify(validateParameters),
+    const validateResponse = await fhirCdrClient.operation({
+      name: '$validate',
+      input: JSON.stringify(validateParameters),
       method: 'POST',
-      headers: {
-        'Accept': 'application/fhir+json',
-        'Content-Type': `application/fhir+json`,
-        // should be Basic Auth creds
-        ...fhirCdrClient.customHeaders
+      options: {
+        headers:{
+          'Content-Type': `application/fhir+json`,
+          ...fhirCdrClient.customHeaders
+        }
       }
-    }).then(x => x.json())
+    })
 
     const breakingErrors = formatErrors(validateResponse)
 
