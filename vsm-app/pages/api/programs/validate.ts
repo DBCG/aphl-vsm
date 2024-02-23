@@ -55,9 +55,7 @@ export const config = {
     bodyParser: {
       sizeLimit: '2mb',
     },
-  },
-  // specifies the maximum allowed duration for this function to execute (in seconds)
-  maxDuration: 5,
+  }
 }
 
 export default handler({
