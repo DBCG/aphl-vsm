@@ -258,7 +258,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
-          <p>{fileType}</p>
           <FormGroup>
             <Stack direction="row" spacing={1} alignItems="center">
               <Typography>XML</Typography>
