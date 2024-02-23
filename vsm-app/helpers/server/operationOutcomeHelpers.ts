@@ -8,32 +8,52 @@ interface ParsedIssueItem {
   severity: { '@_value': string }
   code: { '@_value': string }
   diagnostics: { '@_value': string }
+  location: { '@_value': string[] }
 }
 
 interface IssueItem {
   severity: string
   code: string
   diagnostics: string
+  location: string[]
 }
 
 const validationOptions = {
   ignoreAttributes: false
 }
 
-const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => ({
-  severity: item.severity['@_value'],
-  code: item.code['@_value'],
-  diagnostics: item.diagnostics['@_value']
-})
+const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => {
+
+  const res = ({
+    severity: item.severity['@_value'],
+    code: item.code['@_value'],
+    diagnostics: item.diagnostics['@_value'],
+    location: item.location['@_value'],
+  })
+
+  return res
+}
+
+const simplifyHapiHttpError = (hapiErrBlock: HapiHttpErrorRes): IssueItem => {
+  const res = {
+    severity: hapiErrBlock.status > 399 ? 'error' : 'warning',
+    code: `Status: ${hapiErrBlock.status}`,
+    diagnostics: `Encountered error: "${hapiErrBlock.error}"`,
+    location: [hapiErrBlock.path]
+  }
+  return res
+}
 
 const parser = new XMLParser(validationOptions)
 
-const normalizeIssueFormat = (issueBlock: ParsedIssueItem | ParsedIssueItem[]): IssueItem[] => {
+const normalizeIssueFormat = (issueBlock: ParsedIssueItem | ParsedIssueItem[] | HapiHttpErrorRes): IssueItem[] => {
   if (Array.isArray(issueBlock)) {
     return issueBlock.map(item => simplifyIssueItem(item))
-  } else {
-    const res = [simplifyIssueItem(issueBlock)]
+  } else if (is.hapiErrorHttpRes(issueBlock)) {
+    const res = [simplifyHapiHttpError(issueBlock)]
     return res
+  } else {
+    return [simplifyIssueItem(issueBlock)]
   }
 }
 
@@ -45,10 +65,17 @@ const conformsToIssueFormat = (parsedXmlOpOutcome: any) => {
   return ({ error: 'OperationOutcome has unexpected format' })
 }
 
+export interface HapiHttpErrorRes {
+  timestamp: number
+  status: number
+  error: string
+  path: string
+}
+
 // currently returns only breaking errors
 // when opOutcome is a string it's xml + needs to be parsed
 export const formatErrors = (
-  opOutcome: fhir4.OperationOutcome | 'string' | any
+  opOutcome: fhir4.OperationOutcome | 'string' | HapiHttpErrorRes | any
 ): IssueItem[] | fhir4.OperationOutcomeIssue[] => {
   if (typeof opOutcome === 'string') {
     if (opOutcome.startsWith('<OperationOutcome')) {
@@ -61,6 +88,9 @@ export const formatErrors = (
     } else {
       logSimpleError('Input not an OperationOutcome')
     }
+  } else if (is.hapiErrorHttpRes(opOutcome)) {
+    const result = [simplifyHapiHttpError(opOutcome)]
+    return result
   } else if (is.operationOutcome(opOutcome)) {
     return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || []
   }

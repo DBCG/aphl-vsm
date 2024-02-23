@@ -35,11 +35,12 @@ const validatePackage = async (req: NextApiRequest, res: NextApiResponse<[] | Er
         ...fhirCdrClient.customHeaders
       }
     }).then(x => x.json())
-  
+
     const breakingErrors = formatErrors(validateResponse)
 
     // validation failure does not break the workflow in the app
-    return res.status(200).send({ error: breakingErrors?.map(e => e.diagnostics!) || [] })
+    return res.status(200).send({ error: breakingErrors?.map(e =>
+      `Location: ${e.location!.join(' ')}: \n${e.diagnostics!}`) || [] })
   } catch (e) {
     logSimpleError(e)
     return res.status(500).send({ error: 'Resource validation failed' })

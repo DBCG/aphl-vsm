@@ -24,17 +24,11 @@ import { toast } from 'react-toastify'
 import styled from 'styled-components'
 import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
 
-interface ErrorIssueItem {
-  diagnostics: string
-  code: string
-  severity: string
-}
-
 interface ModalInfo {
   isOpen: boolean
   program: fhir4.Library
   toggleModalOpen: () => void
-  setExportError: (error) => void
+  setExportError: (error: any) => void
 }
 
 interface BodyFormatter {
