@@ -3,6 +3,7 @@ import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
+import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
 export interface ExpectedPackageBody {
   data?: {
@@ -15,7 +16,7 @@ export interface ExpectedPackageBody {
 }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
-const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
+const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>): Promise<void> => {
   const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
   const parameters = data?.parameters
   const json = data?.json
@@ -79,8 +80,17 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         }
       }).then((r) => (json ? r.json() : r.text()))
 
+      const v1Errors = formatErrors(v1Response)
+
+      if (v1Errors.length) {
+        return res.status(500).send({ error: v1Errors.map(e => e.diagnostics!) })
+      }
       res.send(v1Response)
     } else {
+      const v2Errors = formatErrors(response)
+      if (v2Errors.length) {
+        return res.status(500).send({ error: v2Errors.map(e => e.diagnostics!) })
+      }
       res.send(response)
     }
   } catch (error: any) {

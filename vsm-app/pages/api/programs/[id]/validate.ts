@@ -2,77 +2,48 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from '@/fhirClients'
 import handler from '@/helpers/server/handler'
-// import { ErrorList, formatErrors } from './package'
-// import xmlParser from 'fast-xml-parser'
-// import xmlParser from 'libxmljs'
+import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
-const formatErrors = (opOutcome: fhir4.OperationOutcome) => {
-  return opOutcome?.issue?.filter(iss => iss.severity === 'fatal' || iss.severity === 'error') || []
+interface ErrorResponse {
+  error: string | string[]
 }
 
-// should take in data as json or XML... would be easier to only validate json
-const validatePackage = async (req: NextApiRequest, res: NextApiResponse<ErrorList | null>): Promise<void> => {
+// confirmed only need to validate JSON
+const validatePackage = async (req: NextApiRequest, res: NextApiResponse<[] | ErrorResponse>): Promise<void> => {
   try {
-    console.log('req.headers: ', req.headers)
-    // build body as xml or Json based on formatType
-    const { pkg, formatType } = req.body
-    console.log('pkg: ', pkg)
-
-    const pkgJson = JSON.stringify(pkg)
-
-    console.log('json: ', pkgJson)
+    const { pkg } = req.body
 
     const validateParameters = {
       resourceType: 'Parameters',
       parameter: [
         {
           name: 'resource',
-          // curly braces in interpolated items causing xml parser to fail (?)
-          // resource: removeBracesIfString(pkgToValidate)
           resource: pkg
         }
       ]
     }
 
-    const stringifiedParameters = JSON.stringify(validateParameters)
-    
+    // validate returns an OperationOutcome whether there are issues or not
+    // if it's successful, it just returns one informational issue (severity: information)
     const validateResponse = await fetch(`${fhirCdrClient.baseUrl}/$validate`, {
-      body: stringifiedParameters,
+      body: JSON.stringify(validateParameters),
       method: 'POST',
       headers: {
         'Accept': 'application/fhir+json',
-        'Content-Type': `application/fhir+${formatType}`,
+        'Content-Type': `application/fhir+json`,
         // should be Basic Auth creds
         ...fhirCdrClient.customHeaders
       }
-    }).then(x => {
-      return x.json()
-      console.log('x: ', x)
-      console.log(x.headers)
-      // formatType === 'json' ? x.json() : x.text()
-  })
-
-    // const response = await validateResponse.json()
-
-    // console.log('response: ', validateResponse.indexOf('{'))
-
-    if (formatType === 'json') {
-      console.log('validate response json:')
-      console.log(validateResponse)
-    } else {
-      console.log('validate response text:')
-      console.log(validateResponse)
-    }
-
+    }).then(x => x.json())
+  
     const breakingErrors = formatErrors(validateResponse)
 
-    return res.status(200).send(breakingErrors)
+    // validation failure does not break the workflow in the app
+    return res.status(200).send({ error: breakingErrors?.map(e => e.diagnostics!) || [] })
   } catch (e) {
-    console.log('error here in validate: ', e)
     logSimpleError(e)
-    return res.status(500).send({ error: 'error text'})
+    return res.status(500).send({ error: 'Resource validation failed' })
   }
-
 }
 
 // had to increase the size limit because the default 1mb was too small
@@ -83,7 +54,7 @@ export const config = {
       sizeLimit: '2mb',
     },
   },
-  // Specifies the maximum allowed duration for this function to execute (in seconds)
+  // specifies the maximum allowed duration for this function to execute (in seconds)
   maxDuration: 5,
 }
 
