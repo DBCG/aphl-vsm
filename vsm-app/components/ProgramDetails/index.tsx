@@ -31,6 +31,10 @@ const ProgramDetails = () => {
     setRefreshData(!refreshData)
   }
 
+  const handleCloseErrors = () => {
+    setExportError(null)
+  }
+
   useEffect(() => {
     // Set initial program
     if (is.library(programAndGrouperData?.program)) {
@@ -70,7 +74,7 @@ const ProgramDetails = () => {
   const { id = '', status, experimental } = program
   return (
     <Col>
-      {exportError && <ErrorMessage error={exportError} />}
+      {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors}/>}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
