@@ -21,7 +21,6 @@
     "@mui/x-date-pickers": "^6.7.0",
     "@types/lodash.clonedeep": "^4.5.7",
     "@types/lodash.uniqby": "^4.7.7",
-    "arraybuffer-xml-parser": "^0.6.0",
     "bull": "^4.10.3",
     "dayjs": "^1.11.10",
     "fast-xml-parser": "^4.3.4",
