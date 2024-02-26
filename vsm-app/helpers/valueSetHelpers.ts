@@ -1,7 +1,7 @@
 import set from 'lodash.set'
 import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
-import { grouperValueSetBase } from '../helpers/server/grouperValueSetBase'
+import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
