@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useState, useEffect } from 'react'
 import ClearIcon from '@mui/icons-material/Clear'
 import {
   Box,
@@ -16,8 +16,7 @@ import {
   RadioGroup,
   Input,
   InputLabel,
-  Tooltip,
-  TextField
+  Tooltip
 } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import LoadingButton from '@mui/lab/LoadingButton'
@@ -29,7 +28,79 @@ interface ModalInfo {
   isOpen: boolean
   program: fhir4.Library
   toggleModalOpen: () => void
-  setExportError: (error: string) => void
+  setExportError: (error: any) => void
+}
+
+interface BodyFormatter {
+  isJson: boolean
+  isV2: boolean
+  targetVersion: string | undefined
+  fileUploadContent: { content: fhir4.PlanDefinition } | undefined
+}
+
+interface PackageParams extends BodyFormatter {
+  programId: string
+}
+
+const packageProgram = async ({
+  isJson,
+  isV2,
+  targetVersion,
+  fileUploadContent,
+  programId
+}: PackageParams) => {
+  try {
+    const bodyForPackage = formatBody({
+      isJson,
+      isV2,
+      targetVersion,
+      fileUploadContent
+    })
+
+    return await fetch(`/api/programs/${programId}/package`, {
+      method: 'POST',
+      body: JSON.stringify(bodyForPackage)
+    }).then((res) => {
+      return isJson || !res.ok ? res.json() : res.text()
+    })
+  } catch (e) {
+    return({ error: ['Unknown error occured while packaging this program to export.'] })
+  }
+}
+
+const formatBody = ({
+  isJson,
+  isV2,
+  targetVersion,
+  fileUploadContent
+}: BodyFormatter): ExpectedPackageBody => {
+  const body = {
+    data: {
+      parameters: {
+        resourceType: 'Parameters'
+      },
+      json: isJson,
+      useV2: isV2
+    }
+  } as ExpectedPackageBody
+
+  if (!isV2 && fileUploadContent) {
+    body.planDefinition = fileUploadContent.content
+    body.targetVersion = targetVersion
+  }
+  return body
+}
+
+const validatePackage = async (pkgBundle: fhir4.Bundle) => {
+  try {
+    const body = { pkg: pkgBundle }
+    return await fetch(`/api/programs/validate`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    }).then((res) => res.json())
+  } catch (e) {
+    return({ error: 'Unknown error occured while validating this program.' })
+  }
 }
 
 const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError }: ModalInfo) => {
@@ -39,9 +110,24 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const [fileUploadContent, setFileUploadContent] = useState<undefined | { fileName: string; content: fhir4.PlanDefinition }>(undefined)
   const [targetVersion, setTargetVersion] = useState<string>('')
   const [inputError, setInputError] = useState<boolean>(false)
+
+  const handleResetState = () => {
+    setFileType('json')
+    setDownloadLoading(false)
+    setVersionRadioValue('v2')
+    setFileUploadContent(undefined)
+    setTargetVersion('')
+    setInputError(false)
+  }
+
+  useEffect(() => {
+    handleResetState()
+  }, [])
+
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
+    handleResetState()
   }
 
   const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`) => {
@@ -87,54 +173,72 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     })
   }
 
-  const handleDownload = async () => {
+  const handleExitExportModal = () => {
+    setDownloadLoading(false)
+    toggleModalOpen()
+    handleResetState()
+  }
+
+  const handleClickExport = async () => {
     setDownloadLoading(true)
-    const body: ExpectedPackageBody = {
-      data: {
-        parameters: {
-          resourceType: 'Parameters'
-        },
-        json: fileType === 'json',
-        useV2: versionRadioValue === 'v2'
-      }
+
+    const errorByTopic = {
+      'Package Errors': [] as string[] | string,
+      'Server Errors': [] as string[] | string,
+      'Download Errors': [] as string[] | string,
+      'Validation Errors': [] as string[] | string
     }
 
-    if (versionRadioValue === 'v1' && fileUploadContent) {
-      body.planDefinition = fileUploadContent.content
-      body.targetVersion = targetVersion
-    }
+    const packageResponse = await packageProgram({
+      isJson: fileType === 'json',
+      isV2: versionRadioValue === 'v2',
+      targetVersion,
+      fileUploadContent,
+      programId: program.id!
+    })
 
-    let data
-    try {
-      data = await fetch(`/api/programs/${program?.id}/package`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-      }).then((resp) => resp.text())
-    } catch (error) {
-      console.error(error)
-      setExportError('Error exporting artifact')
-      setDownloadLoading(false)
+    // early return if package fails will jump
+    if (packageResponse.error) {
+      errorByTopic['Package Errors'] = packageResponse.error
+      setExportError(errorByTopic)
+      handleExitExportModal()
       return
     }
 
-    try {
-      // if it's not JSON this will throw an error
-      JSON.parse(data)
-      // Download JSON
-      downloadTextData(data, 'application/fhir+json')
-    } catch (error) {
-      // all XML starts with <
-      if (data?.[0] === '<') {
-        // Download XML
-        downloadTextData(data, 'application/fhir+xml')
-      } else {
-        toast.error('Unable to parse $package response')
-        setExportError('Unable to parse $package response')
-      }
-    } finally {
-      toggleModalOpen()
-      setDownloadLoading(false)
+    const packageToValidate = fileType === 'json' ? packageResponse : await packageProgram({
+      isJson: true,
+      isV2: versionRadioValue === 'v2',
+      targetVersion,
+      fileUploadContent,
+      programId: program.id!
+    })
+
+    const validationResult = await validatePackage(packageToValidate)
+
+    // document validation errors
+    if (validationResult?.error?.length) {
+      const validationErrorStrings = validationResult.error
+      errorByTopic['Validation Errors'] = validationErrorStrings
     }
+
+    try {
+      if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
+        downloadTextData(packageResponse, 'application/fhir+xml')
+      } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
+        downloadTextData(JSON.stringify(packageResponse), 'application/fhir+json')
+      } else {
+        errorByTopic['Download Errors'] = `Could not download file in ${ fileType.toUpperCase() } format`
+      }
+
+      const errorsExist = Boolean(Object.values(errorByTopic).filter(e => (Boolean(e?.length))))
+      if (errorsExist) {
+        setExportError(errorByTopic)
+      }
+    } catch (error) {
+      errorByTopic['Download Errors'] = 'File download failed'
+      setExportError(errorByTopic)
+    }
+    handleExitExportModal()
   }
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +248,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   return (
-    <Dialog open={isOpen}>
+    <Dialog open={isOpen} onClose={handleResetState}>
       <ModalContent style={{ minWidth: '300px' }}>
         <DialogTitle sx={{ textAlign: 'left' }}>Export Options</DialogTitle>
         <DialogContent>
@@ -238,7 +342,12 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <LoadingButton loading={downloadLoading} disabled={downloadLoading} data-modal={'Download'} onClick={handleDownload}>
+          <LoadingButton
+            loading={downloadLoading}
+            disabled={(versionRadioValue === 'v1' && !fileUploadContent) || downloadLoading}
+            data-modal={'Download'}
+            onClick={handleClickExport}
+          >
             Download
           </LoadingButton>
         </DialogActions>

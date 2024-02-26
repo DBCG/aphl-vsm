@@ -1,5 +1,6 @@
 import { HapiError } from "@/types/hapiError"
-import { ErrorResponse } from "pages/api/programs/[id]/grouper/valueset"
+import { ErrorResponse } from 'pages/api/programs/[id]/grouper/valueset'
+import { HapiHttpErrorRes } from "./server/operationOutcomeHelpers"
 
 type SemverType = `${number}.${number}.${number}.${number}` | `${number}.${number}.${number}`
 // this regex is numeric only and matches MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH.REVISION
@@ -53,6 +54,14 @@ const is = {
       error?.response?.data?.resourceType === 'OperationOutcome' &&
       typeof error?.config?.method === 'string' &&
       typeof error?.config?.url === 'string'
+    )
+  },
+  hapiErrorHttpRes: (error: any): error is HapiHttpErrorRes => {
+    return (
+      typeof error?.timestamp === 'number' &&
+      typeof error?.status === 'number' &&
+      typeof error?.error === 'string' &&
+      typeof error?.path === 'string'
     )
   },
   library: (resource?: fhir4.Library | any): resource is fhir4.Library => {

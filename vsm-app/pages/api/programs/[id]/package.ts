@@ -3,6 +3,7 @@ import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
+import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
 export interface ExpectedPackageBody {
   data?: {
@@ -15,13 +16,13 @@ export interface ExpectedPackageBody {
 }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
-const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string }>): Promise<void> => {
+const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>): Promise<void> => {
   const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
   const parameters = data?.parameters
   const json = data?.json
-  const useV2 = data?.useV2
+  const useV1 = !data?.useV2
   try {
-    let format = json || !useV2 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
+    let format = json || useV1 ? 'json' : 'xml' // default to json for v1 as we need bundle to be used in v1 export
     const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${format}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
@@ -30,9 +31,9 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         // should be Basic Auth creds
         ...fhirCdrClient.customHeaders
       }
-    }).then((r) => (json || !useV2 ? r.json() : r.text()))
+    }).then((r) => (json || useV1 ? r.json() : r.text()))
 
-    if (!useV2) {
+    if (useV1) {
       format = json ? 'json' : 'xml' // reset to actual format for v1
       logger.info('Generating v2 to v1 transform for download')
 
@@ -79,8 +80,17 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         }
       }).then((r) => (json ? r.json() : r.text()))
 
+      const v1Errors = formatErrors(v1Response)
+
+      if (v1Errors.length) {
+        return res.status(500).send({ error: v1Errors.map(e => e.diagnostics!) })
+      }
       res.send(v1Response)
     } else {
+      const v2Errors = formatErrors(response)
+      if (v2Errors.length) {
+        return res.status(500).send({ error: v2Errors.map(e => e.diagnostics!) })
+      }
       res.send(response)
     }
   } catch (error: any) {

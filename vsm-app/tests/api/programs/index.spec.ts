@@ -6,7 +6,7 @@ jest.mock('fhirClients')
 
 describe('/api/programs', () => {
 
-  test('returns all the progrmas', async () => {
+  test('returns all the programs', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 
     fhirCdrClient.search = jest.fn().mockImplementation(() => ({
