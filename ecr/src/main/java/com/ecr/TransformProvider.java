@@ -162,7 +162,7 @@ public class TransformProvider implements OperationProvider {
 						}
 
 						// Save the resource into entry bundle
-//						bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet"));
+						bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet"));
 						break;
 					case Library:
 						Library library = (Library) resource;
