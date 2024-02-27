@@ -32,7 +32,6 @@ const validatePackage = async (
       options: {
         headers: {
           'Content-Type': `application/fhir+json`,
-          // ...fhirCdrClient.customHeaders
         }
       }
     })
