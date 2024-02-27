@@ -1,4 +1,4 @@
-const provisionalVsBase = {
+export const provisionalVsBase = {
   resourceType: 'ValueSet',
   experimental: true,
   status: 'active',
@@ -17,6 +17,10 @@ const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
+    },
+    {
+      url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
+      valueUri: process.env.FHIR_CDR_URL
     }
   ],
   useContext: [
