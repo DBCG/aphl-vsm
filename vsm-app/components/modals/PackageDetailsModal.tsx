@@ -344,7 +344,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           </Button>
           <LoadingButton
             loading={downloadLoading}
-            disabled={(versionRadioValue === 'v1' && !fileUploadContent) || downloadLoading}
+            disabled={downloadLoading}
             data-modal={'Download'}
             onClick={handleClickExport}
           >
