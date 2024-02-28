@@ -185,7 +185,7 @@ export const fetchByCanonical = async ({ client, resourceType, canonical, whitel
   if (status) {
     searchParams.status = status
   }
-  if (whitelistFields && !client.baseUrl.includes('vsac')) {
+  if (whitelistFields && !client.baseUrl.includes('cts.nlm')) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
   try {
