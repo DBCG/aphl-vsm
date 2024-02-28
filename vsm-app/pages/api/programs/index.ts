@@ -50,7 +50,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       queries['_count'] = req.query['count'] as string
     }
 
-    const searchResult = await fhirCdrClient.search({
+    const libSearchResult = await fhirCdrClient.search({
       resourceType: 'Library',
       options: {
         headers: {
@@ -61,22 +61,31 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         context: 'program',
         _sort: ['-_lastUpdated'],
         _total: 'accurate',
-        ...(!req.query['list'] && {['_revinclude:iterate']: 'Basic:artifact'}),
         ...queries
       }
     }) as fhir4.Bundle
 
-    if (searchResult.entry) {
-      const resources = searchResult?.entry?.map((e) => e?.resource)
-      const programs = resources?.filter(is.library)
-      const assessments = resources?.filter(is.basic)
-      return res.status(200).send({ programs, total: searchResult?.total, assessments })
+    const asstSearchResult = await fhirCdrClient.search({
+      resourceType: 'Basic',
+      options: {
+        headers: {
+          'Cache-control': 'no-cache, no-store, must-revalidate'
+        }
+      }
+    }) as fhir4.Bundle
+
+    if (libSearchResult.entry) {
+      const libResources = libSearchResult?.entry?.map((e) => e?.resource)
+      const asstResources = asstSearchResult?.entry?.map((e) => e?.resource)
+      const programs = libResources?.filter(is.library)
+      const assessments = asstResources?.filter(is.basic)
+      return res.status(200).send({ programs, total: libSearchResult?.total, assessments })
     } else {
       // do not error out if version doesn't exist, it's just not found
       if (req.query.version) {
         return res.status(204).send({})
       } else {
-        logger.error(searchResult)
+        logger.error(libSearchResult)
         return res.status(404).send({ programs: [], assessments: [] })
       }
     }

@@ -34,7 +34,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
       input: parameters
     })) as fhir4.Library
 
-    res.send(response)
+    res.status(200).send(response)
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
