@@ -1,7 +1,7 @@
 export const provisionalVsBase = {
   resourceType: 'ValueSet',
   experimental: true,
-  status: 'active',
+  status: 'draft',
   meta: {
     profile: ['http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset']
   },
@@ -17,10 +17,6 @@ export const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
-    },
-    {
-      url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
-      valueUri: process.env.FHIR_CDR_URL
     }
   ],
   useContext: [
@@ -47,7 +43,7 @@ export const provisionalVsBase = {
         coding: [
           {
             system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-            code: 'routine'
+            code: 'emergent'
           }
         ]
       }

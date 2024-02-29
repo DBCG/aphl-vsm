@@ -8,7 +8,7 @@ interface CodeItem {
   display: string
 }
 
-type CodesBySystem = Record<string, CodeItem[]>
+export type CodesBySystem = Record<string, CodeItem[]>
 
 export const addValueSetCodes = (vs: fhir4.ValueSet, codesBySystemToAdd: CodesBySystem) => {
   const clonedVs = cloneDeep(vs)
@@ -43,26 +43,27 @@ export const addValueSetCodes = (vs: fhir4.ValueSet, codesBySystemToAdd: CodesBy
 
 interface UpdateVsMetadata {
   vsToUpdate: fhir4.ValueSet
-  title: string | undefined
-  author: string | undefined
-  steward: string | undefined
+  titleToUpdate: string | undefined
+  authorToUpdate: string | undefined
+  stewardToUpdate: string | undefined
 }
 
-const updateVsMetadata = ({
+export const updateVsMetadata = ({
   vsToUpdate,
-  author,
-  steward,
-  title,
-}: UpdateVsMetadata) => {
+  authorToUpdate,
+  stewardToUpdate,
+  titleToUpdate,
+}: UpdateVsMetadata): fhir4.ValueSet => {
+
   const clonedVs = cloneDeep(vsToUpdate)
-  if ((author || steward) && !clonedVs?.extension) {
+  if ((authorToUpdate || stewardToUpdate) && !clonedVs?.extension) {
     clonedVs.extension = []
   }
 
   let extensionsToUpdate = cloneDeep(clonedVs.extension) as fhir4.Extension[]
-  const authorToAdd = (typeof author === 'string' && author.trim().length) ? author.trim() : null
-  const stewardToAdd = (typeof steward === 'string' && steward.trim().length) ? steward.trim() : null
-  const titleToAdd = (typeof title === 'string' && title.trim().length) ? title.trim() : null
+  const authorToAdd = (typeof authorToUpdate === 'string' && authorToUpdate.trim().length) ? authorToUpdate.trim() : null
+  const stewardToAdd = (typeof stewardToUpdate === 'string' && stewardToUpdate.trim().length) ? stewardToUpdate.trim() : null
+  const titleToAdd = (typeof titleToUpdate === 'string' && titleToUpdate.trim().length) ? titleToUpdate.trim() : null
 
   // update Author
   if (authorToAdd) {
@@ -99,12 +100,51 @@ const updateVsMetadata = ({
       clonedVs.name = name
       // if url doesn't already exist (happens with brand new valueset), add it
       if (!clonedVs.url) {
-        clonedVs.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${name}`
+        clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
       }
     }
-  } 
+  }
+
+  // have to wait to create trusted-expansion extension until the ValueSet's name exists
+  const trustedExpansionExtension = {
+    url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
+    valueUri: `${process.env.FHIR_CDR_URL}/ValueSet/${clonedVs.name}`
+  } as fhir4.Extension
+
+  const trustedExpansionIdx = extensionsToUpdate?.findIndex(ext => ext.url.endsWith('/valueset-trusted-expansion'))
+  if (trustedExpansionIdx === -1) {
+    extensionsToUpdate.push(trustedExpansionExtension)
+  }
+
+  clonedVs.extension = extensionsToUpdate
+  return clonedVs
 }
 
-const generateProvisionalVs = () => {
+// codes and title are required
+interface CreateProvisionalVs {
+  codesBySystemToAdd: CodesBySystem
+  titleToUpdate: string
+  authorToUpdate: string | undefined
+  stewardToUpdate: string | undefined
+}
 
+// the function to generate a provisional valueset for the first time
+// it is separate from the update function because more things are required as specific input
+export const generateProvisionalVs = ({
+  authorToUpdate,
+  stewardToUpdate,
+  titleToUpdate,
+  codesBySystemToAdd
+}: CreateProvisionalVs): fhir4.ValueSet | null => {
+  // cannot continue without these params
+  if (!titleToUpdate || !codesBySystemToAdd) {
+    return null
+  }
+
+  let clonedVs = cloneDeep(provisionalVsBase)
+  // add metadata and codes
+  clonedVs = updateVsMetadata({ vsToUpdate: clonedVs, authorToUpdate, stewardToUpdate, titleToUpdate })
+  clonedVs = addValueSetCodes(clonedVs, codesBySystemToAdd)
+  
+  return clonedVs
 }
