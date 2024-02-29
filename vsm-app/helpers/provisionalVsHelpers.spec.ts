@@ -157,10 +157,10 @@ describe('updateVsMetadata', () => {
     expect(result?.title).toBe('updated title')
     
     // name created
-    expect(result?.name).toBe('Updated_title')
+    expect(result?.name).toBe('UpdatedTitle')
 
     // url created
-    expect(result?.url).toContain('/fhir/ValueSet/Updated_title')
+    expect(result?.url).toContain('/fhir/ValueSet/UpdatedTitle')
   })
 
   it('overrides fields when they are already existing', () => {
