@@ -105,17 +105,6 @@ export const updateVsMetadata = ({
     }
   }
 
-  // have to wait to create trusted-expansion extension until the ValueSet's name exists
-  const trustedExpansionExtension = {
-    url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
-    valueUri: `${process.env.FHIR_CDR_URL}/ValueSet/${clonedVs.name}`
-  } as fhir4.Extension
-
-  const trustedExpansionIdx = extensionsToUpdate?.findIndex(ext => ext.url.endsWith('/valueset-trusted-expansion'))
-  if (trustedExpansionIdx === -1) {
-    extensionsToUpdate.push(trustedExpansionExtension)
-  }
-
   clonedVs.extension = extensionsToUpdate
   return clonedVs
 }

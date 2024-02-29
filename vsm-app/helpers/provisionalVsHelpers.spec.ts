@@ -25,10 +25,6 @@ const TEST_VS_WITH_EXTENSIONS = {
       valueContactDetail: {
         name: 'old author'
       }
-    },
-    {
-      url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
-      valueUri: `${process.env.FHIR_CDR_URL}/ValueSet/Old_title`
     }
   ]
 } as fhir4.ValueSet
@@ -137,7 +133,7 @@ describe('updateVsMetadata', () => {
     })
 
     // correct number of extensions
-    expect(result?.extension?.length).toBe(3)
+    expect(result?.extension).toHaveLength(2)
     // author extension is set
     expect(
       result?.extension?.find(x => x?.url?.endsWith('valueset-author'))
@@ -155,14 +151,6 @@ describe('updateVsMetadata', () => {
       valueContactDetail: {
         name: 'updated steward'
       }
-    })
-
-    // trusted expansion is set
-    expect(
-      result?.extension?.find(x => x?.url?.endsWith('trusted-expansion'))
-    ).toStrictEqual({
-      url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
-      valueUri: `${process.env.FHIR_CDR_URL}/ValueSet/Updated_title`
     })
 
     // title set
@@ -208,12 +196,6 @@ describe('updateVsMetadata', () => {
     // changing title at that point only changes the title field
     expect(result?.title).toBe('updated title')
     expect(result?.name).toBe('Old_title')
-    expect(
-      result?.extension?.find(x => x?.url?.endsWith('trusted-expansion'))
-    ).toStrictEqual({
-      url: 'http://hl7.org/fhir/StructureDefinition/valueset-trusted-expansion',
-      valueUri: `${process.env.FHIR_CDR_URL}/ValueSet/Old_title`
-    })
   })
 })
 
@@ -253,7 +235,7 @@ describe('generateProvisionalVs', () => {
       stewardToUpdate
     })
 
-    expect(result?.extension?.length).toBe(3)
+    expect(result?.extension).toHaveLength(2)
     // existing base provisional resource info should exist
     expect(result?.resourceType).toBe('ValueSet')
     expect(result?.status).toBe('draft')
