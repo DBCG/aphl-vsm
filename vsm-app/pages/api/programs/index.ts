@@ -3,7 +3,6 @@ import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
-import { HapiError } from '@/types/hapiError'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 interface Query {
@@ -21,11 +20,8 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-const PROGRAM_LIST_ELEMENTS = ['id', 'name', 'description', 'status', 'approvalDate', 'experimental', 'title', 'version', 'publisher']
-
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
-    // should program status only be draft here? or also active?
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
     if (req.query['id']) {
@@ -78,7 +74,16 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       const libResources = libSearchResult?.entry?.map((e) => e?.resource)
       const asstResources = asstSearchResult?.entry?.map((e) => e?.resource)
       const programs = libResources?.filter(is.library)
-      const assessments = asstResources?.filter(is.basic)
+      let assessments = asstResources?.filter(is.basic)
+      if(req.query['id']) {
+        assessments = assessments
+          ?.filter(
+            a => a?.extension?.find((ext) => (
+              ext?.url?.endsWith('/crmi-artifactAssessmentArtifact')
+              && ext?.valueReference?.reference?.split('/')?.[1] === req.query['id']
+            ))
+          ) || []
+      }
       return res.status(200).send({ programs, total: libSearchResult?.total, assessments })
     } else {
       // do not error out if version doesn't exist, it's just not found
