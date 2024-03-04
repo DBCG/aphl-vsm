@@ -2,6 +2,7 @@ import cloneDeep from 'lodash.clonedeep'
 import uniqBy from 'lodash.uniqby'
 import { provisionalVsBase } from './server/templates/provisionalVsBase'
 import { generateNameFromTitle } from './stringHelpers'
+import { authoritativeSourceExtensionUrl } from './valueSetHelpers'
 
 interface CodeItem {
   code: string
@@ -102,6 +103,16 @@ export const updateVsMetadata = ({
       if (!clonedVs.url) {
         clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
       }
+
+      const authSourceExists = clonedVs.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
+      // add authoritative source if it doesn't exist
+      // needed to wait for this until URL was generated
+      if (!authSourceExists) {
+        extensionsToUpdate.push({
+          url: authoritativeSourceExtensionUrl,
+          valueUri: clonedVs.url
+        })
+      }
     }
   }
 
@@ -110,7 +121,7 @@ export const updateVsMetadata = ({
 }
 
 // codes and title are required
-interface CreateProvisionalVs {
+export interface CreateProvisionalVs {
   codesBySystemToAdd: CodesBySystem
   titleToUpdate: string
   authorToUpdate: string | undefined

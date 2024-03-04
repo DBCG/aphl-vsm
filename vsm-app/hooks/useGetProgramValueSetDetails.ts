@@ -54,6 +54,7 @@ interface Args {
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
   toggleUpdateData?: boolean
+  provisionalOnly: boolean
 }
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({
@@ -70,7 +71,8 @@ const useGetProgramValueSetDetails = ({
   updatedGrouperValueSets,
   updatedGrouper,
   versionToUpdate,
-  toggleUpdateData
+  toggleUpdateData,
+  provisionalOnly = false
 }: Args): Result | {} => {
   const [data, setData] = useState<Result>({})
   const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
@@ -108,6 +110,10 @@ const useGetProgramValueSetDetails = ({
       }
 
       if (updatedGrouperValueSets?.length) {
+        queries.push('useCache=false')
+      }
+
+      if (provisionalOnly === true) {
         queries.push('useCache=false')
       }
 

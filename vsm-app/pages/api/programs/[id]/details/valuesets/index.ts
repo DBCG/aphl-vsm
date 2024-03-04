@@ -102,6 +102,7 @@ interface GetLeafs {
   stewardToFind: string
   versionToFind: string
   oidToFind: string
+  provisionalOnly?: boolean
 }
 
 type LeafVersionsByUrl = Record<string, string>
@@ -117,7 +118,8 @@ const getLeafValueSets = async ({
   titleToFind,
   stewardToFind,
   versionToFind,
-  oidToFind
+  oidToFind,
+  provisionalOnly
 }: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
@@ -143,7 +145,8 @@ const getLeafValueSets = async ({
     stewardToFind,
     versionToFind,
     oidToFind,
-    whitelistFields: WHITELIST_VALUESET_FIELDS
+    whitelistFields: WHITELIST_VALUESET_FIELDS,
+    provisionalOnly
   })
 
   if (!leafValueSets?.length) {
@@ -283,6 +286,7 @@ type ExtendedReq = NextApiRequest & {
     findInVersion?: string
     groups?: string
     conditions?: string
+    provisionalOnly?: boolean
   }
 }
 
@@ -294,6 +298,7 @@ type RequestQueryParams = {
   findInVersion?: string
   groups?: string
   conditions?: string
+  provisionalOnly?: boolean
 }
 
 // TODO: maybe move this out of the route?
@@ -304,7 +309,8 @@ export const getProgramDetailsValuesets = async ({
   findInVersion,
   findInVsTitle,
   groups,
-  conditions
+  conditions,
+  provisionalOnly
 }: RequestQueryParams) => {
   try {
     const program = await getProgram(programId)
@@ -334,7 +340,8 @@ export const getProgramDetailsValuesets = async ({
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
       versionToFind: findInVersion || '',
-      titleToFind: findInVsTitle || ''
+      titleToFind: findInVsTitle || '',
+      provisionalOnly: Boolean(provisionalOnly)
     })
 
     if (isError(leafVsetResponse)) {

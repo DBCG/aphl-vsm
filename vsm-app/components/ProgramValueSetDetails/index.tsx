@@ -725,12 +725,20 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         </FlexRow>
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {isEditable && (
-            <Button
-              id="add-valueset"
-              text="Add Valuesets"
-              style={{ minHeight: '40px', minWidth: '150px' }}
-              onClick={() => router.push(`${router.asPath}/search`)}
-            />
+            <>
+              <Button
+                id="add-valueset"
+                text="Add Valuesets from Terminology Server"
+                style={{ minHeight: '40px', minWidth: '150px' }}
+                onClick={() => router.push(`${router.asPath}/search`)}
+              />
+              <Button
+                id="add-valueset"
+                text="Add/Edit Provisional Valuesets"
+                style={{ minHeight: '40px', minWidth: '150px' }}
+                onClick={() => router.push(`${router.asPath}/provisional`)}
+              />
+            </>
           )}
           {updateVSetsButton}
         </Col>
