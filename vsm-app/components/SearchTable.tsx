@@ -156,6 +156,7 @@ const SearchTable = ({
       ),
       selector: (row: TableData) => row.version!,
       sortable: false,
+      omit: tableContext === 'search-page',
       wrap: true,
       maxWidth: '10rem'
     },
