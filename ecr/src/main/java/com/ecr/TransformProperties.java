@@ -9,7 +9,7 @@ import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 @ConfigurationProperties(prefix = "transform")
 public class TransformProperties implements DaoRegistryUser {
   @Autowired
-	private DaoRegistry myDaoRegistry;
+  private DaoRegistry myDaoRegistry;
 
   public static final String usPHTriggeringVSProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset";
   public static final String usPHTriggeringVSLibProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library";
@@ -24,9 +24,12 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String crmiManifestLibrary = "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-manifestlibrary";
   public static final String crmiIsOwned = "http://hl7.org/fhir/StructureDefinition/crmi-isOwned";
   public static final String vsmCondition = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
-	public static final String vsmPriority = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
+  public static final String vsmPriority = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
+  public static final String authoritativeSourceExtUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";
+  public static final String vsacUrl = "https://cts.nlm.nih.gov/fhir";
+
 
   public DaoRegistry getDaoRegistry() {
-		return myDaoRegistry;
-	}
+    return myDaoRegistry;
+  }
 }

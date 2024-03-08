@@ -1,0 +1,256 @@
+package com.ecr;
+
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.MetadataResource;
+import org.hl7.fhir.r4.model.PlanDefinition;
+import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.UsageContext;
+import org.hl7.fhir.r4.model.ValueSet;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public class ImportBundleProducer {
+
+
+	/**
+	 * Determines whether a given ValueSet is a grouper
+	 * @param resource
+	 * @return
+	 */
+	public static boolean isGrouper(MetadataResource resource) {
+		return resource.getResourceType() == ResourceType.ValueSet
+			&& ((ValueSet) resource).hasCompose()
+			&& ((ValueSet) resource).getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+	}
+
+	public static boolean isRootSpecificationLibrary(Resource resource) {
+		return resource.hasMeta() && resource.getMeta().hasProfile(TransformProperties.usPHSpecLibProfile);
+	}
+
+	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties) throws FhirResourceExists {
+		// store for processing root library
+		HashMap<String, ArrayList<CodeableConcept>> conditionsMap = new HashMap<>();
+		HashMap<String, ArrayList<CodeableConcept>> priorityMap = new HashMap<>();
+		List<String> groupers = new ArrayList<>();
+
+		AtomicReference<PlanDefinition> planDefinition = new AtomicReference<>();
+		AtomicReference<Library> rootLibrary = new AtomicReference<>();
+		AtomicReference<Library> rctcLibrary = new AtomicReference<>();
+
+		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
+		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
+		for (int i = 0; i < entries.size() - 1; i++) {
+			Bundle.BundleEntryComponent entry = entries.get(i);
+			if (entry.getResource() instanceof MetadataResource) {
+				MetadataResource resource = (MetadataResource) entry.getResource();
+
+				switch (resource.getResourceType()) {
+					case ValueSet:
+						ValueSet valueSet = (ValueSet) resource;
+						String pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
+						if (isGrouper(resource)) {
+							groupers.add(pinnedVersionKey);
+						} else {
+							List<UsageContext> cleanedContext = valueSet.getUseContext().stream().filter(context -> {
+								if (context.hasCode()) {
+									String code = context.getCode().getCode();
+									if (code.equals("focus")) {
+										if (conditionsMap.containsKey(pinnedVersionKey)) {
+											ArrayList<CodeableConcept> conditions = conditionsMap.get(pinnedVersionKey);
+											conditions.add(context.getValueCodeableConcept());
+										} else {
+											conditionsMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+										}
+										return false;
+									} else if (code.equals("priority")) {
+										if (priorityMap.containsKey(pinnedVersionKey)) {
+											ArrayList<CodeableConcept> conditions = priorityMap.get(pinnedVersionKey);
+											conditions.add(context.getValueCodeableConcept());
+										} else {
+											priorityMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+										}
+										return false;
+									}
+								}
+								return true;
+							}).collect(Collectors.toList());
+							valueSet.setUseContext(cleanedContext);
+
+							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
+								Extension ext = new Extension();
+								ext.setUrl(TransformProperties.authoritativeSourceExtUrl);
+								ext.setValue(new UriType(TransformProperties.vsacUrl));
+								valueSet.getExtension().add(ext);
+							}
+						}
+
+						// Check if ValueSet already exists
+						if (!doesResourceExist(valueSet.getIdElement(), transformProperties)) {
+							// Save the resource into entry bundle
+							bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet", valueSet.getIdPart()));
+						}
+						break;
+					case Library:
+						Library library = (Library) resource;
+						if (doesResourceExist(library.getIdElement(), transformProperties)) {
+							throw new FhirResourceExists("Library", library.getIdPart());
+						} else {
+							if (isRootSpecificationLibrary(resource)) {
+								rootLibrary.set(library);
+							} else {
+								rctcLibrary.set(library);
+							}
+						}
+						break;
+					case PlanDefinition:
+						PlanDefinition planDef = (PlanDefinition) resource;
+						planDefinition.set(planDef);
+				}
+			}
+		}
+
+		prepareRootLibrary(
+			conditionsMap,
+			priorityMap,
+			planDefinition.get(),
+			rctcLibrary.get(),
+			groupers,
+			rootLibrary
+		);
+
+		bundleEntries.add(getPutResourceRequest(rootLibrary.get(), "/Library", rootLibrary.get().getIdPart()));
+		bundleEntries.add(getPutResourceRequest(rctcLibrary.get(), "/Library", rctcLibrary.get().getIdPart()));
+		bundleEntries.add(getPutResourceRequest(planDefinition.get(), "/PlanDefinition", planDefinition.get().getIdPart()));
+		return bundleEntries;
+	}
+
+	private static boolean doesResourceExist(IdType idType, TransformProperties transformProperties) {
+		try {
+			transformProperties.read(idType);
+			return true;
+		} catch(Exception e) {
+			return false;
+		}
+	}
+
+
+	private static Bundle.BundleEntryComponent getPutResourceRequest(MetadataResource value, String resourceType, String id) {
+		Bundle.BundleEntryComponent bundleEntry = new Bundle.BundleEntryComponent();
+
+		Bundle.BundleEntryRequestComponent bundleRequest = new Bundle.BundleEntryRequestComponent();
+		bundleRequest.setMethod(Bundle.HTTPVerb.PUT);
+		bundleRequest.setUrl(resourceType + "?_id=" + id);
+		bundleEntry.setRequest(bundleRequest);
+		bundleEntry.setResource(value);
+		bundleEntry.setFullUrl(value.getUrl());
+		return bundleEntry;
+	}
+
+	private static void prepareRootLibrary(
+		HashMap<String, ArrayList<CodeableConcept>> conditionsMap,
+		HashMap<String, ArrayList<CodeableConcept>> priorityMap,
+		PlanDefinition planDefinition,
+		Library rctcLibrary,
+		List<String> groupers,
+		AtomicReference<Library> rootLibrary
+	) {
+		List<CanonicalType> profiles = rootLibrary.get().getMeta().getProfile();
+
+		// Add to profile and ensure not duplicated
+		profiles.add(new CanonicalType(TransformProperties.crmiManifestLibrary));
+		profiles = profiles.stream()
+			.filter(distinctByKey(CanonicalType::getValueAsString))
+			.collect(Collectors.toList());
+		rootLibrary.get().getMeta().setProfile(profiles);
+
+		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
+
+		groupers.forEach(grouper -> {
+			RelatedArtifact relatedArtifact = new RelatedArtifact();
+			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+			relatedArtifact.setResource(grouper);
+			relatedArtifacts.add(relatedArtifact);
+		});
+
+		// Set PlanDefinition
+		RelatedArtifact relatedArtifact = new RelatedArtifact();
+		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
+		Extension extension = new Extension();
+		extension.setUrl(TransformProperties.crmiIsOwned);
+
+		extension.setValue( new BooleanType(true));
+		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
+		relatedArtifacts.add(relatedArtifact);
+
+		relatedArtifact = new RelatedArtifact();
+		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
+		relatedArtifacts.add(relatedArtifact);
+
+		// Set rctc Library
+		relatedArtifact = new RelatedArtifact();
+		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
+		extension = new Extension();
+		extension.setUrl(TransformProperties.crmiIsOwned);
+
+		extension.setValue( new BooleanType(true));
+		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
+		relatedArtifacts.add(relatedArtifact);
+
+		relatedArtifact = new RelatedArtifact();
+		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
+		relatedArtifacts.add(relatedArtifact);
+
+		processCodeableConceptMapForLibrary(conditionsMap, TransformProperties.vsmCondition, relatedArtifacts);
+		processCodeableConceptMapForLibrary(priorityMap, TransformProperties.vsmPriority, relatedArtifacts);
+		rootLibrary.get().setRelatedArtifact(relatedArtifacts);
+	}
+
+	private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+		Set<Object> seen = new HashSet<>();
+		return t -> seen.add(keyExtractor.apply(t));
+	}
+
+	private static void processCodeableConceptMapForLibrary(HashMap<String, ArrayList<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
+		for (Map.Entry<String, ArrayList<CodeableConcept>> entry : targetedMap.entrySet()) {
+			String k = entry.getKey();
+			ArrayList<CodeableConcept> v = entry.getValue();
+			List<Extension> extensions = new ArrayList<>();
+			v.forEach(codeableConcept -> {
+				Extension extension = new Extension();
+				extension.setUrl(extensionUrl);
+				extension.setValue(codeableConcept);
+				extensions.add(extension);
+			});
+
+			RelatedArtifact relatedArtifact = new RelatedArtifact();
+			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+			relatedArtifact.setResource(k);
+			relatedArtifact.setExtension(extensions);
+
+			relatedArtifacts.add(relatedArtifact);
+		}
+	}
+}

@@ -1,40 +1,36 @@
 package com.ecr;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
+import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.api.server.RequestDetails;
+import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IIdType;
-import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.PlanDefinition;
 import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.RelatedArtifact;
-import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.opencds.cqf.ruler.api.OperationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.api.server.RequestDetails;
-import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.ecr.ImportBundleProducer.isGrouper;
+import static com.ecr.ImportBundleProducer.isRootSpecificationLibrary;
+import static com.ecr.ImportBundleProducer.transformImportBundle;
 
 public class TransformProvider implements OperationProvider {
 	@Autowired
@@ -103,9 +99,9 @@ public class TransformProvider implements OperationProvider {
 
 	@Description(shortDefinition = "Imports a v2 ERSD bundle", value = "Imports a v2 ERSD bundle")
 	@Operation(idempotent = true, name = "$ersd-v2-import")
-	public Bundle importReportSpec(
+	public OperationOutcome importReportSpec(
 		RequestDetails requestDetails,
-		@OperationParam(name = "bundle") IBaseResource maybeBundle) throws UnprocessableEntityException {
+		@OperationParam(name = "bundle") IBaseResource maybeBundle) throws UnprocessableEntityException, FhirResourceExists {
 		if (maybeBundle == null) {
 			throw new UnprocessableEntityException("Resource is missing");
 		}
@@ -113,206 +109,25 @@ public class TransformProvider implements OperationProvider {
 			throw new UnprocessableEntityException("Resource is not a bundle");
 		}
 		Bundle v2Bundle = (Bundle) maybeBundle;
+		List<Bundle.BundleEntryComponent> importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties);
 
-		// store for processing root library
-		HashMap<String, ArrayList<CodeableConcept>> conditionsMap = new HashMap<>();
-		HashMap<String, ArrayList<CodeableConcept>> priorityMap = new HashMap<>();
-		List<String> groupers = new ArrayList<>();
+		new Thread(() -> {
+			executeImportTransactionBundle(importTxBundleEntries);
+		}).start();
+		OperationOutcome response = new OperationOutcome();
+		OperationOutcome.OperationOutcomeIssueComponent issue = new OperationOutcome.OperationOutcomeIssueComponent();
+		issue.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
+		issue.setCode(OperationOutcome.IssueType.PROCESSING);
 
-		AtomicReference<PlanDefinition> planDefinition = new AtomicReference<>();
-		AtomicReference<Library> rootLibrary = new AtomicReference<>();
-		AtomicReference<Library> rctcLibrary = new AtomicReference<>();
-
-		List<BundleEntryComponent> bundleEntries = new ArrayList<>();
-		v2Bundle.getEntry().forEach(entry -> {
-			if (entry.getResource() instanceof MetadataResource) {
-				MetadataResource resource = (MetadataResource) entry.getResource();
-
-				switch (resource.getResourceType()) {
-					case ValueSet:
-						ValueSet valueSet = (ValueSet) resource;
-						String pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-						if (isGrouper(resource)) {
-							groupers.add(pinnedVersionKey);
-						} else {
-							List<UsageContext> cleanedContext = valueSet.getUseContext().stream().filter(context -> {
-								if (context.hasCode()) {
-									String code = context.getCode().getCode();
-									if (code.equals("focus")) {
-										if (conditionsMap.containsKey(pinnedVersionKey)) {
-											ArrayList<CodeableConcept> conditions = conditionsMap.get(pinnedVersionKey);
-											conditions.add(context.getValueCodeableConcept());
-										} else {
-											conditionsMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-										}
-										return false;
-									} else if (code.equals("priority")) {
-										if (priorityMap.containsKey(pinnedVersionKey)) {
-											ArrayList<CodeableConcept> conditions = priorityMap.get(pinnedVersionKey);
-											conditions.add(context.getValueCodeableConcept());
-										} else {
-											priorityMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-										}
-										return false;
-									}
-								}
-								return true;
-							}).collect(Collectors.toList());
-							valueSet.setUseContext(cleanedContext);
-						}
-
-						// Save the resource into entry bundle
-						bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet"));
-						break;
-					case Library:
-						Library library = (Library) resource;
-						if (!library.getUrl().contains("rctc")) {
-							rootLibrary.set(library);
-						} else {
-							rctcLibrary.set(library);
-						}
-						break;
-					case PlanDefinition:
-						PlanDefinition planDef = (PlanDefinition) resource;
-						planDefinition.set(planDef);
-				}
-			}
-		});
-
-		prepareRootLibrary(
-			conditionsMap,
-			priorityMap,
-			planDefinition.get(),
-			rctcLibrary.get(),
-			groupers,
-			rootLibrary
-		);
-
-		bundleEntries.add(getPutResourceRequest(rootLibrary.get(), "/Library"));
-		bundleEntries.add(getPutResourceRequest(rctcLibrary.get(), "/Library"));
-		bundleEntries.add(getPutResourceRequest(planDefinition.get(), "/PlanDefinition"));
-		return saveImportTransactionBundle(bundleEntries);
+		response.addIssue(issue);
+		return response;
 	}
 
-	private BundleEntryComponent getPutResourceRequest(MetadataResource value, String resourceType) {
-		BundleEntryComponent bundleEntry = new BundleEntryComponent();
-
-		Bundle.BundleEntryRequestComponent bundleRequest = new Bundle.BundleEntryRequestComponent();
-		bundleRequest.setMethod(Bundle.HTTPVerb.POST);
-		bundleRequest.setUrl(resourceType);
-		bundleEntry.setRequest(bundleRequest);
-		bundleEntry.setResource(value);
-		bundleEntry.setFullUrl(value.getUrl());
-		return bundleEntry;
-	}
-
-	private void prepareRootLibrary(
-		HashMap<String, ArrayList<CodeableConcept>> conditionsMap,
-		HashMap<String, ArrayList<CodeableConcept>> priorityMap,
-		PlanDefinition planDefinition,
-		Library rctcLibrary,
-		List<String> groupers,
-		AtomicReference<Library> rootLibrary
-	) {
-		List<CanonicalType> profiles = rootLibrary.get().getMeta().getProfile();
-
-		// Add to profile and ensure unique
-		profiles.add(new CanonicalType(TransformProperties.crmiManifestLibrary));
-		profiles = profiles.stream()
-			.filter(distinctByKey(CanonicalType::getValueAsString))
-			.collect(Collectors.toList());
-		rootLibrary.get().getMeta().setProfile(profiles);
-
-		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
-
-		groupers.forEach(grouper -> {
-			RelatedArtifact relatedArtifact = new RelatedArtifact();
-			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-			relatedArtifact.setResource(grouper);
-			relatedArtifacts.add(relatedArtifact);
-		});
-
-		// Set PlanDefinition
-		RelatedArtifact relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
-		Extension extension = new Extension();
-		extension.setUrl(TransformProperties.crmiIsOwned);
-
-		extension.setValue( new BooleanType(true));
-		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
-		relatedArtifacts.add(relatedArtifact);
-
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
-		relatedArtifacts.add(relatedArtifact);
-
-		// Set RCTC Library
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
-		extension = new Extension();
-		extension.setUrl(TransformProperties.crmiIsOwned);
-
-		extension.setValue( new BooleanType(true));
-		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
-		relatedArtifacts.add(relatedArtifact);
-
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
-		relatedArtifacts.add(relatedArtifact);
-
-		processCodeableConceptMapForLibrary(conditionsMap, TransformProperties.vsmCondition, relatedArtifacts);
-		processCodeableConceptMapForLibrary(priorityMap, TransformProperties.vsmPriority, relatedArtifacts);
-		rootLibrary.get().setRelatedArtifact(relatedArtifacts);
-	}
-
-	private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-		Set<Object> seen = new HashSet<>();
-		return t -> seen.add(keyExtractor.apply(t));
-	}
-
-	private void processCodeableConceptMapForLibrary(HashMap<String, ArrayList<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
-		for (Map.Entry<String, ArrayList<CodeableConcept>> entry : targetedMap.entrySet()) {
-			String k = entry.getKey();
-			ArrayList<CodeableConcept> v = entry.getValue();
-			List<Extension> extensions = new ArrayList<>();
-			v.forEach(codeableConcept -> {
-				Extension extension = new Extension();
-				extension.setUrl(extensionUrl);
-				extension.setValue(codeableConcept);
-				extensions.add(extension);
-			});
-
-			RelatedArtifact relatedArtifact = new RelatedArtifact();
-			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-			relatedArtifact.setResource(k);
-			relatedArtifact.setExtension(extensions);
-
-			relatedArtifacts.add(relatedArtifact);
-		}
-	}
-
-	private Bundle saveImportTransactionBundle(List<BundleEntryComponent> bundleEntry) {
+	private Bundle executeImportTransactionBundle(List<BundleEntryComponent> bundleEntry) {
 		Bundle importBundle = new Bundle();
 		importBundle.setType(Bundle.BundleType.TRANSACTION);
 		importBundle.setEntry(bundleEntry);
-
-		transformProperties.transaction(importBundle);
-		return importBundle;
-	}
-
-	/**
-	 * Determines whether a given ValueSet is a grouper
-	 * @param resource
-	 * @return
-	 */
-	private boolean isGrouper(MetadataResource resource) {
-		return resource.getResourceType() == ResourceType.ValueSet
-			&& ((ValueSet) resource).hasCompose()
-			&& ((ValueSet) resource).getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+		return transformProperties.transaction(importBundle);
 	}
 
 	private void updateV2GroupersUseContext(MetadataResource resource, IIdType planDefinitionId) {
@@ -337,8 +152,7 @@ public class TransformProvider implements OperationProvider {
 	private void removeRootSpecificationLibrary(Bundle v2) {
 		List<BundleEntryComponent> filteredRootLib = v2.getEntry().stream()
 			.filter(entry -> entry.hasResource())
-			.filter(entry -> !(entry.getResource().hasMeta()
-				&& entry.getResource().getMeta().hasProfile(TransformProperties.usPHSpecLibProfile)))
+			.filter(entry -> !isRootSpecificationLibrary(entry.getResource()))
 			.collect(Collectors.toList());
 		v2.setEntry(filteredRootLib);
 	}
