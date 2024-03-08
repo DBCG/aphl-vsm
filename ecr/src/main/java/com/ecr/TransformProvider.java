@@ -37,9 +37,10 @@ public class TransformProvider implements OperationProvider {
 	TransformProperties transformProperties;
 
 	/**
-	 * Implements the $ersd-v2-to-v1-transform operation which transforms an ersd v2
-	 * Bundle
-	 * into an ersd v1 compatible bundle
+	 * Implements the $ersd-v2-to-v1-transform operation which transforms an
+	 * eCR Version 2.1.1 (http://hl7.org/fhir/us/ecr/ImplementationGuide/hl7.fhir.us.ecr|2.1.1) conformant
+	 * eRSD Bundle
+	 * into an eCR Version 1.0.0 compatible eRSD bundle
 	 *
 	 * @param requestDetails      the incoming request details
 	 * @param maybeBundle         the v2 bundle to transform
@@ -97,6 +98,16 @@ public class TransformProvider implements OperationProvider {
 			&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().equalsIgnoreCase(profileUrl));
 	}
 
+	/**
+	 * Implements the $ersd-v2-import operation which loads an active (released)
+	 * eCR Version 2.1.1 (http://hl7.org/fhir/us/ecr/ImplementationGuide/hl7.fhir.us.ecr|2.1.1) conformant
+	 * eRSD Bundle
+	 * and transforms it into and Value Set Manager authoring state
+	 *
+	 * @param requestDetails      the incoming request details
+	 * @param maybeBundle         the v2 bundle to import
+	 * @return the OperationOutcome
+	 */
 	@Description(shortDefinition = "Imports a v2 ERSD bundle", value = "Imports a v2 ERSD bundle")
 	@Operation(idempotent = true, name = "$ersd-v2-import")
 	public OperationOutcome importReportSpec(
