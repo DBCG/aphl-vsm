@@ -152,15 +152,12 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
       }
     })
 
-    const failedUpdates = performedUpdate?.filter((promiseItem: { status: string }) => promiseItem.status === 'rejected')
-    if (failedUpdates && failedUpdates?.length > 0) {
-      logger.error('failed updates: \n' + JSON.stringify(failedUpdates, null, 2))
+    if (!performedUpdate?.entry) {
       // @ts-ignore
-      const failureReasons = failedUpdates.map((i) => i?.reason?.response?.data?.issue?.[0].diagnostics).join('\n')
-      return res.status(400).json({ error: 'failed to update valueSet:\n' + failureReasons })
+      return res.status(400).json({ error: 'Failed to update Value Sets' })
     }
   } catch (e) {
-    logger.error('error 3', e)
+    return res.status(400).json({ error: 'Server error encountered while updating Value Sets' })
   }
 
   // get groupers
