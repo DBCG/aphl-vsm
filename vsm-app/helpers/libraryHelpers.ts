@@ -272,10 +272,21 @@ const buildConditionExtensionItem = (code: string, system: string, text: string 
   })
 }
 
-// assumes valuesets already exist as depends-on block
 const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrls: string[]) => {
   const clonedProgram = cloneDeep(program)
+
+  // if relatedArtifact items do not already exist, add them
+  vsUrls.forEach(url => {
+    const missingItem = !clonedProgram.relatedArtifact?.find(ra => vsUrls.includes(ra.resource!) && ra.type === 'depends-on')
+    if (missingItem) {
+      clonedProgram.relatedArtifact?.push({
+        type: 'depends-on',
+        resource: url
+      })
+    }
+  })
   const updatedRA = clonedProgram.relatedArtifact?.map(item => {
+    // valueset already exists in related artifacts
     if (item?.type === 'depends-on' && item.resource && vsUrls.includes(item.resource)) {
       if (!item.extension) {
         item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
