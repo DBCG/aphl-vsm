@@ -99,6 +99,7 @@ const validatePackage = async (pkgBundle: fhir4.Bundle) => {
       body: JSON.stringify(body)
     }).then((res) => res.json())
   } catch (e) {
+    console.error('validate error: ', e)
     return({ error: 'Unknown error occured while validating this program.' })
   }
 }
@@ -344,7 +345,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           </Button>
           <LoadingButton
             loading={downloadLoading}
-            disabled={(versionRadioValue === 'v1' && !fileUploadContent) || downloadLoading}
+            disabled={downloadLoading}
             data-modal={'Download'}
             onClick={handleClickExport}
           >

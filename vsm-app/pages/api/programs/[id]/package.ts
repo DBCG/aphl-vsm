@@ -39,8 +39,11 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
 
       const planDefResourceIndex = response.entry?.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
       const planDefFromV2Exist = planDefResourceIndex ==! undefined && planDefResourceIndex ==! !-1
+      if (response.resourceType === 'OperationOutcome') {
+        return res.status(500).send({ error: response?.issue?.map((e: any) => e?.diagnostics!) || 'Error encountered while packaging V1' })
+      }
       // if planDefinition is provided in the request, use it to replace the one from the v2 package response
-      if (!planDefFromV2Exist && planDefinition != null) {
+      else if (!planDefFromV2Exist && planDefinition != null) {
         response.entry.push({
           fullUrl: planDefinition?.url,
           resource: planDefinition
@@ -49,7 +52,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       } else if (planDefFromV2Exist && planDefinition != null) {
         response.entry[planDefResourceIndex].resource = planDefinition
       } else if(!planDefFromV2Exist && planDefinition == null) {
-        logger.error('No PlanDefinition resource found in v2 package response nor was uploaded as part of the request')
+        logger.error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
         return res
           .status(400)
           .json({ error: 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request' })

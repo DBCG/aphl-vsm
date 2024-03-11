@@ -567,12 +567,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const vsConditions = conditionsMap[row?.valueSet?.url!] || []
           const selectedOptions = vsConditions
             ?.map((i) => {
+              const system = i?.valueCodeableConcept?.coding?.[0]?.system
+              const code = i?.valueCodeableConcept?.coding?.[0]?.code
+              const systemCodeText = system && code ? `Code ${code} in system ${system}` : null
               return {
-                label: i?.valueCodeableConcept?.text || '[missing condition text]',
+                label: i?.valueCodeableConcept?.text || systemCodeText || '[missing condition text]',
                 groupIds: row.groups.map((i) => i.id) || [],
                 value: {
-                  system: i?.valueCodeableConcept?.coding?.[0]?.system || '',
-                  code: i?.valueCodeableConcept?.coding?.[0]?.code || '',
+                  system: system || '',
+                  code: code || '',
                   version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
                   text: i?.valueCodeableConcept?.text
                 }

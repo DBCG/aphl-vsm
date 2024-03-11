@@ -43,7 +43,7 @@ const validatePackage = async (
     return res.status(200).send({ error: breakingErrors?.map(e =>
       `Location: ${e.location!.join(' ')}: \n${e.diagnostics!}`) || [] })
   } catch (e) {
-    logSimpleError(e)
+    logSimpleError(e, 'validate.ts')
     return res.status(500).send({ error: 'Resource validation failed' })
   }
 }
