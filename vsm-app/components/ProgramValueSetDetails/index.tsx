@@ -564,7 +564,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         minWidth: '210px',
         cell: (row: TableRow, index: number) => {
-          const vsConditions = conditionsMap[row?.valueSet?.url!]
+          const vsConditions = conditionsMap[row?.valueSet?.url!] || []
           const selectedOptions = vsConditions
             ?.map((i) => {
               return {
