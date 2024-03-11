@@ -1,4 +1,4 @@
-import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogTitle } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
