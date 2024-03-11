@@ -73,6 +73,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
           valueString: targetVersion
         })
       }
+
       const v1Response = await fetch(`${fhirCdrClient.baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
         body: JSON.stringify(v1BundleBody),
         method: 'POST',
@@ -82,7 +83,6 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
           ...fhirCdrClient.customHeaders
         }
       }).then((r) => (json ? r.json() : r.text()))
-
       const v1Errors = formatErrors(v1Response)
 
       if (v1Errors.length) {
