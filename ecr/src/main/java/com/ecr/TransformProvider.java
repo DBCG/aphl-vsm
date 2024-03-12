@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.PlanDefinition;
 import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
@@ -26,8 +27,6 @@ import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
-import ca.uhn.fhir.rest.server.exceptions.ResourceGoneException;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 
 public class TransformProvider implements OperationProvider {
@@ -69,10 +68,7 @@ public class TransformProvider implements OperationProvider {
 				if (entry.getResource() instanceof MetadataResource) {
 					MetadataResource resource = (MetadataResource) entry.getResource();
 
-					if (v1PlanDefinition != null
-							&& entry.getResource().getResourceType() == ResourceType.PlanDefinition
-							&& entry.getResource().hasMeta()
-							&& entry.getResource().getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains("/ersd-plandefinition"))) {
+					if (v1PlanDefinition != null && isPlanDefinitionAndConformsToProfile(resource, TransformProperties.usPHPlanDefinitionProfile)) {
 						checkAndUpdateV2PlanDefinition(entry, v1PlanDefinition);
 					}
 
@@ -86,6 +82,13 @@ public class TransformProvider implements OperationProvider {
 				}
 			});
 		return v2Bundle;
+	}
+	
+	private boolean isPlanDefinitionAndConformsToProfile(Resource resource, String profileUrl) {
+		return resource.getResourceType() == ResourceType.PlanDefinition
+			&& resource.hasMeta()
+			&& resource.getMeta().hasProfile()
+			&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().equalsIgnoreCase(profileUrl));
 	}
 
 	private void updateV2GroupersUseContext(MetadataResource resource, IIdType planDefinitionId) {
@@ -113,9 +116,7 @@ public class TransformProvider implements OperationProvider {
 	}
 
 	private void checkAndUpdateV2PlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
-		if (entry.getResource().getResourceType() == ResourceType.PlanDefinition
-			&& entry.getResource().hasMeta()
-			&& entry.getResource().getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains("/ersd-plandefinition"))) {
+		if (entry.hasResource() && isPlanDefinitionAndConformsToProfile(entry.getResource(), TransformProperties.usPHPlanDefinitionProfile)) {
 			entry.setResource(v1PlanDefinition);
 			String url = Optional.ofNullable(v1PlanDefinition.getUrl()).orElseThrow(() -> new UnprocessableEntityException("URL missing from PlanDefinition"));
 			String version = Optional.ofNullable(v1PlanDefinition.getVersion()).orElseThrow(() -> new UnprocessableEntityException("Version missing from PlanDefinition"));
@@ -177,8 +178,8 @@ public class TransformProvider implements OperationProvider {
 		List<PlanDefinition> planDefinitions = bundle.getEntry().stream()
 				.map(BundleEntryComponent::getResource)
 				.filter(resource -> resource.getResourceType() == ResourceType.PlanDefinition
-						&& resource.hasMeta()
-						&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains("/ersd-plandefinition"))
+					&& resource.hasMeta()
+					&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains(TransformProperties.usPHPlanDefinitionProfile))
 				)
 				.map(resource -> (PlanDefinition) resource)
 				.collect(Collectors.toList());

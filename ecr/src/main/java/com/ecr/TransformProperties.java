@@ -16,11 +16,12 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String ersdVSLibProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset-library";
   public static final String ersdVSProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset";
   public static final String ersdPlanDefinitionProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition";
+  public static final String usPHPlanDefinitionProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition";
   public static final String usPHSpecLibProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library";
   public static final String usPHUsageContextType = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type";
   public static final String hl7UsageContextType = "http://terminology.hl7.org/CodeSystem/usage-context-type";
   public static final String usPHUsageContext = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context";
-
+  
   public DaoRegistry getDaoRegistry() {
 		return myDaoRegistry;
 	}
