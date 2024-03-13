@@ -4,6 +4,12 @@ const grouperValueSetBase = {
     profile: [
       "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
       "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+    ],
+    tag: [
+      {
+        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag',
+        code: 'vsm-authored'
+      }
     ]
   },
   status: "draft",
