@@ -54,7 +54,7 @@
           "base": ["ValueSet"],
           "type": "token",
           "description": "Return all leaf ValueSets that are Provisional",
-          "expression": "ValueSet.relatedArtifact.extension.where(url.contains(ValueSet.url)).value as CodeableConcept"
+          "expression": "ValueSet.extension.where(url.contains('vsm-provisional-vs')).value"
       },
         "request":
         {

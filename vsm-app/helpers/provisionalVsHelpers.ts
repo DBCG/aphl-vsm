@@ -1,6 +1,7 @@
 import cloneDeep from 'lodash.clonedeep'
 import uniqBy from 'lodash.uniqby'
 import { provisionalVsBase } from './server/templates/provisionalVsBase'
+import { provisionalCsBase } from './server/templates/provisionalCsBase'
 import { generateNameFromTitle } from './stringHelpers'
 import { authoritativeSourceExtensionUrl } from './valueSetHelpers'
 
@@ -148,3 +149,41 @@ export const generateProvisionalVs = ({
   
   return clonedVs
 }
+
+interface CodeItem {
+  code: string
+  display: string
+  definition: string
+}
+
+interface ProvisionalCodeSystemItems {
+  systemBaseUrl: string
+  codeItems: CodeItem[]
+}
+
+const createConceptItems = (codeItemsToAdd: CodeItem[]) => {
+  return codeItemsToAdd.map(item => ({
+    code: item.code,
+    display: item.display,
+    definition: item.definition
+  }))
+}
+
+// pull out into codeSystem helpers maybe
+const createProvisionalCodeSystem = ({
+  systemBaseUrl,
+  codeItems
+}: ProvisionalCodeSystemItems): fhir4.CodeSystem => {
+  let codeSystemBase = provisionalCsBase
+
+  // this is dynamic based on the code system, so can't be templated
+  codeSystemBase.url = systemBaseUrl
+
+  const concept = createConceptItems(codeItems)
+
+  const result = Object.assign(codeSystemBase, { concept })
+
+  return result
+}
+
+

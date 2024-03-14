@@ -70,6 +70,47 @@ const createProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse) => 
   }
 }
 
+interface GetBody {
+  reference?: fhir4.CodeSystem['url']
+}
+
+interface ProvisionalReqGet  extends NextApiRequest {
+  body: GetBody
+}
+
+const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) => {
+  try {
+
+    const {
+      // reference will only exist if users searching for
+      // a particular valueset system
+      // https://build.fhir.org/valueset.html#:~:text=ValueSet.compose.include.system
+      reference
+    } = req.body
+
+   let searchParams = {
+    _tag: 'vsm-authored'
+  }
+
+    // ideally I wouldn't be doing this and would just be using a searchParam on
+    // an extension that designates provisional?
+    const allVsmOwnedVS = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams
+    })
+
+    const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
+    const provisionalLeafsOnly = results?.filter(r => r.extension.find(e => e.url.includes('vsm-test-extension')))
+
+    return res.status(200).json(provisionalLeafsOnly || [])
+
+  } catch (e) {
+    logger.error(e)
+    res.status(400).json({ error: 'Search for Provisional Value Sets Failed' })
+  }
+}
+
 export default handler({
-  POST: { action: createProvisionalValueSet, access: ['admin', 'editor'] }
+  POST: { action: createProvisionalValueSet, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'editor'] },
 })

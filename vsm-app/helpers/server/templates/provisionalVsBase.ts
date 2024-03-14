@@ -23,7 +23,11 @@ export const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
-    }
+    },
+  {
+    url: 'vsm-test-extension', // need a real one, defined in IG?
+    valueBoolean: true
+  }
   ],
   useContext: [
     {

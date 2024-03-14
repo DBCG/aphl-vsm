@@ -53,6 +53,7 @@ const CodeSearch = ({ programId, router }: Props) => {
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
+    provisionalOnly: false
   }) as Result
 
   const {

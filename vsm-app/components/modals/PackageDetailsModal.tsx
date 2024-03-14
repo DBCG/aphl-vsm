@@ -299,10 +299,10 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
                 </Typography>
               )}
               <InputLabel sx={{ textAlign: 'left', mt: 2 }} htmlFor="target-version">
-                Target Version
+                Release Label
                 <Tooltip
                   placement="right-start"
-                  title={`The version to be applied for components in the download output (i.e., 'RCTC' Library and grouping value sets)`}
+                  title={`The label to be applied for components in the download output (i.e., 'RCTC' Library and grouping value sets)`}
                   sx={{ mt: 1 }}
                 >
                   <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '15px', height: '15px' }} />
