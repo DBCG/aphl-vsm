@@ -201,6 +201,14 @@
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 				"version": "2022-11-19",
 				"status": "active",
+        "meta": {
+          "tag": [
+            {
+              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag",
+              "code": "vsm-authored"
+            }
+          ]
+        },
 				"compose": {
 					"include": [
 						{
