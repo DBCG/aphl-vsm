@@ -2,7 +2,9 @@ import {
   addValueSetCodes,
   updateVsMetadata,
   generateProvisionalVs,
-  CodesBySystem
+  CodesBySystem,
+  updateCsCodes,
+  createProvisionalCodeSystem
 } from './provisionalVsHelpers'
 
 const TEST_VS_NO_CODES = {
@@ -133,7 +135,7 @@ describe('updateVsMetadata', () => {
     })
 
     // correct number of extensions
-    expect(result?.extension).toHaveLength(2)
+    expect(result?.extension).toHaveLength(3)
     // author extension is set
     expect(
       result?.extension?.find(x => x?.url?.endsWith('valueset-author'))
@@ -209,21 +211,25 @@ describe('generateProvisionalVs', () => {
       'http://test-system-1': [
         {
           code: 'test-code-1',
-          display: 'test code 1'
+          display: 'test code 1',
+          definition: 'test'
         },
         {
           code: 'test-code-2',
-          display: 'test code 2'
+          display: 'test code 2',
+          definition: 'test 2'
         }
       ],
       'http://test-system-2': [
         {
           code: 'test-code-3',
-          display: 'test code 3'
+          display: 'test code 3',
+          definition: 'test 3'
         },
         {
           code: 'test-code-4',
-          display: 'test code 4'
+          display: 'test code 4',
+          definition: 'test 4'
         }
       ]
     } as CodesBySystem
@@ -235,7 +241,7 @@ describe('generateProvisionalVs', () => {
       stewardToUpdate
     })
 
-    expect(result?.extension).toHaveLength(2)
+    expect(result?.extension).toHaveLength(4)
     // existing base provisional resource info should exist
     expect(result?.resourceType).toBe('ValueSet')
     expect(result?.status).toBe('draft')
@@ -245,5 +251,133 @@ describe('generateProvisionalVs', () => {
     expect(result?.compose?.include?.find(i => i?.system === 'http://test-system-1')?.concept).toHaveLength(2)
     expect(result?.compose?.include?.find(i => i?.system === 'http://test-system-2')?.concept).toHaveLength(2)
     // have already tested the ability of the internal fns to produce the right data
+  })
+
+  describe('updateCsCodes', () => {
+    const testCodeSystem1 = {
+      resourceType: 'CodeSystem'
+    } as fhir4.CodeSystem
+
+    const testCodeSystem2 = {
+      resourceType: 'CodeSystem',
+      concept: [
+        {
+          code: 'code1',
+          display: 'code 1',
+          definition: 'definition for code 1'
+        },
+        {
+          code: 'code2',
+          display: 'code 2',
+          definition: 'definition for code 2'
+        }
+      ]
+    } as fhir4.CodeSystem
+
+    const testItems = [
+      {
+        code: 'code1',
+        display: 'code 1',
+        definition: 'new definition for code 1'
+      },
+      {
+        code: 'code2',
+        display: 'code 2',
+        definition: 'new definition for code 2'
+      },
+      {
+        code: 'code3',
+        display: 'code 3',
+        definition: 'definition for code 3'
+      }
+    ]
+    
+    const testItems2 = [
+      {
+        code: 'code1',
+        display: 'code 1',
+        definition: 'new definition for code 1'
+      }
+    ]
+
+    it('adds code items', () => {
+      const result1 = updateCsCodes({
+        codeSystem: testCodeSystem1,
+        codeItems: testItems,
+        action: 'add'
+      })
+      // handles adding codes even if there were none to begin with
+      expect(testCodeSystem1.concept).toBeFalsy()
+      expect(result1.concept).toHaveLength(3)
+
+      // handles adding codes when some exist already
+      const result2 = updateCsCodes({
+        codeSystem: testCodeSystem2,
+        codeItems: testItems,
+        action: 'add'
+      })
+
+      // handles adding codes even if there were none to begin with
+      expect(testCodeSystem2.concept).toHaveLength(2)
+      expect(result2.concept).toHaveLength(3)
+      // check that it updated the code's details
+      const codeItem = result2.concept?.find(c => c.code === 'code1')
+      expect(codeItem?.definition).toBe('new definition for code 1')
+
+      const codeItem2 = result2.concept?.find(c => c.code === 'code2')
+      expect(codeItem2?.definition).toBe('new definition for code 2')
+      // expect(codeItem)
+      const codeItem3 = result2.concept?.find(c => c.code === 'code3')
+      expect(codeItem3?.definition).toBe('definition for code 3')
+    })
+
+    it('removes code items', () => {
+      const result1 = updateCsCodes({
+        codeSystem: testCodeSystem2,
+        codeItems: testItems,
+        action: 'remove'
+      })
+
+      // doesn't error out when ask to delete codes that aren't there
+      expect(result1.concept).toBeUndefined()
+
+
+      const result2 = updateCsCodes({
+        codeSystem: testCodeSystem1,
+        codeItems: testItems,
+        action: 'remove'
+      })
+
+      // removing all codesystem concepts deletes concept key
+      expect(result2.concept).toBeUndefined()
+
+      const result3 = updateCsCodes({
+        codeSystem: testCodeSystem2,
+        codeItems: testItems2,
+        action: 'remove'
+      })
+
+      expect(result3.concept).toHaveLength(1)
+    })
+  })
+
+  describe('createProvisionalCodeSystem', () => {
+    const testCodeItems = [
+      {
+        code: 'code1',
+        display: 'code 1', 
+        definition: 'code 1 definition'
+      },
+      {
+        code: 'code2',
+        display: 'code 2', 
+        definition: 'code 2 definition'
+      }
+    ]
+
+    const result = createProvisionalCodeSystem({
+      systemBaseUrl: 'www.test.com',
+      codeItems: testCodeItems
+    })
   })
 })

@@ -169,8 +169,37 @@ const createConceptItems = (codeItemsToAdd: CodeItem[]) => {
   }))
 }
 
+interface UpdateCSCodes {
+  codeSystem: fhir4.CodeSystem
+  codeItems: fhir4.CodeSystemConcept[]
+  action: 'add' | 'remove'
+}
+// if code already exists, 'add' will override with the latest definition
+export const updateCsCodes = ({
+  codeSystem,
+  codeItems,
+  action
+}: UpdateCSCodes) => {
+  const clonedCS = cloneDeep(codeSystem)
+  const existingConcept = clonedCS.concept || []
+  if (action === 'add') {
+    const newConcept = uniqBy([...codeItems, ...existingConcept], 'code')
+    clonedCS.concept = newConcept
+  } else if (action === 'remove') {
+    const codesToDelete = codeItems.map(i => i.code)
+    const filteredConcept = existingConcept.filter(c => !codesToDelete.includes(c.code))
+    if (!filteredConcept?.length) {
+      delete clonedCS.concept
+    } else {
+      clonedCS.concept = filteredConcept 
+    }
+  }
+  return clonedCS
+}
+
+
 // pull out into codeSystem helpers maybe
-const createProvisionalCodeSystem = ({
+export const createProvisionalCodeSystem = ({
   systemBaseUrl,
   codeItems
 }: ProvisionalCodeSystemItems): fhir4.CodeSystem => {
@@ -185,5 +214,6 @@ const createProvisionalCodeSystem = ({
 
   return result
 }
+
 
 
