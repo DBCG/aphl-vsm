@@ -28,12 +28,12 @@ const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiRes
     } = req.query
 
    let searchParams = {
-    _tag: 'vsm-authored',
     version: 'PROVISIONAL'
   }
 
+  console.log('systemUrl: ', systemUrl)
   if (systemUrl) {
-    searchParams[url] = systemUrl
+    searchParams['url'] = systemUrl
   }
 
     // ideally I wouldn't be doing this and would just be using a searchParam on

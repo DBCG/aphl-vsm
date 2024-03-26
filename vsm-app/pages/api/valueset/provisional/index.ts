@@ -19,29 +19,54 @@ interface BuilderItem {
   resource: fhir4.ValueSet | fhir4.CodeSystem
 }
 
+
 // groupers need references to the actual provisional valueSet IDs...
 // so the valuesets and their codeSystems need to be created before
 // that step so they exist
 
-interface RequestItem {
-  method: 'PUT' | 'POST'
-  url?: string
-  resource: fhir4.CodeSystem | fhir4.ValueSet
+interface PutItem {
+  method: 'PUT'
+  resource: fhir4.CodeSystem | fhir4.ValueSet 
 }
+
+interface PostItem {
+  method: 'POST'
+  resource: fhir4.CodeSystem | fhir4.ValueSet 
+}
+
+interface GetItem {
+  method: 'GET'
+  resourceType: 'ValueSet' | 'CodeSystem'
+  resourceId: string
+}
+
+type BuildItem = GetItem | PutItem | PostItem
 
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
   type: 'transaction';
 } => {
   const transactionEntry = items.map(i => {
-    let requestBody = { method: i.method, resource: i.resource } as RequestItem
-    if (i.method === 'PUT' || i.method === 'GET') {
-      requestBody.url = `${i.resource.resourceType}/${i.resource.id}`
+    console.log('i: ', i)
+    const resourceType = i?.resourceType || i?.resource?.resourceType as string
+    const resourceId = i?.resourceId || i?.resource?.id as string
+    let requestBody = {
+      request: {
+        method: i.method
+      }
     }
-    return ({
-      request: requestBody
-    })
+    // can't know the ID if the resource doesn't exist yet
+    if (i.method === 'PUT') {
+      requestBody.request.url = `${resourceType}/${resourceId}`
+      requestBody.resource = i.resource
+    } else if (i.method === 'POST') {
+      requestBody.resource = i.resource
+    } else if (i.method === 'GET') {
+      requestBody.request.url = `${resourceType}/${resourceId}`
+    }
+    return (requestBody)
   })
 
+  console.log('transactionEntry: ', transactionEntry)
   return ({
     resourceType: 'Bundle',
     type: 'transaction',
@@ -73,7 +98,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     const systemUrls = Object.keys(codesBySystemToAdd)
 
     const resourcesToSaveFirst = [] as BuilderItem[]
-    const resourcesToSaveLast = []
+    const resourcesToSaveLast = [] as BuilderItem[]
 
     for (const systemUrl of systemUrls) {
       // if provisional code system already exists, update the codesystem with any new items
@@ -110,6 +135,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         resourceType: 'ValueSet',
         id: provisionalVsIdForUpdate
       })
+      // remove codes to be removed, add codes to be added
       console.log('here 3')
       // TODO update leaf as necessary
     } else {
@@ -119,13 +145,13 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         stewardToUpdate,
         titleToUpdate,
         codesBySystemToAdd
-      })
-      console.log('here 4')
+      }) as fhir4.ValueSet
+
     }
     resourcesToSaveFirst.push({ method: 'POST', resource: provisionalLeaf as fhir4.ValueSet })
   
   const transactionBody = transactionBuilder(resourcesToSaveFirst)
-  console.log('codeSystemsAndLeafs: ', codeSystemsAndLeafs.entry[1].request)
+  // console.log('codeSystemsAndLeafs: ', codeSystemsAndLeafs.entry[1].request)
 
   const codeSysAndLeaf = await fhirCdrClient.transaction({
     body: transactionBody
@@ -135,43 +161,50 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
 
+  console.log('codeSysandLeaf.entry: ', codeSysAndLeaf.entry[0].response.outcome)
+  // const provisionalLeafItem = codeSysAndLeaf.entry.find(e => e.resource.resourceType === 'ValueSet') as fhir4.ValueSet
+  // console.log('provisional leaf item: ', provisionalLeafItem)
+
   // return res.status(200).send({})
-  // next, update the groupers
+  // next, add all provisional valueset urls to the groupers
   if (grouperIds) {
-    const items = grouperIds.map(id => (
+
+    // get the associated groupers and update with the reference
+    const grouperReqItems = grouperIds?.map((id: string) => (
       {
-        resource: { resourceType: 'ValueSet', id },
-        method: 'GET'
+        resourceType: 'ValueSet',
+        method: 'GET',
+        resourceId: id
       }
     ))
 
-    
-    // get the associated groupers and update with the reference
-    const grouperReqItems = grouperIds?.map((id: string) => ({
-      request: {
-        resourceType: 'ValueSet',
-        method: 'GET',
-        url: `/ValueSet/${id}`
-      }
-    }))
+    const getGrouperTransaction = transactionBuilder(grouperReqItems)
 
     // handles the 'add' case
-    const allGroupersToUpdate = await fhirCdrClient.transaction({ body: {
-      resourceType: 'Bundle',
-      type: 'transaction',
-      entry: grouperReqItems
-    }})
+    const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
+    console.log('all groupers: ', allGroupersToUpdate.entry[0].resource.compose.include)
 
-    if (!allGroupersToUpdate.entry) {
+    if (is.operationOutcome(allGroupersToUpdate)) {
       return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
     }
 
+    console.log('all gorupers: ', allGroupersToUpdate)
     // if groupers are all found, update their references with provisionalVS urls
     const groupersToUpdate = allGroupersToUpdate.entry.map((i: fhir4.BundleEntry) => (
-      updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf!.url], 'add')
+      updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf.url!], 'add').grouper
     ))
     
-    groupersToUpdate.forEach((g: fhir4.ValueSet) => resourcesToSave.push({ action: 'update', resource: g }))
+    groupersToUpdate.forEach((g: fhir4.ValueSet) => resourcesToSaveLast.push({ method: 'PUT', resource: g }))
+
+    const grouperUpdateTransaction = transactionBuilder(resourcesToSaveLast)
+
+    const updatedGroupers = await fhirCdrClient.transaction({ body: grouperUpdateTransaction })
+
+    if (is.operationOutcome(updatedGroupers)) {
+      return res.status(500).json({ error: `Failed to update grouper references to provisional value set` }) 
+    } else {
+      return res.status(200).send({})
+    }
   }
   // next, send a fhir transaction to create/update the value set, codeSystem, and update the groupers
   

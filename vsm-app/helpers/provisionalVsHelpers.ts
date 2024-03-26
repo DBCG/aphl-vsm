@@ -12,29 +12,44 @@ interface CodeItem {
 
 export type CodesBySystem = Record<string, CodeItem[]>
 
-export const addValueSetCodes = (vs: fhir4.ValueSet, codesBySystemToAdd: CodesBySystem) => {
+export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: CodesBySystem, action: 'add' | 'remove') => {
   const clonedVs = cloneDeep(vs)
 
   const includeBlockToUpdate = clonedVs?.compose?.include?.length ? cloneDeep(clonedVs.compose.include) : []
 
-  const systemUrls = Object.keys(codesBySystemToAdd)
+  const systemUrls = Object.keys(codesBySystemToEdit)
 
   systemUrls.forEach(url => {
     const systemIndex = includeBlockToUpdate?.findIndex(i => i?.system === url)
-    if (systemIndex === -1) {
-      includeBlockToUpdate.push({
-        system: url,
-        concept: codesBySystemToAdd[url]
-      })
-    } else {
-      // if items already exist in this system, filter out dupes
-      // with newer code pairs overriding old ones
-      const existingCodes = includeBlockToUpdate[systemIndex].concept || []
-      const totalCodeList = codesBySystemToAdd[url].concat(existingCodes)
-      const updatedSystemCodes = uniqBy(totalCodeList, 'code')
-      includeBlockToUpdate[systemIndex] = {
-        system: url,
-        concept: updatedSystemCodes
+    if (action === 'add') {
+      if (systemIndex === -1) {
+        includeBlockToUpdate.push({
+          system: url,
+          concept: codesBySystemToEdit[url]
+        })
+      } else {
+        // if items already exist in this system, filter out dupes
+        // with newer code pairs overriding old ones
+        const existingCodes = includeBlockToUpdate[systemIndex].concept || []
+        const totalCodeList = codesBySystemToEdit[url].concat(existingCodes)
+        const updatedSystemCodes = uniqBy(totalCodeList, 'code')
+        includeBlockToUpdate[systemIndex] = {
+          system: url,
+          concept: updatedSystemCodes
+        }
+      }
+    } else if (action === 'remove') {
+      if (typeof systemIndex === 'number' && systemIndex > -1) {
+        const codesToRemove = codesBySystemToEdit[url].map(i => i.code)
+        const filteredSystemCodes = includeBlockToUpdate[systemIndex].concept?.filter(con => !codesToRemove.includes(con.code))
+        if (!filteredSystemCodes?.length) {
+          delete includeBlockToUpdate[systemIndex]
+        } else {
+          includeBlockToUpdate[systemIndex] = {
+            system: url,
+            concept: filteredSystemCodes
+          } 
+        }
       }
     }
   })
@@ -145,7 +160,7 @@ export const generateProvisionalVs = ({
   let clonedVs = cloneDeep(provisionalVsBase)
   // add metadata and codes
   clonedVs = updateVsMetadata({ vsToUpdate: clonedVs, authorToUpdate, stewardToUpdate, titleToUpdate })
-  clonedVs = addValueSetCodes(clonedVs, codesBySystemToAdd)
+  clonedVs = addOrRemoveVsCodes(clonedVs, codesBySystemToAdd, 'add')
   
   return clonedVs
 }

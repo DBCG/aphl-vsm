@@ -36,7 +36,7 @@ const useGetProvisionalCS = (props: Props): [] | fhir4.CodeSystem[] => {
         }
     }
     void getProvisionalCS()
-  }, [])
+  }, [props.systemUrl])
 
   return codeSystems
 }

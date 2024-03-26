@@ -1,5 +1,5 @@
 import {
-  addValueSetCodes,
+  addOrRemoveVsCodes,
   updateVsMetadata,
   generateProvisionalVs,
   CodesBySystem,
@@ -60,9 +60,16 @@ const TEST_CODES_TO_ADD = {
   ]
 }
 
-describe('addValueSetCodes', () => {
+const TEST_CODES_FOR_REMOVE = {
+  'www.system.com': [
+    { code: 'abc', display: 'display does not matter' },
+    { code: 'new-code', display: 'a brand new code' }
+  ]
+}
+
+describe('addOrRemoveVsCodes', () => {
   it('adds codes correctly if there is no compose.include block present', () => {
-    const result = addValueSetCodes(TEST_VS_NO_CODES, TEST_CODES_TO_ADD)
+    const result = addOrRemoveVsCodes(TEST_VS_NO_CODES, TEST_CODES_TO_ADD, 'add')
     expect(result?.compose?.include).toStrictEqual([{
       system: 'www.system.com',
       concept: [
@@ -74,7 +81,7 @@ describe('addValueSetCodes', () => {
   })
 
   it('adds codes correctly if there is an existing compose.include block present', () => {
-    const result = addValueSetCodes(TEST_VS_EXISTING_CODES, TEST_CODES_TO_ADD)
+    const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, TEST_CODES_TO_ADD, 'add')
     expect(result?.compose?.include).toStrictEqual([{
       system: 'www.system.com',
       concept: [
@@ -99,7 +106,7 @@ describe('addValueSetCodes', () => {
       'new-system': [{ code: 'new', display: 'new system!' }]
     } 
   
-    const result = addValueSetCodes(TEST_VS_EXISTING_CODES, NEW_SYSTEM_ADDITIONS)
+    const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, NEW_SYSTEM_ADDITIONS, 'add')
     expect(result?.compose?.include).toStrictEqual([
       {
         system: 'www.system.com',
@@ -117,6 +124,29 @@ describe('addValueSetCodes', () => {
       }, {
         system: 'new-system',
         concept: [{ code: 'new', display: 'new system!' }]
+      }
+    ])
+  })
+
+  it('removes codes correctly', () => {
+    const NEW_SYSTEM_ADDITIONS = {
+      'new-system': [{ code: 'new', display: 'new system!' }]
+    } 
+  
+    const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, TEST_CODES_FOR_REMOVE, 'remove')
+    expect(result?.compose?.include).toStrictEqual([
+      {
+        system: 'www.system.com',
+        concept: [
+          { code: 'def', display: 'display-to-keep' }
+        ]
+      },
+      {
+        system: 'www.another-system.com',
+        concept: [
+          { code: '123', display: 'keep123' },
+          { code: '456', display: 'keep456' }
+        ]
       }
     ])
   })

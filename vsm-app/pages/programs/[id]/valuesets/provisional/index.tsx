@@ -81,13 +81,93 @@ const ButtonRowContainer = styled.div`
   padding-top: 1rem;
   column-gap: 1rem;
 `
+const customExpandStyles = {
+	rows: {
+		style: {
+			backgroundColor: 'var(--theme-100)',
+		},
+	},
+  tableWrapper: {
+    style: {
+      paddingLeft: '96px'
+    }
+  },
+	headCells: {
+		style: {
+      fontWeight: 'bold',
+			backgroundColor: 'var(--theme-100)'
+		},
+	}
+}
+
+interface RowItem {
+  system: string
+  code: string
+  display: string
+}
+
+const CodeDetailsExpanded = ({ data }) => {
+  
+  const codesBySystem = data?.compose?.include
+    ?.map(i => i.concept?.map(c => Object.assign(c, { system: i.system }))).flat() || []
+  console.log('codes by system: ', codesBySystem)
+  const columns = useMemo(() => {
+    const fields = [
+      { 
+        name: 'Code',
+        selector: (row: fhir4.ValueSetComposeIncludeConcept) => row.code,
+      },
+      {
+        name: 'Display',
+        selector: (row: fhir4.ValueSetComposeIncludeConcept) => row.display,
+      },
+      {
+        name: 'System',
+        selector: (row: RowItem) => row.system,
+        minWidth: '20rem',
+        cell: (row: RowItem) => (<p>{row.system}</p>)
+      }
+    ]
+    return fields
+  }, [data])
+
+  return (
+    <DataTable customStyles={customExpandStyles} data={codesBySystem} columns={columns}/>
+  )
+}
+
+const ExistingCodesTable = ({ codeSystem }) => {
+
+  const columns = useMemo(() => {
+    const fields = [
+      { 
+        name: 'Code',
+        selector: (row: fhir4.CodeSystemConcept) => row.code,
+      },
+      {
+        name: 'Display',
+        selector: (row: fhir4.CodeSystemConcept) => row.display,
+      },
+      {
+        name: 'Definition',
+        selector: (row: fhir4.CodeSystemConcept) => row.definition,
+        minWidth: '20rem',
+        cell: (row: fhir4.CodeSystemConcept) => (<p>{row.definition}</p>)
+      }
+    ]
+    return fields
+  }, [codeSystem])
+
+  return (
+    <DataTable data={codeSystem?.concept || []} columns={columns}/>
+  )
+}
 
 const ProvisionalVS = () => {
   const [pageLoading, setPageLoading] = useState(false)
   const [allSystemSelections, setAllSystemSelections] = useState<SystemSelection[]>([])
-  const [selectedSystem, setSelectedSystem] = useState('')
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
-  const [provisionalVsets, setProvisionalVsets] = useState([])
+  const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
   const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
   const [currentCodeItem, setCurrentCodeItem] = useState({})
   const [enableAdd, setEnableAdd] = useState(false)
@@ -115,7 +195,7 @@ const ProvisionalVS = () => {
     data: systemAndVersionData = [],
     isLoading,
     error
-  } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher, { revalidateOnFocus: false })
+  } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher, { revalidateOnFocus: true })
 
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
@@ -142,9 +222,13 @@ const ProvisionalVS = () => {
     }
   }
 
-  const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase })
+  const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
-  const columns = useMemo(() => {
+  useEffect(() => {
+    console.log('existing Provisional cs: ', existingProvisionalCs)
+  })
+
+  const codeColumns = useMemo(() => {
     const fields = [
       {
         name: 'Delete',
@@ -176,24 +260,67 @@ const ProvisionalVS = () => {
         name: 'Definition',
         selector: (row: CodeTableData) => row.definition!,
         wrap: true
-      },
-      // {
-      //   name: 'Groupers',
-      //   selector: (row: TableData) => row.version!,
-      //   sortable: true,
-      //   wrap: true,
-      //   maxWidth: '150px'
-      // }
+      }
     ]
 
     return fields
   }, [codeItemsToAdd])
+
+  const existingProvisionalVsColumns = useMemo(() => {
+    console.log('provisionalVS: ', provisionalVs)
+    const fields = [
+      {
+        name: 'Title',
+        selector: (row: fhir4.ValueSet) => row.title!,
+        maxWidth: '10rem',
+      },
+      {
+        name: 'Contains Provisional Code System(s)',
+        selector: (row: fhir4.ValueSet) => {
+          const systems = row?.compose?.include?.map(ci => ci.system) || []
+          return systems
+        },
+        sortable: true,
+        wrap: true,
+        maxWidth: '40rem',
+        cell: (row: fhir4.ValueSet) => {
+          const systems = row?.compose?.include?.map(ci => ci.system) || []
+          return (
+            <div>
+              {systems.map(s => <p>{s}</p>)}
+            </div>
+          )}
+      }
+    ]
+
+    return fields
+  }, [provisionalVs])
+
+  useEffect(() => {
+    const matchingVs = provisionalVs?.find(vs => vs?.id === provisionalVsIdForUpdate)
+    const defaultTitle = matchingVs?.title || ''
+    const defaultAuthor = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
+    const defaultSteward = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
+    // this is assuming only one CS is possible to add in a vs
+    const selectedCSBaseUrl = matchingVs?.compose.include[0].system
+    const selectedCs = allSystemSelections?.find(s => s?.uri === selectedCSBaseUrl)
+    const selectionItem = selectedCs ? [{ value: selectedCs.uri, label: selectedCs.name }] : [] 
+    console.log('selectedCs: ', selectedCs)
+    setTitle(defaultTitle)
+    setAuthor(defaultAuthor)
+    setSteward(defaultSteward)
+    setSelectedCodeSystemBase(selectionItem)
+  }, [provisionalVsIdForUpdate])
 
   const clearCurrentCodeItems = () => {
     setCodeToAdd('')
     setDefinitionToAdd('')
     setDisplayToAdd('')
   }
+
+  useEffect(() => {
+    console.log('activeStep: ', activeStep)
+  }, [activeStep])
 
   const handleStep = (direction: 'next' | 'prev', currentIndex: number) => {
     const stepsCompletedClone = [...stepsCompleted]
@@ -214,10 +341,6 @@ const ProvisionalVS = () => {
     steward: string
   }
 
-  interface csData {
-
-  }
-
   const handleSubmitForm = async () => {
     setSubmittingForm(true)
     console.log('selectedCodeSystemBase: ', selectedCodeSystemBase)
@@ -231,10 +354,14 @@ const ProvisionalVS = () => {
       grouperIds: groupersToAdd?.map(g => g.id)
     }
     // block submit?
-    await fetch('/api/valueset/provisional', {
+    const result = await fetch('/api/valueset/provisional', {
       method: 'POST',
       body: JSON.stringify(submitBody)
     })
+
+    if (result.ok) {
+      router.push(`/programs/${programId}/valuesets`)
+    }
   }
 
   useEffect(() => {
@@ -243,6 +370,7 @@ const ProvisionalVS = () => {
   }, [selectedCodeSystemBase])
 
   const selectOptions = useMemo(() => {
+    console.log('all system selections here: ', allSystemSelections)
     return allSystemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [allSystemSelections])
 
@@ -259,6 +387,7 @@ const ProvisionalVS = () => {
     // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setAllSystemSelections(systemAndVersionData)
+      console.log('systemAndVersionData: ', systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       // comment out until fix
@@ -291,15 +420,28 @@ const ProvisionalVS = () => {
     </div>
   ) : (
     // CREATE A TABLE WITH SELECT
-    <div>Provisional Value Sets found:
-      <p>Select Provisional VS for update, or <Button text='Create New Provisional VS' /></p>
-      {/* get the provisional VS ID from here if exist */}
-      {provisionalVs?.map(p => <>{p.title}</>)}
+    <div>
+      <p>Select Provisional Value Set for update or <Button text='Create New Provisional VS' onClick={(e) => handleStep('next', 0)}/></p>
+      <DataTable
+        expandableRows={true}
+        expandableRowsComponent={CodeDetailsExpanded}
+        selectableRows={true}
+        selectableRowsSingle={true}
+        data={provisionalVs}
+        columns={existingProvisionalVsColumns}
+        onSelectedRowsChange={(e) => {
+          const vsId = e?.selectedRows?.[0]?.id
+          setProvisionalVsIdForUpdate(vsId)
+          if (vsId) {
+            handleStep('next', 0)
+          }
+        }}
+      />
     </div>
   )
 
 
-  const secondStep = (
+  const secondStep = () => (
     <div>
       <QuestionnaireRowContainer>
         <TextArea
@@ -352,7 +494,6 @@ const ProvisionalVS = () => {
           options={selectOptions}
           isMulti={false}
           value={selectedCodeSystemBase}
-          // defaultValue={selectOptions[0]}
           menuPortalTarget={myDocument}
           styles={reactSelectOptionStyle({ minWidth: '30rem' })}
           onChange={(e) => {
@@ -382,7 +523,11 @@ const ProvisionalVS = () => {
     <div>
       <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
         {existingProvisionalCs?.length ? (
-          <p>cs exists</p>
+          <div>
+            <p>A provisional code system exists in VSM for {selectedCodeSystemBase.label} containing the following codes:</p>
+            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase.value)}/>
+            <p>You may add more provisional codes to the system using the form below</p>
+          </div>
         ) : (
           <NoProvVsWrapper style={{ flexDirection: 'column', flexWrap: 'nowrap', textAlign: 'center' }}>
             <p style={{ marginBottom: 0 }}>{`No existing VSM Provisional Code Systems found for ${selectedCodeSystemBase?.label}.`}</p>
@@ -426,7 +571,7 @@ const ProvisionalVS = () => {
           <p>{`Code List to add: `}</p>
           <DataTable
             data={codeItemsToAdd}
-            columns={columns}
+            columns={codeColumns}
             noDataComponent={noDataComponent('setProvisionals')}
           />
           {showValueSetStep ? (
@@ -532,7 +677,7 @@ const ProvisionalVS = () => {
         <p>Codes Added to Value Set</p>
         <DataTable
           data={codeItemsToAdd}
-          columns={columns.slice(1)}
+          columns={codeColumns.slice(1)}
         />
       </div>
       <div>
@@ -572,7 +717,7 @@ const ProvisionalVS = () => {
     },
     {
       label: 'Update Value Set Details',
-      content: <ContentWrapper>{secondStep}</ContentWrapper>
+      content: <ContentWrapper>{secondStep()}</ContentWrapper>
     },
     {
       label: 'Choose a Code System to Extend as the base for your Provisional Value Set',
