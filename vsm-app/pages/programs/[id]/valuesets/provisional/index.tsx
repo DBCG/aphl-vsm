@@ -304,8 +304,8 @@ const ProvisionalVS = () => {
     // this is assuming only one CS is possible to add in a vs
     const selectedCSBaseUrl = matchingVs?.compose.include[0].system
     const selectedCs = allSystemSelections?.find(s => s?.uri === selectedCSBaseUrl)
-    const selectionItem = selectedCs ? [{ value: selectedCs.uri, label: selectedCs.name }] : [] 
-    console.log('selectedCs: ', selectedCs)
+    const selectionItem = selectedCs ? { value: selectedCs.uri, label: selectedCs.name } : null
+    console.log('selectionItem: ', selectionItem)
     setTitle(defaultTitle)
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
@@ -344,7 +344,7 @@ const ProvisionalVS = () => {
   const handleSubmitForm = async () => {
     setSubmittingForm(true)
     console.log('selectedCodeSystemBase: ', selectedCodeSystemBase)
-    const codesBySystemToAdd = { [selectedCodeSystemBase.value as string]: codeItemsToAdd }
+    const codesBySystemToAdd = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
 
     const submitBody = {
       authorToUpdate: author,
@@ -524,8 +524,8 @@ const ProvisionalVS = () => {
       <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
         {existingProvisionalCs?.length ? (
           <div>
-            <p>A provisional code system exists in VSM for {selectedCodeSystemBase.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase.value)}/>
+            <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
+            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)}/>
             <p>You may add more provisional codes to the system using the form below</p>
           </div>
         ) : (
@@ -643,7 +643,9 @@ const ProvisionalVS = () => {
     </div>
   )
 
-  const ReviewStep = () => (
+  const ReviewStep = () => {
+    const existingProvisionalCodeSystem = existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)
+    return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <QuestionnaireRowContainer>
         <TextArea
@@ -674,7 +676,13 @@ const ProvisionalVS = () => {
         />
       </QuestionnaireRowContainer>
       <div style={{ paddingLeft: '.8rem' }}>
-        <p>Codes Added to Value Set</p>
+        { existingProvisionalCodeSystem && (
+          <div>
+            <p>Provisional Codes Currently in this Value Set</p>
+            <ExistingCodesTable codeSystem={existingProvisionalCodeSystem}/>
+          </div>
+        )}
+        <p>Codes to be Added to Value Set</p>
         <DataTable
           data={codeItemsToAdd}
           columns={codeColumns.slice(1)}
@@ -707,7 +715,7 @@ const ProvisionalVS = () => {
         }
       </div>
     </div>
-  )
+  )}
 
 
   const stepContents = [

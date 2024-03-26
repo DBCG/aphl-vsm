@@ -10,6 +10,9 @@ const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
 }
 
+const isProvisionalVs = (vs: fhir4.ValueSet) => {
+  return Boolean(vs?.compose?.include?.find(ci => ci?.version === 'PROVISIONAL'))
+}
 const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
   if (!leafVsCanonical || leafVsCanonical.length === 0) {
     console.error('missing leaf to add')
@@ -119,7 +122,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
 // can't pass through whole valuesets -- node will error if data too large
 // this fn pares down to a set of keys needed for display
 const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
-  const allowedProperties = ['id', 'url', 'resourceType', 'version', 'date', 'name', 'publisher', 'description', 'meta', 'useContext']
+  const allowedProperties = ['id', 'url', 'resourceType', 'version', 'date', 'name', 'publisher', 'description', 'meta', 'useContext', 'extension']
 
   const allKeys = Object.keys(valueset)
 
@@ -329,7 +332,12 @@ const getKeywords = (valueset: fhir4.ValueSet) => {
   return keywordExtensions
 }
 
+const getVsSteward = (vs: fhir4.ValueSet) => vs?.extension?.find(xt => xt?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
+const getVsAuthor = (vs: fhir4.ValueSet) => vs?.extension?.find(xt => xt?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
+
 export {
+  getVsSteward,
+  getVsAuthor,
   getOid,
   addExtensionToVs,
   addValueSetToGrouper,
@@ -346,5 +354,6 @@ export {
   idWithoutVersion,
   urlWithoutVersion,
   transformForVSAC,
-  transformFromVSACToCqf
+  transformFromVSACToCqf,
+  isProvisionalVs
 }

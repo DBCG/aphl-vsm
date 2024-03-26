@@ -2,6 +2,7 @@ import { styled } from '@mui/system'
 import Chip from '@mui/material/Chip'
 import Tt from '@mui/material/Tooltip'
 import ScienceIcon from '@mui/icons-material/Science'
+import WarningIcon from '@mui/icons-material/Warning'
 import React from 'react'
 
 interface StyledCh {
@@ -15,7 +16,7 @@ interface Chip {
 }
 
 interface IChip {
-  indicatorType: 'experimental'
+  indicatorType: 'experimental' | 'provisional'
   style?: React.CSSProperties
   experimental: boolean
 }
@@ -58,6 +59,11 @@ const IconChip = ({ style, experimental, indicatorType }: IChip) => {
     hoverText = 'Experimental programs rely on resources that may be subject to change.'
     inner = (
       <ScienceIcon style={style}/>
+    )
+  } else if (indicatorType === 'provisional') {
+    hoverText = 'Experimental programs rely on resources that may be subject to change.'
+    inner = (
+      <WarningIcon style={style}/>
     )
   } else {
     return null

@@ -25,6 +25,7 @@ export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: Code
       if (systemIndex === -1) {
         includeBlockToUpdate.push({
           system: url,
+          version: 'PROVISIONAL',
           concept: codesBySystemToEdit[url]
         })
       } else {

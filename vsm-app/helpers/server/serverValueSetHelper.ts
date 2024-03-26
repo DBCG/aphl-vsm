@@ -102,6 +102,7 @@ export const fetchLeafValueSets = async ({
     searchParams['title:contains'] = titleToFind
   }
 
+  // this isn't right, finding the steward is done by looking at extensions
   if (isValidString(stewardToFind)) {
     searchParams['publisher:contains'] = stewardToFind
   }
