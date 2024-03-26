@@ -10,8 +10,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   let response
   const { id } = req.query
 
-  const WHITELIST_FIELDS = ['url', 'extension', 'id', 'version'].join(',')
-  const searchParams = { _elements: WHITELIST_FIELDS }
+  const searchParams = { }
 
   // if ID not passed in
   if (!is.string(id)) {
