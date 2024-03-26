@@ -11,16 +11,6 @@ interface GroupItem {
   title: string
 }
 
-interface ConditionItem {
-  label: string
-  value: {
-    system: string
-    code: string
-    text: string
-    version: string
-  }
-}
-
 export interface DataItem {
   canonical: string
   programName: string
@@ -45,11 +35,7 @@ interface Args {
   findInVersion?: string
   findInOid?: string
   findInSteward?: string
-  activePriority?: string[]
-  valueSetPriorityMap?: Record<string, string>
-  conditionsMap?: Record<string, {id: string}[]>
   activeGroups?: Group[]
-  activeConditions?: ConditionItem[]
   updatedGrouperValueSets?: fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
@@ -63,10 +49,6 @@ const useGetProgramValueSetDetails = ({
   findInVersion,
   findInSteward,
   activeGroups,
-  activeConditions,
-  activePriority,
-  valueSetPriorityMap = {},
-  conditionsMap = {},
   updatedGrouperValueSets,
   updatedGrouper,
   versionToUpdate,
@@ -149,40 +131,11 @@ const useGetProgramValueSetDetails = ({
     findInSteward,
     findInOid,
     activeGroups,
-    activeConditions,
-    activePriority,
     updatedGrouperValueSets,
     updatedGrouper,
     versionToUpdate,
     toggleUpdateData
   ])
-
-  if (activePriority && activePriority?.length > 0) {
-    const filteredData = data?.data
-      ?.filter((vs) => {
-        if (!vs.valueSet.url) {
-          return false
-        }
-        const currentPriority = valueSetPriorityMap[vs.valueSet.url]
-        return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
-      })
-    data.data = filteredData
-  }
-
-  if (activeConditions && activeConditions?.length > 0) {
-    const activeConditionsMap = activeConditions.map(i => i.value.system + '|' + i.value.code)
-    const filteredConditionData = data?.data?.filter((vs) => {
-      if (!vs.valueSet.url) {
-        return false
-      }
-
-      const currentConditions = conditionsMap[vs.valueSet.url]?.map((i) => i?.id)
-      // Test for intersection of either array
-      return currentConditions.filter(value => activeConditionsMap.includes(value)).length > 0;
-    })
-
-    data.data = filteredConditionData
-  }
 
   return data
 }

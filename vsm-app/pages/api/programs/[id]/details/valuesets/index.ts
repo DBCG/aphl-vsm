@@ -255,7 +255,6 @@ const formatValuesetData = (
         keyField: `${valueSet.url}-${valueSet.version}-${index}`,
         programName: program?.name || 'Undefined',
         programId: program?.id || 'Undefined',
-        programStatus: program?.status || 'Unknown',
         title: valueSet?.name || 'Undefined',
         canonical: valueSet?.url || 'Undefined',
         version: valueSet?.version || '',
@@ -366,7 +365,6 @@ export const getProgramDetailsValuesets = async ({
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)
 
     const composedResponse = {
-      programStatus: program.status,
       data: formattedVsets,
       groupsInProgram: grouperValueSets,
       totalLeafs
