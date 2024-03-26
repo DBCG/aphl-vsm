@@ -667,7 +667,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                     return
                   }
                   const groupInfo = e as GroupInfoItem[]
-                  setUpdateVsGroups({ leafCanonical: row?.canonical, leafVersion: row?.version, groupInfo })
+                  setUpdateVsGroups({ leafCanonical: row?.canonical, leafVersion: row?.valueSetPinnedVersion, groupInfo })
                 }}
               />
             </SelectInputContainer>
