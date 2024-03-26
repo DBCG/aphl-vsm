@@ -255,6 +255,7 @@ const formatValuesetData = (
         keyField: `${valueSet.url}-${valueSet.version}-${index}`,
         programName: program?.name || 'Undefined',
         programId: program?.id || 'Undefined',
+        programStatus: program?.status || 'Unknown', // I don't think really need these program values as most routes start with retrieving a program
         title: valueSet?.name || 'Undefined',
         canonical: valueSet?.url || 'Undefined',
         version: valueSet?.version || '',

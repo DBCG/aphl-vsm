@@ -678,8 +678,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
   ) as TableColumn<TableRow>[]
 
-  const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
-
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
       return <LinearProgressWithLabel value={jobInProgressStatus} sx={{ mr: '15px', mt: '20px', ml: '15px', minWidth: '150px' }} />
@@ -691,7 +689,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           onClick={() => router.push(`${router.asPath}/codesearch`)}
         />
       )
-    } else if (allowToEdit) {
+    } else if (isEditable) {
       return (
         <>
           <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>

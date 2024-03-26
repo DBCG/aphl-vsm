@@ -26,7 +26,6 @@ export interface Result {
   data?: DataItem[]
   totalLeafs?: number
   groupsInProgram?: fhir4.ValueSet[]
-  programStatus?: fhir4.Library['status']
 }
 
 interface Args {
