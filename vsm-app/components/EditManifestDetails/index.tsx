@@ -192,11 +192,12 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
       <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>
         <Box sx={{ ...modalStyle, width: 800, flexDirection: 'column', display: 'flex' }}>
           <Typography variant="h6" component="h2" sx={{ marginBottom: '1rem' }}>
-            ValueSets in this program contain the following version(s) of CodeSystem . If you would like all of your expansions to conform to an existing version, you may select one her
+            ValueSets in this program contain the following version(s) of CodeSystem . If you would like all of your expansions to conform to an existing version, you may select one here
           </Typography>
           <DT
             data={availableLeafValueSetCodeSystems}
             highlightOnHover
+            keyField={'version'}
             defaultSortAsc={false}
             defaultSortFieldId={3}
             columns={[
@@ -210,13 +211,15 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
               {
                 name: 'System',
                 selector: (row: ManifestSystemVersionPair) => row?.system,
-                maxWidth: '250px',
+                maxWidth: '200px',
+                style: { fontSize: '12px' },
                 sortable: true,
                 wrap: true
               },
               {
                 name: 'Versions',
-                maxWidth: '500px',
+                minWidth: '350px',
+                style: { fontSize: '12px' },
                 selector: (row: ManifestSystemVersionPair) => row.version,
                 sortable: true,
                 // Some code systems have urls for their versions with the date at the end
@@ -239,6 +242,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                     />
                   )
                 },
+                maxWidth: '100px',
                 sortable: true,
                 wrap: true
               }
