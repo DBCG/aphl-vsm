@@ -146,7 +146,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
   const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
-  const rckmsConditionsData = useGetConditions()
   const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
@@ -290,9 +289,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const progValueSetDets = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
+    conditionsMap,
     valueSetPriorityMap,
     toggleUpdateData,
-    conditionsMap,
     ...debouncedFilters
   }) as Result
 
@@ -349,7 +348,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
     updateVersions()
       .catch((e) => console.error('error: ', e))
-      .finally(() => setVersionUpdateInFlight(false))
+      .finally(() => {
+        handleToggleUpdateData()
+        setVersionUpdateInFlight(false)
+      })
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
@@ -423,7 +425,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const priorityKey = `${row.valueSet.url}${row.valueSetPinnedVersion ? `|${row.valueSetPinnedVersion}` : ''}`
+          const priorityKey = row?.valueSet?.url ?? ""
           const currentPriority = valueSetPriorityMap[priorityKey] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
@@ -501,7 +503,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 isMulti={false}
                 styles={reactSelectOptionStyle()}
                 options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
-                defaultValue={defaultOption}
+                value={defaultOption}
               />
             </SelectInputContainer>
           )
@@ -675,10 +677,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
   ) as TableColumn<TableRow>[]
-
-  const allowToEdit = allowEditing({ session, programStatus: progValueSetDets?.programStatus })
 
   const updateVSetsButton = (() => {
     if (typeof jobInProgressStatus === 'number') {
@@ -691,7 +691,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           onClick={() => router.push(`${router.asPath}/codesearch`)}
         />
       )
-    } else if (allowToEdit) {
+    } else if (isEditable) {
       return (
         <>
           <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>

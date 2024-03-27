@@ -258,7 +258,6 @@ describe("Smoke Tests", () => {
       clickDraftProgramRow()
       cy.get("#view-valuesets").click();
       cy.wait(1000)
-      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
 
       // changes this valueset's priority from emergent to routine
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').should('include.text', 'Emergent')
@@ -273,8 +272,6 @@ describe("Smoke Tests", () => {
 
       cy.get("#view-valuesets").click();
       cy.wait(1000)
-      cy.get("#vs-table-detail").children().eq(1).scrollTo("topLeft", {duration: 500})
-
       
       // Removing last condition on valueset should not break page
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true }).type('{backspace}')

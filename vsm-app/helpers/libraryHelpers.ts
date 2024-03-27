@@ -183,7 +183,7 @@ const getVSPriority = (library: fhir4.Library) => {
     const priorityExtensionIndex = ra.extension?.findIndex(ext => ext?.url?.endsWith('vsm-valueset-priority'))
     // if priority already exists
     if (ra.type === 'depends-on' && typeof priorityExtensionIndex === 'number' && priorityExtensionIndex > -1) {
-      const vsUrl = ra.resource as string
+      const vsUrl = ra.resource?.split('|')?.[0] as string
       const priority = ra.extension?.[priorityExtensionIndex]?.valueCodeableConcept?.coding?.[0]?.code
       if (!(priority === 'emergent' || priority === 'routine')) {
         throw 'Unknown priority code!'
