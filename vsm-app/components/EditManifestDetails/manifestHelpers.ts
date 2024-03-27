@@ -1,4 +1,11 @@
-import { AvailableVersions, SelectedManifestDataVersion, ManifestSystemVersionPair, ManifestUrlNameMap, SystemSelection, UpdateManifest } from '@/types/manifestTypes'
+import {
+  AvailableVersions,
+  SelectedManifestDataVersion,
+  ManifestSystemVersionPair,
+  ManifestUrlNameMap,
+  SystemSelection,
+  UpdateManifest
+} from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
 
@@ -141,7 +148,9 @@ const updateManifest = async ({
     }).then((res) => res.json())
     setCurrentSelectedData(mData)
     const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
-    toast.success(notificationTxt)
+    toast.success(notificationTxt, {
+      style: { wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap', textAlign: 'center' }
+    })
   } catch (err) {
     console.error(err)
     toast.error('Error adding manifest program version')
