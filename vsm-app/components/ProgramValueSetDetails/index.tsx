@@ -289,6 +289,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const progValueSetDets = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
+    conditionsMap,
+    valueSetPriorityMap,
     toggleUpdateData,
     ...debouncedFilters
   }) as Result
@@ -423,7 +425,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const priorityKey = `${row.valueSet.url}${row.valueSetPinnedVersion ? `|${row.valueSetPinnedVersion}` : ''}`
+          const priorityKey = row?.valueSet?.url ?? ""
           const currentPriority = valueSetPriorityMap[priorityKey] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)

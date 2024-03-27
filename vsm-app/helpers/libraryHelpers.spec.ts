@@ -193,6 +193,31 @@ describe('libraryHelpers', () => {
         const map = getVSPriority(testProgram)
         Object.values(map).forEach((curr) => expect(curr).toBe('emergent'))
       })
+
+      it('should remove pinned version from url when creating map', () => {
+        const newValueSetPriority: fhir4.RelatedArtifact = {
+          extension: [
+            {
+              url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+              valueCodeableConcept: {
+                coding: [
+                  {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                    code: 'emergent'
+                  }
+                ],
+                text: 'Emergent'
+              }
+            }
+          ],
+          type: 'depends-on',
+          resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/33333|1234'
+        }
+        testProgram.relatedArtifact?.push(newValueSetPriority)
+        const map = getVSPriority(testProgram)
+        expect(map['http://cts.nlm.nih.gov/fhir/ValueSet/33333']).toBe('emergent')
+        expect(map['http://cts.nlm.nih.gov/fhir/ValueSet/33333||1234']).toBeUndefined()
+      })
     })
 
     describe('setVSPriority', () => {
