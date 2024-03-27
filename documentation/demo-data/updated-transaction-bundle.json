@@ -695,7 +695,7 @@
 				"id": "plandefinition-ersd-instance-example",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition"
 					]
 				},
 				"text": {
