@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
-import { getServerSession } from 'next-auth'
+import { getServerSession } from 'next-auth/next'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 
