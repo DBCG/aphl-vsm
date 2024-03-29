@@ -15,8 +15,7 @@ import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
 import ProvisionalVsDescription from '@/components/ProvisionalVS/ProvisionalVsDescription'
-import { Step, StepLabel, Stepper, StepContent, IconButton, ButtonBase } from '@mui/material'
-// import { IconButton } from '@/components/buttons/IconButton'
+import { Step, StepLabel, Stepper, StepContent, IconButton } from '@mui/material'
 import styled from 'styled-components'
 import { DeleteForeverSharp } from '@mui/icons-material'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
@@ -110,7 +109,6 @@ const CodeDetailsExpanded = ({ data }) => {
   
   const codesBySystem = data?.compose?.include
     ?.map(i => i.concept?.map(c => Object.assign(c, { system: i.system }))).flat() || []
-  console.log('codes by system: ', codesBySystem)
   const columns = useMemo(() => {
     const fields = [
       { 
@@ -224,10 +222,6 @@ const ProvisionalVS = () => {
 
   const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
-  useEffect(() => {
-    console.log('existing Provisional cs: ', existingProvisionalCs)
-  })
-
   const codeColumns = useMemo(() => {
     const fields = [
       {
@@ -267,7 +261,6 @@ const ProvisionalVS = () => {
   }, [codeItemsToAdd])
 
   const existingProvisionalVsColumns = useMemo(() => {
-    console.log('provisionalVS: ', provisionalVs)
     const fields = [
       {
         name: 'Title',
@@ -301,11 +294,18 @@ const ProvisionalVS = () => {
     const defaultTitle = matchingVs?.title || ''
     const defaultAuthor = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
     const defaultSteward = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
+    const existingGrouperIds = progValueSetDets?.data?.find(i => i?.valueSet?.id === provisionalVsIdForUpdate)?.groups?.map(g => g.id) || []
+
+    if (existingGrouperIds) {
+      const initialDefaultGroupers = groupsInProgram?.filter(g => existingGrouperIds?.includes(g.id))
+      const result = buildGroupOptions(initialDefaultGroupers) || []
+      setGroupersToAdd(result)
+    }
     // this is assuming only one CS is possible to add in a vs
-    const selectedCSBaseUrl = matchingVs?.compose.include[0].system
+    const selectedCSBaseUrl = matchingVs?.compose?.include?.[0]?.system
     const selectedCs = allSystemSelections?.find(s => s?.uri === selectedCSBaseUrl)
     const selectionItem = selectedCs ? { value: selectedCs.uri, label: selectedCs.name } : null
-    console.log('selectionItem: ', selectionItem)
+
     setTitle(defaultTitle)
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
@@ -317,10 +317,6 @@ const ProvisionalVS = () => {
     setDefinitionToAdd('')
     setDisplayToAdd('')
   }
-
-  useEffect(() => {
-    console.log('activeStep: ', activeStep)
-  }, [activeStep])
 
   const handleStep = (direction: 'next' | 'prev', currentIndex: number) => {
     const stepsCompletedClone = [...stepsCompleted]
@@ -343,7 +339,6 @@ const ProvisionalVS = () => {
 
   const handleSubmitForm = async () => {
     setSubmittingForm(true)
-    console.log('selectedCodeSystemBase: ', selectedCodeSystemBase)
     const codesBySystemToAdd = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
 
     const submitBody = {
@@ -351,6 +346,7 @@ const ProvisionalVS = () => {
       stewardToUpdate: steward,
       titleToUpdate: title,
       codesBySystemToAdd,
+      provisionalVsIdForUpdate: provisionalVsIdForUpdate,
       grouperIds: groupersToAdd?.map(g => g.id)
     }
     // block submit?
@@ -370,7 +366,6 @@ const ProvisionalVS = () => {
   }, [selectedCodeSystemBase])
 
   const selectOptions = useMemo(() => {
-    console.log('all system selections here: ', allSystemSelections)
     return allSystemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [allSystemSelections])
 
@@ -387,7 +382,6 @@ const ProvisionalVS = () => {
     // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setAllSystemSelections(systemAndVersionData)
-      console.log('systemAndVersionData: ', systemAndVersionData)
       const sysNamesByUri = namesByUri(systemAndVersionData)
 
       // comment out until fix
@@ -486,47 +480,55 @@ const ProvisionalVS = () => {
     </div>
   )
 
-  const thirdStep = (
-    <div>
-      <QuestionnaireRowContainer>
-        <Select
-          isClearable={true}
-          options={selectOptions}
-          isMulti={false}
-          value={selectedCodeSystemBase}
-          menuPortalTarget={myDocument}
-          styles={reactSelectOptionStyle({ minWidth: '30rem' })}
-          onChange={(e) => {
-            console.log('e: ', e)
-            setSelectedCodeSystemBase(e)
-          }}
-        // getOptionValue={(option) => option.label}
-        />
-      </QuestionnaireRowContainer>
-      <ButtonRowContainer>
-        <Button
-          text='Back'
-          onClick={(e) => handleStep('prev', 2)}
-        />
-        {selectedCodeSystemBase ? (
-          <Button
-            text='Next'
-            onClick={(e) => handleStep('next', 2)}
+  const thirdStep = () => {
+    const editingExistingVs = Boolean(provisionalVsIdForUpdate)
+    return (
+      <div>
+        { editingExistingVs && (
+          <>
+            <p style={{ fontSize: '80%', marginBottom: 0 }}>The Value Set you are editing is based on the below code system.</p>
+            <p style={{ fontSize: '80%', marginTop: '.4rem' }}>To extend a different code system, you must make a new Value Set.</p>
+          </>
+        )}
+        <QuestionnaireRowContainer>
+          <Select
+            isClearable={true}
+            isDisabled={editingExistingVs}
+            options={selectOptions}
+            isMulti={false}
+            value={selectedCodeSystemBase}
+            menuPortalTarget={myDocument}
+            styles={reactSelectOptionStyle({ minWidth: '30rem' })}
+            onChange={(e) => {
+              setSelectedCodeSystemBase(e)
+            }}
           />
-        ) : null}
-      </ButtonRowContainer>
+        </QuestionnaireRowContainer>
+        <ButtonRowContainer>
+          <Button
+            text='Back'
+            onClick={(e) => handleStep('prev', 2)}
+          />
+          {selectedCodeSystemBase ? (
+            <Button
+              text='Next'
+              onClick={(e) => handleStep('next', 2)}
+            />
+          ) : null}
+        </ButtonRowContainer>
 
-    </div>
-  )
+      </div>
+    )
+  }
 
   const fourthStep = (
     <div>
-      <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
+      <QuestionnaireRowContainer style={{ marginBottom: '1rem' }}>
         {existingProvisionalCs?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
             <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)}/>
-            <p>You may add more provisional codes to the system using the form below</p>
+            <p style={{ marginBottom: 0 }}>You may add more provisional codes to the system using the form below, which will add them to your Value Set.</p>
           </div>
         ) : (
           <NoProvVsWrapper style={{ flexDirection: 'column', flexWrap: 'nowrap', textAlign: 'center' }}>
@@ -574,7 +576,7 @@ const ProvisionalVS = () => {
             columns={codeColumns}
             noDataComponent={noDataComponent('setProvisionals')}
           />
-          {showValueSetStep ? (
+          {(showValueSetStep || selectedCodeSystemBase) ? (
             <ButtonRowContainer>
               <Button
                 text='Back'
@@ -606,42 +608,45 @@ const ProvisionalVS = () => {
     </div>
   )
 
-  const fifthStep = (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <QuestionnaireRowContainer>
-        <Select
-          styles={reactSelectOptionStyle({ minWidth: '30rem' })}
-          required={true}
-          onChange={
-            (e) => {
-              console.log(e)
-              setGroupersToAdd(e)
+  const fifthStep = () => {
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <QuestionnaireRowContainer>
+          <Select
+            styles={reactSelectOptionStyle({ minWidth: '30rem' })}
+            required={true}
+            defaultValue={groupersToAdd}
+            onChange={
+              (e) => {
+                setGroupersToAdd(e)
+              }
             }
+            isMulti={true}
+            // value={groupersToSearch}
+            menuPortalTarget={myDocument}
+            instanceId="grouper-selector"
+            // @ts-ignore-next-line
+            options={buildGroupOptions(groupsInProgram)}
+          />
+        </QuestionnaireRowContainer>
+        <ButtonRowContainer>
+          <Button
+            text='Back'
+            onClick={(e) => handleStep('prev', 4)}
+          />
+          {
+            groupersToAdd.length ? (
+              <Button
+                text='Next'
+                onClick={(e) => handleStep('next', 4)}
+              />
+            ) : null
           }
-          isMulti={true}
-          // value={groupersToSearch}
-          menuPortalTarget={myDocument}
-          instanceId="grouper-selector"
-          // @ts-ignore-next-line
-          options={buildGroupOptions(groupsInProgram)}
-        />
-      </QuestionnaireRowContainer>
-      <ButtonRowContainer>
-        <Button
-          text='Back'
-          onClick={(e) => handleStep('prev', 4)}
-        />
-        {
-          groupersToAdd.length ? (
-            <Button
-              text='Next'
-              onClick={(e) => handleStep('next', 4)}
-            />
-          ) : null
-        }
-      </ButtonRowContainer>
-    </div>
-  )
+        </ButtonRowContainer>
+      </div>
+    )
+  } 
 
   const ReviewStep = () => {
     const existingProvisionalCodeSystem = existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)
@@ -703,9 +708,9 @@ const ProvisionalVS = () => {
                 onClick={(e) => handleStep('prev', 5)}
               />
               {
-                !handleCheckForSubmitErrors('vs-add') ? (
+                !handleCheckForSubmitErrors(selectedCodeSystemBase ? 'vs-update' : 'vs-add') ? (
                   <Button
-                    text='Create Provisional VS'
+                    text={`${selectedCodeSystemBase ? 'Update' : 'Add'} Provisional VS`}
                     onClick={(e) => handleSubmitForm()}
                   />
                 ) : (<ErrorMessage error='All fields are required. Please complete missing fields in form.'/>)
@@ -729,15 +734,15 @@ const ProvisionalVS = () => {
     },
     {
       label: 'Choose a Code System to Extend as the base for your Provisional Value Set',
-      content: <ContentWrapper>{thirdStep}</ContentWrapper>
+      content: <ContentWrapper>{thirdStep()}</ContentWrapper>
     },
     {
       label: `Add or Create Provisional Codes for Code System`,
       content: <ContentWrapper>{fourthStep}</ContentWrapper>
     },
     {
-      label: 'Add New Value Set to Grouper(s)',
-      content: <ContentWrapper>{fifthStep}</ContentWrapper>
+      label: 'Add Value Set to Grouper(s)',
+      content: <ContentWrapper>{fifthStep()}</ContentWrapper>
     },
     {
       label: 'Review Your Provisional Value Set',

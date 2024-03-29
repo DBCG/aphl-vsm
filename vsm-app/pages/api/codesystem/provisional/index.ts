@@ -31,7 +31,6 @@ const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiRes
     version: 'PROVISIONAL'
   }
 
-  console.log('systemUrl: ', systemUrl)
   if (systemUrl) {
     searchParams['url'] = systemUrl
   }

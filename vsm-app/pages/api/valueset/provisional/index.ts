@@ -1,7 +1,7 @@
 import { fhirCdrClient } from '@/fhirClients'
 import { is } from '@/helpers/is'
 import { updateGrouperLeafs } from '@/helpers/libraryHelpers'
-import { CreateProvisionalVs, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes } from '@/helpers/provisionalVsHelpers'
+import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -46,7 +46,6 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
   type: 'transaction';
 } => {
   const transactionEntry = items.map(i => {
-    console.log('i: ', i)
     const resourceType = i?.resourceType || i?.resource?.resourceType as string
     const resourceId = i?.resourceId || i?.resource?.id as string
     let requestBody = {
@@ -66,7 +65,6 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
     return (requestBody)
   })
 
-  console.log('transactionEntry: ', transactionEntry)
   return ({
     resourceType: 'Bundle',
     type: 'transaction',
@@ -87,10 +85,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       provisionalVsIdForUpdate
     } = req.body
 
-    console.log(codesBySystemToAdd)
-
     if (!Object.keys(codesBySystemToAdd)?.length || !titleToUpdate || !grouperIds?.length) {
-      console.log('fail')
       return res.status(400).json({ error: 'Invalid input. Endpoint requires the codes, title, and grouper IDs of the ValueSet being created.' })
     }
 
@@ -110,7 +105,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         }
       })
 
-      console.log('here: ')
       if (existingCS.entry) {
         // edit existing codeSystem
         codeSystemToEdit = existingCS.entry[0].resource
@@ -125,18 +119,19 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }
     }
 
-    // console.log('resources to Update: ', resourcesToUpdate)
     let provisionalLeaf
-    console.log('here 1')
     if (provisionalVsIdForUpdate) {
-      console.log('here 2')
       // provisional vs already exists, get it from server
       provisionalLeaf = await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: provisionalVsIdForUpdate
       })
+
+      provisionalLeaf = updateVsMetadata({ authorToUpdate, stewardToUpdate, titleToUpdate, vsToUpdate: provisionalLeaf })
       // remove codes to be removed, add codes to be added
-      console.log('here 3')
+      if (codesBySystemToAdd) {
+        provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToAdd, 'add')
+      }
       // TODO update leaf as necessary
     } else {
       // first, create the value set
@@ -148,10 +143,10 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }) as fhir4.ValueSet
 
     }
-    resourcesToSaveFirst.push({ method: 'POST', resource: provisionalLeaf as fhir4.ValueSet })
+
+    resourcesToSaveFirst.push({ method: provisionalVsIdForUpdate ? 'PUT' : 'POST', existingId: provisionalVsIdForUpdate, resource: provisionalLeaf as fhir4.ValueSet })
   
   const transactionBody = transactionBuilder(resourcesToSaveFirst)
-  // console.log('codeSystemsAndLeafs: ', codeSystemsAndLeafs.entry[1].request)
 
   const codeSysAndLeaf = await fhirCdrClient.transaction({
     body: transactionBody
@@ -161,12 +156,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
 
-  console.log('codeSysandLeaf.entry: ', codeSysAndLeaf.entry[0].response.outcome)
-  // const provisionalLeafItem = codeSysAndLeaf.entry.find(e => e.resource.resourceType === 'ValueSet') as fhir4.ValueSet
-  // console.log('provisional leaf item: ', provisionalLeafItem)
-
-  // return res.status(200).send({})
-  // next, add all provisional valueset urls to the groupers
   if (grouperIds) {
 
     // get the associated groupers and update with the reference
@@ -182,13 +171,11 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     // handles the 'add' case
     const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
-    console.log('all groupers: ', allGroupersToUpdate.entry[0].resource.compose.include)
 
     if (is.operationOutcome(allGroupersToUpdate)) {
       return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
     }
 
-    console.log('all gorupers: ', allGroupersToUpdate)
     // if groupers are all found, update their references with provisionalVS urls
     const groupersToUpdate = allGroupersToUpdate.entry.map((i: fhir4.BundleEntry) => (
       updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf.url!], 'add').grouper
@@ -206,8 +193,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       return res.status(200).send({})
     }
   }
-  // next, send a fhir transaction to create/update the value set, codeSystem, and update the groupers
-  
 
   } catch (e) {
     logger.error(e)

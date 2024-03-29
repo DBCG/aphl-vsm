@@ -53,7 +53,6 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
       })
       .filter((x: any) => x.uri && x.name)
 
-      console.log('availableCodeSystems: ', availableCodeSystems)
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
     logger.error('An error occured likely from the VSAC side')

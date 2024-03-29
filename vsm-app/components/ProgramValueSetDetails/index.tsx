@@ -328,7 +328,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const defaultVersion = 'latest'
     const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
       .then((res) => res.json())
-      .then((versions) => [defaultVersion, ...versions].map((item) => ({ value: item, label: item })))
+      .then((versions) => {
+        const versionToAdd = versions.error ? [] : versions
+        return [defaultVersion, ...versionToAdd].map((item) => ({ value: item, label: item }))
+      } )
 
     setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
     setLoadingVersionsForVs(null)

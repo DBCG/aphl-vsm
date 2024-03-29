@@ -408,8 +408,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         })
       }
       if (findInSteward?.length) {
-        console.log('getVsSteward: ', getVsSteward(vs).toLocaleLowerCase())
-        console.log('find in steward: ', findInSteward?.toLocaleLowerCase())
         filteredValueSets = filteredValueSets?.filter((vs) => getVsSteward(vs).toLocaleLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       }
       if (findInLastUpdated?.length) {
