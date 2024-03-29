@@ -32,9 +32,12 @@ const ProvisionalVSDescription = () => {
         </AccordionHeading>
         <AccordionP>
           A Provisional Value Set allows users in the VSM to include codes that are not yet officially published to a code system.
+        <AccordionP style={{ fontWeight: '500', textDecoration: 'underline'}}>
+          Creating these Value Sets and Code Systems in the VSM will not publish to VSAC.
+        </AccordionP>
         </AccordionP>  
         <AccordionP>
-          These Value Sets are bound to one code system. When a VSM user creates a new Provisional Value Set... etc.
+          VSM Provisional Value Sets are bound to one code system. When a VSM user creates a new Provisional Value Set, they can extend existing provisional Code Systems in the VSM.
         </AccordionP>
       </AccordionDetails>
     </Accordion>

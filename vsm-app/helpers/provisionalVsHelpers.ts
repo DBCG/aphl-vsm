@@ -36,6 +36,7 @@ export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: Code
         const updatedSystemCodes = uniqBy(totalCodeList, 'code')
         includeBlockToUpdate[systemIndex] = {
           system: url,
+          version: 'PROVISIONAL',
           concept: updatedSystemCodes
         }
       }
@@ -48,6 +49,7 @@ export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: Code
         } else {
           includeBlockToUpdate[systemIndex] = {
             system: url,
+            version: 'PROVISIONAL',
             concept: filteredSystemCodes
           } 
         }

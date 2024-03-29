@@ -21,7 +21,7 @@ interface IChip {
   experimental: boolean
 }
 
-const StyledChip = styled(Chip)<StyledCh>`
+export const StyledChip = styled(Chip)<StyledCh>`
   font-size: 80%;
   width: fit-content;
   color: ${props => props.experimental ? 'var(--theme-400)' : 'inherit'};

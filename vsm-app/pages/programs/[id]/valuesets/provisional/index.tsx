@@ -21,6 +21,7 @@ import { DeleteForeverSharp } from '@mui/icons-material'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { StyledChip } from '@/components/data-display/Chips'
 
 // handler for when to show button rows?
 interface CodeTableData {
@@ -99,6 +100,15 @@ const customExpandStyles = {
 	}
 }
 
+const customBaseStyles = {
+	headCells: {
+		style: {
+      fontWeight: 'bold',
+      textDecoration: 'underline'
+		},
+	}
+}
+
 interface RowItem {
   system: string
   code: string
@@ -157,7 +167,7 @@ const ExistingCodesTable = ({ codeSystem }) => {
   }, [codeSystem])
 
   return (
-    <DataTable data={codeSystem?.concept || []} columns={columns}/>
+    <DataTable customStyles={customBaseStyles} data={codeSystem?.concept || []} columns={columns}/>
   )
 }
 
@@ -331,12 +341,6 @@ const ProvisionalVS = () => {
     }
   }
 
-  interface vsData {
-    title: string
-    author: string
-    steward: string
-  }
-
   const handleSubmitForm = async () => {
     setSubmittingForm(true)
     const codesBySystemToAdd = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
@@ -356,7 +360,8 @@ const ProvisionalVS = () => {
     })
 
     if (result.ok) {
-      router.push(`/programs/${programId}/valuesets`)
+      const json = await result.json()
+      router.push(`/programs/${programId}/valuesets/${json.newId}`)
     }
   }
 
@@ -413,10 +418,20 @@ const ProvisionalVS = () => {
       </ButtonRowContainer>
     </div>
   ) : (
-    // CREATE A TABLE WITH SELECT
     <div>
-      <p>Select Provisional Value Set for update or <Button text='Create New Provisional VS' onClick={(e) => handleStep('next', 0)}/></p>
+      <p>
+        Select Provisional Value Set for update or 
+        <Button
+          style={{ marginLeft: '.4rem' }}
+          text='Create New Provisional VS'
+          onClick={(e) => {
+            setProvisionalVsIdForUpdate(undefined) 
+            handleStep('next', 0)}
+          }
+        />
+      </p>
       <DataTable
+        pagination={true}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
         selectableRows={true}
@@ -426,11 +441,16 @@ const ProvisionalVS = () => {
         onSelectedRowsChange={(e) => {
           const vsId = e?.selectedRows?.[0]?.id
           setProvisionalVsIdForUpdate(vsId)
-          if (vsId) {
-            handleStep('next', 0)
-          }
         }}
       />
+      { provisionalVsIdForUpdate && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+          <Button
+            text='Next'
+            onClick={(e) => handleStep('next', 0)}
+          />
+        </div>
+      )}
     </div>
   )
 
@@ -694,12 +714,10 @@ const ProvisionalVS = () => {
         />
       </div>
       <div>
-        <TextArea
-          label='Associated Groupers'
-          style={{ minWidth: '20rem' }}
-          value={groupersToAdd?.length ? groupersToAdd.map(i => i.label)?.join(', ') : 'No Groupers Selected'}
-          readonly={true}
-        />
+        <p>Associated Groupers</p>
+         <div>
+          {(groupersToAdd?.length ? groupersToAdd.map(i => <StyledChip experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
+         </div>
         {
           activeStep === stepContents.length - 1 ? (
             <ButtonRowContainer>
@@ -710,8 +728,9 @@ const ProvisionalVS = () => {
               {
                 !handleCheckForSubmitErrors(selectedCodeSystemBase ? 'vs-update' : 'vs-add') ? (
                   <Button
+                    loading={submittingForm}
                     text={`${selectedCodeSystemBase ? 'Update' : 'Add'} Provisional VS`}
-                    onClick={(e) => handleSubmitForm()}
+                    onClick={() => handleSubmitForm()}
                   />
                 ) : (<ErrorMessage error='All fields are required. Please complete missing fields in form.'/>)
               }

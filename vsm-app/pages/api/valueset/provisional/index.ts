@@ -155,6 +155,14 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
+  
+  // const leafRes = codeSysAndLeaf.entry.map(i)
+  console.log('codeSysAndLeaf', )
+  const provisionalLeafId = codeSysAndLeaf.entry.map(e => e.response.location)
+    .filter((loc: string) => loc.includes('ValueSet/'))[0]
+    .split('/')[1]
+  
+  console.log('id: ', provisionalLeafId)
 
   if (grouperIds) {
 
@@ -190,7 +198,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     if (is.operationOutcome(updatedGroupers)) {
       return res.status(500).json({ error: `Failed to update grouper references to provisional value set` }) 
     } else {
-      return res.status(200).send({})
+      return res.status(200).send({ newId: provisionalLeafId })
     }
   }
 
