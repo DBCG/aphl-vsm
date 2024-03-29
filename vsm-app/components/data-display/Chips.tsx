@@ -61,14 +61,13 @@ const IconChip = ({ style, experimental, indicatorType }: IChip) => {
       <ScienceIcon style={style}/>
     )
   } else if (indicatorType === 'provisional') {
-    hoverText = 'Experimental programs rely on resources that may be subject to change.'
+    hoverText = 'VSM-authored Provisional Value Sets are not available in other terminology servers.'
     inner = (
-      <WarningIcon style={style}/>
+      <WarningIcon fontSize='small' htmlColor='orange' style={style}/>
     )
   } else {
     return null
   }
-
 
   return (
     <Tt
