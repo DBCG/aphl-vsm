@@ -706,12 +706,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } else if (isEditable) {
       return (
         <>
+        <div>
           <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
             <InfoIcon
-              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
+              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
             />
           </Tooltip>
           <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+        </div>
           <Button
             text="Code Search"
             style={{ minHeight: '40px', minWidth: '150px' }}
