@@ -335,8 +335,11 @@ const getKeywords = (valueset: fhir4.ValueSet) => {
 const getVsSteward = (vs: fhir4.ValueSet) => vs?.extension?.find(xt => xt?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
 const getVsAuthor = (vs: fhir4.ValueSet) => vs?.extension?.find(xt => xt?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
 
+const isVSMOwnedVSet = (vs: fhir4.ValueSet) => Boolean(vs?.meta?.tag?.find(t => t.code === 'vsm-authored'))
+
 export {
   getVsSteward,
+  isVSMOwnedVSet,
   getVsAuthor,
   getOid,
   addExtensionToVs,

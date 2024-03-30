@@ -8,7 +8,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
 import { InputContainer, ButtonContainer } from '@/styles'
 import { TextArea } from './TextArea'
-import { getOid } from '@/helpers/valueSetHelpers'
+import { getOid, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
 import { getKeywords } from '@/helpers/valueSetHelpers'
 import { StatusChip } from './data-display/Chips'
@@ -56,6 +56,8 @@ export default function ValueSetContents({
   const [isEditing, setIsEditing] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
   const [loading, setLoading] = useState(false)
+
+  const isOwnedByVSM = isVSMOwnedVSet(valueSet)
 
   const {
     version: defaultGrouperVersion,
@@ -282,7 +284,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12}>
-                {!isGrouperValueSet && (
+                {!isOwnedByVSM && (
                   <TextArea
                     id="vs-oid"
                     label={'OID'}
@@ -339,7 +341,7 @@ export default function ValueSetContents({
               </Grid>
             </Grid>
             <Grid container justifyContent="flex-end">
-              {isGrouperValueSet && enableEditing && !isEditing && (
+              {isOwnedByVSM && enableEditing && !isEditing && (
                 <Button
                   data-button="edit-metadata"
                   text="Edit Metadata"
