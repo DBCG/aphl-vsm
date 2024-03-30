@@ -1,4 +1,4 @@
-import { ManifestUrlNameMap, SystemSelection } from '@/types/manifestTypes'
+import { SystemSelection } from '@/types/manifestTypes'
 import { useEffect, useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import Select from 'react-select'
@@ -106,6 +106,14 @@ const ButtonRowContainer = styled.div`
   padding-top: 1rem;
   column-gap: 1rem;
 `
+
+const MetaDataReviewContainer = styled.div`
+  display: flex;
+  background-color: white;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  padding: 24px 16px;
+`
 const customExpandStyles = {
 	rows: {
 		style: {
@@ -192,8 +200,22 @@ const ExistingCodesTable = ({ codeSystem }) => {
   }, [codeSystem])
 
   return (
-    <DataTable customStyles={customBaseStyles} data={codeSystem?.concept || []} columns={columns}/>
+    <DataTable pagination customStyles={customBaseStyles} data={codeSystem?.concept || []} columns={columns}/>
   )
+}
+
+type InfoToCheck = string[]
+
+interface ShouldDisableAdd {
+  infoToCheck: InfoToCheck
+  currentStep: 'add-code'
+}
+
+const shouldDisableAdd = ({ infoToCheck, currentStep }: ShouldDisableAdd) => {
+  if (currentStep === 'add-code') {
+    const allExist = infoToCheck.filter((i: string) => i.trim().length > 0).length === 3
+    return !(allExist)
+  }
 }
 
 const ProvisionalVS = () => {
@@ -417,6 +439,10 @@ const ProvisionalVS = () => {
     return allSystemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
   }, [allSystemSelections])
 
+  const disableAddProvCodes = useMemo(() => {
+    return shouldDisableAdd({ infoToCheck: [codeToAdd, displayToAdd, definitionToAdd], currentStep: 'add-code'})
+  }, [codeToAdd, displayToAdd, definitionToAdd])
+
   useEffect(() => {
     const shouldEnable = allFieldsExist([codeToAdd, displayToAdd, definitionToAdd])
     setEnableAdd(shouldEnable)
@@ -620,14 +646,13 @@ const ProvisionalVS = () => {
       </QuestionnaireRowContainer>
       {selectedCodeSystemBase ? (
         <>
-          {enableAdd && (
-            <ButtonRowContainer>
-              <Button
-                text='Add to List'
-                onClick={handleAddToList}
-              />
-            </ButtonRowContainer>
-          )}
+          <ButtonRowContainer>
+            <Button
+              text='Add to List'
+              onClick={handleAddToList}
+              disabled={disableAddProvCodes}
+            />
+          </ButtonRowContainer>
           <p>{`Code List to add: `}</p>
           <DataTable
             data={codeItemsToAdd}
@@ -670,6 +695,7 @@ const ProvisionalVS = () => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         <QuestionnaireRowContainer>
+        <SelectInputContainer style={{ maxWidth: '500px'}} id={`grouper-selector`}>
           <Select
             styles={reactSelectOptionStyle({ minWidth: '30rem' })}
             required={true}
@@ -686,6 +712,7 @@ const ProvisionalVS = () => {
             // @ts-ignore-next-line
             options={buildGroupOptions(groupsInProgram)}
           />
+        </SelectInputContainer>
         </QuestionnaireRowContainer>
         <ButtonRowContainer>
           <Button
@@ -708,7 +735,7 @@ const ProvisionalVS = () => {
   const sixthStep = () => {
     return (
       <div>
-        <SelectInputContainer id={`condition-selector`}>
+        <SelectInputContainer style={{ maxWidth: '500px'}} id={`condition-selector`}>
           <Select
             menuPortalTarget={myDocument}
             menuPlacement={'bottom'}
@@ -742,7 +769,7 @@ const ProvisionalVS = () => {
     const existingProvisionalCodeSystem = existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)
     return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <QuestionnaireRowContainer>
+      <MetaDataReviewContainer>
         <TextArea
           label='Title'
           style={{ minWidth: '20rem' }}
@@ -761,32 +788,34 @@ const ProvisionalVS = () => {
           value={steward || 'No Steward Set'}
           readonly={true}
         />
-      </QuestionnaireRowContainer>
-      <QuestionnaireRowContainer>
         <TextArea
           label='Base Code System'
-          style={{ minWidth: '50rem' }}
+          style={{ minWidth: '30rem', wordBreak: 'break-all' }}
           value={selectedCodeSystemBase ? `${selectedCodeSystemBase?.label} (${selectedCodeSystemBase?.value})` : 'No Code System Base Selected'}
           readonly={true}
         />
-      </QuestionnaireRowContainer>
+      </MetaDataReviewContainer>
       <div style={{ paddingLeft: '.8rem' }}>
         { existingProvisionalCodeSystem && (
           <div>
-            <p>Provisional Codes Currently in this Value Set</p>
+            <p style={{ fontSize: '90%' }}>Provisional Codes Currently in this Value Set</p>
             <ExistingCodesTable codeSystem={existingProvisionalCodeSystem}/>
           </div>
         )}
-        <p>Codes to be Added to Value Set</p>
+        <p style={{ fontSize: '90%' }}>Codes to be Added to Value Set</p>
         <DataTable
           data={codeItemsToAdd}
           columns={codeColumns.slice(1)}
         />
       </div>
       <div>
-        <p>Associated Groupers</p>
+        <p style={{ fontSize: '90%' }}>Associated Groupers</p>
          <div>
           {(groupersToAdd?.length ? groupersToAdd.map(i => <StyledChip experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
+         </div>
+         <p style={{ fontSize: '90%' }}>Associated Conditions</p>
+         <div style={{ marginBottom: '1rem'}}>
+          {(updatedConditions?.length ? updatedConditions.map(i => <StyledChip experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
          </div>
         {
           activeStep === stepContents.length - 1 ? (
@@ -799,7 +828,7 @@ const ProvisionalVS = () => {
                 !handleCheckForSubmitErrors(selectedCodeSystemBase ? 'vs-update' : 'vs-add') ? (
                   <Button
                     loading={submittingForm}
-                    text={`${selectedCodeSystemBase ? 'Update' : 'Add'} Provisional VS`}
+                    text={`${provisionalVs ? 'Update' : 'Add'} Provisional VS`}
                     onClick={() => handleSubmitForm()}
                   />
                 ) : (<ErrorMessage error='All fields are required. Please complete missing fields in form.'/>)
@@ -838,7 +867,7 @@ const ProvisionalVS = () => {
       content: <ContentWrapper>{sixthStep()}</ContentWrapper>
     },
     {
-      label: 'Review Your Provisional Value Set',
+      label: 'Review Your Provisional Value Set (Read-Only)',
       content: (
         <ContentWrapper>
           <ReviewStep />
