@@ -215,9 +215,8 @@ export const TableActions = ({
               style={{ backgroundColor: 'var(--accent)' }}
               disabled={isEditing}
               loading={isDeleting}
-              onClick={() => {
-                handleDelete(selectedRows)
-              }}
+              onClick={async() => await handleDelete(selectedRows)}
+              deletedItemDescription={`${selectedRows.length} Valueset(s)`}
               data-action="delete"
             />
           </ActionCol>
