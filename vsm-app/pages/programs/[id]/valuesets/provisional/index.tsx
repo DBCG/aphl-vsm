@@ -34,7 +34,19 @@ interface CodeTableData {
   definition: string
 }
 
-const generateConditionOptions = (conditionsMap, vsUrl) => {
+interface ConditionsMapConditionItem {
+  id: string
+  valueCodeableConcept: fhir4.CodeableConcept
+}
+
+interface LabelAndValue {
+  label: string
+  value: string
+}
+
+type ConditionsMap = Record<string, ConditionsMapConditionItem[]>
+
+const generateConditionOptions = (conditionsMap: ConditionsMap, vsUrl: string) => {
   const vsConditions = conditionsMap[vsUrl] || []
   const selectedOptions = vsConditions
   ?.map((i) => {
@@ -148,7 +160,11 @@ interface RowItem {
   display: string
 }
 
-const CodeDetailsExpanded = ({ data }) => {
+interface CodeDetailsProp {
+  data: fhir4.ValueSet
+}
+
+const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
   
   const codesBySystem = data?.compose?.include
     ?.map(i => i.concept?.map(c => Object.assign(c, { system: i.system }))).flat() || []
@@ -173,11 +189,15 @@ const CodeDetailsExpanded = ({ data }) => {
   }, [data])
 
   return (
+    // @ts-ignore
     <DataTable customStyles={customExpandStyles} data={codesBySystem} columns={columns}/>
   )
 }
 
-const ExistingCodesTable = ({ codeSystem }) => {
+interface ExistingCodesTbl {
+  codeSystem: fhir4.CodeSystem | undefined
+}
+const ExistingCodesTable = ({ codeSystem }: ExistingCodesTbl) => {
 
   const columns = useMemo(() => {
     const fields = [
@@ -200,6 +220,7 @@ const ExistingCodesTable = ({ codeSystem }) => {
   }, [codeSystem])
 
   return (
+    // @ts-ignore
     <DataTable pagination customStyles={customBaseStyles} data={codeSystem?.concept || []} columns={columns}/>
   )
 }
@@ -224,7 +245,7 @@ const ProvisionalVS = () => {
   const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
   const [currentCodeItem, setCurrentCodeItem] = useState({})
   const [enableAdd, setEnableAdd] = useState(false)
-  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState(undefined)
+  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<LabelAndValue | undefined | null>(undefined)
   const [groupersToAdd, setGroupersToAdd] = useState<GroupOptionItem[]>([])
   const [updatedConditions, setUpdatedConditions] = useState<Condition[]>([])
   const [codeToAdd, setCodeToAdd] = useState('')
@@ -348,7 +369,7 @@ const ProvisionalVS = () => {
           const systems = row?.compose?.include?.map(ci => ci.system) || []
           return (
             <div>
-              {systems.map(s => <p>{s}</p>)}
+              {systems.map(s => <p key={s}>{s}</p>)}
             </div>
           )}
       }
@@ -367,7 +388,7 @@ const ProvisionalVS = () => {
 
     if (existingGrouperIds) {
       // get existing groupers
-      const initialDefaultGroupers = groupsInProgram?.filter(g => existingGrouperIds?.includes(g.id))
+      const initialDefaultGroupers = groupsInProgram?.filter(g => existingGrouperIds?.includes(g.id!))
       const result = buildGroupOptions(initialDefaultGroupers) || []
       setGroupersToAdd(result)
       // get existing conditions
@@ -382,7 +403,7 @@ const ProvisionalVS = () => {
     setTitle(defaultTitle)
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
-    setSelectedCodeSystemBase(selectionItem)
+    setSelectedCodeSystemBase(selectionItem as LabelAndValue)
   }, [provisionalVsIdForUpdate, programAndGrouperData])
 
   const clearCurrentCodeItems = () => {
@@ -501,6 +522,7 @@ const ProvisionalVS = () => {
         selectableRows={true}
         selectableRowsSingle={true}
         data={provisionalVs}
+        // @ts-ignore
         columns={existingProvisionalVsColumns}
         onSelectedRowsChange={(e) => {
           const vsId = e?.selectedRows?.[0]?.id
@@ -611,7 +633,7 @@ const ProvisionalVS = () => {
         {existingProvisionalCs?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)}/>
+            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c?.url === selectedCodeSystemBase?.value)}/>
             <p style={{ marginBottom: 0 }}>You may add more provisional codes to the system using the form below, which will add them to your Value Set.</p>
           </div>
         ) : (
@@ -655,6 +677,7 @@ const ProvisionalVS = () => {
           </ButtonRowContainer>
           <p>{`Code List to add: `}</p>
           <DataTable
+            // @ts-ignore
             data={codeItemsToAdd}
             columns={codeColumns}
             noDataComponent={noDataComponent('setProvisionals')}
@@ -702,6 +725,7 @@ const ProvisionalVS = () => {
             defaultValue={groupersToAdd}
             onChange={
               (e) => {
+                // @ts-ignore
                 setGroupersToAdd(e)
               }
             }
@@ -804,6 +828,7 @@ const ProvisionalVS = () => {
         )}
         <p style={{ fontSize: '90%' }}>Codes to be Added to Value Set</p>
         <DataTable
+          // @ts-ignore
           data={codeItemsToAdd}
           columns={codeColumns.slice(1)}
         />
@@ -811,11 +836,11 @@ const ProvisionalVS = () => {
       <div>
         <p style={{ fontSize: '90%' }}>Associated Groupers</p>
          <div>
-          {(groupersToAdd?.length ? groupersToAdd.map(i => <StyledChip experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
+          {(groupersToAdd?.length ? groupersToAdd.map(i => <StyledChip key={i.label} experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
          </div>
          <p style={{ fontSize: '90%' }}>Associated Conditions</p>
          <div style={{ marginBottom: '1rem'}}>
-          {(updatedConditions?.length ? updatedConditions.map(i => <StyledChip experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
+          {(updatedConditions?.length ? updatedConditions.map(i => <StyledChip key={i.label} experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
          </div>
         {
           activeStep === stepContents.length - 1 ? (

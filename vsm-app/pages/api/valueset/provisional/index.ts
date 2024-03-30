@@ -1,6 +1,7 @@
 import { fhirCdrClient } from '@/fhirClients'
+import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
-import { getVSConditions, setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
+import { setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
@@ -8,6 +9,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Body extends CreateProvisionalVs {
   grouperIds: string[]
+  programId: string
+  updatedConditions: Condition[]
+  provisionalVsIdForUpdate: string
 }
 
 interface ReqInfo extends NextApiRequest {
@@ -16,7 +20,10 @@ interface ReqInfo extends NextApiRequest {
 
 interface BuilderItem {
   method: 'PUT' | 'POST' | 'GET'
-  resource: fhir4.ValueSet | fhir4.CodeSystem | library
+  resource?: fhir4.ValueSet | fhir4.CodeSystem | fhir4.Library
+  resourceId?: string
+  resourceType?: string
+  existingId?: string
 }
 
 
@@ -40,30 +47,33 @@ interface GetItem {
   resourceId: string
 }
 
-type BuildItem = GetItem | PutItem | PostItem
-
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
   type: 'transaction';
 } => {
   const transactionEntry = items.map(i => {
     const resourceType = i?.resourceType || i?.resource?.resourceType as string
     const resourceId = i?.resourceId || i?.resource?.id as string
+    // can't know the ID if the resource doesn't exist yet
+    let url
+    let resource
+    if (i.method === 'PUT') {
+      url = `${resourceType}/${resourceId}`
+      resource = i.resource
+    } else if (i.method === 'POST') {
+      resource = i.resource
+    } else if (i.method === 'GET') {
+      url = `${resourceType}/${resourceId}`
+    }
+
     let requestBody = {
       request: {
-        method: i.method
-      }
-    }
-    // can't know the ID if the resource doesn't exist yet
-    if (i.method === 'PUT') {
-      requestBody.request.url = `${resourceType}/${resourceId}`
-      requestBody.resource = i.resource
-    } else if (i.method === 'POST') {
-      requestBody.resource = i.resource
-    } else if (i.method === 'GET') {
-      requestBody.request.url = `${resourceType}/${resourceId}`
+        method: i.method,
+        ...(Boolean(url) && { url })
+      },
+      ...(Boolean(resource) && { resource })
     }
     return (requestBody)
-  })
+  }) as fhir4.BundleEntry[]
 
   return ({
     resourceType: 'Bundle',
@@ -121,13 +131,13 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }
     }
 
-    let provisionalLeaf
+    let provisionalLeaf = {} as fhir4.ValueSet
     if (provisionalVsIdForUpdate) {
       // provisional vs already exists, get it from server
       provisionalLeaf = await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: provisionalVsIdForUpdate
-      })
+      }) as fhir4.ValueSet
 
       provisionalLeaf = updateVsMetadata({ authorToUpdate, stewardToUpdate, titleToUpdate, vsToUpdate: provisionalLeaf })
       // remove codes to be removed, add codes to be added
@@ -167,7 +177,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   const updatedProgram = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
 
   resourcesToSaveLast.push({ method: 'PUT', resource: updatedProgram })
-  const provisionalLeafId = codeSysAndLeaf.entry.map(e => e.response.location)
+  const provisionalLeafId = codeSysAndLeaf.entry.map((e: any) => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]
   
@@ -181,7 +191,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }
     ))
 
-    const getGrouperTransaction = transactionBuilder(grouperReqItems)
+    const getGrouperTransaction = transactionBuilder(grouperReqItems as BuilderItem[])
 
     // handles the 'add' case
     const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
@@ -244,7 +254,7 @@ const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) =>
     })
 
     const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-    const provisionalLeafsOnly = results?.filter(r => r.extension.find(e => e.url.includes('vsm-test-extension')))
+    const provisionalLeafsOnly = results?.filter((r: any) => r.extension.find((e: any) => e.url.includes('vsm-test-extension')))
 
     return res.status(200).json(provisionalLeafsOnly || [])
 

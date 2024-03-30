@@ -28,12 +28,9 @@ const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiRes
     } = req.query
 
    let searchParams = {
-    version: 'PROVISIONAL'
-  }
-
-  if (systemUrl) {
-    searchParams['url'] = systemUrl
-  }
+    version: 'PROVISIONAL',
+    ...(systemUrl && { url: systemUrl })
+   }
 
     // ideally I wouldn't be doing this and would just be using a searchParam on
     // an extension that designates provisional?

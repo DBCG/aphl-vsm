@@ -12,6 +12,11 @@ interface CodeItem {
 
 export type CodesBySystem = Record<string, CodeItem[]>
 
+interface ExistingCodes {
+  code: string
+  display: string
+}
+
 export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: CodesBySystem, action: 'add' | 'remove') => {
   const clonedVs = cloneDeep(vs)
 
@@ -31,8 +36,10 @@ export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: Code
       } else {
         // if items already exist in this system, filter out dupes
         // with newer code pairs overriding old ones
-        const existingCodes = includeBlockToUpdate[systemIndex].concept || []
-        const totalCodeList = codesBySystemToEdit[url].concat(existingCodes)
+        const existingCodes = includeBlockToUpdate?.[systemIndex]?.concept || [] as ExistingCodes[]
+        const totalCodeList = codesBySystemToEdit[url].concat(existingCodes as any)
+        console.log('existinCodes: ', existingCodes)
+        console.log('totalCodeList: ', totalCodeList)
         const updatedSystemCodes = uniqBy(totalCodeList, 'code')
         includeBlockToUpdate[systemIndex] = {
           system: url,
