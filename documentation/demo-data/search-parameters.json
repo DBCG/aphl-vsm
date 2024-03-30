@@ -42,6 +42,25 @@
               "method": "PUT",
               "url": "SearchParameter/manifest-contains-code"
           }
-      }
+      },
+      {
+        "fullUrl": "SearchParameter/provisional-value-set",
+        "resource":
+        {
+          "resourceType": "SearchParameter",
+          "id": "provisional-value-set",
+          "status": "draft",
+          "code": "provisional-value-set",
+          "base": ["ValueSet"],
+          "type": "token",
+          "description": "Return all leaf ValueSets that are Provisional",
+          "expression": "ValueSet.extension.where(url.contains('vsm-provisional-vs')).value"
+      },
+        "request":
+        {
+            "method": "PUT",
+            "url": "SearchParameter/provisional-value-set"
+        }
+    }
     ]
   }

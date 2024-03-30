@@ -1,10 +1,29 @@
+const startsAlphabetically = (title: string) => {
+  const regex = /^[A-Za-z]/
+  return Boolean(title?.trim().match(regex))
+}
+
+const capitalizeFirstLetter = (title: string) => {
+  return title.charAt(0).toUpperCase() + title.slice(1)
+}
+
+// convert a string (most likely a fhir title) to the proper format
 const stripFromName = (str: string) => {
   const trimmed = str.trim()
 
   if (trimmed === '') return trimmed
+  const removedSpecials = trimmed.replace(/[^a-zA-Z0-9\s]/g, ' ')
+  let singleSpaces = removedSpecials.replace(/\s+/g, ' ')
+  if (!startsAlphabetically(singleSpaces)) {
+    singleSpaces = `N ${singleSpaces}`
+  }
+  const cleaned = singleSpaces.replace(/[^a-zA-Z0-9\s]/g, '')
+    .split(' ')
+    .map(word => capitalizeFirstLetter(word))
+    .join('')
 
-  const cleaned = trimmed.replace(/[^a-zA-Z0-9\w]/g, '_')
-  return cleaned
+  const result = cleaned.trim()
+  return result
 }
 
 const splitCanonical = (canonical: string): string[] => {
@@ -16,46 +35,16 @@ const splitCanonical = (canonical: string): string[] => {
   }
 }
 
-const startsAlphabetically = (title: string) => {
-  const regex = /^[A-Za-z]/
-  return Boolean(title?.trim().match(regex))
-}
-
-const capitalizeFirstLetter = (title: string) => {
-  return title.charAt(0).toUpperCase() + title.slice(1)
-}
-
-// FHIR names have some rules around their composition
-// example: https://build.fhir.org/valueset-definitions.html#ValueSet.name
-// rules: 
-// 1. Must start uppercase LETTER
-// 2. May contain numbers, may contain upper or lowercase letters a to z
-// 3. No spaces
-// 4. No symbols except underscore _
-// 5. FHIR names do NOT need to be unique
+// From discussing with Adam/Bryn at Smile, we take the following approach:
+// - remove all special characters
+// - if string doesn't start with a letter, prefix with "N"
+// - remove whitespace
 const generateNameFromTitle = (title: string | undefined, defaultName: string) => {
-  // if title doesn't exist (it's not required) then just use the default name
+  // if title doesn't exist (it's not technically required in FHIR resources) then just use the default name
   if (!title || title.trim() === '') {
     return defaultName
   }
-  const disallowedItemsRx = new RegExp('[^a-z,A-Z,0-9,_]', 'g')
-  const startsWithLetterRx = new RegExp('^[a-z,A-Z]')
-  // replace all characters not matching allowed with _
-  const cleanedName = stripFromName(title).replace('__', '_')
-
-  // lastly, ensure name starts with uppercase letter, adjust if not
-  const startsWithLetter = startsWithLetterRx.test(cleanedName)
-
-  if (startsWithLetter) {
-    return capitalizeFirstLetter(cleanedName)
-  } else {
-    // just in case users didn't start their human-readable title with a letter
-    // find the first letter used in the title
-    const anyLetterRx = new RegExp('[a-z,A-Z]')
-    const indexOfFirstLetter = cleanedName.search(anyLetterRx)
-    const firstLetter = indexOfFirstLetter > -1 ? cleanedName.charAt(indexOfFirstLetter).toUpperCase() : 'A'
-    return `${firstLetter}${cleanedName}`
-  }
+  return stripFromName(title)
 }
 
 // https://build.fhir.org/datatypes.html#dateTime

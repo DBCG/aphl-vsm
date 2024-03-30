@@ -13,10 +13,10 @@ describe('stringHelpers', () => {
   describe('stripFromName', () => {
     it('should replace all non alpha/numeric characters with underscores', () => {
       const testInput1 = 'the?wind-is"tossing[the>lilacs'
-      const expected1 = 'the_wind_is_tossing_the_lilacs'
+      const expected1 = 'TheWindIsTossingTheLilacs'
 
       const testInput2 = 'the(new=leaves~laugh|in,the}sun'
-      const expected2 = 'the_new_leaves_laugh_in_the_sun'
+      const expected2 = 'TheNewLeavesLaughInTheSun'
 
       expect(stripFromName(testInput1)).toBe(expected1)
       expect(stripFromName(testInput2)).toBe(expected2)
@@ -24,7 +24,7 @@ describe('stringHelpers', () => {
 
     it('should trim whitespace from either side of string', () => {
       const testInput3 = ' this-will-be-stripped '
-      const expected3 = 'this_will_be_stripped'
+      const expected3 = 'ThisWillBeStripped'
       expect(stripFromName(testInput3)).toBe(expected3)
     })
   })
@@ -66,8 +66,8 @@ describe('stringHelpers', () => {
     const testTitle1 = ' ? this is a title '
     const testTitle2 = ' (a test) title '
 
-    const expected1 = 'T_this_is_a_title'
-    const expected2 = 'A_a_test_title'
+    const expected1 = 'ThisIsATitle'
+    const expected2 = 'ATestTitle'
     expect(generateNameFromTitle(testTitle1, 'Default')).toBe(expected1)
     expect(generateNameFromTitle(testTitle2, 'Default2')).toBe(expected2)
   })

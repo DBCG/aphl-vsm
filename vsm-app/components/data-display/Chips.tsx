@@ -2,6 +2,7 @@ import { styled } from '@mui/system'
 import Chip from '@mui/material/Chip'
 import Tt from '@mui/material/Tooltip'
 import ScienceIcon from '@mui/icons-material/Science'
+import WarningIcon from '@mui/icons-material/Warning'
 import React from 'react'
 
 interface StyledCh {
@@ -15,12 +16,12 @@ interface Chip {
 }
 
 interface IChip {
-  indicatorType: 'experimental'
+  indicatorType: 'experimental' | 'provisional'
   style?: React.CSSProperties
   experimental: boolean
 }
 
-const StyledChip = styled(Chip)<StyledCh>`
+export const StyledChip = styled(Chip)<StyledCh>`
   font-size: 80%;
   width: fit-content;
   color: ${props => props.experimental ? 'var(--theme-400)' : 'inherit'};
@@ -59,10 +60,14 @@ const IconChip = ({ style, experimental, indicatorType }: IChip) => {
     inner = (
       <ScienceIcon style={style}/>
     )
+  } else if (indicatorType === 'provisional') {
+    hoverText = 'VSM-authored Provisional Value Sets are not available in other terminology servers.'
+    inner = (
+      <WarningIcon fontSize='small' htmlColor='orange' style={style}/>
+    )
   } else {
     return null
   }
-
 
   return (
     <Tt

@@ -100,48 +100,9 @@ const condCodesBySystem = (conditionItems: Condition[]) => conditionItems.reduce
   {},
 )
 
-const removeConditionsFromLeaf = (leafVs: fhir4.ValueSet, conditions: Condition[]): fhir4.ValueSet | null => {
-  const clonedLeafVs = cloneDeep(leafVs)
-  const ucBlock = clonedLeafVs.useContext
-
-  // if no useContext at all, just return out
-  if (!ucBlock) {
-    return null
-  }
-
-  const conditionsBySystem = condCodesBySystem(conditions)
-
-  const filteredUsageContexts = cloneDeep(ucBlock).filter(existingUcItems => {
-    const isUsageCxtType = existingUcItems?.code?.system?.endsWith('/usage-context-type') && existingUcItems?.code?.code === 'focus'
-    const systemToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.system
-    const codeToCheck = existingUcItems?.valueCodeableConcept?.coding?.[0]?.code
-    // if no system or code, just keep this item since don't know if need to delete
-    if (systemToCheck === undefined || codeToCheck === undefined) return true
-    const codeMatches = conditionsBySystem?.[systemToCheck]?.includes(codeToCheck)
-    // we only want to keep useContext items that are either:
-    // 1. not the type used for conditions
-    // 2. not matching the condition codes we want to delete
-    return !isUsageCxtType || !codeMatches
-  })
-
-  // if lengths are the same, no changes were made, return out
-  if (filteredUsageContexts?.length === ucBlock.length) {
-    return null
-  }
-
-  // if this operation deletes all useContext items, remove the key completely from the leaf vset
-  if (!filteredUsageContexts.length) {
-    delete clonedLeafVs.useContext
-  } else {
-    clonedLeafVs.useContext = filteredUsageContexts
-  }
-  return clonedLeafVs
-}
-
 export {
   formatConditionsComposeInclude,
   buildConditionOptions,
-  removeConditionsFromLeaf,
   removeConditionsWithoutDisplay
 }
 export type { Condition, ConditionItem, ConditionToUpdate }

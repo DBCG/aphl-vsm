@@ -23,6 +23,7 @@ import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import uniqBy from 'lodash.uniqby'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
+import { getVsSteward } from '@/helpers/valueSetHelpers'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -407,7 +408,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         })
       }
       if (findInSteward?.length) {
-        filteredValueSets = filteredValueSets?.filter((vs) => vs?.publisher?.toLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
+        filteredValueSets = filteredValueSets?.filter((vs) => getVsSteward(vs).toLocaleLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
       }
       if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {

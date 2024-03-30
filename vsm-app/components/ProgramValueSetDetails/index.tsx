@@ -13,7 +13,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@/components/buttons/Button'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
-import { getTerminologySource } from '@/helpers/valueSetHelpers'
+import { getTerminologySource, getVsSteward, isProvisionalVs } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { buildConditionOptions, ConditionToUpdate, Condition, ConditionItem } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -30,6 +30,7 @@ import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { USHealthVSPriority, getVSPriority, getVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
+import { IconChip } from '../data-display/Chips'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -327,7 +328,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const defaultVersion = 'latest'
     const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
       .then((res) => res.json())
-      .then((versions) => [defaultVersion, ...versions].map((item) => ({ value: item, label: item })))
+      .then((versions) => {
+        const versionToAdd = versions.error ? [] : versions
+        return [defaultVersion, ...versionToAdd].map((item) => ({ value: item, label: item }))
+      } )
 
     setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
     setLoadingVersionsForVs(null)
@@ -478,33 +482,41 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
 
+          const isProvisional = isProvisionalVs(row.valueSet)
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
-              <Select
-                menuPortalTarget={myDocument}
-                menuPlacement="top"
-                instanceId="version-selector"
-                isDisabled={blockChanges}
-                onChange={(e) => {
-                  setVersionUpdateInFlight(true)
-                  const grouperIds = row?.groups?.map((g) => g.id)
-                  setVersionToUpdate({
-                    selectedVsId: row?.valueSet?.id as string,
-                    selectedVersion: e?.value as string,
-                    useContext: row?.valueSet?.useContext || [],
-                    vsCanonical: row?.valueSet?.url as string,
-                    programId: currentProgram?.id as string,
-                    grouperIds,
-                    terminologyInfo
-                  })
-                }}
-                isLoading={loadingVersionsForVs === row?.valueSet?.id}
-                loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
-                isMulti={false}
-                styles={reactSelectOptionStyle()}
-                options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
-                value={defaultOption}
-              />
+              { isProvisional ? (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <IconChip experimental={false} indicatorType='provisional'/>
+                  <span style={{ margin: 0, verticalAlign: 'middle' }}>Provisional</span>
+                </div>
+              ) : (
+                <Select
+                  menuPortalTarget={myDocument}
+                  menuPlacement="top"
+                  instanceId="version-selector"
+                  isDisabled={blockChanges}
+                  onChange={(e) => {
+                    setVersionUpdateInFlight(true)
+                    const grouperIds = row?.groups?.map((g) => g.id)
+                    setVersionToUpdate({
+                      selectedVsId: row?.valueSet?.id as string,
+                      selectedVersion: e?.value as string,
+                      useContext: row?.valueSet?.useContext || [],
+                      vsCanonical: row?.valueSet?.url as string,
+                      programId: currentProgram?.id as string,
+                      grouperIds,
+                      terminologyInfo
+                    })
+                  }}
+                  isLoading={loadingVersionsForVs === row?.valueSet?.id}
+                  loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
+                  isMulti={false}
+                  styles={reactSelectOptionStyle()}
+                  options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
+                  defaultValue={defaultOption}
+                />
+              ) }
             </SelectInputContainer>
           )
         }
@@ -516,7 +528,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
           </div>
         ),
-        selector: (row: TableRow) => row.valueSet.publisher || '',
+        selector: (row: TableRow) => getVsSteward(row.valueSet),
         style: { fontSize: '12px' },
         sortable: true,
         maxWidth: '120px',
@@ -694,12 +706,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } else if (isEditable) {
       return (
         <>
+        <div>
           <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
             <InfoIcon
-              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-119%, 314%)', height: '20px' }}
+              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
             />
           </Tooltip>
           <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+        </div>
           <Button
             text="Code Search"
             style={{ minHeight: '40px', minWidth: '150px' }}
@@ -725,12 +739,20 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         </FlexRow>
         <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
           {isEditable && (
-            <Button
-              id="add-valueset"
-              text="Add Valuesets"
-              style={{ minHeight: '40px', minWidth: '150px' }}
-              onClick={() => router.push(`${router.asPath}/search`)}
-            />
+            <>
+              <Button
+                id="add-valueset"
+                text="Add Valuesets from Terminology Server"
+                style={{ minHeight: '40px', minWidth: '150px' }}
+                onClick={() => router.push(`${router.asPath}/search`)}
+              />
+              <Button
+                id="add-valueset"
+                text="Add/Edit Provisional Valuesets"
+                style={{ minHeight: '40px', minWidth: '150px' }}
+                onClick={() => router.push(`${router.asPath}/provisional`)}
+              />
+            </>
           )}
           {updateVSetsButton}
         </Col>

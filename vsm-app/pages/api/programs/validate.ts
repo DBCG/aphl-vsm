@@ -25,9 +25,6 @@ const validatePackage = async (
       ]
     }
 
-    console.log('*** test validate parameters')
-    console.log(JSON.stringify(validateParameters))
-
     const validateResponse = await fhirCdrClient.operation({
       name: '$validate',
       input: JSON.stringify(validateParameters),
