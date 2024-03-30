@@ -38,8 +38,6 @@ export const addOrRemoveVsCodes = (vs: fhir4.ValueSet, codesBySystemToEdit: Code
         // with newer code pairs overriding old ones
         const existingCodes = includeBlockToUpdate?.[systemIndex]?.concept || [] as ExistingCodes[]
         const totalCodeList = codesBySystemToEdit[url].concat(existingCodes as any)
-        console.log('existinCodes: ', existingCodes)
-        console.log('totalCodeList: ', totalCodeList)
         const updatedSystemCodes = uniqBy(totalCodeList, 'code')
         includeBlockToUpdate[systemIndex] = {
           system: url,
