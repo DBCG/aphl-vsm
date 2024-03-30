@@ -54,7 +54,7 @@ interface Args {
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
   toggleUpdateData?: boolean
-  provisionalOnly: boolean
+  provisionalOnly?: boolean
 }
 // gets data necessary to build the program valueset details page
 const useGetProgramValueSetDetails = ({
@@ -72,7 +72,7 @@ const useGetProgramValueSetDetails = ({
   updatedGrouper,
   versionToUpdate,
   toggleUpdateData,
-  provisionalOnly = false
+  provisionalOnly,
 }: Args): Result | {} => {
   const [data, setData] = useState<Result>({})
   const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')

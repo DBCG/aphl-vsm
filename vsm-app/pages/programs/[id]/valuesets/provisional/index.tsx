@@ -8,9 +8,8 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
-import { buildGroupOptions } from '@/helpers/selectHelpers'
+import { GroupOptionItem, buildGroupOptions } from '@/helpers/selectHelpers'
 import { useGetProgramById } from '@/hooks/useGetProgramById'
-import { namesByUri } from '@/components/EditManifestDetails/manifestHelpers'
 import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
@@ -22,6 +21,11 @@ import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StyledChip } from '@/components/data-display/Chips'
+import { SelectInputContainer } from '@/components/ProgramValueSetDetails/styles'
+import { Condition, buildConditionOptions } from '@/helpers/conditionHelpers'
+import { useGetConditions } from '@/hooks/useGetConditions'
+import { getVSConditions } from '@/helpers/libraryHelpers'
+import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 
 // handler for when to show button rows?
 interface CodeTableData {
@@ -29,6 +33,27 @@ interface CodeTableData {
   display: string
   definition: string
 }
+
+const generateConditionOptions = (conditionsMap, vsUrl) => {
+  const vsConditions = conditionsMap[vsUrl] || []
+  const selectedOptions = vsConditions
+  ?.map((i) => {
+    const system = i?.valueCodeableConcept?.coding?.[0]?.system
+    const code = i?.valueCodeableConcept?.coding?.[0]?.code
+    const systemCodeText = system && code ? `Code ${code} in system ${system}` : null
+    return {
+      label: i?.valueCodeableConcept?.text || systemCodeText || '[missing condition text]',
+      value: {
+        system: system || '',
+        code: code || '',
+        version: i?.valueCodeableConcept?.coding?.[0]?.version || '',
+        text: i?.valueCodeableConcept?.text
+      }
+    }
+  })
+  .filter((x) => x) as Condition[]
+  return selectedOptions
+} 
 
 const noDataComponent = (tableType: 'setProvisionals' | 'reviewProvisionals') => {
   if (tableType === 'setProvisionals') {
@@ -172,15 +197,14 @@ const ExistingCodesTable = ({ codeSystem }) => {
 }
 
 const ProvisionalVS = () => {
-  const [pageLoading, setPageLoading] = useState(false)
   const [allSystemSelections, setAllSystemSelections] = useState<SystemSelection[]>([])
-  const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
   const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
   const [currentCodeItem, setCurrentCodeItem] = useState({})
   const [enableAdd, setEnableAdd] = useState(false)
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState(undefined)
-  const [groupersToAdd, setGroupersToAdd] = useState([])
+  const [groupersToAdd, setGroupersToAdd] = useState<GroupOptionItem[]>([])
+  const [updatedConditions, setUpdatedConditions] = useState<Condition[]>([])
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
@@ -194,7 +218,7 @@ const ProvisionalVS = () => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
 
   const provisionalVs = useGetProvisionalVS()
-  const [stepsCompleted, setStepsCompleted] = useState([false, false, false, false, false, false])
+  const [stepsCompleted, setStepsCompleted] = useState([false, false, false, false, false, false, false])
   const [activeStep, setActiveStep] = useState(0)
   const router = useRouter()
   const programId = router.query.id as string
@@ -205,10 +229,22 @@ const ProvisionalVS = () => {
     error
   } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher, { revalidateOnFocus: true })
 
+  const { programAndGrouperData } = useGetProgramDetails({ id: programId })
+
   const progValueSetDets = useGetProgramValueSetDetails({
     id: programId,
     provisionalOnly: false
   }) as Result
+
+  const allConditions = useGetConditions()
+
+  const conditionsMap = useMemo(() => {
+    if(programAndGrouperData?.program) {
+      return getVSConditions(programAndGrouperData?.program)
+    } else {
+      return {}
+    }
+  }, [programAndGrouperData?.program])
 
   const groupsInProgram = progValueSetDets?.groupsInProgram
 
@@ -300,6 +336,7 @@ const ProvisionalVS = () => {
   }, [provisionalVs])
 
   useEffect(() => {
+    // this sets up all of the default data for state if the provisional vs exists
     const matchingVs = provisionalVs?.find(vs => vs?.id === provisionalVsIdForUpdate)
     const defaultTitle = matchingVs?.title || ''
     const defaultAuthor = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
@@ -307,9 +344,13 @@ const ProvisionalVS = () => {
     const existingGrouperIds = progValueSetDets?.data?.find(i => i?.valueSet?.id === provisionalVsIdForUpdate)?.groups?.map(g => g.id) || []
 
     if (existingGrouperIds) {
+      // get existing groupers
       const initialDefaultGroupers = groupsInProgram?.filter(g => existingGrouperIds?.includes(g.id))
       const result = buildGroupOptions(initialDefaultGroupers) || []
       setGroupersToAdd(result)
+      // get existing conditions
+      const existingConditions = generateConditionOptions(conditionsMap, matchingVs?.url!)
+      setUpdatedConditions(existingConditions)
     }
     // this is assuming only one CS is possible to add in a vs
     const selectedCSBaseUrl = matchingVs?.compose?.include?.[0]?.system
@@ -320,7 +361,7 @@ const ProvisionalVS = () => {
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
     setSelectedCodeSystemBase(selectionItem)
-  }, [provisionalVsIdForUpdate])
+  }, [provisionalVsIdForUpdate, programAndGrouperData])
 
   const clearCurrentCodeItems = () => {
     setCodeToAdd('')
@@ -346,10 +387,12 @@ const ProvisionalVS = () => {
     const codesBySystemToAdd = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
 
     const submitBody = {
+      programId,
       authorToUpdate: author,
       stewardToUpdate: steward,
       titleToUpdate: title,
       codesBySystemToAdd,
+      updatedConditions,
       provisionalVsIdForUpdate: provisionalVsIdForUpdate,
       grouperIds: groupersToAdd?.map(g => g.id)
     }
@@ -387,14 +430,9 @@ const ProvisionalVS = () => {
     // Initializes the available CodeSystem Options from VSAC
     if (systemAndVersionData.length > 0) {
       setAllSystemSelections(systemAndVersionData)
-      const sysNamesByUri = namesByUri(systemAndVersionData)
-
-      // comment out until fix
-      setSystemNamesByUri(sysNamesByUri)
     } else if (error) {
       toast.error('Error retrieving Code System data from VSAC')
     }
-    setPageLoading(isLoading)
   }, [isLoading, systemAndVersionData, error])
 
   const handleAddToList = () => {
@@ -629,7 +667,6 @@ const ProvisionalVS = () => {
   )
 
   const fifthStep = () => {
-
     return (
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         <QuestionnaireRowContainer>
@@ -666,7 +703,40 @@ const ProvisionalVS = () => {
         </ButtonRowContainer>
       </div>
     )
-  } 
+  }
+
+  const sixthStep = () => {
+    return (
+      <div>
+        <SelectInputContainer id={`condition-selector`}>
+          <Select
+            menuPortalTarget={myDocument}
+            menuPlacement={'bottom'}
+            instanceId="condition-selector"
+            isMulti={true}
+            styles={reactSelectOptionStyle({ minWidth: '200px'})}
+            options={buildConditionOptions(allConditions, updatedConditions)}
+            value={updatedConditions}
+            // TODO should block add if already exists
+            onChange={(e) => {
+              const conditionInfo = e as Condition[]
+              setUpdatedConditions(conditionInfo)
+            }}
+          />
+        </SelectInputContainer>
+        <ButtonRowContainer>
+              <Button
+                text='Back'
+                onClick={(e) => handleStep('prev', 5)}
+              />
+              <Button
+                text='Next'
+                onClick={(e) => handleStep('next', 5)}
+              />
+            </ButtonRowContainer>
+      </div>
+    )
+  }
 
   const ReviewStep = () => {
     const existingProvisionalCodeSystem = existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)
@@ -764,6 +834,10 @@ const ProvisionalVS = () => {
       content: <ContentWrapper>{fifthStep()}</ContentWrapper>
     },
     {
+      label: `Update associated Conditions for ${title || 'ValueSet'}`,
+      content: <ContentWrapper>{sixthStep()}</ContentWrapper>
+    },
+    {
       label: 'Review Your Provisional Value Set',
       content: (
         <ContentWrapper>
@@ -792,7 +866,7 @@ const ProvisionalVS = () => {
         </Stepper>
       </div>
       {activeStep < stepContents.length - 1 && activeStep !== 0  ? (
-        <ContentWrapper>
+        <ContentWrapper style={{ padding: '2rem 3rem', backgroundColor: 'lightBlue' }}>
           <ReviewStep/>
         </ContentWrapper>
       ) : (null)}

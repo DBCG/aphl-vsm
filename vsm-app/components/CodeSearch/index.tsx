@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { FormControl, Grid } from '@mui/material'
+import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
 import { SearchInput } from '../SearchInput'
@@ -13,6 +13,7 @@ import { NextRouter } from 'next/router'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
+import { CheckBox } from '@mui/icons-material'
 
 interface Props {
   programId: string
@@ -44,6 +45,7 @@ const CodeSearch = ({ programId, router }: Props) => {
   const [systemToFind, setSystemToFind] = useState<string | null>(null)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
+  const [searchProvisionalCodes, setSearchProvisionalCodes] = useState(false)
 
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
@@ -141,10 +143,13 @@ const CodeSearch = ({ programId, router }: Props) => {
       <PageTitle style={{ marginBottom: '2rem' }}>
         Find Codes in Program {programId}
       </PageTitle>
-      <PageP>
-        Find ValueSets in this program that...
-      </PageP>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
+        <FormGroup>
+          <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
+        </FormGroup>
+        <PageP>
+          Find ValueSets in this program that...
+        </PageP>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <PageP>

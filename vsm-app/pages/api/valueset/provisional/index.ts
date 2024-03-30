@@ -1,6 +1,6 @@
 import { fhirCdrClient } from '@/fhirClients'
 import { is } from '@/helpers/is'
-import { updateGrouperLeafs } from '@/helpers/libraryHelpers'
+import { getVSConditions, setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
@@ -16,7 +16,7 @@ interface ReqInfo extends NextApiRequest {
 
 interface BuilderItem {
   method: 'PUT' | 'POST' | 'GET'
-  resource: fhir4.ValueSet | fhir4.CodeSystem
+  resource: fhir4.ValueSet | fhir4.CodeSystem | library
 }
 
 
@@ -82,6 +82,8 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       titleToUpdate,
       codesBySystemToAdd,
       grouperIds,
+      programId,
+      updatedConditions,
       provisionalVsIdForUpdate
     } = req.body
 
@@ -144,7 +146,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     }
 
-    resourcesToSaveFirst.push({ method: provisionalVsIdForUpdate ? 'PUT' : 'POST', existingId: provisionalVsIdForUpdate, resource: provisionalLeaf as fhir4.ValueSet })
+  resourcesToSaveFirst.push({ method: provisionalVsIdForUpdate ? 'PUT' : 'POST', existingId: provisionalVsIdForUpdate, resource: provisionalLeaf as fhir4.ValueSet })
   
   const transactionBody = transactionBuilder(resourcesToSaveFirst)
 
@@ -152,20 +154,24 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     body: transactionBody
   })
 
+  
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
   
-  // const leafRes = codeSysAndLeaf.entry.map(i)
-  console.log('codeSysAndLeaf', )
+  const program = await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: programId
+  }) as fhir4.Library
+
+  const updatedProgram = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
+
+  resourcesToSaveLast.push({ method: 'PUT', resource: updatedProgram })
   const provisionalLeafId = codeSysAndLeaf.entry.map(e => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]
   
-  console.log('id: ', provisionalLeafId)
-
   if (grouperIds) {
-
     // get the associated groupers and update with the reference
     const grouperReqItems = grouperIds?.map((id: string) => (
       {
