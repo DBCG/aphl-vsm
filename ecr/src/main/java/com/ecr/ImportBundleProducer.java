@@ -15,6 +15,8 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,12 +25,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class ImportBundleProducer {
+
+	private static final Logger myLogger = LoggerFactory.getLogger(ImportBundleProducer.class);
 
 
 	/**
@@ -48,13 +51,13 @@ public class ImportBundleProducer {
 
 	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties) throws FhirResourceExists {
 		// store for processing root library
-		HashMap<String, ArrayList<CodeableConcept>> conditionsMap = new HashMap<>();
-		HashMap<String, ArrayList<CodeableConcept>> priorityMap = new HashMap<>();
+		HashMap<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
+		HashMap<String, List<CodeableConcept>> priorityMap = new HashMap<>();
 		List<String> groupers = new ArrayList<>();
 
-		AtomicReference<PlanDefinition> planDefinition = new AtomicReference<>();
-		AtomicReference<Library> rootLibrary = new AtomicReference<>();
-		AtomicReference<Library> rctcLibrary = new AtomicReference<>();
+		PlanDefinition planDefinition = null;
+		Library rootLibrary = null;
+		Library rctcLibrary = null;
 
 		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
 		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
@@ -70,29 +73,28 @@ public class ImportBundleProducer {
 						if (isGrouper(resource)) {
 							groupers.add(pinnedVersionKey);
 						} else {
-							List<UsageContext> cleanedContext = valueSet.getUseContext().stream().filter(context -> {
+							valueSet.getUseContext().forEach(context -> {
 								if (context.hasCode()) {
 									String code = context.getCode().getCode();
 									if (code.equals("focus")) {
 										if (conditionsMap.containsKey(pinnedVersionKey)) {
-											ArrayList<CodeableConcept> conditions = conditionsMap.get(pinnedVersionKey);
+											List<CodeableConcept> conditions = conditionsMap.get(pinnedVersionKey);
 											conditions.add(context.getValueCodeableConcept());
 										} else {
 											conditionsMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
 										}
-										return false;
 									} else if (code.equals("priority")) {
 										if (priorityMap.containsKey(pinnedVersionKey)) {
-											ArrayList<CodeableConcept> conditions = priorityMap.get(pinnedVersionKey);
-											conditions.add(context.getValueCodeableConcept());
+											List<CodeableConcept> priorities = priorityMap.get(pinnedVersionKey);
+											priorities.add(context.getValueCodeableConcept());
 										} else {
 											priorityMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
 										}
-										return false;
 									}
 								}
-								return true;
-							}).collect(Collectors.toList());
+							});
+
+							List<UsageContext> cleanedContext = valueSet.getUseContext().stream().filter(UsageContext::hasCode).collect(Collectors.toList());
 							valueSet.setUseContext(cleanedContext);
 
 							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
@@ -115,15 +117,16 @@ public class ImportBundleProducer {
 							throw new FhirResourceExists("Library", library.getIdPart());
 						} else {
 							if (isRootSpecificationLibrary(resource)) {
-								rootLibrary.set(library);
+								rootLibrary = library;
 							} else {
-								rctcLibrary.set(library);
+								rctcLibrary = library;
 							}
 						}
 						break;
 					case PlanDefinition:
-						PlanDefinition planDef = (PlanDefinition) resource;
-						planDefinition.set(planDef);
+						planDefinition = (PlanDefinition) resource;
+					default:
+						myLogger.info("resourceType:  "+ resource.getResourceType() +" is not supported by $import operation");
 				}
 			}
 		}
@@ -131,15 +134,15 @@ public class ImportBundleProducer {
 		prepareRootLibrary(
 			conditionsMap,
 			priorityMap,
-			planDefinition.get(),
-			rctcLibrary.get(),
+			planDefinition,
+			rctcLibrary,
 			groupers,
 			rootLibrary
 		);
 
-		bundleEntries.add(getPutResourceRequest(rootLibrary.get(), "/Library", rootLibrary.get().getIdPart()));
-		bundleEntries.add(getPutResourceRequest(rctcLibrary.get(), "/Library", rctcLibrary.get().getIdPart()));
-		bundleEntries.add(getPutResourceRequest(planDefinition.get(), "/PlanDefinition", planDefinition.get().getIdPart()));
+		bundleEntries.add(getPutResourceRequest(rootLibrary, "/Library", rootLibrary.getIdPart()));
+		bundleEntries.add(getPutResourceRequest(rctcLibrary, "/Library", rctcLibrary.getIdPart()));
+		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
 	}
 
@@ -166,21 +169,21 @@ public class ImportBundleProducer {
 	}
 
 	private static void prepareRootLibrary(
-		HashMap<String, ArrayList<CodeableConcept>> conditionsMap,
-		HashMap<String, ArrayList<CodeableConcept>> priorityMap,
+		HashMap<String, List<CodeableConcept>> conditionsMap,
+		HashMap<String, List<CodeableConcept>> priorityMap,
 		PlanDefinition planDefinition,
 		Library rctcLibrary,
 		List<String> groupers,
-		AtomicReference<Library> rootLibrary
+		Library rootLibrary
 	) {
-		List<CanonicalType> profiles = rootLibrary.get().getMeta().getProfile();
+		List<CanonicalType> profiles = rootLibrary.getMeta().getProfile();
 
 		// Add to profile and ensure not duplicated
 		profiles.add(new CanonicalType(TransformProperties.crmiManifestLibrary));
 		profiles = profiles.stream()
 			.filter(distinctByKey(CanonicalType::getValueAsString))
 			.collect(Collectors.toList());
-		rootLibrary.get().getMeta().setProfile(profiles);
+		rootLibrary.getMeta().setProfile(profiles);
 
 		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
 
@@ -192,9 +195,10 @@ public class ImportBundleProducer {
 		});
 
 		// Set PlanDefinition
+		String planDefResourceUrl = planDefinition.getVersion() != null ? planDefinition.getUrl() + "|" + planDefinition.getVersion() : planDefinition.getUrl();
 		RelatedArtifact relatedArtifact = new RelatedArtifact();
 		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
+		relatedArtifact.setResource(planDefResourceUrl);
 		Extension extension = new Extension();
 		extension.setUrl(TransformProperties.crmiIsOwned);
 
@@ -204,13 +208,14 @@ public class ImportBundleProducer {
 
 		relatedArtifact = new RelatedArtifact();
 		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(planDefinition.getUrl() + "|" + planDefinition.getVersion());
+		relatedArtifact.setResource(planDefResourceUrl);
 		relatedArtifacts.add(relatedArtifact);
 
 		// Set rctc Library
+		String rctcUrl = rctcLibrary.getVersion() != null ? rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion() : rctcLibrary.getUrl();
 		relatedArtifact = new RelatedArtifact();
 		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
+		relatedArtifact.setResource(rctcUrl);
 		extension = new Extension();
 		extension.setUrl(TransformProperties.crmiIsOwned);
 
@@ -220,12 +225,12 @@ public class ImportBundleProducer {
 
 		relatedArtifact = new RelatedArtifact();
 		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion());
+		relatedArtifact.setResource(rctcUrl);
 		relatedArtifacts.add(relatedArtifact);
 
 		processCodeableConceptMapForLibrary(conditionsMap, TransformProperties.vsmCondition, relatedArtifacts);
 		processCodeableConceptMapForLibrary(priorityMap, TransformProperties.vsmPriority, relatedArtifacts);
-		rootLibrary.get().setRelatedArtifact(relatedArtifacts);
+		rootLibrary.setRelatedArtifact(relatedArtifacts);
 	}
 
 	private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
@@ -233,10 +238,10 @@ public class ImportBundleProducer {
 		return t -> seen.add(keyExtractor.apply(t));
 	}
 
-	private static void processCodeableConceptMapForLibrary(HashMap<String, ArrayList<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
-		for (Map.Entry<String, ArrayList<CodeableConcept>> entry : targetedMap.entrySet()) {
+	private static void processCodeableConceptMapForLibrary(HashMap<String, List<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
+		for (Map.Entry<String, List<CodeableConcept>> entry : targetedMap.entrySet()) {
 			String k = entry.getKey();
-			ArrayList<CodeableConcept> v = entry.getValue();
+			List<CodeableConcept> v = entry.getValue();
 			List<Extension> extensions = new ArrayList<>();
 			v.forEach(codeableConcept -> {
 				Extension extension = new Extension();
