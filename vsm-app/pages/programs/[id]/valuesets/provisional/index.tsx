@@ -125,6 +125,7 @@ const MetaDataReviewContainer = styled.div`
   justify-content: flex-start;
   flex-wrap: wrap;
   padding: 24px 16px;
+  margin-left: 1rem;
 `
 const customExpandStyles = {
 	rows: {
@@ -833,7 +834,7 @@ const ProvisionalVS = () => {
           columns={codeColumns.slice(1)}
         />
       </div>
-      <div>
+      <div style={{ marginLeft: '1rem' }}>
         <p style={{ fontSize: '90%' }}>Associated Groupers</p>
          <div>
           {(groupersToAdd?.length ? groupersToAdd.map(i => <StyledChip key={i.label} experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
@@ -853,7 +854,7 @@ const ProvisionalVS = () => {
                 !handleCheckForSubmitErrors(selectedCodeSystemBase ? 'vs-update' : 'vs-add') ? (
                   <Button
                     loading={submittingForm}
-                    text={`${provisionalVs ? 'Update' : 'Add'} Provisional VS`}
+                    text={`${provisionalVsIdForUpdate ? 'Update' : 'Add'} Provisional VS`}
                     onClick={() => handleSubmitForm()}
                   />
                 ) : (<ErrorMessage error='All fields are required. Please complete missing fields in form.'/>)
