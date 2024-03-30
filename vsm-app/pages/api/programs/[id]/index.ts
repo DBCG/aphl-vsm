@@ -46,7 +46,6 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
 //     res.status(error.response?.status).json({ error: `Error updating program by ID` })
 //     return
 //   }
-}
 
 const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | fhir4.Resource | { error: string }>) => {
   try {

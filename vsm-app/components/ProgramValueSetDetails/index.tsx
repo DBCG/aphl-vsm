@@ -6,7 +6,6 @@ import { Box, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import uniqBy from 'lodash.uniqby'
 import { toast } from 'react-toastify'
-import { DeleteConfirmationModal } from '../modals/DeleteConfirmationModal'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
@@ -141,11 +140,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
-  // const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   const [toggleUpdateData, setToggleUpdateData] = useState(false)
-  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
 
   const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
@@ -727,12 +724,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   return (
     <>
-      <DeleteConfirmationModal
-        isOpen={showDeleteConfirmationModal}
-        toggleModalOpen={() => setShowDeleteConfirmationModal((show) => !show)}
-        handleConfirmDelete={async () => await handleBatchDelete(selectedRows)}
-        itemToDelete={`${selectedRows.length} Valueset(s)`}
-      />
       <Row>
         <FlexRow style={{ width: '80%' }}>
           <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
@@ -759,7 +750,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       </Row>
       <Box id="vs-table-detail">
         <TableActions
-          handleDelete={() => setShowDeleteConfirmationModal(true)}
+          handleDelete={handleBatchDelete}
           handleBulkEdit={() => setShowBulkEditModal(true)}
           formattedConditions={allConditions}
           groupsInProgram={progValueSetDets?.groupsInProgram!}
