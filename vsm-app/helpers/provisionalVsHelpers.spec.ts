@@ -37,6 +37,7 @@ const TEST_VS_EXISTING_CODES = {
     include: [
       {
         system: 'www.system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: 'abc', display: 'display-to-override' },
           { code: 'def', display: 'display-to-keep' }
@@ -44,6 +45,7 @@ const TEST_VS_EXISTING_CODES = {
       },
       {
         system: 'www.another-system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: '123', display: 'keep123' },
           { code: '456', display: 'keep456' }
@@ -72,6 +74,7 @@ describe('addOrRemoveVsCodes', () => {
     const result = addOrRemoveVsCodes(TEST_VS_NO_CODES, TEST_CODES_TO_ADD, 'add')
     expect(result?.compose?.include).toStrictEqual([{
       system: 'www.system.com',
+      version: 'PROVISIONAL',
       concept: [
         { code: 'abc', display: 'overridden!' },
         { code: 'new-code', display: 'a brand new code' }
@@ -84,6 +87,7 @@ describe('addOrRemoveVsCodes', () => {
     const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, TEST_CODES_TO_ADD, 'add')
     expect(result?.compose?.include).toStrictEqual([{
       system: 'www.system.com',
+      version: 'PROVISIONAL',
       concept: [
         // this shows 'abc' getting overridden via new data
         { code: 'abc', display: 'overridden!' },
@@ -93,6 +97,7 @@ describe('addOrRemoveVsCodes', () => {
     },
     {
       system: 'www.another-system.com',
+      version: 'PROVISIONAL',
       concept: [
         { code: '123', display: 'keep123' },
         { code: '456', display: 'keep456' }
@@ -110,6 +115,7 @@ describe('addOrRemoveVsCodes', () => {
     expect(result?.compose?.include).toStrictEqual([
       {
         system: 'www.system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: 'abc', display: 'display-to-override' },
           { code: 'def', display: 'display-to-keep' }
@@ -117,32 +123,33 @@ describe('addOrRemoveVsCodes', () => {
       },
       {
         system: 'www.another-system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: '123', display: 'keep123' },
           { code: '456', display: 'keep456' }
         ]
       }, {
         system: 'new-system',
+        version: 'PROVISIONAL',
         concept: [{ code: 'new', display: 'new system!' }]
       }
     ])
   })
 
   it('removes codes correctly', () => {
-    const NEW_SYSTEM_ADDITIONS = {
-      'new-system': [{ code: 'new', display: 'new system!' }]
-    } 
   
     const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, TEST_CODES_FOR_REMOVE, 'remove')
     expect(result?.compose?.include).toStrictEqual([
       {
         system: 'www.system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: 'def', display: 'display-to-keep' }
         ]
       },
       {
         system: 'www.another-system.com',
+        version: 'PROVISIONAL',
         concept: [
           { code: '123', display: 'keep123' },
           { code: '456', display: 'keep456' }
