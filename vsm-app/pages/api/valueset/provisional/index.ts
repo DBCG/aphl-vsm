@@ -164,7 +164,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     body: transactionBody
   })
 
-  
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
@@ -180,6 +179,20 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   const provisionalLeafId = codeSysAndLeaf.entry.map((e: any) => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]
+  
+    // if it's a new valueset, update the url to use the id instead of the name
+  if (!provisionalVsIdForUpdate) {
+    const leaf = await fhirCdrClient.read({
+      resourceType: 'ValueSet',
+      id: provisionalLeafId
+    }) as fhir4.ValueSet
+
+    // update url here
+    leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
+    provisionalLeaf = leaf
+    // PUT to update leaf
+    resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
+  }
   
   if (grouperIds) {
     // get the associated groupers and update with the reference
