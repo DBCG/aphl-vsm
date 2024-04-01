@@ -8,6 +8,7 @@ import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
+import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -235,14 +236,14 @@ const ValueSetDetailsTables = ({
   }
 
   const filteredDefinitionData = filteredDefinitions(definitionData)
-
+  const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleTabChange}>
           <Tab label="Definition" {...a11yProps(0)} />
-          {!isGrouperValueSet && <Tab label="Expansion" {...a11yProps(1)} />}
+          {(!isVsmVset) && <Tab label="Expansion" {...a11yProps(1)} />}
           {value === 1 && isDraftProgram && (
             <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
               <Box sx={{ mt: 1, mr: 1 }}>
