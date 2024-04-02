@@ -133,7 +133,11 @@ public class ImportBundleProducer {
 			}
 		}
 
-		prepareRootLibrary(
+        assert rctcLibrary != null;
+        assert planDefinition != null;
+        assert rootLibrary != null;
+		  
+        prepareRootLibrary(
 			conditionsMap,
 			priorityMap,
 			planDefinition,
