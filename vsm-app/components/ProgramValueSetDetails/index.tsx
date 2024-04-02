@@ -511,7 +511,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   isMulti={false}
                   styles={reactSelectOptionStyle()}
                   options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
-                  defaultValue={defaultOption}
+                  value={defaultOption}
                 />
               ) }
             </SelectInputContainer>
