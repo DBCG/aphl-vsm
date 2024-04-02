@@ -125,8 +125,10 @@ public class ImportBundleProducer {
 						break;
 					case PlanDefinition:
 						planDefinition = (PlanDefinition) resource;
+						break;
 					default:
 						myLogger.info("resourceType:  "+ resource.getResourceType() +" is not supported by $import operation");
+						break;
 				}
 			}
 		}
