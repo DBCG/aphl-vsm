@@ -1,6 +1,7 @@
 package com.ecr;
 
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Library;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +63,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		Optional<IBaseResource> rootLibraryEntry = bundleEntry.stream()
 			.filter(entry -> entry.hasResource() && isRootSpecificationLibrary(entry.getResource()))
 			.findFirst()
-			.map(e -> e.getResource());
+			.map(Bundle.BundleEntryComponent::getResource);
 		assertTrue(rootLibraryEntry.isPresent());
 		return (Library) rootLibraryEntry.get();
 	}

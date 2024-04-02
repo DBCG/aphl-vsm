@@ -196,37 +196,37 @@ public class ImportBundleProducer {
 
 		// Set PlanDefinition
 		String planDefResourceUrl = planDefinition.getVersion() != null ? planDefinition.getUrl() + "|" + planDefinition.getVersion() : planDefinition.getUrl();
-		RelatedArtifact relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(planDefResourceUrl);
+		RelatedArtifact relatedArtifactPlanDefComposedOf = new RelatedArtifact();
+		relatedArtifactPlanDefComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+		relatedArtifactPlanDefComposedOf.setResource(planDefResourceUrl);
 		Extension extension = new Extension();
 		extension.setUrl(TransformProperties.crmiIsOwned);
 
 		extension.setValue( new BooleanType(true));
-		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
-		relatedArtifacts.add(relatedArtifact);
+		relatedArtifactPlanDefComposedOf.setExtension(new ArrayList<>(Collections.singletonList(extension)));
+		relatedArtifacts.add(relatedArtifactPlanDefComposedOf);
 
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(planDefResourceUrl);
-		relatedArtifacts.add(relatedArtifact);
+		RelatedArtifact relatedArtifactPlanDefDependsOn = new RelatedArtifact();
+		relatedArtifactPlanDefDependsOn.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+		relatedArtifactPlanDefDependsOn.setResource(planDefResourceUrl);
+		relatedArtifacts.add(relatedArtifactPlanDefDependsOn);
 
 		// Set rctc Library
 		String rctcUrl = rctcLibrary.getVersion() != null ? rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion() : rctcLibrary.getUrl();
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-		relatedArtifact.setResource(rctcUrl);
+		RelatedArtifact relatedArtifactRCTCComposedOf = new RelatedArtifact();
+		relatedArtifactRCTCComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+		relatedArtifactRCTCComposedOf.setResource(rctcUrl);
 		extension = new Extension();
 		extension.setUrl(TransformProperties.crmiIsOwned);
 
 		extension.setValue( new BooleanType(true));
-		relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
-		relatedArtifacts.add(relatedArtifact);
+		relatedArtifactRCTCComposedOf.setExtension(new ArrayList<>(Collections.singletonList(extension)));
+		relatedArtifacts.add(relatedArtifactRCTCComposedOf);
 
-		relatedArtifact = new RelatedArtifact();
-		relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-		relatedArtifact.setResource(rctcUrl);
-		relatedArtifacts.add(relatedArtifact);
+		RelatedArtifact relatedArtifactRCTCDependsOn = new RelatedArtifact();
+		relatedArtifactRCTCDependsOn.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+		relatedArtifactRCTCDependsOn.setResource(rctcUrl);
+		relatedArtifacts.add(relatedArtifactRCTCDependsOn);
 
 		processCodeableConceptMapForLibrary(conditionsMap, TransformProperties.vsmCondition, relatedArtifacts);
 		processCodeableConceptMapForLibrary(priorityMap, TransformProperties.vsmPriority, relatedArtifacts);
