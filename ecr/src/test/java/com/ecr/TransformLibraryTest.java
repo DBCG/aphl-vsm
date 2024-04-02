@@ -59,7 +59,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 	}
 
 	private Library extractRootLibrary(List<Bundle.BundleEntryComponent> bundleEntry) {
-		Optional<Object> rootLibraryEntry = bundleEntry.stream()
+		Optional<IBaseResource> rootLibraryEntry = bundleEntry.stream()
 			.filter(entry -> entry.hasResource() && isRootSpecificationLibrary(entry.getResource()))
 			.findFirst()
 			.map(e -> e.getResource());
