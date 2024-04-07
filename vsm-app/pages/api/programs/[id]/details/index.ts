@@ -82,6 +82,9 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
   const { grouperIds, conditions, priority, programId, vsUrl } = body
   try {
     let program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
+
+    // TODO: We should clean this up since grouperIds will always be a single grouper id,
+    // we have another endpoint for batch processing so unecessary to have this here.
     const groupers = await Promise.allSettled(
       grouperIds.map((id: string) => fhirCdrClient.read({ resourceType: 'ValueSet', id })) as fhir4.ValueSet[]
     )

@@ -22,17 +22,12 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     response = await fhirCdrClient.read({
       resourceType: 'ValueSet',
-      id: id
-    })
+      id
+    }) as fhir4.ValueSet
   } catch (e) {
     logger.error('error here is: ', e)
     // if error thrown, return
-    return res.status(401).json({ error: `Error finding ValueSet with id ${id}.` })
-  }
-
-  // if valueset not found in FHIR server, return
-  if (!is.valueSet(response)) {
-    return res.status(403).json({ error: `No ValueSet found with ID: ${id}.` })
+    return res.status(404).json({ error: `Error finding ValueSet with id ${id}.` })
   }
 
   // identify the terminology server for the valueSet

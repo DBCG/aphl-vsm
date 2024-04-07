@@ -137,10 +137,9 @@ const valuesetDataForDisplay = (valueset: fhir4.ValueSet) => {
   return result
 }
 
-const buildParametersParameter = (manifestDataMap: any) => {
+const buildParametersParameter = (manifestDataMap: ManifestDataMap) => {
   const parameters = [] as fhir4.ParametersParameter[]
   for (const [key, value] of Object.entries(manifestDataMap)) {
-    // @ts-ignore
     value.forEach((v) => {
       parameters.push({
         name: 'system-version',
@@ -151,7 +150,7 @@ const buildParametersParameter = (manifestDataMap: any) => {
   return parameters
 }
 
-const setExpansionParameters = (library: fhir4.Library, manifestDataMap: any) => {
+const setExpansionParameters = (library: fhir4.Library, manifestDataMap: ManifestDataMap) => {
   const extension = library?.extension?.find((ext) => ext.url === expansionParameterUrl)
   if (extension == null) {
     library.extension = [
