@@ -66,6 +66,28 @@ describe('/api/programs/[id]', () => {
     expect(res._getStatusCode()).toBe(200)
   })
 
+  test('PUT /api/programs/[id] editing active program', async () => {
+    const { req, res } = createMocks({
+      method: 'PUT',
+      body: {
+        resourceType: 'Library',
+        id: '123',
+        status: 'active',
+        experimental: 'false',
+        version: '1.0.0'
+      },
+      query: {
+        id: '123',
+        experimental: 'false'
+      }
+    })
+
+    fhirCdrClient.update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
+    await handler(req, res)
+    expect(fhirCdrClient.update).toHaveBeenCalledTimes(0)
+    expect(res._getStatusCode()).toBe(409)
+  })
+
   test('PUT /api/programs/[id]?experimental=true Update experimental flag', async () => {
     const { req, res } = createMocks({
       method: 'PUT',

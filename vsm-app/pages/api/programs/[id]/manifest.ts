@@ -110,7 +110,7 @@ const collectLeafValueSetCodeSystems = async (programId: string) => {
     .filter((i: any) => i)
 }
 
-const getAvailableLatestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
+const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     if (req.query.leafValueSets) {
       const programId = req.query.id as string
@@ -175,5 +175,5 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 export default handler({
   GET: { action: getManifestVersions, access: ['admin', 'editor'] },
   PUT: { action: updateManifest, access: ['admin', 'editor'] },
-  POST: { action: getAvailableLatestVersions, access: ['admin', 'editor'] }
+  POST: { action: getAvailableLatestVersionsFromLeafValueSets, access: ['admin', 'editor'] }
 })
