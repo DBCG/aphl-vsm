@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.MetadataResource;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.PlanDefinition;
 import org.hl7.fhir.r4.model.ResourceType;
@@ -131,5 +132,22 @@ class TransformProviderIT extends RestIntegrationTest {
 				.execute();
 		List<MetadataResource> resources = v1Bundle.getEntry().stream().map(entry -> (MetadataResource)entry.getResource()).collect(Collectors.toList());
 		assertTrue(resources.stream().allMatch(res -> res.getVersion().equals(testVersion)));
+	}
+
+	@Test
+	void testImportOperation() {
+		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
+		Parameters v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+			.setName("bundle")
+			.setResource(v2Bundle);
+
+		getClient()
+			.operation()
+			.onServer()
+			.named("$ersd-v2-import")
+			.withParameters(v2BundleParams)
+			.returnResourceType(OperationOutcome.class)
+			.execute();
 	}
 }

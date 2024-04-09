@@ -1,5 +1,5 @@
 package com.ecr;
-import org.hl7.fhir.r5.model.IdType;
+
 import org.opencds.cqf.ruler.behavior.DaoRegistryUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,7 +9,7 @@ import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 @ConfigurationProperties(prefix = "transform")
 public class TransformProperties implements DaoRegistryUser {
   @Autowired
-	private DaoRegistry myDaoRegistry;
+  private DaoRegistry myDaoRegistry;
 
   public static final String usPHTriggeringVSProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset";
   public static final String usPHTriggeringVSLibProfile = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library";
@@ -21,8 +21,15 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String usPHUsageContextType = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type";
   public static final String hl7UsageContextType = "http://terminology.hl7.org/CodeSystem/usage-context-type";
   public static final String usPHUsageContext = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context";
-  
+  public static final String crmiManifestLibrary = "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-manifestlibrary";
+  public static final String crmiIsOwned = "http://hl7.org/fhir/StructureDefinition/crmi-isOwned";
+  public static final String vsmCondition = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
+  public static final String vsmPriority = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
+  public static final String authoritativeSourceExtUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";
+  public static final String vsacUrl = "https://cts.nlm.nih.gov/fhir";
+
+
   public DaoRegistry getDaoRegistry() {
-		return myDaoRegistry;
-	}
+    return myDaoRegistry;
+  }
 }
