@@ -167,15 +167,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
-  
-  const program = await fhirCdrClient.read({
-    resourceType: 'Library',
-    id: programId
-  }) as fhir4.Library
 
-  const updatedProgram = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
-
-  resourcesToSaveLast.push({ method: 'PUT', resource: updatedProgram })
   const provisionalLeafId = codeSysAndLeaf.entry.map((e: any) => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]
@@ -192,6 +184,17 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     provisionalLeaf = leaf
     // PUT to update leaf
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
+  }
+
+  if (updatedConditions) {
+    // update program with conditions
+    const program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: programId
+    }) as fhir4.Library
+  
+    const updatedProgram = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
+    resourcesToSaveLast.push({ method: 'PUT', resource: updatedProgram })
   }
   
   if (grouperIds) {
