@@ -4,7 +4,6 @@ set -e
 set -o pipefail
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TAG=${TRAVIS_COMMIT:-$(git describe --tags --always)}
 
 # Login to ECR
 aws sts get-caller-identity

@@ -5,7 +5,10 @@ python:
   - "3.8"
 services:
   - docker
-
+env: 
+  global:
+    - GIT_TAG=$(git describe --tags --exact-match 2>/dev/null)
+    - TAG=${GIT_TAG:-TRAVIS_COMMIT}
 cache:
   directories:
     - $HOME/.cache/yarn
@@ -25,6 +28,7 @@ jobs:
     - stage: test
       script: 
       - cd $TRAVIS_BUILD_DIR/vsm-app
+      - echo $TAG
       - npm install
       - npm run build ## Test for typescript issues
       - npm ci && npm run test-ci
@@ -53,7 +57,6 @@ jobs:
         # - git add .
         # - git commit -m "update version number [ci skip]"
         # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
-        - export TAG=${TRAVIS_COMMIT:-$(git describe --tags --always)}
         - docker build -t vsm-app:$TAG .
         - cd ../
         - ./bin/deploy.sh
