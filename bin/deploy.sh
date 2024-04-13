@@ -4,14 +4,15 @@ set -e
 set -o pipefail
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TAG=${TRAVIS_COMMIT:-$(git describe --tags --always)}
 
 # Login to ECR
 aws sts get-caller-identity
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
 # Build and push image to ECR
-docker tag vsm-app:$TRAVIS_COMMIT ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TRAVIS_COMMIT}
-docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TRAVIS_COMMIT}
+docker tag vsm-app:$TAG ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG}
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG}
 
 # Setup kubectl context
 aws eks update-kubeconfig --region us-east-1 --name aphl-eks
@@ -35,10 +36,10 @@ for namespace in "${namespaces[@]}"; do
 
   if helm list -n $namespace | grep -q "$helm_chart_name"; then
     echo "Upgrading old stack ${helm_chart_name}"
-    helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+    helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TAG $k8s_dir -f $values_file
   else
     echo "Installing new stack ${helm_chart_name}"
-    helm install "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+    helm install "$helm_chart_name" --namespace=$namespace --set tag=$TAG $k8s_dir -f $values_file
   fi
 done
 
