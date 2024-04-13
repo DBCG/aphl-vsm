@@ -11,10 +11,10 @@ cache:
     - node_modules
     - .next/cache
 before_install:
-  # - mkdir -vp ~/.docker/cli-plugins/
-  # - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.3.0/buildx-v0.3.0.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
-  # - chmod a+x ~/.docker/cli-plugins/docker-buildx
-  # - docker buildx version
+  - mkdir -vp ~/.docker/cli-plugins/
+  - curl --silent -L "https://github.com/docker/buildx/releases/download/v0.3.0/buildx-v0.3.0.linux-amd64" > ~/.docker/cli-plugins/docker-buildx
+  - chmod a+x ~/.docker/cli-plugins/docker-buildx
+  - docker buildx version
   - GIT_TAG=$(git tag -l --contains HEAD 2>&1)
   - TAG=${GIT_TAG:-$TRAVIS_COMMIT}
 
@@ -26,11 +26,10 @@ jobs:
     - stage: test
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
-        - echo $TAG
-      # - npm install
-      # - npm run build ## Test for typescript issues
-      # - npm ci && npm run test-ci
-      # install: skip
+        - npm install
+        - npm run build ## Test for typescript issues
+        - npm ci && npm run test-ci
+      install: skip
     - stage: build-and-deploy-plugin
       if: branch IN (main)
       script:
