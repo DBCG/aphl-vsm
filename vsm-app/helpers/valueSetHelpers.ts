@@ -87,7 +87,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 }
 
 const authoritativeSourceExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource'
-const expansionParameterUrl = 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension'
+const expansionParameterUrl = 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters'
 
 const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === authoritativeSourceExtensionUrl)
@@ -156,7 +156,7 @@ const setExpansionParameters = (library: fhir4.Library, manifestDataMap: Manifes
     library.extension = [
       ...(library?.extension || []),
       {
-        url: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension',
+        url: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters',
         valueReference: {
           reference: '#expansion-parameters-ecr'
         }
