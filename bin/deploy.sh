@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script conducts the following
+# Deployment of VSM to the APHL Staging and QA environments
+# Additionally, if this commit is tagged, it will push the same docker image to the Ruvos ECR Repo
+
 set -e
 set -o pipefail
 
@@ -41,4 +45,17 @@ for namespace in "${namespaces[@]}"; do
   fi
 done
 
+
+GIT_TAG=$(git tag -l --contains HEAD 2>&1)
+
+if (GIT_TAG); then
+  echo "Begin image Push to Ruvos ECR"
+  export AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
+  export AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
+  aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+  docker push ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}
+  echo "Image Pushed Succesfully"
+fi
+
 echo "Deployed!"
+
