@@ -61,7 +61,7 @@ public class ImportBundleProducer {
 
 		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
 		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
-		for (int i = 0; i < entries.size() - 1; i++) {
+		for (int i = 0; i < entries.size(); i++) {
 			Bundle.BundleEntryComponent entry = entries.get(i);
 			if (entry.getResource() instanceof MetadataResource) {
 				MetadataResource resource = (MetadataResource) entry.getResource();
@@ -94,7 +94,11 @@ public class ImportBundleProducer {
 								}
 							});
 
-							List<UsageContext> cleanedContext = valueSet.getUseContext().stream().filter(UsageContext::hasCode).collect(Collectors.toList());
+							List<UsageContext> cleanedContext = valueSet
+								.getUseContext()
+								.stream()
+								.filter(ctx -> ctx.hasCode() && (ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+								.collect(Collectors.toList());
 							valueSet.setUseContext(cleanedContext);
 
 							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
@@ -133,11 +137,11 @@ public class ImportBundleProducer {
 			}
 		}
 
-        assert rctcLibrary != null;
-        assert planDefinition != null;
-        assert rootLibrary != null;
-		  
-        prepareRootLibrary(
+		assert rctcLibrary != null;
+		assert planDefinition != null;
+		assert rootLibrary != null;
+
+		prepareRootLibrary(
 			conditionsMap,
 			priorityMap,
 			planDefinition,
