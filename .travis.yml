@@ -54,7 +54,7 @@ jobs:
         # - git add .
         # - git commit -m "update version number [ci skip]"
         # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
-        - docker build -t vsm-app:$TAG .
+        - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG} .
         - cd ../
         - ./bin/deploy.sh
     - stage: push to production
@@ -63,5 +63,4 @@ jobs:
         - export AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
         - export AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
         - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
-        - docker tag vsm-app:$TAG ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}
         - docker push ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}
