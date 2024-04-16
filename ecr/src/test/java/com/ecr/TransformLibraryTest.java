@@ -3,7 +3,9 @@ package com.ecr;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.RelatedArtifact;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -13,9 +15,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.ecr.ImportBundleProducer.isRootSpecificationLibrary;
 import static com.ecr.ImportBundleProducer.transformImportBundle;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,11 +56,18 @@ public class TransformLibraryTest extends RestIntegrationTest {
 
 		Library updatedRootLibrary = extractRootLibrary(transactionBundleEntry);
 
-		// TODO: more checks for priority and the other logic we are doing
-		assertTrue(updatedRootLibrary.getRelatedArtifact().stream().filter(i -> i.getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"))
-			.findFirst()
-			.isPresent()
-		);
+		List<RelatedArtifact> ra = updatedRootLibrary
+			.getRelatedArtifact()
+			.stream()
+			.filter(i -> i.getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"))
+			.collect(Collectors.toList());
+		assertTrue(!ra.isEmpty());
+
+		CodeableConcept conditionCodeableConcept = (CodeableConcept) ra.get(0).getExtension().get(0).getValue();
+		assertEquals(conditionCodeableConcept.getText(), "Infection caused by Acanthamoeba (disorder)");
+
+		CodeableConcept priorityCodeableConcept = (CodeableConcept) ra.get(1).getExtension().get(0).getValue();
+		assertEquals(priorityCodeableConcept.getCoding().get(0).getCode(), "routine");
 	}
 
 	private Library extractRootLibrary(List<Bundle.BundleEntryComponent> bundleEntry) {
