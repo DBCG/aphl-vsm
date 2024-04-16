@@ -16,7 +16,7 @@ before_install:
   - chmod a+x ~/.docker/cli-plugins/docker-buildx
   - docker buildx version
   - GIT_TAG=$(git tag -l --contains HEAD 2>&1)
-  - TAG=${GIT_TAG:-$TRAVIS_COMMIT}
+  - export TAG=${GIT_TAG:-$TRAVIS_COMMIT}
 
 install:
   - cd $TRAVIS_BUILD_DIR
