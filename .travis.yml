@@ -44,7 +44,7 @@ jobs:
         - docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
         - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
     - stage: deploy
-      if: branch IN (main)
+      # if: branch IN (main)
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
         # TODO: Disabled for now as it stopped working with permission errors
@@ -56,4 +56,8 @@ jobs:
         # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
         - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG} .
         - cd ../
-        - ./bin/deploy.sh
+        # - ./bin/deploy.sh
+    - stage: test-again
+      if: tag is present
+      script:
+        - docker images
