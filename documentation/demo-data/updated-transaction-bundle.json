@@ -4598,21 +4598,6 @@
 				"useContext": [
 					{
 						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "49649001"
-								}
-							],
-							"text": "Infection caused by Acanthamoeba (disorder)"
-						}
-					},
-					{
-						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
 							"code": "reporting"
 						},
@@ -4621,20 +4606,6 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
 								}
 							]
 						}
