@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# This script conducts the following
+# Deployment of VSM to the APHL Staging and QA environments
+# Additionally, if this commit is tagged, it will push the same docker image to the Ruvos ECR Repo
+
 set -e
 set -o pipefail
 
@@ -10,8 +14,7 @@ aws sts get-caller-identity
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
 
 # Build and push image to ECR
-docker tag vsm-app:$TRAVIS_COMMIT ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TRAVIS_COMMIT}
-docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TRAVIS_COMMIT}
+docker push ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG}
 
 # Setup kubectl context
 aws eks update-kubeconfig --region us-east-1 --name aphl-eks
@@ -35,11 +38,24 @@ for namespace in "${namespaces[@]}"; do
 
   if helm list -n $namespace | grep -q "$helm_chart_name"; then
     echo "Upgrading old stack ${helm_chart_name}"
-    helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+    helm upgrade "$helm_chart_name" --namespace=$namespace --set tag=$TAG $k8s_dir -f $values_file
   else
     echo "Installing new stack ${helm_chart_name}"
-    helm install "$helm_chart_name" --namespace=$namespace --set tag=$TRAVIS_COMMIT $k8s_dir -f $values_file
+    helm install "$helm_chart_name" --namespace=$namespace --set tag=$TAG $k8s_dir -f $values_file
   fi
 done
 
+
+GIT_TAG=$(git tag -l --contains HEAD 2>&1)
+
+if [[ -n "$GIT_TAG" ]]; then
+  echo "Begin image Push to Ruvos ECR"
+  export AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
+  export AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
+  aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
+  docker push ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}
+  echo "Image Pushed Succesfully"
+fi
+
 echo "Deployed!"
+
