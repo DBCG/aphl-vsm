@@ -277,7 +277,7 @@ const Programs: NextPage = () => {
 
   const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
     let result
-    let endpoint
+    let endpoint = ''
     let reqBody
     setLoading(true)
 
@@ -288,8 +288,9 @@ const Programs: NextPage = () => {
         program
       }
     } else {
-      endpoint = `/api/programs/${program.id}/publish`
-      reqBody = program
+      // TODO: remove, We don't do publishing
+      // endpoint = `/api/programs/${program.id}/publish`
+      // reqBody = program
     }
 
     result = await fetch(endpoint, {
