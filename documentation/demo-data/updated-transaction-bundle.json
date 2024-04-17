@@ -977,6 +977,18 @@
 					},
 					{
 						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "767146004"
+										}
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
+								}
+							},
               {
 								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
 								"valueCodeableConcept": {
@@ -988,18 +1000,6 @@
 									],
 									"text": "Routine"
 								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "398102009"
-                    }
-                  ],
-                  "text": "Acute poliomyelitis (disorder)"
-                }
 							}
 						],
 						"type": "depends-on",
