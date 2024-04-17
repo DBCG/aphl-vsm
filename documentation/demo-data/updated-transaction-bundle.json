@@ -379,14 +379,26 @@
 						"extension": [
 							{
 								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+                "valueCodeableConcept": {
+                  "coding": [
+                    {
+                      "system": "http://snomed.info/sct",
+                      "code": "50711007"
+                    }
+                  ],
+                  "text": "Viral hepatitis type C (disorder)"
+                }
+							},
+              {
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
 								"valueCodeableConcept": {
 									"coding": [
 										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
 										}
 									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
+									"text": "Routine"
 								}
 							}
 						],
@@ -9110,21 +9122,6 @@
 				"useContext": [
 					{
 						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "50711007"
-								}
-							],
-							"text": "Viral hepatitis type C (disorder)"
-						}
-					},
-					{
-						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
 							"code": "reporting"
 						},
@@ -9133,20 +9130,6 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
 								}
 							]
 						}
