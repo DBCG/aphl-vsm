@@ -42,7 +42,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       if (response.resourceType === 'OperationOutcome') {
         return res.status(500).send({ error: response?.issue?.map((e: any) => e?.diagnostics!) || 'Error encountered while packaging V1' })
       }
-      // if planDefinition is provided in the request, use it to replace the one from the v2 package response
+      // if planDefinition is provided in the request, and not present then add it to bundle entry
       else if (!planDefFromV2Exist && planDefinition != null) {
         response.entry.push({
           fullUrl: planDefinition?.url,
