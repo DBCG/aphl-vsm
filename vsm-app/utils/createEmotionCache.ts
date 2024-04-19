@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import createCache from "@emotion/cache";
 
 // https://blog.logrocket.com/getting-started-with-mui-and-next-js/
