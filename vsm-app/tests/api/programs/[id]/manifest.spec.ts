@@ -141,7 +141,7 @@ describe('/api/programs/[id]/manifest', () => {
         ],
         extension: [
           {
-            url: 'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension',
+            url: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters',
             valueReference: {
               reference: '#expansion-parameters-ecr'
             }
