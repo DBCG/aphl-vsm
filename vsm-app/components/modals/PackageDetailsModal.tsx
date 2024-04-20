@@ -23,6 +23,8 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
 import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
+import convert from 'xml-js';
+import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
 interface ModalInfo {
   isOpen: boolean
@@ -224,14 +226,18 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
     try {
       if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        downloadTextData(packageResponse, 'application/fhir+xml')
+        const jsonString = convert.xml2json(packageResponse)
+        const sanitizedBundle = sanitizeExport(JSON.parse(jsonString))
+        const sanitizedXml = convert.json2xml(JSON.stringify(sanitizedBundle), { compact: true, spaces: 2 })
+        downloadTextData(sanitizedXml, 'application/fhir+xml')
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
-        downloadTextData(JSON.stringify(packageResponse), 'application/fhir+json')
+        const sanitizedBundle = sanitizeExport(packageResponse)
+        downloadTextData(JSON.stringify(sanitizedBundle, null, 2), 'application/fhir+json')
       } else {
         errorByTopic['Download Errors'] = `Could not download file in ${ fileType.toUpperCase() } format`
       }
 
-      const errorsExist = Boolean(Object.values(errorByTopic).filter(e => (Boolean(e?.length))))
+      const errorsExist = Boolean(Object.values(errorByTopic).filter(e => (Boolean(e?.length)))?.length > 0)
       if (errorsExist) {
         setExportError(errorByTopic)
       }
