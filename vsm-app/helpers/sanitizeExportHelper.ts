@@ -11,7 +11,7 @@ import { cloneDeep } from 'lodash'
  * ‘vsm-hosted-valueset’ on leaf value sets
  */
 
-const URLS_TO_REMOVE = new Set([
+export const URLS_TO_REMOVE = new Set([
   'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
