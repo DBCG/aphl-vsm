@@ -5,7 +5,7 @@ import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
-import uniqBy from 'lodash.uniqby'
+import { uniqBy } from 'lodash'
 import { getProgramDetailsValuesets } from './details/valuesets'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {

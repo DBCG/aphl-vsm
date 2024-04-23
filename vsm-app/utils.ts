@@ -1,4 +1,4 @@
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash'
 import { isValidSimpleSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);

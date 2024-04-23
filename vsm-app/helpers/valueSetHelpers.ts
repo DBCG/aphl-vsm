@@ -1,5 +1,4 @@
-import set from 'lodash.set'
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep, set } from 'lodash'
 import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
@@ -344,7 +343,7 @@ const isVSMOwnedVSet = (vs: fhir4.ValueSet) => Boolean(vs?.meta?.tag?.find(t => 
 
 // Helper function to add valueset and return a unqiue list
 const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
-  let profiles = get(valueset, 'meta.profile', []);
+  let profiles = get(valueset, 'meta.profile', []) as string[];
   profiles.push(
     VSM_LEAF_PROFILE_URLS.CONDITION,
     VSM_LEAF_PROFILE_URLS.HOSTED
