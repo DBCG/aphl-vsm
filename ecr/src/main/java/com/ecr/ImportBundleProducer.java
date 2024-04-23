@@ -7,6 +7,7 @@ import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.PlanDefinition;
 import org.hl7.fhir.r4.model.RelatedArtifact;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,8 +63,7 @@ public class ImportBundleProducer {
 
 		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
 		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
-		for (int i = 0; i < entries.size(); i++) {
-			Bundle.BundleEntryComponent entry = entries.get(i);
+		for (Bundle.BundleEntryComponent entry : entries) {
 			if (entry.getResource() instanceof MetadataResource) {
 				MetadataResource resource = (MetadataResource) entry.getResource();
 
@@ -70,9 +71,19 @@ public class ImportBundleProducer {
 					case ValueSet:
 						ValueSet valueSet = (ValueSet) resource;
 						String pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-						if (isGrouper(resource)) {
+						if (isGrouper(valueSet)) {
+							List<CanonicalType> grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
+							valueSet.getMeta().setProfile(grouperProfiles);
 							groupers.add(pinnedVersionKey);
 						} else {
+							// Leaf ValueSets
+							List<CanonicalType> leafVsProfiles = addMetaProfileUrl(
+								resource.getMeta(),
+								Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
+							);
+							valueSet.getMeta().setProfile(leafVsProfiles);
+
+							// Capture all the conditions and priority from the leaf valueset
 							valueSet.getUseContext().forEach(context -> {
 								if (context.hasCode()) {
 									String code = context.getCode().getCode();
@@ -94,6 +105,7 @@ public class ImportBundleProducer {
 								}
 							});
 
+							// Remove conditions and priority from useContext of leaf valuesets
 							List<UsageContext> cleanedContext = valueSet
 								.getUseContext()
 								.stream()
@@ -131,7 +143,7 @@ public class ImportBundleProducer {
 						planDefinition = (PlanDefinition) resource;
 						break;
 					default:
-						myLogger.info("resourceType:  "+ resource.getResourceType() +" is not supported by $import operation");
+						myLogger.info("resourceType:  " + resource.getResourceType() + " is not supported by $import operation");
 						break;
 				}
 			}
@@ -178,6 +190,18 @@ public class ImportBundleProducer {
 		return bundleEntry;
 	}
 
+	private static List<CanonicalType> addMetaProfileUrl(Meta meta, List<String> urls) {
+		List<CanonicalType> profiles = meta.getProfile();
+
+		// Add to profile and ensure not duplicated
+		List<CanonicalType> finalProfiles = profiles;
+		urls.forEach(url -> finalProfiles.add(new CanonicalType(url)));
+		profiles = profiles.stream()
+			.filter(distinctByKey(CanonicalType::getValueAsString))
+			.collect(Collectors.toList());
+		return profiles;
+	}
+
 	private static void prepareRootLibrary(
 		HashMap<String, List<CodeableConcept>> conditionsMap,
 		HashMap<String, List<CodeableConcept>> priorityMap,
@@ -186,14 +210,9 @@ public class ImportBundleProducer {
 		List<String> groupers,
 		Library rootLibrary
 	) {
-		List<CanonicalType> profiles = rootLibrary.getMeta().getProfile();
-
 		// Add to profile and ensure not duplicated
-		profiles.add(new CanonicalType(TransformProperties.crmiManifestLibrary));
-		profiles = profiles.stream()
-			.filter(distinctByKey(CanonicalType::getValueAsString))
-			.collect(Collectors.toList());
-		rootLibrary.getMeta().setProfile(profiles);
+		List<CanonicalType> rootLibraryProfiles = addMetaProfileUrl(rootLibrary.getMeta(), Collections.singletonList(TransformProperties.crmiManifestLibrary));
+		rootLibrary.getMeta().setProfile(rootLibraryProfiles);
 
 		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
 
