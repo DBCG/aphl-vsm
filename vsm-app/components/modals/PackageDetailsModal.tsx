@@ -23,7 +23,6 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
 import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
-import convert from 'xml-js';
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
 interface ModalInfo {
@@ -224,14 +223,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       errorByTopic['Validation Errors'] = validationErrorStrings
     }
 
+    const sanitizedBundle = sanitizeExport(packageResponse)
     try {
-      if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        const jsonString = convert.xml2json(packageResponse)
-        const sanitizedBundle = sanitizeExport(JSON.parse(jsonString))
-        const sanitizedXml = convert.json2xml(JSON.stringify(sanitizedBundle), { compact: true, spaces: 2 })
-        downloadTextData(sanitizedXml, 'application/fhir+xml')
-      } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
-        const sanitizedBundle = sanitizeExport(packageResponse)
+      if (typeof sanitizedBundle === 'string' && sanitizedBundle.startsWith('<Bundle')) {
+        downloadTextData(sanitizedBundle, 'application/fhir+xml')
+      } else if (typeof sanitizedBundle === 'object' && sanitizedBundle.resourceType === 'Bundle') {
         downloadTextData(JSON.stringify(sanitizedBundle, null, 2), 'application/fhir+json')
       } else {
         errorByTopic['Download Errors'] = `Could not download file in ${ fileType.toUpperCase() } format`
