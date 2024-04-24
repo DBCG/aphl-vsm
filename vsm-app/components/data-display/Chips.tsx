@@ -24,7 +24,6 @@ interface IChip {
 export const StyledChip = styled(Chip)<StyledCh>`
   font-size: 80%;
   width: fit-content;
-  color: ${props => props.experimental ? 'var(--theme-400)' : 'inherit'};
   color: var(--theme-400);
   background-color: ${(props) =>
     typeof props.label === 'string' && props?.label?.toLowerCase() === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'var(--draft)'};
@@ -33,10 +32,11 @@ export const StyledChip = styled(Chip)<StyledCh>`
 const StatusChip = ({ label, style, experimental=false }: Chip) => {
   const chip = (
     <StyledChip
+      size='small'
       style={style}
       experimental={experimental}
       label={label.toUpperCase()}
-      icon={experimental ? <ScienceIcon style={{ transform: 'translateX(4px)', color: 'var(--theme-400)' }}/> : undefined}
+      icon={experimental ? <ScienceIcon fontSize='small' style={{ transform: 'translateX(4px)', color: 'var(--theme-400)' }}/> : undefined}
     />
   )
 

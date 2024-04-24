@@ -183,6 +183,7 @@ interface CodeItem {
 interface ProvisionalCodeSystemItems {
   systemBaseUrl: string
   codeItems: CodeItem[]
+  name: string
 }
 
 const createConceptItems = (codeItemsToAdd: CodeItem[]) => {
@@ -225,12 +226,14 @@ export const updateCsCodes = ({
 // pull out into codeSystem helpers maybe
 export const createProvisionalCodeSystem = ({
   systemBaseUrl,
-  codeItems
+  codeItems,
+  name
 }: ProvisionalCodeSystemItems): fhir4.CodeSystem => {
   let codeSystemBase = provisionalCsBase
 
   // this is dynamic based on the code system, so can't be templated
   codeSystemBase.url = systemBaseUrl
+  codeSystemBase.name = name
 
   const concept = createConceptItems(codeItems)
 

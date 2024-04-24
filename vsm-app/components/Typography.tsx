@@ -4,6 +4,7 @@ import Typography from '@mui/material/Typography'
 const PageTitle = styled(Typography).attrs({
   variant: 'h3'
 })`
+  font-size: 2rem;
   color: var(--theme-300);
 `
 

@@ -55,7 +55,6 @@ const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles
         paddingTop: '12px',
         paddingBottom: '12px',
         overflow: 'visible',
-        fontSize: '120%',
         ...additionalStyles
       }
     },
