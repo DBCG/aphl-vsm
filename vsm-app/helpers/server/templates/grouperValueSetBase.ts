@@ -7,7 +7,7 @@ const grouperValueSetBase = {
     ],
     tag: [
       {
-        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag',
+        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
         code: 'vsm-authored'
       }
     ]
