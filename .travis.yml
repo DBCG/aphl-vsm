@@ -34,15 +34,7 @@ jobs:
       if: branch IN (main)
       script:
         - cd $TRAVIS_BUILD_DIR/ecr
-        - mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
-        - docker buildx create --use
-        # Deploy to AWS
-        - aws sts get-caller-identity
-        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
-        - docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:$TRAVIS_COMMIT --push .
-        # Deploy to Docker Hub
-        - docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
-        - docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
+        - ./bin/build_plugin.sh
     - stage: deploy
       if: branch IN (main) or tag IS present
       script:
