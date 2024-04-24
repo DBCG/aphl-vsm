@@ -31,7 +31,7 @@ jobs:
         - npm ci && npm run test-ci
       install: skip
     - stage: build-and-deploy-plugin
-      if: branch IN (main)
+      if: branch IN (main) or tag IS present
       script:
         - cd $TRAVIS_BUILD_DIR/ecr
         - ./bin/build_plugin.sh
