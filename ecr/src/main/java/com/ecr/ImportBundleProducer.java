@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -122,14 +123,14 @@ public class ImportBundleProducer {
 						}
 
 						// Check if ValueSet already exists
-						if (!doesResourceExist(valueSet.getIdElement(), transformProperties)) {
+						if (!doesResourceExist(new IdType("ValueSet", valueSet.getIdPart()), transformProperties)) {
 							// Save the resource into entry bundle
 							bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet", valueSet.getIdPart()));
 						}
 						break;
 					case Library:
 						Library library = (Library) resource;
-						if (doesResourceExist(library.getIdElement(), transformProperties)) {
+						if (doesResourceExist(new IdType("Library", library.getIdPart()), transformProperties)) {
 							throw new FhirResourceExists("Library", library.getIdPart());
 						} else {
 							if (isRootSpecificationLibrary(resource)) {
@@ -279,12 +280,18 @@ public class ImportBundleProducer {
 				extensions.add(extension);
 			});
 
-			RelatedArtifact relatedArtifact = new RelatedArtifact();
-			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-			relatedArtifact.setResource(k);
-			relatedArtifact.setExtension(extensions);
+			Optional<RelatedArtifact> foundArtifact = relatedArtifacts.stream().filter(i -> i.getResource().equals(k)).findFirst();
+			if (foundArtifact.isPresent()) {
+				List<Extension> existingExtensions = foundArtifact.get().getExtension();
+				existingExtensions.addAll(extensions);
+			} else {
+				RelatedArtifact relatedArtifact = new RelatedArtifact();
+				relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+				relatedArtifact.setResource(k);
+				relatedArtifact.setExtension(extensions);
 
-			relatedArtifacts.add(relatedArtifact);
+				relatedArtifacts.add(relatedArtifact);
+			}
 		}
 	}
 }
