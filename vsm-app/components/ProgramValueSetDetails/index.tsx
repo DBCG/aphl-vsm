@@ -733,7 +733,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             <>
               <Button
                 id="add-valueset"
-                text="Add Valuesets from Terminology Server"
+                text="Add Valuesets"
                 style={{ minHeight: '40px', minWidth: '150px' }}
                 onClick={() => router.push(`${router.asPath}/search`)}
               />

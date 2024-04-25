@@ -12,6 +12,7 @@ import uniqBy from 'lodash.uniqby'
 import lodash from 'lodash'
 import { useRouter } from 'next/router'
 import { SearchInput } from '@/components/SearchInput'
+import { PageTitle } from '@/components/Typography'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -267,6 +268,9 @@ const ProvisionalVSEdit = () => {
             </div>
           )
         }
+      },
+      {
+        name: 'Provisional Value Set is used in program(s)'
       }
     ]
 
@@ -299,6 +303,7 @@ const ProvisionalVSEdit = () => {
 
   const handleClickNewVS = () => {
     setFormContext('new')
+    setProvisionalVsIdForUpdate(undefined)
     setShowVsForm(true)
   }
 
@@ -426,15 +431,16 @@ const ProvisionalVSEdit = () => {
 
   return (
     <div>
+      <PageTitle>Create or Edit VSM Provisional Value Set</PageTitle>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <Button
           text='+ Create New VS'
           onClick={handleClickNewVS}
-          // disabled={showVsForm}
+          disabled={Boolean(provisionalVsIdForUpdate)}
         />
       </div>
       <DataTable
-        title='Existing Provisional Value Sets'
+        title='Select to Edit Existing Provisional Value Sets'
         pagination={true}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
@@ -579,6 +585,7 @@ const ProvisionalVSEdit = () => {
                 <Button
                   text={`Create New Provisional Value Set: "${title}"`}
                   onClick={handleProvisionalVsUpdate}
+                  disabled={!flattenCodesBySystem.length}
                 />
               </div>
             )

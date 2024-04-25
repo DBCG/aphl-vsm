@@ -14,7 +14,9 @@ import { Button } from '@/components/buttons/Button'
 import DataTable from 'react-data-table-component'
 import { IconButton } from '@mui/material'
 import { DeleteForeverSharp } from '@mui/icons-material'
-import router from 'next/router'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+import { PageTitle } from '../Typography'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -49,7 +51,7 @@ const noDataComponent = (tableType: 'setProvisionals' | 'reviewProvisionals') =>
   } else {
     return (
       <div>
-        <p>No Provisional Codes have ben added to this Value Set</p>
+        <p>No Provisional Codes have been added to this Value Set</p>
       </div>
     )
   }
@@ -103,7 +105,10 @@ const ExistingCodesTable = ({ codeSystem }: ExistingCodesTbl) => {
 }
 
 const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
-  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState(undefined)
+  const router = useRouter()
+  console.log('router.query: ', router.query)
+  console.log('router: ', router)
+  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState()
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const [provisionalCodeSystems, setProvisionalCodeSystems] = useState([])
   const allVsacCS = useGetCS(myDocument)
@@ -140,14 +145,26 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
     setMyDocument(document.body)
   }, [])
 
+  
   const selectOptions = useMemo(() => {
     console.log('allvsaccs: ', allVsacCS)
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
     console.log('defaultOption: , ', defaultOption)
-    setSelectedCodeSystemBase(defaultOption)
+    console.log('router.query: ', router.query)
+    if (!router.query.csSelected) {
+      setSelectedCodeSystemBase(defaultOption)
+    }
     return mapped
   }, [allVsacCS])
+
+  useEffect(() => {
+    if (!selectedCodeSystemBase && router.query.csSelected) {
+      const option = selectOptions?.find((o) => o.value === router.query.csSelected)
+      console.log('options: ', option)
+      setSelectedCodeSystemBase(option)
+    }
+  }, [router, selectOptions])
 
   const enableAdd = useMemo(() => {
     const shouldEnable = allFieldsExist([codeToAdd, displayToAdd, definitionToAdd])
@@ -214,7 +231,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
     if (result.ok) {
       const json = await result.json()
       // need a page to push to
-      router.push(`/programs`)
+      router.reload()
     } else {
       // set error here
     }
@@ -225,7 +242,8 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   } else {
     return (
       <div>
-        <p>Select a Code System URL to create new or edit existing VSM Provisional Code System</p>
+        <PageTitle>Create or Edit VSM Provisional Code System</PageTitle>
+        <p>Select a Code System URL</p>
         <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
           <Select
             isClearable={false}
@@ -236,6 +254,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
             menuPortalTarget={myDocument}
             styles={reactSelectOptionStyle({ minWidth: '30rem' })}
             onChange={(e) => {
+              router.push(`${router.asPath.split('?')[0]}?csSelected=${(e?.value)}`)
               setSelectedCodeSystemBase(e)
             }}
           />
@@ -293,11 +312,13 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
           noDataComponent={noDataComponent('setProvisionals')}
         />
         <ButtonRowContainer>
-          <Button
-            text='ADD TO SYSTEM'
-            disabled={!Boolean(codeItemsToAdd?.length)}
-            onClick={(e) => handleUpdateCS()}
-          />
+          {/* <Link href={`${router.asPath}?url=${selectedCodeSystemBase?.value || ''}`} as={router.asPath} passHref> */}
+            <Button
+              text='ADD TO SYSTEM'
+              disabled={!Boolean(codeItemsToAdd?.length)}
+              onClick={(e) => handleUpdateCS()}
+            />
+          {/* </Link> */}
         </ButtonRowContainer>
       </div>
     )

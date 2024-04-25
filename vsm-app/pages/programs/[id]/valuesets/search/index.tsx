@@ -37,7 +37,7 @@ const ValueSets = () => {
       <DescriptionText>
         Valuesets added here will default to the most recent version available.
         <br />
-        After adding a valueset to the program, you may specify a different version on{' '}
+        After adding a valueset to the program from a terminology server, you may specify a different version on{' '}
         <LinkText href={`/programs/${programId}/valuesets`}>this page</LinkText>.
       </DescriptionText>
       <ValueSetSearchTable tableContext="search-page" />

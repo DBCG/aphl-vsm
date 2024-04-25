@@ -37,7 +37,8 @@ interface ProvisionalCS {
 }
 
 const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
-  const columns = useMemo(() => {
+  const router = useRouter()
+  const codeSystemColumns = useMemo(() => {
     const fields = [
       { 
         name: 'Name',
@@ -52,12 +53,29 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
         name: 'Last Updated',
         selector: (row: fhir4.CodeSystem) => formatResourceDate({ resource: row, dateType: 'lastUpdated'}) || 'No date provided'
       },
+      {
+        name: 'Action',
+        selector: (row: fhir4.ValueSet) => row.id,
+        cell: (row: fhir4.ValueSet) => {
+          return (
+          <Box>
+            {/* maybe pass thru row id as prop to default the edit? */}
+            <Button
+              onClick={() => router.push(`/provisional/codesystem?csSelected=${row.url}`)}
+            >
+              Edit
+            </Button>
+          </Box>
+
+          )
+        }
+      },
     ]
     return fields
   }, [provisionalCS])
   return (
     <div>
-      <DataTable title='VSM Provisional Code Systems' data={provisionalCS} columns={columns} noDataComponent={<NoProvisionalData provisionalType='Code System'/>}/>
+      <DataTable title='VSM Provisional Code Systems' data={provisionalCS} columns={codeSystemColumns} noDataComponent={<NoProvisionalData provisionalType='Code System'/>}/>
     </div>
   )
 }
@@ -81,10 +99,6 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists }: ProvisionalVS) =
         name: 'Author',
         selector: (row: fhir4.ValueSet) => getVsAuthor(row)
       },
-      // {
-      //   name: 'Version',
-      //   selector: (row: fhir4.ValueSet) => row.version || 'No Version Specified'
-      // },
       {
         name: 'Last Updated',
         selector: (row: fhir4.ValueSet) => formatResourceDate({ resource: row, dateType: 'lastUpdated' }) || 'No Date Specified'
@@ -137,16 +151,17 @@ const ProvisionalResourcesTab = () => {
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white' }}>
             <ProvisionalCodeSystemsTable provisionalCS={provisionalCS}/>
-            { provisionalCS && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
               <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>Create New</Button>
             </div>
-            )}
           </div>
         </Grid>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white'}}>
             <ProvisionalValueSetsTable csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS}/>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>Create New</Button>
+            </div>
           </div>
         </Grid>
       </Grid>
