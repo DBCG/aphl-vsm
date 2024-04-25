@@ -10,5 +10,7 @@ import { TextEncoder, TextDecoder } from 'util';
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
+// TODO: structuredClone not available yet for jest
+global.structuredClone = (val) => JSON.parse(JSON.stringify(val))
 
 dotenv.config({ path: './.env.local.example' });

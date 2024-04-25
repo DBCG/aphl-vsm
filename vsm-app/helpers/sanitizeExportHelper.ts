@@ -1,6 +1,4 @@
 import { is } from './is'
-import { cloneDeep } from 'lodash'
-
 /**
  * https://alphora.atlassian.net/browse/APHL-910
  * Remove ValueSet.meta.tags that have a value from the 'vsm-valueset-tag' code system
@@ -19,7 +17,7 @@ export const URLS_TO_REMOVE = new Set([
 ])
 export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
   if (is.bundle(exportBundle)) {
-    const bundle = cloneDeep(exportBundle)
+    const bundle = structuredClone(exportBundle)
     bundle.entry?.forEach((entry) => {
       if (entry?.resource?.meta?.profile) {
         entry.resource.meta.profile = entry?.resource?.meta?.profile?.filter((profile) => !URLS_TO_REMOVE.has(profile))
