@@ -4,18 +4,20 @@ import { useGetConditions } from '@/hooks/useGetConditions'
 import Select from 'react-select'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 import { buildConditionOptions } from '@/helpers/conditionHelpers'
-import { ConditionsHandler } from 'pages/programs/[id]/grouper'
+import { ConditionsHandler, PriorityHandler } from 'pages/programs/[id]/grouper'
 import { FlatGrouperVSet } from '../types/grouperTypes'
 import React, { Dispatch, SetStateAction } from 'react'
 import { customTableStyles } from './tables/themes'
+import { priorityLevelOptions } from './ProgramValueSetDetails'
 
 interface TableProps {
   vsToAdd: FlatGrouperVSet[]
   setGrouperVSets: Dispatch<SetStateAction<FlatGrouperVSet[]>>
   handleUpdateConditions: ({ conditionInfo, vsId }: ConditionsHandler) => void
+  handleUpdatePriority: ({ priorityInfo, vsId }: PriorityHandler) => void
 }
 
-const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: TableProps) => {
+const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions, handleUpdatePriority }: TableProps) => {
   const allConditions = useGetConditions()
 
   const deleteVS = (idToDelete: string, versionToDelete: string) => {
@@ -70,6 +72,30 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions }: Tab
           styles={reactSelectOptionStyle()}
           onChange={(e) => {
             handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })
+          }}
+          getOptionValue={(option) => option.label}
+        />
+      )
+    },
+    {
+      name: 'Priority',
+      wrap: true,
+      minWidth: '250px',
+      selector: (row: FlatGrouperVSet) => row?.selectedPriority,
+      sortable: false,
+      style: {
+        rowWrap: 'wrap'
+      },
+      cell: (row: FlatGrouperVSet) => (
+        <Select
+          options={priorityLevelOptions}
+          isMulti={false}
+          isClearable={false}
+          defaultValue={priorityLevelOptions?.find(opt => opt.value === row.selectedPriority)}
+          menuPortalTarget={document.body}
+          styles={reactSelectOptionStyle()}
+          onChange={(e) => {
+            handleUpdatePriority({ priorityInfo: e!, vsId: row.selectedValueSet.id })
           }}
           getOptionValue={(option) => option.label}
         />

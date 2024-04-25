@@ -39,6 +39,7 @@ interface FlatGrouperVSet {
   selectedConditions: Condition[];
   selectedGroupers?: SelectedGrouper[];
   selectedTerminologyServer: string;
+  selectedPriority: 'routine' | 'emergent'
 }
 
 interface CombinedGrouperVSets {
@@ -46,6 +47,7 @@ interface CombinedGrouperVSets {
   selectedConditions: Condition[];
   selectedGroupers?: SelectedGrouper[];
   selectedTerminologyServer: string;
+  selectedPriority: 'emergent' | 'routine'
 }
 
 interface ConditionValue {

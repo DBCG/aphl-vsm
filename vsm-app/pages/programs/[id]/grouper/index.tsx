@@ -21,6 +21,7 @@ import { MultiValue } from 'react-select'
 import { CombinedGrouperVSets, FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
+import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
 
 const defaultFormData = {
   name: '',
@@ -55,6 +56,11 @@ export interface ConditionsHandler {
   vsId: fhir4.ValueSet['id']
 }
 
+export interface PriorityHandler {
+  priorityInfo: PriorityLevelOption
+  vsId: fhir4.ValueSet['id']
+}
+
 const AddGrouper = () => {
   const [grouperVSets, setGrouperVSets] = useState<FlatGrouperVSet[]>([])
   const [title, setTitle] = useState(defaultFormData.title)
@@ -85,15 +91,15 @@ const AddGrouper = () => {
   }, [programId])
 
   const handleAddValueSets = (newVsInfo: CombinedGrouperVSets) => {
-    const { selectedValueSets, selectedConditions, selectedGroupers, selectedTerminologyServer } = newVsInfo
-
+    const { selectedValueSets, selectedConditions, selectedGroupers, selectedPriority, selectedTerminologyServer } = newVsInfo
     // flatten the format
     const leafsToAdd = selectedValueSets.map((selectedValueSet) => ({
       id: selectedValueSet.id, // needed for the react-data-table component
       selectedValueSet,
       selectedGroupers,
       selectedConditions,
-      selectedTerminologyServer
+      selectedTerminologyServer,
+      selectedPriority
     }))
 
     const updated = [...grouperVSets, ...leafsToAdd]
@@ -104,6 +110,17 @@ const AddGrouper = () => {
     const updatedVSets = grouperVSets.map((vs) => {
       if (vs.selectedValueSet.id === vsId) {
         vs.selectedConditions = conditionInfo as Condition[]
+      }
+      return vs
+    })
+
+    setGrouperVSets(updatedVSets)
+  }
+
+  const handleUpdatePriority = ({ priorityInfo, vsId }: PriorityHandler) => {
+    const updatedVSets = grouperVSets.map((vs) => {
+      if (vs.selectedValueSet.id === vsId) {
+        vs.selectedPriority = priorityInfo.value
       }
       return vs
     })
@@ -247,7 +264,12 @@ const AddGrouper = () => {
         </Grid>
       </MetadataContainer>
       <Subtitle>Valuesets to Add</Subtitle>
-      <VSReviewTable vsToAdd={grouperVSets || []} setGrouperVSets={setGrouperVSets} handleUpdateConditions={handleUpdateConditions} />
+      <VSReviewTable
+        vsToAdd={grouperVSets || []}
+        setGrouperVSets={setGrouperVSets}
+        handleUpdateConditions={handleUpdateConditions}
+        handleUpdatePriority={handleUpdatePriority}
+      />
       <FormSectionHeader itemNum={4} title="Submit to create grouper for this program" />
       <Row style={{ justifyContent: 'center', marginBottom: '24px' }}>
         <Button
