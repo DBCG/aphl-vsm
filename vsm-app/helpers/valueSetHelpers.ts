@@ -5,7 +5,7 @@ import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
-import _ from 'lodash'
+import { get, uniq } from 'lodash'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
@@ -339,12 +339,12 @@ const isVSMOwnedVSet = (vs: fhir4.ValueSet) => Boolean(vs?.meta?.tag?.find(t => 
 
 // Helper function to add valueset and retuen a uniue list
 const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
-  let profiles = _.get(valueset, 'meta.profile', []);
+  let profiles = get(valueset, 'meta.profile', []);
   profiles.push(
     'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
     'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
   );
-  profiles = _.uniq(profiles);
+  profiles = uniq(profiles);
   set(valueset, 'meta.profile', profiles);
   return valueset;
 }
