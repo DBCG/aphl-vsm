@@ -29,7 +29,7 @@ export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
   } else if (typeof exportBundle === 'string') {
     const matchString = Array.from(URLS_TO_REMOVE).join('|')
     const regex = new RegExp(`<profile value="(${matchString})"\s*/>`, 'gi')
-    return exportBundle.replace(regex, '')
+    return exportBundle.replaceAll(regex, '')
   } else {
     console.warn('Invalid export bundle')
     return exportBundle
