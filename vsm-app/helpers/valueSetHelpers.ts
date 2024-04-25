@@ -5,6 +5,7 @@ import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
+import _ from 'lodash'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
@@ -336,6 +337,18 @@ const getVsAuthor = (vs: fhir4.ValueSet) => vs?.extension?.find(xt => xt?.url?.e
 
 const isVSMOwnedVSet = (vs: fhir4.ValueSet) => Boolean(vs?.meta?.tag?.find(t => t.code === 'vsm-authored'))
 
+// Helper function to add valueset and retuen a uniue list
+const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
+  let profiles = _.get(valueset, 'meta.profile', []);
+  profiles.push(
+    'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
+    'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+  );
+  profiles = _.uniq(profiles);
+  set(valueset, 'meta.profile', profiles);
+  return valueset;
+}
+
 export {
   getVsSteward,
   isVSMOwnedVSet,
@@ -357,5 +370,6 @@ export {
   urlWithoutVersion,
   transformForVSAC,
   transformFromVSACToCqf,
-  isProvisionalVs
+  isProvisionalVs,
+  addProfileToValueSet
 }

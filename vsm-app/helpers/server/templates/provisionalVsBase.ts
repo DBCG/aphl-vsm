@@ -3,7 +3,11 @@ export const provisionalVsBase = {
   experimental: true,
   status: 'draft',
   meta: {
-    profile: ['http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset'],
+    profile: [
+      'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset',
+      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
+      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+    ],
     tag: [
       {
         system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag',

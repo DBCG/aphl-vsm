@@ -2205,7 +2205,8 @@
 				"id": "dxtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -2653,7 +2654,8 @@
 				"id": "lotc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -2911,7 +2913,8 @@
 				"id": "lrtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -3749,7 +3752,8 @@
 				"id": "mrtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -4067,7 +4071,8 @@
 				"id": "ostc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -4605,7 +4610,8 @@
 				"id": "sdtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
 					],
           "tag": [
             {
@@ -4763,7 +4769,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1506",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -4860,7 +4868,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1505",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -5029,7 +5039,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1508",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -5189,7 +5201,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1507",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -5448,7 +5462,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.6",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -5734,7 +5750,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.480",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -5867,7 +5885,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.481",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6054,7 +6074,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.761",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6151,7 +6173,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1223",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6248,7 +6272,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.762",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6363,7 +6389,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1182",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6577,7 +6605,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1181",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -6899,7 +6929,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1184",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -7716,7 +7748,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1601",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -7885,7 +7919,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1600",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8162,7 +8198,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1603",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8259,7 +8297,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1602",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8356,7 +8396,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1082",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8453,7 +8495,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.528",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8658,7 +8702,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.408",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -8947,7 +8993,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.409",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9296,7 +9344,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1469",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9501,7 +9551,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1468",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9607,7 +9659,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1439",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9704,7 +9758,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1436",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9792,7 +9848,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1435",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9880,7 +9938,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1446",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {
@@ -9968,7 +10028,9 @@
 				"id": "2.16.840.1.113762.1.4.1146.1438",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"ttp://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
 					]
 				},
 				"text": {

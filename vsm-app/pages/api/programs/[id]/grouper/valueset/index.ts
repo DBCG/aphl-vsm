@@ -8,7 +8,8 @@ import {
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
   idWithoutVersion,
-  urlWithoutVersion
+  urlWithoutVersion,
+  addProfileToValueSet
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -397,9 +398,9 @@ const submitUpdatesToCQF = async ({
 
         // handle if no matching authoritativeSource url
         const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, authoritativeSourceExtensionUrl, authSrcUrl as string)
-
+        const updatedVSWithAuthSource = addProfileToValueSet(vsWithAuthSource)
         const vsAddedToCache = {
-          resource: vsWithAuthSource,
+          resource: updatedVSWithAuthSource,
           request: {
             method: 'POST',
             url: 'ValueSet'

@@ -3,7 +3,8 @@ const grouperValueSetBase = {
   meta: {
     profile: [
       "http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
-      "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+      "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+      "http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
     ],
     tag: [
       {

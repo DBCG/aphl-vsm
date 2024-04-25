@@ -1,4 +1,4 @@
-import { addExtensionToVs, authoritativeSourceExtensionUrl, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, authoritativeSourceExtensionUrl, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
@@ -8,6 +8,7 @@ import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
 import retry from '@/helpers/retryRequest'
+import uniqBy from 'lodash.uniqby'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -177,10 +178,11 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
           .json({ message: `Could not find ValueSet with url ${vsCanonical} of version ${selectedVersion} in ${terminologyInfo.value}` })
       }
 
+      const updatedMatchFromTermServer = addProfileToValueSet(matchFromTermServer)
       // save match to CQF to be used
       const result = await fhirCdrClient.create({
         resourceType: 'ValueSet',
-        body: matchFromTermServer
+        body: updatedMatchFromTermServer
       })
 
       if (!is.valueSet(result)) {
