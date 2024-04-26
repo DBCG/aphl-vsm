@@ -2269,20 +2269,6 @@
 								}
 							]
 						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
-								}
-							]
-						}
 					}
 				],
 				"purpose": "Diagnoses or problems documented in a clinical record.",
@@ -2717,20 +2703,6 @@
 								}
 							]
 						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
-								}
-							]
-						}
 					}
 				],
 				"purpose": "Laboratory test names used in orders documented in a clinical record.",
@@ -2972,20 +2944,6 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
 								}
 							]
 						}
@@ -3813,20 +3771,6 @@
 								}
 							]
 						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
-								}
-							]
-						}
 					}
 				],
 				"purpose": "Prescription drugs names used in observations documented in a clinical record.",
@@ -4128,20 +4072,6 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
 								}
 							]
 						}
@@ -4666,20 +4596,6 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
 								}
 							]
 						}
