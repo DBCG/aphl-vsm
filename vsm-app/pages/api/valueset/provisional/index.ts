@@ -1,7 +1,8 @@
+import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
 import { fhirCdrClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
-import { setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
+import { setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
@@ -11,6 +12,7 @@ interface Body extends CreateProvisionalVs {
   grouperIds: string[]
   programId: string
   updatedConditions: Condition[]
+  updatedPriority: PriorityLevelOption
   provisionalVsIdForUpdate: string
 }
 
@@ -26,26 +28,9 @@ interface BuilderItem {
   existingId?: string
 }
 
-
 // groupers need references to the actual provisional valueSet IDs...
 // so the valuesets and their codeSystems need to be created before
 // that step so they exist
-
-interface PutItem {
-  method: 'PUT'
-  resource: fhir4.CodeSystem | fhir4.ValueSet 
-}
-
-interface PostItem {
-  method: 'POST'
-  resource: fhir4.CodeSystem | fhir4.ValueSet 
-}
-
-interface GetItem {
-  method: 'GET'
-  resourceType: 'ValueSet' | 'CodeSystem'
-  resourceId: string
-}
 
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
   type: 'transaction';
@@ -94,6 +79,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       grouperIds,
       programId,
       updatedConditions,
+      updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
 
@@ -186,17 +172,19 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
   }
 
+  let program = await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: programId
+  }) as fhir4.Library
+
   if (updatedConditions) {
     // update program with conditions
-    const program = await fhirCdrClient.read({
-      resourceType: 'Library',
-      id: programId
-    }) as fhir4.Library
-  
-    const updatedProgram = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
-    resourcesToSaveLast.push({ method: 'PUT', resource: updatedProgram })
+    program = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
   }
-  
+  // always update priority, since it's required
+  program = setVSPriority(program, updatedPriority.value, [provisionalLeaf.url!])
+  resourcesToSaveLast.push({ method: 'PUT', resource: program })
+
   if (grouperIds) {
     // get the associated groupers and update with the reference
     const grouperReqItems = grouperIds?.map((id: string) => (

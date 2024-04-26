@@ -26,6 +26,7 @@ import { Condition, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getVSConditions } from '@/helpers/libraryHelpers'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
+import { PriorityLevelOption, priorityLevelOptions } from '@/components/ProgramValueSetDetails'
 
 // handler for when to show button rows?
 interface CodeTableData {
@@ -249,6 +250,7 @@ const ProvisionalVS = () => {
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<LabelAndValue | undefined | null>(undefined)
   const [groupersToAdd, setGroupersToAdd] = useState<GroupOptionItem[]>([])
   const [updatedConditions, setUpdatedConditions] = useState<Condition[]>([])
+  const [updatedPriority, setUpdatedPriority] = useState<PriorityLevelOption>(priorityLevelOptions[1])
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
@@ -262,7 +264,7 @@ const ProvisionalVS = () => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
 
   const provisionalVs = useGetProvisionalVS()
-  const [stepsCompleted, setStepsCompleted] = useState([false, false, false, false, false, false, false])
+  const [stepsCompleted, setStepsCompleted] = useState([false, false, false, false, false, false, false, false])
   const [activeStep, setActiveStep] = useState(0)
   const router = useRouter()
   const programId = router.query.id as string
@@ -437,6 +439,7 @@ const ProvisionalVS = () => {
       titleToUpdate: title,
       codesBySystemToAdd,
       updatedConditions,
+      updatedPriority,
       provisionalVsIdForUpdate: provisionalVsIdForUpdate,
       grouperIds: groupersToAdd?.map(g => g.id)
     }
@@ -790,6 +793,39 @@ const ProvisionalVS = () => {
     )
   }
 
+  const seventhStep = () => {
+    return (
+      <div>
+        <SelectInputContainer style={{ maxWidth: '500px'}} id={`priority-selector`}>
+          <Select
+            menuPortalTarget={myDocument}
+            menuPlacement={'bottom'}
+            instanceId="priority-selector"
+            isMulti={false}
+            isClearable={false}
+            styles={reactSelectOptionStyle({ minWidth: '200px'})}
+            options={priorityLevelOptions}
+            value={updatedPriority}
+            // TODO should block add if already exists
+            onChange={(e) => {
+              setUpdatedPriority(e!)
+            }}
+          />
+        </SelectInputContainer>
+        <ButtonRowContainer>
+              <Button
+                text='Back'
+                onClick={(e) => handleStep('prev', 6)}
+              />
+              <Button
+                text='Next'
+                onClick={(e) => handleStep('next', 6)}
+              />
+            </ButtonRowContainer>
+      </div>
+    )
+  }
+
   const ReviewStep = () => {
     const existingProvisionalCodeSystem = existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)
     return (
@@ -843,6 +879,10 @@ const ProvisionalVS = () => {
          <div style={{ marginBottom: '1rem'}}>
           {(updatedConditions?.length ? updatedConditions.map(i => <StyledChip key={i.label} experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={i.label}/>) : <p>No Groupers Selected</p>)}
          </div>
+         <p style={{ fontSize: '90%' }}>Associated Priority</p>
+         <div style={{ marginBottom: '1rem'}}>
+          {(updatedPriority?.label ? <StyledChip key={updatedPriority.label} experimental={false} style={{ margin: '.2rem', backgroundColor: 'white'}} label={updatedPriority.label}/> : <p>No Priority Selected</p>)}
+         </div>
         {
           activeStep === stepContents.length - 1 ? (
             <ButtonRowContainer>
@@ -891,6 +931,10 @@ const ProvisionalVS = () => {
     {
       label: `Update associated Conditions for ${title || 'ValueSet'}`,
       content: <ContentWrapper>{sixthStep()}</ContentWrapper>
+    },
+    {
+      label: `Update associated Priority for ${title || 'ValueSet'}`,
+      content: <ContentWrapper>{seventhStep()}</ContentWrapper>
     },
     {
       label: 'Review Your Provisional Value Set (Read-Only)',
