@@ -1,11 +1,14 @@
 package com.ecr;
 
+import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
+import ca.uhn.fhir.rest.api.server.IBundleProvider;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Library;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
@@ -110,7 +113,7 @@ public class ImportBundleProducer {
 							List<UsageContext> cleanedContext = valueSet
 								.getUseContext()
 								.stream()
-								.filter(ctx -> ctx.hasCode() && (ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+								.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
 								.collect(Collectors.toList());
 							valueSet.setUseContext(cleanedContext);
 
@@ -123,15 +126,15 @@ public class ImportBundleProducer {
 						}
 
 						// Check if ValueSet already exists
-						if (!doesResourceExist(new IdType("ValueSet", valueSet.getIdPart()), transformProperties)) {
+						if (!doesResourceExist(valueSet.getUrl(), valueSet.getVersion(), ValueSet.class, transformProperties)) {
 							// Save the resource into entry bundle
 							bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet", valueSet.getIdPart()));
 						}
 						break;
 					case Library:
 						Library library = (Library) resource;
-						if (doesResourceExist(new IdType("Library", library.getIdPart()), transformProperties)) {
-							throw new FhirResourceExists("Library", library.getIdPart());
+						if (doesResourceExist(library.getUrl(), library.getVersion(), Library.class, transformProperties)) {
+							throw new FhirResourceExists("Library", library.getUrl(), library.getVersion());
 						} else {
 							if (isRootSpecificationLibrary(resource)) {
 								rootLibrary = library;
@@ -169,10 +172,13 @@ public class ImportBundleProducer {
 		return bundleEntries;
 	}
 
-	private static boolean doesResourceExist(IdType idType, TransformProperties transformProperties) {
+	private static boolean doesResourceExist(String url, String version, Class resource, TransformProperties transformProperties) {
 		try {
-			transformProperties.read(idType);
-			return true;
+			SearchParameterMap sp = new SearchParameterMap();
+			sp.add("url", new UriParam(url));
+			sp.add("version", new TokenParam(version));
+			IBundleProvider results = transformProperties.search(resource, sp);
+			return !results.isEmpty();
 		} catch(Exception e) {
 			return false;
 		}

@@ -2,10 +2,7 @@ package com.ecr;
 
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Library;
-import org.hl7.fhir.r4.model.RelatedArtifact;
+import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -13,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +19,8 @@ import static com.ecr.ImportBundleProducer.isRootSpecificationLibrary;
 import static com.ecr.ImportBundleProducer.transformImportBundle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -38,19 +38,37 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		MockitoAnnotations.openMocks(this); // Initializes mocks
 	}
 
+	/**
+	 * @throws FhirResourceExists
+	 */
 	@Test
-	public void testPrepareRootLibrary() throws FhirResourceExists {
+	public void testRootLibraryImport() throws FhirResourceExists {
 		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
+		String targetedValueSetUrl = "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506";
+		String targetedPinnedValueSetVersion = "1.0.0";
 
 		// Extract Root Library
 		Library rootLibrary = extractRootLibrary(v2Bundle.getEntry());
 
-		assertFalse(rootLibrary.getRelatedArtifact().stream().filter(i -> i.getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"))
-			.findFirst()
-			.isPresent()
+		// Assert state before pre-import conformance
+		assertFalse(rootLibrary.getRelatedArtifact()
+			.stream()
+			.anyMatch(i -> i.getResource().equals(targetedValueSetUrl + "|" + targetedPinnedValueSetVersion))
 		);
 
-		when(transformProperties.read(any())).thenThrow(new ResourceNotFoundException("Not Found"));
+		// Extract targeted ValueSet to check for import conformance
+		Optional<Bundle.BundleEntryComponent> preImportBundleEntry = v2Bundle.getEntry().stream()
+			.filter(i -> i.getFullUrl().equals(targetedValueSetUrl))
+			.findFirst();
+
+		ValueSet preImportValueSet = (ValueSet) preImportBundleEntry.get().getResource();
+
+		assertFalse(preImportValueSet.getMeta().getProfile().containsAll(Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)));
+		assertTrue(preImportValueSet.getUseContext().stream().anyMatch(i -> i.getCode().getCode().equals("focus") || i.getCode().getCode().equals("priority")));
+		assertNotNull(preImportValueSet);
+
+		// ensures that resources not found when doing checks
+		when(transformProperties.search(any(), any())).thenThrow(new ResourceNotFoundException("Not Found"));
 
 		List<Bundle.BundleEntryComponent> transactionBundleEntry = transformImportBundle(v2Bundle, transformProperties);
 
@@ -59,15 +77,27 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		List<RelatedArtifact> ra = updatedRootLibrary
 			.getRelatedArtifact()
 			.stream()
-			.filter(i -> i.getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|1.0.0"))
+			.filter(i -> i.getResource().equals(targetedValueSetUrl + "|" + targetedPinnedValueSetVersion))
 			.collect(Collectors.toList());
 		assertTrue(!ra.isEmpty());
 
 		CodeableConcept conditionCodeableConcept = (CodeableConcept) ra.get(0).getExtension().get(0).getValue();
 		assertEquals(conditionCodeableConcept.getText(), "Infection caused by Acanthamoeba (disorder)");
 
-		CodeableConcept priorityCodeableConcept = (CodeableConcept) ra.get(1).getExtension().get(0).getValue();
+		CodeableConcept priorityCodeableConcept = (CodeableConcept) ra.get(0).getExtension().get(1).getValue();
 		assertEquals(priorityCodeableConcept.getCoding().get(0).getCode(), "routine");
+
+		// Extract targeted ValueSet to check for post-import conformance
+		Optional<Bundle.BundleEntryComponent> postImportBundleEntry = transactionBundleEntry.stream()
+			.filter(i -> i.getFullUrl().equals(targetedValueSetUrl))
+			.findFirst();
+
+		ValueSet postImportVs = (ValueSet) postImportBundleEntry.get().getResource();
+
+		List<String> profileStrings = postImportVs.getMeta().getProfile().stream().map(PrimitiveType::getValueAsString).collect(Collectors.toList());
+		assertTrue(profileStrings.containsAll(Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)));
+		assertFalse(postImportVs.getUseContext().stream().anyMatch(i -> i.getCode().getCode().equals("focus") || i.getCode().getCode().equals("priority")));
+		assertNotNull(postImportVs);
 	}
 
 	private Library extractRootLibrary(List<Bundle.BundleEntryComponent> bundleEntry) {
