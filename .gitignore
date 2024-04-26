@@ -1,3 +1,4 @@
+.vscode/
 eRSDTransformerWorkspace/
 eRSDTransformerWorkspace/tooling-cli-2.1.0-SNAPSHOT.jar
 eRSDTransformerWorkspace/plandefinition/plandefinition-us-ecr-specification.xml
