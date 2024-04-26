@@ -8,7 +8,6 @@ import cloneDeep from 'lodash.clonedeep'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
 import retry from '@/helpers/retryRequest'
-import uniqBy from 'lodash.uniqby'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
