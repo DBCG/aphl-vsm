@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { getGrouperLibraryCanonical, getVSConditions } from '@/helpers/libraryHelpers'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 import logger from '@/helpers/server/logger'
@@ -216,31 +216,6 @@ const vsInRequiredGroup = ({ groupsVsBelongsTo, groupIdsToFilterBy }: VsInReqGrp
   return groupIdsToFilterBy?.every((id: string) => groupsVsBelongsTo?.find((g) => g?.id === id))
 }
 
-interface VsHasCondition {
-  valueSet: fhir4.ValueSet
-  conditionCodesToFilterBy: string[] | undefined
-}
-
-const vsHasRequiredCondition = ({ valueSet, conditionCodesToFilterBy }: VsHasCondition): boolean => {
-  const useContextConditions = valueSet?.useContext?.filter(
-    (i) => i?.code?.code === 'focus' && i?.code?.system?.endsWith('/usage-context-type')
-  )
-
-  // if no filters active, the result is allowed by default
-  if (!conditionCodesToFilterBy) return true
-  // if only one filter selected
-  if (conditionCodesToFilterBy.length == 1) {
-    const matches = useContextConditions?.find((item) =>
-      conditionCodesToFilterBy?.includes(item?.valueCodeableConcept?.coding?.[0]?.code as string)
-    )
-    return Boolean(matches)
-  }
-  // if more than 1 condition, valuesets must match all condition filters
-  return conditionCodesToFilterBy?.every((code: string) =>
-    useContextConditions?.find((c) => c?.valueCodeableConcept?.coding?.[0]?.code === code)
-  )
-}
-
 const formatValuesetData = (
   program: fhir4.Library,
   groupsByValueSetCanonical: GroupsByCanonical,
@@ -356,7 +331,7 @@ export const getProgramDetailsValuesets = async ({
     // these filters are performed here
     const filterGroups = groups?.split(',')
     const filterConditions = conditions?.split(',')
-
+    const conditionInfoByVsUrl = getVSConditions(program)
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter(
@@ -366,8 +341,7 @@ export const getProgramDetailsValuesets = async ({
           vsInRequiredGroup({
             groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
             groupIdsToFilterBy: filterGroups
-          }) &&
-          vsHasRequiredCondition({ valueSet: vs, conditionCodesToFilterBy: filterConditions })
+          }) 
       )
       .filter((x) => !!x)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)

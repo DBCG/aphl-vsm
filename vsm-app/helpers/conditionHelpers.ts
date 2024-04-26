@@ -20,36 +20,10 @@ interface ConditionItem {
   display: string
 }
 
-interface UsageContextItem {
-  code: fhir4.Coding
-  valueCodeableConcept: fhir4.CodeableConcept
-}
-
 interface ConditionToUpdate {
   canonical: string
   version: string
   conditionInfo?: Condition[]
-}
-
-const buildConditionItem = (condition: Condition) => {
-  const conditionItem = {
-    code: {
-      system: 'http://terminology.hl7.org/CodeSystem/usage-context-type',
-      code: 'focus'
-    },
-    valueCodeableConcept: {
-      coding: [
-        {
-          system: condition.value.system,
-          code: condition.value.code
-        }
-      ]
-    }
-  } as UsageContextItem
-
-  // if optional human-readable text field exists, add it
-  if (condition.label) conditionItem.valueCodeableConcept.text = condition.label
-  return conditionItem
 }
 
 const formatConditionsComposeInclude = (conditionsList: fhir4.ValueSetComposeInclude[]): ConditionItem[] => {
@@ -89,16 +63,6 @@ const buildConditionOptions = (conditions: ConditionItem[] | [], selectedOptions
     ?.filter((option) => !selectedCodes?.includes(option?.value?.code))
   return result
 }
-
-const condCodesBySystem = (conditionItems: Condition[]) => conditionItems.reduce(
-  (accumulator: StringObj, currentValue) => {
-    const systemToUpdate = currentValue.value.system
-    const currentValues = accumulator[systemToUpdate] || []
-    const dedupedValues = [...new Set([currentValue.value.code, ...currentValues])]
-    return Object.assign(accumulator, { [systemToUpdate]: dedupedValues })
-  },
-  {},
-)
 
 export {
   formatConditionsComposeInclude,
