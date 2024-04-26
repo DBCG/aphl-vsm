@@ -9,6 +9,7 @@ import {
   idWithoutVersion,
   addProfileToValueSet
 } from "./valueSetHelpers";
+import { set, get, uniq } from 'lodash'
 
 const VSM_LEAF_PROFILE_URLS = {
   CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
@@ -229,20 +230,24 @@ describe('valueSetHelpers', () => {
     expect(urlWithoutVersion(test2)).toBe('http://example.com')
   })
 
+
   describe('addProfileToValueSet', () => {
     it('should add profiles to ValueSet and return a unique list', () => {
       let grouperToUpdate = cloneDeep(FIXTURE_GROUPER_VS)
       const updatedGrouperVS = addProfileToValueSet(grouperToUpdate)
 
-      if (!updatedGrouperVS.meta || !updatedGrouperVS.meta.profile) {
-        fail('Test data missing meta.profile block');
-      }
+      // Asserts that updatedGrouperVS.meta is not undefined and prevents 
+      // issues with updatedGrouperVS.meta.profile possibly being undefined, 
+      // since addProfileToValueSet will create it if it is undefined
+      expect(updatedGrouperVS.meta).toBeDefined();
 
-      expect(updatedGrouperVS.meta.profile).toContain(VSM_LEAF_PROFILE_URLS.CONDITION);
-      expect(updatedGrouperVS.meta.profile).toContain(VSM_LEAF_PROFILE_URLS.HOSTED);
+      const profiles = updatedGrouperVS.meta!.profile;
 
-      const uniqueProfiles = [...new Set(updatedGrouperVS.meta.profile)];
-      expect(updatedGrouperVS.meta.profile.length).toBe(uniqueProfiles.length);
+      expect(profiles).toContain(VSM_LEAF_PROFILE_URLS.CONDITION);
+      expect(profiles).toContain(VSM_LEAF_PROFILE_URLS.HOSTED);
+
+      const uniqueProfiles = uniq(profiles);
+      expect(profiles).toEqual(uniqueProfiles);
     })
   })
 })
