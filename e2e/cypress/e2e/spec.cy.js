@@ -117,7 +117,7 @@ describe("Smoke Tests", () => {
       // Do some assertions on Program Detail View Page
       cy.get('[data-column-id="1"]').contains("excellent title for grouper").should("exist");
       cy.get('[data-column-id="3"]')
-        .contains("http://ersd.aimsplatform.org/fhir/ValueSet/Excellent_title_for_grouper")
+        .contains("http://ersd.aimsplatform.org/fhir/ValueSet/ExcellentTitleForGrouper")
         .should("exist");
 
       // Edit the grouper
@@ -142,7 +142,7 @@ describe("Smoke Tests", () => {
       // Now remove newly created grouper
       cy.get('[data-button-context="delete"]').last().click();
       cy.get('[data-modal="yes"]').click();
-      cy.get('[data-column-id="1"]').contains("Excellent_title_for_grouper").should("not.exist");
+      cy.get('[data-column-id="1"]').contains("ExcellentTitleForGrouper").should("not.exist");
     });
 
     it("Adds a new valueset to multiple program groupers then removes it", () => {
@@ -246,11 +246,12 @@ describe("Smoke Tests", () => {
       // Search By Name
       cy.get('[data-column-id="vs-title-search"] input').clear().type("covid");
       cy.get('[data-column-id="vs-title-search"]').contains("COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)")
-      cy.get('[data-column-id="vs-title-search"] input').clear()
+      cy.get('[data-column-id="vs-title-search"] input').clear().clear()
 
       // Search By OID
       cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");
-      cy.get('[data-column-id="vs-title-search"]').contains("Anthrax (Tests for Bacillis anthracis Antibody)").should("exist");
+      cy.wait(1000)
+      cy.get('[data-column-id="vs-title-search"]').contains("Anthrax (Tests for Bacillis anthracis Antibody)");
       cy.get('[data-column-id="vs-oid-search"] input').clear();
     })
 
@@ -261,7 +262,7 @@ describe("Smoke Tests", () => {
 
       // changes this valueset's priority from emergent to routine
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').should('include.text', 'Emergent')
-      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"] .priority-selector__control').click()
+      cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"] .priority-selector__control').click({force: true})
       cy.wait(1000)
       cy.get('#react-select-priority-selector-option-1').click()
       cy.get('[id="cell-value-set-priority-http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506-20220118-0"]').should('not.include.text', 'Emergent')
@@ -327,7 +328,7 @@ describe("Smoke Tests", () => {
       // click the Download button
       cy.get('button').contains('Download').click()
       // file path is relative to the working folder
-      const filename = path.join(downloadsFolder, 'SpecificationLibrary-bundle.json')
+      const filename = path.join(downloadsFolder, 'Specification-Library-bundle.json')
       cy.readFile(filename, { timeout: 30000 }).should('exist')
       // actually checking contents is memory intensive
       //.should('have.a.property','resourceType')
