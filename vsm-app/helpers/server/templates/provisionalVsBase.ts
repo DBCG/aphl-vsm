@@ -6,7 +6,7 @@ export const provisionalVsBase = {
     profile: ['http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset'],
     tag: [
       {
-        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag',
+        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
         code: 'vsm-authored'
       }
     ]
