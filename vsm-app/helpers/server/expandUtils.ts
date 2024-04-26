@@ -104,24 +104,6 @@ const filterRejectPromiseValues = (items: PromiseSettledResult<any>[]) => (
   ?.map((res: any) => res.value) as fhir4.ValueSet[]
 )
 
-interface GetVsConditionInfo {
-  cachedLeafs: fhir4.ValueSet[]
-  expansionUrl: string
-}
-
-// the expansions from the terminology server do not have the condition info
-// match up vsets with those cached via url
-const getVsConditionInfo = ({ cachedLeafs, expansionUrl }: GetVsConditionInfo) => {
-  return cachedLeafs
-    ?.find((vs) => urlWithoutVersion(vs.url!) === urlWithoutVersion(expansionUrl))
-    ?.useContext
-    ?.filter((ctx: fhir4.UsageContext) => (
-      ctx.code.system?.endsWith('usage-context-type') &&
-      ctx.code.code === 'focus'
-    ))
-    ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text)
-}
-
 const findMatchingExpansions = async (
   { leafVSets, expandParameters, terminologyClient }: FindMatchingExpansions
 ) => {

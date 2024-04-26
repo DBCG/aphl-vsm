@@ -24,6 +24,7 @@ import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import uniqBy from 'lodash.uniqby'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 import { getVsSteward } from '@/helpers/valueSetHelpers'
+import { priorityLevelOptions } from './ProgramValueSetDetails'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -190,6 +191,7 @@ export interface LeafsToAdd {
   selectedValueSets: SelectedValueSet[]
   selectedConditions: Condition[]
   selectedGroupers: SelectedGrouper[]
+  selectedPriority: 'emergent' | 'routine'
 }
 
 type HandleAddVSets = (vsets: LeafsToAdd) => void
@@ -235,6 +237,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   // set conditions and groupers to be applied to valuesets
   const [selectedGroupers, setSelectedGroupers] = useState<SelectedGrouper[]>([])
   const [selectedConditions, setSelectedConditions] = useState<Condition[]>([])
+  const [selectedPriority, setSelectedPriority] = useState(priorityLevelOptions[1])
   const [toggledClearRows, setToggledClearRows] = useState(false)
   // error info
   // const [addValueSetError, setAddValueSetError] = useState<Error | null>(null)
@@ -475,6 +478,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       selectedTerminologyServer: selectedTerminologyServer.value.title,
       selectedValueSets: uniqBy(selectedValueSets, 'id'),
       selectedConditions,
+      selectedPriority: selectedPriority.value || 'routine',
       selectedGroupers
     } as LeafsToAdd
 
@@ -510,6 +514,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     setSelectedValueSets([])
     setSearchTerm('')
     setSelectedConditions([])
+    setSelectedPriority(priorityLevelOptions[1])
     setSelectedGroupers([])
   }
 
@@ -651,6 +656,26 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               />
             </SelectInputContainer>
           </div>
+          <SelectGrouperContainer hidden={tableContext !== 'add-grouper'}>
+            <StyledLabel id="aria-label" htmlFor="priority-selector">
+              Priority
+            </StyledLabel>
+            <SelectInputContainer>
+              <Select
+                isClearable={false}
+                instanceId={`${tableContext}-priority`}
+                isMulti={false}
+                styles={reactSelectOptionStyle()}
+                // @ts-ignore
+                options={priorityLevelOptions}
+                value={selectedPriority}
+                onChange={(e) => {
+                  // create new array since e is readonly
+                  setSelectedPriority(e!)
+                }}
+              />
+            </SelectInputContainer>
+          </SelectGrouperContainer>
           <SelectGrouperContainer hidden={tableContext === 'add-grouper'}>
             <StyledLabel id="aria-label" htmlFor="conditions-selector">
               Groups <GroupsRequired>(*required)</GroupsRequired>

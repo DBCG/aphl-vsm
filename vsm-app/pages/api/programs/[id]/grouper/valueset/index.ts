@@ -18,7 +18,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import uniqBy from 'lodash.uniqby'
-import { setVSConditions } from '@/helpers/libraryHelpers'
+import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -251,13 +251,14 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     const grouperVsUrl = `${newGrouper?.url}|${newGrouper?.version}`
 
     // Set Conditions onto the program library
-    let conditionModifiedProgram = program as fhir4.Library
+    let modifiedProgram = program as fhir4.Library
     grouperVSets.forEach((vs) => {
       // these leaf valuesets are set to the latest version and will not have a version in their canonical url
-      conditionModifiedProgram = setVSConditions(conditionModifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
+      modifiedProgram = setVSConditions(modifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
+      modifiedProgram = setVSPriority(modifiedProgram, vs.selectedPriority, [vs.selectedValueSet.url!])
     })
 
-    const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(conditionModifiedProgram as fhir4.Library, grouperVsUrl)
+    const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(modifiedProgram as fhir4.Library, grouperVsUrl)
 
     if (is.errorResponse(rctcProgramLibUpdatePayload)) {
       sendError(rctcProgramLibUpdatePayload)
@@ -269,10 +270,10 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
           ...cqfUpdatesPayload,
           rctcProgramLibUpdatePayload,
           {
-            resource: conditionModifiedProgram,
+            resource: modifiedProgram,
             request: {
               method: 'PUT',
-              url: `Library/${conditionModifiedProgram.id}`
+              url: `Library/${modifiedProgram.id}`
             }
           }
         ]

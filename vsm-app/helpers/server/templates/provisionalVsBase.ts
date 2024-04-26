@@ -43,20 +43,6 @@ export const provisionalVsBase = {
           }
         ]
       }
-    },
-    {
-      code: {
-        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
-        code: 'priority'
-      },
-      valueCodeableConcept: {
-        coding: [
-          {
-            system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-            code: 'emergent'
-          }
-        ]
-      }
     }
   ]
 } as fhir4.ValueSet

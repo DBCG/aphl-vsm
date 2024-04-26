@@ -183,7 +183,7 @@ const useGetProgramValueSetDetails = ({
       }
       const currentConditions = conditionsMap[vs.valueSet.url]?.map((i) => i?.id)
       // Test for intersection of either array
-      return currentConditions.filter(value => activeConditionsMap.includes(value)).length > 0;
+      return currentConditions?.filter(value => activeConditionsMap.includes(value)).length > 0;
     })
 
     data.data = filteredConditionData
