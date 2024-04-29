@@ -33,24 +33,17 @@ const NavItem = styled.li<Props>`
   }
 `
 
-const composePath = (pathItems: string, lastOfPath: string, index) => {
-  let pathToUpdate = pathItems
+const composePath = (pathItems: string, lastOfPath: string) => {
   if (lastOfPath === 'grouper') {
     // remove the valuesets part of the path since groupers are located there
-    return pathToUpdate.split('/valuesets')[0]
+    return pathItems.split('/valuesets')[0]
   }
   const idx = pathItems.indexOf(lastOfPath)
-  if (pathToUpdate.startsWith('/provisional/')) {
-    return '/programs?resourceType=provisional'
-    console.log('path to update: ', pathToUpdate)
+  let result = pathItems.slice(0, idx + lastOfPath.length)
+  console.log('result: ', result)
+  if (result === '/provisional') {
+    result = `/programs?resourceType=provisional`
   }
-
-  const result = pathToUpdate.slice(0, idx + pathToUpdate.length)
-  const pathAsArr = result.split('/').filter(i => i !== '').filter((i, idx) => idx < index).join('/')
-  console.log('path as arr: ')
-  console.log('result here: ', result.split('/').filter(i => i !== ''))
-  console.log('index: idx: ', idx)
-  console.log('lastOfPath: ', lastOfPath)
   return result
 }
 
@@ -64,16 +57,11 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   useEffect(() => {
     if (router) {
-      const [path, query] = router.asPath.split('?')
-      console.log('router.aspath: ', router.asPath)
-      const crumbs = path.split('/')
-      console.log('crumbs: ', crumbs)
-      const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
-      console.log('withoutquerystrings: ', withoutQueryStrings)
+      const withoutQueryStrings = router.asPath.split('?')[0].split('/')
       if (isGrouperView && withoutQueryStrings.indexOf('valuesets') === -1) {
         withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
       }
-      console.log('without query strings: ', withoutQueryStrings)
+
       setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])
@@ -84,9 +72,8 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   const items = breadCrumbs.map((c, index) => {
     if (c !== '') {
-      console.log('path: ', composePath(router.asPath, c))
       return (
-        <Link key={c} href={composePath(router.asPath, c, index)} passHref>
+        <Link key={c} href={composePath(router.asPath, c)} passHref>
           <NavItem id={`breadcrumb-${c}`} alpha={index / 0.1}>{`${c.replace('?id=', ' ')}`}</NavItem>
         </Link>
       )
