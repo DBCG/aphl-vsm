@@ -1,5 +1,5 @@
-import cloneDeep from 'lodash.clonedeep'
-import uniqBy from 'lodash.uniqby'
+import { cloneDeep } from 'lodash'
+import { uniqBy } from 'lodash'
 import { provisionalVsBase } from './server/templates/provisionalVsBase'
 import { provisionalCsBase } from './server/templates/provisionalCsBase'
 import { generateNameFromTitle } from './stringHelpers'

@@ -1,5 +1,5 @@
 import FhirKitClient from 'fhir-kit-client'
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash'
 import { is } from '../is'
 import logger from './logger'
 import { urlWithoutVersion } from '../valueSetHelpers'

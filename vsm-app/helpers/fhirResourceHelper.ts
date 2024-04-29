@@ -1,4 +1,4 @@
-import cloneDeep from "lodash.clonedeep"
+import { cloneDeep } from 'lodash'
 
 type FhirResource = {
   extension?: fhir4.Extension[]

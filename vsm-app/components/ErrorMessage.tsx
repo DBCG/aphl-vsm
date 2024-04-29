@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { Alert } from '@mui/material'
-import cloneDeep from 'lodash.clonedeep'
+import { cloneDeep } from 'lodash'
 
 interface ErrorState {
   message: string
