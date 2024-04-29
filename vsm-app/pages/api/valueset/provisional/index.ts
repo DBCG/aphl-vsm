@@ -241,13 +241,16 @@ const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) =>
       // reference will only exist if users searching for
       // a particular valueset system
       // https://build.fhir.org/valueset.html#:~:text=ValueSet.compose.include.system
-      reference
-    } = req.body
+      title,
+      url
+    } = req.query
 
    let searchParams = {
     _tag: 'vsm-authored',
     _sort: '-_lastUpdated',
-    _count: 100
+    _count: 100,
+    ...(title && { ['title:contains']: title }),
+    ...(url && { ['url:contains']: url })
   }
 
     // ideally I wouldn't be doing this and would just be using a searchParam on

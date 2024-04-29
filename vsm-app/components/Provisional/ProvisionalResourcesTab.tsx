@@ -42,7 +42,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
     const fields = [
       { 
         name: 'Name',
-        selector: (row: fhir4.CodeSystem) => row.name || 'No title'
+        selector: (row: fhir4.CodeSystem) => row.name || 'No Name'
       },
       {
         name: 'URL',
@@ -151,7 +151,7 @@ const ProvisionalResourcesTab = () => {
           <div style={{ backgroundColor: 'white' }}>
             <ProvisionalCodeSystemsTable provisionalCS={provisionalCS}/>
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>Create New</Button>
+              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
             </div>
           </div>
         </Grid>
@@ -159,7 +159,7 @@ const ProvisionalResourcesTab = () => {
           <div style={{ backgroundColor: 'white'}}>
             <ProvisionalValueSetsTable csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS}/>
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>Create New</Button>
+              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>
             </div>
           </div>
         </Grid>
