@@ -40,7 +40,6 @@ const composePath = (pathItems: string, lastOfPath: string) => {
   }
   const idx = pathItems.indexOf(lastOfPath)
   let result = pathItems.slice(0, idx + lastOfPath.length)
-  console.log('result: ', result)
   if (result === '/provisional') {
     result = `/programs?resourceType=provisional`
   }

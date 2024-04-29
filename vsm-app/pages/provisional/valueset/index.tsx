@@ -65,14 +65,11 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
   const handleChangeSelectedRows = ({ selectedRows: rows }) => {
-    console.log('rows: ', rows)
     setSelectedRows(rows)
   }
   const handleClear = () => setToggledClearRows(t => !t)
 
   const handleAdd = () => {
-    console.log('selectedRows: ', selectedRows)
-    console.log('codeSystem: ', codeSystem)
     handleAddCodes({ [codeSystem.url]: [...selectedRows] }, 'add')
     handleClear()
   }
@@ -138,7 +135,6 @@ const NoDataComponent = () => {
 }
 
 const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
- console.log('data: ', data)
   const codesBySystem = data?.compose?.include
     ?.map(i => i.concept?.map(c => Object.assign(c, { system: i.system }))).flat() || []
   const columns = useMemo(() => {
@@ -206,14 +202,9 @@ const ProvisionalVSEdit = () => {
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
 
-  useEffect(() => {
-    console.log('codes by system to add: ', codesBySystemToAdd)
-  }, [codesBySystemToAdd])
-
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystem, action: 'add' | 'remove') => {
     let currentCodesToAdd = lodash.cloneDeep(codesBySystemToAdd)
     const systems = Object.keys(codesBySystemToUpdate)
-    console.log('c by system to update: ', codesBySystemToUpdate)
     systems.forEach(system => {
       if (action === 'add') {
         if (!currentCodesToAdd[system]) {
@@ -221,12 +212,10 @@ const ProvisionalVSEdit = () => {
         } else {
           const existingCodes = currentCodesToAdd?.[system] || []
           const dedupedCodes = uniqBy(codesBySystemToUpdate[system].concat(existingCodes), 'code')
-          console.log('deduped: ', dedupedCodes)
           currentCodesToAdd = Object.assign(currentCodesToAdd, { [system]: dedupedCodes })
         }
       }
     })
-    console.log('currentCodesToAdd: ', currentCodesToAdd)
     setCodesBySystemToAdd(currentCodesToAdd)
   }
 
@@ -314,16 +303,13 @@ const ProvisionalVSEdit = () => {
   }
 
   const csSelectOptions = useMemo(() => {
-    console.log('provisionalCS: ', provisionalCS)
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
-    console.log('defaultOption: , ', defaultOption)
     setSelectedCodeSystemBase(defaultOption)
     return mapped
   }, [allVsacCS])
 
   const flattenCodesBySystem = useMemo(() => {
-    console.log('codesBySystemData: ', codesBySystemToAdd)
     if (!codesBySystemToAdd) {
       return []
     }
@@ -344,8 +330,6 @@ const ProvisionalVSEdit = () => {
       const systemUrls = Object.keys(cs)
       systemUrls.forEach((url: string) => {
         const stagedValuesToDelete = selectedStagingRows?.filter((k) => k.system === url)
-        console.log('valuesToDelte: ', stagedValuesToDelete)
-        console.log('codesBySystem.url: ', codesBySystemToAdd)
         const filteredValues = codesBySystemToAdd[url]?.filter(c => !stagedValuesToDelete.find(v => v.code === c.code))
         if (filteredValues.length) {
           codeItems[url] = filteredValues
@@ -358,7 +342,6 @@ const ProvisionalVSEdit = () => {
   }
 
   const handleChangeSelectedStagingRows = (r) => {
-    console.log('r: ', r)
     setSelectedStagingRows(r.selectedRows)
   }
 
@@ -394,7 +377,6 @@ const ProvisionalVSEdit = () => {
         ], 'code')
         clonedCodesBySystem[currentSystem] = updatedCodes
       }
-      console.log('clonedCodes by system: ', clonedCodesBySystem)
       return clonedCodesBySystem
     })
   }
@@ -419,13 +401,12 @@ const ProvisionalVSEdit = () => {
 
     const json = await result.json()
     if (result.ok) {
-      console.log('json: ', json)
       router.push(`/programs`)
     } else {
       const json = await result.json()
       // handle error
-      console.log('error')
-      console.log(json)
+      console.error('error')
+      console.error(json)
     }
   }
 

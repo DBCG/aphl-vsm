@@ -106,8 +106,6 @@ const ExistingCodesTable = ({ codeSystem }: ExistingCodesTbl) => {
 
 const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   const router = useRouter()
-  console.log('router.query: ', router.query)
-  console.log('router: ', router)
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState()
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const [provisionalCodeSystems, setProvisionalCodeSystems] = useState([])
@@ -137,21 +135,13 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   }, [selectedCodeSystemBase])
 
   useEffect(() => {
-    console.log('selected cs base: ', selectedCodeSystemBase)
-    console.log('existing provisional cs: ,', existingProvisionalCs)
-  }, [existingProvisionalCs])
-
-  useEffect(() => {
     setMyDocument(document.body)
   }, [])
 
   
   const selectOptions = useMemo(() => {
-    console.log('allvsaccs: ', allVsacCS)
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
-    console.log('defaultOption: , ', defaultOption)
-    console.log('router.query: ', router.query)
     if (!router.query.csSelected) {
       setSelectedCodeSystemBase(defaultOption)
     }
@@ -161,7 +151,6 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   useEffect(() => {
     if (!selectedCodeSystemBase && router.query.csSelected) {
       const option = selectOptions?.find((o) => o.value === router.query.csSelected)
-      console.log('options: ', option)
       setSelectedCodeSystemBase(option)
     }
   }, [router, selectOptions])
@@ -331,8 +320,6 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
 export const ProvisionalEditForm = ({ itemType, readOnly, existingResource, canEdit }) => {
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const { data: systemAndVersionData = [] } = useSWR(null, fetcher, { revalidateOnFocus: true })
-  console.log('systemversiondata: ', systemAndVersionData)
-  // if (itemType === 'cs') {
   return (
     <ProvisionalCSForm
       existingCS={existingResource}
@@ -340,5 +327,4 @@ export const ProvisionalEditForm = ({ itemType, readOnly, existingResource, canE
       canEdit={canEdit || true}
     />
   )
-  // }
 }

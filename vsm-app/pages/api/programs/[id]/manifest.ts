@@ -31,13 +31,9 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
       return res.status(200).json(versions)
     }
 
-    console.log('this is called')
-    console.log('active client: ', activeTerminologyClient)
-  
     // this doesn't work
     const terminologyCapabilityStatement = await activeTerminologyClient?.capabilityStatement()
 
-    console.log('terminologyCAp: ', terminologyCapabilityStatement)
     const availableCodeSystems = terminologyCapabilityStatement?.extension
       ?.map((ext: fhir4.Extension) => {
         let uri, name, latestVersion

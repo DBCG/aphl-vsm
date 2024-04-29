@@ -45,7 +45,7 @@ const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
 
   } catch (e) {
     // logger.error(e)
-    console.log(e)
+    console.error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
 }

@@ -25,8 +25,8 @@ const Programs: NextPage = () => {
     <TabContext value={value}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <TabList onChange={handleChange} aria-label="dashboard tabs">
-          <Tab label="Programs" value="1" />
-          <Tab label="Provisional Resources" value="2" />
+          <Tab onClick={() => router.push('/programs')} label="Programs" value="1" />
+          <Tab onClick={() => router.push('/programs?resourceType=provisional')} label="Provisional Resources" value="2" />
         </TabList>
       </Box>
       <TabPanel value="1">

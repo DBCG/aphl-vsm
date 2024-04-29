@@ -90,14 +90,12 @@ const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiRes
 const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
   try {
     const body = await req.body
-    console.log(body)
     const {
       codesBySystemToUpdate
     } = body
 
     const systemUrls = Object.keys(codesBySystemToUpdate)
     const updatedCodeSystems = []
-    console.log('codesbysystemtoupdate: ', codesBySystemToUpdate)
 
     for (const systemUrl of systemUrls) {
       let searchParams = {
@@ -117,7 +115,6 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
           codeItems: codesBySystemToUpdate[systemUrl],
           action: 'add'
         })
-        console.log('updated: ', updated)
         // if provisional cs already exists, update existing
         updatedCodeSystems.push({
           method: 'PUT',
@@ -134,9 +131,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
           }
         })
 
-        console.log('cs from term server: ', codeSystemFromTermServer)
         const csName = codeSystemFromTermServer?.entry?.[0]?.resource?.name
-        console.log('codeSystem: ', codeSystemFromTermServer)
         const newResource = createProvisionalCodeSystem({
           name: csName || 'No name provided',
           systemBaseUrl: systemUrl,
@@ -149,7 +144,6 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
         })
       }
     }
-      console.log('updatedCodeSystems: ', updatedCodeSystems)
       const transactionBody = transactionBuilder(updatedCodeSystems)
 
       const updatedCS = await fhirCdrClient.transaction({
@@ -157,7 +151,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
       })
 
       if (is.operationOutcome(updatedCS)) {
-        console.log('error creating prov code items')
+        console.error('error creating prov code items')
         return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
       } else {
         return res.status(200).json({})

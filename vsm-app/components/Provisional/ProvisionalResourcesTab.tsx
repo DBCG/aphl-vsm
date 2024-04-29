@@ -143,7 +143,6 @@ const ProvisionalResourcesTab = () => {
   const provisionalVS = useGetProvisionalVS()
   const provisionalCS = useGetProvisionalCS()
   const router = useRouter()
-  console.log(provisionalCS)
   return (
     <Box sx={{ flexGrow: 1 }}>
       <ProvisionalVSDescription/>

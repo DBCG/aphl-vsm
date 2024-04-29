@@ -6,7 +6,6 @@ interface Props {
 
 const useGetCS = (refresh): [] | fhir4.CodeSystem[] => {
   const [codeSystems, setCodeSystems] = useState<fhir4.CodeSystem[]>([])
-  console.log('this runs')
   useEffect(() => {
     async function getCS(): Promise<void> {
 
@@ -38,7 +37,6 @@ const useGetCS = (refresh): [] | fhir4.CodeSystem[] => {
     }
     void getCS()
   }, [refresh])
-  console.log('codesystems: ', codeSystems)
   return codeSystems
 }
 

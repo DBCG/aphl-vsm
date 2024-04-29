@@ -257,12 +257,8 @@ const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) =>
       searchParams
     })
 
-    console.log('allVSMOwned: ', allVsmOwnedVS)
-
     const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
     const provisionalLeafsOnly = results?.filter((r: any) => r.extension.find((e: any) => e.url.endsWith('vsm-test-extension')))
-    console.log('results ', results)
-    console.log('prov only: ', provisionalLeafsOnly)
     return res.status(200).json(provisionalLeafsOnly || [])
 
   } catch (e) {

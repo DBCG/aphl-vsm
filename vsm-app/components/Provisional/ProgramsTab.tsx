@@ -157,7 +157,6 @@ const ProgramsTab: NextPage = () => {
   }
 
   const ExpansionComponent = ({ data }) => {
-    console.log('data: ', data)
     return (
       <div>
         {can(session, 'clone') && (
