@@ -24,6 +24,12 @@ services:
       - hapi.fhir.fhir_version=R4
       - hapi.fhir.allow_multiple_delete=true
       - hapi.fhir.reuse_cached_search_results_millis=-1
+      # Enables CQF Ruler to call out to VSAC
+      # - hapi.fhir.rulercr.enabled
+      # - hapi.fhir.rulercr.vsac-username=apikey
+      # - hapi.fhir.rulercr.vsac-api-key=apikey
+
+      # These are for Basic auth
       # - hapi.fhir.security.enabled=true
       # - hapi.fhir.security.basic_auth.enabled=true
       # - hapi.fhir.security.basic_auth.username=admin
