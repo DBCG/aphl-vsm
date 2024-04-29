@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import set from 'lodash.set'
 import { fhirCdrClient } from 'fhirClients'
-import { addExtensionToVs, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -55,7 +55,8 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
     )
     // valueset already exists in our server, don't need to call other terminology server
     if (matchingValueSetInCQF) {
-      vSetsToUpdate.push({ valueSet: matchingValueSetInCQF })
+      const updatedMatchingValueSetInCQF = addProfileToValueSet(matchingValueSetInCQF)
+      vSetsToUpdate.push({ valueSet: updatedMatchingValueSetInCQF })
     } else {
       try {
         terminologyClient.setClient(body.selectedTerminologyServer)
@@ -93,7 +94,8 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
                   matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, authSrcUrl)
                 }
 
-                vSetsToUpdate.push({ valueSet: matchingVSetFromRemoteServer })
+                const updatedMatchingVSetFromRemoteServer = addProfileToValueSet(matchingVSetFromRemoteServer)
+                vSetsToUpdate.push({ valueSet: updatedMatchingVSetFromRemoteServer })
               } else {
                 logger.error('no match found')
                 res.status(400).json({ error: `no match found` })
