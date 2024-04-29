@@ -1,12 +1,16 @@
 package com.ecr;
 
+import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
+import ca.uhn.fhir.rest.api.server.IBundleProvider;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Library;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.PlanDefinition;
 import org.hl7.fhir.r4.model.RelatedArtifact;
@@ -19,11 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -61,8 +67,7 @@ public class ImportBundleProducer {
 
 		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
 		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
-		for (int i = 0; i < entries.size(); i++) {
-			Bundle.BundleEntryComponent entry = entries.get(i);
+		for (Bundle.BundleEntryComponent entry : entries) {
 			if (entry.getResource() instanceof MetadataResource) {
 				MetadataResource resource = (MetadataResource) entry.getResource();
 
@@ -70,9 +75,19 @@ public class ImportBundleProducer {
 					case ValueSet:
 						ValueSet valueSet = (ValueSet) resource;
 						String pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-						if (isGrouper(resource)) {
+						if (isGrouper(valueSet)) {
+							List<CanonicalType> grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
+							valueSet.getMeta().setProfile(grouperProfiles);
 							groupers.add(pinnedVersionKey);
 						} else {
+							// Leaf ValueSets
+							List<CanonicalType> leafVsProfiles = addMetaProfileUrl(
+								resource.getMeta(),
+								Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
+							);
+							valueSet.getMeta().setProfile(leafVsProfiles);
+
+							// Capture all the conditions and priority from the leaf valueset
 							valueSet.getUseContext().forEach(context -> {
 								if (context.hasCode()) {
 									String code = context.getCode().getCode();
@@ -94,10 +109,11 @@ public class ImportBundleProducer {
 								}
 							});
 
+							// Remove conditions and priority from useContext of leaf valuesets
 							List<UsageContext> cleanedContext = valueSet
 								.getUseContext()
 								.stream()
-								.filter(ctx -> ctx.hasCode() && (ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+								.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
 								.collect(Collectors.toList());
 							valueSet.setUseContext(cleanedContext);
 
@@ -110,15 +126,15 @@ public class ImportBundleProducer {
 						}
 
 						// Check if ValueSet already exists
-						if (!doesResourceExist(valueSet.getIdElement(), transformProperties)) {
+						if (!doesResourceExist(valueSet.getUrl(), valueSet.getVersion(), ValueSet.class, transformProperties)) {
 							// Save the resource into entry bundle
 							bundleEntries.add(getPutResourceRequest(valueSet, "/ValueSet", valueSet.getIdPart()));
 						}
 						break;
 					case Library:
 						Library library = (Library) resource;
-						if (doesResourceExist(library.getIdElement(), transformProperties)) {
-							throw new FhirResourceExists("Library", library.getIdPart());
+						if (doesResourceExist(library.getUrl(), library.getVersion(), Library.class, transformProperties)) {
+							throw new FhirResourceExists("Library", library.getUrl(), library.getVersion());
 						} else {
 							if (isRootSpecificationLibrary(resource)) {
 								rootLibrary = library;
@@ -131,7 +147,7 @@ public class ImportBundleProducer {
 						planDefinition = (PlanDefinition) resource;
 						break;
 					default:
-						myLogger.info("resourceType:  "+ resource.getResourceType() +" is not supported by $import operation");
+						myLogger.info("resourceType:  " + resource.getResourceType() + " is not supported by $import operation");
 						break;
 				}
 			}
@@ -156,10 +172,13 @@ public class ImportBundleProducer {
 		return bundleEntries;
 	}
 
-	private static boolean doesResourceExist(IdType idType, TransformProperties transformProperties) {
+	private static boolean doesResourceExist(String url, String version, Class resource, TransformProperties transformProperties) {
 		try {
-			transformProperties.read(idType);
-			return true;
+			SearchParameterMap sp = new SearchParameterMap();
+			sp.add("url", new UriParam(url));
+			sp.add("version", new TokenParam(version));
+			IBundleProvider results = transformProperties.search(resource, sp);
+			return !results.isEmpty();
 		} catch(Exception e) {
 			return false;
 		}
@@ -178,6 +197,18 @@ public class ImportBundleProducer {
 		return bundleEntry;
 	}
 
+	private static List<CanonicalType> addMetaProfileUrl(Meta meta, List<String> urls) {
+		List<CanonicalType> profiles = meta.getProfile();
+
+		// Add to profile and ensure not duplicated
+		List<CanonicalType> finalProfiles = profiles;
+		urls.forEach(url -> finalProfiles.add(new CanonicalType(url)));
+		profiles = profiles.stream()
+			.filter(distinctByKey(CanonicalType::getValueAsString))
+			.collect(Collectors.toList());
+		return profiles;
+	}
+
 	private static void prepareRootLibrary(
 		HashMap<String, List<CodeableConcept>> conditionsMap,
 		HashMap<String, List<CodeableConcept>> priorityMap,
@@ -186,14 +217,9 @@ public class ImportBundleProducer {
 		List<String> groupers,
 		Library rootLibrary
 	) {
-		List<CanonicalType> profiles = rootLibrary.getMeta().getProfile();
-
 		// Add to profile and ensure not duplicated
-		profiles.add(new CanonicalType(TransformProperties.crmiManifestLibrary));
-		profiles = profiles.stream()
-			.filter(distinctByKey(CanonicalType::getValueAsString))
-			.collect(Collectors.toList());
-		rootLibrary.getMeta().setProfile(profiles);
+		List<CanonicalType> rootLibraryProfiles = addMetaProfileUrl(rootLibrary.getMeta(), Collections.singletonList(TransformProperties.crmiManifestLibrary));
+		rootLibrary.getMeta().setProfile(rootLibraryProfiles);
 
 		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
 
@@ -260,12 +286,18 @@ public class ImportBundleProducer {
 				extensions.add(extension);
 			});
 
-			RelatedArtifact relatedArtifact = new RelatedArtifact();
-			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-			relatedArtifact.setResource(k);
-			relatedArtifact.setExtension(extensions);
+			Optional<RelatedArtifact> foundArtifact = relatedArtifacts.stream().filter(i -> i.getResource().equals(k)).findFirst();
+			if (foundArtifact.isPresent()) {
+				List<Extension> existingExtensions = foundArtifact.get().getExtension();
+				existingExtensions.addAll(extensions);
+			} else {
+				RelatedArtifact relatedArtifact = new RelatedArtifact();
+				relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+				relatedArtifact.setResource(k);
+				relatedArtifact.setExtension(extensions);
 
-			relatedArtifacts.add(relatedArtifact);
+				relatedArtifacts.add(relatedArtifact);
+			}
 		}
 	}
 }

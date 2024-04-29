@@ -27,7 +27,9 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String vsmPriority = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
   public static final String authoritativeSourceExtUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";
   public static final String vsacUrl = "https://cts.nlm.nih.gov/fhir";
-
+  public static final String valueSetGrouperProfile = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset";
+  public static final String leafValueSetConditionProfile = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset";
+  public static final String leafValueSetVsmHostedProfile = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset";
 
   public DaoRegistry getDaoRegistry() {
     return myDaoRegistry;
