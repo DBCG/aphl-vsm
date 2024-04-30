@@ -144,9 +144,9 @@ const CodeSearch = ({ programId, router }: Props) => {
         Find Codes in Program {programId}
       </PageTitle>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
-        <FormGroup>
+        {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
-        </FormGroup>
+        </FormGroup> */}
         <PageP>
           Find ValueSets in this program that...
         </PageP>

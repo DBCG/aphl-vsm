@@ -301,11 +301,11 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
 
     return (
       <Row style={{ marginBottom: '1rem', display: selectedRows.length ? 'inherit' : 'none' }}>
-        <div style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem' }}>
+        <form style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem' }}>
           <SelectInputContainer>
             <Select
               required={true}
-              placeholder='Add to Groupers...'
+              placeholder='Add to Groupers [required]*'
               instanceId='provisional-groups'
               isMulti={true}
               menuPortalTarget={document}
@@ -320,7 +320,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
           </SelectInputContainer>
           <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
             <Select
-              placeholder='Add to Conditions...'
+              placeholder='Add to Conditions'
               instanceId={'provisional-conditions'}
               isMulti={true}
               styles={reactSelectOptionStyle()}
@@ -336,11 +336,12 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
           <Button
             style={{ alignSelf: 'center', marginBottom: 0 }}
             key="delete"
+            type='submit'
             onClick={handleAddValueSets}
             text='Add'
             disabled={!Boolean(selectedGroupers.length)}
           />
-        </div>
+        </form>
       </Row>
     )
   }, [selectedRows, allConditions, selectedConditions, selectedGroupers])

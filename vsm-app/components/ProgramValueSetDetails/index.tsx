@@ -737,12 +737,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 style={{ minHeight: '40px', minWidth: '150px' }}
                 onClick={() => router.push(`${router.asPath}/search`)}
               />
-              <Button
-                id="add-valueset"
-                text="Add/Edit Provisional Valuesets"
-                style={{ minHeight: '40px', minWidth: '150px' }}
-                onClick={() => router.push(`${router.asPath}/provisional`)}
-              />
             </>
           )}
           {updateVSetsButton}
