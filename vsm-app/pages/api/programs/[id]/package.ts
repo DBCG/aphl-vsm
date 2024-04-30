@@ -38,7 +38,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       logger.info('Generating v2 to v1 transform for download')
 
       const planDefResourceIndex = response.entry?.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
-      const planDefFromV2Exist = planDefResourceIndex ==! undefined && planDefResourceIndex ==! !-1
+      const planDefFromV2Exist = planDefResourceIndex != null && planDefResourceIndex > -1
       if (response.resourceType === 'OperationOutcome') {
         return res.status(500).send({ error: response?.issue?.map((e: any) => e?.diagnostics!) || 'Error encountered while packaging V1' })
       }

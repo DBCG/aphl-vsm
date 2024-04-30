@@ -109,14 +109,6 @@ public class ImportBundleProducer {
 								}
 							});
 
-							// Remove conditions and priority from useContext of leaf valuesets
-							List<UsageContext> cleanedContext = valueSet
-								.getUseContext()
-								.stream()
-								.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
-								.collect(Collectors.toList());
-							valueSet.setUseContext(cleanedContext);
-
 							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
 								Extension ext = new Extension();
 								ext.setUrl(TransformProperties.authoritativeSourceExtUrl);
@@ -124,6 +116,14 @@ public class ImportBundleProducer {
 								valueSet.getExtension().add(ext);
 							}
 						}
+
+						// Remove conditions and priority from useContext of leaf valuesets and groupers
+						List<UsageContext> cleanedContext = valueSet
+							.getUseContext()
+							.stream()
+							.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+							.collect(Collectors.toList());
+						valueSet.setUseContext(cleanedContext);
 
 						// Check if ValueSet already exists
 						if (!doesResourceExist(valueSet.getUrl(), valueSet.getVersion(), ValueSet.class, transformProperties)) {
