@@ -8,8 +8,8 @@ import styled from 'styled-components'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
-import uniqBy from 'lodash.uniqby'
-import lodash from 'lodash'
+import { uniqBy } from 'lodash'
+import { cloneDeep } from 'lodash'
 import { useRouter } from 'next/router'
 import { SearchInput } from '@/components/SearchInput'
 import { PageTitle } from '@/components/Typography'
@@ -203,7 +203,7 @@ const ProvisionalVSEdit = () => {
   const router = useRouter()
 
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystem, action: 'add' | 'remove') => {
-    let currentCodesToAdd = lodash.cloneDeep(codesBySystemToAdd)
+    let currentCodesToAdd = cloneDeep(codesBySystemToAdd)
     const systems = Object.keys(codesBySystemToUpdate)
     systems.forEach(system => {
       if (action === 'add') {
@@ -362,7 +362,7 @@ const ProvisionalVSEdit = () => {
   }, [selectedStagingRows])
 
   const handleClickAddCode = () => {
-    const clonedCodesBySystem = lodash.cloneDeep(codesBySystemToAdd)
+    const clonedCodesBySystem = cloneDeep(codesBySystemToAdd)
     const currentSystem = selectedCodeSystemBase.value
     // add code to codesbysystem and then clear form
     setCodesBySystemToAdd(currentCodes => {
