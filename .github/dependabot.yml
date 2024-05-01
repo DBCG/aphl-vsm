@@ -8,8 +8,10 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "daily"
+    ignore:
+      - dependency-name: "react*"
   - package-ecosystem: "maven" # See documentation for possible values
     directory: "/ecr" # Location of package manifests
     schedule:
-      interval: "weekly"
+      interval: "daily"
