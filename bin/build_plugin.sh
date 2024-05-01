@@ -4,7 +4,7 @@ set -e
 set -o pipefail
 
 cd $TRAVIS_BUILD_DIR/ecr
-mvn install -U -DskipTests=true -Dmaven.javadoc.skip=true -T 4 -B -V
+mvn install -U -Dmaven.javadoc.skip=true -T 4 -B -V
 docker buildx create --use
 # Deploy to AWS
 aws sts get-caller-identity
