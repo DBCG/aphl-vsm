@@ -257,7 +257,7 @@ public class TransformProvider implements OperationProvider {
 				.collect(Collectors.toList());
 
 		if (planDefinitions.isEmpty()) {
-			throw new UnprocessableEntityException("No eRSD V1 or V2 PlanDefinition found in the source Bundle.");
+			throw new UnprocessableEntityException("No eRSD V1 or V2 PlanDefinition found in the source Bundle, and no V1 PlanDefinition was provided.");
 		} else if (planDefinitions.size() > 1) {
 			throw new UnprocessableEntityException("More than one eRSD PlanDefinition found in the source Bundle.");
 		}
