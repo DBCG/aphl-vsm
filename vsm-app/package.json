@@ -24,6 +24,7 @@
     "@mui/x-date-pickers": "^6.7.0",
     "bull": "^4.10.3",
     "dayjs": "^1.11.10",
+    "exceljs": "^4.4.0",
     "fast-xml-parser": "^4.3.4",
     "fhir-kit-client": "^1.9.0",
     "ioredis": "^5.2.4",
