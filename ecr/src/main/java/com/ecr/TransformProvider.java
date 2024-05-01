@@ -12,7 +12,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -69,8 +68,8 @@ public class TransformProvider implements OperationProvider {
 			if (entry.getResource() instanceof MetadataResource) {
 				var currentResource = (MetadataResource) entry.getResource();
 
-				if (isV2PlanDefinition(currentResource) && v1PlanDefinition != null) {
-					checkAndUpdateV2PlanDefinition(entry, v1PlanDefinition);
+				if (isErsdPlanDefinition(currentResource) && v1PlanDefinition != null) {
+					updatePlanDefinition(entry, v1PlanDefinition);
 				}
 
 				updateV2GroupersUseContext(currentResource, v1PlanDefinition.getIdElement());
@@ -183,15 +182,13 @@ public class TransformProvider implements OperationProvider {
 		v2.setEntry(filteredRootLib);
 	}
 
-	private void checkAndUpdateV2PlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
-		if (entry.hasResource() && isPlanDefinitionAndConformsToProfile(entry.getResource(), TransformProperties.usPHPlanDefinitionProfile)) {
+	private void updatePlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
 			entry.setResource(v1PlanDefinition);
 			String url = Optional.ofNullable(v1PlanDefinition.getUrl())
 				.orElseThrow(() -> new UnprocessableEntityException("URL missing from PlanDefinition"));
 			String version = Optional.ofNullable(v1PlanDefinition.getVersion())
 				.orElseThrow(() -> new UnprocessableEntityException("Version missing from PlanDefinition"));
 			entry.setFullUrl(url + "|" + version);
-		}
 	}
 
 	/**
@@ -244,15 +241,17 @@ public class TransformProvider implements OperationProvider {
 			resource.setUseContext(filteredUseContexts);
 		}
 	}
-
-	private static PlanDefinition getErsdPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
-		var planDefinitions = bundle.getEntry().stream()
-				.map(BundleEntryComponent::getResource)
-				.filter(resource -> resource.getResourceType() == ResourceType.PlanDefinition
+	private static boolean isErsdPlanDefinition(Resource resource) {
+		return resource.getResourceType() == ResourceType.PlanDefinition
 					&& resource.hasMeta()
 					// V2 PlanDefinitions have both profiles : http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition and http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
 					// V1 PlanDefinitions only have profile : http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
-					&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains(TransformProperties.usPHPlanDefinitionProfile) || canonical.getValue().contains(TransformProperties.ersdPlanDefinitionProfile))
+					&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains(TransformProperties.usPHPlanDefinitionProfile) || canonical.getValue().contains(TransformProperties.ersdPlanDefinitionProfile));
+	}
+	private static PlanDefinition getErsdPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
+		var planDefinitions = bundle.getEntry().stream()
+				.map(BundleEntryComponent::getResource)
+				.filter(resource -> isErsdPlanDefinition(resource)
 				)
 				.map(resource -> (PlanDefinition) resource)
 				.collect(Collectors.toList());
