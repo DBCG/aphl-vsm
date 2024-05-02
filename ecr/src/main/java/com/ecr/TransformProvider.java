@@ -61,18 +61,18 @@ public class TransformProvider implements OperationProvider {
 			throw new UnprocessableEntityException("Resource is not a bundle");
 		}
 		var v2Bundle = (Bundle) maybeBundle;
-		var v1PlanDefinition = getV1PlanDefinition(v2Bundle, maybePlanDefinition);
+		var planDefinition = getPlanDefinition(v2Bundle, maybePlanDefinition);
 
 		removeRootSpecificationLibrary(v2Bundle);
 		for (final var entry: v2Bundle.getEntry()) {
 			if (entry.getResource() instanceof MetadataResource) {
 				var currentResource = (MetadataResource) entry.getResource();
 
-				if (isErsdPlanDefinition(currentResource) && v1PlanDefinition != null) {
-					updatePlanDefinition(entry, v1PlanDefinition);
+				if (isErsdPlanDefinition(currentResource) && planDefinition != null) {
+					updatePlanDefinition(entry, planDefinition);
 				}
 
-				updateV2GroupersUseContext(currentResource, v1PlanDefinition.getIdElement());
+				updateV2GroupersUseContext(currentResource, planDefinition.getIdElement());
 				updateV2TriggeringValueSets(currentResource);
 				updateV2TriggeringValueSetLibrary(currentResource);
 				currentResource.setExperimentalElement(null);
@@ -90,23 +90,12 @@ public class TransformProvider implements OperationProvider {
 			&& resource.getMeta().hasProfile()
 			&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().equalsIgnoreCase(profileUrl));
 	}
-	private boolean isV2PlanDefinition(Resource resource) {
-		return isPlanDefinitionAndConformsToProfile(resource, TransformProperties.usPHPlanDefinitionProfile);
-	}
-	private PlanDefinition getV1PlanDefinition(Bundle bundle, IBaseResource maybePlanDefinition) throws UnprocessableEntityException {
+	private PlanDefinition getPlanDefinition(Bundle bundle, IBaseResource maybePlanDefinition) throws UnprocessableEntityException {
 		if (maybePlanDefinition == null) {
-			var planDefinitionInBundle = getErsdPlanDefinition(bundle);
-			if (!isV2PlanDefinition(planDefinitionInBundle)) {
-				return planDefinitionInBundle;
-			} else {
-				throw new UnprocessableEntityException("No V1 PlanDefinition found");
-			}
+			return getErsdPlanDefinition(bundle);
 		} else {
 			if (!(maybePlanDefinition instanceof PlanDefinition)) {
 				throw new UnprocessableEntityException("Provided v1 PlanDefinition is not a PlanDefinition resource");
-			}
-			if (isV2PlanDefinition((PlanDefinition)maybePlanDefinition)) {
-				throw new UnprocessableEntityException("Provided PlanDefinition is V2 and not V1");
 			}
 			return (PlanDefinition) maybePlanDefinition;
 		}
@@ -241,23 +230,21 @@ public class TransformProvider implements OperationProvider {
 			resource.setUseContext(filteredUseContexts);
 		}
 	}
-	private static boolean isErsdPlanDefinition(Resource resource) {
-		return resource.getResourceType() == ResourceType.PlanDefinition
-					&& resource.hasMeta()
-					// V2 PlanDefinitions have both profiles : http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition and http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
-					// V1 PlanDefinitions only have profile : http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
-					&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains(TransformProperties.usPHPlanDefinitionProfile) || canonical.getValue().contains(TransformProperties.ersdPlanDefinitionProfile));
+	private boolean isErsdPlanDefinition(Resource resource) {
+		// V2 PlanDefinitions have both profiles : http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition and http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
+		// V1 PlanDefinitions only have profile : http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
+		return isPlanDefinitionAndConformsToProfile(resource, TransformProperties.usPHPlanDefinitionProfile) 
+				|| isPlanDefinitionAndConformsToProfile(resource, TransformProperties.ersdPlanDefinitionProfile);
 	}
-	private static PlanDefinition getErsdPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
+	private PlanDefinition getErsdPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
 		var planDefinitions = bundle.getEntry().stream()
 				.map(BundleEntryComponent::getResource)
-				.filter(resource -> isErsdPlanDefinition(resource)
-				)
+				.filter(resource -> isErsdPlanDefinition(resource))
 				.map(resource -> (PlanDefinition) resource)
 				.collect(Collectors.toList());
 
 		if (planDefinitions.isEmpty()) {
-			throw new UnprocessableEntityException("No eRSD V1 or V2 PlanDefinition found in the source Bundle, and no V1 PlanDefinition was provided.");
+			throw new UnprocessableEntityException("No eRSD V1 or V2 PlanDefinition found in the source Bundle, and no PlanDefinition was provided.");
 		} else if (planDefinitions.size() > 1) {
 			throw new UnprocessableEntityException("More than one eRSD PlanDefinition found in the source Bundle.");
 		}
