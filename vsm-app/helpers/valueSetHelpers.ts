@@ -7,8 +7,10 @@ import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTy
 import { get, uniq } from 'lodash'
 
 const EXTENSIONS = {
-  VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord'
-}
+  VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
+  AUTH_SOURCE_EXTENSION_URL: 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource',
+  EXPANSION_PARAM_URL: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters'
+} as const
 
 const VSM_LEAF_PROFILE_URLS = {
    CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
@@ -80,8 +82,9 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 
   if (vs?.extension) {
     // if this extension already exists
-    if (vs?.extension?.find((ext) => ext?.url === extensionUri)) {
-      return vs
+    const matchIndex = vs.extension.findIndex(i => i.url === extensionUri)
+    if (matchIndex > -1) {
+      vs.extension[matchIndex] = valueToAdd
     } else {
       vs.extension.push(valueToAdd)
     }
@@ -91,11 +94,8 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
-const authoritativeSourceExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource'
-const expansionParameterUrl = 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters'
-
 const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
-  const terminologyExt = valueSet?.extension?.find((ext) => ext.url === authoritativeSourceExtensionUrl)
+  const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
     const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
 
@@ -156,7 +156,7 @@ const buildParametersParameter = (manifestDataMap: ManifestDataMap) => {
 }
 
 const setExpansionParameters = (library: fhir4.Library, manifestDataMap: ManifestDataMap) => {
-  const extension = library?.extension?.find((ext) => ext.url === expansionParameterUrl)
+  const extension = library?.extension?.find((ext) => ext.url === EXTENSIONS.EXPANSION_PARAM_URL)
   if (extension == null) {
     library.extension = [
       ...(library?.extension || []),
@@ -353,6 +353,7 @@ const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
   return valueset;
 }
 
+const authoritativeSourceExtensionUrl = EXTENSIONS.AUTH_SOURCE_EXTENSION_URL
 export {
   getVsSteward,
   isVSMOwnedVSet,

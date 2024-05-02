@@ -6,6 +6,7 @@ import { setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/li
 import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Body extends CreateProvisionalVs {
@@ -167,7 +168,8 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     // update url here
     leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
-    provisionalLeaf = leaf
+    // update authoritative source here
+    provisionalLeaf = addExtensionToVs(leaf, authoritativeSourceExtensionUrl, leaf.url)
     // PUT to update leaf
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
   }
