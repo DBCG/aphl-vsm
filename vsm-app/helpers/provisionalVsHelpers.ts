@@ -128,17 +128,17 @@ export const updateVsMetadata = ({
       if (!clonedVs.url) {
         clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
       }
-
-      const authSourceExists = clonedVs.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
-      // add authoritative source if it doesn't exist
-      // needed to wait for this until URL was generated
-      if (!authSourceExists) {
-        extensionsToUpdate.push({
-          url: authoritativeSourceExtensionUrl,
-          valueUri: clonedVs.url
-        })
-      }
     }
+  }
+
+  const authSourceExists = clonedVs.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
+  // add authoritative source if it doesn't exist
+  // needed to wait for this until URL was generated
+  if (!authSourceExists) {
+    extensionsToUpdate.push({
+      url: authoritativeSourceExtensionUrl,
+      valueUri: clonedVs.url
+    })
   }
 
   clonedVs.extension = extensionsToUpdate
