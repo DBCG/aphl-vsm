@@ -13,6 +13,8 @@ import { cloneDeep } from 'lodash'
 import { useRouter } from 'next/router'
 import { SearchInput } from '@/components/SearchInput'
 import { PageTitle } from '@/components/Typography'
+import { useSession } from 'next-auth/react'
+import { VSMSession, can } from '@/helpers/rolesHelper'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -179,6 +181,7 @@ const ProvisionalVSEdit = () => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
   const allVsacCS = useGetCS()
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -403,7 +406,7 @@ const ProvisionalVSEdit = () => {
     if (result.ok) {
       router.push(`/programs`)
     } else {
-      const json = await result.json()
+      // const json = await result.json()
       // handle error
       console.error('error')
       console.error(json)
@@ -412,20 +415,22 @@ const ProvisionalVSEdit = () => {
 
   return (
     <div>
-      <PageTitle>Create or Edit VSM Provisional Value Set</PageTitle>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <Button
-          text='+ Create New VS'
-          onClick={handleClickNewVS}
-          disabled={Boolean(provisionalVsIdForUpdate)}
-        />
-      </div>
+      <PageTitle style={{ marginBottom: '1rem' }}>{`${!can(session, 'edit') ? 'View': 'Create or Edit'} VSM Provisional Value Sets`}</PageTitle>
+      {can(session, 'edit') && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+          <Button
+            text='+ Create New VS'
+            onClick={handleClickNewVS}
+            disabled={Boolean(provisionalVsIdForUpdate)}
+          />
+        </div>
+      )}
       <DataTable
-        title='Select to Edit Existing Provisional Value Sets'
+        title={`${!can(session, 'edit') ? 'View': 'Select to Edit'} Existing Provisional Value Sets`}
         pagination={true}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
-        selectableRows={true}
+        selectableRows={can(session, 'edit')}
         selectableRowsSingle={true}
         data={provisionalVS || []}
         // @ts-ignore

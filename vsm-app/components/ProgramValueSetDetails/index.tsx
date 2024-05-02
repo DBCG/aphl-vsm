@@ -471,7 +471,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          if (currentProgram?.status === 'active') {
+          if (currentProgram?.status === 'active' || !can(session, 'edit')) {
             return row?.valueSetPinnedVersion || 'latest'
           }
           const terminologyInfo = getTerminologySource(row.valueSet)

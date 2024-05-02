@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
-import { VSMSession, can } from '@/helpers/rolesHelper'
+import { VSMSession, allowEditing, can } from '@/helpers/rolesHelper'
 import { fetcher } from '@/utils'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
@@ -116,6 +116,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   const [definitionToAdd, setDefinitionToAdd] = useState('')
   const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
   const [formSubmitting, setFormSubmitting] = useState(false)
+  const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
@@ -231,7 +232,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   } else {
     return (
       <div>
-        <PageTitle>Create or Edit VSM Provisional Code System</PageTitle>
+        <PageTitle>{`${can(session, 'edit') ? 'Create or Edit' : 'View'} VSM Provisional Code System`}</PageTitle>
         <p>Select a Code System URL</p>
         <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
           <Select
@@ -252,63 +253,67 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
             <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c?.url === selectedCodeSystemBase?.value)} />
-            <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
+            { can(session, 'edit') && (
+              <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
+            )}
           </div>
         ) : (
           <NoProvVsWrapper style={{ flexDirection: 'column', flexWrap: 'nowrap', textAlign: 'center', marginBottom: '2rem' }}>
             <p style={{ marginBottom: 0 }}>{`No existing VSM Provisional Code Systems found for ${selectedCodeSystemBase?.label}.`}</p>
-            <p>{`Create one by adding code items below.`}</p>
+            { can(session, 'edit') && <p>{`Create one by adding code items below.`}</p> }
           </NoProvVsWrapper>
         )}
-        <QuestionnaireRowContainer>
-          <SearchInput
-            label='Code'
-            onChange={(e) => {
-              // handle empty string case
-              setCodeToAdd(e.target.value)
-            }}
-            value={codeToAdd}
-            style={{ minWidth: '20rem', flex: 1 }}
-            required={true}
+        { can(session, 'edit') && (
+          <>
+          <QuestionnaireRowContainer>
+            <SearchInput
+              label='Code'
+              onChange={(e) => {
+                // handle empty string case
+                setCodeToAdd(e.target.value)
+              }}
+              value={codeToAdd}
+              style={{ minWidth: '20rem', flex: 1 }}
+              required={true}
+            />
+            <SearchInput
+              label='Display'
+              onChange={(e) => setDisplayToAdd(e.target.value)}
+              value={displayToAdd}
+              style={{ minWidth: '20rem', flex: 1 }}
+              required={true}
+            />
+            <TextArea
+              label='Definition (more detail about this code)'
+              onChange={(e) => setDefinitionToAdd(e.target.value)}
+              value={definitionToAdd}
+              style={{ minWidth: '20rem', flex: 1 }}
+              required={true}
+            />
+          </QuestionnaireRowContainer>
+          <ButtonRowContainer>
+            <Button
+              text='Add to List'
+              onClick={handleAddToList}
+              disabled={!enableAdd}
+            />
+          </ButtonRowContainer>
+          <p>{`Code List to add: `}</p>
+          <DataTable
+            // @ts-ignore
+            data={codeItemsToAdd}
+            columns={codeColumns}
+            noDataComponent={noDataComponent('setProvisionals')}
           />
-          <SearchInput
-            label='Display'
-            onChange={(e) => setDisplayToAdd(e.target.value)}
-            value={displayToAdd}
-            style={{ minWidth: '20rem', flex: 1 }}
-            required={true}
-          />
-          <TextArea
-            label='Definition (more detail about this code)'
-            onChange={(e) => setDefinitionToAdd(e.target.value)}
-            value={definitionToAdd}
-            style={{ minWidth: '20rem', flex: 1 }}
-            required={true}
-          />
-        </QuestionnaireRowContainer>
-        <ButtonRowContainer>
-          <Button
-            text='Add to List'
-            onClick={handleAddToList}
-            disabled={!enableAdd}
-          />
-        </ButtonRowContainer>
-        <p>{`Code List to add: `}</p>
-        <DataTable
-          // @ts-ignore
-          data={codeItemsToAdd}
-          columns={codeColumns}
-          noDataComponent={noDataComponent('setProvisionals')}
-        />
-        <ButtonRowContainer>
-          {/* <Link href={`${router.asPath}?url=${selectedCodeSystemBase?.value || ''}`} as={router.asPath} passHref> */}
+          <ButtonRowContainer>
             <Button
               text='ADD TO SYSTEM'
               disabled={!Boolean(codeItemsToAdd?.length)}
               onClick={(e) => handleUpdateCS()}
             />
-          {/* </Link> */}
-        </ButtonRowContainer>
+          </ButtonRowContainer>
+          </>
+        )}
       </div>
     )
   }

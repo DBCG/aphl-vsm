@@ -26,7 +26,6 @@ const NoProvisionalData = ({ provisionalType, csExists }: ProvisionalType) => {
     <Box sx={{ flexGrow: 1, justifyContent: 'center', flexWrap: 'nowrap', alignItems: 'middle', padding: '2rem', alignSelf: 'stretch' }}>
       <Typography style={{ display: 'block', textAlign: 'center' }}>{ `No Provisional ${provisionalType}s found in VSM` }</Typography>
       <div style={{ display: 'flex', flexGrow: 1, padding: '2rem' }}>
-        <Button disabled={shouldDisableButton} style={{ justifySelf: 'center', margin: '0 auto'}} onClick={() => router.push(`/provisional/${provisionalType.toLowerCase().replace(' ', '')}`)}>Create New</Button>
       </div>
     </Box>
   )
@@ -34,9 +33,10 @@ const NoProvisionalData = ({ provisionalType, csExists }: ProvisionalType) => {
 
 interface ProvisionalCS {
   provisionalCS: fhir4.CodeSystem[]
+  canEdit: boolean
 }
 
-const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
+const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit }: ProvisionalCS) => {
   const router = useRouter()
   const codeSystemColumns = useMemo(() => {
     const fields = [
@@ -63,7 +63,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
             <Button
               onClick={() => router.push(`/provisional/codesystem?csSelected=${row.url}`)}
             >
-              Edit
+              { canEdit ? 'Edit' : 'View' }
             </Button>
           </Box>
 
@@ -83,9 +83,10 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS }: ProvisionalCS) => {
 interface ProvisionalVS {
   provisionalVS: fhir4.ValueSet[]
   csExists: boolean
+  canEdit: boolean
 }
 
-const ProvisionalValueSetsTable = ({ provisionalVS, csExists }: ProvisionalVS) => {
+const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit }: ProvisionalVS) => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
@@ -113,7 +114,7 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists }: ProvisionalVS) =
             <Button
               onClick={() => router.push(`/provisional/valueset?vsSelected=${row.id}`)}
             >
-              Edit
+              { canEdit ? 'Edit' : 'View' }
             </Button>
           </Box>
 
@@ -142,6 +143,8 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists }: ProvisionalVS) =
 const ProvisionalResourcesTab = () => {
   const provisionalVS = useGetProvisionalVS()
   const provisionalCS = useGetProvisionalCS()
+  const { data: session } = useSession() as unknown as { data: VSMSession }
+  const canEdit = can(session, 'edit')
   const router = useRouter()
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -149,18 +152,22 @@ const ProvisionalResourcesTab = () => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white' }}>
-            <ProvisionalCodeSystemsTable provisionalCS={provisionalCS}/>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
-            </div>
+            <ProvisionalCodeSystemsTable provisionalCS={provisionalCS} canEdit={canEdit}/>
+            { canEdit && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
+              </div>
+            )}
           </div>
         </Grid>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white'}}>
-            <ProvisionalValueSetsTable csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS}/>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-              <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>
-            </div>
+            <ProvisionalValueSetsTable csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
+            { canEdit && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>
+              </div>
+            )}
           </div>
         </Grid>
       </Grid>

@@ -139,9 +139,13 @@ const ProgramDetails = () => {
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
         </Col>
-        <Col style={{ width: 'auto' }}>
-          <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
-        </Col>
+        {
+          can(session, 'approve') && (
+            <Col style={{ width: 'auto' }}>
+              <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+            </Col>
+          )
+        }
       </Row>
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>

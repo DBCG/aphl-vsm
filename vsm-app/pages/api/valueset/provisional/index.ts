@@ -316,7 +316,7 @@ const createOrEditProvisionalValueSet2 = async (req: ReqInfo, res: NextApiRespon
         codeSystemToEdit = createProvisionalCodeSystem({
           systemBaseUrl: systemUrl,
           codeItems: codesBySystemToAdd[systemUrl],
-          name: newCodeSystemItems?.find(i => i.uri === systemUrl).label
+          name: newCodeSystemItems?.find(i => i.value === systemUrl).label
         })
         resourcesToSaveFirst.push({ resource: codeSystemToEdit, method: 'POST' })
       }
@@ -442,5 +442,5 @@ const createOrEditProvisionalValueSet2 = async (req: ReqInfo, res: NextApiRespon
 export default handler({
   // POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
   PUT: { action: createOrEditProvisionalValueSet2, access: ['admin', 'editor'] },
-  GET: { action: getProvisionalVs, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'editor', 'reviewer'] },
 })

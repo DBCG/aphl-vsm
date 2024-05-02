@@ -37,6 +37,25 @@ interface AllowToEdit {
   programStatus: fhir4.Library['status'] | undefined
 }
 
+interface AllowToClone {
+  session: VSMSession
+  programStatus: fhir4.Library['status'] | undefined
+}
+
+interface AllowToRelease {
+  session: VSMSession
+  programStatus: fhir4.Library['status'] | undefined
+  hasApproval: boolean
+}
+
 export const allowEditing = ({ session, programStatus }: AllowToEdit): boolean => {
   return can(session, 'edit') && programStatus === 'draft'
+}
+
+export const allowClone = ({ session, programStatus }: AllowToClone): boolean => {
+  return can(session, 'clone') && programStatus === 'active'
+}
+
+export const allowRelease = ({ session, programStatus, hasApproval }: AllowToRelease): boolean => {
+  return can(session, 'release') && programStatus === 'draft' && hasApproval
 }
