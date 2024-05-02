@@ -20,6 +20,12 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
+const getProgramsByProvisionalLeafId = async (req, res) => {
+
+  // first, get the groupers containing the provisional leaf
+  const groupersWithProvLeaf = 
+}
+
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
     let queries: Query = {}

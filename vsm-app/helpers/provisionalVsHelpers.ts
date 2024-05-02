@@ -115,6 +115,7 @@ export const updateVsMetadata = ({
     })
   }
 
+  // TODO something doesn't seem right here with nesting
   if (titleToAdd) {
     clonedVs.title = titleToAdd
     // if vs name already exists on the valueset, keep it and url the same
