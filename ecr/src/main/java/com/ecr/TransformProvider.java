@@ -12,7 +12,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.MetadataResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -61,34 +60,27 @@ public class TransformProvider implements OperationProvider {
 		if (!(maybeBundle instanceof IBaseBundle)) {
 			throw new UnprocessableEntityException("Resource is not a bundle");
 		}
-		if (maybePlanDefinition != null && !(maybePlanDefinition instanceof PlanDefinition)) {
-			throw new UnprocessableEntityException("Provided v1 PlanDefinition is not a PlanDefinition resource");
-		}
-		Bundle v2Bundle = (Bundle) maybeBundle;
-		final PlanDefinition v1PlanDefinition = (PlanDefinition) maybePlanDefinition;
-		IdType targetPlanDefinitionId = v1PlanDefinition != null ? v1PlanDefinition.getIdElement()
-			: getCurrentPlanDefinition(v2Bundle).getIdElement();
+		var v2Bundle = (Bundle) maybeBundle;
+		var planDefinition = getPlanDefinition(v2Bundle, maybePlanDefinition);
 
 		removeRootSpecificationLibrary(v2Bundle);
-		v2Bundle.getEntry().stream()
-			.forEach(entry -> {
-				if (entry.getResource() instanceof MetadataResource) {
-					MetadataResource resource = (MetadataResource) entry.getResource();
+		for (final var entry: v2Bundle.getEntry()) {
+			if (entry.getResource() instanceof MetadataResource) {
+				var currentResource = (MetadataResource) entry.getResource();
 
-					if (v1PlanDefinition != null && isPlanDefinitionAndConformsToProfile(resource, TransformProperties.usPHPlanDefinitionProfile)) {
-						checkAndUpdateV2PlanDefinition(entry, v1PlanDefinition);
-					}
-
-					updateV2GroupersUseContext(resource, targetPlanDefinitionId);
-					updateV2TriggeringValueSets(resource);
-					updateV2TriggeringValueSetLibrary(resource);
-					resource.setExperimentalElement(null);
-					if (targetVersion != null) {
-						resource.setVersion(targetVersion);
-					}
+				if (isErsdPlanDefinition(currentResource) && planDefinition != null) {
+					updatePlanDefinition(entry, planDefinition);
 				}
-			});
 
+				updateV2GroupersUseContext(currentResource, planDefinition.getIdElement());
+				updateV2TriggeringValueSets(currentResource);
+				updateV2TriggeringValueSetLibrary(currentResource);
+				currentResource.setExperimentalElement(null);
+				if (targetVersion != null) {
+					currentResource.setVersion(targetVersion);
+				}
+			}
+		}
 		return v2Bundle;
 	}
 	
@@ -97,6 +89,16 @@ public class TransformProvider implements OperationProvider {
 			&& resource.hasMeta()
 			&& resource.getMeta().hasProfile()
 			&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().equalsIgnoreCase(profileUrl));
+	}
+	private PlanDefinition getPlanDefinition(Bundle bundle, IBaseResource maybePlanDefinition) throws UnprocessableEntityException {
+		if (maybePlanDefinition == null) {
+			return getErsdPlanDefinition(bundle);
+		} else {
+			if (!(maybePlanDefinition instanceof PlanDefinition)) {
+				throw new UnprocessableEntityException("Provided v1 PlanDefinition is not a PlanDefinition resource");
+			}
+			return (PlanDefinition) maybePlanDefinition;
+		}
 	}
 
 	/**
@@ -169,15 +171,13 @@ public class TransformProvider implements OperationProvider {
 		v2.setEntry(filteredRootLib);
 	}
 
-	private void checkAndUpdateV2PlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
-		if (entry.hasResource() && isPlanDefinitionAndConformsToProfile(entry.getResource(), TransformProperties.usPHPlanDefinitionProfile)) {
+	private void updatePlanDefinition(BundleEntryComponent entry, PlanDefinition v1PlanDefinition) throws UnprocessableEntityException{
 			entry.setResource(v1PlanDefinition);
 			String url = Optional.ofNullable(v1PlanDefinition.getUrl())
 				.orElseThrow(() -> new UnprocessableEntityException("URL missing from PlanDefinition"));
 			String version = Optional.ofNullable(v1PlanDefinition.getVersion())
 				.orElseThrow(() -> new UnprocessableEntityException("Version missing from PlanDefinition"));
 			entry.setFullUrl(url + "|" + version);
-		}
 	}
 
 	/**
@@ -230,19 +230,21 @@ public class TransformProvider implements OperationProvider {
 			resource.setUseContext(filteredUseContexts);
 		}
 	}
-
-	private static PlanDefinition getCurrentPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
-		List<PlanDefinition> planDefinitions = bundle.getEntry().stream()
+	private boolean isErsdPlanDefinition(Resource resource) {
+		// V2 PlanDefinitions have both profiles : http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition and http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
+		// V1 PlanDefinitions only have profile : http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition
+		return isPlanDefinitionAndConformsToProfile(resource, TransformProperties.usPHPlanDefinitionProfile) 
+				|| isPlanDefinitionAndConformsToProfile(resource, TransformProperties.ersdPlanDefinitionProfile);
+	}
+	private PlanDefinition getErsdPlanDefinition(Bundle bundle) throws UnprocessableEntityException {
+		var planDefinitions = bundle.getEntry().stream()
 				.map(BundleEntryComponent::getResource)
-				.filter(resource -> resource.getResourceType() == ResourceType.PlanDefinition
-					&& resource.hasMeta()
-					&& resource.getMeta().getProfile().stream().anyMatch(canonical -> canonical.getValue().contains(TransformProperties.usPHPlanDefinitionProfile))
-				)
+				.filter(resource -> isErsdPlanDefinition(resource))
 				.map(resource -> (PlanDefinition) resource)
 				.collect(Collectors.toList());
 
 		if (planDefinitions.isEmpty()) {
-			throw new UnprocessableEntityException("No eRSD PlanDefinition found in the source Bundle.");
+			throw new UnprocessableEntityException("No eRSD V1 or V2 PlanDefinition found in the source Bundle, and no PlanDefinition was provided.");
 		} else if (planDefinitions.size() > 1) {
 			throw new UnprocessableEntityException("More than one eRSD PlanDefinition found in the source Bundle.");
 		}

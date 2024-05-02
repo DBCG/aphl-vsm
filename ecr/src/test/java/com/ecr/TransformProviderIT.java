@@ -1,5 +1,6 @@
 package com.ecr;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -88,24 +89,24 @@ class TransformProviderIT extends RestIntegrationTest {
 
 	@Test
 	void testTransform_alternate_v1_skeleton() {
-		PlanDefinition planDef = (PlanDefinition) loadResource("ersd-v1-plandefinition-alternate.json");
-		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
-		Parameters v2BundleParams = new Parameters();
+		var planDef = (PlanDefinition) loadResource("ersd-v1-plandefinition-alternate.json");
+		var v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
+		var v2BundleParams = new Parameters();
 		v2BundleParams.addParameter()
 				.setName("bundle")
 				.setResource(v2Bundle);
 		v2BundleParams.addParameter()
 				.setName("planDefinition")
 				.setResource(planDef);
-		Bundle v1Bundle = getClient()
+		var v1Bundle = getClient()
 				.operation()
 				.onServer()
 				.named("$ersd-v2-to-v1-transform")
 				.withParameters(v2BundleParams)
 				.returnResourceType(Bundle.class)
 				.execute();
-		List<BundleEntryComponent> bundleContainsAlternatePlanDef = v1Bundle.getEntry().stream().filter(entry -> entry.getFullUrl().equals("http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-skeleton-alternate|1.2.0.0")).collect(Collectors.toList());
-		assertTrue(bundleContainsAlternatePlanDef.size() == 1);
+		var bundleContainsAlternatePlanDef = v1Bundle.getEntry().stream().filter(entry -> entry.getFullUrl().equals("http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-skeleton-alternate|1.2.0.0")).collect(Collectors.toList());
+		assertEquals(1, bundleContainsAlternatePlanDef.size());
 	}
 
 	@Test
