@@ -221,7 +221,8 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
     setLoading(true)
     setSearchResults([])
 
-    const results = await (fetch(`/api/valueset/provisional?${currentSearchField.value}=${searchTerm}`))
+    const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
+    const results = await (fetch(urlToSearch))
 
     if (results.ok) {
       const json = await results.json()
@@ -231,6 +232,16 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    handleSearchProvisionalVS()
+  }, [])
+
+  useEffect(() => {
+    if (searchTerm?.trim() === '') {
+      handleSearchProvisionalVS()
+    }
+  }, [searchTerm])
 
   const provisionalVsColumns = useMemo(() => {
     const fields = [

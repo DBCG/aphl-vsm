@@ -569,7 +569,7 @@ const ProvisionalVSEdit = () => {
             allEntriesExist([title, author, steward]) && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem' }}>
                 <Button
-                  text={`Create New Provisional Value Set: "${title}"`}
+                  text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set: "${title}"`}
                   onClick={handleProvisionalVsUpdate}
                   disabled={!flattenCodesBySystem.length}
                 />
