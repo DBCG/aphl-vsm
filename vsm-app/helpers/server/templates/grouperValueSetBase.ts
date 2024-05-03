@@ -15,6 +15,22 @@ const grouperValueSetBase = {
   },
   status: "draft",
   experimental: true,
+  relatedArtifact: {
+    extension: [
+      {
+        url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+        valueCodeableConcept: {
+          coding: [
+            {
+              system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+              code: "routine"
+            }
+          ],
+          text: "Routine"
+        }
+      }
+    ]
+  },
   useContext: [
     {
       code: {
@@ -35,20 +51,6 @@ const grouperValueSetBase = {
           {
             system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
             code: "triggering"
-          }
-        ]
-      }
-    },
-    {
-      code: {
-        system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-        code: "priority"
-      },
-      valueCodeableConcept: {
-        coding: [
-          {
-            system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-            code: "routine"
           }
         ]
       }
