@@ -1,7 +1,7 @@
 import { is } from './is'
 /**
  * https://alphora.atlassian.net/browse/APHL-910
- * Remove ValueSet.meta.tags that have a value from the 'vsm-valueset-tag' code system
+ * Remove ValueSet.meta.tags that have a value from the 'vsm-workflow-codes' code system
  * Remove profile conformance (meta.profiles) declarations:
  * CRMI Manifest Library on root Library
  * ‘vsm-grouper-valueset’ on grouping value sets
