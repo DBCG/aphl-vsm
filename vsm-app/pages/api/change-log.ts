@@ -25,7 +25,7 @@ const collector = (input) => {
     Object.entries(artifact).forEach(([key, value]) => {
       if (typeof value === 'object') {
         if ('operation' in value) {
-          operation[value.operation.type].push({keyName: keyName || key, change: value.operation.type, ...value })
+          operation[value.operation.type].push({ keyName: keyName || key, change: value.operation.type, ...value })
         } else {
           gatherNewValues(value, key)
         }
@@ -84,6 +84,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   })
 
   const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
+  const planDefinition = changeLogJson.pages.filter((page: any) => page.newData.resourceType === 'PlanDefinition')?.[0]
+  
   const rctcSheet = workbook.addWorksheet('Value Set Library')
 
   /**
@@ -112,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     fillRows(newData)
 
     const table = groupingValueSetSheet.addTable({
-      name: 'MyTable',
+      name: 'ValueSets',
       ref: 'A1',
       headerRow: true,
       // totalsRow: true,
@@ -121,35 +123,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         showRowStripes: true
       },
       columns: [
-        { name: 'Change', filterButton: true, width: 10 },
-        { name: 'Name', filterButton: true, width: 80 },
-        { name: 'OID', filterButton: true, width: 50 },
-        { name: 'Version', filterButton: true, width: 30 },
-        { name: 'Code', filterButton: true, width: 20 },
-        { name: 'Code System', filterButton: true, width: 30 }
+        { name: 'Change', filterButton: true },
+        { name: 'Name', filterButton: true },
+        { name: 'OID', filterButton: true },
+        { name: 'Version', filterButton: true },
+        { name: 'Code', filterButton: true },
+        { name: 'Code System', filterButton: true }
       ],
       rows
     })
 
     // Calculate column width
     // https://github.com/exceljs/exceljs/discussions/2535#discussioncomment-8419612
-    const columnWidths = table.table.columns.map(
-      (column, columnIndex) => {
-        /**
-         * Max width for each column.
-         */
-        const maxContentWidth = rows.reduce((maxWidth, row) => {
-          const cellValue = row[columnIndex]
-          const cellWidth = cellValue ? String(cellValue).length : 0
-          return Math.max(maxWidth, cellWidth)
-        }, column.name.length)
+    const columnWidths = table.table.columns.map((column, columnIndex) => {
+      /**
+       * Max width for each column.
+       */
+      const maxContentWidth = rows.reduce((maxWidth, row) => {
+        const cellValue = row[columnIndex]
+        const cellWidth = cellValue ? String(cellValue).length : 0
+        return Math.max(maxWidth, cellWidth)
+      }, column.name.length)
 
-        /**
-         * Add a extra space.
-         */
-        return maxContentWidth + 2
-      }
-    )
+      /**
+       * Add a extra space.
+       */
+      return maxContentWidth + 2
+    })
 
     /**
      * Apply width.
@@ -157,7 +157,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     columnWidths.forEach((width, columnIndex) => {
       groupingValueSetSheet.getColumn(columnIndex + 1).width = width
     })
-
   })
 
   //   // Start Drawing
