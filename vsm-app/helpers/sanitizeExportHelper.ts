@@ -13,7 +13,8 @@ export const URLS_TO_REMOVE = new Set([
   'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-  'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+  'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset',
+  'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes'
 ])
 export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
   if (is.bundle(exportBundle)) {
@@ -21,6 +22,9 @@ export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
     bundle.entry?.forEach((entry) => {
       if (entry?.resource?.meta?.profile) {
         entry.resource.meta.profile = entry?.resource?.meta?.profile?.filter((profile) => !URLS_TO_REMOVE.has(profile))
+      }
+      if (entry?.resource?.meta?.tag) {
+        entry.resource.meta.tag = entry?.resource?.meta?.tag?.filter((tag) => !URLS_TO_REMOVE.has(tag?.system ?? ''))
       }
     })
     return bundle
