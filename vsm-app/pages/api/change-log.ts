@@ -36,6 +36,33 @@ const collector = (input) => {
   return operation
 }
 
+const autosortTable = (table, sheet) => {
+  // Calculate column width
+  // https://github.com/exceljs/exceljs/discussions/2535#discussioncomment-8419612
+  const columnWidths = table.table.columns.map((column, columnIndex) => {
+    /**
+     * Max width for each column.
+     */
+    const maxContentWidth = rows.reduce((maxWidth, row) => {
+      const cellValue = row[columnIndex]
+      const cellWidth = cellValue ? String(cellValue).length : 0
+      return Math.max(maxWidth, cellWidth)
+    }, column.name.length)
+
+    /**
+     * Add a extra space.
+     */
+    return maxContentWidth + 2
+  })
+
+  /**
+   * Apply width.
+   */
+  columnWidths.forEach((width, columnIndex) => {
+    sheet.getColumn(columnIndex + 1).width = width
+  })
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse): Promise<any> {
   // const lib = (await fhirCdrClient.read({
   //   resourceType: 'Library',
@@ -83,9 +110,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     readmeSheet.addRow({ newConditions })
   })
 
+  /**
+   *
+   * PlanDefinition SHEET
+   */
   const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
   const planDefinition = changeLogJson.pages.filter((page: any) => page.newData.resourceType === 'PlanDefinition')?.[0]
-  
+
+  const oldData = collector(planDefinition.oldData)
+  const planDefRows = Object.values(oldData)
+    ?.filter((i) => i?.length > 0)
+    .flatMap((i) => i)
+    .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
+
+  planDefinitionSheet.addTable({
+    name: 'PlanDefinition',
+    ref: `A${planDefRows.length + 5}`,
+    headerRow: true,
+    // totalsRow: true,
+    style: {
+      theme: 'TableStyleDark3',
+      showRowStripes: true
+    },
+    columns: [
+      { name: 'Change', filterButton: true },
+      { name: 'Field Name', filterButton: true },
+      { name: 'Old Value', filterButton: true },
+      { name: 'New Value', filterButton: true }
+    ],
+    rows: planDefRows
+  })
+
   const rctcSheet = workbook.addWorksheet('Value Set Library')
 
   /**
@@ -132,33 +187,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ],
       rows
     })
-
-    // Calculate column width
-    // https://github.com/exceljs/exceljs/discussions/2535#discussioncomment-8419612
-    const columnWidths = table.table.columns.map((column, columnIndex) => {
-      /**
-       * Max width for each column.
-       */
-      const maxContentWidth = rows.reduce((maxWidth, row) => {
-        const cellValue = row[columnIndex]
-        const cellWidth = cellValue ? String(cellValue).length : 0
-        return Math.max(maxWidth, cellWidth)
-      }, column.name.length)
-
-      /**
-       * Add a extra space.
-       */
-      return maxContentWidth + 2
-    })
-
-    /**
-     * Apply width.
-     */
-    columnWidths.forEach((width, columnIndex) => {
-      groupingValueSetSheet.getColumn(columnIndex + 1).width = width
-    })
   })
-
   //   // Start Drawing
   //   const headerCells = ["A1", "B1", "C1", "D1", "E1", "F1"]
   //   headerCells.map((key) => {
@@ -172,7 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   //     { header: 'OID', key: 'memberOid', width: 50 },
   //     { header: 'Version', key: 'version', width: 30 },
   //     { header: 'Code', key: 'code', width: 20 },
-  //     { header: 'Code System', key: 'system', width: 30 }
+  //     { header: 'Code System', key: -'system', width: 30 }
   //   ]
 
   //   const addRowData = (data) => {
