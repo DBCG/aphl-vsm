@@ -20,10 +20,51 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-const getProgramsByProvisionalLeafId = async (req, res) => {
+const getProgramsByProvisionalLeafId = async (leafUrl: string) => {
 
   // first, get the groupers containing the provisional leaf
-  const groupersWithProvLeaf = 
+  const allGroupersThatContainLeaf = await fhirCdrClient.search({
+    resourceType: 'ValueSet',
+    options: {
+      headers: {
+        'Cache-control': 'no-cache, no-store, must-revalidate'
+      }
+    },
+    searchParams: {
+      _tag: 'vsm-authored',
+      // limit to just the compose block 
+      _elements: 'compose',
+      reference: leafUrl
+    }
+  }) as fhir4.Bundle
+
+  console.log(allGroupersThatContainLeaf)
+
+  // early return if error or none exist
+  if (is.operationOutcome(allGroupersThatContainLeaf)) {
+    return ({ error: 'Attempt to find provisional leaf groupers failed' })
+  } else if (!allGroupersThatContainLeaf?.entry) {
+    return []
+  }
+
+    // second, get the grouper libraries that contain those groupers' urls
+    const urlsToSearch = allGroupersThatContainLeaf.entry.map(e)
+    const allGroupersLibrariesWithLeaf = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      options: {
+        headers: {
+          'Cache-control': 'no-cache, no-store, must-revalidate'
+        }
+      },
+      searchParams: {
+        _tag: 'vsm-authored',
+        // limit to just the compose block 
+        _elements: 'compose',
+        reference: leafUrl
+      }
+    }) as fhir4.Bundle
+
+  const groupersWithProvLeaf = 'test'
 }
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
