@@ -40,6 +40,14 @@ const searchInfoText = {
   url: 'URL search requires a full URL'
 }
 
+const NoData = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1em 2em 2em;
+`
+
 interface QueryStringItems {
   searchType: string
   count: string
@@ -47,6 +55,18 @@ interface QueryStringItems {
   sortDirection: string
   offset: string
   terminologyServer: string
+}
+
+const NoDataContainer = ({ router }) => {
+  return (
+    <NoData>
+      <p>No Provisional ValueSets Found</p>
+      <Button
+        text='Create VSM Provisional Resources'
+        onClick={() => router.push('/programs?resourceType=provisional')}
+      />
+    </NoData>
+  )
 }
 const TitleRow = styled.div`
   display: flex;
@@ -360,58 +380,64 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
   return (
     <div>
       <Row>
-        <StyledForm>
-          <DropdownContainer>
-            <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
-              Search By ValueSet
-            </StyledLabel>
-            <SelectInputContainer>
-              <Select
-                instanceId='provisional-searchByVS'
-                isMulti={false}
-                menuPortalTarget={document}
-                styles={reactSelectOptionStyle()}
-                options={searchTypes?.filter(t => t.value !== 'oid')}
-                value={currentSearchField}
-                onChange={(e) => {
-                  return setCurrentSearchField(e!)
-                }}
-              />
-            </SelectInputContainer>
-          </DropdownContainer>
-          <TextAreaSubmitContainer>
-            <TextArea
-              style={{ width: '100%' }}
-              onKeyPress={(e) => {
-                e.preventDefault()
-                setSearchTerm(e.target.value)
-              }}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              id="vs-search"
-              label="Search Text"
-              hasIcon={true}
-            // info={searchInfoText[searchType.value]}
-            // helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
-            // errorMessage={errorMessageComponent}
-            />
-            <IconButton
-              style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
-              id={'submit-search-valueset-button'}
-              disabled={!searchTerm || searchTerm.trim().length < 0}
-              buttoncontext="search"
-              type="submit"
-              onClick={async (e) => {
-                e?.preventDefault()
-                handleSearchProvisionalVS()
-              }}
-            />
-          </TextAreaSubmitContainer>
-        </StyledForm>
+        {
+          Boolean(searchResults.length) && (
+            <StyledForm>
+              <DropdownContainer>
+                <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
+                  Search By ValueSet
+                </StyledLabel>
+                <SelectInputContainer>
+                  <Select
+                    instanceId='provisional-searchByVS'
+                    isMulti={false}
+                    menuPortalTarget={document}
+                    styles={reactSelectOptionStyle()}
+                    options={searchTypes?.filter(t => t.value !== 'oid')}
+                    value={currentSearchField}
+                    onChange={(e) => {
+                      return setCurrentSearchField(e!)
+                    }}
+                  />
+                </SelectInputContainer>
+              </DropdownContainer>
+              <TextAreaSubmitContainer>
+                <TextArea
+                  style={{ width: '100%' }}
+                  onKeyPress={(e) => {
+                    e.preventDefault()
+                    setSearchTerm(e.target.value)
+                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  id="vs-search"
+                  label="Search Text"
+                  hasIcon={true}
+                // info={searchInfoText[searchType.value]}
+                // helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
+                // errorMessage={errorMessageComponent}
+                />
+                <IconButton
+                  style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
+                  id={'submit-search-valueset-button'}
+                  disabled={!searchTerm || searchTerm.trim().length < 0}
+                  buttoncontext="search"
+                  type="submit"
+                  onClick={async (e) => {
+                    e?.preventDefault()
+                    handleSearchProvisionalVS()
+                  }}
+                />
+              </TextAreaSubmitContainer>
+            </StyledForm>
+
+          )
+        }
       </Row>
       {contextActions}
       <DataTable
         title='VSM Provisional Value Sets'
         theme="aphl"
+        noDataComponent={<NoDataContainer router={router}/>}
         selectableRows={true}
         // contextActions={contextActions}
         onSelectedRowsChange={handleSelectedVSets}
