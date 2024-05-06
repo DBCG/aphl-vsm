@@ -55,12 +55,12 @@ public class ImportBundleProducer {
 			UsageContext usageContext = new UsageContext();
 
 			Coding code = new Coding();
-			code.setSystem("http://aphl.org/fhir/vsm/CodeSystem/usage-context-type");
+			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
 			code.setCode("grouper-type");
 
 			Coding valueCodeableConceptCoding = new Coding();
 			valueCodeableConceptCoding.setCode("model-grouper");
-			valueCodeableConceptCoding.setSystem("http://aphl.org/fhir/vsm/CodeSystem/usage-context-type");
+			valueCodeableConceptCoding.setSystem(TransformProperties.grouperUsageContextCodableConceptSystemURL);
 
 			usageContext.setCode(code);
 			usageContext.getValueCodeableConcept().setText("Model grouper");
