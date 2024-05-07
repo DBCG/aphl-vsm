@@ -14,7 +14,7 @@ export const URLS_TO_REMOVE = new Set([
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset',
-  'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes'
+  'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
 ])
 export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
   if (is.bundle(exportBundle)) {
@@ -30,8 +30,11 @@ export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
     return bundle
   } else if (typeof exportBundle === 'string') {
     const matchString = Array.from(URLS_TO_REMOVE).join('|')
-    const regex = new RegExp(`<profile value="(${matchString})"\s*/>`, 'gi')
-    return exportBundle.replaceAll(regex, '')
+    const metaProfileRegex = new RegExp(`<profile value="(${matchString})"\\s*/>`, 'gi')
+    const metaTagRegex = new RegExp(`<system value="(${matchString})"\\s*/>\n\\s*<code value="vsm-authored"/>`, 'gi')
+
+    exportBundle = exportBundle.replaceAll(metaProfileRegex, '')
+    return exportBundle.replaceAll(metaTagRegex, '')
   } else {
     console.warn('Invalid export bundle')
     return exportBundle
