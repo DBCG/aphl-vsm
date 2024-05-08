@@ -1,9 +1,5 @@
 package com.ecr;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +10,8 @@ import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
 		TransformConfig.class }, properties = { "hapi.fhir.fhir_version=r4" })
@@ -132,7 +130,7 @@ class TransformProviderIT extends RestIntegrationTest {
 	}
 
 	@Test
-	void testImportOperation() throws Exception {
+	void testImportOperation() throws InterruptedException {
 		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
 		Parameters v2BundleParams = new Parameters();
 		v2BundleParams.addParameter()
@@ -147,17 +145,32 @@ class TransformProviderIT extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 
-		Thread.sleep(1500);
+		Thread.sleep(1000);
 
 		FhirContext ctx = FhirContext.forR4();
 		String serverBase = this.getServerBase();
 
 		IGenericClient client = ctx.newRestfulGenericClient(serverBase);
 
+		int bundleSearchTries = 0;
+
 		Bundle results = client.search()
 				.forResource(ValueSet.class)
 				.returnBundle(Bundle.class)
 				.execute();
+
+		while (results.getEntry().isEmpty() && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			results = client.search()
+					.forResource(ValueSet.class)
+					.returnBundle(Bundle.class)
+					.execute();
+		}
+
+		if(results.getEntry().isEmpty()) {
+			fail("Bundle is empty, fetching the import is not returning any entries");
+		}
 
 		List<ValueSet> exportedGroupers = v2Bundle.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
