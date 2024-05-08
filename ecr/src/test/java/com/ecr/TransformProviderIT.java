@@ -1,9 +1,5 @@
 package com.ecr;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +10,8 @@ import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
 		TransformConfig.class }, properties = { "hapi.fhir.fhir_version=r4" })
@@ -132,7 +130,7 @@ class TransformProviderIT extends RestIntegrationTest {
 	}
 
 	@Test
-	void testImportOperation() throws Exception {
+	void testImportOperation() throws InterruptedException {
 		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
 		Parameters v2BundleParams = new Parameters();
 		v2BundleParams.addParameter()
@@ -147,17 +145,27 @@ class TransformProviderIT extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 
-		Thread.sleep(1500);
+		Thread.sleep(1000);
 
-		FhirContext ctx = FhirContext.forR4();
-		String serverBase = this.getServerBase();
+		int bundleSearchTries = 0;
 
-		IGenericClient client = ctx.newRestfulGenericClient(serverBase);
-
-		Bundle results = client.search()
+		Bundle results = getClient().search()
 				.forResource(ValueSet.class)
 				.returnBundle(Bundle.class)
 				.execute();
+
+		while (results.getEntry().isEmpty() && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			results = getClient().search()
+					.forResource(ValueSet.class)
+					.returnBundle(Bundle.class)
+					.execute();
+		}
+
+		if(results.getEntry().isEmpty()) {
+			fail("Bundle is empty, fetching the import is not returning any entries");
+		}
 
 		List<ValueSet> exportedGroupers = v2Bundle.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
@@ -170,24 +178,18 @@ class TransformProviderIT extends RestIntegrationTest {
 				.collect(Collectors.toList());
 
 		List<ValueSet> groupersWithGroupTypeFromExportedBundle = exportedGroupers.stream()
-				.filter(vs -> vs.getUseContext().stream().anyMatch(uc ->
-						        uc.getValue() instanceof CodeableConcept &&
-								uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")))
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
 		List<ValueSet> transformedGroupersWithGroupType = importedGroupers.stream()
-				.filter(vs -> vs.getUseContext().stream().anyMatch(uc ->
-						        uc.getValue() instanceof CodeableConcept &&
-								uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")))
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
 		// Check there are 6 groupers to be imported and none of them have group type  as use context
-		assert(exportedGroupers.size() == 6);
-		assert(groupersWithGroupTypeFromExportedBundle.isEmpty());
+		assertEquals(6,exportedGroupers.size());
+		assertEquals(0, groupersWithGroupTypeFromExportedBundle.size());
 
 		// After the import, check all of them have the group type as use context
-		assert(transformedGroupersWithGroupType.size() == 6);
+		assertEquals(6,transformedGroupersWithGroupType.size());
 	}
 }

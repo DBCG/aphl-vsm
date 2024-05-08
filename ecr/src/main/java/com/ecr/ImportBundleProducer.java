@@ -41,7 +41,7 @@ public class ImportBundleProducer {
 		return resource.hasMeta() && resource.getMeta().hasProfile(TransformProperties.usPHSpecLibProfile);
 	}
 
-	private static boolean isModelGrouperUseContextMissing(ValueSet vs) {
+	public static boolean isModelGrouperUseContextMissing(ValueSet vs) {
 		return vs.getUseContext().stream()
 				.noneMatch(uc ->
 						uc.getValue() instanceof CodeableConcept &&
