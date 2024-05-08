@@ -147,14 +147,9 @@ class TransformProviderIT extends RestIntegrationTest {
 
 		Thread.sleep(1000);
 
-		FhirContext ctx = FhirContext.forR4();
-		String serverBase = this.getServerBase();
-
-		IGenericClient client = ctx.newRestfulGenericClient(serverBase);
-
 		int bundleSearchTries = 0;
 
-		Bundle results = client.search()
+		Bundle results = getClient().search()
 				.forResource(ValueSet.class)
 				.returnBundle(Bundle.class)
 				.execute();
@@ -162,7 +157,7 @@ class TransformProviderIT extends RestIntegrationTest {
 		while (results.getEntry().isEmpty() && bundleSearchTries < 3) {
 			Thread.sleep(1500);
 			bundleSearchTries++;
-			results = client.search()
+			results = getClient().search()
 					.forResource(ValueSet.class)
 					.returnBundle(Bundle.class)
 					.execute();
@@ -183,24 +178,18 @@ class TransformProviderIT extends RestIntegrationTest {
 				.collect(Collectors.toList());
 
 		List<ValueSet> groupersWithGroupTypeFromExportedBundle = exportedGroupers.stream()
-				.filter(vs -> vs.getUseContext().stream().anyMatch(uc ->
-						        uc.getValue() instanceof CodeableConcept &&
-								uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")))
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
 		List<ValueSet> transformedGroupersWithGroupType = importedGroupers.stream()
-				.filter(vs -> vs.getUseContext().stream().anyMatch(uc ->
-						        uc.getValue() instanceof CodeableConcept &&
-								uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")))
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
 		// Check there are 6 groupers to be imported and none of them have group type  as use context
-		assert(exportedGroupers.size() == 6);
-		assert(groupersWithGroupTypeFromExportedBundle.isEmpty());
+		assertEquals(6,exportedGroupers.size());
+		assertEquals(0, groupersWithGroupTypeFromExportedBundle.size());
 
 		// After the import, check all of them have the group type as use context
-		assert(transformedGroupersWithGroupType.size() == 6);
+		assertEquals(6,transformedGroupersWithGroupType.size());
 	}
 }
