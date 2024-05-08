@@ -3,11 +3,13 @@ package com.ecr;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.junit.jupiter.api.Test;
+import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -172,7 +174,7 @@ class TransformProviderIT extends RestIntegrationTest {
 				.map(entry -> (ValueSet)entry.getResource())
 				.collect(Collectors.toList());
 
-		List<ValueSet> importedGroupers = results.getEntry().stream()
+		var importedGroupers = results.getEntry().stream()
 				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
 				.map(entry -> (ValueSet)entry.getResource())
 				.collect(Collectors.toList());
@@ -191,5 +193,71 @@ class TransformProviderIT extends RestIntegrationTest {
 
 		// After the import, check all of them have the group type as use context
 		assertEquals(6,transformedGroupersWithGroupType.size());
+	}
+
+	@Test
+	void testImportOperation_conflicting_priorities() {
+		var v2Bundle = (Bundle) loadResource("ersd-bundle-example-conflicting-priority.json");
+		var v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+			.setName("bundle")
+			.setResource(v2Bundle);
+		UnprocessableEntityException expectingPriorityConflict = null;
+		
+		try {
+			getClient()
+				.operation()
+				.onServer()
+				.named("$ersd-v2-import")
+				.withParameters(v2BundleParams)
+				.returnResourceType(OperationOutcome.class)
+				.execute();
+		} catch (UnprocessableEntityException e) {
+			expectingPriorityConflict = e;
+		}
+		assertNotNull(expectingPriorityConflict);
+		assertTrue(expectingPriorityConflict.getMessage().contains("conflicting priorit"));
+	}
+	@Test
+	void testImportOperation_handle_duplicate_priorities() throws InterruptedException {
+		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example-2-priority.json");
+		Parameters v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+			.setName("bundle")
+			.setResource(v2Bundle);
+
+		getClient()
+			.operation()
+			.onServer()
+			.named("$ersd-v2-import")
+			.withParameters(v2BundleParams)
+			.returnResourceType(OperationOutcome.class)
+			.execute();
+
+		int bundleSearchTries = 0;
+
+		Library library = null;
+
+		while (library == null && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			try {
+				library = getClient().read().resource(Library.class).withId("SpecificationLibrary").execute();
+			} catch (ResourceNotFoundException e) {
+				// do nothing
+			}
+		}
+
+		if(library == null) {
+			fail("Library not found, fetching the import is not returning the manifest library");
+		}
+		var atLeastOneRelatedArtifactIsAValueSetWithPriority = false;
+		for (final var ra: library.getRelatedArtifact()) {
+			if (Canonicals.getResourceType(ra.getResource()).equals("ValueSet") && ra.hasExtension(TransformProperties.vsmPriority)) {
+				atLeastOneRelatedArtifactIsAValueSetWithPriority = true;
+				assertEquals(1, ra.getExtensionsByUrl(TransformProperties.vsmPriority).size());
+			}
+		}
+		assertTrue(atLeastOneRelatedArtifactIsAValueSetWithPriority);
 	}
 }
