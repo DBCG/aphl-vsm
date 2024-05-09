@@ -179,11 +179,11 @@ class TransformProviderIT extends RestIntegrationTest {
 				.map(entry -> (ValueSet)entry.getResource())
 				.collect(Collectors.toList());
 
-		List<ValueSet> groupersWithGroupTypeFromExportedBundle = exportedGroupers.stream()
+		var groupersWithGroupTypeFromExportedBundle = exportedGroupers.stream()
 				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
-		List<ValueSet> transformedGroupersWithGroupType = importedGroupers.stream()
+		var transformedGroupersWithGroupType = importedGroupers.stream()
 				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
@@ -193,6 +193,16 @@ class TransformProviderIT extends RestIntegrationTest {
 
 		// After the import, check all of them have the group type as use context
 		assertEquals(6,transformedGroupersWithGroupType.size());
+
+		// Check that none of the valuesets have a v1 profile
+		var valueSetHasV1 = results.getEntry().stream()
+			.map(e -> (ValueSet)e.getResource())
+			.anyMatch(vs -> vs.getMeta().getProfile().stream()
+				.anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSProfile)));
+		assertFalse(valueSetHasV1);
+		var valueSetLibrary = getClient().read().resource(Library.class).withId("library-rctc-example").execute();
+		var valueSetLibraryHasV1 = valueSetLibrary.getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
+		assertFalse(valueSetLibraryHasV1);
 	}
 
 	@Test
