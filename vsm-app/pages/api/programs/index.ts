@@ -20,77 +20,95 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-const getProgramsByProvisionalLeafId = async (leafUrl: string) => {
-
-  // first, get the groupers containing the provisional leaf
-  const allGroupersThatContainLeaf = await fhirCdrClient.search({
-    resourceType: 'ValueSet',
+// IP... need for error handling
+const getProgramsByProvisionalLeafUrl = async (leafUrl: string) => {
+  const noCacheOptions = {
     options: {
       headers: {
         'Cache-control': 'no-cache, no-store, must-revalidate'
       }
     },
-    searchParams: {
-      _tag: 'vsm-authored',
-      // limit to just the compose block 
-      _elements: 'compose',
-      reference: leafUrl
-    }
-  }) as fhir4.Bundle
-
-  console.log(allGroupersThatContainLeaf)
-
-  // early return if error or none exist
-  if (is.operationOutcome(allGroupersThatContainLeaf)) {
-    return ({ error: 'Attempt to find provisional leaf groupers failed' })
-  } else if (!allGroupersThatContainLeaf?.entry) {
-    return []
   }
 
-    // second, get the grouper libraries that contain those groupers' urls
-    const urlsToSearch = allGroupersThatContainLeaf.entry.map(e)
-    const allGroupersLibrariesWithLeaf = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      options: {
-        headers: {
-          'Cache-control': 'no-cache, no-store, must-revalidate'
-        }
-      },
-      searchParams: {
-        _tag: 'vsm-authored',
-        // limit to just the compose block 
-        _elements: 'compose',
-        reference: leafUrl
-      }
-    }) as fhir4.Bundle
+  // get all provisional codesystems. These are the clearest to identify
+  // provisional vsm ValueSets don't have specific identifying info so can't start there
+  const provisionalCSBundle = await fhirCdrClient.search({
+    resourceType: 'CodeSystem',
+    searchParams: {
+      version: 'PROVISIONAL',
+      _tag: 'vsm-authored',
+    },
+    ...noCacheOptions
+  })
 
-  const groupersWithProvLeaf = 'test'
+  if (!provisionalCSBundle.entry?.length) {
+    return ({ error: `No provisional Code Systems exist in this system` })
+  }
+
+  const cs = provisionalCSBundle.entry.map(e => e?.resource).filter(x => x) as fhir4.CodeSystem[]
+
+  // first, get the provisional value set
+  const provisionalLeafBundle = await fhirCdrClient.search({
+    resourceType: 'ValueSet',
+    searchParams: {
+      url: leafUrl,
+      _tag: 'vsm-authored',
+    },
+    ...noCacheOptions
+  })
+
+  if (!provisionalLeafBundle?.entry?.length) {
+    return ({ error: `No provisional leafs found with url ${leafUrl}` })
+  }
+
+  const leaf = provisionalLeafBundle.entry[0].resource
+
+  // next, get (grouper) valuesets that refer to this leaf
+  const grouperVSets = await fhirCdrClient.request(
+    `${process.env.FHIR_CDR_URL}/ValueSet?_revinclude:`,
+    {}
+  )
+  // loop through each program
+  // loop through the program's groupers
+  // for each grouper valueset, expand with a filter, something like
+  // http://localhost:8082/fhir/ValueSet/50/$expand?system-version=PROVISIONAL
+  // if any provisional code systems turn up, add the system to the map under the prog id
+  // make sure the version is an exact match for 'PROVISIONAL' instead of partial match
+  // if not, 
+
+  console.log('leaf: ', leaf)
+  return
 }
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
+    await getProgramsByProvisionalLeafUrl('http://localhost:8082/fhir/ValueSet/55')
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
-    if (req.query['id']) {
-      queries['_id:contains'] = req.query['id'] as string
-    }
-    if (req.query['name']) {
-      queries['name:contains'] = req.query['name'] as string
-    }
-    if (req.query['description']) {
-      queries['description:contains'] = req.query['description'] as string
-    }
-    if (req.query['title']) {
-      queries['title:contains'] = req.query['title'] as string
-    }
-    if (req.query['version']) {
-      queries['version'] = req.query['version'] as string
-    }
-    if (req.query['offset']) {
-      queries['_offset'] = req.query['offset'] as string
-    }
-    if (req.query['count']) {
-      queries['_count'] = req.query['count'] as string
+    if (req.query.provisionalLeafUrl) {
+
+    } else {
+      if (req.query['id']) {
+        queries['_id:contains'] = req.query['id'] as string
+      }
+      if (req.query['name']) {
+        queries['name:contains'] = req.query['name'] as string
+      }
+      if (req.query['description']) {
+        queries['description:contains'] = req.query['description'] as string
+      }
+      if (req.query['title']) {
+        queries['title:contains'] = req.query['title'] as string
+      }
+      if (req.query['version']) {
+        queries['version'] = req.query['version'] as string
+      }
+      if (req.query['offset']) {
+        queries['_offset'] = req.query['offset'] as string
+      }
+      if (req.query['count']) {
+        queries['_count'] = req.query['count'] as string
+      }
     }
 
     const libSearchResult = await fhirCdrClient.search({

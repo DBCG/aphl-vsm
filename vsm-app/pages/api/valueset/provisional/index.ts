@@ -6,6 +6,7 @@ import { setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/li
 import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Body extends CreateProvisionalVs {
@@ -14,6 +15,9 @@ interface Body extends CreateProvisionalVs {
   updatedConditions: Condition[]
   updatedPriority: PriorityLevelOption
   provisionalVsIdForUpdate: string
+  author: string
+  title: string
+  steward: string
 }
 
 interface ReqInfo extends NextApiRequest {
@@ -68,71 +72,28 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
 
 } 
 
-interface GetBody {
-  reference?: fhir4.CodeSystem['url']
-}
-
-interface ProvisionalReqGet  extends NextApiRequest {
-  body: GetBody
-}
-
-const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) => {
-  try {
-
-    const {
-      // reference will only exist if users searching for
-      // a particular valueset system
-      // https://build.fhir.org/valueset.html#:~:text=ValueSet.compose.include.system
-      title,
-      url
-    } = req.query
-
-   let searchParams = {
-    _tag: 'vsm-authored',
-    _sort: '-_lastUpdated',
-    _count: 100,
-    ...(title && { ['title:contains']: title }),
-    ...(url && { ['url:contains']: url })
-  }
-
-    // ideally I wouldn't be doing this and would just be using a searchParam on
-    // an extension that designates provisional?
-    const allVsmOwnedVS = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams
-    })
-
-    const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-    const provisionalLeafsOnly = results?.filter((r: any) => r.extension.find((e: any) => e.url.endsWith('vsm-test-extension')))
-    return res.status(200).json(provisionalLeafsOnly || [])
-
-  } catch (e) {
-    logger.error(e)
-    res.status(400).json({ error: 'Search for Provisional Value Sets Failed' })
-  }
-}
-
-
 // when the valueset is edited, must edit the underlying codeSystems if codes updated
 const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse) => {
+  console.log('here')
   try {
     const {
       author,
-      title,
       steward,
-      newCodeSystemItems,
+      title,
       codesBySystemToAdd,
+      grouperIds,
+      programId,
       updatedConditions,
       updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
-
-    if (!Object.keys(codesBySystemToAdd)) {
-      return res.status(400).json({ error: 'Invalid input. Endpoint requires that there be codes to update.' })
+    console.log('here 2')
+    console.log('req.body: ', req.body)
+    if (!Object.keys(codesBySystemToAdd)?.length || !title) {
+      console.log('filed')
+      return res.status(400).json({ error: 'Invalid input. Endpoint requires the codes, title, and grouper IDs of the ValueSet being created.' })
     }
 
-    // add new codeSystems if necessary
- 
     let codeSystemToEdit
     const systemUrls = Object.keys(codesBySystemToAdd)
 
@@ -149,21 +110,23 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         }
       })
 
+      console.log(1);
+      
       if (existingCS.entry) {
         // edit existing codeSystem
         codeSystemToEdit = existingCS.entry[0].resource
         const updatedCS = updateCsCodes({ codeSystem: codeSystemToEdit, codeItems: codesBySystemToAdd[systemUrl], action: 'add' })
         resourcesToSaveFirst.push({ resource: updatedCS, method: 'PUT' })
       } else {
+        console.log(2);
         codeSystemToEdit = createProvisionalCodeSystem({
           systemBaseUrl: systemUrl,
-          codeItems: codesBySystemToAdd[systemUrl],
-          name: newCodeSystemItems?.find(i => i.value === systemUrl).label
+          codeItems: codesBySystemToAdd[systemUrl]
         })
         resourcesToSaveFirst.push({ resource: codeSystemToEdit, method: 'POST' })
       }
     }
-
+    console.log(3);
     let provisionalLeaf = {} as fhir4.ValueSet
     if (provisionalVsIdForUpdate) {
       // provisional vs already exists, get it from server
@@ -188,7 +151,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }) as fhir4.ValueSet
 
     }
-
+    console.log(4);
   resourcesToSaveFirst.push({ method: provisionalVsIdForUpdate ? 'PUT' : 'POST', existingId: provisionalVsIdForUpdate, resource: provisionalLeaf as fhir4.ValueSet })
   
   const transactionBody = transactionBuilder(resourcesToSaveFirst)
@@ -200,7 +163,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
-
+  console.log(5);
   const provisionalLeafId = codeSysAndLeaf.entry.map((e: any) => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]
@@ -214,27 +177,137 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     // update url here
     leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
-    provisionalLeaf = leaf
+    // update authoritative source here
+    provisionalLeaf = addExtensionToVs(leaf, authoritativeSourceExtensionUrl, leaf.url)
     // PUT to update leaf
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
   }
 
-  const secondUpdateTransaction = transactionBuilder(resourcesToSaveLast)
-  const updated = await fhirCdrClient.transaction({ body: secondUpdateTransaction })
+  let program = await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: programId
+  }) as fhir4.Library
 
-      if (is.operationOutcome(updated)) {
-      return res.status(500).json({ error: `Failed to update Provisional value set` }) 
+  if (updatedConditions) {
+    // update program with conditions
+    program = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
+  }
+  // always update priority, since it's required
+  program = setVSPriority(program, updatedPriority.value, [provisionalLeaf.url!])
+  resourcesToSaveLast.push({ method: 'PUT', resource: program })
+
+  if (grouperIds) {
+    // get the associated groupers and update with the reference
+    const grouperReqItems = grouperIds?.map((id: string) => (
+      {
+        resourceType: 'ValueSet',
+        method: 'GET',
+        resourceId: id
+      }
+    ))
+
+    const getGrouperTransaction = transactionBuilder(grouperReqItems as BuilderItem[])
+
+    // handles the 'add' case
+    const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
+
+    if (is.operationOutcome(allGroupersToUpdate)) {
+      return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
+    }
+
+    // if groupers are all found, update their references with provisionalVS urls
+    const groupersToUpdate = allGroupersToUpdate.entry.map((i: fhir4.BundleEntry) => (
+      updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf.url!], 'add').grouper
+    ))
+    
+    groupersToUpdate.forEach((g: fhir4.ValueSet) => resourcesToSaveLast.push({ method: 'PUT', resource: g }))
+
+    const grouperUpdateTransaction = transactionBuilder(resourcesToSaveLast)
+
+    const updatedGroupers = await fhirCdrClient.transaction({ body: grouperUpdateTransaction })
+
+    if (is.operationOutcome(updatedGroupers)) {
+      return res.status(500).json({ error: `Failed to update grouper references to provisional value set` }) 
     } else {
       return res.status(200).send({ newId: provisionalLeafId })
     }
+  }
 
   } catch (e) {
+    console.log(e)
     logger.error(e)
     res.status(400).json({ error: 'Creating Provisional Valueset failed' })
   }
 }
 
+interface GetBody {
+  reference?: fhir4.CodeSystem['url']
+}
+
+interface ProvisionalReqGet  extends NextApiRequest {
+  body: GetBody
+}
+
+const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) => {
+  try {
+
+    const csSearchParams = {
+      version: 'PROVISIONAL'
+    }
+  
+    const allVsmOwnedCS = await fhirCdrClient.search({
+      resourceType: 'CodeSystem',
+      searchParams: csSearchParams
+    })
+
+    const provCS = allVsmOwnedCS?.entry?.map(e => e.resource).filter(x => x) as fhir4.CodeSystem[]
+    console.log('provCS: ', provCS)
+    if (!provCS.length) {
+      return res.status(404).send({ error: 'VSM Provisional Code Systems do not exist'})
+    }
+
+    const refsToSearch = provCS
+      .map(cs => cs.url?.split('/CodeSystem/')?.[1])
+      .filter(x => x)
+      .join(',') as string
+
+      console.log('refsToSearch: ', refsToSearch)
+    const {
+      // reference will only exist if users searching for
+      // a particular valueset system
+      // https://build.fhir.org/valueset.html#:~:text=ValueSet.compose.include.system
+      reference
+    } = req.body
+    console.log('url: ', process.env.FHIR_CDR_URL)
+   let searchParams = {
+    _tag: 'vsm-authored',
+    status: 'draft',
+    context: 'triggering',
+    ['_url:contains']: `${process.env.FHIR_CDR_URL}`,
+    _filter: `reference co ${refsToSearch}`
+  }
+
+    // ideally I wouldn't be doing this and would just be using a searchParam on
+    // an extension that designates provisional?
+    const allVsmOwnedVS = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams
+    })
+
+    const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
+    console.log('results: ', results)
+    const provisionalLeafsOnly = results?.filter((r: any) => r.extension.find((e: any) => e.url.includes('vsm-test-extension')))
+
+    console.log('provisionals only: ', provisionalLeafsOnly)
+    return res.status(200).json(results || [])
+
+  } catch (e) {
+    logger.error(e)
+    res.status(400).json({ error: 'Search for Provisional Value Sets Failed' })
+  }
+}
+
 export default handler({
-  PUT: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
-  GET: { action: getProvisionalVs, access: ['admin', 'editor', 'reviewer'] },
+  POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'editor'] },
 })

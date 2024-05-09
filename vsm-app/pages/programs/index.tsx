@@ -6,7 +6,6 @@ import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
 import { useRouter } from 'next/router'
 
-
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
   const router = useRouter()

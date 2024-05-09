@@ -398,7 +398,7 @@ const ProvisionalVSEdit = () => {
     }
 
     const result = await fetch('/api/valueset/provisional', {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify(submitBody)
     })
 

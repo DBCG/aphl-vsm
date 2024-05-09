@@ -6,7 +6,6 @@ export const provisionalVsBase = {
     profile: [
       'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset',
       'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
     ],
     tag: [
       {
@@ -27,11 +26,7 @@ export const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
-    },
-  {
-    url: 'vsm-test-extension', // need a real one, defined in IG?
-    valueBoolean: true
-  }
+    }
   ],
   useContext: [
     {

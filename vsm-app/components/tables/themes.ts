@@ -52,8 +52,6 @@ const customTableStyles = (tableType: 'clickable' | 'readonly', additionalStyles
     },
     cells: {
       style: {
-        paddingTop: '12px',
-        paddingBottom: '12px',
         overflow: 'visible',
         ...additionalStyles
       }

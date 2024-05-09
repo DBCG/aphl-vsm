@@ -191,10 +191,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       'Validation Errors': [] as string[] | string
     }
 
+    console.log('version radio value: ', versionRadioValue)
     const packageResponse = await packageProgram({
       isJson: fileType === 'json',
       isV2: versionRadioValue === 'v2',
-      targetVersion,
+      targetVersion: versionRadioValue,
       fileUploadContent,
       programId: program.id!
     })
@@ -206,6 +207,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       handleExitExportModal()
       return
     }
+
+    console.log('targetVersion: ', targetVersion)
 
     const packageToValidate = fileType === 'json' ? packageResponse : await packageProgram({
       isJson: true,

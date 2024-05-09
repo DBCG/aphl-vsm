@@ -229,6 +229,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
   const [currentSearchField, setCurrentSearchField] = useState(searchTypes[0])
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState([])
+  const [initialSearchResults, setInitialSearchResults] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
@@ -247,6 +248,10 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
     if (results.ok) {
       const json = await results.json()
       setSearchResults(json)
+      if (!searchTerm && !initialSearchResults.length) {
+        console.log('search term: ', searchTerm)
+        setInitialSearchResults(json)
+      }
     } else {
       console.error('error occurred')
     }
@@ -381,7 +386,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
     <div>
       <Row>
         {
-          Boolean(searchResults.length) && (
+          Boolean(initialSearchResults?.length) && (
             <StyledForm>
               <DropdownContainer>
                 <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
