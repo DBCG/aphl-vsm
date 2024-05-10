@@ -33,8 +33,7 @@ export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
     const metaProfileRegex = new RegExp(`<profile value="(${matchString})"\\s*/>`, 'gi')
     const metaTagRegex = new RegExp(`<system value="(${matchString})"\\s*/>\n\\s*<code value="vsm-authored"/>`, 'gi')
 
-    exportBundle = exportBundle.replaceAll(metaProfileRegex, '')
-    return exportBundle.replaceAll(metaTagRegex, '')
+    return exportBundle.replaceAll(metaProfileRegex, '').replaceAll(metaTagRegex, '')
   } else {
     console.warn('Invalid export bundle')
     return exportBundle
