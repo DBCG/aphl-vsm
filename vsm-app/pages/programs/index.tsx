@@ -65,6 +65,13 @@ interface PaginationState {
   searchTotal: number | null
 }
 
+interface ReleasePayload {
+  programId: string
+  releaseDescription: string
+  releaseLabel: string
+  effectiveStartDate: string | Date
+}
+
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -275,33 +282,19 @@ const Programs: NextPage = () => {
     setVersionToRelease(null)
   }
 
-  const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
-    let result
-    let endpoint = ''
-    let reqBody
+  const handleModalAction = async (payload: ReleasePayload) => {
     setLoading(true)
+    const endpoint = `/api/programs/${payload.programId}/release`
 
-    if (actionType === 'release') {
-      endpoint = `/api/programs/${program.id}/release`
-      reqBody = {
-        releaseAsVersion: versionToRelease,
-        program
-      }
-    } else {
-      // TODO: remove, We don't do publishing
-      // endpoint = `/api/programs/${program.id}/publish`
-      // reqBody = program
-    }
-
-    result = await fetch(endpoint, {
+    const result = await fetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(reqBody)
+      body: JSON.stringify(payload),
     })
 
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${
+        error: `Error occurred while releasing program: ${payload.programId}. ${
           res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
         }`
       })
