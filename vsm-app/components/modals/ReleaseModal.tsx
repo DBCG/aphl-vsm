@@ -23,7 +23,7 @@ interface ModalInfo {
   handleCancelModal: () => void
   handleModalAction: Function
   loading: boolean
-  program: fhir4.Library | null
+  program: fhir4.Library
   cancellable?: boolean
   updateVersion?: Dispatch<SetStateAction<string | null | undefined>>
   setProgramToRelease: Dispatch<SetStateAction<fhir4.Library | null>>
@@ -49,12 +49,10 @@ const modalText = {
 
 const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, handleModalAction, program, updateVersion }: ModalInfo) => {
   const { title, text, actionText, modalLoadingText } = modalText
-
-  const [currentProgram, setProgram] = useState(program)
-  const [releaseDescription, setReleaseDescription] = useState('')
-  const [releaseLabel, setReleaseLabel] = useState('')
-  const [effectiveStartDate, setEffectiveStartDate] = useState<string | null>(null)
-  const [versionError, setVersionError] = useState<string | null>(null)
+  const [releaseDescription, setReleaseDescription] = useState(getReleaseDescription(program))
+  const [releaseLabel, setReleaseLabel] = useState(getReleaseLabel(program))
+  const [effectiveStartDate, setEffectiveStartDate] = useState<string | undefined>(program?.effectivePeriod?.start)
+  const [versionError, setVersionError] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
   const [versionToCheck, setVersionToCheck] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
   const [activeStep, setActiveStep] = useState(0)
   const [stepsCompleted, setStepsCompleted] = useState([false, false])
@@ -143,7 +141,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
     } else if (matches.length) {
       setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
     } else {
-      setVersionError(null)
+      setVersionError(undefined)
     }
   }
 
@@ -155,17 +153,6 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
   useEffect(() => {
     checkForVersionErrors()
   }, [])
-
-  useEffect(() => {
-    // Need to set here because async
-    if (program != null) {
-      setProgram(program)
-      setVersionToCheck(program?.version?.split('-draft')?.[0])
-      setReleaseDescription(getReleaseDescription(program))
-      setReleaseLabel(getReleaseLabel(program))
-      setEffectiveStartDate(program?.effectivePeriod?.start || null)
-    }
-  }, [program])
 
   const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
 
@@ -212,7 +199,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
               style={{ marginTop: '2rem', marginBottom: '1rem' }}
               label="Update Program Version *"
               onChange={(e) => {
-                setVersionError(null)
+                setVersionError(undefined)
                 setVersionToCheck(e?.target?.value)
                 updateVersion!(e?.target?.value)
               }}
@@ -326,8 +313,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
                 disabled={hasFormError() || isLoading || loading}
                 loading={loading || false}
                 onClick={() => {
-                  let currProgram = currentProgram
-                  if (versionError || !currProgram) {
+                  if (versionError) {
                     return
                   }
                   handleModalAction({
