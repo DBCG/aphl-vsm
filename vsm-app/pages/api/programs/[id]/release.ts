@@ -13,7 +13,7 @@ import {
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const { releaseAsVersion, programId, releaseDescription, releaseLabel, effectiveStartDate } = req.body
+  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body
   let program: fhir4.Library | undefined
   try {
     program = (await fhirCdrClient.read({
