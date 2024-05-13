@@ -219,7 +219,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 	@Test
 	void releaseResource_test() {
-		loadTransaction("ersd-release-bundle-cr.json");
+		loadTransaction("ersd-release-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		String existingVersion = "1.2.3";
 		String versionData = "1.2.7.23";
@@ -864,7 +864,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 	@Test
 	void approveOperation_test() {
-		loadResource("ersd-active-library-example-cr.json");
+		loadResource("ersd-active-library-example.json");
 		loadResource("practitioner-example-for-refs.json");
 		var today = new Date();
 		// get today's date in the form "2023-05-11"
