@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.ecr.TransformConfig
+com.ecr.TransformConfig,com.ecr.CaseReportingConfig
