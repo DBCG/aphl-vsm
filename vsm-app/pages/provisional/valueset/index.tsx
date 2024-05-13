@@ -67,8 +67,10 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
   const handleChangeSelectedRows = ({ selectedRows: rows }) => {
+    console.log('rows: ', rows)
     setSelectedRows(rows)
   }
+
   const handleClear = () => setToggledClearRows(t => !t)
 
   const handleAdd = () => {
@@ -161,14 +163,19 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
 
   return (
     // @ts-ignore
-    <DataTable pagination customStyles={customExpandStyles} data={codesBySystem} columns={columns} />
+    <DataTable
+      pagination
+      customStyles={customExpandStyles}
+      data={codesBySystem}
+      columns={columns}
+    />
   )
 }
 
 const ProvisionalVSEdit = () => {
   // get existing prov valuesets + codesystems
-  const provisionalVS = useGetProvisionalVS()
-  const provisionalCS = useGetProvisionalCS()
+  const { provisionalVS, isVsLoading } = useGetProvisionalVS()
+  const { provisionalCS, isCsLoading } = useGetProvisionalCS()
   const [showVsForm, setShowVsForm] = useState(false)
   const [selectedVS, setSelectedVS] = useState<null | fhir4.ValueSet>(null)
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
@@ -550,12 +557,13 @@ const ProvisionalVSEdit = () => {
                 <div>
                   <p>Your VSM Provisional Value Set will contain the following codes:</p>
                   <DataTable
+                    progressPending={isCsLoading}
                     contextActions={stagingContextActions}
                     pagination
                     selectableRows={true}
                     selectableRowsNoSelectAll
                     title='Staged Codes to be Added'
-                    data={flattenCodesBySystem}
+                    data={flattenCodesBySystem || []}
                     columns={stagedCodeColumns}
                     clearSelectedRows={clearStagedCodes}
                     onSelectedRowsChange={(r) => handleChangeSelectedStagingRows(r)}

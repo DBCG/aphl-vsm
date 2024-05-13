@@ -1,0 +1,72 @@
+{
+  "resourceType": "ValueSet",
+  "id": "259",
+  "meta": {
+      "versionId": "2",
+      "lastUpdated": "2024-05-09T16:56:38.228+00:00",
+      "source": "#L4OT4i9yg7yDjQmQ",
+      "profile": [
+          "http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
+          "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+      ],
+      "tag": [
+          {
+              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
+              "code": "vsm-authored"
+          }
+      ]
+  },
+  "extension": [
+      {
+          "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+          "valueContactDetail": {
+              "name": "123"
+          }
+      },
+      {
+          "url": "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+          "valueContactDetail": {
+              "name": "456"
+          }
+      },
+      {
+          "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+          "valueUri": "http://localhost:8082/fhir/ValueSet/Test"
+      }
+  ],
+  "url": "http://localhost:8082/fhir/ValueSet/259",
+  "name": "Test",
+  "title": "test",
+  "status": "draft",
+  "experimental": true,
+  "useContext": [
+      {
+          "code": {
+              "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+              "code": "reporting"
+          },
+          "valueCodeableConcept": {
+              "coding": [
+                  {
+                      "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                      "code": "triggering"
+                  }
+              ]
+          }
+      }
+  ],
+  "compose": {
+      "include": [
+          {
+              "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+              "version": "PROVISIONAL",
+              "concept": [
+                  {
+                      "code": "eee",
+                      "display": "eee"
+                  }
+              ]
+          }
+      ]
+  }
+}

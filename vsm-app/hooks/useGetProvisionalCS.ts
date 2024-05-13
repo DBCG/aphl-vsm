@@ -4,9 +4,16 @@ interface Props {
   systemUrl: undefined | fhir4.CodeSystem['url']
 }
 
-const useGetProvisionalCS = (props?: Props): [] | fhir4.CodeSystem[] => {
-  const [codeSystems, setCodeSystems] = useState<fhir4.CodeSystem[]>([])
+interface ProvCsReturn {
+  provisionalCS: fhir4.CodeSystem[]
+  isCsLoading: boolean
+}
+
+const useGetProvisionalCS = (props?: Props): ProvCsReturn => {
+  const [provisionalCS, setProvisionalCS] = useState<fhir4.CodeSystem[]>([])
+  const [isCsLoading, setIsCsLoading] = useState(false)
   useEffect(() => {
+    setIsCsLoading(true)
     async function getProvisionalCS(): Promise<void> {
 
         let endpoint = '/api/codesystem/provisional'
@@ -19,26 +26,27 @@ const useGetProvisionalCS = (props?: Props): [] | fhir4.CodeSystem[] => {
           if (!response.ok) {
             // send error back here for FE eventually
             console.error('Error occurred while searching Provisional CodeSystems')
-            setCodeSystems([])
+            setProvisionalCS([])
           } else {
             const json = await response.json()
             if ('error' in json) {
               // better handle error here
               console.error(json)
-              setCodeSystems([])
+              setProvisionalCS([])
             } else {
-              setCodeSystems(json)
+              setProvisionalCS(json)
             }
           }
         } catch (e) {
           console.error(e)
-          setCodeSystems([])
+          setProvisionalCS([])
         }
+        setIsCsLoading(false)
     }
     void getProvisionalCS()
   }, [props?.systemUrl])
 
-  return codeSystems
+  return ({ provisionalCS, isCsLoading })
 }
 
 export { useGetProvisionalCS }

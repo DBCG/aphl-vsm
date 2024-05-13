@@ -78,6 +78,7 @@ const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiRes
 
     const results = provisionalCodeSystems?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
 
+    console.log('results: ', results)
     return res.status(200).json(results || [])
 
   } catch (e) {

@@ -2,7 +2,7 @@ import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogTitle, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
+import { Router, useRouter } from 'next/router'
 import styled from 'styled-components'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
@@ -57,7 +57,7 @@ interface QueryStringItems {
   terminologyServer: string
 }
 
-const NoDataContainer = ({ router }) => {
+const NoDataContainer = ({ router }: {router: Router }) => {
   return (
     <NoData>
       <p>No Provisional ValueSets Found</p>
@@ -68,6 +68,7 @@ const NoDataContainer = ({ router }) => {
     </NoData>
   )
 }
+
 const TitleRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -225,7 +226,28 @@ interface ValueSetSearchTable {
   currentSelectedVSId?: string[]
 }
 
-const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) => {
+interface ConditionItem {
+  code: string
+  display: string
+  system: string
+  version: string
+}
+
+interface FormattedGroup {
+  id: string
+  label: string
+  url: string
+  value: string
+  version: string
+}
+
+interface ProvisionalSearchForm {
+  allConditions: ConditionItem[]
+  document: HTMLElement | null
+  formattedGroups: FormattedGroup[]
+
+}
+const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: ProvisionalSearchForm) => {
   const [currentSearchField, setCurrentSearchField] = useState(searchTypes[0])
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState([])
@@ -234,9 +256,10 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
   const [selectedGroupers, setSelectedGroupers] = useState([])
   const [selectedRows, setSelectedRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [toggleCleared, setToggleCleared] = useState(false)
   const [selectedPriority, setSelectedPriority] = useState('routine')
   const router = useRouter()
+
+  console.log('formattedGr: ', formattedGroups)
 
   const handleSearchProvisionalVS = async () => {
     setLoading(true)
@@ -249,7 +272,6 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }) 
       const json = await results.json()
       setSearchResults(json)
       if (!searchTerm && !initialSearchResults.length) {
-        console.log('search term: ', searchTerm)
         setInitialSearchResults(json)
       }
     } else {

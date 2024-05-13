@@ -110,7 +110,6 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const [provisionalCodeSystems, setProvisionalCodeSystems] = useState([])
   const allVsacCS = useGetCS(myDocument)
-  const [existingCS, setExistingCS] = useState(null)
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
@@ -118,7 +117,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
+  const { provisionalCS, isCsLoading } = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
   const handleDelete = (item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -227,7 +226,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
     }
   }
 
-  if (!existingCS && !canEdit) {
+  if (!provisionalCS && !canEdit) {
     return <p>Editing Code Systems not permitted here.</p>
   } else {
     return (
@@ -249,10 +248,10 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
             }}
           />
         </QuestionnaireRowContainer>
-        {existingProvisionalCs?.length ? (
+        {provisionalCS?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={existingProvisionalCs?.find(c => c?.url === selectedCodeSystemBase?.value)} />
+            <ExistingCodesTable codeSystem={provisionalCS?.find(c => c?.url === selectedCodeSystemBase?.value)} />
             { can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
             )}

@@ -18,10 +18,6 @@ interface ProvisionalType {
 }
 
 const NoProvisionalData = ({ provisionalType, csExists }: ProvisionalType) => {
-  const router = useRouter()
-
-  const shouldDisableButton = Boolean((provisionalType === 'Value Set') && !csExists)
-
   return (
     <Box sx={{ flexGrow: 1, justifyContent: 'center', flexWrap: 'nowrap', alignItems: 'middle', padding: '2rem', alignSelf: 'stretch' }}>
       <Typography style={{ display: 'block', textAlign: 'center' }}>{ `No Provisional ${provisionalType}s found in VSM` }</Typography>
@@ -34,9 +30,10 @@ const NoProvisionalData = ({ provisionalType, csExists }: ProvisionalType) => {
 interface ProvisionalCS {
   provisionalCS: fhir4.CodeSystem[]
   canEdit: boolean
+  isLoading: boolean
 }
 
-const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit }: ProvisionalCS) => {
+const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit, isLoading }: ProvisionalCS) => {
   const router = useRouter()
   const codeSystemColumns = useMemo(() => {
     const fields = [
@@ -75,6 +72,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit }: ProvisionalCS) 
   }, [provisionalCS])
   return (
     <div>
+      {/* @ts-ignore */}
       <DataTable title='VSM Provisional Code Systems' data={provisionalCS} columns={codeSystemColumns} noDataComponent={<NoProvisionalData provisionalType='Code System'/>}/>
     </div>
   )
@@ -84,11 +82,11 @@ interface ProvisionalVS {
   provisionalVS: fhir4.ValueSet[]
   csExists: boolean
   canEdit: boolean
+  isLoading: boolean
 }
 
-const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit }: ProvisionalVS) => {
+const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading }: ProvisionalVS) => {
   const router = useRouter()
-  const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const columns = useMemo(() => {
     const fields = [
@@ -130,6 +128,8 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit }: Provisi
       <DataTable
         title='VSM Provisional Value Sets'
         data={provisionalVS}
+        loading={isLoading}
+        // @ts-ignore
         columns={columns}
         noDataComponent={<NoProvisionalData
           csExists={csExists}
@@ -141,8 +141,10 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit }: Provisi
 
 
 const ProvisionalResourcesTab = () => {
-  const provisionalVS = useGetProvisionalVS()
-  const provisionalCS = useGetProvisionalCS()
+  const vsData = useGetProvisionalVS()
+  const { provisionalVS, isVsLoading } = vsData
+  const csData = useGetProvisionalCS()
+  const { provisionalCS, isCsLoading } = csData
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const canEdit = can(session, 'edit')
   const router = useRouter()
@@ -152,7 +154,7 @@ const ProvisionalResourcesTab = () => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white' }}>
-            <ProvisionalCodeSystemsTable provisionalCS={provisionalCS} canEdit={canEdit}/>
+            <ProvisionalCodeSystemsTable isLoading={Boolean(isCsLoading)} provisionalCS={provisionalCS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                 <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
@@ -162,7 +164,7 @@ const ProvisionalResourcesTab = () => {
         </Grid>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white'}}>
-            <ProvisionalValueSetsTable csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
+            <ProvisionalValueSetsTable isLoading={Boolean(isVsLoading)} csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                 <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>

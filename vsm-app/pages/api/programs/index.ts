@@ -4,6 +4,7 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { getAllProvisionals } from '../valueset/provisional'
 
 interface Query {
   '_id:contains'?: string
@@ -20,48 +21,19 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-// IP... need for error handling
-const getProgramsByProvisionalLeafUrl = async (leafUrl: string) => {
-  const noCacheOptions = {
-    options: {
-      headers: {
-        'Cache-control': 'no-cache, no-store, must-revalidate'
-      }
-    },
+const getProvisionalsByProgram = async () => {
+  const allProvisionals = await getAllProvisionals()
+
+  // early returns for error states
+  if (allProvisionals.error) {
+    return allProvisionals
+  } else if (allProvisionals.length === 0) {
+    return ({ error: 'No Provisional Value Sets Found'})
   }
 
-  // get all provisional codesystems. These are the clearest to identify
-  // provisional vsm ValueSets don't have specific identifying info so can't start there
-  const provisionalCSBundle = await fhirCdrClient.search({
-    resourceType: 'CodeSystem',
-    searchParams: {
-      version: 'PROVISIONAL',
-      _tag: 'vsm-authored',
-    },
-    ...noCacheOptions
-  })
+  const provisionalUrls = allProvisionals?.map(p => p.url)
 
-  if (!provisionalCSBundle.entry?.length) {
-    return ({ error: `No provisional Code Systems exist in this system` })
-  }
-
-  const cs = provisionalCSBundle.entry.map(e => e?.resource).filter(x => x) as fhir4.CodeSystem[]
-
-  // first, get the provisional value set
-  const provisionalLeafBundle = await fhirCdrClient.search({
-    resourceType: 'ValueSet',
-    searchParams: {
-      url: leafUrl,
-      _tag: 'vsm-authored',
-    },
-    ...noCacheOptions
-  })
-
-  if (!provisionalLeafBundle?.entry?.length) {
-    return ({ error: `No provisional leafs found with url ${leafUrl}` })
-  }
-
-  const leaf = provisionalLeafBundle.entry[0].resource
+  
 
   // next, get (grouper) valuesets that refer to this leaf
   const grouperVSets = await fhirCdrClient.request(
@@ -76,13 +48,13 @@ const getProgramsByProvisionalLeafUrl = async (leafUrl: string) => {
   // make sure the version is an exact match for 'PROVISIONAL' instead of partial match
   // if not, 
 
-  console.log('leaf: ', leaf)
+  // console.log('leaf: ', leaf)
   return
 }
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
-    await getProgramsByProvisionalLeafUrl('http://localhost:8082/fhir/ValueSet/55')
+    await getProvisionalsByProgram()
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
     if (req.query.provisionalLeafUrl) {
