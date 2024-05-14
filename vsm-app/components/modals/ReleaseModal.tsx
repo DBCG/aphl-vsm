@@ -17,11 +17,12 @@ import { getIdFromSystem, namesByUri, searchAvailableUpdates, updateManifest } f
 import { ManifestSystemVersionPair, SelectedManifestDataVersion, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
 import ManifestDescription from '../EditManifestDetails/ManifestDescription'
+import { ReleasePayload } from '@/pages/programs'
 
 interface ModalInfo {
   isOpen: boolean
   handleCancelModal: () => void
-  handleModalAction: Function
+  handleModalAction: (releasePayload: ReleasePayload) => Promise<void>
   loading: boolean
   program: fhir4.Library
   cancellable?: boolean
@@ -317,10 +318,11 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
                     return
                   }
                   handleModalAction({
-                    programId: program.id,
+                    programId: program.id || '',
                     releaseDescription: releaseDescription.trim(),
                     releaseLabel: releaseLabel.trim(),
-                    effectiveStartDate
+                    effectiveStartDate: effectiveStartDate || '',
+                    releaseAsVersion: versionToCheck || ''
                   })
                 }}
               />
