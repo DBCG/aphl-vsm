@@ -509,7 +509,7 @@ public class CaseReportingOperationProvider {
 					// source object if not present in the Diff
 					// Parameters object
 					try {
-						if (originalValue.isEmpty()) {
+						if (originalValue.isEmpty() && !type.equals("insert")) {
 							originalValue = Optional.ofNullable((new PropertyUtilsBean()).getProperty(sourceResource, path.get()));
 						}
 					} catch (Exception e) {
