@@ -65,11 +65,12 @@ interface PaginationState {
   searchTotal: number | null
 }
 
-interface ReleasePayload {
+export interface ReleasePayload {
   programId: string
-  releaseDescription: string
-  releaseLabel: string
+  releaseDescription?: string
+  releaseLabel?: string
   effectiveStartDate: string | Date
+  releaseAsVersion: string
 }
 
 const Programs: NextPage = () => {
@@ -288,7 +289,7 @@ const Programs: NextPage = () => {
 
     const result = await fetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     })
 
     if (!result.ok) {

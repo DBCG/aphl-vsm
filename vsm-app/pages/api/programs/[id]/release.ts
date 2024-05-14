@@ -10,10 +10,11 @@ import {
   setEffectivePeriodStart,
   setReleaseLabel
 } from '@/helpers/libraryHelpers'
+import { ReleasePayload } from '@/pages/programs'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body
+  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body as ReleasePayload
   let program: fhir4.Library | undefined
   try {
     program = (await fhirCdrClient.read({
@@ -49,7 +50,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     return res.status(500).send({ error: 'Error encountered updating Library for release' })
   }
 
-  if (typeof releaseAsVersion === 'string') {
+  if (!!releaseAsVersion) {
     program.version = releaseAsVersion
   }
 
