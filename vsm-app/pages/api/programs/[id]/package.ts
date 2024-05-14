@@ -4,6 +4,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import logger from '@/helpers/server/logger'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
+import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
 export interface ExpectedPackageBody {
   data?: {
@@ -88,13 +89,13 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
       if (v1Errors.length) {
         return res.status(500).send({ error: v1Errors.map(e => e.diagnostics!) })
       }
-      res.send(v1Response)
+      res.send(sanitizeExport(v1Response))
     } else {
       const v2Errors = formatErrors(response)
       if (v2Errors.length) {
         return res.status(500).send({ error: v2Errors.map(e => e.diagnostics!) })
       }
-      res.send(response)
+      res.send(sanitizeExport(response))
     }
   } catch (error: any) {
     logSimpleError(error)
