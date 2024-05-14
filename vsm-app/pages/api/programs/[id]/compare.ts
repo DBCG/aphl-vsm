@@ -66,7 +66,7 @@ const autosortTable = (table, tableRows, sheet) => {
 }
 
 const changeLogDiffOperation = async (sourceId, targetId) => {
-  const changeJson = await fhirCdrClient.operation({
+  const changeJson = (await fhirCdrClient.operation({
     name: '$create-changelog',
     input: JSON.stringify({
       resourceType: 'Parameters',
@@ -96,9 +96,8 @@ const changeLogDiffOperation = async (sourceId, targetId) => {
         ...fhirCdrClient.customHeaders
       }
     }
-  })
-
-  return changeJson
+  })) as fhir4.Binary
+  return atob(changeJson.data!)
 }
 
 const extractConditions = (rootLibraryChangeDiff: any) => {
@@ -129,7 +128,7 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
 }
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const changeJson = changeLogDiffOperation(req.query.id, req.query.targetId)
+  const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id, req.query.targetId))
 
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'APHL VSM'
@@ -361,7 +360,7 @@ const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Pr
         _elements: 'version'
       }
     })) as fhir4.Bundle
-    
+
     const libs =
       payload?.entry
         ?.map((entry) => entry.resource)
