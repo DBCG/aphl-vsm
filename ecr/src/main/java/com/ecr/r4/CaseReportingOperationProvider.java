@@ -27,6 +27,7 @@ import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.hl7.fhir.common.hapi.validation.support.CommonCodeSystemsTerminologyService;
 import org.hl7.fhir.common.hapi.validation.support.InMemoryTerminologyServerValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.NpmPackageValidationSupport;
+import org.hl7.fhir.common.hapi.validation.support.SnapshotGeneratingValidationSupport;
 import org.hl7.fhir.common.hapi.validation.support.ValidationSupportChain;
 import org.hl7.fhir.common.hapi.validation.validator.FhirInstanceValidator;
 import org.hl7.fhir.exceptions.FHIRException;
@@ -365,25 +366,32 @@ public class CaseReportingOperationProvider {
 		if (resource == null) {
 			throw new UnprocessableEntityException("A FHIR resource must be provided for validation");
 		}
-		var ctx = fhirContext;
-		if (ctx != null) {
+		if (fhirContext != null) {
 			var fhirValidator = ctx.newValidator();
 			fhirValidator.setValidateAgainstStandardSchema(false);
 			fhirValidator.setValidateAgainstStandardSchematron(false);
-			var npm = new NpmPackageValidationSupport(ctx);
+			var npm = new NpmPackageValidationSupport(fhirContext);
 			try {
 				npm.loadPackageFromClasspath("classpath:hl7.fhir.us.ecr-2.1.0.tgz");
 			} catch (IOException e) {
 				throw new InternalErrorException("Could not load package");
 			}
+			var vsmIG = new NpmPackageValidationSupport(fhirContext);
+			try {
+				npm.loadPackageFromClasspath("classpath:aphl.fhir.vsm-0.0.1.tgz");
+			} catch (IOException e) {
+				throw new InternalErrorException("Could not load package");
+			}
 			var chain = new ValidationSupportChain(
 				npm,
-				new DefaultProfileValidationSupport(ctx),
-				new InMemoryTerminologyServerValidationSupport(ctx),
-				new CommonCodeSystemsTerminologyService(ctx)
+				vsmIG,
+				new DefaultProfileValidationSupport(fhirContext),
+				new InMemoryTerminologyServerValidationSupport(fhirContext),
+				new CommonCodeSystemsTerminologyService(fhirContext),
+				new SnapshotGeneratingValidationSupport(fhirContext)
 			);
 			var instanceValidatorModule = new FhirInstanceValidator(chain);
-			instanceValidatorModule.setValidatorResourceFetcher(new ValidatorResourceFetcher(ctx, chain, daoRegistry));
+			instanceValidatorModule.setValidatorResourceFetcher(new ValidatorResourceFetcher(fhirContext, chain, daoRegistry));
 			fhirValidator.registerValidatorModule(instanceValidatorModule);
 			return (OperationOutcome) fhirValidator.validateWithResult(resource, null).toOperationOutcome();
 		} else {
