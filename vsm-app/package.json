@@ -10,6 +10,9 @@
     "test-ci": "jest --ci",
     "lint": "next lint"
   },
+  "resolutions": {
+    "resolve": "^1.22.8"
+  },
   "dependencies": {
     "@emotion/react": "11.11.1",
     "@emotion/server": "^11.10.0",
