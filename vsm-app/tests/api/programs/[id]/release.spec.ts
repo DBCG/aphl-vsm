@@ -23,25 +23,19 @@ describe('/api/programs/[id]/release', () => {
       },
       body: {
         releaseAsVersion: '2.2.2',
-        program: {
-          id: 'SpecificationLibrary',
-          name: 'Test Program',
-          extension: [
-            {
-              url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
-              valueString: 'ReleaseV2.2.2'
-            },
-            {
-              url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
-              valueMarkdown: 'Release Description'
-            }
-          ],
-          version: '1.0.0',
-          description: 'Test Program Description'
-        }
+        releaseDescription: 'Release Description',
+        releaseLabel: 'ReleaseV2.2.2',
+        effectiveStartDate: '2022-01-01'
       }
     })
 
+    fhirCdrClient.read = jest.fn().mockResolvedValue({
+      id: 'SpecificationLibrary',
+      name: 'Test Program',
+      extension: [],
+      version: '1.0.0',
+      description: 'Test Program Description'
+    })
     fhirCdrClient.update = jest.fn().mockResolvedValue({})
     fhirCdrClient.operation = jest.fn().mockResolvedValue({})
 
@@ -54,14 +48,17 @@ describe('/api/programs/[id]/release', () => {
       body: {
         id: 'SpecificationLibrary',
         name: 'Test Program',
+        effectivePeriod: {
+          start: '2022-01-01'
+        },
         extension: [
-          {
-            url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
-            valueString: 'ReleaseV2.2.2'
-          },
           {
             url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
             valueMarkdown: 'Release Description'
+          },
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
+            valueString: 'ReleaseV2.2.2'
           }
         ],
         version: '2.2.2',
@@ -101,16 +98,19 @@ describe('/api/programs/[id]/release', () => {
       },
       body: {
         releaseAsVersion: '2.2.2',
-        program: {
-          id: 'SpecificationLibrary',
-          name: 'Test Program',
-          extension: [],
-          version: '1.0.0',
-          description: 'Test Program Description'
-        }
+        releaseDescription: undefined,
+        releaseLabel: undefined,
+        effectiveStartDate: '2022-01-01'
       }
     })
 
+    fhirCdrClient.read = jest.fn().mockResolvedValue({
+      id: 'SpecificationLibrary',
+      name: 'Test Program',
+      extension: [],
+      version: '1.0.0',
+      description: 'Test Program Description'
+    })
     fhirCdrClient.update = jest.fn().mockResolvedValue({})
     fhirCdrClient.operation = jest.fn().mockResolvedValue({})
 
@@ -131,25 +131,19 @@ describe('/api/programs/[id]/release', () => {
       },
       body: {
         releaseAsVersion: '2.2.2',
-        program: {
-          id: 'SpecificationLibrary',
-          name: 'Test Program',
-          extension: [
-            {
-              url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
-              valueString: 'ReleaseV2.2.2'
-            },
-            {
-              url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription',
-              valueMarkdown: 'Release Description'
-            }
-          ],
-          version: '1.0.0',
-          description: 'Test Program Description'
-        }
+        releaseDescription: 'Release Description',
+        releaseLabel: 'ReleaseV2.2.2',
+        effectiveStartDate: '2022-01-01'
       }
     })
 
+    fhirCdrClient.read = jest.fn().mockResolvedValue({
+      id: 'SpecificationLibrary',
+      name: 'Test Program',
+      extension: [],
+      version: '1.0.0',
+      description: 'Test Program Description'
+    })
     fhirCdrClient.update = jest.fn().mockRejectedValue({})
 
     await handler(req, res)

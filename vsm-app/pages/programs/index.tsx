@@ -65,13 +65,19 @@ interface PaginationState {
   searchTotal: number | null
 }
 
+export interface ReleasePayload {
+  programId: string
+  releaseDescription?: string
+  releaseLabel?: string
+  effectiveStartDate: string | Date
+  releaseAsVersion: string
+}
+
 const Programs: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const [loading, setLoading] = useState(false)
-  const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [versionToRelease, setVersionToRelease] = useState<null | string | undefined>(null)
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
 
@@ -91,7 +97,7 @@ const Programs: NextPage = () => {
     {
       url: '/api/programs',
       args: {
-        list: true, // use this so on the server side we don't need to load all details of the program
+        list: true, // use this query param so on the server side we don't need to load all details of the program
         offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : null,
         count: pagination?.countPerPage
       }
@@ -260,7 +266,7 @@ const Programs: NextPage = () => {
                 setError({})
                 setProgramToRelease(row)
               }}
-              buttoncontext={programToPublish?.approvalDate ? `release-${row.status}` : `mustApproveRelease-${row.status}`}
+              buttoncontext={`mustApproveRelease-${row.status}`}
             />
           </ButtonWrapper>
         )
@@ -270,38 +276,22 @@ const Programs: NextPage = () => {
   )
 
   const handleCancelModal = () => {
-    setProgramToPublish(null)
     setProgramToRelease(null)
-    setVersionToRelease(null)
   }
 
-  const handleModalAction = async (actionType: 'release' | 'publish', program: fhir4.Library) => {
-    let result
-    let endpoint = ''
-    let reqBody
+  const handleModalAction = async (payload: ReleasePayload) => {
     setLoading(true)
+    const endpoint = `/api/programs/${payload.programId}/release`
 
-    if (actionType === 'release') {
-      endpoint = `/api/programs/${program.id}/release`
-      reqBody = {
-        releaseAsVersion: versionToRelease,
-        program
-      }
-    } else {
-      // TODO: remove, We don't do publishing
-      // endpoint = `/api/programs/${program.id}/publish`
-      // reqBody = program
-    }
-
-    result = await fetch(endpoint, {
+    const result = await fetch(endpoint, {
       method: 'POST',
-      body: JSON.stringify(reqBody)
+      body: JSON.stringify(payload)
     })
 
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${
+        error: `Error occurred while releasing program: ${payload.programId}. ${
           res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
         }`
       })
@@ -310,9 +300,7 @@ const Programs: NextPage = () => {
     }
 
     setLoading(false)
-    setProgramToPublish(null)
     setProgramToRelease(null)
-    setVersionToRelease(null)
   }
 
   if (!data) return <LoadingIndicator />
@@ -343,7 +331,6 @@ const Programs: NextPage = () => {
           handleCancelModal={handleCancelModal}
           handleModalAction={handleModalAction}
           program={programToRelease}
-          updateVersion={setVersionToRelease}
           setProgramToRelease={setProgramToRelease}
         />
       )}
