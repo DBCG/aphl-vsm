@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
-import { toast } from 'react-toastify'
 import { fetcher } from '@/utils'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
@@ -10,10 +9,9 @@ import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
 import { SearchInput } from '../SearchInput'
 import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
-import { useGetPrograms } from '@/hooks/useGetPrograms'
 import ManifestDetailTable from '../ManifestDetailTable'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
-import { getIdFromSystem, namesByUri, searchAvailableUpdates, updateManifest } from '@/components/EditManifestDetails/manifestHelpers'
+import { getIdFromSystem, searchAvailableUpdates, updateManifest } from '@/components/EditManifestDetails/manifestHelpers'
 import { ManifestSystemVersionPair, SelectedManifestDataVersion, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
 import ManifestDescription from '../EditManifestDetails/ManifestDescription'
@@ -26,7 +24,6 @@ interface ModalInfo {
   loading: boolean
   program: fhir4.Library
   cancellable?: boolean
-  updateVersion?: Dispatch<SetStateAction<string | null | undefined>>
   setProgramToRelease: Dispatch<SetStateAction<fhir4.Library | null>>
 }
 
@@ -48,8 +45,8 @@ const modalText = {
   )
 }
 
-const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, handleModalAction, program, updateVersion }: ModalInfo) => {
-  const { title, text, actionText, modalLoadingText } = modalText
+const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, program }: ModalInfo) => {
+  const { title, text, actionText } = modalText
   const [releaseDescription, setReleaseDescription] = useState(getReleaseDescription(program))
   const [releaseLabel, setReleaseLabel] = useState(getReleaseLabel(program))
   const [effectiveStartDate, setEffectiveStartDate] = useState<string | undefined>(program?.effectivePeriod?.start)
@@ -58,17 +55,17 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
   const [activeStep, setActiveStep] = useState(0)
   const [stepsCompleted, setStepsCompleted] = useState([false, false])
   const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>({})
-  const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
-  const [systemNamesByUri, setSystemNamesByUri] = useState({})
-  const [pageLoading, setPageLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [availableUpdates, setAvailableUpdates] = useState([])
-  const matches = useGetPrograms({ version: versionToCheck })
-  const {
-    data: systemAndVersionData = [],
-    isLoading,
-    error
-  } = useSWR(`/api/programs/${program?.id}/manifest`, fetcher, { revalidateOnFocus: false })
+  const { data: matches = [] } = useSWR(
+    versionToCheck && isValidSimpleSemver(versionToCheck) ? `/api/programs?version=${versionToCheck}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  )
+
+  const { data: systemAndVersionData = [], isLoading } = useSWR(`/api/programs/${program?.id}/manifest`, fetcher, {
+    revalidateOnFocus: false
+  })
 
   const hasFormError = () => {
     return Boolean(releaseDescription.length === 0 || releaseLabel.length === 0 || !validStartDate(effectiveStartDate) || versionError)
@@ -133,56 +130,36 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
     setActiveStep(0)
   }
 
-  const checkForVersionErrors = () => {
-    const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
-    const shouldShowVersionError =
-      versionFormatErrorExists || (typeof versionToCheck === 'string' && versionToCheck.trim() === '') || !versionToCheck
-    if (shouldShowVersionError) {
-      setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0.0 are valid')
-    } else if (matches.length) {
-      setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
-    } else {
-      setVersionError(undefined)
-    }
-  }
-
   useEffect(() => {
+    const checkForVersionErrors = () => {
+      const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
+      const shouldShowVersionError =
+        versionFormatErrorExists || (typeof versionToCheck === 'string' && versionToCheck.trim() === '') || !versionToCheck
+      if (shouldShowVersionError) {
+        setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0.0 are valid')
+      } else if (matches.length) {
+        setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
+      } else {
+        setVersionError(undefined)
+      }
+    }
+
     checkForVersionErrors()
   }, [versionToCheck, matches])
 
-  // also check on initial load
-  useEffect(() => {
-    checkForVersionErrors()
-  }, [])
-
-  const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
-
   useEffect(() => {
     // Initializes the current selected data
-    if (manifestData && Object.keys(manifestData).length !== 0 && systemAndVersionData.length) {
-      setCurrentSelectedData(manifestData)
-      searchAvailableUpdates({
-        programId: program?.id as string,
-        currentSelectedData: manifestData,
-        systemAndVersionData,
-        setAvailableUpdates,
-        setIsUpdating
-      })
-    }
-  }, [program?.id, manifestData, systemAndVersionData])
-
-  useEffect(() => {
-    // Initializes the available CodeSystem Options from VSAC
-    if (systemAndVersionData.length > 0) {
-      setSystemSelections(systemAndVersionData)
-      const sysNamesByUri = namesByUri(systemAndVersionData)
-
-      setSystemNamesByUri(sysNamesByUri)
-    } else if (error) {
-      toast.error('Error retrieving Code System data from VSAC')
-    }
-    setPageLoading(isLoading)
-  }, [isLoading, systemAndVersionData, error])
+    const manifestData = getProgramManifestVersions(program)
+    setCurrentSelectedData(manifestData)
+    searchAvailableUpdates({
+      programId: program?.id as string,
+      currentSelectedData: manifestData,
+      systemAndVersionData,
+      setAvailableUpdates,
+      setIsUpdating,
+      disableNotifications: true
+    })
+  }, [])
 
   if (!isOpen || !program) return null
 
@@ -202,7 +179,6 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
               onChange={(e) => {
                 setVersionError(undefined)
                 setVersionToCheck(e?.target?.value)
-                updateVersion!(e?.target?.value)
               }}
               defaultValue={defaultVersion}
               helperMessage={'This version must be in 3 or 4-digit semantic versioning format. Example: 3.0.2 or 10.1.2.3'}
@@ -256,7 +232,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, cancellable = true, 
             customStyles={customTableStyles('readonly')}
             data={currentSelectedData}
             availableUpdates={availableUpdates}
-            loading={manifestData == null}
+            loading={currentSelectedData == null}
             updateFn={(version: string, system: string) => {
               const targetedVsIndex = availableUpdates.findIndex((i: ManifestSystemVersionPair) => i.system === system)
               const targetedVs = availableUpdates[targetedVsIndex] as ManifestSystemVersionPair
