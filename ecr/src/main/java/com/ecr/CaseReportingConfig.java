@@ -44,12 +44,6 @@ public class CaseReportingConfig {
 
 	@Bean
 	@Conditional(OnR4Condition.class)
-	public TerminologyServerClient r4TerminologyClientProvider() {
-		return new TerminologyServerClient();
-	}
-
-	@Bean
-	@Conditional(OnR4Condition.class)
 	public ValueSetSynonymUpdateInterceptor valueSetInterceptor(IRepositoryFactory repositoryFactory) {
 		return new ValueSetSynonymUpdateInterceptor(this.caseReportingProperties().getRckmsSynonymsUrl(), repositoryFactory);
 	}

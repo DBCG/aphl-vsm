@@ -37,6 +37,7 @@ import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
 import org.opencds.cqf.fhir.api.Repository;
 import org.opencds.cqf.fhir.utility.Canonicals;
+import org.opencds.cqf.fhir.utility.EndpointCredentials;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactApproveVisitor;
@@ -283,7 +284,7 @@ public class CaseReportingOperationProvider {
 		@OperationParam(name = "count", typeName = "Integer") IPrimitiveType<Integer> count,
 		@OperationParam(name = "packageOnly", typeName = "Boolean") IPrimitiveType<Boolean> packageOnly,
 		@OperationParam(name = "artifactEndpointConfiguration") Parameters.ParametersParameterComponent artifactEndpointConfiguration,
-		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
+		@OperationParam(name = "terminologyEndpoint") EndpointCredentials terminologyEndpoint
 	) throws FHIRException {
 		var repository = repositoryFactory.create(requestDetails);
 		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
@@ -296,6 +297,9 @@ public class CaseReportingOperationProvider {
 		}
 		if (artifactEndpointConfiguration != null) {
 			params.addParameter().setName("artifactEndpointConfiguration").addPart(artifactEndpointConfiguration);
+		}
+		if (terminologyEndpoint != null) {
+			params.addParameter().setName("terminologyEndpoint").setResource(terminologyEndpoint);
 		}
 		if (offset != null && offset.hasValue()) {
 			params.addParameter("offset", new IntegerType(offset.getValue()));

@@ -39,8 +39,7 @@ import java.util.stream.Stream;
 @Configurable
 // TODO: This belongs in the Evaluator. Only included in Ruler at dev time for shorter cycle.
 public class KnowledgeArtifactProcessor {
-	@Autowired
-	private TerminologyServerClient terminologyServerClient;
+
 	private Logger myLog = LoggerFactory.getLogger(KnowledgeArtifactProcessor.class);
 	public static final String CPG_INFERENCEEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-inferenceExpression";
 	public static final String CPG_ASSERTIONEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-assertionExpression";
@@ -357,90 +356,6 @@ public class KnowledgeArtifactProcessor {
 			vset.setExpansion(e.getExpansion().copy());
 			return;
 		}
-	}
-
-	public void expandValueSet(ValueSet valueSet, Parameters expansionParameters) {
-		// Gather the Terminology Service from the valueSet's authoritativeSourceUrl.
-		Extension authoritativeSource = valueSet.getExtensionByUrl(authoritativeSourceUrl);
-		String authoritativeSourceUrl = authoritativeSource != null && authoritativeSource.hasValue()
-			? authoritativeSource.getValue().primitiveValue()
-			: valueSet.getUrl();
-
-		// TODO: Given the authoritativeSourceUrl, lookup Tx Service connection configuration - is this possible? Problem is we can't reliably infer Tx Service from authSource
-//		terminologyServerClient.setUsername(config.getUsername(authoritativeSourceUrl));
-//		terminologyServerClient.setApiKey(config.getApiKey(authoritativeSourceUrl));
-
-		ValueSet expandedValueSet;
-		if (isVSMAuthoredValueSet(valueSet) && hasSimpleCompose(valueSet)) {
-			// Perform naive expansion independent of terminology servers. Copy all codes from compose into expansion.
-			ValueSetExpansionComponent expansion = new ValueSetExpansionComponent();
-			expansion.setTimestamp(Date.from(Instant.now()));
-
-			ArrayList<ValueSet.ValueSetExpansionParameterComponent> expansionParams = new ArrayList<>();
-			ValueSet.ValueSetExpansionParameterComponent parameterNaive = new ValueSet.ValueSetExpansionParameterComponent();
-			parameterNaive.setName("naive");
-			parameterNaive.setValue(new BooleanType(true));
-			expansionParams.add(parameterNaive);
-			expansion.setParameter(expansionParams);
-
-			for (ConceptSetComponent csc : valueSet.getCompose().getInclude()) {
-				for (ValueSet.ConceptReferenceComponent crc : csc.getConcept()) {
-					expansion.addContains()
-						.setCode(crc.getCode())
-						.setSystem(csc.getSystem())
-						.setVersion(csc.getVersion())
-						.setDisplay(crc.getDisplay());
-				}
-			}
-			valueSet.setExpansion(expansion);
-		} else {
-			try {
-				expandedValueSet = terminologyServerClient.expand(valueSet, authoritativeSourceUrl, expansionParameters);
-				valueSet.setExpansion(expandedValueSet.getExpansion());
-			} catch (Exception ex) {
-				myLog.warn("Terminology Server expansion failed: {}", valueSet.getIdElement().getValue(), ex);
-			}
-		}
-	}
-
-	public boolean isVSMAuthoredValueSet(ValueSet valueSet) {
-		return valueSet.hasMeta()
-			&& valueSet.getMeta().hasTag()
-			&& valueSet.getMeta().getTag(vsmValueSetTagCodeSystemUrl, vsmValueSetTagVSMAuthoredCode) != null;
-	}
-
-	public boolean hasSimpleCompose(ValueSet valueSet) {
-		if (valueSet.hasCompose()) {
-			if (valueSet.getCompose().hasExclude()) {
-				return false;
-			}
-			for (ConceptSetComponent csc : valueSet.getCompose().getInclude()) {
-				if (csc.hasValueSet()) {
-					// Cannot expand a compose that references a value set
-					return false;
-				}
-
-				if (!csc.hasSystem()) {
-					// Cannot expand a compose that does not have a system
-					return false;
-				}
-
-				if (csc.hasFilter()) {
-					// Cannot expand a compose that has a filter
-					return false;
-				}
-
-				if (!csc.hasConcept()) {
-					// Cannot expand a compose that does not enumerate concepts
-					return false;
-				}
-			}
-
-			// If all includes are simple, the compose can be expanded
-			return true;
-		}
-
-		return false;
 	}
 
 	public static class diffCache {
