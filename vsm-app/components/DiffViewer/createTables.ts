@@ -1,7 +1,7 @@
 import { get, uniq } from 'lodash'
 
 const rootLibDataPaths = {
-  'id': {
+  id: {
     old: [
       'oldData.id.value',
       'newData.id.operation.oldValue'
@@ -11,7 +11,7 @@ const rootLibDataPaths = {
       'oldData.id.operation.newValue'
     ]
   },
-  'name': {
+  name: {
     old: [
       'oldData.name.value',
       'newData.name.operation.oldValue'
@@ -21,7 +21,7 @@ const rootLibDataPaths = {
       'oldData.name.operation.newValue' 
     ]
   },
-  'version': {
+  version: {
     old: [
       'oldData.version.value',
       'newData.version.operation.oldValue'
@@ -31,7 +31,7 @@ const rootLibDataPaths = {
       'oldData.version.operation.newValue'
     ]
   },
-  'purpose': {
+  purpose: {
     old: [
       'oldData.purpose.value',
       'newData.purpose.operation.oldValue'
@@ -41,7 +41,7 @@ const rootLibDataPaths = {
       'oldData.purpose.operation.newValue'
     ]
   },
-  'effective start': {
+  effectiveStart: {
     old: [
       'oldData.effectiveStart.value',
       'newData.effectiveStart.operation.oldValue'
@@ -51,7 +51,7 @@ const rootLibDataPaths = {
       'oldData.effectiveStart.operation.newValue'
     ]
   },
-  'release date': {
+  releaseDate: {
     old: [
       'oldData.releaseDate.value',
       'newData.releaseDate.operation.oldValue'
@@ -75,12 +75,12 @@ const getValue = (path, oldData, newData) => {
 
 const generateRootTableData = (oldData, newData) => {
   const result = {
-    'id': ['', ''],
-    'name': ['', ''],
-    'version': ['', ''],
-    'purpose': ['', ''],
-    'effective start': ['', ''],
-    'release date': ['', '']
+    id: ['', ''],
+    name: ['', ''],
+    version: ['', ''],
+    purpose: ['', ''],
+    effectiveStart: ['', ''],
+    releaseDate: ['', '']
   }
 
   const colTitles = Object.keys(rootLibDataPaths)
@@ -109,17 +109,17 @@ const generateGrouperMetadata = (grouperPage) => {
   const newData = grouperPage.newData
 
   const paths = {
-    'id': 'id.value',
-    'title': 'title.value',
-    'version': 'version.value',
-    'code systems': 'codes'
+    id: 'id.value',
+    title: 'title.value',
+    version: 'version.value',
+    codeSystems: 'codes'
   }
 
   const grouperMetadata = () => {
     let result = {}
     const keys = Object.keys(paths)
     keys.forEach(k => {
-      if (k === 'code systems') {
+      if (k === 'codeSystems') {
         const uniqueSystems = Array.from(new Set(newData.codes
           .filter(c => c?.operation !== 'delete')
           .map(i => i.system)))
@@ -152,24 +152,57 @@ const generateMainChangeText = (grouperListItem) => {
   }
 }
 
+// conditions can be added, removed, or updated
+// could be updates to code, text, system
+// might need to combine multiple "replace" fields
 const generateConditionUpdates = (conditionsList) => {
   return conditionsList.map(li => {
+    // if an operation occurred at all, return details
     if(li.operation) {
-      // insert, also handle text field
-      if (li.operation.type === 'replace' && li.operation.path.endsWith('code')) {
+      // insert, also handle text field... thi
+      if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
         return ({
-          'condition name': '', // isn't currently being passed through...
-          'code system version': '', // same here
-          'condition code': '',
-          'condition system': '',
+          operation: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
+          conditionName: '', // isn't currently being passed through...
+          codeSystemVersion: '', // same here
+          conditionCode: li.code,
+          conditionSystem: li.system,
+        })
+      } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
+        return ({
+          operation: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
+          conditionName: '', // isn't currently being passed through...
+          codeSystemVersion: '', // same here
+          conditionCode: li.code,
+          conditionSystem: li.system,
+        })
+      }  else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
+        return ({
+          operation: 'Add condition',
+          conditionName: li?.operation?.newValue?.text, // is the text field, not name...
+          codeSystemVersion: '', // same here
+          conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
+          conditionSystem: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.system,
+        })
+      } else if (li.operation.type === 'delete') {
+        const splitIndex = li.operation.path.lastIndexOf('.')
+        const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
+        return ({
+          operation: `Delete field: ${itemToDelete}`,
+          conditionName: '', // isn't currently being passed through...
+          codeSystemVersion: '', // same here
+          conditionCode: li.code,
+          conditionSystem: li.system,
         })
       }
+    // if no operation occurred, just return condition info
     } else {
       return ({
-        'condition system': li.system,
-        'condition code': li.code,
-        'condition name': '', //
-        'code system version': '' //
+        operation: undefined,
+        conditionName: '', //
+        codeSystemVersion: '', //
+        conditionSystem: li.system,
+        conditionCode: li.code
       })
     }
   })
@@ -181,15 +214,26 @@ const generateConditionUpdates = (conditionsList) => {
 // need status for code system (e.g. published?)
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage) => {
-  const fieldsToGenerate = [
-    'change', 'title', 'oid', 'code system', 'code system oid',
-    'code system status', 'condition name'
-  ]
-
   const newData = grouperPage.newData.grouperList.map(gi => ({
-    'oid': gi.memberOid,
-    'change': generateMainChangeText(gi),
-    'conditionUpdates': []
+    // 'priority': need grouper priority!
+    oid: gi.memberOid,
+    change: generateMainChangeText(gi),
+    conditionUpdates: generateConditionUpdates(gi.conditions)
+  }))
+  console.log('new data: ', newData)
+  return newData
+}
+
+const generateCodeChangesTable = (grouperPage) => {
+
+  const newData = grouperPage.newData.codes.map(ci => ({
+    change: ci?.operation?.type,
+    oid: ci?.memberOid,
+    code: ci?.code,
+    descriptor: ci?.display,
+    codeSystem: ci?.system,
+    codeSystemVersion: ci?.version // undefined for now?
+
   }))
   console.log('new data: ', newData)
   return newData
@@ -198,7 +242,8 @@ const generateGrouperValueSetTable = (grouperPage) => {
 const generateGrouperPages = (allGrouperPages) => {
   const res = allGrouperPages.map(grp => ({
     metadata: generateGrouperMetadata(grp),
-    valueSetsTable: generateGrouperValueSetTable(grp)
+    valueSetsTable: generateGrouperValueSetTable(grp),
+    codeSystemsTable: generateCodeChangesTable(grp)
   }))
   console.log('res: ', res)
   return res
@@ -212,7 +257,7 @@ export const createTableData = (diffData) => {
   console.log('all groupers: ', allGrouperPages)
   const grouperPageData = generateGrouperPages(allGrouperPages)
 
-  console.log('grouper page data: ', grouperPageData)
+  console.log('grouper page data: ', JSON.stringify(grouperPageData))
   return ({
     rootLibrary: generateRootTableData(oldRootData, newRootData),
     grouperPages: grouperPageData
