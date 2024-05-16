@@ -367,7 +367,7 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("A FHIR resource must be provided for validation");
 		}
 		if (fhirContext != null) {
-			var fhirValidator = ctx.newValidator();
+			var fhirValidator = fhirContext.newValidator();
 			fhirValidator.setValidateAgainstStandardSchema(false);
 			fhirValidator.setValidateAgainstStandardSchematron(false);
 			var npm = new NpmPackageValidationSupport(fhirContext);

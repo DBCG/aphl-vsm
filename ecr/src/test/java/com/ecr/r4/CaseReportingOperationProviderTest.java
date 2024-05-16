@@ -912,9 +912,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			artifactAssessmentType,
 			artifactAssessmentSummary,
 			specificationLibReference,
-			artifactAssessmentReference,
+			artifactAssessmentRelatedArtifact,
 			artifactAssessmentTarget,
-			artifactAssessmentUser
+			artifactAssessmentAuthor
 		));
 	}
 
