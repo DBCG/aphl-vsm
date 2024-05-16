@@ -236,23 +236,6 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
     }
   ]
 
-  const grouperUseContext = {
-                                "code": {
-                                    "system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-                                    "code": "grouper-type"
-                                },
-                                "valueCodeableConcept": {
-                                    "coding": [
-                                        {
-                                            "system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-                                            "code": "model-grouper"
-                                        }
-                                    ],
-                                    "text": "Model Grouper"
-                                }
-                            }
-   vs.useContext?.push(grouperUseContext)
-
   return vs
 }
 
