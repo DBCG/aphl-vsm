@@ -3,7 +3,10 @@ import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
-import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
+import {
+  CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem,
+  generateProvisionalVs, updateCsCodes, updateVsMetadata
+} from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
@@ -110,8 +113,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         }
       })
 
-      console.log(1);
-      
       if (existingCS.entry) {
         // edit existing codeSystem
         codeSystemToEdit = existingCS.entry[0].resource
@@ -138,7 +139,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         resourcesToSaveFirst.push({ resource: codeSystemToEdit, method: 'POST' })
       }
     }
-    console.log(3);
+
     let provisionalLeaf = {} as fhir4.ValueSet
     if (provisionalVsIdForUpdate) {
       // provisional vs already exists, get it from server
@@ -163,7 +164,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }) as fhir4.ValueSet
 
     }
-    console.log(4);
+
   resourcesToSaveFirst.push({ method: provisionalVsIdForUpdate ? 'PUT' : 'POST', existingId: provisionalVsIdForUpdate, resource: provisionalLeaf as fhir4.ValueSet })
   
   const transactionBody = transactionBuilder(resourcesToSaveFirst)
@@ -175,7 +176,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   if (is.operationOutcome(codeSysAndLeaf)) {
     return res.status(400).json({ error: 'Failed to create/update CodeSystem and ValueSet' })
   }
-  console.log(5);
+
   const provisionalLeafId = codeSysAndLeaf.entry.map((e: any) => e.response.location)
     .filter((loc: string) => loc.includes('ValueSet/'))[0]
     .split('/')[1]

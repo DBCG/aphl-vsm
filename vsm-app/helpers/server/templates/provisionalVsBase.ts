@@ -11,6 +11,10 @@ export const provisionalVsBase = {
       {
         system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
         code: 'vsm-authored'
+      },
+      {
+        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+        code: 'vsm-provisional'
       }
     ]
   },

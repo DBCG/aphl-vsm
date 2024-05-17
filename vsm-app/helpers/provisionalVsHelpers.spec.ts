@@ -64,8 +64,8 @@ const TEST_CODES_TO_ADD = {
 
 const TEST_CODES_FOR_REMOVE = {
   'www.system.com': [
-    { code: 'abc', display: 'display does not matter' },
-    { code: 'new-code', display: 'a brand new code' }
+    { code: 'abc', definition: 'test', display: 'display does not matter' },
+    { code: 'new-code', definition: 'test2', display: 'a brand new code' }
   ]
 }
 
@@ -278,7 +278,7 @@ describe('generateProvisionalVs', () => {
       stewardToUpdate
     })
 
-    expect(result?.extension).toHaveLength(4)
+    expect(result?.extension).toHaveLength(3)
     // existing base provisional resource info should exist
     expect(result?.resourceType).toBe('ValueSet')
     expect(result?.status).toBe('draft')
@@ -414,7 +414,44 @@ describe('generateProvisionalVs', () => {
 
     const result = createProvisionalCodeSystem({
       systemBaseUrl: 'www.test.com',
-      codeItems: testCodeItems
+      codeItems: testCodeItems,
+      name: 'test'
     })
+
+    expect(result).toStrictEqual(
+      {
+        resourceType: 'CodeSystem',
+        meta: {
+          tag: [
+            {
+              system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+              code: 'vsm-authored'
+            },
+            {
+              system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+              code: 'vsm-provisional'
+            }
+          ]
+        },
+        version: 'PROVISIONAL',
+        status: 'draft',
+        experimental: true,
+        content: 'complete',
+        url: 'www.test.com',
+        name: 'test',
+        concept: [
+          {
+            code: 'code1',
+            display: 'code 1',
+            definition: 'code 1 definition'
+          },
+          {
+            code: 'code2',
+            display: 'code 2',
+            definition: 'code 2 definition'
+          }
+        ]
+      }
+    )
   })
 })
