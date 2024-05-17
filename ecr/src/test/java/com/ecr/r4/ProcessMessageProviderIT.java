@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
-		CaseReportingConfig.class }, properties = { "hapi.fhir.fhir_version=r4", "hapi.fhir.cr.enabled=true", })
+		CaseReportingConfig.class }, properties = { "hapi.fhir.fhir_version=r4", "hapi.fhir.casereporting.enabled=true", })
 class ProcessMessageProviderIT extends RestIntegrationTest {
 	@Test
 	void testProcessMessage() {
