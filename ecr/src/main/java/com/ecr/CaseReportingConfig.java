@@ -42,11 +42,11 @@ public class CaseReportingConfig {
 		return new KnowledgeArtifactProcessor();
 	}
 
-	@Bean
-	@Conditional(OnR4Condition.class)
-	public ValueSetSynonymUpdateInterceptor valueSetInterceptor(IRepositoryFactory repositoryFactory) {
-		return new ValueSetSynonymUpdateInterceptor(this.caseReportingProperties().getRckmsSynonymsUrl(), repositoryFactory);
-	}
+	// @Bean
+	// @Conditional(OnR4Condition.class)
+	// public ValueSetSynonymUpdateInterceptor valueSetInterceptor(IRepositoryFactory repositoryFactory) {
+	// 	return new ValueSetSynonymUpdateInterceptor(this.caseReportingProperties().getRckmsSynonymsUrl(), repositoryFactory);
+	// }
 
 	@Bean
 	CaseReportingProviderLoader caseReportingProviderLoader(FhirContext theFhirContext, ResourceProviderFactory theResourceProviderFactory) {

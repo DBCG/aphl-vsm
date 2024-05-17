@@ -7,6 +7,7 @@ import ca.uhn.fhir.cr.common.IRepositoryFactory;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoValueSet;
 import ca.uhn.fhir.jpa.validation.ValidatorResourceFetcher;
+import ca.uhn.fhir.model.api.annotation.Child;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -37,7 +38,6 @@ import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
 import org.opencds.cqf.fhir.api.Repository;
 import org.opencds.cqf.fhir.utility.Canonicals;
-import org.opencds.cqf.fhir.utility.EndpointCredentials;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactApproveVisitor;
@@ -575,4 +575,53 @@ public class CaseReportingOperationProvider {
 			.map(p -> (IBase) p.getValue())
 			.findAny();
 	}
+	private class EndpointCredentials extends Endpoint {
+   @Child(
+      name = "vsacUsername",
+      type = {StringType.class},
+      order = 11,
+      min = 0,
+      max = 1,
+      modifier = false,
+      summary = true
+   )
+   @Description(
+      shortDefinition = "A name that this endpoint can be identified by",
+      formalDefinition = "A friendly name that this endpoint can be referred to with."
+   )
+   protected StringType vsacUsername;
+   @Child(
+      name = "apiKey",
+      type = {StringType.class},
+      order = 12,
+      min = 0,
+      max = 1,
+      modifier = false,
+      summary = true
+   )
+   @Description(
+      shortDefinition = "A name that this endpoint can be identified by",
+      formalDefinition = "A friendly name that this endpoint can be referred to with."
+   )
+   protected StringType apiKey;
+
+   public EndpointCredentials() {
+   }
+
+   public StringType getVsacUsername() {
+      return this.vsacUsername;
+   }
+
+   public void setVsacUsername(StringType vsacUsername) {
+      this.vsacUsername = vsacUsername;
+   }
+
+   public StringType getApiKey() {
+      return this.apiKey;
+   }
+
+   public void setApiKey(StringType apiKey) {
+      this.apiKey = apiKey;
+   }
+}
 }
