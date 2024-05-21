@@ -163,16 +163,16 @@ const generateConditionUpdates = (conditionsList) => {
       if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
         return ({
           operation: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
-          conditionName: '', // isn't currently being passed through...
-          codeSystemVersion: '', // same here
+          conditionName: undefined, // isn't currently being passed through...
+          codeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
       } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
         return ({
           operation: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
-          conditionName: '', // isn't currently being passed through...
-          codeSystemVersion: '', // same here
+          conditionName: undefined, // isn't currently being passed through...
+          codeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
@@ -180,7 +180,7 @@ const generateConditionUpdates = (conditionsList) => {
         return ({
           operation: 'Add condition',
           conditionName: li?.operation?.newValue?.text, // is the text field, not name...
-          codeSystemVersion: '', // same here
+          codeSystemVersion: undefined, // same here
           conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
           conditionSystem: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.system,
         })
@@ -189,8 +189,8 @@ const generateConditionUpdates = (conditionsList) => {
         const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
         return ({
           operation: `Delete field: ${itemToDelete}`,
-          conditionName: '', // isn't currently being passed through...
-          codeSystemVersion: '', // same here
+          conditionName: undefined, // isn't currently being passed through...
+          codeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
@@ -199,8 +199,8 @@ const generateConditionUpdates = (conditionsList) => {
     } else {
       return ({
         operation: undefined,
-        conditionName: '', //
-        codeSystemVersion: '', //
+        conditionName: undefined, //
+        codeSystemVersion: undefined, //
         conditionSystem: li.system,
         conditionCode: li.code
       })
@@ -220,7 +220,7 @@ const generateGrouperValueSetTable = (grouperPage) => {
     change: generateMainChangeText(gi),
     conditionUpdates: generateConditionUpdates(gi.conditions)
   }))
-  console.log('new data: ', newData)
+
   return newData
 }
 
