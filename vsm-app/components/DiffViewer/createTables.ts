@@ -225,7 +225,7 @@ const generateGrouperValueSetTable = (grouperPage) => {
 }
 
 const generateCodeChangesTable = (grouperPage) => {
-
+  console.log('this is called')
   const newData = grouperPage.newData.codes.map(ci => ({
     change: ci?.operation?.type,
     oid: ci?.memberOid,

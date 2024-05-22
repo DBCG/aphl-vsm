@@ -74,7 +74,8 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
       {
         name: 'OID',
         selector: (row: TableData) => row.oid!,
-        wrap: true
+        wrap: true,
+        grow: 2
       },
       {
         name: 'Code System',
@@ -142,17 +143,36 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           )
         }
       },
+      {
+        name: 'Condition Changes',
+        sortable: true,
+        wrap: true,
+        grow: 2,
+        cell: (row: TableData) => {
+          console.log('row.conditionUpdates: ', row.conditionUpdates)
+          return (
+            <TdContainer>
+              {
+                row.conditionUpdates.map(i => (
+                  <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.operation || ''}</TdItem>
+                ))
+              }
+            </TdContainer>
+          )
+        }
+      }
     ]
     return fields
   }, [])
 
   return (
     <DataTable
-      
+      style={{ marginBottom: '2em'}}
       title='Value Sets'
       columns={columns}
       data={valueSetsTable}
       conditionalRowStyles={conditionalRowStyles}
+      dense
     />
   )
 }
