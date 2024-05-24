@@ -284,7 +284,7 @@ public class CaseReportingOperationProvider {
 		@OperationParam(name = "count", typeName = "Integer") IPrimitiveType<Integer> count,
 		@OperationParam(name = "packageOnly", typeName = "Boolean") IPrimitiveType<Boolean> packageOnly,
 		@OperationParam(name = "artifactEndpointConfiguration") Parameters.ParametersParameterComponent artifactEndpointConfiguration,
-		@OperationParam(name = "terminologyEndpoint") EndpointCredentials terminologyEndpoint
+		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
 	) throws FHIRException {
 		var repository = repositoryFactory.create(requestDetails);
 		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);

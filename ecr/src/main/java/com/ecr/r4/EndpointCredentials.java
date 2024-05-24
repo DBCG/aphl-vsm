@@ -1,56 +1,76 @@
 package com.ecr.r4;
 
-import ca.uhn.fhir.model.api.annotation.Child;
-import ca.uhn.fhir.model.api.annotation.Description;
+
+import ca.uhn.fhir.model.api.annotation.DatatypeDef;
+import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import org.hl7.fhir.r4.model.Endpoint;
+import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.Type;
 
+import java.util.List;
+import java.util.Optional;
+
+@ResourceDef(id = "EndpointCredentials")
 public class EndpointCredentials extends Endpoint {
-    @Child(
-            name = "vsacUsername",
-            type = {StringType.class},
-            order = 11,
-            min = 0,
-            max = 1,
-            modifier = false,
-            summary = true
-    )
-    @Description(
-            shortDefinition = "A name that this endpoint can be identified by",
-            formalDefinition = "A friendly name that this endpoint can be referred to with."
-    )
-    protected StringType vsacUsername;
-    @Child(
-            name = "apiKey",
-            type = {StringType.class},
-            order = 12,
-            min = 0,
-            max = 1,
-            modifier = false,
-            summary = true
-    )
-    @Description(
-            shortDefinition = "A name that this endpoint can be identified by",
-            formalDefinition = "A friendly name that this endpoint can be referred to with."
-    )
-    protected StringType apiKey;
 
-    public EndpointCredentials() {
+    public static final String VSAC_USERNAME = "vsacUsername";
+    public static final String API_KEY = "apiKey";
+
+    public EndpointCredentials setUsername(StringType username) {
+        if (username != null) {
+            int index = findIndex(VSAC_USERNAME, null, this.getExtension());
+            if (index != -1) {
+                this.extension.set(index, new EndpointCredentialsUsernameExtension(username.toString()));
+            } else {
+                this.addExtension(new EndpointCredentialsUsernameExtension(username.toString()));
+            }
+        }
+        return this;
     }
 
-    public StringType getVsacUsername() {
-        return this.vsacUsername;
+    public EndpointCredentials setApiKey(StringType apiKey) {
+        if (apiKey != null) {
+            int index = findIndex(API_KEY, null, this.getExtension());
+            if (index != -1) {
+                this.extension.set(index, new EndpointCredentialsApiKeyExtension(apiKey.toString()));
+            } else {
+                this.addExtension(new EndpointCredentialsApiKeyExtension(apiKey.toString()));
+            }
+        }
+        return this;
     }
 
-    public void setVsacUsername(StringType vsacUsername) {
-        this.vsacUsername = vsacUsername;
+    private int findIndex(String url, Type value, List<Extension> extensions) {
+        Optional<Extension> existingExtension;
+        if (value != null) {
+            existingExtension = extensions.stream()
+                    .filter(e -> e.getUrl().equals(url) && e.getValue().equals(value))
+                    .findAny();
+        } else {
+            existingExtension =
+                    extensions.stream().filter(e -> e.getUrl().equals(url)).findAny();
+        }
+        if (existingExtension.isPresent()) {
+            return extensions.indexOf(existingExtension.get());
+        } else {
+            return -1;
+        }
     }
 
-    public StringType getApiKey() {
-        return this.apiKey;
+    @DatatypeDef(name = "EndpointCredentialsUsernameExtension", isSpecialization = true, profileOf = Extension.class)
+    public class EndpointCredentialsUsernameExtension extends Extension {
+
+        public EndpointCredentialsUsernameExtension(String vsacUsername) {
+            super(VSAC_USERNAME, new StringType(vsacUsername));
+        }
     }
 
-    public void setApiKey(StringType apiKey) {
-        this.apiKey = apiKey;
+    @DatatypeDef(name = "EndpointCredentialsApiKeyExtension", isSpecialization = true, profileOf = Extension.class)
+    public class EndpointCredentialsApiKeyExtension extends Extension {
+
+        public EndpointCredentialsApiKeyExtension(String apiKey) {
+            super(API_KEY, new StringType(apiKey));
+        }
     }
 }
