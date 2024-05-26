@@ -99,8 +99,9 @@ const generateRootTableData = (oldData, newData) => {
   return result
 }
 
-const generatePlanDefinitionData = () => {
-  // ?
+export const generatePlanDefinitionData = () => {
+  const planDefPages = pages.filter(p => p.resourceType === 'PlanDefinition')
+  console.log('plan def pages: ', planDefPages)
 }
 
 // grouper metadata only cares about the newest info
