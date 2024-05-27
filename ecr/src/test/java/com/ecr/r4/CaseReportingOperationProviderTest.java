@@ -1341,6 +1341,29 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	}
 
 	@Test
+	void packageOperation_expansion_invalid_credentials() {
+		loadTransaction("small-expansion-bundle.json");
+		Parameters emptyParams = new Parameters();
+		EndpointCredentials endpoint = new EndpointCredentials();
+		endpoint.setUsername(new StringType("chris"));
+		endpoint.setApiKey(new StringType("some-api-key"));
+		emptyParams.addParameter().setName("terminologyEndpoint").setResource(endpoint);
+
+		Exception maybeException = null;
+		try {
+			getClient().operation()
+					.onInstance("Library/SmallSpecificationLibrary")
+					.named("$package")
+					.withParameters(emptyParams)
+					.returnResourceType(Bundle.class)
+					.execute();
+		} catch (Exception e) {
+			maybeException = e;
+		}
+		assertTrue(maybeException.getMessage().contains("HTTP 422: Terminology Server expansion failed for:"));
+}
+
+	@Test
 	void packageOperation_naive_expansion() {
 		loadTransaction("small-naive-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
