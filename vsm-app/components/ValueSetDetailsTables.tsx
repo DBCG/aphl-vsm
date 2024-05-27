@@ -1,4 +1,4 @@
-import { useState, SetStateAction, Dispatch } from 'react'
+import { useState, SetStateAction, Dispatch, useEffect } from 'react'
 import { Tabs, Box, Tab, Tooltip, TextField, IconButton } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
@@ -9,6 +9,8 @@ import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
 import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
+import LoadingIndicator from './LoadingIndicator'
+import { customTableStyles } from './tables/themes'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -87,11 +89,18 @@ const ValueSetDetailsTables = ({
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
+  const [isLoadingDefinition, setIsLoadingDefinition] = useState(true);
 
   const programData = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
 
+  useEffect(() => {
+    if (programData) {
+      setIsLoadingDefinition(false);
+    }
+  }, [programData]);
+
   const router = useRouter()
-  
+
   const leafDataForDisplay = (pData: any) => {
     return pData?.map((i: DataItem) => ({
       title: i?.valueSet?.title,
@@ -235,9 +244,16 @@ const ValueSetDetailsTables = ({
     }
   }
 
-  const filteredDefinitionData = filteredDefinitions(definitionData)
+  const filteredDefinitionData = filteredDefinitions(definitionData) 
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
+
+  const handleDefinitionRowClick = (row: GrouperTableDetail) => {
+    if (row.oid) {
+      window.location.href = `/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row.oid}`;
+    }
+  };
+
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -280,6 +296,11 @@ const ValueSetDetailsTables = ({
           data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}
+          customStyles={isGrouperValueSet ? customTableStyles('clickable') : undefined}
+          highlightOnHover={isGrouperValueSet}
+          progressPending={isLoadingDefinition}
+          progressComponent={<LoadingIndicator />}
+          onRowClicked={handleDefinitionRowClick}
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
