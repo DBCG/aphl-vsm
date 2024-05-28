@@ -77,8 +77,7 @@ interface FetchLeafs {
   stewardToFind?: string,
   versionToFind?: string,
   whitelistFields?: string[],
-  oidToFind?: string,
-  provisionalOnly?: boolean
+  oidToFind?: string
 }
 
 const isValidString = (search: any): boolean => {
@@ -91,8 +90,7 @@ export const fetchLeafValueSets = async ({
   stewardToFind,
   versionToFind,
   whitelistFields,
-  oidToFind,
-  provisionalOnly
+  oidToFind
 }: FetchLeafs) => {
   let searchParams = {} as any
 
@@ -109,10 +107,6 @@ export const fetchLeafValueSets = async ({
 
   if (isValidString(versionToFind)) {
     searchParams['version:contains'] = versionToFind
-  }
-
-  if (provisionalOnly) {
-    
   }
 
     // url:contains is not currently working on CQF for a partial string search
