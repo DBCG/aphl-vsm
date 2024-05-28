@@ -1272,7 +1272,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1321,7 +1321,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine"
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1331,7 +1331,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine"
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
@@ -1688,7 +1688,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://notOwnedTest.com/Library/notOwnedRoot", // will be empty / unable to retrieve
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163", // the new VS added to the DXTC
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6" // the VS deleted from the DXTC
@@ -1836,7 +1836,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		ObjectMapper mapper = new ObjectMapper();
 		Exception expectNoException = null;
 		Map<String, codeAndOperation> oldCodes = new HashMap<String, codeAndOperation>();
-		oldCodes.put("772155008", new codeAndOperation("123-this-will-be-routine",null));
+		oldCodes.put("772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null));
 		oldCodes.put("1086051000119107", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("1086061000119109", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("1086071000119103", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
@@ -1862,7 +1862,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		oldCodes.put("7773002", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("789005009", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		var newCodes = Map.of(
-			"772155008", new codeAndOperation("123-this-will-be-routine",null),
+			"772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null),
 			"1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
 			"1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
 			"240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
@@ -1917,7 +1917,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 		assertNotNull(returnedBinary);
 		Map<String,Map<String,List<codeAndOperation>>> oldLeafsAndConditions = Map.of(
-			"123-this-will-be-routine", Map.of(
+			"2.16.840.1.113883.3.464.1003.113.11.1090", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("49649001", null),
 					new codeAndOperation("000000000", "delete")
@@ -1935,7 +1935,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
-			"123-this-will-be-routine", Map.of(
+			"2.16.840.1.113883.3.464.1003.113.11.1090", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("767146004", "insert"),
 					new codeAndOperation("49649001", null)
@@ -2007,11 +2007,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		ObjectMapper mapper = new ObjectMapper();
 		Exception expectNoException = null;
 		var oldLeafs = Map.of(
-			"123-this-will-be-routine", "",
+			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
 			"2.16.840.1.113762.1.4.1146.6", "delete"
 		);
 		var newLeafs = Map.of(
-			"123-this-will-be-routine", "",
+			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
 			"2.16.840.1.113762.1.4.1146.163", "insert"
 		);
 		try {
