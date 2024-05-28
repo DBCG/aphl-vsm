@@ -53,7 +53,6 @@ const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsC
       })
     })
 
-    console.log('here: ', formattedProvisionalInfo)
     return formattedProvisionalInfo
   }
 }
@@ -115,21 +114,14 @@ const getProvisionalValueSetData = async () => {
       version: e.resource.version,
       valueSets: e?.resource?.compose?.include?.map(i => i?.valueSet)?.flat() || []
     })) 
-    console.log('grouper vset info: ', grouperVsetInfo)
 
     // for each provisional valueset
     provisionalVsAndCsData.forEach(provisionalItem => {
       // if any grouper contains the valueset
       grouperVsetInfo.forEach(grouperItem => {
-        console.log('grouper item: ', grouperItem)
-        console.log('prov leaf url: ', provisionalItem.provisionalLeafUrl)
         if (grouperItem.valueSets.includes(provisionalItem.provisionalLeafUrl)) {
           const existingValues = grouperValueSetsContainingProvisionalsByProgram?.[programLib.id!]?.[grouperItem.id!]?.provisionalLeafData || []
-          console.log('existing Values: ', existingValues)
           const itemsToAdd = existingValues.concat(provisionalItem)?.filter(x => x)
-          console.log('items to add: ', itemsToAdd)
-          console.log('items to add length: ', itemsToAdd.length)
-          // console.log('set string: ', `${programLib.id!}.${grouperItem.id}.provisionalLeafData`)
           const item = {
             [programLib.id!]: {
               [grouperItem.id!]: {
@@ -144,7 +136,6 @@ const getProvisionalValueSetData = async () => {
     })
   }
 
-  console.log('res: ', grouperValueSetsContainingProvisionalsByProgram)
   return grouperValueSetsContainingProvisionalsByProgram
 }
 

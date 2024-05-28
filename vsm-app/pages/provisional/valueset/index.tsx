@@ -15,6 +15,10 @@ import { SearchInput } from '@/components/SearchInput'
 import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
 import { VSMSession, can } from '@/helpers/rolesHelper'
+import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
+import Link from 'next/link'
+import { Chip } from '@mui/material'
+import { ArrowOutward } from '@mui/icons-material'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -28,22 +32,22 @@ interface RowItem {
 
 
 const customExpandStyles = {
-	rows: {
-		style: {
-			backgroundColor: 'var(--theme-100)',
-		},
-	},
+  rows: {
+    style: {
+      backgroundColor: 'var(--theme-100)',
+    },
+  },
   tableWrapper: {
     style: {
       paddingLeft: '96px'
     }
   },
-	headCells: {
-		style: {
+  headCells: {
+    style: {
       fontWeight: 'bold',
-			backgroundColor: 'var(--theme-100)'
-		},
-	}
+      backgroundColor: 'var(--theme-100)'
+    },
+  }
 }
 
 const QuestionnaireRowContainer = styled.div`
@@ -67,7 +71,6 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
   const handleChangeSelectedRows = ({ selectedRows: rows }) => {
-    console.log('rows: ', rows)
     setSelectedRows(rows)
   }
 
@@ -187,7 +190,8 @@ const ProvisionalVSEdit = () => {
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
-  const allVsacCS = useGetCS()
+  const allVsacCS = useGetCS(false)
+  const { provisionalContext, isContextLoading } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
   const [title, setTitle] = useState('')
@@ -211,6 +215,28 @@ const ProvisionalVSEdit = () => {
 
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
+
+  const programsContainingProvisional = useMemo(() => {
+    if (!provisionalContext) return {}
+    const allProgramIds = Object.keys(provisionalContext)
+    if (!allProgramIds) return []
+    const provVsByProgram = allProgramIds.reduce((acc, id) => {
+      const allValueSets = uniqBy(Object.values(Object.values(provisionalContext[id]))?.map(i => i.provisionalLeafData)?.flat(), 'provisionalLeafUrl')
+
+      const result = { [id]: allValueSets }
+      return result
+    }, {})
+
+    return provVsByProgram
+  }, [provisionalContext])
+
+  const findProgramByProvisionalLeaf = (leafUrlToFind) => {
+    const programIds = Object.keys(programsContainingProvisional)
+      .filter(programId => programsContainingProvisional[programId]
+        .find(i => i.provisionalLeafUrl === leafUrlToFind))
+
+    return programIds
+  }
 
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystem, action: 'add' | 'remove') => {
     let currentCodesToAdd = cloneDeep(codesBySystemToAdd)
@@ -269,12 +295,28 @@ const ProvisionalVSEdit = () => {
         }
       },
       {
-        name: 'Provisional Value Set is used in program(s)'
+        name: 'Provisional Value Set is used in program(s) with IDs',
+        cell: (row: fhir4.ValueSet) => {
+          const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url)
+          if (programIdsWithProvisionals.length) {
+            const results = programIdsWithProvisionals.map(id => {
+              return (
+                  <Chip target="_blank" icon={<ArrowOutward />} component='a' label={id} href={`/programs/${id}`} clickable={true}/>
+              )
+            })
+            return (
+              <div style={{ display: 'flex', gap: '.8rem' }}>
+                { results }
+              </div>
+            )
+          }
+          return null
+        }
       }
     ]
 
     return fields
-  }, [provisionalVS])
+  }, [provisionalVS, provisionalContext])
 
   const stagedCodeColumns = useMemo(() => {
     const fields = [
@@ -422,7 +464,7 @@ const ProvisionalVSEdit = () => {
 
   return (
     <div>
-      <PageTitle style={{ marginBottom: '1rem' }}>{`${!can(session, 'edit') ? 'View': 'Create or Edit'} VSM Provisional Value Sets`}</PageTitle>
+      <PageTitle style={{ marginBottom: '1rem' }}>{`${!can(session, 'edit') ? 'View' : 'Create or Edit'} VSM Provisional Value Sets`}</PageTitle>
       {can(session, 'edit') && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <Button
@@ -433,7 +475,7 @@ const ProvisionalVSEdit = () => {
         </div>
       )}
       <DataTable
-        title={`${!can(session, 'edit') ? 'View': 'Select to Edit'} Existing Provisional Value Sets`}
+        title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         pagination={true}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
@@ -443,20 +485,18 @@ const ProvisionalVSEdit = () => {
         // @ts-ignore
         columns={existingProvisionalVsColumns}
         onSelectedRowsChange={(e) => {
-          console.log('test')
           const vsId = e?.selectedRows?.[0]?.id
           if (vsId) {
             setFormContext(null)
             setShowVsForm(true)
           }
-
           setProvisionalVsIdForUpdate(vsId)
         }}
         noDataComponent={<NoDataComponent />}
-        // selectableRowSelected={(row) => row.id === router?.query?.vsSelected || row.id === provisionalVsIdForUpdate}
       />
       {showVsForm && (
         <div style={{ marginTop: '2rem' }}>
+          <h4>{provisionalVsIdForUpdate ? 'Update ' : 'Create New '}Provisional Value Set</h4>
           <p>Provisional VS Metadata (required):</p>
           <QuestionnaireRowContainer style={{ marginTop: '0.5rem' }}>
             <TextArea

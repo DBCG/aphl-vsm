@@ -51,7 +51,6 @@ const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsC
       })
     })
 
-    console.log('here: ', formattedProvisionalInfo)
     return formattedProvisionalInfo
   }
 }

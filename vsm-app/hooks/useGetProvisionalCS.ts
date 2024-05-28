@@ -15,33 +15,32 @@ const useGetProvisionalCS = (props?: Props): ProvCsReturn => {
   useEffect(() => {
     setIsCsLoading(true)
     async function getProvisionalCS(): Promise<void> {
-      console.log('this runs')
-        let endpoint = '/api/codesystem/provisional'
-        // if system url isn't defined, endpoint returns all provisional CS
-        if (props?.systemUrl) {
-          endpoint = endpoint + `?systemUrl=${props.systemUrl}`
-        }
-        try {
-          const response: Response = await fetch(endpoint)
-          if (!response.ok) {
-            // send error back here for FE eventually
-            console.error('Error occurred while searching Provisional CodeSystems')
+      let endpoint = '/api/codesystem/provisional'
+      // if system url isn't defined, endpoint returns all provisional CS
+      if (props?.systemUrl) {
+        endpoint = endpoint + `?systemUrl=${props.systemUrl}`
+      }
+      try {
+        const response: Response = await fetch(endpoint)
+        if (!response.ok) {
+          // send error back here for FE eventually
+          console.error('Error occurred while searching Provisional CodeSystems')
+          setProvisionalCS([])
+        } else {
+          const json = await response.json()
+          if ('error' in json) {
+            // better handle error here
+            console.error(json)
             setProvisionalCS([])
           } else {
-            const json = await response.json()
-            if ('error' in json) {
-              // better handle error here
-              console.error(json)
-              setProvisionalCS([])
-            } else {
-              setProvisionalCS(json)
-            }
+            setProvisionalCS(json)
           }
-        } catch (e) {
-          console.error(e)
-          setProvisionalCS([])
         }
-        setIsCsLoading(false)
+      } catch (e) {
+        console.error(e)
+        setProvisionalCS([])
+      }
+      setIsCsLoading(false)
     }
     void getProvisionalCS()
   }, [props?.systemUrl])

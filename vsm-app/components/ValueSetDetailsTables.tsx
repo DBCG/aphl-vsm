@@ -236,7 +236,6 @@ const ValueSetDetailsTables = ({
   }
 
   const filteredDefinitionData = filteredDefinitions(definitionData)
-  console.log(filteredDefinitionData)
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
   return (
