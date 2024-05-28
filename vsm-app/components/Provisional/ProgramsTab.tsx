@@ -97,7 +97,7 @@ interface ButtonTblProps {
 
 const ButtonTable = ({ program, session, handleClickClone, setError, setProgramToRelease }: ButtonTblProps) => {
   const canClone = allowClone({ session, programStatus: program.status! })
-  const canRelease = allowRelease({ session, programStatus: program.status!, hasApproval: program.approvalDate })
+  const canRelease = allowRelease({ session, programStatus: program.status!, hasApproval: Boolean(program?.approvalDate) })
 
   const buttons = {
     'clone': (
@@ -106,7 +106,7 @@ const ButtonTable = ({ program, session, handleClickClone, setError, setProgramT
         variant='contained'
         disabled={program.status !== 'active'}
         onClick={() => {
-          handleClickClone(program.id)
+          handleClickClone(program.id!)
         }}
         style={{ height: 'fit-content' }}
       // buttoncontext={`clone-${program.status}`}
@@ -263,7 +263,12 @@ const ProgramsTab: NextPage = () => {
     }
   }
 
-  const ExpansionComponent = ({ data }) => {
+  interface DataItems {
+    data: fhir4.Library 
+  }
+
+  const ExpansionComponent = ({ data }: DataItems) => {
+    console.log('data: ', data)
     return (
       <div>
         <ButtonTable program={data} session={session} handleClickClone={handleClickClone} setError={setError} setProgramToRelease={setProgramToRelease} />
