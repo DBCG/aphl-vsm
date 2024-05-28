@@ -42,24 +42,6 @@
               "method": "PUT",
               "url": "SearchParameter/manifest-contains-code"
           }
-      },{
-        "fullUrl": "SearchParameter/vsm-provisional-valueset",
-        "resource":
-        {
-          "resourceType": "SearchParameter",
-          "id": "vsm-provisional-valueset",
-          "status": "active",
-          "code": "vsm-provisional-valueset",
-          "base": ["ValueSet"],
-          "type": "token",
-          "description": "Return all ValueSets which are VSM provisional",
-          "expression": "ValueSet.where(meta.tag.where(system='http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes' and code='vsm-authored') and compose.include.where(version='PROVISIONAL'))"
-      },
-        "request":
-        {
-            "method": "PUT",
-            "url": "SearchParameter/vsm-provisional-valueset"
-        }
-     }
+      }
     ]
   }
