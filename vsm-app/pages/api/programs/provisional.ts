@@ -25,7 +25,7 @@ interface ProvisionalVsCsMap {
 
 type GrouperItem = Record<string, ProvisionalVsCsMap[]>
 
-type ProvisionalsByProgram = Record<string, GrouperItem>
+export type ProvisionalsByProgram = Record<string, GrouperItem>
 
 const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
 
