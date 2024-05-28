@@ -37,21 +37,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Configurable
-// TODO: This belongs in the Evaluator. Only included in Ruler at dev time for shorter cycle.
 public class KnowledgeArtifactProcessor {
 
-	private Logger myLog = LoggerFactory.getLogger(KnowledgeArtifactProcessor.class);
-	public static final String CPG_INFERENCEEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-inferenceExpression";
-	public static final String CPG_ASSERTIONEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-assertionExpression";
-	public static final String CPG_FEATUREEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression";
 	public static final String releaseLabelUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel";
 	public static final String releaseDescriptionUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription";
-	public static final String authoritativeSourceUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";
-	public static final String expansionParametersUrl = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension";
 	public static final String valueSetPriorityUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
 	public static final String valueSetConditionUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
-	public static final String vsmValueSetTagCodeSystemUrl = "http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag";
-	public static final String vsmValueSetTagVSMAuthoredCode = "vsm-authored";
 	public static final String valueSetPriorityCode = "priority";
 	public static final String valueSetConditionCode = "focus";
 	public static final List<String> preservedExtensionUrls = List.of(
