@@ -87,7 +87,15 @@ const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 're
   return '• Action blocked'
 }
 
-const ButtonTable = ({ program, session, handleClickClone, setError, setProgramToRelease }) => {
+interface ButtonTblProps {
+  program: fhir4.Library
+  session: VSMSession
+  handleClickClone: (item: string) => void
+  setError: (item: any) => void
+  setProgramToRelease: (lib: fhir4.Library) => void
+}
+
+const ButtonTable = ({ program, session, handleClickClone, setError, setProgramToRelease }: ButtonTblProps) => {
   const canClone = allowClone({ session, programStatus: program.status! })
   const canRelease = allowRelease({ session, programStatus: program.status!, hasApproval: program.approvalDate })
 

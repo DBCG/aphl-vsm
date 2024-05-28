@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { StatusProps } from '../../pages/programs'
+import { StatusProps } from '../Provisional/ProgramsTab'
 import { IconChip } from '../data-display/Chips'
 
 export const Row = styled.div`
@@ -32,7 +32,7 @@ export const Col = styled.div`
 export const MetadataTitle = styled.div`
   display: flex;
   align-items: center;
-`
+` 
 
 const StatusTagInternal = styled.div<StatusProps>`
   border-radius: 8px;
