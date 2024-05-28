@@ -1,7 +1,5 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import 'react-toastify/dist/ReactToastify.min.css'
 import { PageTitle } from '@/components/Typography'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
@@ -41,13 +39,6 @@ const ValueSets = () => {
   } else if (fetchedProgram?.status === 'active') {
     router.push(`/programs/${programId}/valuesets`)
     return null
-  }
-
-  const handleContextChange = (
-    event: React.MouseEvent<HTMLElement>,
-    context: 'terminologyServer' | 'vsmProvisional'
-  ) => {
-    setCtx(context)
   }
 
   return (
