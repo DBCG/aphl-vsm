@@ -5,6 +5,8 @@ import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { getProvisionals } from '../valueset/provisional'
+import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { merge } from 'lodash'
 
 interface Query {
   '_id:contains'?: string
@@ -22,12 +24,13 @@ export type ProgramApiResponse = {
 } | { error: string }
 
 interface ProvisionalVsCsMap {
-  id: string
-  url: string
+  provisionalLeafId: string
+  provisionalLeafUrl: string
   provisionalData: fhir4.ValueSetComposeInclude
 }
 
 const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
+
   const provisionalVS = await fhirCdrClient.search({
     resourceType: 'ValueSet',
     searchParams: {
@@ -44,8 +47,8 @@ const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsC
       const { id, url } = vs.resource
       const provisionalData = vs.resource.compose.include.filter(x => x.version === 'PROVISIONAL')
       return ({
-        id,
-        url,
+        provisionalLeafId: id,
+        provisionalLeafUrl: url,
         provisionalData
       })
     })
@@ -59,10 +62,93 @@ const getGroupersOwningProvisionals = (provisionalData: ProvisionalVsCsMap) => {
 
 }
 
-const getProgramLibraries = async (queries={}) => {
+const getAllPrograms = async (): Promise<fhir4.Library[]> => {
+  const progs = await fhirCdrClient.search({
+    resourceType: 'Library',
+    searchParams: {
+      context: 'program',
+      _count: 100
+    }
+  })
+
+  if (!progs.entry) {
+    return []
+  } else {
+    return progs.entry.map(e => e.resource)
+  }
+}
+
+const getProvisionalValueSetData = async () => {
+  // get all programs
   // get provisional info
   const provisionalVsAndCsData = await getAllValueSetsReferencingProvisionalCS()
+  // get all programs
+  const programs = await getAllPrograms()
   // get groupers that provisionals belong to
+  if (!programs?.length) {
+    return ({ error: 'No programs found' })
+  }
+
+  let grouperValueSetsContainingProvisionalsByProgram = {}
+  const test = {
+    programId: {
+      grouperId: {
+        provisionalLeafData: []
+      }
+    }
+  }
+  // iterate over each program
+  for await (const programLib of programs) {
+    const grouperLibCanonical = getGrouperLibraryCanonical(programLib)
+    const [url, version] = grouperLibCanonical?.split('|') as [string, string]
+    const grouperLib = await fhirCdrClient.search({
+      resourceType: 'ValueSet',
+      searchParams: {
+        _url: url,
+        version
+      }
+    })
+    // get grouper vset info + leaf contents
+    const grouperVsetInfo = grouperLib.entry.map(e => ({
+      id: e.resource.id,
+      url: e.resource.url,
+      version: e.resource.version,
+      valueSets: e?.resource?.compose?.include?.map(i => i?.valueSet)?.flat() || []
+    })) 
+    console.log('grouper vset info: ', grouperVsetInfo)
+
+    // for each provisional valueset
+    provisionalVsAndCsData.forEach(provisionalItem => {
+      // if any grouper contains the valueset
+      grouperVsetInfo.forEach(grouperItem => {
+        console.log('grouper item: ', grouperItem)
+        console.log('prov leaf url: ', provisionalItem.provisionalLeafUrl)
+        if (grouperItem.valueSets.includes(provisionalItem.provisionalLeafUrl)) {
+          const existingValues = grouperValueSetsContainingProvisionalsByProgram?.[programLib.id!]?.[grouperItem.id!]?.provisionalLeafData || []
+          console.log('existing Values: ', existingValues)
+          const itemsToAdd = existingValues.concat(provisionalItem)?.filter(x => x)
+          console.log('items to add: ', itemsToAdd)
+          console.log('items to add length: ', itemsToAdd.length)
+          // console.log('set string: ', `${programLib.id!}.${grouperItem.id}.provisionalLeafData`)
+          const item = {
+            [programLib.id!]: {
+              [grouperItem.id!]: {
+                provisionalLeafData: itemsToAdd
+              }
+          }}
+          if (itemsToAdd.length) {
+            merge(grouperValueSetsContainingProvisionalsByProgram, item)
+          }
+        }
+      })
+    })
+  }
+
+  console.log('res: ', grouperValueSetsContainingProvisionalsByProgram)
+  return grouperValueSetsContainingProvisionalsByProgram
+}
+
+const getProgramLibraries = async (queries={}) => {
 
   const libSearchResult = await fhirCdrClient.search({
     resourceType: 'Library',
@@ -83,45 +169,10 @@ const getProgramLibraries = async (queries={}) => {
   return libSearchResult
 }
 
-const allProvisionalValues = async () => {
-  const allLibraries = await getAllValueSetsReferencingProvisionalCS()
-
-  // early returns for error states
-  // if (allProvisionals.error) {
-  //   return allProvisionals
-  // } else if (allProvisionals.length === 0) {
-  //   return ({ error: 'No Provisional Value Sets Found'})
-  // }
-
-  const provisionalUrls = allProvisionals?.map(p => p.url)
-
-  
-
-  // next, get (grouper) valuesets that refer to this leaf
-  const grouperVSets = await fhirCdrClient.request(
-    `${process.env.FHIR_CDR_URL}/ValueSet?_revinclude:`,
-    {}
-  )
-  // loop through each program
-  // loop through the program's groupers
-  // for each grouper valueset, expand with a filter, something like
-  // http://localhost:8082/fhir/ValueSet/50/$expand?system-version=PROVISIONAL
-  // if any provisional code systems turn up, add the system to the map under the prog id
-  // make sure the version is an exact match for 'PROVISIONAL' instead of partial match
-  // if not, 
-
-  // console.log('leaf: ', leaf)
-  return
-}
-
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
-    // await getProvisionalsByProgram()
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
-    if (req.query.provisionalLeafUrl) {
-
-    } else {
       if (req.query['id']) {
         queries['_id:contains'] = req.query['id'] as string
       }
@@ -143,7 +194,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       if (req.query['count']) {
         queries['_count'] = req.query['count'] as string
       }
-    }
+    
 
     const libSearchResult = await getProgramLibraries(queries) as fhir4.Bundle
 
