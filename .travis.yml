@@ -1,5 +1,6 @@
 language: python
 dist: jammy
+jdk: openjdk17
 
 python:
   - "3.8"
@@ -33,7 +34,6 @@ jobs:
     - stage: mvn-test
       script:
         - ./bin/test_plugin.sh
-      jdk: openjdk17
       install: skip
     - stage: build-and-deploy-plugin
       if: branch IN (main) or tag IS present
