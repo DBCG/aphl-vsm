@@ -1,4 +1,3 @@
-import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { Button } from '@/components/buttons/Button'
 import Select from 'react-select'
 import { useEffect, useMemo, useState } from 'react'
@@ -6,6 +5,7 @@ import DataTable from 'react-data-table-component'
 import { TextArea } from '@/components/TextArea'
 import styled from 'styled-components'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
+import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
 import { uniqBy } from 'lodash'
@@ -443,13 +443,17 @@ const ProvisionalVSEdit = () => {
         // @ts-ignore
         columns={existingProvisionalVsColumns}
         onSelectedRowsChange={(e) => {
+          console.log('test')
           const vsId = e?.selectedRows?.[0]?.id
           if (vsId) {
+            setFormContext(null)
             setShowVsForm(true)
           }
+
           setProvisionalVsIdForUpdate(vsId)
         }}
         noDataComponent={<NoDataComponent />}
+        // selectableRowSelected={(row) => row.id === router?.query?.vsSelected || row.id === provisionalVsIdForUpdate}
       />
       {showVsForm && (
         <div style={{ marginTop: '2rem' }}>
@@ -499,12 +503,12 @@ const ProvisionalVSEdit = () => {
                   }}
                 />
               </QuestionnaireRowContainer>
-              {existingProvisionalCs?.length ? (
+              {existingProvisionalCs?.provisionalCS?.length ? (
                 <div>
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
                   <ExistingCodesTable
-                    systemName={selectedCodeSystemBase.label}
-                    codeSystem={existingProvisionalCs?.find(c => c.url === selectedCodeSystemBase?.value)}
+                    systemName={selectedCodeSystemBase?.label}
+                    codeSystem={existingProvisionalCs?.provisionalCS?.find(c => c.url === selectedCodeSystemBase?.value)}
                     handleAddCodes={handleUpdateStaging}
                   />
                   <p style={{ marginBottom: '1rem' }}>You may add custom provisional codes to your code system below:</p>

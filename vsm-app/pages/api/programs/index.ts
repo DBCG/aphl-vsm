@@ -4,7 +4,7 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getAllProvisionals } from '../valueset/provisional'
+import { getProvisionals } from '../valueset/provisional'
 
 interface Query {
   '_id:contains'?: string
@@ -21,15 +21,77 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-const getProvisionalsByProgram = async () => {
-  const allProvisionals = await getAllProvisionals()
+interface ProvisionalVsCsMap {
+  id: string
+  url: string
+  provisionalData: fhir4.ValueSetComposeInclude
+}
+
+const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
+  const provisionalVS = await fhirCdrClient.search({
+    resourceType: 'ValueSet',
+    searchParams: {
+      _tag: 'vsm-provisional'
+    }
+  })
+
+  // early return if no provisional VS
+  if (!provisionalVS.entry.length) {
+    return ([])
+  } else {
+    // format provisional valuesets with important data
+    const formattedProvisionalInfo = provisionalVS.entry.map(vs => {
+      const { id, url } = vs.resource
+      const provisionalData = vs.resource.compose.include.filter(x => x.version === 'PROVISIONAL')
+      return ({
+        id,
+        url,
+        provisionalData
+      })
+    })
+
+    console.log('here: ', formattedProvisionalInfo)
+    return formattedProvisionalInfo
+  }
+}
+
+const getGroupersOwningProvisionals = (provisionalData: ProvisionalVsCsMap) => {
+
+}
+
+const getProgramLibraries = async (queries={}) => {
+  // get provisional info
+  const provisionalVsAndCsData = await getAllValueSetsReferencingProvisionalCS()
+  // get groupers that provisionals belong to
+
+  const libSearchResult = await fhirCdrClient.search({
+    resourceType: 'Library',
+    options: {
+      headers: {
+        'Cache-control': 'no-cache, no-store, must-revalidate'
+      }
+    },
+    searchParams: {
+      context: 'program',
+      _sort: ['-_lastUpdated'],
+      _total: 'accurate',
+      _count: 120,
+      ...queries
+    }
+  }) as fhir4.Bundle
+
+  return libSearchResult
+}
+
+const allProvisionalValues = async () => {
+  const allLibraries = await getAllValueSetsReferencingProvisionalCS()
 
   // early returns for error states
-  if (allProvisionals.error) {
-    return allProvisionals
-  } else if (allProvisionals.length === 0) {
-    return ({ error: 'No Provisional Value Sets Found'})
-  }
+  // if (allProvisionals.error) {
+  //   return allProvisionals
+  // } else if (allProvisionals.length === 0) {
+  //   return ({ error: 'No Provisional Value Sets Found'})
+  // }
 
   const provisionalUrls = allProvisionals?.map(p => p.url)
 
@@ -54,7 +116,7 @@ const getProvisionalsByProgram = async () => {
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
-    await getProvisionalsByProgram()
+    // await getProvisionalsByProgram()
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
     if (req.query.provisionalLeafUrl) {
@@ -83,20 +145,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       }
     }
 
-    const libSearchResult = await fhirCdrClient.search({
-      resourceType: 'Library',
-      options: {
-        headers: {
-          'Cache-control': 'no-cache, no-store, must-revalidate'
-        }
-      },
-      searchParams: {
-        context: 'program',
-        _sort: ['-_lastUpdated'],
-        _total: 'accurate',
-        ...queries
-      }
-    }) as fhir4.Bundle
+    const libSearchResult = await getProgramLibraries(queries) as fhir4.Bundle
 
     const asstSearchResult = await fhirCdrClient.search({
       resourceType: 'Basic',

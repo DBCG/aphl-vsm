@@ -27,10 +27,6 @@ const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
       systemUrl
     } = req.query
 
-  //  let searchParams = {
-  //   ...(systemUrl && { url: systemUrl })
-  //  }
-
   const response = await vsacFhirClient.capabilityStatement()
   const flattened = response.extension.map(r => r.extension)
    const availableCs = flattened?.map((i: fhir4.BundleEntry) => {

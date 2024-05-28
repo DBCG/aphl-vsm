@@ -259,8 +259,6 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   const [selectedPriority, setSelectedPriority] = useState('routine')
   const router = useRouter()
 
-  console.log('formattedGr: ', formattedGroups)
-
   const handleSearchProvisionalVS = async () => {
     setLoading(true)
     setSearchResults([])

@@ -77,7 +77,6 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
 
 // when the valueset is edited, must edit the underlying codeSystems if codes updated
 const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse) => {
-  console.log('here')
   try {
     const {
       author,
@@ -90,10 +89,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
-    console.log('here 2')
-    console.log('req.body: ', req.body)
     if (!Object.keys(codesBySystemToAdd)?.length || !title) {
-      console.log('filed')
       return res.status(400).json({ error: 'Invalid input. Endpoint requires the codes, title, and grouper IDs of the ValueSet being created.' })
     }
 
@@ -248,74 +244,46 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   }
 
   } catch (e) {
-    console.log(e)
     logger.error(e)
     res.status(400).json({ error: 'Creating Provisional Valueset failed' })
   }
 }
 
-interface GetBody {
-  reference?: fhir4.CodeSystem['url']
+interface GetProvParams {
+  resourceType: 'ValueSet' | 'CodeSystem'
+  params: fhir4.SearchParameterComponent | {}
 }
 
-export const getAllProvisionals = async () => {
+export const getProvisionals = async ({ resourceType, params={} }: GetProvParams) => {
+  if (!resourceType) return []
   try {
 
-    const csSearchParams = {
-      version: 'PROVISIONAL'
-    }
-  
-    const allVsmOwnedCS = await fhirCdrClient.search({
-      resourceType: 'CodeSystem',
-      searchParams: csSearchParams
-    })
+    const searchParams = Object.assign({
+      _tag: 'vsm-provisional'
+    }, params) 
 
-    const provCS = allVsmOwnedCS?.entry?.map(e => e.resource).filter(x => x) as fhir4.CodeSystem[]
 
-    if (!provCS.length) {
-      return ({ error: 'VSM Provisional Code Systems do not exist'})
-    }
-
-    const refsToSearch = provCS
-      .map(cs => cs.url?.split('/CodeSystem/')?.[1])
-      .filter((x) => x)
-      .map(str => `reference co ${str}`)
-      .join(' or ')
-
-   let searchParams = {
-    _tag: 'vsm-authored',
-    status: 'draft',
-    context: 'triggering',
-    ['_url:contains']: `${process.env.FHIR_CDR_URL}`,
-    _filter: refsToSearch
-  }
-
-    // ideally I wouldn't be doing this and would just be using a searchParam on
-    // an extension that designates provisional?
-    const allVsmOwnedVS = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
+    const provisionalBundle = await fhirCdrClient.search({
+      resourceType,
       searchParams
     })
 
-    const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-    console.log('results: ', results)
-    const provisionalLeafsOnly = results?.filter(
-      (r: any) => r.extension.find((e: any) => e.url.includes('vsm-test-extension'))
-    )
-
-    console.log('provisionals only: ', provisionalLeafsOnly)
-    return results || []
+    const allProvisionals = provisionalBundle?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[] | fhir4.CodeSystem[]
+    return allProvisionals
 
   } catch (e) {
     logger.error(e)
-    return({ error: 'Search for Provisional Value Sets Failed' })
+    return({ error: `Search for Provisional ${resourceType} Failed` })
   } 
 }
 
-// this is an unfortunate workaround to get VSM provisional valuesets
-// will be better to perform this as a searchParameter
 const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
-  const results = await getAllProvisionals()
+  const { title, url } = req.query
+  const params = {
+    ...(title && { 'title:contains': title }),
+    ...(url && { 'url': url }),
+  }
+  const results = await getProvisionals({ resourceType: 'ValueSet', params })
   if (results.error) {
     return res.status(400).send(results)
   }

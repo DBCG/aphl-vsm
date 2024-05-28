@@ -15,7 +15,7 @@ const useGetProvisionalCS = (props?: Props): ProvCsReturn => {
   useEffect(() => {
     setIsCsLoading(true)
     async function getProvisionalCS(): Promise<void> {
-
+      console.log('this runs')
         let endpoint = '/api/codesystem/provisional'
         // if system url isn't defined, endpoint returns all provisional CS
         if (props?.systemUrl) {

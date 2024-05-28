@@ -4,6 +4,7 @@ import { CreateProvisionalVs, createProvisionalCodeSystem, updateCsCodes } from 
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getProvisionals } from '../../valueset/provisional'
 
 interface Body extends CreateProvisionalVs {
   grouperIds: string[]
@@ -57,28 +58,17 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
 
 } 
 
-const getProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
+const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-
-    const {
-      systemUrl
-    } = req.query
-
-    let searchParams = {
-      version: 'PROVISIONAL',
-      ...(systemUrl && { url: systemUrl })
+    let params = {}
+    const systemUrl = req?.query?.systemUrl
+    if (systemUrl) {
+      params = { url: systemUrl }
     }
-
-    // ideally I wouldn't be doing this and would just be using a searchParam on
-    // an extension that designates provisional?
-    const provisionalCodeSystems = await fhirCdrClient.search({
-      resourceType: 'CodeSystem',
-      searchParams
-    })
-
-    const results = provisionalCodeSystems?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-
-    console.log('results: ', results)
+    const results = await getProvisionals({ resourceType: 'CodeSystem', params })
+    if (results.error) {
+      return res.status(400).send(results)
+    }
     return res.status(200).json(results || [])
 
   } catch (e) {

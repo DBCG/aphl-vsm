@@ -49,6 +49,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     offset?: string
     terminologyServer: 'vsac' | 'ontoserverR4'
   } = req.query
+
   const responseInfo: SearchResponse = {
     valueSets: [],
     total: null,
