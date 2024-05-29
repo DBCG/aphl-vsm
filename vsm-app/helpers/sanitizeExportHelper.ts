@@ -13,7 +13,8 @@ export const URLS_TO_REMOVE = new Set([
   'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset',
   'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-  'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+  'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset',
+  'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
 ])
 export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
   if (is.bundle(exportBundle)) {
@@ -22,12 +23,17 @@ export default function sanitizeExport(exportBundle: fhir4.Bundle | string) {
       if (entry?.resource?.meta?.profile) {
         entry.resource.meta.profile = entry?.resource?.meta?.profile?.filter((profile) => !URLS_TO_REMOVE.has(profile))
       }
+      if (entry?.resource?.meta?.tag) {
+        entry.resource.meta.tag = entry?.resource?.meta?.tag?.filter((tag) => !URLS_TO_REMOVE.has(tag?.system ?? ''))
+      }
     })
     return bundle
   } else if (typeof exportBundle === 'string') {
     const matchString = Array.from(URLS_TO_REMOVE).join('|')
-    const regex = new RegExp(`<profile value="(${matchString})"\s*/>`, 'gi')
-    return exportBundle.replaceAll(regex, '')
+    const metaProfileRegex = new RegExp(`<profile value="(${matchString})"\\s*/>`, 'gi')
+    const metaTagRegex = new RegExp(`<system value="(${matchString})"\\s*/>\n\\s*<code value="vsm-authored"/>`, 'gi')
+
+    return exportBundle.replaceAll(metaProfileRegex, '').replaceAll(metaTagRegex, '')
   } else {
     console.warn('Invalid export bundle')
     return exportBundle

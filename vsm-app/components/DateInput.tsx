@@ -40,7 +40,7 @@ const DateInput = ({
           style={{ flexBasis: '100%', maxWidth: '624px' }}
         />
       ) : (
-        <Box sx={{ width: '100%' }}>
+        <Box id="datePicker" sx={{ width: '100%' }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DesktopDatePicker
               {...props}

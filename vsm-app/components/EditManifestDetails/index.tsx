@@ -15,6 +15,7 @@ import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import LoadingIndicator from '../LoadingIndicator'
 import {
   getIdFromSystem,
   getNameByUri,
@@ -331,6 +332,8 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
             highlightOnHover
+            progressComponent={<LoadingIndicator />}
+            progressPending={pageLoading}
             defaultSortAsc={false}
             defaultSortFieldId={3}
             columns={[

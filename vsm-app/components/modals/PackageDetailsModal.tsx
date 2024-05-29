@@ -23,7 +23,6 @@ import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
 import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
-import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
 interface ModalInfo {
   isOpen: boolean
@@ -223,12 +222,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       errorByTopic['Validation Errors'] = validationErrorStrings
     }
 
-    const sanitizedBundle = sanitizeExport(packageResponse)
     try {
-      if (typeof sanitizedBundle === 'string' && sanitizedBundle.startsWith('<Bundle')) {
-        downloadTextData(sanitizedBundle, 'application/fhir+xml')
-      } else if (typeof sanitizedBundle === 'object' && sanitizedBundle.resourceType === 'Bundle') {
-        downloadTextData(JSON.stringify(sanitizedBundle, null, 2), 'application/fhir+json')
+      if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
+        downloadTextData(packageResponse, 'application/fhir+xml')
+      } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
+        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json')
       } else {
         errorByTopic['Download Errors'] = `Could not download file in ${ fileType.toUpperCase() } format`
       }

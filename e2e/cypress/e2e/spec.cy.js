@@ -305,6 +305,7 @@ describe("Smoke Tests", () => {
       cy.get('[data-button-context="mustApproveRelease-draft"]').first().click();
       cy.get('#releaseLabel').clear().type("1.1.0");
       cy.get('#releaseDescription').clear().type("description");
+      cy.get('#datePicker input').clear().type(moment().add(10, 'days').format("YYYY-MM-DD"));
       cy.get('[data-modal="next"]').click();
       cy.get('[data-modal="confirm"]').click();
 
