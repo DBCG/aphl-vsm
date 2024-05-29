@@ -33,8 +33,8 @@ public class ImportBundleProducer {
 	 */
 	public static boolean isGrouper(MetadataResource resource) {
 		return resource.getResourceType() == ResourceType.ValueSet
-			&& ((ValueSet) resource).hasCompose()
-			&& ((ValueSet) resource).getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+			&& resource.getUseContext().stream()
+				.anyMatch(uc -> uc.hasCode() && uc.getCode().getCode().equals(TransformProperties.grouperType));
 	}
 
 	public static boolean isRootSpecificationLibrary(Resource resource) {
@@ -45,8 +45,8 @@ public class ImportBundleProducer {
 		return vs.getUseContext().stream()
 				.noneMatch(uc ->
 						uc.getValue() instanceof CodeableConcept &&
-						uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")
+						uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals(TransformProperties.modelGrouper) &&
+								uc.getCode().getCode().equals(TransformProperties.grouperType)
 				);
 	}
 
@@ -56,10 +56,10 @@ public class ImportBundleProducer {
 
 			Coding code = new Coding();
 			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
-			code.setCode("grouper-type");
+			code.setCode(TransformProperties.grouperType);
 
 			Coding valueCodeableConceptCoding = new Coding();
-			valueCodeableConceptCoding.setCode("model-grouper");
+			valueCodeableConceptCoding.setCode(TransformProperties.modelGrouper);
 			valueCodeableConceptCoding.setSystem(TransformProperties.grouperUsageContextCodableConceptSystemURL);
 
 			usageContext.setCode(code);

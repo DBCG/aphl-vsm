@@ -1,6 +1,7 @@
 package com.ecr.r4;
 
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import com.ecr.TransformProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
@@ -429,9 +430,9 @@ public class ChangeLog {
     RelatedArtifactWithOperation(RelatedArtifact value) {
       if (value != null) {
         this.targetUrl = value.getResource();
-        this.conditions = value.getExtensionsByUrl(KnowledgeArtifactProcessor.valueSetConditionUrl).stream()
+        this.conditions = value.getExtensionsByUrl(TransformProperties.vsmCondition).stream()
           .map(e -> new extensionWithOperation(e)).collect(Collectors.toList());
-        var priorities = value.getExtensionsByUrl(KnowledgeArtifactProcessor.valueSetPriorityUrl);
+        var priorities = value.getExtensionsByUrl(TransformProperties.vsmPriority);
         if (priorities.size() > 1) {
           throw new UnprocessableEntityException("too many priorities");
         } else if (priorities.size() == 1) {
@@ -470,9 +471,9 @@ public class ChangeLog {
       return this.relatedArtifacts.stream().filter(ra -> ra.targetUrl != null && ra.targetUrl.equals(target)).findAny();
     }
     private void tryAddConditionOperation(Extension maybeCondition, RelatedArtifactWithOperation target, Operation newOperation) {
-      if (maybeCondition.getUrl().equals(KnowledgeArtifactProcessor.valueSetConditionUrl)) {
+      if (maybeCondition.getUrl().equals(TransformProperties.vsmCondition)) {
         target.conditions.stream()
-          .filter(e -> e.value.getUrl().equals(KnowledgeArtifactProcessor.valueSetConditionUrl) 
+          .filter(e -> e.value.getUrl().equals(TransformProperties.vsmCondition)
                && e.value.getValue() instanceof CodeableConcept
                && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getSystem())
                && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getCode())
@@ -484,9 +485,9 @@ public class ChangeLog {
       }
     }
     private void tryAddPriorityOperation(Extension maybePriority, RelatedArtifactWithOperation target, Operation newOperation) {
-      if (maybePriority.getUrl().equals(KnowledgeArtifactProcessor.valueSetPriorityUrl)) {
+      if (maybePriority.getUrl().equals(TransformProperties.vsmPriority)) {
         if (target.priority.value != null
-          && target.priority.value.getUrl().equals(KnowledgeArtifactProcessor.valueSetPriorityUrl) 
+          && target.priority.value.getUrl().equals(TransformProperties.vsmPriority)
           && target.priority.value.getValue() instanceof CodeableConcept
           && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getSystem())
           && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getCode())

@@ -32,6 +32,8 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String leafValueSetVsmHostedProfile = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset";
   public static final String grouperUsageContextCodeURL = "http://aphl.org/fhir/vsm/ValueSet/usage-context-type";
   public static final String grouperUsageContextCodableConceptSystemURL = "http://aphl.org/fhir/vsm/ValueSet/usage-context-value";
+  public static final String grouperType = "grouper-type";
+  public static final String modelGrouper = "model-grouper";
 
 
   public DaoRegistry getDaoRegistry() {

@@ -8,6 +8,8 @@ import ca.uhn.fhir.jpa.patch.FhirPatch;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import com.ecr.ImportBundleProducer;
+import com.ecr.TransformProperties;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IDomainResource;
@@ -41,17 +43,13 @@ public class KnowledgeArtifactProcessor {
 
 	public static final String releaseLabelUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel";
 	public static final String releaseDescriptionUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription";
-	public static final String valueSetPriorityUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
-	public static final String valueSetConditionUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
 	public static final String valueSetPriorityCode = "priority";
 	public static final String valueSetConditionCode = "focus";
 	public static final List<String> preservedExtensionUrls = List.of(
-			valueSetPriorityUrl,
-			valueSetConditionUrl
+			TransformProperties.vsmPriority,
+			TransformProperties.vsmCondition
 		);
-	public static final String usPhContextTypeUrl = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type";
-	public static final String contextTypeUrl = "http://terminology.hl7.org/CodeSystem/usage-context-type";
-	public static final String contextUrl = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context";
+
 	private MetadataResource retrieveResourcesByCanonical(String reference, Repository hapiFhirRepository) throws ResourceNotFoundException {
 		var referencedResourceBundle = SearchHelper.searchRepositoryByCanonicalWithPaging(hapiFhirRepository, reference);
 		var referencedResource = KnowledgeArtifactAdapter.findLatestVersion(referencedResourceBundle);
@@ -81,11 +79,11 @@ public class KnowledgeArtifactProcessor {
 		}
 		if (resource != null && resource.getResourceType() == ResourceType.ValueSet) {
 			var valueSet = (ValueSet)resource;
-			var isLeaf = !valueSet.hasCompose() || (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() == 0);
+			var isLeaf = !ImportBundleProducer.isGrouper(valueSet);
 			var maybeConditionExtension = Optional.ofNullable(relatedArtifact)
 				.map(RelatedArtifact::getExtension)
 				.map(list -> {
-					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl)).findFirst().orElse(null);
+					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
 				throw new UnprocessableEntityException("Missing condition on ValueSet : " + valueSet.getUrl());
@@ -104,11 +102,11 @@ public class KnowledgeArtifactProcessor {
 		}
 		if (resource != null && resource.getResourceType() == ResourceType.ValueSet) {
 			var valueSet = (ValueSet)resource;
-			var isLeaf = !valueSet.hasCompose() || (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() == 0);
+			var isLeaf = !ImportBundleProducer.isGrouper(valueSet);
 			var maybeConditionExtension = Optional.ofNullable(relatedArtifact)
 				.map(IDependencyInfo::getExtension)
 				.map(list -> {
-					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl)).findFirst().orElse(null);
+					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
 				throw new UnprocessableEntityException("Missing condition on ValueSet : " + valueSet.getUrl());
@@ -142,20 +140,20 @@ public class KnowledgeArtifactProcessor {
 								// add Conditions
 								exts -> {
 									exts.stream()
-										.filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl))
+										.filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition))
 										.forEach(ext -> tryAddCondition(usageContexts, (CodeableConcept) ext.getValue()));
 								});		
 					}
 					// update Priority
-					var priority = getOrCreateUsageContext(usageContexts, usPhContextTypeUrl, valueSetPriorityCode);
+					var priority = getOrCreateUsageContext(usageContexts, TransformProperties.usPHUsageContextType, valueSetPriorityCode);
 					maybeVSRelatedArtifact
-						.map(ra -> ra.getExtension().stream().map(e->(Extension)e).filter(e -> e.getUrl().equals(valueSetPriorityUrl)).findAny().orElse(null))
+						.map(ra -> ra.getExtension().stream().map(e->(Extension)e).filter(e -> e.getUrl().equals(TransformProperties.vsmPriority)).findAny().orElse(null))
 						.ifPresentOrElse(
 							// set value as per extension
 							ext -> priority.setValue(ext.getValue()),
 							// set to "routine" if missing
 							() -> {
-								var routine = new CodeableConcept(new Coding(contextUrl, "routine", null)).setText("Routine");
+								var routine = new CodeableConcept(new Coding(TransformProperties.usPHUsageContext, "routine", null)).setText("Routine");
 								priority.setValue(routine);
 						});
 				}
@@ -176,12 +174,12 @@ public class KnowledgeArtifactProcessor {
 
 	public static void tryAddCondition(List<UsageContext> usageContexts, CodeableConcept condition) {
 		var focusAlreadyExists = usageContexts.stream().anyMatch(u -> 
-			u.getCode().getSystem().equals(contextTypeUrl) 
+			u.getCode().getSystem().equals(TransformProperties.hl7UsageContextType)
 			&& u.getCode().getCode().equals(valueSetConditionCode) 
 			&& u.getValueCodeableConcept().hasCoding(condition.getCoding().get(0).getSystem(), condition.getCoding().get(0).getCode())
 		);
 		if (!focusAlreadyExists) {
-			var newFocus = new UsageContext(new Coding(contextTypeUrl,valueSetConditionCode,null),condition);
+			var newFocus = new UsageContext(new Coding(TransformProperties.hl7UsageContextType,valueSetConditionCode,null),condition);
 			newFocus.setValue(condition);
 			usageContexts.add(newFocus);
 		}
