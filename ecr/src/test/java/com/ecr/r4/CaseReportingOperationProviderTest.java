@@ -1578,13 +1578,19 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		List<OperationOutcome.OperationOutcomeIssueComponent> errors = packagedBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		//TODO figure this out
-		assertTrue(errors.size() == 4);
+		assertTrue(errors.size() == 10);
 		// expect errors for Variable extension which bubble up and invalidate the PlanDefinition slice
 		assertTrue(errors.get(0).getDiagnostics().contains("slicePlanDefinition"));
 		assertTrue(errors.get(1).getDiagnostics().contains("'depends-on' but must be 'composed-of'"));
 		assertTrue(errors.get(2).getDiagnostics().contains("variable"));
-		assertTrue(errors.get(3).getDiagnostics().contains("variable"));
+
+		// grouper-type use context code is technically non-conformant
+		assertTrue(errors.get(4).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(5).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(6).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(7).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(8).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(9).getDiagnostics().contains("grouper-type"));
 	}
 
 	@Test
