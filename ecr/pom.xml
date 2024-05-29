@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-storage</artifactId>
-			<version>7.1.11-SNAPSHOT</version>
+			<version>7.2.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.opencds.cqf.ruler</groupId>
