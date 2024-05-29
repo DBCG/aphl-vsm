@@ -15,6 +15,12 @@
 				"url": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 				"version": "1.0.0.0-draft",
 				"status": "draft",
+				"name": "Updated name",
+				"purpose": "UpdatedPurpose",
+				"effectivePeriod":{
+					"start":"2020-10-01",
+					"end":"2025-10-01"
+				},
 				"useContext": [
 					{
 						"code": {
@@ -461,6 +467,7 @@
 					"include": [
 						{
 							"system": "http://snomed.info/sct",
+							"version": "1.2.3",
 							"concept": [
 								{
 									"code": "1193749009",

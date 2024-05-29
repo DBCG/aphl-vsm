@@ -12,6 +12,7 @@
 				"url": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 				"version": "2022-10-19",
 				"status": "active",
+				"title":"deleted title",
 				"useContext": [
 					{
 						"code": {
@@ -417,6 +418,15 @@
 								{
 									"code": "772155008",
 									"display": "Acute poliomyelitis suspected (situation)"
+								}
+							]
+						},{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"concept": [
+								{
+									"code": "123123123",
+									"display": "Deleted Code"
 								}
 							]
 						}

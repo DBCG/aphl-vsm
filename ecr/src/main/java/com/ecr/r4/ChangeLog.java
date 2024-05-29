@@ -72,8 +72,8 @@ public class ChangeLog {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new LibraryChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
-    var newData = new LibraryChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
+    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
+    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
     var url = theTargetResource.getUrl();
     var page = new Page<LibraryChild>(url, oldData, newData);
     this.pages.add(page);
@@ -535,6 +535,14 @@ public class ChangeLog {
               operationTarget.get().operation = newOperation;
             }
           }
+        } else if (path.equals("name")) {
+          this.name.setOperation(newOperation);
+        } else if (path.contains("purpose")) {
+          this.purpose.setOperation(newOperation);
+        } else if (path.equals("approvalDate")) {
+          this.releaseDate.setOperation(newOperation);
+        } else if (path.contains("effectivePeriod")) {
+          this.effectiveStart.setOperation(newOperation);
         }
       }
     }
