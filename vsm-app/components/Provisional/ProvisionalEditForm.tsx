@@ -76,7 +76,8 @@ const allFieldsExist = (codeItems: string[]) => {
   return allFieldsPopulated
 }
 
-const ExistingCodesTable = ({ codeSystem }: ExistingCodesTbl) => {
+const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem }) => {
+  console.log('codesystem: ', codeSystem)
 
   const columns = useMemo(() => {
     const fields = [
@@ -104,11 +105,16 @@ const ExistingCodesTable = ({ codeSystem }: ExistingCodesTbl) => {
   )
 }
 
-const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
+interface ProvisionalEditProps {
+  existingCs: fhir4.CodeSystem[]
+  readOnly: boolean
+  canEdit: boolean
+}
+
+const ProvisionalCSForm = ({ existingCs, readOnly, canEdit }: ProvisionalEditProps) => {
   const router = useRouter()
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState()
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
-  const [provisionalCodeSystems, setProvisionalCodeSystems] = useState([])
   const allVsacCS = useGetCS(myDocument)
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
@@ -218,11 +224,9 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
     })
 
     if (result.ok) {
-      const json = await result.json()
-      // need a page to push to
-      router.reload()
+      router.push('/programs?resourceType=provisional')
     } else {
-      // set error here
+      setFormSubmitting(false)
     }
   }
 
@@ -309,6 +313,7 @@ const ProvisionalCSForm = ({ existingCs: test, readOnly, canEdit }) => {
               text='ADD TO SYSTEM'
               disabled={!Boolean(codeItemsToAdd?.length)}
               onClick={(e) => handleUpdateCS()}
+              loading={formSubmitting}
             />
           </ButtonRowContainer>
           </>

@@ -5,7 +5,7 @@ interface Props {
 }
 
 interface ProvCsReturn {
-  provisionalCS: fhir4.CodeSystem[]
+  provisionalCS: fhir4.CodeSystem[] | undefined
   isCsLoading: boolean
 }
 

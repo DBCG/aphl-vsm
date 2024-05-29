@@ -73,7 +73,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit, isLoading }: Prov
   return (
     <div>
       {/* @ts-ignore */}
-      <DataTable title='VSM Provisional Code Systems' data={provisionalCS} columns={codeSystemColumns} noDataComponent={<NoProvisionalData provisionalType='Code System'/>}/>
+      <DataTable pagination title='VSM Provisional Code Systems' data={provisionalCS} columns={codeSystemColumns} noDataComponent={<NoProvisionalData provisionalType='Code System'/>}/>
     </div>
   )
 }
@@ -129,11 +129,12 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
         title='VSM Provisional Value Sets'
         data={provisionalVS}
         loading={isLoading}
+        pagination
         // @ts-ignore
         columns={columns}
         noDataComponent={<NoProvisionalData
-          csExists={csExists}
-          provisionalType='Value Set'/>
+        csExists={csExists}
+        provisionalType='Value Set'/>
         }/>
     </div>
   )

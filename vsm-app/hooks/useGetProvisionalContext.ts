@@ -7,7 +7,7 @@ interface ReturnItems {
 }
 
 const useGetProvisionalContext = (): ReturnItems => {
-  const [provisionalContext, setProvisionalContext] = useState<ProvisionalsByProgram | { error: string }>({})
+  const [provisionalContext, setProvisionalContext] = useState<ProvisionalsByProgram | { error: string }>([])
   const [isContextLoading, setIsContextLoading] = useState(false)
   useEffect(() => {
     setIsContextLoading(true)
@@ -18,20 +18,20 @@ const useGetProvisionalContext = (): ReturnItems => {
           if (!response.ok) {
             // send error back here for FE eventually
             console.error('Error occurred while searching Provisional Context')
-            setProvisionalContext({ error: 'Error Occurred' })
+            setProvisionalContext({error: 'Error Occurred' })
           } else {
             const json = await response.json()
             if ('error' in json) {
               // better handle error here
               console.error(json)
-              setProvisionalContext({})
+              setProvisionalContext({ error: 'Error occurred' })
             } else {
               setProvisionalContext(json)
             }
           }
         } catch (e) {
           console.error(e)
-          setProvisionalContext({})
+          setProvisionalContext({ error: 'Error occurred' })
         }
         setIsContextLoading(false)
     }

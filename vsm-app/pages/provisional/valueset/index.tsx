@@ -213,7 +213,9 @@ const ProvisionalVSEdit = () => {
   const [codesBySystemToAdd, setCodesBySystemToAdd] = useState({})
   const [formContext, setFormContext] = useState(null)
 
+  // loading + error state
   const [error, setError] = useState<null | string>(null)
+  const [loading, setLoading] = useState(false)
 
   type CodesBySystem = Record<string, string[]>
 
@@ -445,6 +447,7 @@ const ProvisionalVSEdit = () => {
   }
 
   const handleProvisionalVsUpdate = async () => {
+    setLoading(true)
     // identify urls of all codesystems that don't exist yet
     const newCsUrls = Object.keys(codesBySystemToAdd).filter(system => !provisionalCS?.find(cs => cs.url === system))
     const newNameUrlPairs = csSelectOptions?.filter(o => newCsUrls.includes(o.value))
@@ -464,10 +467,9 @@ const ProvisionalVSEdit = () => {
 
     const json = await result.json()
     if (result.ok) {
-      router.push(`/programs`)
+      router.push(`/programs?resourceType=provisional`)
     } else {
-      // const json = await result.json()
-      // handle error
+      setLoading(false)
       console.error('error')
       console.error(json)
     }
@@ -635,6 +637,7 @@ const ProvisionalVSEdit = () => {
                   text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set: "${title}"`}
                   onClick={handleProvisionalVsUpdate}
                   disabled={!flattenCodesBySystem.length}
+                  loading={loading}
                 />
               </div>
             )
