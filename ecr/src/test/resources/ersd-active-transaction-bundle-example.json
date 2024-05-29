@@ -2276,6 +2276,16 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
+						}
 					}
 				],
 				"purpose": "Diagnoses or problems documented in a clinical record.",
@@ -2718,6 +2728,16 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
+						}
 					}
 				],
 				"purpose": "Laboratory test names used in orders documented in a clinical record.",
@@ -2969,6 +2989,16 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
 						}
 					}
 				],
@@ -3802,6 +3832,16 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
+						}
 					}
 				],
 				"purpose": "Prescription drugs names used in observations documented in a clinical record.",
@@ -4113,6 +4153,16 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
 						}
 					}
 				],
@@ -4645,6 +4695,16 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						},
+						"valueReference": {
+							"reference": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example"
 						}
 					}
 				],

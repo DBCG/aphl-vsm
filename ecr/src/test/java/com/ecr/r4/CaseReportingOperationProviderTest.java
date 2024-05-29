@@ -1578,6 +1578,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		List<OperationOutcome.OperationOutcomeIssueComponent> errors = packagedBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
+		//TODO figure this out
 		assertTrue(errors.size() == 4);
 		// expect errors for Variable extension which bubble up and invalidate the PlanDefinition slice
 		assertTrue(errors.get(0).getDiagnostics().contains("slicePlanDefinition"));

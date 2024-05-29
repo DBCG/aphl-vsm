@@ -1343,6 +1343,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Diagnoses or problems documented in a clinical record.",
@@ -1781,6 +1788,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Laboratory test names used in orders documented in a clinical record.",
@@ -2028,6 +2042,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -2857,6 +2878,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Prescription drugs names used in observations documented in a clinical record.",
@@ -3164,6 +3192,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -3692,6 +3727,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
