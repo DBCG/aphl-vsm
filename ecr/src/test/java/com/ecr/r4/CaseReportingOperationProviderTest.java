@@ -10,6 +10,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.fhir.utility.Canonicals;
@@ -19,7 +20,9 @@ import org.opencds.cqf.fhir.utility.r4.ArtifactAssessment;
 import com.ecr.CaseReportingConfig;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
@@ -38,6 +41,8 @@ import static org.mockito.Mockito.mock;
 	classes = {CaseReportingConfig.class},
 	properties = {"hapi.fhir.fhir_version=r4", "hapi.fhir.security.basic_auth.enabled=false", "hapi.fhir.casereporting.enabled=true"})
 class CaseReportingOperationProviderTest extends RestIntegrationTest {
+	@Autowired
+	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
 	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
 	private final List<String> badVersionList = Arrays.asList(
@@ -57,6 +62,16 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		"",
 		null
 	);
+	private EndpointCredentials endpointCredentials;
+
+	@BeforeAll
+	public void init() {
+		String apiKey = environment.getProperty("vsacapikey");
+		EndpointCredentials ec = new EndpointCredentials();
+		ec.setUsername(new StringType("apikey"));
+		ec.setApiKey(new StringType(apiKey));
+		endpointCredentials = ec;
+	}
 
 	@Test
 	void draftOperation_test() {
@@ -951,6 +966,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		allParams.addParameter("capability", "computable");
 		allParams.addParameter("capability", "publishable");
 		allParams.addParameter("capability", "executable");
+		allParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle packaged = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -970,6 +988,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/PlanDefinition/us-ecr-specification|" + versionToUpdateTo));
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/ValueSet/dxtc|" + versionToUpdateTo));
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle updatedCanonicalVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -987,6 +1008,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		params = new Parameters();
 		params.addParameter("checkArtifactVersion", new CanonicalType("http://to-check-version/Library/SpecificationLibrary|1.3.1"));
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		String correctCheckVersion = "2022-10-19";
 		PreconditionFailedException checkCanonicalThrewError = null;
@@ -1003,6 +1027,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertNotNull(checkCanonicalThrewError);
 		params = new Parameters();
 		params.addParameter("checkArtifactVersion", new CanonicalType("http://to-check-version/Library/SpecificationLibrary|" + correctCheckVersion));
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle noErrorCheckCanonicalPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1019,6 +1046,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		String versionToForceTo = "1.1.9.23";
 		params = new Parameters();
 		params.addParameter("forceArtifactVersion", new CanonicalType("http://to-force-version/Library/rctc|" + versionToForceTo));
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle forcedVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1072,6 +1102,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(count2Offset2Bundle.getEntry().size() == 2);
 		Parameters offset4Params = new Parameters();
 		offset4Params.addParameter("offset", new IntegerType(4));
+		offset4Params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle offset4Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1084,6 +1117,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(offset4Bundle.hasTotal() == false);
 		Parameters offsetMaxParams = new Parameters();
 		offsetMaxParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
+		offsetMaxParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle offsetMaxBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1095,6 +1131,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters offsetMaxRandomCountParams = new Parameters();
 		offsetMaxRandomCountParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
 		offsetMaxRandomCountParams.addParameter("count", new IntegerType(ThreadLocalRandom.current().nextInt(3, 20)));
+		offsetMaxRandomCountParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle offsetMaxRandomCountBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1120,6 +1159,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(countZeroBundle.getType() == Bundle.BundleType.SEARCHSET);
 		Parameters countSevenParams = new Parameters();
 		countSevenParams.addParameter("count", new IntegerType(7));
+		countSevenParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1130,6 +1172,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(countSevenBundle.getType() == Bundle.BundleType.TRANSACTION);
 		Parameters countFourParams = new Parameters();
 		countFourParams.addParameter("count", new IntegerType(4));
+		countFourParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle countFourBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1143,6 +1188,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertFalse(countFourBundle.hasTotal());
 		Parameters offsetOneParams = new Parameters();
 		offsetOneParams.addParameter("offset", new IntegerType(1));
+		offsetOneParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle offsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1158,6 +1206,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters countOneOffsetOneParams = new Parameters();
 		countOneOffsetOneParams.addParameter("count", new IntegerType(1));
 		countOneOffsetOneParams.addParameter("offset", new IntegerType(1));
+		countOneOffsetOneParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Bundle countOneOffsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1175,6 +1226,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void packageOperation_should_conditionally_create() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
+		emptyParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1193,6 +1247,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void packageOperation_should_be_aware_of_valueset_priority_extension() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
+		emptyParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1215,7 +1272,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1230,6 +1287,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void packageOperation_should_be_aware_of_useContext_extension() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
+		emptyParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1261,7 +1321,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine"
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1271,7 +1331,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine"
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
@@ -1281,6 +1341,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		for (Map.Entry<String, List<String>> includedTypeURLs : includeOptions.entrySet()) {
 			Parameters params = new Parameters();
 			params.addParameter("include", includedTypeURLs.getKey());
+			params.addParameter()
+					.setName("terminologyEndpoint")
+					.setResource(endpointCredentials);
 
 			Bundle packaged = getClient().operation()
 				.onInstance(specificationLibReference)
@@ -1307,10 +1370,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void packageOperation_big_bundle() {
 		Bundle loadedBundle = (Bundle) loadTransaction("ersd-active-transaction-bundle-example.json");
+		Parameters params = new Parameters();
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
-			.withParameters(new Parameters())
+			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
 		assertTrue(packagedBundle.getEntry().size() == loadedBundle.getEntry().size());
@@ -1322,6 +1389,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void packageOperation_expansion() {
 		loadTransaction("small-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
+		emptyParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
 			.named("$package")
@@ -1341,9 +1411,35 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	}
 
 	@Test
+	void packageOperation_expansion_invalid_credentials() {
+		loadTransaction("small-expansion-bundle.json");
+		Parameters emptyParams = new Parameters();
+		EndpointCredentials endpoint = new EndpointCredentials();
+		endpoint.setUsername(new StringType("chris"));
+		endpoint.setApiKey(new StringType("some-api-key"));
+		emptyParams.addParameter().setName("terminologyEndpoint").setResource(endpoint);
+
+		Exception maybeException = null;
+		try {
+			getClient().operation()
+					.onInstance("Library/SmallSpecificationLibrary")
+					.named("$package")
+					.withParameters(emptyParams)
+					.returnResourceType(Bundle.class)
+					.execute();
+		} catch (Exception e) {
+			maybeException = e;
+		}
+		assertTrue(maybeException.getMessage().contains("HTTP 422 : Terminology Server expansion failed for"));
+}
+
+	@Test
 	void packageOperation_naive_expansion() {
 		loadTransaction("small-naive-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
+		emptyParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
 			.named("$package")
@@ -1457,15 +1553,22 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void validatePackageOutput() {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
+		Parameters params = new Parameters();
+		params.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
-			.withParameters(new Parameters())
+			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
 		assertTrue(packagedBundle.getEntry().size() == 37);
 		Parameters packagedBundleParams = new Parameters();
 		packagedBundleParams.addParameter().setName("resource").setResource( packagedBundle);
+		packagedBundleParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		OperationOutcome packagedBundleOutcome = getClient().operation()
 			.onServer()
@@ -1585,7 +1688,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://notOwnedTest.com/Library/notOwnedRoot", // will be empty / unable to retrieve
-			"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163", // the new VS added to the DXTC
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6" // the VS deleted from the DXTC
@@ -1733,7 +1836,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		ObjectMapper mapper = new ObjectMapper();
 		Exception expectNoException = null;
 		Map<String, codeAndOperation> oldCodes = new HashMap<String, codeAndOperation>();
-		oldCodes.put("772155008", new codeAndOperation("123-this-will-be-routine",null));
+		oldCodes.put("772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null));
 		oldCodes.put("1086051000119107", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("1086061000119109", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("1086071000119103", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
@@ -1759,7 +1862,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		oldCodes.put("7773002", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("789005009", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		var newCodes = Map.of(
-			"772155008", new codeAndOperation("123-this-will-be-routine",null),
+			"772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null),
 			"1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
 			"1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
 			"240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
@@ -1814,7 +1917,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 		assertNotNull(returnedBinary);
 		Map<String,Map<String,List<codeAndOperation>>> oldLeafsAndConditions = Map.of(
-			"123-this-will-be-routine", Map.of(
+			"2.16.840.1.113883.3.464.1003.113.11.1090", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("49649001", null),
 					new codeAndOperation("000000000", "delete")
@@ -1832,7 +1935,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
-			"123-this-will-be-routine", Map.of(
+			"2.16.840.1.113883.3.464.1003.113.11.1090", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("767146004", "insert"),
 					new codeAndOperation("49649001", null)
@@ -1904,11 +2007,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		ObjectMapper mapper = new ObjectMapper();
 		Exception expectNoException = null;
 		var oldLeafs = Map.of(
-			"123-this-will-be-routine", "",
+			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
 			"2.16.840.1.113762.1.4.1146.6", "delete"
 		);
 		var newLeafs = Map.of(
-			"123-this-will-be-routine", "",
+			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
 			"2.16.840.1.113762.1.4.1146.163", "insert"
 		);
 		try {
