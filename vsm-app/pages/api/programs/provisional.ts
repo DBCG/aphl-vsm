@@ -3,12 +3,13 @@ import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { merge } from 'lodash'
+import { merge, uniqBy } from 'lodash'
 
 interface GrouperVSetInformation {
   id: string
   url: string
   version: string
+  title: string
   valueSets: string[]
 }
 
@@ -23,9 +24,20 @@ interface ProvisionalVsCsMap {
   provisionalData: fhir4.ValueSetComposeInclude
 }
 
-type GrouperItem = Record<string, ProvisionalVsCsMap[]>
+interface GrpItem {
+  grouperId: string
+  grouperTitle: string
+  provisionalLeafData: ProvisionalVsCsMap[]
+}
 
-export type ProvisionalsByProgram = Record<string, GrouperItem>
+interface DataItem {
+  programId: string
+  programTitle: string
+  groupers: GrpItem[]
+
+}
+
+export type ProvisionalsByProgram = DataItem[]
 
 const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
 
@@ -81,7 +93,7 @@ const getProvisionalValueSetDataByProgram = async () => {
     return ({})
   }
 
-  let grouperValueSetsContainingProvisionalsByProgram = {} as ProvisionalsByProgram
+  let grouperValueSetsContainingProvisionalsByProgram = [] as ProvisionalsByProgram
 
   // iterate over each program
   for await (const programLib of programs) {
@@ -99,6 +111,7 @@ const getProvisionalValueSetDataByProgram = async () => {
       id: e.resource.id,
       url: e.resource.url,
       version: e.resource.version,
+      title: e.resource.title,
       valueSets: e?.resource?.compose?.include?.map(i => i?.valueSet)?.flat() || []
     })) as GrouperVSetInformation[]
    
@@ -107,16 +120,33 @@ const getProvisionalValueSetDataByProgram = async () => {
       // if any grouper contains the valueset
       grouperVsetInfo.forEach(grouperItem => {
         if (grouperItem.valueSets.includes(provisionalItem.provisionalLeafUrl)) {
-          const existingValues = grouperValueSetsContainingProvisionalsByProgram?.[programLib.id!]?.[grouperItem.id!]?.provisionalLeafData || []
-          const itemsToAdd = existingValues.concat(provisionalItem)?.filter(x => x)
+          const existingGroupers = grouperValueSetsContainingProvisionalsByProgram
+          ?.find(i => i.programId === programLib.id)
+          ?.groupers || []
+
+          const existingProvisionalLeafDataForGrouper = existingGroupers
+            ?.find(grp => grp.grouperId === grouperItem.id)
+            ?.provisionalLeafData || []
+
+          const itemsToAdd = existingProvisionalLeafDataForGrouper.concat(provisionalItem)?.filter(x => x)
+
+          const updatedGrouperItem = {
+            grouperId: grouperItem.id,
+            grouperTitle: grouperItem.title,
+            provisionalLeafData: itemsToAdd
+          }
+
+          // NOTE: uniqBy keeps the first instance of the key
+          const mergedProgramGrouperData = uniqBy([updatedGrouperItem, ...existingGroupers], 'grouperId')
+
           const item = {
-            [programLib.id!]: {
-              [grouperItem.id!]: {
-                provisionalLeafData: itemsToAdd
-              }
-          }}
+            programId: programLib.id,
+            programTitle: programLib.title,
+            groupers: mergedProgramGrouperData
+          }
+
           if (itemsToAdd.length) {
-            merge(grouperValueSetsContainingProvisionalsByProgram, item)
+            grouperValueSetsContainingProvisionalsByProgram = uniqBy([item, ...grouperValueSetsContainingProvisionalsByProgram], 'programId') as ProvisionalsByProgram
           }
         }
       })
