@@ -28,12 +28,12 @@ const NoProvisionalData = ({ provisionalType, csExists }: ProvisionalType) => {
 }
 
 interface ProvisionalCS {
-  provisionalCS: fhir4.CodeSystem[]
+  provisionalCS: fhir4.CodeSystem[] | undefined
   canEdit: boolean
   isLoading: boolean
 }
 
-const ProvisionalCodeSystemsTable = ({ provisionalCS, canEdit, isLoading }: ProvisionalCS) => {
+const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: ProvisionalCS) => {
   const router = useRouter()
   const codeSystemColumns = useMemo(() => {
     const fields = [

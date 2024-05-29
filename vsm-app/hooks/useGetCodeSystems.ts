@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react'
 
-interface Props {
-  systemUrl: undefined | fhir4.CodeSystem['url']
+interface ReturnedData {
+  uri: string
+  name: string
 }
 
-const useGetCS = (refresh): [] | fhir4.CodeSystem[] => {
-  const [codeSystems, setCodeSystems] = useState<fhir4.CodeSystem[]>([])
+const useGetCS = (refresh: HTMLElement | null): [] | ReturnedData[] => {
+  const [codeSystems, setCodeSystems] = useState<ReturnedData[]>([])
   useEffect(() => {
     async function getCS(): Promise<void> {
 
         let endpoint = '/api/codesystem'
-        // if system url isn't defined, endpoint returns all provisional CS
-        // if (props?.systemUrl) {
-        //   endpoint = endpoint + `?systemUrl=${props.systemUrl}`
-        // }
         try {
           const response: Response = await fetch(endpoint)
           const json = await response.json()

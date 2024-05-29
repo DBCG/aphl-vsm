@@ -245,8 +245,14 @@ interface ProvisionalSearchForm {
   allConditions: ConditionItem[]
   document: HTMLElement | null
   formattedGroups: FormattedGroup[]
-
 }
+
+interface RowSelectionItem {
+  allSelected: boolean
+  selectedCount: number
+  selectedRows: fhir4.ValueSet[]
+}
+
 const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: ProvisionalSearchForm) => {
   const [currentSearchField, setCurrentSearchField] = useState(searchTypes[0])
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
@@ -254,9 +260,9 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   const [initialSearchResults, setInitialSearchResults] = useState([])
   const [selectedConditions, setSelectedConditions] = useState([])
   const [selectedGroupers, setSelectedGroupers] = useState([])
-  const [selectedRows, setSelectedRows] = useState([])
+  const [selectedRows, setSelectedRows] = useState<fhir4.ValueSet[]>([])
   const [loading, setLoading] = useState(false)
-  const [selectedPriority, setSelectedPriority] = useState('routine')
+  const [selectedPriority, setSelectedPriority] = useState<typeof priorityLevelOptions[number] | undefined>()
   const router = useRouter()
 
   const handleSearchProvisionalVS = async () => {
@@ -327,7 +333,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     return fields
   }, [searchResults])
 
-  const handleSelectedVSets = (r) => {
+  const handleSelectedVSets = (r: RowSelectionItem) => {
     setSelectedRows(r.selectedRows)
   }
 
@@ -337,7 +343,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
       selectedValueSets: uniqBy(selectedRows, 'id'),
       selectedConditions,
       selectedGroupers,
-      selectedPriority: selectedPriority.value || 'routine'
+      selectedPriority: selectedPriority?.value || 'routine'
     }
 
     const leafPutBody = JSON.stringify(body)
@@ -357,7 +363,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
 
     return (
       <Row style={{ marginBottom: '1rem', display: selectedRows.length ? 'inherit' : 'none' }}>
-        <form style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem' }}>
+        <form style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem', flexWrap: 'wrap' }}>
           <SelectInputContainer>
             <Select
               required={true}
@@ -388,6 +394,23 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
                 setSelectedConditions(e)
               }}
             />
+          </SelectInputContainer>
+          <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
+          <Select
+            // isClearable={false}
+            placeholder='Add priority'
+            instanceId='vsm-provisional-priority'
+            isMulti={false}
+            styles={reactSelectOptionStyle()}
+            // @ts-ignore
+            options={priorityLevelOptions}
+            menuPortalTarget={document}
+            value={selectedPriority}
+            onChange={(e) => {
+              // create new array since e is readonly
+              setSelectedPriority(e!)
+            }}
+          />
           </SelectInputContainer>
           <Button
             style={{ alignSelf: 'center', marginBottom: 0 }}

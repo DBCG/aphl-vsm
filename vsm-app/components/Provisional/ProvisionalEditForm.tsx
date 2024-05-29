@@ -1,11 +1,9 @@
 import styled from 'styled-components'
-import useSWR from 'swr'
 import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
-import Select from 'react-select'
+import Select, { SingleValue } from 'react-select'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { VSMSession, allowEditing, can } from '@/helpers/rolesHelper'
-import { fetcher } from '@/utils'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
 import { TextArea } from '@/components/TextArea'
@@ -15,7 +13,6 @@ import DataTable from 'react-data-table-component'
 import { IconButton } from '@mui/material'
 import { DeleteForeverSharp } from '@mui/icons-material'
 import { useRouter } from 'next/router'
-import Link from 'next/link'
 import { PageTitle } from '../Typography'
 
 const QuestionnaireRowContainer = styled.div`
@@ -69,6 +66,10 @@ interface CodeTableData {
   definition: string
 }
 
+interface ExistingCodesTableData {
+  codeSystem: fhir4.CodeSystem
+}
+
 const allFieldsExist = (codeItems: string[]) => {
   const filtered = codeItems.filter(i => i.trim() !== '')
   // check if vals are even valid
@@ -76,8 +77,8 @@ const allFieldsExist = (codeItems: string[]) => {
   return allFieldsPopulated
 }
 
-const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem }) => {
-  console.log('codesystem: ', codeSystem)
+const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem | undefined }) => {
+  if (!codeSystem) return null
 
   const columns = useMemo(() => {
     const fields = [
@@ -106,14 +107,17 @@ const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem }) =>
 }
 
 interface ProvisionalEditProps {
-  existingCs: fhir4.CodeSystem[]
-  readOnly: boolean
   canEdit: boolean
 }
 
-const ProvisionalCSForm = ({ existingCs, readOnly, canEdit }: ProvisionalEditProps) => {
+interface CodeSystemBase {
+  label: string
+  value: string
+}
+
+const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const router = useRouter()
-  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState()
+  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<CodeSystemBase | undefined>()
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const allVsacCS = useGetCS(myDocument)
   const [codeToAdd, setCodeToAdd] = useState('')
@@ -146,6 +150,7 @@ const ProvisionalCSForm = ({ existingCs, readOnly, canEdit }: ProvisionalEditPro
 
   
   const selectOptions = useMemo(() => {
+    console.log('all vsac cs: ', allVsacCS)
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
     if (!router.query.csSelected) {
@@ -246,16 +251,16 @@ const ProvisionalCSForm = ({ existingCs, readOnly, canEdit }: ProvisionalEditPro
             value={selectedCodeSystemBase}
             menuPortalTarget={myDocument}
             styles={reactSelectOptionStyle({ minWidth: '30rem' })}
-            onChange={(e) => {
+            onChange={(e: SingleValue<CodeSystemBase>) => {
               router.push(`${router.asPath.split('?')[0]}?csSelected=${(e?.value)}`)
-              setSelectedCodeSystemBase(e)
+              setSelectedCodeSystemBase(e!)
             }}
           />
         </QuestionnaireRowContainer>
         {provisionalCS?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={provisionalCS?.find(c => c?.url === selectedCodeSystemBase?.value)} />
+            <ExistingCodesTable codeSystem={provisionalCS.find(c => c?.url === selectedCodeSystemBase?.value)} />
             { can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
             )}
@@ -323,16 +328,13 @@ const ProvisionalCSForm = ({ existingCs, readOnly, canEdit }: ProvisionalEditPro
   }
 }
 
+interface ProvEditFormItems {
+  canEdit: boolean
+}
 
-
-
-export const ProvisionalEditForm = ({ itemType, readOnly, existingResource, canEdit }) => {
-  const { data: session } = useSession() as unknown as { data: VSMSession }
-  const { data: systemAndVersionData = [] } = useSWR(null, fetcher, { revalidateOnFocus: true })
+export const ProvisionalEditForm = ({ canEdit }: ProvEditFormItems) => {
   return (
     <ProvisionalCSForm
-      existingCS={existingResource}
-      readOnly={readOnly}
       canEdit={canEdit || true}
     />
   )
