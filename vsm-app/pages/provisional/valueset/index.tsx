@@ -19,6 +19,7 @@ import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
 import Link from 'next/link'
 import { Chip } from '@mui/material'
 import { ArrowOutward } from '@mui/icons-material'
+import { is } from '@/helpers/is'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -30,6 +31,7 @@ interface RowItem {
   display: string
 }
 
+type ProvisionalVSetsByProgramId = Record<string, string[]>
 
 const customExpandStyles = {
   rows: {
@@ -211,24 +213,33 @@ const ProvisionalVSEdit = () => {
   const [codesBySystemToAdd, setCodesBySystemToAdd] = useState({})
   const [formContext, setFormContext] = useState(null)
 
+  const [error, setError] = useState<null | string>(null)
+
   type CodesBySystem = Record<string, string[]>
 
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
 
   const programsContainingProvisional = useMemo(() => {
+    setError(null)
     if (!provisionalContext) return {}
-    const allProgramIds = Object.keys(provisionalContext)
-    if (!allProgramIds) return []
-    const provVsByProgram = allProgramIds.reduce((acc, id) => {
-      const allValueSets = uniqBy(Object.values(Object.values(provisionalContext[id]))?.map(i => i.provisionalLeafData)?.flat(), 'provisionalLeafUrl')
-
-      const result = { [id]: allValueSets }
-      return result
-    }, {})
-
-    return provVsByProgram
-  }, [provisionalContext])
+    if (is.errorObj(provisionalContext)) {
+      setError(provisionalContext.error)
+      return {} 
+    } else {
+      const allProgramIds = provisionalContext.map(i => i.programId as string)
+      const provVsByProgram = allProgramIds.reduce((acc, id) => {
+        const allVsets = uniqBy(provisionalContext
+          ?.find(c => c?.programId === id)?.groupers
+          ?.map(g => g.provisionalLeafData)?.flat()?.filter(x => Boolean(x)) || [], 'provisionalLeafId')
+  
+        const result = Object.assign(acc, { [id]: allVsets })
+        return result
+      }, {})
+  
+      return provVsByProgram
+    }
+  }, [provisionalContext]) as ProvisionalVSetsByProgramId
 
   const findProgramByProvisionalLeaf = (leafUrlToFind) => {
     const programIds = Object.keys(programsContainingProvisional)
