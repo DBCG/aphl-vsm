@@ -395,9 +395,8 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
               }}
             />
           </SelectInputContainer>
-          <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
+          <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white', height: 'fit-content' }}>
           <Select
-            // isClearable={false}
             placeholder='Add priority'
             instanceId='vsm-provisional-priority'
             isMulti={false}
