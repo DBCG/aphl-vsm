@@ -8,6 +8,7 @@ import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import com.ecr.TransformProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeAll;
@@ -701,15 +702,15 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<Bundle.BundleEntryComponent> maybeLib = returnResource.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains(specificationLibReference)).findFirst();
 		assertTrue(maybeLib.isPresent());
 		Library releasedLibrary = getClient().fetchResourceFromUrl(Library.class,maybeLib.get().getResponse().getLocation());
-		Optional<RelatedArtifact> maybeRelatedArtifactWithPriorityExtension = releasedLibrary.getRelatedArtifact().stream().filter(ra -> ra.getExtensionByUrl(KnowledgeArtifactProcessor.valueSetPriorityUrl) != null).findAny();
-		Optional<RelatedArtifact> maybeRelatedArtifactWithUseContextExtension = releasedLibrary.getRelatedArtifact().stream().filter(ra -> ra.getExtensionByUrl(KnowledgeArtifactProcessor.valueSetConditionUrl) != null).findAny();
+		Optional<RelatedArtifact> maybeRelatedArtifactWithPriorityExtension = releasedLibrary.getRelatedArtifact().stream().filter(ra -> ra.getExtensionByUrl(TransformProperties.vsmPriority) != null).findAny();
+		Optional<RelatedArtifact> maybeRelatedArtifactWithUseContextExtension = releasedLibrary.getRelatedArtifact().stream().filter(ra -> ra.getExtensionByUrl(TransformProperties.vsmCondition) != null).findAny();
 		assertTrue(maybeRelatedArtifactWithUseContextExtension.isPresent());
 		assertTrue(maybeRelatedArtifactWithUseContextExtension.get().getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"));
 		assertTrue(maybeRelatedArtifactWithPriorityExtension.isPresent());
 		assertTrue(maybeRelatedArtifactWithPriorityExtension.get().getResource().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"));
-		Extension priority = maybeRelatedArtifactWithUseContextExtension.get().getExtensionByUrl(KnowledgeArtifactProcessor.valueSetPriorityUrl);
+		Extension priority = maybeRelatedArtifactWithUseContextExtension.get().getExtensionByUrl(TransformProperties.vsmPriority);
 		assertTrue(((CodeableConcept) priority.getValue()).getCoding().get(0).getCode().equals("emergent"));
-		Extension condition = maybeRelatedArtifactWithUseContextExtension.get().getExtensionByUrl(KnowledgeArtifactProcessor.valueSetConditionUrl);
+		Extension condition = maybeRelatedArtifactWithUseContextExtension.get().getExtensionByUrl(TransformProperties.vsmCondition);
 		assertTrue(((CodeableConcept) condition.getValue()).getCoding().get(0).getCode().equals("49649001"));
 	}
 
@@ -1263,11 +1264,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(shouldBeUpdatedToEmergent.isPresent());
 		Optional<UsageContext> priority = shouldBeUpdatedToEmergent.get().getUseContext().stream()
-			.filter(useContext -> useContext.getCode().getSystem().equals(KnowledgeArtifactProcessor.usPhContextTypeUrl) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetPriorityCode))
+			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.usPHUsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetPriorityCode))
 			.findFirst();
 		assertTrue(priority.isPresent());
 		assertTrue(((CodeableConcept) priority.get().getValue()).getCoding().get(0).getCode().equals("emergent"));
-		assertTrue(((CodeableConcept) priority.get().getValue()).getCoding().get(0).getSystem().equals(KnowledgeArtifactProcessor.contextUrl));
+		assertTrue(((CodeableConcept) priority.get().getValue()).getCoding().get(0).getSystem().equals(TransformProperties.usPHUsageContext));
 
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
@@ -1276,11 +1277,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
-			.filter(useContext -> useContext.getCode().getSystem().equals(KnowledgeArtifactProcessor.usPhContextTypeUrl) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetPriorityCode))
+			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.usPHUsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetPriorityCode))
 			.findFirst();
 		assertTrue(priority2.isPresent());
 		assertTrue(((CodeableConcept) priority2.get().getValue()).getCoding().get(0).getCode().equals("routine"));
-		assertTrue(((CodeableConcept) priority2.get().getValue()).getCoding().get(0).getSystem().equals(KnowledgeArtifactProcessor.contextUrl));
+		assertTrue(((CodeableConcept) priority2.get().getValue()).getCoding().get(0).getSystem().equals(TransformProperties.usPHUsageContext));
 	}
 
 	@Test
@@ -1303,7 +1304,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(shouldHaveFocusSetToNewValue.isPresent());
 		Optional<UsageContext> focus = shouldHaveFocusSetToNewValue.get().getUseContext().stream()
-			.filter(useContext -> useContext.getCode().getSystem().equals(KnowledgeArtifactProcessor.contextTypeUrl) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetConditionCode))
+			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.hl7UsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetConditionCode))
 			.findFirst();
 		assertTrue(focus.isPresent());
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49649001"));
@@ -1577,12 +1578,19 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		List<OperationOutcome.OperationOutcomeIssueComponent> errors = packagedBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		assertTrue(errors.size() == 4);
+		assertTrue(errors.size() == 10);
 		// expect errors for Variable extension which bubble up and invalidate the PlanDefinition slice
 		assertTrue(errors.get(0).getDiagnostics().contains("slicePlanDefinition"));
 		assertTrue(errors.get(1).getDiagnostics().contains("'depends-on' but must be 'composed-of'"));
 		assertTrue(errors.get(2).getDiagnostics().contains("variable"));
-		assertTrue(errors.get(3).getDiagnostics().contains("variable"));
+
+		// grouper-type use context code is technically non-conformant
+		assertTrue(errors.get(4).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(5).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(6).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(7).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(8).getDiagnostics().contains("grouper-type"));
+		assertTrue(errors.get(9).getDiagnostics().contains("grouper-type"));
 	}
 
 	@Test
@@ -1625,7 +1633,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	private List<Extension> getConditionExtensionForValueSet(String valueSetUrl, Library library) {
 		return library.getRelatedArtifact().stream()
 			.filter(ra -> ra.hasResource() && ra.getResource().equals(valueSetUrl))
-			.map(ra -> ra.getExtensionsByUrl(KnowledgeArtifactProcessor.valueSetConditionUrl))
+			.map(ra -> ra.getExtensionsByUrl(TransformProperties.vsmCondition))
 			.flatMap(exts -> exts.stream())
 			.collect(Collectors.toList());
 	}

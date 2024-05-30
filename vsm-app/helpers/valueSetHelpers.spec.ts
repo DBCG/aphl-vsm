@@ -182,13 +182,29 @@ describe('valueSetHelpers', () => {
         }
       }
 
+      const expectedUseContext = {
+                                     "code": {
+                                         "system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+                                         "code": "grouper-type"
+                                     },
+                                     "valueCodeableConcept": {
+                                         "coding": [
+                                             {
+                                                 "system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+                                                 "code": "model-grouper"
+                                             }
+                                         ],
+                                         "text": "Model Grouper"
+                                     }
+                                 }
+
       const result = createGrouperWithMetadata(metadataWithAuthor)
 
       // check that all the flat object properties are there
       expect(result).toMatchObject(noAuthor)
       // check that extension is there
       expect(result?.extension?.[0]).toMatchObject(expectedExtension)
-
+      expect(result?.useContext).toContainEqual(expectedUseContext)
     })
   })
 

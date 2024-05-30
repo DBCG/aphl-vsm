@@ -235,6 +235,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
       }
     }
   ]
+
   return vs
 }
 
