@@ -1,6 +1,5 @@
 language: python
 dist: jammy
-jdk: openjdk17
 
 python:
   - "3.8"
@@ -32,14 +31,16 @@ jobs:
         - npm ci && npm run test-ci
       install: skip
     - stage: mvn-test
+      jdk: openjdk17
+      language: java
       script:
-        - jdk_switcher use openjdk17
         - ./bin/test_plugin.sh
       install: skip
     - stage: build-and-deploy-plugin
       if: branch IN (main) or tag IS present
+      jdk: openjdk17
+      language: java
       script:
-        - jdk_switcher use openjdk17
         - ./bin/build_plugin.sh
     - stage: deploy
       if: branch IN (main) or tag IS present
