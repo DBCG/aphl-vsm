@@ -1121,7 +1121,8 @@
 					"lastUpdated": "2021-08-20T01:12:21.049-06:00",
 					"source": "#zJ5jHSo1bnD4qTAW",
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library",
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset-library"
 					]
 				},
 				"text": {
@@ -3811,7 +3812,8 @@
 				"id": "2.16.840.1.113762.1.4.1146.1506",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"
 					]
 				},
 				"text": {

@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -90,21 +89,22 @@ public class ImportBundleProducer {
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
-						var pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
+						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
 						if (isGrouper(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							valueSet.getMeta().setProfile(grouperProfiles);
-							groupers.add(pinnedVersionKey);
+							groupers.add(valueSetCanonicalUrl);
 						} else {
 							// Leaf ValueSets
 							var leafVsProfiles = addMetaProfileUrl(
 								resource.getMeta(),
 								Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
 							);
-							valueSet.getMeta().setProfile(leafVsProfiles);
+							var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
+							valueSet.getMeta().setProfile(filtered);
 
-							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, pinnedVersionKey);
+							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
 
 							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
 								var ext = new Extension();
@@ -136,6 +136,7 @@ public class ImportBundleProducer {
 							if (isRootSpecificationLibrary(resource)) {
 								rootLibrary = library;
 							} else {
+								library.getMeta().setProfile(removeProfileFromList(library.getMeta().getProfile(), TransformProperties.ersdVSLibProfile));
 								rctcLibrary = library;
 							}
 						}
@@ -167,6 +168,43 @@ public class ImportBundleProducer {
 		bundleEntries.add(getPutResourceRequest(rctcLibrary, "/Library", rctcLibrary.getIdPart()));
 		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
+	}
+	private static List<CanonicalType> removeProfileFromList(List<CanonicalType> profiles, String profileToRemove) {
+		if (profiles == null) {
+			return new ArrayList<CanonicalType>();
+		}
+		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
+	}
+
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
+		contexts.forEach(context -> {
+			if (context.hasCode()) {
+				var code = context.getCode().getCode();
+				if (code.equals("focus")) {
+					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
+						var conditions = conditionsMap.get(valueSetCanonicalUrl);
+						conditions.add(context.getValueCodeableConcept());
+					} else {
+						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				} else if (code.equals("priority")) {
+					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
+						var priorities = priorityMap.get(valueSetCanonicalUrl);
+						if (priorities.size() == 0) {
+							priorities.add(context.getValueCodeableConcept());
+						} else {
+							priorities.forEach(p -> {
+								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
+									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
+								}
+							});
+						}
+					} else {
+						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				}
+			}
+		});
 	}
 
 	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
