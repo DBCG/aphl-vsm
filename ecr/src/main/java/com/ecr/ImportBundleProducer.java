@@ -1,9 +1,10 @@
 package com.ecr;
 
 import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
-import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.param.UriParam;
+import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
 import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +53,9 @@ public class ImportBundleProducer {
 
 	private static void addModelGrouperUseContextIfMissing(ValueSet vs) {
 		if(isModelGrouperUseContextMissing(vs)){
-			UsageContext usageContext = new UsageContext();
+			var usageContext = new UsageContext();
 
-			Coding code = new Coding();
+			var code = new Coding();
 			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
 			code.setCode(TransformProperties.grouperType);
 
@@ -72,8 +73,8 @@ public class ImportBundleProducer {
 
 	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties) throws FhirResourceExists {
 		// store for processing root library
-		HashMap<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
-		HashMap<String, List<CodeableConcept>> priorityMap = new HashMap<>();
+		Map<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
+		Map<String, List<CodeableConcept>> priorityMap = new HashMap<>();
 		List<String> groupers = new ArrayList<>();
 
 		PlanDefinition planDefinition = null;
@@ -81,52 +82,32 @@ public class ImportBundleProducer {
 		Library rctcLibrary = null;
 
 		List<Bundle.BundleEntryComponent> bundleEntries = new ArrayList<>();
-		List<Bundle.BundleEntryComponent> entries = parameterBundle.getEntry();
-		for (Bundle.BundleEntryComponent entry : entries) {
+		var entries = parameterBundle.getEntry();
+		for (final var entry : entries) {
 			if (entry.getResource() instanceof MetadataResource) {
-				MetadataResource resource = (MetadataResource) entry.getResource();
+				var resource = (MetadataResource) entry.getResource();
 
 				switch (resource.getResourceType()) {
 					case ValueSet:
-						ValueSet valueSet = (ValueSet) resource;
-						String pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
+						var valueSet = (ValueSet) resource;
+						var pinnedVersionKey = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
 						if (isGrouper(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
-							List<CanonicalType> grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
+							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							valueSet.getMeta().setProfile(grouperProfiles);
 							groupers.add(pinnedVersionKey);
 						} else {
 							// Leaf ValueSets
-							List<CanonicalType> leafVsProfiles = addMetaProfileUrl(
+							var leafVsProfiles = addMetaProfileUrl(
 								resource.getMeta(),
 								Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
 							);
 							valueSet.getMeta().setProfile(leafVsProfiles);
 
-							// Capture all the conditions and priority from the leaf valueset
-							valueSet.getUseContext().forEach(context -> {
-								if (context.hasCode()) {
-									String code = context.getCode().getCode();
-									if (code.equals("focus")) {
-										if (conditionsMap.containsKey(pinnedVersionKey)) {
-											List<CodeableConcept> conditions = conditionsMap.get(pinnedVersionKey);
-											conditions.add(context.getValueCodeableConcept());
-										} else {
-											conditionsMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-										}
-									} else if (code.equals("priority")) {
-										if (priorityMap.containsKey(pinnedVersionKey)) {
-											List<CodeableConcept> priorities = priorityMap.get(pinnedVersionKey);
-											priorities.add(context.getValueCodeableConcept());
-										} else {
-											priorityMap.put(pinnedVersionKey, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-										}
-									}
-								}
-							});
+							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, pinnedVersionKey);
 
 							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
-								Extension ext = new Extension();
+								var ext = new Extension();
 								ext.setUrl(TransformProperties.authoritativeSourceExtUrl);
 								ext.setValue(new UriType(TransformProperties.vsacUrl));
 								valueSet.getExtension().add(ext);
@@ -134,7 +115,7 @@ public class ImportBundleProducer {
 						}
 
 						// Remove conditions and priority from useContext of leaf valuesets and groupers
-						List<UsageContext> cleanedContext = valueSet
+						var cleanedContext = valueSet
 							.getUseContext()
 							.stream()
 							.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
@@ -148,7 +129,7 @@ public class ImportBundleProducer {
 						}
 						break;
 					case Library:
-						Library library = (Library) resource;
+						var library = (Library) resource;
 						if (doesResourceExist(library.getUrl(), library.getVersion(), Library.class, transformProperties)) {
 							throw new FhirResourceExists("Library", library.getUrl(), library.getVersion());
 						} else {
@@ -188,12 +169,43 @@ public class ImportBundleProducer {
 		return bundleEntries;
 	}
 
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
+		contexts.forEach(context -> {
+			if (context.hasCode()) {
+				var code = context.getCode().getCode();
+				if (code.equals("focus")) {
+					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
+						var conditions = conditionsMap.get(valueSetCanonicalUrl);
+						conditions.add(context.getValueCodeableConcept());
+					} else {
+						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				} else if (code.equals("priority")) {
+					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
+						var priorities = priorityMap.get(valueSetCanonicalUrl);
+						if (priorities.size() == 0) {
+							priorities.add(context.getValueCodeableConcept());
+						} else {
+							priorities.forEach(p -> {
+								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
+									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
+								}
+							});
+						}
+					} else {
+						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				}
+			}
+		});
+	}
+
 	private static boolean doesResourceExist(String url, String version, Class resource, TransformProperties transformProperties) {
 		try {
-			SearchParameterMap sp = new SearchParameterMap();
+			var sp = new SearchParameterMap();
 			sp.add("url", new UriParam(url));
 			sp.add("version", new TokenParam(version));
-			IBundleProvider results = transformProperties.search(resource, sp);
+			var results = transformProperties.search(resource, sp);
 			return !results.isEmpty();
 		} catch(Exception e) {
 			return false;
@@ -202,9 +214,9 @@ public class ImportBundleProducer {
 
 
 	private static Bundle.BundleEntryComponent getPutResourceRequest(MetadataResource value, String resourceType, String id) {
-		Bundle.BundleEntryComponent bundleEntry = new Bundle.BundleEntryComponent();
+		var bundleEntry = new Bundle.BundleEntryComponent();
 
-		Bundle.BundleEntryRequestComponent bundleRequest = new Bundle.BundleEntryRequestComponent();
+		var bundleRequest = new Bundle.BundleEntryRequestComponent();
 		bundleRequest.setMethod(Bundle.HTTPVerb.PUT);
 		bundleRequest.setUrl(resourceType + "?_id=" + id);
 		bundleEntry.setRequest(bundleRequest);
@@ -226,46 +238,46 @@ public class ImportBundleProducer {
 	}
 
 	private static void prepareRootLibrary(
-		HashMap<String, List<CodeableConcept>> conditionsMap,
-		HashMap<String, List<CodeableConcept>> priorityMap,
+		Map<String, List<CodeableConcept>> conditionsMap,
+		Map<String, List<CodeableConcept>> priorityMap,
 		PlanDefinition planDefinition,
 		Library rctcLibrary,
 		List<String> groupers,
 		Library rootLibrary
 	) {
 		// Add to profile and ensure not duplicated
-		List<CanonicalType> rootLibraryProfiles = addMetaProfileUrl(rootLibrary.getMeta(), Collections.singletonList(TransformProperties.crmiManifestLibrary));
+		var rootLibraryProfiles = addMetaProfileUrl(rootLibrary.getMeta(), Collections.singletonList(TransformProperties.crmiManifestLibrary));
 		rootLibrary.getMeta().setProfile(rootLibraryProfiles);
 
 		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
 
 		groupers.forEach(grouper -> {
-			RelatedArtifact relatedArtifact = new RelatedArtifact();
+			var relatedArtifact = new RelatedArtifact();
 			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 			relatedArtifact.setResource(grouper);
 			relatedArtifacts.add(relatedArtifact);
 		});
 
 		// Set PlanDefinition
-		String planDefResourceUrl = planDefinition.getVersion() != null ? planDefinition.getUrl() + "|" + planDefinition.getVersion() : planDefinition.getUrl();
-		RelatedArtifact relatedArtifactPlanDefComposedOf = new RelatedArtifact();
+		var planDefResourceUrl = planDefinition.getVersion() != null ? planDefinition.getUrl() + "|" + planDefinition.getVersion() : planDefinition.getUrl();
+		var relatedArtifactPlanDefComposedOf = new RelatedArtifact();
 		relatedArtifactPlanDefComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 		relatedArtifactPlanDefComposedOf.setResource(planDefResourceUrl);
-		Extension extension = new Extension();
+		var extension = new Extension();
 		extension.setUrl(TransformProperties.crmiIsOwned);
 
 		extension.setValue( new BooleanType(true));
 		relatedArtifactPlanDefComposedOf.setExtension(new ArrayList<>(Collections.singletonList(extension)));
 		relatedArtifacts.add(relatedArtifactPlanDefComposedOf);
 
-		RelatedArtifact relatedArtifactPlanDefDependsOn = new RelatedArtifact();
+		var relatedArtifactPlanDefDependsOn = new RelatedArtifact();
 		relatedArtifactPlanDefDependsOn.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
 		relatedArtifactPlanDefDependsOn.setResource(planDefResourceUrl);
 		relatedArtifacts.add(relatedArtifactPlanDefDependsOn);
 
 		// Set rctc Library
-		String rctcUrl = rctcLibrary.getVersion() != null ? rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion() : rctcLibrary.getUrl();
-		RelatedArtifact relatedArtifactRCTCComposedOf = new RelatedArtifact();
+		var rctcUrl = rctcLibrary.getVersion() != null ? rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion() : rctcLibrary.getUrl();
+		var relatedArtifactRCTCComposedOf = new RelatedArtifact();
 		relatedArtifactRCTCComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 		relatedArtifactRCTCComposedOf.setResource(rctcUrl);
 		extension = new Extension();
@@ -275,7 +287,7 @@ public class ImportBundleProducer {
 		relatedArtifactRCTCComposedOf.setExtension(new ArrayList<>(Collections.singletonList(extension)));
 		relatedArtifacts.add(relatedArtifactRCTCComposedOf);
 
-		RelatedArtifact relatedArtifactRCTCDependsOn = new RelatedArtifact();
+		var relatedArtifactRCTCDependsOn = new RelatedArtifact();
 		relatedArtifactRCTCDependsOn.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
 		relatedArtifactRCTCDependsOn.setResource(rctcUrl);
 		relatedArtifacts.add(relatedArtifactRCTCDependsOn);
@@ -286,17 +298,17 @@ public class ImportBundleProducer {
 	}
 
 	private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-		Set<Object> seen = new HashSet<>();
+		var seen = new HashSet<>();
 		return t -> seen.add(keyExtractor.apply(t));
 	}
 
-	private static void processCodeableConceptMapForLibrary(HashMap<String, List<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
-		for (Map.Entry<String, List<CodeableConcept>> entry : targetedMap.entrySet()) {
-			String k = entry.getKey();
-			List<CodeableConcept> v = entry.getValue();
+	private static void processCodeableConceptMapForLibrary(Map<String, List<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
+		for (final var entry : targetedMap.entrySet()) {
+			var k = entry.getKey();
+			var v = entry.getValue();
 			List<Extension> extensions = new ArrayList<>();
 			v.forEach(codeableConcept -> {
-				Extension extension = new Extension();
+				var extension = new Extension();
 				extension.setUrl(extensionUrl);
 				extension.setValue(codeableConcept);
 				extensions.add(extension);
@@ -304,10 +316,10 @@ public class ImportBundleProducer {
 
 			Optional<RelatedArtifact> foundArtifact = relatedArtifacts.stream().filter(i -> i.getResource().equals(k)).findFirst();
 			if (foundArtifact.isPresent()) {
-				List<Extension> existingExtensions = foundArtifact.get().getExtension();
+				var existingExtensions = foundArtifact.get().getExtension();
 				existingExtensions.addAll(extensions);
 			} else {
-				RelatedArtifact relatedArtifact = new RelatedArtifact();
+				var relatedArtifact = new RelatedArtifact();
 				relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
 				relatedArtifact.setResource(k);
 				relatedArtifact.setExtension(extensions);

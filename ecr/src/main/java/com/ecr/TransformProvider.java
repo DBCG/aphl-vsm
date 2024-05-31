@@ -122,14 +122,14 @@ public class TransformProvider implements OperationProvider {
 		if (!(maybeBundle instanceof IBaseBundle)) {
 			throw new UnprocessableEntityException("Resource is not a bundle");
 		}
-		Bundle v2Bundle = (Bundle) maybeBundle;
-		List<Bundle.BundleEntryComponent> importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties);
+		var v2Bundle = (Bundle) maybeBundle;
+		var importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties);
 
 		new Thread(() -> {
 			executeImportTransactionBundle(importTxBundleEntries);
 		}).start();
-		OperationOutcome response = new OperationOutcome();
-		OperationOutcome.OperationOutcomeIssueComponent issue = new OperationOutcome.OperationOutcomeIssueComponent();
+		var response = new OperationOutcome();
+		var issue = new OperationOutcome.OperationOutcomeIssueComponent();
 		issue.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
 		issue.setCode(OperationOutcome.IssueType.PROCESSING);
 
