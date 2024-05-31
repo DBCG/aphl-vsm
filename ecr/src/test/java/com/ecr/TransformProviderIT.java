@@ -12,9 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
 		TransformConfig.class }, properties = { "hapi.fhir.fhir_version=r4" })
 class TransformProviderIT extends RestIntegrationTest {
@@ -203,6 +205,72 @@ class TransformProviderIT extends RestIntegrationTest {
 		var valueSetLibrary = getClient().read().resource(Library.class).withId("library-rctc-example").execute();
 		var valueSetLibraryHasV1 = valueSetLibrary.getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
 		assertFalse(valueSetLibraryHasV1);
+	}
+
+	@Test
+	void testImportOperation_conflicting_priorities() {
+		var v2Bundle = (Bundle) loadResource("ersd-bundle-example-conflicting-priority.json");
+		var v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+			.setName("bundle")
+			.setResource(v2Bundle);
+		UnprocessableEntityException expectingPriorityConflict = null;
+		
+		try {
+			getClient()
+				.operation()
+				.onServer()
+				.named("$ersd-v2-import")
+				.withParameters(v2BundleParams)
+				.returnResourceType(OperationOutcome.class)
+				.execute();
+		} catch (UnprocessableEntityException e) {
+			expectingPriorityConflict = e;
+		}
+		assertNotNull(expectingPriorityConflict);
+		assertTrue(expectingPriorityConflict.getMessage().contains("conflicting priorit"));
+	}
+	@Test
+	void testImportOperation_handle_duplicate_priorities() throws InterruptedException {
+		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example-2-priority.json");
+		Parameters v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+			.setName("bundle")
+			.setResource(v2Bundle);
+
+		getClient()
+			.operation()
+			.onServer()
+			.named("$ersd-v2-import")
+			.withParameters(v2BundleParams)
+			.returnResourceType(OperationOutcome.class)
+			.execute();
+
+		int bundleSearchTries = 0;
+
+		Library library = null;
+
+		while (library == null && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			try {
+				library = getClient().read().resource(Library.class).withId("SpecificationLibrary").execute();
+			} catch (ResourceNotFoundException e) {
+				// do nothing
+			}
+		}
+
+		if(library == null) {
+			fail("Library not found, fetching the import is not returning the manifest library");
+		}
+		var atLeastOneRelatedArtifactIsAValueSetWithPriority = false;
+		for (final var ra: library.getRelatedArtifact()) {
+			if (Canonicals.getResourceType(ra.getResource()).equals("ValueSet") && ra.hasExtension(TransformProperties.vsmPriority)) {
+				atLeastOneRelatedArtifactIsAValueSetWithPriority = true;
+				assertEquals(1, ra.getExtensionsByUrl(TransformProperties.vsmPriority).size());
+			}
+		}
+		assertTrue(atLeastOneRelatedArtifactIsAValueSetWithPriority);
 	}
 
 	@Test

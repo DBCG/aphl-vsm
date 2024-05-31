@@ -33,8 +33,8 @@ public class ImportBundleProducer {
 	 */
 	public static boolean isGrouper(MetadataResource resource) {
 		return resource.getResourceType() == ResourceType.ValueSet
-			&& ((ValueSet) resource).hasCompose()
-			&& ((ValueSet) resource).getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+			&& resource.getUseContext().stream()
+				.anyMatch(uc -> uc.hasCode() && uc.getCode().getCode().equals(TransformProperties.grouperType));
 	}
 
 	public static boolean isRootSpecificationLibrary(Resource resource) {
@@ -45,8 +45,8 @@ public class ImportBundleProducer {
 		return vs.getUseContext().stream()
 				.noneMatch(uc ->
 						uc.getValue() instanceof CodeableConcept &&
-						uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals("model-grouper") &&
-								uc.getCode().getCode().equals("grouper-type")
+						uc.getValueCodeableConcept().getCodingFirstRep().getCode().equals(TransformProperties.modelGrouper) &&
+								uc.getCode().getCode().equals(TransformProperties.grouperType)
 				);
 	}
 
@@ -56,10 +56,10 @@ public class ImportBundleProducer {
 
 			var code = new Coding();
 			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
-			code.setCode("grouper-type");
+			code.setCode(TransformProperties.grouperType);
 
-			var valueCodeableConceptCoding = new Coding();
-			valueCodeableConceptCoding.setCode("model-grouper");
+			Coding valueCodeableConceptCoding = new Coding();
+			valueCodeableConceptCoding.setCode(TransformProperties.modelGrouper);
 			valueCodeableConceptCoding.setSystem(TransformProperties.grouperUsageContextCodableConceptSystemURL);
 
 			usageContext.setCode(code);
@@ -174,6 +174,37 @@ public class ImportBundleProducer {
 			return new ArrayList<CanonicalType>();
 		}
 		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
+	}
+
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
+		contexts.forEach(context -> {
+			if (context.hasCode()) {
+				var code = context.getCode().getCode();
+				if (code.equals("focus")) {
+					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
+						var conditions = conditionsMap.get(valueSetCanonicalUrl);
+						conditions.add(context.getValueCodeableConcept());
+					} else {
+						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				} else if (code.equals("priority")) {
+					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
+						var priorities = priorityMap.get(valueSetCanonicalUrl);
+						if (priorities.size() == 0) {
+							priorities.add(context.getValueCodeableConcept());
+						} else {
+							priorities.forEach(p -> {
+								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
+									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
+								}
+							});
+						}
+					} else {
+						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				}
+			}
+		});
 	}
 
 	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
