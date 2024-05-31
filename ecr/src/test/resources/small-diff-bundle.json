@@ -102,7 +102,8 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and its compounds (disorder)"
 								}
 							}
 						],
@@ -138,6 +139,24 @@
 						],
 						"type": "depends-on",
 						"resource": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0"
 					},
 					{
 						"type": "depends-on",
@@ -223,6 +242,11 @@
 						{
 							"valueSet": [
 								"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+							]
+						},
+						{
+							"valueSet": [
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0"
 							]
 						}
 					]
@@ -420,15 +444,6 @@
 									"display": "Acute poliomyelitis suspected (situation)"
 								}
 							]
-						},{
-							"system": "http://snomed.info/sct",
-							"version": "Provisional_2022-01-10",
-							"concept": [
-								{
-									"code": "123123123",
-									"display": "Deleted Code"
-								}
-							]
 						}
 					]
 				}
@@ -436,6 +451,88 @@
 			"request": {
 				"method": "PUT",
 				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			}
+		},
+		{
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|1.0.0",
+			"resource": {
+				"resourceType": "ValueSet",
+				"id": "2.16.840.1.113762.1.4.1146.1505",
+				"meta": {
+					"profile": [
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
+				},
+				"text": {
+					"status": "extensions",
+					"div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: ValueSet</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource ValueSet \"2.16.840.1.113762.1.4.1146.1505\" </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-us-ph-triggering-valueset.html\">US Public Health Triggering ValueSet</a></p></div><p><b>author</b>: CSTE Author: </p><p><b>steward</b>: CSTE Steward: </p><p><b>url</b>: <code>http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505</code></p><p><b>identifier</b>: id: urn:oid:2.16.840.1.113762.1.4.1146.1505</p><p><b>version</b>: 1.0.0</p><p><b>name</b>: AcanthamoebaDiseaseKeratitisDisordersSNOMED</p><p><b>title</b>: Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)</p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>publisher</b>: eCR</p><p><b>description</b>: Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)</p><blockquote><p><b>compose</b></p><blockquote><p><b>include</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><blockquote><p><b>concept</b></p><p><b>code</b>: 127631000119105</p><p><b>display</b>: Corneal ulcer due to acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693201000119102</p><p><b>display</b>: Keratitis of bilateral eyes caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693241000119100</p><p><b>display</b>: Keratitis of left eye caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693281000119105</p><p><b>display</b>: Keratitis of right eye caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15698841000119105</p><p><b>display</b>: Ulcer of right cornea caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15698881000119100</p><p><b>display</b>: Ulcer of left cornea caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 231896005</p><p><b>display</b>: Acanthamoeba keratitis (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 711645008</p><p><b>display</b>: Corneal ulcer caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 840444002</p><p><b>display</b>: Dacryoadenitis due to Acanthamoeba keratitis (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 840484006</p><p><b>display</b>: Conjunctivitis caused by Acanthamoeba (disorder)</p></blockquote></blockquote></blockquote><blockquote><p><b>expansion</b></p><p><b>timestamp</b>: 2022-04-05 10:06:43-0400</p><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 127631000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693201000119102</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693241000119100</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693281000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15698841000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15698881000119100</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 231896005</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 711645008</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 840444002</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 840484006</p></blockquote></blockquote></div>"
+				},
+				"extension": [
+					{
+						"url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+						"valueContactDetail": {
+							"name": "CSTE Author"
+						}
+					},
+					{
+						"url": "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+						"valueContactDetail": {
+							"name": "CSTE Steward"
+						}
+					}
+				],
+				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505",
+				"identifier": [
+					{
+						"system": "urn:ietf:rfc:3986",
+						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1505"
+					}
+				],
+				"version": "1.0.0",
+				"name": "AcanthamoebaDiseaseKeratitisDisordersSNOMED",
+				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
+				"status": "active",
+				"experimental": true,
+				"publisher": "eCR",
+				"description": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
+				"compose": {
+					"include": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"concept": [
+								{
+									"code": "127631000119105",
+									"display": "Corneal ulcer due to acanthamoeba (disorder)"
+								},
+								{
+									"code": "15693201000119102",
+									"display": "Keratitis of bilateral eyes caused by Acanthamoeba (disorder)"
+								}
+							]
+						}
+					]
+				},
+				"expansion": {
+					"timestamp": "2022-04-05T10:06:43-04:00",
+					"contains": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"code": "127631000119105"
+						},
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"code": "15693201000119102"
+						}
+					]
+				}
+			},
+			"request": {
+				"method": "PUT",
+				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1505",
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505&version=1.0.0"
 			}
 		}
 	]

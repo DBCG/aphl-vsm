@@ -296,15 +296,32 @@ public class ChangeLog {
       public String version;
       public String display;
       public String memberOid;
+      public String codeSystemOid;
       public Operation operation;
       Code(String id, String system, String code, String version, String display, String memberOid, Operation operation) {
         this.id = id;
         this.system = system;
+        if (system != null) {
+          this.codeSystemOid = getCodeSystemOid(system);
+        }
         this.code = code;
         this.version = version;
         this.display = display;
         this.memberOid = memberOid;
         this.operation = operation;
+      }
+      public String getCodeSystemOid(String systemUrl) {
+        if (system.contains("snomed")) {
+          return "2.16.840.1.113883.6.96";
+        } else if (system.contains("icd-10")) {
+          return "2.16.840.1.113883.6.90";
+        } else if (system.contains("icd-9")) {
+          return "2.16.840.1.113883.6.103, 2.16.840.1.113883.6.104";
+        } else if (system.contains("loinc")) {
+          return "2.16.840.1.113883.6.1";
+        } else {
+          return null;
+        }
       }
       public Operation getOperation() {
         return this.operation;
