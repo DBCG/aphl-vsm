@@ -51,7 +51,7 @@ const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> 
   return program
 }
 
-const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
+export const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
   // get the grouper canonical, which is a Library resource
   // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
   const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
@@ -70,7 +70,7 @@ const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library 
   return { error: `Could not get Grouper Library for Program ${program.id}` }
 }
 
-const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
+export const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
   grouperVs?.compose?.include
     ?.map((item) => item?.valueSet)
     ?.filter((x) => !!x) // filter out undefined
@@ -78,7 +78,7 @@ const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
 
 // All leaf valuesets are required to belong to at least one grouper
 // so if none exist, this is a problem
-const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
+export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
   const grouperValueSetCanonicals = grouperLib.relatedArtifact
     ?.filter((a) => a.type == 'composed-of')
     .map((res) => res.resource)
@@ -102,6 +102,7 @@ interface GetLeafs {
   stewardToFind: string
   versionToFind: string
   oidToFind: string
+  provisionalOnly: boolean
 }
 
 type LeafVersionsByUrl = Record<string, string>
@@ -117,7 +118,8 @@ const getLeafValueSets = async ({
   titleToFind,
   stewardToFind,
   versionToFind,
-  oidToFind
+  oidToFind,
+  provisionalOnly=false
 }: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
@@ -143,7 +145,8 @@ const getLeafValueSets = async ({
     stewardToFind,
     versionToFind,
     oidToFind,
-    whitelistFields: WHITELIST_VALUESET_FIELDS
+    whitelistFields: WHITELIST_VALUESET_FIELDS,
+    isProvisional: provisionalOnly
   })
 
   if (!leafValueSets?.length) {
@@ -297,7 +300,6 @@ export const getProgramDetailsValuesets = async ({
     }
 
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
-
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
       logger.error(`Problem encountered getting grouper valuesets for Program ${programId}`)
       return { status: 400, payload: { error: grouperValueSets.error } }

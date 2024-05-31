@@ -23,12 +23,8 @@ interface ProvisionalReqGet  extends NextApiRequest {
 const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
   try {
 
-    const {
-      systemUrl
-    } = req.query
-
   const response = await vsacFhirClient.capabilityStatement()
-  const flattened = response.extension.map(r => r.extension)
+  const flattened = response.extension.map((r: fhir4.Extension) => r.extension)
    const availableCs = flattened?.map((i: fhir4.BundleEntry) => {
     return ({
     //@ts-ignore

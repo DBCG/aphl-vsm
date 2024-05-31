@@ -2,7 +2,7 @@ import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogTitle, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
-import { Router, useRouter } from 'next/router'
+import { NextRouter, useRouter } from 'next/router'
 import styled from 'styled-components'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.min.css'
@@ -57,7 +57,7 @@ interface QueryStringItems {
   terminologyServer: string
 }
 
-const NoDataContainer = ({ router }: {router: Router }) => {
+const NoDataContainer = ({ router }: {router: NextRouter }) => {
   return (
     <NoData>
       <p>No Provisional ValueSets Found</p>
@@ -183,11 +183,11 @@ const SelectGrouperContainer = styled.div`
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
-    label: vSet?.title,
-    url: vSet?.url,
-    version: vSet?.version,
-    id: vSet?.id,
-    value: vSet?.url
+    label: vSet.title!,
+    url: vSet.url!,
+    version: vSet.version!,
+    id: vSet.id!,
+    value: vSet.url!
   }))
 }
 
@@ -254,20 +254,30 @@ interface RowSelectionItem {
 }
 
 const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: ProvisionalSearchForm) => {
-  const [currentSearchField, setCurrentSearchField] = useState(searchTypes[0])
+  const [currentSearchField, setCurrentSearchField] = useState<typeof searchTypes[number]>(searchTypes[0])
   const [searchTerm, setSearchTerm] = useState<string | null>(null)
   const [searchResults, setSearchResults] = useState([])
   const [initialSearchResults, setInitialSearchResults] = useState([])
-  const [selectedConditions, setSelectedConditions] = useState([])
-  const [selectedGroupers, setSelectedGroupers] = useState([])
+  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([])
+  const [selectedGroupers, setSelectedGroupers] = useState<FormattedGroup[]>([])
   const [selectedRows, setSelectedRows] = useState<fhir4.ValueSet[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedPriority, setSelectedPriority] = useState<typeof priorityLevelOptions[number] | undefined>()
   const router = useRouter()
+  const [toggleKey, setToggleKey] = useState(0)
+
+  const clearItems = () => {
+    setSearchResults(() => [])
+    setSelectedConditions(() => [])
+    setSelectedGroupers(() => [])
+    setSelectedRows(() => [])
+    setSelectedPriority(() => undefined)
+    setToggleKey(k => k + 1)
+  }
 
   const handleSearchProvisionalVS = async () => {
     setLoading(true)
-    setSearchResults([])
+    clearItems()
 
     const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
     const results = await (fetch(urlToSearch))
@@ -366,9 +376,11 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
         <form style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem', flexWrap: 'wrap' }}>
           <SelectInputContainer>
             <Select
+              controlShouldRenderValue
+              key={`provisional-groups-${toggleKey}`}
               required={true}
               placeholder='Add to Groupers [required]*'
-              instanceId='provisional-groups'
+              instanceId={`provisional-groups-${toggleKey}`}
               isMulti={true}
               menuPortalTarget={document}
               styles={reactSelectOptionStyle()}
@@ -382,6 +394,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
           </SelectInputContainer>
           <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
             <Select
+              key={`provisional-conditions-${toggleKey}`}
               placeholder='Add to Conditions'
               instanceId={'provisional-conditions'}
               isMulti={true}
@@ -391,7 +404,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
               value={selectedConditions}
               onChange={(e) => {
                 // create new array since e is readonly
-                setSelectedConditions(e)
+                setSelectedConditions([...e])
               }}
             />
           </SelectInputContainer>
@@ -440,7 +453,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
                     isMulti={false}
                     menuPortalTarget={document}
                     styles={reactSelectOptionStyle()}
-                    options={searchTypes?.filter(t => t.value !== 'oid')}
+                    options={searchTypes.filter(t => t.value !== 'oid')}
                     value={currentSearchField}
                     onChange={(e) => {
                       return setCurrentSearchField(e!)
@@ -451,17 +464,10 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
               <TextAreaSubmitContainer>
                 <TextArea
                   style={{ width: '100%' }}
-                  onKeyPress={(e) => {
-                    e.preventDefault()
-                    setSearchTerm(e.target.value)
-                  }}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   id="vs-search"
                   label="Search Text"
                   hasIcon={true}
-                // info={searchInfoText[searchType.value]}
-                // helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
-                // errorMessage={errorMessageComponent}
                 />
                 <IconButton
                   style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
@@ -486,11 +492,11 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
         theme="aphl"
         noDataComponent={<NoDataContainer router={router}/>}
         selectableRows={true}
-        // contextActions={contextActions}
         onSelectedRowsChange={handleSelectedVSets}
         customStyles={customTableStyles('readonly')}
         progressPending={loading}
         progressComponent={<LoadingIndicator />}
+        // @ts-ignore-next-line
         columns={provisionalVsColumns}
         data={searchResults}
         pagination
@@ -499,6 +505,8 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     </div>
   )
 }
+
+type TableContextOptions = 'terminology' | 'vsm-provisional'
 
 const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelectedVSId }: ValueSetSearchTable) => {
   const router = useRouter()
@@ -517,7 +525,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const [currentPage, setCurrentPage] = useState({ type: 'first', page: 1 })
   const [resultsPerPage, setResultsPerPage] = useState(10)
 
-  const [searchTableContext, setSearchTableContext] = useState<'terminology' | 'vsm-provisional'>('terminology')
+  const [searchTableContext, setSearchTableContext] = useState<TableContextOptions>('terminology')
 
   // filters
   const [findInTitle, setFindInTitle] = useState('')
@@ -844,11 +852,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     )
   }
 
-  const showProvisionalSearch = useMemo(() => {
-    return Boolean(tableContext === 'search-page' && searchTableContext === 'vsm-provisional')
-  }, [tableContext, searchTableContext])
-
-  const handleSearchToggleChange = (e) => {
+  const handleSearchToggleChange = (e: TableContextOptions) => {
     setSearchTableContext(e)
   }
 
@@ -866,8 +870,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
             color="primary"
             value={searchTableContext}
             exclusive
-            onChange={(e) => {
-              handleSearchToggleChange(e.target.value)
+            onChange={(e, v) => {
+              handleSearchToggleChange(v)
             }}
             aria-label="Platform"
           >
@@ -973,6 +977,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 </StyledLabel>
                 <SelectInputContainer>
                   <Select
+                    menuPortalTarget={myDocument}
                     instanceId={`${tableContext}-conditions`}
                     isMulti={true}
                     styles={reactSelectOptionStyle()}
@@ -991,6 +996,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 </StyledLabel>
                 <SelectInputContainer>
                   <Select
+                    menuPortalTarget={myDocument}
                     isClearable={false}
                     instanceId={`${tableContext}-priority`}
                     isMulti={false}

@@ -77,7 +77,8 @@ interface FetchLeafs {
   stewardToFind?: string,
   versionToFind?: string,
   whitelistFields?: string[],
-  oidToFind?: string
+  oidToFind?: string,
+  provisionalOnly: boolean
 }
 
 const isValidString = (search: any): boolean => {
@@ -90,7 +91,8 @@ export const fetchLeafValueSets = async ({
   stewardToFind,
   versionToFind,
   whitelistFields,
-  oidToFind
+  oidToFind,
+  provisionalOnly
 }: FetchLeafs) => {
   let searchParams = {} as any
 
@@ -117,6 +119,10 @@ export const fetchLeafValueSets = async ({
 
   if (whitelistFields) {
     searchParams['_elements'] = whitelistFields.join(',')
+  }
+
+  if (provisionalOnly) {
+    searchParams['_tag'] = 'vsm-provisional'
   }
 
   result = await Promise.all(
@@ -158,6 +164,7 @@ export const fetchLeafValueSets = async ({
       })
       ?.flat()
       ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.filter(x => x)
 
     return valueSets
   } catch (e) {
@@ -178,7 +185,6 @@ interface FetchCanonical {
 // see: https://www.nlm.nih.gov/vsac/support/usingvsac/vsacsvsapiv2.html (Terms of Service)
 export const fetchByCanonical = async ({ client, resourceType, canonical, whitelistFields, status }: FetchCanonical) => {
   const [url, version] = canonical.split('|')
-
   const searchParams: Record<string, string> = { url }
   if (version) {
     searchParams.version = version

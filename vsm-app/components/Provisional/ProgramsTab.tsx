@@ -268,7 +268,6 @@ const ProgramsTab: NextPage = () => {
   }
 
   const ExpansionComponent = ({ data }: DataItems) => {
-    console.log('data: ', data)
     return (
       <div>
         <ButtonTable program={data} session={session} handleClickClone={handleClickClone} setError={setError} setProgramToRelease={setProgramToRelease} />

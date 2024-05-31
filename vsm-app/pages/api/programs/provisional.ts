@@ -2,8 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
+import { getGrouperLibraryCanonical, getGrouperValueSetCanonicals } from '@/helpers/libraryHelpers'
 import { merge, uniqBy } from 'lodash'
+import { getGrouperLibrary, getGrouperValuesets, getLeafUrlsFromGrouper } from './[id]/details/valuesets'
+import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 
 interface GrouperVSetInformation {
   id: string
@@ -24,17 +26,16 @@ interface ProvisionalVsCsMap {
   provisionalData: fhir4.ValueSetComposeInclude
 }
 
-interface GrpItem {
-  grouperId: string
-  grouperTitle: string
-  provisionalLeafData: ProvisionalVsCsMap[]
+interface LeafItems {
+  id: string
+  title: string
+  url: string
 }
 
 interface DataItem {
   programId: string
   programTitle: string
-  groupers: GrpItem[]
-
+  provisionalLeafs: LeafItems[]
 }
 
 export type ProvisionalsByProgram = DataItem[]
@@ -53,9 +54,9 @@ const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsC
     return ([])
   } else {
     // format provisional valuesets with important data
-    const formattedProvisionalInfo = provisionalVS.entry.map(vs => {
-      const { id, url } = vs.resource
-      const provisionalData = vs.resource.compose.include.filter(x => x.version === 'PROVISIONAL')
+    const formattedProvisionalInfo = provisionalVS.entry.map((vs: any) => {
+      const { id, url } = vs.resource as fhir4.ValueSet
+      const provisionalData = vs.resource.compose.include.filter((x: fhir4.ValueSetComposeInclude) => x.version === 'PROVISIONAL')
       return ({
         provisionalLeafId: id,
         provisionalLeafUrl: url,
@@ -79,13 +80,11 @@ const getAllPrograms = async (): Promise<fhir4.Library[]> => {
   if (!progs.entry) {
     return []
   } else {
-    return progs.entry.map(e => e.resource)
+    return progs.entry.map((e: any) => e.resource as fhir4.Library)
   }
 }
 
 const getProvisionalValueSetDataByProgram = async () => {
-  // get all system provisional info
-  const provisionalVsAndCsData = await getAllValueSetsReferencingProvisionalCS()
   // get all programs
   const programs = await getAllPrograms()
 
@@ -93,67 +92,42 @@ const getProvisionalValueSetDataByProgram = async () => {
     return ({})
   }
 
-  let grouperValueSetsContainingProvisionalsByProgram = [] as ProvisionalsByProgram
+  let provisionalLeafsByProgram = [] as ProvisionalsByProgram
 
   // iterate over each program
   for await (const programLib of programs) {
-    const grouperLibCanonical = getGrouperLibraryCanonical(programLib)
-    const [url, version] = grouperLibCanonical?.split('|') as [string, string]
-    const grouperLib = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams: {
-        _url: url,
-        version
-      }
-    })
-    // get grouper vset info + leaf contents
-    const grouperVsetInfo = grouperLib.entry.map(e => ({
-      id: e.resource.id,
-      url: e.resource.url,
-      version: e.resource.version,
-      title: e.resource.title,
-      valueSets: e?.resource?.compose?.include?.map(i => i?.valueSet)?.flat() || []
-    })) as GrouperVSetInformation[]
-   
-    // for each provisional valueset
-    provisionalVsAndCsData.forEach(provisionalItem => {
-      // if any grouper contains the valueset
-      grouperVsetInfo.forEach(grouperItem => {
-        if (grouperItem.valueSets.includes(provisionalItem.provisionalLeafUrl)) {
-          const existingGroupers = grouperValueSetsContainingProvisionalsByProgram
-          ?.find(i => i.programId === programLib.id)
-          ?.groupers || []
+    const grouperLib = await getGrouperLibrary(programLib)
+    const groupers = await getGrouperValuesets(grouperLib as fhir4.Library)
 
-          const existingProvisionalLeafDataForGrouper = existingGroupers
-            ?.find(grp => grp.grouperId === grouperItem.id)
-            ?.provisionalLeafData || []
+    for await (const grouperVs of groupers) {
+      const leafValueSetCanonicals = getLeafUrlsFromGrouper(grouperVs)
+      const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })
 
-          const itemsToAdd = existingProvisionalLeafDataForGrouper.concat(provisionalItem)?.filter(x => x)
+      // only add to the structure if the program has provisional leafs
+      if (provisionalLeafs && provisionalLeafs.length) {
+        const newLeafs = provisionalLeafs.map(l => ({
+          id: l.id,
+          title: l.title,
+          url: l.url
+        }))
 
-          const updatedGrouperItem = {
-            grouperId: grouperItem.id,
-            grouperTitle: grouperItem.title,
-            provisionalLeafData: itemsToAdd
-          }
-
-          // NOTE: uniqBy keeps the first instance of the key
-          const mergedProgramGrouperData = uniqBy([updatedGrouperItem, ...existingGroupers], 'grouperId')
-
-          const item = {
+        const existingProgramIndex = provisionalLeafsByProgram.findIndex(p => p.programId === programLib.id)
+        // if program already exists, merge the information
+        if (existingProgramIndex > -1) {
+          const existingLeafs = provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs
+          const mergedLeafs = uniqBy([...newLeafs, ...existingLeafs], 'id')
+          provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs = mergedLeafs 
+        } else {
+          provisionalLeafsByProgram.push({
             programId: programLib.id,
             programTitle: programLib.title,
-            groupers: mergedProgramGrouperData
-          }
-
-          if (itemsToAdd.length) {
-            grouperValueSetsContainingProvisionalsByProgram = uniqBy([item, ...grouperValueSetsContainingProvisionalsByProgram], 'programId') as ProvisionalsByProgram
-          }
+            provisionalLeafs: newLeafs
+          }) 
         }
-      })
-    })
+      }
+    }
   }
-
-  return grouperValueSetsContainingProvisionalsByProgram
+  return provisionalLeafsByProgram
 }
 
 const getProvisionalProgramData = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {

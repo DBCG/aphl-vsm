@@ -14,6 +14,12 @@ export const reactSelectOptionStyle = (props?: StyleOptions | undefined) => {
       ...styles,
       minWidth: props?.minWidth || 'inherit',
       maxWidth: props?.maxWidth || 'inherit',
-    })
+    }),
+    menu: (provided: any, state: any) => {
+      return { 
+        ...provided,
+        zIndex: 9999
+      }
+    }
   })
 }

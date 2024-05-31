@@ -4,9 +4,6 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getProvisionals } from '../valueset/provisional'
-import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { merge } from 'lodash'
 
 interface Query {
   '_id:contains'?: string
@@ -22,122 +19,6 @@ export type ProgramApiResponse = {
   programs: fhir4.Library[]
   assessments: fhir4.Basic[]
 } | { error: string }
-
-interface ProvisionalVsCsMap {
-  provisionalLeafId: string
-  provisionalLeafUrl: string
-  provisionalData: fhir4.ValueSetComposeInclude
-}
-
-const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
-
-  const provisionalVS = await fhirCdrClient.search({
-    resourceType: 'ValueSet',
-    searchParams: {
-      _tag: 'vsm-provisional'
-    }
-  })
-
-  // early return if no provisional VS
-  if (!provisionalVS.entry.length) {
-    return ([])
-  } else {
-    // format provisional valuesets with important data
-    const formattedProvisionalInfo = provisionalVS.entry.map(vs => {
-      const { id, url } = vs.resource
-      const provisionalData = vs.resource.compose.include.filter(x => x.version === 'PROVISIONAL')
-      return ({
-        provisionalLeafId: id,
-        provisionalLeafUrl: url,
-        provisionalData
-      })
-    })
-
-    return formattedProvisionalInfo
-  }
-}
-
-const getGroupersOwningProvisionals = (provisionalData: ProvisionalVsCsMap) => {
-
-}
-
-const getAllPrograms = async (): Promise<fhir4.Library[]> => {
-  const progs = await fhirCdrClient.search({
-    resourceType: 'Library',
-    searchParams: {
-      context: 'program',
-      _count: 100
-    }
-  })
-
-  if (!progs.entry) {
-    return []
-  } else {
-    return progs.entry.map(e => e.resource)
-  }
-}
-
-const getProvisionalValueSetData = async () => {
-  // get all programs
-  // get provisional info
-  const provisionalVsAndCsData = await getAllValueSetsReferencingProvisionalCS()
-  // get all programs
-  const programs = await getAllPrograms()
-  // get groupers that provisionals belong to
-  if (!programs?.length) {
-    return ({ error: 'No programs found' })
-  }
-
-  let grouperValueSetsContainingProvisionalsByProgram = {}
-  const test = {
-    programId: {
-      grouperId: {
-        provisionalLeafData: []
-      }
-    }
-  }
-  // iterate over each program
-  for await (const programLib of programs) {
-    const grouperLibCanonical = getGrouperLibraryCanonical(programLib)
-    const [url, version] = grouperLibCanonical?.split('|') as [string, string]
-    const grouperLib = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
-      searchParams: {
-        _url: url,
-        version
-      }
-    })
-    // get grouper vset info + leaf contents
-    const grouperVsetInfo = grouperLib.entry.map(e => ({
-      id: e.resource.id,
-      url: e.resource.url,
-      version: e.resource.version,
-      valueSets: e?.resource?.compose?.include?.map(i => i?.valueSet)?.flat() || []
-    })) 
-
-    // for each provisional valueset
-    provisionalVsAndCsData.forEach(provisionalItem => {
-      // if any grouper contains the valueset
-      grouperVsetInfo.forEach(grouperItem => {
-        if (grouperItem.valueSets.includes(provisionalItem.provisionalLeafUrl)) {
-          const existingValues = grouperValueSetsContainingProvisionalsByProgram?.[programLib.id!]?.[grouperItem.id!]?.provisionalLeafData || []
-          const itemsToAdd = existingValues.concat(provisionalItem)?.filter(x => x)
-          const item = {
-            [programLib.id!]: {
-              [grouperItem.id!]: {
-                provisionalLeafData: itemsToAdd
-              }
-          }}
-          if (itemsToAdd.length) {
-            merge(grouperValueSetsContainingProvisionalsByProgram, item)
-          }
-        }
-      })
-    })
-  }
-
-  return grouperValueSetsContainingProvisionalsByProgram
-}
 
 const getProgramLibraries = async (queries={}) => {
 

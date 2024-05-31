@@ -222,31 +222,10 @@ const ProvisionalVSEdit = () => {
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
 
-  const programsContainingProvisional = useMemo(() => {
-    setError(null)
-    if (!provisionalContext) return {}
-    if (is.errorObj(provisionalContext)) {
-      setError(provisionalContext.error)
-      return {} 
-    } else {
-      const allProgramIds = provisionalContext.map(i => i.programId as string)
-      const provVsByProgram = allProgramIds.reduce((acc, id) => {
-        const allVsets = uniqBy(provisionalContext
-          ?.find(c => c?.programId === id)?.groupers
-          ?.map(g => g.provisionalLeafData)?.flat()?.filter(x => Boolean(x)) || [], 'provisionalLeafId')
-  
-        const result = Object.assign(acc, { [id]: allVsets })
-        return result
-      }, {})
-  
-      return provVsByProgram
-    }
-  }, [provisionalContext]) as ProvisionalVSetsByProgramId
-
-  const findProgramByProvisionalLeaf = (leafUrlToFind) => {
-    const programIds = Object.keys(programsContainingProvisional)
-      .filter(programId => programsContainingProvisional[programId]
-        .find(i => i.provisionalLeafUrl === leafUrlToFind))
+  const findProgramByProvisionalLeaf = (leafUrlToFind, provisionalContext) => {
+    const programIds = provisionalContext
+      ?.filter(i => i.provisionalLeafs?.find(l => l.url === leafUrlToFind))
+      ?.map(p => ({ programId: p.programId, programTitle: p.programTitle }))
 
     return programIds
   }
@@ -308,13 +287,13 @@ const ProvisionalVSEdit = () => {
         }
       },
       {
-        name: 'Provisional Value Set is used in program(s) with IDs',
+        name: 'Provisional Value Set is used in program(s):',
         cell: (row: fhir4.ValueSet) => {
-          const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url)
+          const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url, provisionalContext)
           if (programIdsWithProvisionals.length) {
-            const results = programIdsWithProvisionals.map(id => {
+            const results = programIdsWithProvisionals.map(p => {
               return (
-                  <Chip target="_blank" icon={<ArrowOutward />} component='a' label={id} href={`/programs/${id}`} clickable={true}/>
+                  <Chip target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
               )
             })
             return (

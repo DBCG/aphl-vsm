@@ -1,25 +1,32 @@
 import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
 import { is } from '@/helpers/is'
-import { CreateProvisionalVs, createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
+import { createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getProvisionals } from '../../valueset/provisional'
+import { BuilderItem, getProvisionals } from '../../valueset/provisional'
 
-interface Body extends CreateProvisionalVs {
-  grouperIds: string[]
+
+interface CodeItem {
+  code: string
+  display: string
+  definition: string
 }
 
-interface ReqInfo extends NextApiRequest {
-  body: Body
-}
+type CodesBySysToUpdate = Record<string, CodeItem[]>
 
 interface GetBody {
   systemUrl?: fhir4.CodeSystem['url']
+  codesBySystemToUpdate: CodesBySysToUpdate
 }
 
 interface ProvisionalReqGet extends NextApiRequest {
   body: GetBody
+}
+
+interface UpdatedCS {
+  method: 'PUT' | 'POST' | 'GET'
+  resource: fhir4.CodeSystem
 }
 
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
@@ -28,21 +35,22 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
   const transactionEntry = items.map(i => {
     const resourceType = i?.resourceType || i?.resource?.resourceType as string
     const resourceId = i?.resourceId || i?.resource?.id as string
+    const method = i.method as BuilderItem["method"]
     // can't know the ID if the resource doesn't exist yet
     let url
     let resource
-    if (i.method === 'PUT') {
+    if (method === 'PUT') {
       url = `${resourceType}/${resourceId}`
       resource = i.resource
-    } else if (i.method === 'POST') {
+    } else if (method === 'POST') {
       resource = i.resource
-    } else if (i.method === 'GET') {
+    } else if (method === 'GET') {
       url = `${resourceType}/${resourceId}`
     }
 
     let requestBody = {
       request: {
-        method: i.method,
+        method,
         ...(Boolean(url) && { url })
       },
       ...(Boolean(resource) && { resource })
@@ -86,7 +94,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     } = body
 
     const systemUrls = Object.keys(codesBySystemToUpdate)
-    const updatedCodeSystems = []
+    const updatedCodeSystems = [] as UpdatedCS[]
 
     for (const systemUrl of systemUrls) {
       let searchParams = {

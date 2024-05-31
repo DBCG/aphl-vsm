@@ -27,7 +27,7 @@ interface ReqInfo extends NextApiRequest {
   body: Body
 }
 
-interface BuilderItem {
+export interface BuilderItem {
   method: 'PUT' | 'POST' | 'GET'
   resource?: fhir4.ValueSet | fhir4.CodeSystem | fhir4.Library
   resourceId?: string

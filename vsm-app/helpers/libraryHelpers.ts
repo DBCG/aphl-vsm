@@ -21,7 +21,22 @@ interface EditComposeInclude {
 }
 
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
-  return program?.relatedArtifact?.find((related) => related?.resource?.includes('/Library/'))?.resource
+  return program?.relatedArtifact
+  ?.find(
+    (related) => related?.resource?.includes('/Library/')
+  )
+  ?.resource
+}
+
+export const getGrouperValueSetCanonicals = (grouperLib: fhir4.Library) => {
+  return grouperLib?.relatedArtifact
+    ?.filter(
+      (related) => (
+        related?.resource?.includes('/ValueSet/')
+        && related?.type === 'composed-of'
+      )
+    )?.map(i => i.resource)
+    ?.filter(x => x)
 }
 
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {

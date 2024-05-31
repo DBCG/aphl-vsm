@@ -150,7 +150,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
 
   
   const selectOptions = useMemo(() => {
-    console.log('all vsac cs: ', allVsacCS)
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
     if (!router.query.csSelected) {
