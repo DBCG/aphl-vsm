@@ -7,6 +7,7 @@ import ca.uhn.fhir.model.api.IQueryParameterType;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import com.ecr.TransformProperties;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceComponent;
@@ -75,7 +76,7 @@ public class ValueSetSynonymUpdateInterceptor implements Interceptor {
 	private void updateConditionWithNewSynonym(Library library, String system, String code, String newText) {
 		List<RelatedArtifact> relatedArtifacts = library.getRelatedArtifact();
 		relatedArtifacts.stream()
-			.map(ra -> ra.getExtensionsByUrl(KnowledgeArtifactProcessor.valueSetConditionUrl))
+			.map(ra -> ra.getExtensionsByUrl(TransformProperties.vsmCondition))
 			.flatMap(exts -> exts.stream())
 			.filter(ext -> ext.hasValue())
 			.map(ext -> (CodeableConcept) ext.getValue())

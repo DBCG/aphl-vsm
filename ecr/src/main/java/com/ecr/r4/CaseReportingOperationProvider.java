@@ -7,6 +7,7 @@ import ca.uhn.fhir.cr.common.IRepositoryFactory;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoValueSet;
 import ca.uhn.fhir.jpa.validation.ValidatorResourceFetcher;
+import ca.uhn.fhir.model.api.annotation.Child;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -296,6 +297,9 @@ public class CaseReportingOperationProvider {
 		}
 		if (artifactEndpointConfiguration != null) {
 			params.addParameter().setName("artifactEndpointConfiguration").addPart(artifactEndpointConfiguration);
+		}
+		if (terminologyEndpoint != null) {
+			params.addParameter().setName("terminologyEndpoint").setResource(terminologyEndpoint);
 		}
 		if (offset != null && offset.hasValue()) {
 			params.addParameter("offset", new IntegerType(offset.getValue()));

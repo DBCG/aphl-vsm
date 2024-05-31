@@ -8,6 +8,8 @@ import ca.uhn.fhir.jpa.patch.FhirPatch;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import com.ecr.ImportBundleProducer;
+import com.ecr.TransformProperties;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IDomainResource;
@@ -37,31 +39,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Configurable
-// TODO: This belongs in the Evaluator. Only included in Ruler at dev time for shorter cycle.
 public class KnowledgeArtifactProcessor {
-	@Autowired
-	private TerminologyServerClient terminologyServerClient;
-	private Logger myLog = LoggerFactory.getLogger(KnowledgeArtifactProcessor.class);
-	public static final String CPG_INFERENCEEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-inferenceExpression";
-	public static final String CPG_ASSERTIONEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-assertionExpression";
-	public static final String CPG_FEATUREEXPRESSION = "http://hl7.org/fhir/uv/cpg/StructureDefinition/cpg-featureExpression";
+
 	public static final String releaseLabelUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel";
 	public static final String releaseDescriptionUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription";
-	public static final String authoritativeSourceUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";
-	public static final String expansionParametersUrl = "http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-expansion-parameters-extension";
-	public static final String valueSetPriorityUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
-	public static final String valueSetConditionUrl = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
-	public static final String vsmValueSetTagCodeSystemUrl = "http://aphl.org/fhir/vsm/CodeSystem/vsm-valueset-tag";
-	public static final String vsmValueSetTagVSMAuthoredCode = "vsm-authored";
 	public static final String valueSetPriorityCode = "priority";
 	public static final String valueSetConditionCode = "focus";
 	public static final List<String> preservedExtensionUrls = List.of(
-			valueSetPriorityUrl,
-			valueSetConditionUrl
+			TransformProperties.vsmPriority,
+			TransformProperties.vsmCondition
 		);
-	public static final String usPhContextTypeUrl = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type";
-	public static final String contextTypeUrl = "http://terminology.hl7.org/CodeSystem/usage-context-type";
-	public static final String contextUrl = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context";
+
 	private MetadataResource retrieveResourcesByCanonical(String reference, Repository hapiFhirRepository) throws ResourceNotFoundException {
 		var referencedResourceBundle = SearchHelper.searchRepositoryByCanonicalWithPaging(hapiFhirRepository, reference);
 		var referencedResource = KnowledgeArtifactAdapter.findLatestVersion(referencedResourceBundle);
@@ -91,11 +79,11 @@ public class KnowledgeArtifactProcessor {
 		}
 		if (resource != null && resource.getResourceType() == ResourceType.ValueSet) {
 			var valueSet = (ValueSet)resource;
-			var isLeaf = !valueSet.hasCompose() || (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() == 0);
+			var isLeaf = !ImportBundleProducer.isGrouper(valueSet);
 			var maybeConditionExtension = Optional.ofNullable(relatedArtifact)
 				.map(RelatedArtifact::getExtension)
 				.map(list -> {
-					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl)).findFirst().orElse(null);
+					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
 				throw new UnprocessableEntityException("Missing condition on ValueSet : " + valueSet.getUrl());
@@ -114,11 +102,11 @@ public class KnowledgeArtifactProcessor {
 		}
 		if (resource != null && resource.getResourceType() == ResourceType.ValueSet) {
 			var valueSet = (ValueSet)resource;
-			var isLeaf = !valueSet.hasCompose() || (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() == 0);
+			var isLeaf = !ImportBundleProducer.isGrouper(valueSet);
 			var maybeConditionExtension = Optional.ofNullable(relatedArtifact)
 				.map(IDependencyInfo::getExtension)
 				.map(list -> {
-					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl)).findFirst().orElse(null);
+					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
 				throw new UnprocessableEntityException("Missing condition on ValueSet : " + valueSet.getUrl());
@@ -152,20 +140,20 @@ public class KnowledgeArtifactProcessor {
 								// add Conditions
 								exts -> {
 									exts.stream()
-										.filter(ext -> ext.getUrl().equalsIgnoreCase(valueSetConditionUrl))
+										.filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition))
 										.forEach(ext -> tryAddCondition(usageContexts, (CodeableConcept) ext.getValue()));
 								});		
 					}
 					// update Priority
-					var priority = getOrCreateUsageContext(usageContexts, usPhContextTypeUrl, valueSetPriorityCode);
+					var priority = getOrCreateUsageContext(usageContexts, TransformProperties.usPHUsageContextType, valueSetPriorityCode);
 					maybeVSRelatedArtifact
-						.map(ra -> ra.getExtension().stream().map(e->(Extension)e).filter(e -> e.getUrl().equals(valueSetPriorityUrl)).findAny().orElse(null))
+						.map(ra -> ra.getExtension().stream().map(e->(Extension)e).filter(e -> e.getUrl().equals(TransformProperties.vsmPriority)).findAny().orElse(null))
 						.ifPresentOrElse(
 							// set value as per extension
 							ext -> priority.setValue(ext.getValue()),
 							// set to "routine" if missing
 							() -> {
-								var routine = new CodeableConcept(new Coding(contextUrl, "routine", null)).setText("Routine");
+								var routine = new CodeableConcept(new Coding(TransformProperties.usPHUsageContext, "routine", null)).setText("Routine");
 								priority.setValue(routine);
 						});
 				}
@@ -186,12 +174,12 @@ public class KnowledgeArtifactProcessor {
 
 	public static void tryAddCondition(List<UsageContext> usageContexts, CodeableConcept condition) {
 		var focusAlreadyExists = usageContexts.stream().anyMatch(u -> 
-			u.getCode().getSystem().equals(contextTypeUrl) 
+			u.getCode().getSystem().equals(TransformProperties.hl7UsageContextType)
 			&& u.getCode().getCode().equals(valueSetConditionCode) 
 			&& u.getValueCodeableConcept().hasCoding(condition.getCoding().get(0).getSystem(), condition.getCoding().get(0).getCode())
 		);
 		if (!focusAlreadyExists) {
-			var newFocus = new UsageContext(new Coding(contextTypeUrl,valueSetConditionCode,null),condition);
+			var newFocus = new UsageContext(new Coding(TransformProperties.hl7UsageContextType,valueSetConditionCode,null),condition);
 			newFocus.setValue(condition);
 			usageContexts.add(newFocus);
 		}
@@ -357,90 +345,6 @@ public class KnowledgeArtifactProcessor {
 			vset.setExpansion(e.getExpansion().copy());
 			return;
 		}
-	}
-
-	public void expandValueSet(ValueSet valueSet, Parameters expansionParameters) {
-		// Gather the Terminology Service from the valueSet's authoritativeSourceUrl.
-		Extension authoritativeSource = valueSet.getExtensionByUrl(authoritativeSourceUrl);
-		String authoritativeSourceUrl = authoritativeSource != null && authoritativeSource.hasValue()
-			? authoritativeSource.getValue().primitiveValue()
-			: valueSet.getUrl();
-
-		// TODO: Given the authoritativeSourceUrl, lookup Tx Service connection configuration - is this possible? Problem is we can't reliably infer Tx Service from authSource
-//		terminologyServerClient.setUsername(config.getUsername(authoritativeSourceUrl));
-//		terminologyServerClient.setApiKey(config.getApiKey(authoritativeSourceUrl));
-
-		ValueSet expandedValueSet;
-		if (isVSMAuthoredValueSet(valueSet) && hasSimpleCompose(valueSet)) {
-			// Perform naive expansion independent of terminology servers. Copy all codes from compose into expansion.
-			ValueSetExpansionComponent expansion = new ValueSetExpansionComponent();
-			expansion.setTimestamp(Date.from(Instant.now()));
-
-			ArrayList<ValueSet.ValueSetExpansionParameterComponent> expansionParams = new ArrayList<>();
-			ValueSet.ValueSetExpansionParameterComponent parameterNaive = new ValueSet.ValueSetExpansionParameterComponent();
-			parameterNaive.setName("naive");
-			parameterNaive.setValue(new BooleanType(true));
-			expansionParams.add(parameterNaive);
-			expansion.setParameter(expansionParams);
-
-			for (ConceptSetComponent csc : valueSet.getCompose().getInclude()) {
-				for (ValueSet.ConceptReferenceComponent crc : csc.getConcept()) {
-					expansion.addContains()
-						.setCode(crc.getCode())
-						.setSystem(csc.getSystem())
-						.setVersion(csc.getVersion())
-						.setDisplay(crc.getDisplay());
-				}
-			}
-			valueSet.setExpansion(expansion);
-		} else {
-			try {
-				expandedValueSet = terminologyServerClient.expand(valueSet, authoritativeSourceUrl, expansionParameters);
-				valueSet.setExpansion(expandedValueSet.getExpansion());
-			} catch (Exception ex) {
-				myLog.warn("Terminology Server expansion failed: {}", valueSet.getIdElement().getValue(), ex);
-			}
-		}
-	}
-
-	public boolean isVSMAuthoredValueSet(ValueSet valueSet) {
-		return valueSet.hasMeta()
-			&& valueSet.getMeta().hasTag()
-			&& valueSet.getMeta().getTag(vsmValueSetTagCodeSystemUrl, vsmValueSetTagVSMAuthoredCode) != null;
-	}
-
-	public boolean hasSimpleCompose(ValueSet valueSet) {
-		if (valueSet.hasCompose()) {
-			if (valueSet.getCompose().hasExclude()) {
-				return false;
-			}
-			for (ConceptSetComponent csc : valueSet.getCompose().getInclude()) {
-				if (csc.hasValueSet()) {
-					// Cannot expand a compose that references a value set
-					return false;
-				}
-
-				if (!csc.hasSystem()) {
-					// Cannot expand a compose that does not have a system
-					return false;
-				}
-
-				if (csc.hasFilter()) {
-					// Cannot expand a compose that has a filter
-					return false;
-				}
-
-				if (!csc.hasConcept()) {
-					// Cannot expand a compose that does not enumerate concepts
-					return false;
-				}
-			}
-
-			// If all includes are simple, the compose can be expanded
-			return true;
-		}
-
-		return false;
 	}
 
 	public static class diffCache {

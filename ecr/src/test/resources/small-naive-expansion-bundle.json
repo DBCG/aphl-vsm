@@ -318,6 +318,12 @@
 							"code": "routine"
 						} ]
 					}
+				}, {
+					"code":{
+						"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+						"code":"grouper-type",
+						"display":"model-grouper"
+					}
 				} ],
 				"purpose": "Diagnoses or problems documented in a clinical record.",
 				"compose": {

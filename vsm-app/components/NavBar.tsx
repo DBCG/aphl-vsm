@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { signOut } from 'next-auth/react'
 import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { Button } from './buttons/Button'
-import { createContext, useState, useContext } from 'react'
+import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import { Tooltip } from '@mui/material'
@@ -44,8 +44,12 @@ export const NavContext = createContext({
   changeGrouperView: () => {}
 } as NavContextType)
 
+interface Props {
+  children: ReactNode;
+}
+
 // create context provider
-export const NavContextProvider = ({ children }: React.PropsWithChildren<React.ReactNode>) => {
+export const NavContextProvider: React.FC<Props> = ({ children }) => {
   const [isGrouperView, setIsGrouperView] = useState(false)
 
   const changeGrouperView = (value: boolean) => {

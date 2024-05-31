@@ -2286,6 +2286,21 @@
 								}
 							]
 						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
+						}
 					}
 				],
 				"purpose": "Diagnoses or problems documented in a clinical record.",
@@ -2737,6 +2752,21 @@
 								}
 							]
 						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
+						}
 					}
 				],
 				"purpose": "Laboratory test names used in orders documented in a clinical record.",
@@ -2997,6 +3027,21 @@
 									"code": "triggering"
 								}
 							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
 						}
 					}
 				],
@@ -3839,6 +3884,21 @@
 								}
 							]
 						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
+						}
 					}
 				],
 				"purpose": "Prescription drugs names used in observations documented in a clinical record.",
@@ -4159,6 +4219,21 @@
 									"code": "triggering"
 								}
 							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
 						}
 					}
 				],
@@ -4700,6 +4775,21 @@
 									"code": "triggering"
 								}
 							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+							"code": "grouper-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+									"code": "model-grouper"
+								}
+							],
+							"text": "Model Grouper"
 						}
 					}
 				],

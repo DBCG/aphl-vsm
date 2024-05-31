@@ -15,6 +15,7 @@ interface SearchAvailUpdates {
   systemAndVersionData: AvailableVersions
   setAvailableUpdates: Dispatch<SetStateAction<ManifestSystemVersionPair[]>> | Dispatch<SetStateAction<never[]>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
+  disableNotifications?: boolean
 }
 
 interface SearchAvailLeafUpdates {
@@ -87,7 +88,8 @@ const searchAvailableUpdates = async ({
   currentSelectedData,
   systemAndVersionData,
   setAvailableUpdates,
-  setIsUpdating
+  setIsUpdating,
+  disableNotifications = false
 }: SearchAvailUpdates) => {
   if (!Object.keys(currentSelectedData).length) {
     setAvailableUpdates([])
@@ -117,7 +119,7 @@ const searchAvailableUpdates = async ({
       return !currentVersions?.includes(i?.version!)
     })
 
-    if (filteredAvailableVersions.length === 0) {
+    if (filteredAvailableVersions.length === 0 && !disableNotifications) {
       toast.info('No new versions found')
     }
 

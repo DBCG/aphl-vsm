@@ -88,7 +88,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
     } else {
       // do not error out if version doesn't exist, it's just not found
       if (req.query.version) {
-        return res.status(204).send({})
+        return void res.status(204).end() // 'void' helps fix a warning message
       } else {
         logger.error(libSearchResult)
         return res.status(404).send({ programs: [], assessments: [] })

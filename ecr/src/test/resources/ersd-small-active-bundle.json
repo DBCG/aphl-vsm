@@ -136,7 +136,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine|20210526"
+						"resource": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
 					},
 					{
 						"type": "depends-on",
@@ -221,11 +221,20 @@
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine|20210526"
+								"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
 							]
 						}
 					]
 				},
+				"useContext":[
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
+					}
+				],
 				"expansion": {
 					"timestamp": "2022-10-21T15:18:29-04:00",
 					"contains": [
@@ -395,15 +404,15 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine|20210526",
+			"fullUrl": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
-				"id": "123-this-will-be-routine",
-				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/123-this-will-be-routine",
+				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
+				"url": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
-						"value": "urn:oid:123-this-will-be-routine"
+						"value": "urn:oid:2.16.840.1.113883.3.464.1003.113.11.1090"
 					}
 				],
 				"version": "20210526",
@@ -429,7 +438,7 @@
 			},
 			"request": {
 				"method": "PUT",
-				"url": "ValueSet/123-this-will-be-routine"
+				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 			}
 		}
 	]
