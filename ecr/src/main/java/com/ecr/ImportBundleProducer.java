@@ -207,37 +207,6 @@ public class ImportBundleProducer {
 		});
 	}
 
-	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
-		contexts.forEach(context -> {
-			if (context.hasCode()) {
-				var code = context.getCode().getCode();
-				if (code.equals("focus")) {
-					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
-						var conditions = conditionsMap.get(valueSetCanonicalUrl);
-						conditions.add(context.getValueCodeableConcept());
-					} else {
-						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-					}
-				} else if (code.equals("priority")) {
-					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
-						var priorities = priorityMap.get(valueSetCanonicalUrl);
-						if (priorities.size() == 0) {
-							priorities.add(context.getValueCodeableConcept());
-						} else {
-							priorities.forEach(p -> {
-								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
-									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
-								}
-							});
-						}
-					} else {
-						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-					}
-				}
-			}
-		});
-	}
-
 	private static boolean doesResourceExist(String url, String version, Class resource, TransformProperties transformProperties) {
 		try {
 			var sp = new SearchParameterMap();
