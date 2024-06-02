@@ -2,18 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getGrouperLibraryCanonical, getGrouperValueSetCanonicals } from '@/helpers/libraryHelpers'
-import { merge, uniqBy } from 'lodash'
+import { uniqBy } from 'lodash'
 import { getGrouperLibrary, getGrouperValuesets, getLeafUrlsFromGrouper } from './[id]/details/valuesets'
 import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
-
-interface GrouperVSetInformation {
-  id: string
-  url: string
-  version: string
-  title: string
-  valueSets: string[]
-}
+import { is } from '@/helpers/is'
 
 export type ProgramApiResponse = {
   programs: fhir4.Library[]
@@ -99,32 +91,36 @@ const getProvisionalValueSetDataByProgram = async () => {
     const grouperLib = await getGrouperLibrary(programLib)
     const groupers = await getGrouperValuesets(grouperLib as fhir4.Library)
 
-    for await (const grouperVs of groupers) {
-      const leafValueSetCanonicals = getLeafUrlsFromGrouper(grouperVs)
-      const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })
-
-      // only add to the structure if the program has provisional leafs
-      if (provisionalLeafs && provisionalLeafs.length) {
-        const newLeafs = provisionalLeafs.map(l => ({
-          id: l.id,
-          title: l.title,
-          url: l.url
-        }))
-
-        const existingProgramIndex = provisionalLeafsByProgram.findIndex(p => p.programId === programLib.id)
-        // if program already exists, merge the information
-        if (existingProgramIndex > -1) {
-          const existingLeafs = provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs
-          const mergedLeafs = uniqBy([...newLeafs, ...existingLeafs], 'id')
-          provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs = mergedLeafs 
-        } else {
-          provisionalLeafsByProgram.push({
-            programId: programLib.id,
-            programTitle: programLib.title,
-            provisionalLeafs: newLeafs
-          }) 
+    if (!is.errorObj(groupers)) {
+      for await (const grouperVs of groupers) {
+        const leafValueSetCanonicals = getLeafUrlsFromGrouper(grouperVs).filter(x => is.string(x)) as string[]
+        const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })
+  
+        // only add to the structure if the program has provisional leafs
+        if (provisionalLeafs && provisionalLeafs.length) {
+          const newLeafs = provisionalLeafs.map(l => ({
+            id: l.id,
+            title: l.title,
+            url: l.url
+          }))
+  
+          const existingProgramIndex = provisionalLeafsByProgram.findIndex(p => p.programId === programLib.id)
+          // if program already exists, merge the information
+          if (existingProgramIndex > -1) {
+            const existingLeafs = provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs
+            const mergedLeafs = uniqBy([...newLeafs, ...existingLeafs], 'id')
+            provisionalLeafsByProgram[existingProgramIndex].provisionalLeafs = mergedLeafs 
+          } else {
+            provisionalLeafsByProgram.push({
+              programId: programLib.id!,
+              programTitle: programLib.title!,
+              provisionalLeafs: newLeafs
+            }) 
+          }
         }
       }
+    } else {
+      console.error('No provisional leafs found')
     }
   }
   return provisionalLeafsByProgram

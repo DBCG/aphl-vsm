@@ -146,7 +146,7 @@ const getLeafValueSets = async ({
     versionToFind,
     oidToFind,
     whitelistFields: WHITELIST_VALUESET_FIELDS,
-    isProvisional: provisionalOnly
+    provisionalOnly
   })
 
   if (!leafValueSets?.length) {
@@ -311,7 +311,8 @@ export const getProgramDetailsValuesets = async ({
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
       versionToFind: findInVersion || '',
-      titleToFind: findInVsTitle || ''
+      titleToFind: findInVsTitle || '',
+      provisionalOnly: false
     })
 
     if (isError(leafVsetResponse)) {

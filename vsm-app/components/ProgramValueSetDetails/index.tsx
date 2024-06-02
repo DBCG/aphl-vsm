@@ -478,8 +478,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
-
           const isProvisional = isProvisionalVs(row.valueSet)
+
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               { isProvisional ? (

@@ -1,5 +1,5 @@
 import { Button } from '@/components/buttons/Button'
-import Select from 'react-select'
+import Select, { SingleValue } from 'react-select'
 import { useEffect, useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { TextArea } from '@/components/TextArea'
@@ -16,14 +16,14 @@ import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
 import { VSMSession, can } from '@/helpers/rolesHelper'
 import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
-import Link from 'next/link'
 import { Chip } from '@mui/material'
 import { ArrowOutward } from '@mui/icons-material'
-import { is } from '@/helpers/is'
+import { ProvisionalsByProgram } from '@/pages/api/programs/provisional'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
 }
+
 
 interface RowItem {
   system: string
@@ -31,7 +31,25 @@ interface RowItem {
   display: string
 }
 
-type ProvisionalVSetsByProgramId = Record<string, string[]>
+interface CodeInfo {
+  code: string
+  definition: string
+  display: string
+}
+
+type CodeSystemExtended = fhir4.CodeSystem & {
+  concept: CodeInfo[]
+} 
+
+type CodesBySystemToAdd = Record<string, CodeInfo[]>
+
+interface FlattenedCodeWithSystem {
+  code: string
+  definition: string
+  display: string
+  name: string
+  system: string
+}
 
 const customExpandStyles = {
   rows: {
@@ -68,18 +86,38 @@ const NoProvVsWrapper = styled.div`
   flex-grow: 1;
 `
 
-const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: ExistingCodesTbl) => {
-  const [selectedRows, setSelectedRows] = useState([])
+type CodesBySystem = Record<string, CodeInfo[]>
+
+interface ExistingCodesProps {
+  systemName: string
+  codeSystem: fhir4.CodeSystem
+  handleAddCodes: (codes: CodesBySystem, action: 'add' | 'remove') => void
+}
+
+interface SelectedRows {
+  selectedRows: FlattenedCodeWithSystem[]
+  allSelected: boolean
+  selectedCount: number
+}
+
+interface SelectedRowsInExistingProvCodes {
+  selectedRows: CodeSystemExtended['concept']
+  allSelected: boolean
+  selectedCount: number
+}
+
+const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: ExistingCodesProps) => {
+  const [selectedRows, setSelectedRows] = useState<CodeInfo[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
-  const handleChangeSelectedRows = ({ selectedRows: rows }) => {
-    setSelectedRows(rows)
+  const handleChangeSelectedRows = (r: SelectedRowsInExistingProvCodes) => {
+    setSelectedRows(r.selectedRows)
   }
 
   const handleClear = () => setToggledClearRows(t => !t)
 
   const handleAdd = () => {
-    handleAddCodes({ [codeSystem.url]: [...selectedRows] }, 'add')
+    handleAddCodes({ [codeSystem.url!]: [...selectedRows] }, 'add')
     handleClear()
   }
 
@@ -103,17 +141,17 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
     const fields = [
       {
         name: 'Code',
-        selector: (row: fhir4.CodeSystemConcept) => row.code,
+        selector: (row: CodeSystemExtended['concept'][number]) => row.code!,
       },
       {
         name: 'Display',
-        selector: (row: fhir4.CodeSystemConcept) => row.display,
+        selector: (row: CodeSystemExtended['concept'][number]) => row.display!,
       },
       {
         name: 'Definition',
-        selector: (row: fhir4.CodeSystemConcept) => row.definition,
+        selector: (row: CodeSystemExtended['concept'][number]) => row.definition!,
         minWidth: '20rem',
-        cell: (row: fhir4.CodeSystemConcept) => (<p>{row.definition}</p>)
+        cell: (row: CodeSystemExtended['concept'][number]) => (<p>{row.definition!}</p>)
       }
     ]
     return fields
@@ -125,10 +163,14 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
       selectableRows={true}
       selectableRowsNoSelectAll
       pagination
-      data={codeSystem?.concept || []}
+      // @ts-ignore
+      data={(codeSystem.concept || []) as CodeSystemExtended['concept']}
       // @ts-ignore
       columns={columns}
-      onSelectedRowsChange={(r) => handleChangeSelectedRows(r)}
+      onSelectedRowsChange={(r) => {
+        console.log('r here is : ', r)
+        handleChangeSelectedRows(r)
+      }}
       contextActions={contextActions}
       clearSelectedRows={toggledClearRows}
     />
@@ -144,8 +186,11 @@ const NoDataComponent = () => {
 }
 
 const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
-  const codesBySystem = data?.compose?.include
+  const composeInclude = data?.compose?.include
+
+  const codesBySystem = composeInclude
     ?.map(i => i.concept?.map(c => Object.assign(c, { system: i.system }))).flat() || []
+
   const columns = useMemo(() => {
     const fields = [
       {
@@ -171,7 +216,9 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
     <DataTable
       pagination
       customStyles={customExpandStyles}
-      data={codesBySystem}
+      // @ts-ignore-next-line
+      data={codesBySystem || []}
+      // @ts-ignore-next-line
       columns={columns}
     />
   )
@@ -184,15 +231,15 @@ const ProvisionalVSEdit = () => {
   const [showVsForm, setShowVsForm] = useState(false)
   const [selectedVS, setSelectedVS] = useState<null | fhir4.ValueSet>(null)
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
-  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState(undefined)
+  const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<SingleValue<{ value: string; label: string; }> | undefined>(undefined)
   // staging table
-  const [selectedStagingRows, setSelectedStagingRows] = useState([])
+  const [selectedStagingRows, setSelectedStagingRows] = useState<FlattenedCodeWithSystem[]>([])
   const [clearStagedCodes, setClearStagedCodes] = useState(false)
   // NOTE! provisional value sets are not associated with conditions at this point
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
-  const allVsacCS = useGetCS(false)
+  const allVsacCS = useGetCS(null)
   const { provisionalContext, isContextLoading } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
@@ -200,29 +247,21 @@ const ProvisionalVSEdit = () => {
   const [author, setAuthor] = useState('')
   const [steward, setSteward] = useState('')
 
-  // add these in a useEffect?
-  const defaultTitle = selectedVS?.title || ''
-  const defaultAuthor = selectedVS?.extension?.find(ext => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
-  const defaultSteward = selectedVS?.extension?.find(ext => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
-
   // codes to add in a-la-carte code form
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
 
-  const [codesBySystemToAdd, setCodesBySystemToAdd] = useState({})
-  const [formContext, setFormContext] = useState(null)
+  const [codesBySystemToAdd, setCodesBySystemToAdd] = useState<CodesBySystemToAdd>({})
 
   // loading + error state
   const [error, setError] = useState<null | string>(null)
   const [loading, setLoading] = useState(false)
 
-  type CodesBySystem = Record<string, string[]>
-
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
 
-  const findProgramByProvisionalLeaf = (leafUrlToFind, provisionalContext) => {
+  const findProgramByProvisionalLeaf = (leafUrlToFind: string, provisionalContext: ProvisionalsByProgram) => {
     const programIds = provisionalContext
       ?.filter(i => i.provisionalLeafs?.find(l => l.url === leafUrlToFind))
       ?.map(p => ({ programId: p.programId, programTitle: p.programTitle }))
@@ -230,12 +269,12 @@ const ProvisionalVSEdit = () => {
     return programIds
   }
 
-  const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystem, action: 'add' | 'remove') => {
+  const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystemToAdd, action: 'add' | 'remove') => {
     let currentCodesToAdd = cloneDeep(codesBySystemToAdd)
     const systems = Object.keys(codesBySystemToUpdate)
     systems.forEach(system => {
       if (action === 'add') {
-        if (!currentCodesToAdd[system]) {
+        if (!currentCodesToAdd?.[system]) {
           currentCodesToAdd[system] = codesBySystemToUpdate[system]
         } else {
           const existingCodes = currentCodesToAdd?.[system] || []
@@ -289,20 +328,24 @@ const ProvisionalVSEdit = () => {
       {
         name: 'Provisional Value Set is used in program(s):',
         cell: (row: fhir4.ValueSet) => {
-          const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url, provisionalContext)
-          if (programIdsWithProvisionals.length) {
-            const results = programIdsWithProvisionals.map(p => {
+          if (Array.isArray(provisionalContext)) {
+            const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url!, provisionalContext)
+            if (programIdsWithProvisionals.length) {
+              const results = programIdsWithProvisionals.map(p => {
+                return (
+                    <Chip target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                )
+              })
               return (
-                  <Chip target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', margin: '.8rem 0' }}>
+                  { results }
+                </div>
               )
-            })
-            return (
-              <div style={{ display: 'flex', gap: '.8rem' }}>
-                { results }
-              </div>
-            )
+            }
+            return null
+          } else {
+            return null
           }
-          return null
         }
       }
     ]
@@ -314,20 +357,20 @@ const ProvisionalVSEdit = () => {
     const fields = [
       {
         name: 'System',
-        selector: (row: fhir4.ValueSet) => row.name!,
+        selector: (row: FlattenedCodeWithSystem) => row.name,
         maxWidth: '10rem',
       },
       {
         name: 'Code',
-        selector: (row: fhir4.ValueSet) => row.code,
+        selector: (row: FlattenedCodeWithSystem) => row.code,
       },
       {
         name: 'Display',
-        selector: (row: fhir4.ValueSet) => row.display,
+        selector: (row: FlattenedCodeWithSystem) => row.display,
       },
       {
         name: 'Definition',
-        selector: (row: fhir4.ValueSet) => row.definition,
+        selector: (row: FlattenedCodeWithSystem) => row.definition,
       }
     ]
 
@@ -335,7 +378,6 @@ const ProvisionalVSEdit = () => {
   }, [codesBySystemToAdd])
 
   const handleClickNewVS = () => {
-    setFormContext('new')
     setProvisionalVsIdForUpdate(undefined)
     setShowVsForm(true)
   }
@@ -354,13 +396,13 @@ const ProvisionalVSEdit = () => {
   }, [allVsacCS])
 
   const flattenCodesBySystem = useMemo(() => {
+    const result = [] as FlattenedCodeWithSystem[]
     if (!codesBySystemToAdd) {
-      return []
+      return result
     }
     const keys = Object.keys(codesBySystemToAdd) || []
-    const result = []
     keys.forEach(k => {
-      const name = csSelectOptions.find(o => o.value === k)?.label
+      const name = csSelectOptions.find(o => o.value === k)?.label as string
       return codesBySystemToAdd[k].forEach(dataItem => {
         result.push({ system: k, name, ...dataItem })
       })
@@ -369,7 +411,7 @@ const ProvisionalVSEdit = () => {
   }, [codesBySystemToAdd])
 
   const handleDeleteCodeFromStaging = () => {
-    let codeItems = {}
+    let codeItems = {} as CodesBySystemToAdd
     setCodesBySystemToAdd(cs => {
       const systemUrls = Object.keys(cs)
       systemUrls.forEach((url: string) => {
@@ -385,7 +427,8 @@ const ProvisionalVSEdit = () => {
     handleToggleClearStaged()
   }
 
-  const handleChangeSelectedStagingRows = (r) => {
+  const handleChangeSelectedStagingRows = (r: SelectedRows) => {
+    console.log('r selectedRows: ', r)
     setSelectedStagingRows(r.selectedRows)
   }
 
@@ -407,7 +450,7 @@ const ProvisionalVSEdit = () => {
 
   const handleClickAddCode = () => {
     const clonedCodesBySystem = cloneDeep(codesBySystemToAdd)
-    const currentSystem = selectedCodeSystemBase.value
+    const currentSystem = selectedCodeSystemBase?.value!
     // add code to codesbysystem and then clear form
     setCodesBySystemToAdd(currentCodes => {
       // if the system does not exist, add the code
@@ -479,7 +522,6 @@ const ProvisionalVSEdit = () => {
         onSelectedRowsChange={(e) => {
           const vsId = e?.selectedRows?.[0]?.id
           if (vsId) {
-            setFormContext(null)
             setShowVsForm(true)
           }
           setProvisionalVsIdForUpdate(vsId)
@@ -539,8 +581,8 @@ const ProvisionalVSEdit = () => {
                 <div>
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
                   <ExistingCodesTable
-                    systemName={selectedCodeSystemBase?.label}
-                    codeSystem={existingProvisionalCs?.provisionalCS?.find(c => c.url === selectedCodeSystemBase?.value)}
+                    systemName={selectedCodeSystemBase?.label!}
+                    codeSystem={existingProvisionalCs?.provisionalCS?.find(c => c.url === selectedCodeSystemBase?.value)!}
                     handleAddCodes={handleUpdateStaging}
                   />
                   <p style={{ marginBottom: '1rem' }}>You may add custom provisional codes to your code system below:</p>

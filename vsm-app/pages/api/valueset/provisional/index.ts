@@ -10,6 +10,7 @@ import {
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
+import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Body extends CreateProvisionalVs {
@@ -260,7 +261,7 @@ export const getProvisionals = async ({ resourceType, params={} }: GetProvParams
 
     const searchParams = Object.assign({
       _tag: 'vsm-provisional'
-    }, params) 
+    }, params) as SearchParams
 
 
     const provisionalBundle = await fhirCdrClient.search({

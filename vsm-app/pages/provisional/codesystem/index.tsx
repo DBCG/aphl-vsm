@@ -3,8 +3,6 @@ import { ProvisionalEditForm } from '@/components/Provisional/ProvisionalEditFor
 const CodeSystemPage = () => {
   return (
     <ProvisionalEditForm
-      itemType='cs'
-      readOnly={false}
       canEdit={true}
     />
   )
