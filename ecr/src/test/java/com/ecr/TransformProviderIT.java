@@ -205,6 +205,16 @@ class TransformProviderIT extends RestIntegrationTest {
 		var valueSetLibrary = getClient().read().resource(Library.class).withId("library-rctc-example").execute();
 		var valueSetLibraryHasV1 = valueSetLibrary.getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
 		assertFalse(valueSetLibraryHasV1);
+		valueSetLibrary.getIdentifier().forEach(i -> {
+			if (i.getSystem().equals("urn:ietf:rfc:3986") 
+			&& i.hasValue()
+			&& !i.getValue().startsWith("http")
+			&& !i.getValue().startsWith("urn:oid")
+			&& !i.getValue().startsWith("urn:uuid")
+			&& Character.isDigit(i.getValue().charAt(0))) {
+				fail("Invalid identifier present, should have been fixed by import");
+			}
+		});
 	}
 
 	@Test
