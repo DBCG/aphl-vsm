@@ -183,43 +183,6 @@ public class ImportBundleProducer {
 		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
 	}
-	private static List<CanonicalType> removeProfileFromList(List<CanonicalType> profiles, String profileToRemove) {
-		if (profiles == null) {
-			return new ArrayList<CanonicalType>();
-		}
-		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
-	}
-
-	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
-		contexts.forEach(context -> {
-			if (context.hasCode()) {
-				var code = context.getCode().getCode();
-				if (code.equals("focus")) {
-					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
-						var conditions = conditionsMap.get(valueSetCanonicalUrl);
-						conditions.add(context.getValueCodeableConcept());
-					} else {
-						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-					}
-				} else if (code.equals("priority")) {
-					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
-						var priorities = priorityMap.get(valueSetCanonicalUrl);
-						if (priorities.size() == 0) {
-							priorities.add(context.getValueCodeableConcept());
-						} else {
-							priorities.forEach(p -> {
-								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
-									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
-								}
-							});
-						}
-					} else {
-						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-					}
-				}
-			}
-		});
-	}
 
 	private static List<Identifier> fixIdentifiers(List<Identifier> identifiers) {
 		return identifiers.stream().map(i -> {
