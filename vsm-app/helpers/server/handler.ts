@@ -5,15 +5,20 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
-
-const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse) => {
+const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
+type requestTypes = typeof requestTypes[number]
+type handlerObjs = {
+  [k in requestTypes]?: { action: (req: NextApiRequest, res: NextApiResponse) => Promise<any>; access: string[] }
+}
+const handler = (methodHandlers: handlerObjs) => async (req: NextApiRequest, res: NextApiResponse) => {
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
-  const methodFn = methodHandlers[req.method as string]
-  logger.info(`Request: ${req?.method} ${req?.url}`)
-  if (methodFn == null) {
+  const methodFn = methodHandlers[req.method as requestTypes]
+  if (!req.method || !(req.method in requestTypes) || !methodFn) {
     logger.error(`${req.method} not allowed for ${req.url}`)
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  logger.info(`Request: ${req?.method} ${req?.url}`)
 
   try {
     const { action, access } = methodFn
@@ -23,7 +28,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
       logger.error(`Role: ${role} is not authorized for ${req?.url}`)
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    return await action(req, res, session)
+    return await action(req, res)
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = is.operationOutcome(error) ? error?.issue?.[0]?.diagnostics : error?.response?.data?.issue?.[0]?.diagnostics
