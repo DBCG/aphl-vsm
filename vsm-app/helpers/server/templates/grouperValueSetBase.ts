@@ -54,6 +54,21 @@ const grouperValueSetBase = {
           }
         ]
       }
+    },
+    {
+      code: {
+        system: "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+        code: "grouper-type"
+      },
+      valueCodeableConcept: {
+        coding: [
+          {
+            system: "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+            code: "model-grouper"
+          }
+        ],
+        text: "Model Grouper"
+      }
     }
   ]
 }
