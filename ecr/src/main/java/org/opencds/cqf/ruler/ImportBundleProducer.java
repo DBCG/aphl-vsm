@@ -37,6 +37,18 @@ public class ImportBundleProducer {
 				.anyMatch(uc -> uc.hasCode() && uc.getCode().getCode().equals(TransformProperties.grouperType));
 	}
 
+	/**
+	 * Old logic to determine whether a given ValueSet is a grouper.
+	 * We need to use this version for $ersd-v2-import as we need to ensure that the appropriate use context is added,
+	 * if we check for its presence, and it's missing it will not be considered a grouper and therefore is not added.
+	 * @param valueSet
+	 * @return
+	 */
+	public static boolean hasGrouperCompose(ValueSet valueSet) {
+		return valueSet.hasCompose()
+				&& valueSet.getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+	}
+
 	public static boolean isRootSpecificationLibrary(Resource resource) {
 		return resource.hasMeta() && resource.getMeta().hasProfile(TransformProperties.usPHSpecLibProfile);
 	}
@@ -58,7 +70,7 @@ public class ImportBundleProducer {
 			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
 			code.setCode(TransformProperties.grouperType);
 
-			Coding valueCodeableConceptCoding = new Coding();
+			var valueCodeableConceptCoding = new Coding();
 			valueCodeableConceptCoding.setCode(TransformProperties.modelGrouper);
 			valueCodeableConceptCoding.setSystem(TransformProperties.grouperUsageContextCodableConceptSystemURL);
 
@@ -85,12 +97,12 @@ public class ImportBundleProducer {
 		for (final var entry : entries) {
 			if (entry.getResource() instanceof MetadataResource) {
 				var resource = (MetadataResource) entry.getResource();
-
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
+            valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
 						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-						if (isGrouper(valueSet)) {
+						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							valueSet.getMeta().setProfile(grouperProfiles);
@@ -130,6 +142,7 @@ public class ImportBundleProducer {
 						break;
 					case Library:
 						var library = (Library) resource;
+						library.setIdentifier(fixIdentifiers(library.getIdentifier()));
 						if (doesResourceExist(library.getUrl(), library.getVersion(), Library.class, transformProperties)) {
 							throw new FhirResourceExists("Library", library.getUrl(), library.getVersion());
 						} else {
@@ -143,6 +156,7 @@ public class ImportBundleProducer {
 						break;
 					case PlanDefinition:
 						planDefinition = (PlanDefinition) resource;
+						planDefinition.setIdentifier(fixIdentifiers(planDefinition.getIdentifier()));
 						break;
 					default:
 						myLogger.info("resourceType:  " + resource.getResourceType() + " is not supported by $import operation");
@@ -169,6 +183,58 @@ public class ImportBundleProducer {
 		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
 	}
+	private static List<CanonicalType> removeProfileFromList(List<CanonicalType> profiles, String profileToRemove) {
+		if (profiles == null) {
+			return new ArrayList<CanonicalType>();
+		}
+		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
+	}
+
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
+		contexts.forEach(context -> {
+			if (context.hasCode()) {
+				var code = context.getCode().getCode();
+				if (code.equals("focus")) {
+					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
+						var conditions = conditionsMap.get(valueSetCanonicalUrl);
+						conditions.add(context.getValueCodeableConcept());
+					} else {
+						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				} else if (code.equals("priority")) {
+					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
+						var priorities = priorityMap.get(valueSetCanonicalUrl);
+						if (priorities.size() == 0) {
+							priorities.add(context.getValueCodeableConcept());
+						} else {
+							priorities.forEach(p -> {
+								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
+									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
+								}
+							});
+						}
+					} else {
+						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+					}
+				}
+			}
+		});
+	}
+
+	private static List<Identifier> fixIdentifiers(List<Identifier> identifiers) {
+		return identifiers.stream().map(i -> {
+			if (i.getSystem().equals("urn:ietf:rfc:3986") 
+			&& i.hasValue()
+			&& !i.getValue().startsWith("http")
+			&& !i.getValue().startsWith("urn:oid")
+			&& !i.getValue().startsWith("urn:uuid")
+			&& Character.isDigit(i.getValue().charAt(0))) {
+				i.setValue("urn:oid:"+i.getValue());
+			}
+			return i;
+		}).collect(Collectors.toList());
+	}
+
 	private static List<CanonicalType> removeProfileFromList(List<CanonicalType> profiles, String profileToRemove) {
 		if (profiles == null) {
 			return new ArrayList<CanonicalType>();

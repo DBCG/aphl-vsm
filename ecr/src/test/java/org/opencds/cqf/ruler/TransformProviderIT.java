@@ -208,6 +208,16 @@ class TransformProviderIT extends RestIntegrationTest {
 		var valueSetLibrary = getClient().read().resource(Library.class).withId("library-rctc-example").execute();
 		var valueSetLibraryHasV1 = valueSetLibrary.getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
 		assertFalse(valueSetLibraryHasV1);
+		valueSetLibrary.getIdentifier().forEach(i -> {
+			if (i.getSystem().equals("urn:ietf:rfc:3986") 
+			&& i.hasValue()
+			&& !i.getValue().startsWith("http")
+			&& !i.getValue().startsWith("urn:oid")
+			&& !i.getValue().startsWith("urn:uuid")
+			&& Character.isDigit(i.getValue().charAt(0))) {
+				fail("Invalid identifier present, should have been fixed by import");
+			}
+		});
 	}
 
 	@Test
@@ -274,5 +284,52 @@ class TransformProviderIT extends RestIntegrationTest {
 			}
 		}
 		assertTrue(atLeastOneRelatedArtifactIsAValueSetWithPriority);
+	}
+
+	@Test
+	void testImportOperation_appliesGrouperUseContext() throws InterruptedException {
+		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example-missing-grouper-use-context.json");
+		Parameters v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+				.setName("bundle")
+				.setResource(v2Bundle);
+
+		getClient()
+				.operation()
+				.onServer()
+				.named("$ersd-v2-import")
+				.withParameters(v2BundleParams)
+				.returnResourceType(OperationOutcome.class)
+				.execute();
+
+		Thread.sleep(1000);
+
+		int bundleSearchTries = 0;
+
+		Bundle results = getClient().search()
+				.forResource(ValueSet.class)
+				.returnBundle(Bundle.class)
+				.execute();
+
+		while (results.getEntry().isEmpty() && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			results = getClient().search()
+					.forResource(ValueSet.class)
+					.returnBundle(Bundle.class)
+					.execute();
+		}
+
+		if(results.getEntry().isEmpty()) {
+			fail("Bundle is empty, fetching the import is not returning any entries");
+		}
+
+		List<ValueSet> importedGroupers = results.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		// After the import, check all of them have the group type as use context
+		assertEquals(6,importedGroupers.size());
 	}
 }
