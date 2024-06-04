@@ -70,7 +70,7 @@ public class ImportBundleProducer {
 			code.setSystem(TransformProperties.grouperUsageContextCodeURL);
 			code.setCode(TransformProperties.grouperType);
 
-			Coding valueCodeableConceptCoding = new Coding();
+			var valueCodeableConceptCoding = new Coding();
 			valueCodeableConceptCoding.setCode(TransformProperties.modelGrouper);
 			valueCodeableConceptCoding.setSystem(TransformProperties.grouperUsageContextCodableConceptSystemURL);
 
@@ -97,10 +97,10 @@ public class ImportBundleProducer {
 		for (final var entry : entries) {
 			if (entry.getResource() instanceof MetadataResource) {
 				var resource = (MetadataResource) entry.getResource();
-
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
+            valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
 						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
 						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
@@ -142,6 +142,7 @@ public class ImportBundleProducer {
 						break;
 					case Library:
 						var library = (Library) resource;
+						library.setIdentifier(fixIdentifiers(library.getIdentifier()));
 						if (doesResourceExist(library.getUrl(), library.getVersion(), Library.class, transformProperties)) {
 							throw new FhirResourceExists("Library", library.getUrl(), library.getVersion());
 						} else {
@@ -155,6 +156,7 @@ public class ImportBundleProducer {
 						break;
 					case PlanDefinition:
 						planDefinition = (PlanDefinition) resource;
+						planDefinition.setIdentifier(fixIdentifiers(planDefinition.getIdentifier()));
 						break;
 					default:
 						myLogger.info("resourceType:  " + resource.getResourceType() + " is not supported by $import operation");
@@ -181,6 +183,21 @@ public class ImportBundleProducer {
 		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
 	}
+
+	private static List<Identifier> fixIdentifiers(List<Identifier> identifiers) {
+		return identifiers.stream().map(i -> {
+			if (i.getSystem().equals("urn:ietf:rfc:3986") 
+			&& i.hasValue()
+			&& !i.getValue().startsWith("http")
+			&& !i.getValue().startsWith("urn:oid")
+			&& !i.getValue().startsWith("urn:uuid")
+			&& Character.isDigit(i.getValue().charAt(0))) {
+				i.setValue("urn:oid:"+i.getValue());
+			}
+			return i;
+		}).collect(Collectors.toList());
+	}
+
 	private static List<CanonicalType> removeProfileFromList(List<CanonicalType> profiles, String profileToRemove) {
 		if (profiles == null) {
 			return new ArrayList<CanonicalType>();
