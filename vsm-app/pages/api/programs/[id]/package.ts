@@ -119,6 +119,7 @@ function addEndpointToParameters(parameters: fhir4.Parameters): fhir4.Parameters
     status: "active",
     payloadType: [{ coding: [{ system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type", code: "any" }] }]
   }
+  updatedParameters.parameter ??= []
   updatedParameters.parameter?.push({
     name: "terminologyEndpoint",
     resource: endpointWithVsacCredentials
