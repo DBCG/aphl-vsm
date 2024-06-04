@@ -37,6 +37,18 @@ public class ImportBundleProducer {
 				.anyMatch(uc -> uc.hasCode() && uc.getCode().getCode().equals(TransformProperties.grouperType));
 	}
 
+	/**
+	 * Old logic to determine whether a given ValueSet is a grouper.
+	 * We need to use this version for $ersd-v2-import as we need to ensure that the appropriate use context is added,
+	 * if we check for its presence, and it's missing it will not be considered a grouper and therefore is not added.
+	 * @param valueSet
+	 * @return
+	 */
+	public static boolean hasGrouperCompose(ValueSet valueSet) {
+		return valueSet.hasCompose()
+				&& valueSet.getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+	}
+
 	public static boolean isRootSpecificationLibrary(Resource resource) {
 		return resource.hasMeta() && resource.getMeta().hasProfile(TransformProperties.usPHSpecLibProfile);
 	}
@@ -90,7 +102,7 @@ public class ImportBundleProducer {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
 						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-						if (isGrouper(valueSet)) {
+						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							valueSet.getMeta().setProfile(grouperProfiles);
