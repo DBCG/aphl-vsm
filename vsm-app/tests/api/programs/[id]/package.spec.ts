@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import handler from '@/pages/api/programs/[id]/package'
+import handler, { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
 import fetchMock from 'jest-fetch-mock'
 import v2ExportResponse from '@/test_fixtures/ersd-export-v2.json'
 import v1ExportResponse from '@/test_fixtures/ersd-export-v1.json'
@@ -26,17 +26,18 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v2 bundle for download', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
+    const body: ExpectedPackageBody = {
+      data: {
+        json: true,
+        useV2: true,
         parameters: {
           resourceType: 'Parameters'
-        },
-        data: {
-          json: true,
-          useV2: true
         }
-      },
+      }
+    }
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: body,
       query: {
         id: 'SpecificationLibrary'
       }
@@ -50,18 +51,19 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
+    const body: ExpectedPackageBody = {
+      targetVersion: '4.0.0',
+      data: {
+        json: true,
+        useV2: false,
         parameters: {
           resourceType: 'Parameters'
-        },
-        targetVersion: '4.0.0',
-        data: {
-          json: true,
-          useV2: false
         }
-      },
+      }
+    }
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: body,
       query: {
         id: 'SpecificationLibrary'
       }
@@ -85,23 +87,25 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download with provided planDefintion', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
+    const body: ExpectedPackageBody = {
+      targetVersion: '4.0.0',
+      planDefinition: {
+        resourceType: 'PlanDefinition',
+        id: 'superspecial',
+        url: 'http://example.com/PlanDefinition/123',
+        status: "active"
+      },
+      data: {
+        json: true,
+        useV2: false,
         parameters: {
           resourceType: 'Parameters'
-        },
-        targetVersion: '4.0.0',
-        planDefinition: {
-          resourceType: 'PlanDefinition',
-          id: 'superspecial',
-          url: 'http://example.com/PlanDefinition/123'
-        },
-        data: {
-          json: true,
-          useV2: false
         }
-      },
+      }
+    }
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: body,
       query: {
         id: 'SpecificationLibrary'
       }
@@ -121,18 +125,19 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 error for missing planDefinition from v2 and not provided', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
+    const body: ExpectedPackageBody = {
+      targetVersion: '4.0.0',
+      data: {
+        json: true,
+        useV2: false,
         parameters: {
           resourceType: 'Parameters'
-        },
-        targetVersion: '4.0.0',
-        data: {
-          json: true,
-          useV2: false
         }
-      },
+      }
+    }
+    const { req, res } = createMocks({
+      method: 'POST',
+      body: body,
       query: {
         id: 'SpecificationLibrary'
       }
