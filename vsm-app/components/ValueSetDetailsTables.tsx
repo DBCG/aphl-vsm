@@ -300,7 +300,7 @@ const ValueSetDetailsTables = ({
           highlightOnHover={isGrouperValueSet}
           progressPending={isLoadingDefinition}
           progressComponent={<LoadingIndicator />}
-          onRowClicked={handleDefinitionRowClick}
+          onRowClicked={isGrouperValueSet ? handleDefinitionRowClick : undefined}
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
