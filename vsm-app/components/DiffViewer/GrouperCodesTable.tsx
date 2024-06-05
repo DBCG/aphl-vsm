@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, divide } from 'lodash'
 
 const COLORS = {
   add: '#EBEFE9',
@@ -88,46 +88,46 @@ const handleSetFilterContext = (e) => {
   const columns = useMemo(() => {
     const fields = [
       {
-        name: 'Change',
+        name: <div>Change</div>,
         selector: (row: TableData) => row.change!,
         sortable: true,
         wrap: true,
         maxWidth: '100px'
       },
       {
-        name: 'OID',
+        name: <div>OID</div>,
         selector: (row: TableData) => row.oid,
         sortable: true,
         wrap: true,
         grow: 1.5
       },
       {
-        name: 'Descriptor',
+        name: <div>Descriptor</div>,
         sortable: true,
         wrap: true,
         selector: (row: TableData) => row.descriptor!,
         grow: 3
       },
       {
-        name: 'Code',
+        name: <div>Code</div>,
         selector: (row: TableData) => row.code!,
         wrap: true,
         sortable: true
       },
       {
-        name: 'Code System',
+        name: <div>Code System</div>,
         selector: (row: TableData) => row.codeSystem!,
         wrap: true,
         sortable: true
       },
       {
-        name: 'Code System Version',
+        name: <div>Code System Version</div>,
         selector: (row: TableData) => row.codeSystemVersion!,
         sortable: true,
         wrap: true,
       },
       {
-        name: 'Code System OID',
+        name: <div>Code System OID</div>,
         selector: (row: TableData) => row.codeSystemOID!,
         sortable: true,
         wrap: true

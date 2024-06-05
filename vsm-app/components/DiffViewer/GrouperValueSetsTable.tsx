@@ -69,10 +69,6 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
   const [filterItems, setFilterItems] = useState([])
 
-  const filterContextIndex = useMemo(() => {
-    return VsFilterContextComputable.findIndex((item) => item === filterContext)
-  }, [filterContext])
-
   const { valueSetsTable } = grouperTableData
 
   console.log('vs data here: ', valueSetsTable)
@@ -123,40 +119,40 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
   const columns = useMemo(() => {
     const fields = [
       {
-        name: 'Change',
+        name: <div>Change</div>,
         selector: (row: TableData) => row.change!,
         sortable: true,
         wrap: true,
         maxWidth: '150px'
       },
       {
-        name: 'Name',
+        name: <div>Name</div>,
         selector: (row: TableData) => row.name,
         sortable: true,
         wrap: true,
         maxWidth: '150px'
       },
       {
-        name: 'OID',
+        name: <div>OID</div>,
         selector: (row: TableData) => row.oid!,
         wrap: true,
         grow: 2
       },
       {
-        name: 'Code System',
+        name: <div>Code System</div>,
         selector: (row: TableData) => row.codeSystem!,
         sortable: true,
         wrap: true,
         maxWidth: '150px'
       },
       {
-        name: 'Code System OID',
+        name: <div>Code System OID</div>,
         selector: (row: TableData) => row.codeSystemOID!,
         sortable: true,
         wrap: true
       },
       {
-        name: 'Condition Names',
+        name: <div>Condition Names</div>,
         sortable: true,
         wrap: true,
         // maxWidth: '150px',
@@ -173,7 +169,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         }
       },
       {
-        name: 'Condition Codes',
+        name: <div>Condition Codes</div>,
         sortable: true,
         wrap: true,
         maxWidth: '150px',
@@ -192,7 +188,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         }
       },
       {
-        name: 'Condition Systems',
+        name: <div>Condition Systems</div>,
         sortable: true,
         wrap: true,
         // maxWidth: '150px',
@@ -209,7 +205,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         }
       },
       {
-        name: 'Condition Changes',
+        name: <div>Condition Changes</div>,
         sortable: true,
         wrap: true,
         grow: 2,
