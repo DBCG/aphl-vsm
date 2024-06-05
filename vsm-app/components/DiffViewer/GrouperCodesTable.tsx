@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
 import { cloneDeep, divide } from 'lodash'
+import { FormGroup, FormControlLabel, Switch } from '@mui/material'
+import { ValueSetFilterItem } from './GrouperValueSetsTable'
 
 const COLORS = {
   add: '#EBEFE9',
@@ -38,18 +40,30 @@ const generateConditionColor = (conditionItem) => {
   }
 }
 
+const ToggleShowNoChange = ({ handleShowUnchanged }) => {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+      <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
+        <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
+      </FormGroup>
+    </div>
+  )
+}
+
 const GrouperCodesTable = ({ grouperTableData }) => {
   const [filterItems, setFilterItems] = useState([])
   const [filterContext, setFilterContext] = useState<CodeFilterContext>('oid')
+  const [showUnchanged, setShowUnchanged] = useState(false)
   const { codeSystemsTable } = grouperTableData
 
   const filterContextIndex = useMemo(() => {
     return CodeFilterContextComputable.findIndex((item) => item === filterContext)
   }, [filterContext])
 
-  const filteredCodeOptions = (activeFilters) => {
-    if (!activeFilters?.length) return codeSystemsTable
+  const filteredCodeOptions = (activeFilters, showUnchanged) => {
     let clonedOptions = cloneDeep(codeSystemsTable)
+    if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt?.change)
+    if (!activeFilters?.length) return clonedOptions
 
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
       const [field, searchTerm] = filterItem.value.split('|')
@@ -92,7 +106,8 @@ const handleSetFilterContext = (e) => {
         selector: (row: TableData) => row.change!,
         sortable: true,
         wrap: true,
-        maxWidth: '100px'
+        maxWidth: '100px',
+        style: { textTransform: 'capitalize' }
       },
       {
         name: <div>OID</div>,
@@ -149,13 +164,16 @@ const handleSetFilterContext = (e) => {
         filterContextHumanReadable={codeFilterContextsHumanReadable?.[filterContextIndex]}
       />
       <DataTable
+        defaultSortFieldId={1}
         dense
         title='Codes'
         columns={columns}
-        data={filteredCodeOptions(filterItems)}
+        data={filteredCodeOptions(filterItems, showUnchanged)}
         conditionalRowStyles={conditionalRowStyles}
         pagination
         paginationPerPage={20}
+        subHeader
+        subHeaderComponent={<ToggleShowNoChange handleShowUnchanged={setShowUnchanged}/>}
       />
     </>
   )

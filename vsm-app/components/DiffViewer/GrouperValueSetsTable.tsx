@@ -3,11 +3,11 @@ import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
 import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
+import { FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
 
 const TdItem = styled.div`
   display: flex;
   flex-grow: 1;
-  padding: 1px;
 `
 
 const TdContainer = styled.div`
@@ -64,6 +64,16 @@ const generateConditionColor = (conditionItem) => {
   }
 }
 
+const ToggleShowNoChange = ({ handleShowUnchanged }) => {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+      <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
+        <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
+      </FormGroup>
+    </div>
+  )
+}
+
 const createStyles = (style, conditionItem) => {
   const colorOverride = generateConditionColor(conditionItem)
   return Object.assign(style, colorOverride)
@@ -72,13 +82,15 @@ const createStyles = (style, conditionItem) => {
 const GrouperValueSetsTable = ({ grouperTableData }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
   const [filterItems, setFilterItems] = useState([])
+  const [showUnchanged, setShowUnchanged] = useState(false)
 
   const { valueSetsTable } = grouperTableData
 
   console.log('vs data here: ', valueSetsTable)
-  const filteredValueSetOptions = (activeFilters) => {
-    if (!activeFilters?.length) return valueSetsTable
+  const filteredValueSetOptions = (activeFilters, showUnchanged) => {
     let clonedOptions = cloneDeep(valueSetsTable)
+    if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt.change.toLowerCase() !== 'no change')
+    if (!activeFilters?.length) return clonedOptions
 
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
       const [field, searchTerm] = filterItem.value.split('|')
@@ -127,7 +139,8 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         selector: (row: TableData) => row.change!,
         sortable: true,
         wrap: true,
-        maxWidth: '150px'
+        maxWidth: '150px',
+        style: { textTransform: 'capitalize' }
       },
       {
         name: <div>Name</div>,
@@ -249,14 +262,17 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         handleSetFilterContext={handleSetFilterContext}
       />
       <DataTable
+        defaultSortFieldId={1}
         style={{ marginBottom: '2em'}}
         title='Value Sets'
         columns={columns}
-        data={filteredValueSetOptions(filterItems)}
+        data={filteredValueSetOptions(filterItems, showUnchanged)}
         pagination
         paginationPerPage={20}
         conditionalRowStyles={conditionalRowStyles}
         dense
+        subHeader
+        subHeaderComponent={<ToggleShowNoChange handleShowUnchanged={setShowUnchanged}/>}
       />
     </>
   )
