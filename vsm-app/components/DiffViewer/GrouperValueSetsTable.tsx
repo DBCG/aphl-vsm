@@ -1,14 +1,8 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
-// import Select from 'react-select'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
-import Creatable from 'react-select/creatable'
-import { SearchInput } from '../SearchInput'
-import SearchIcon from '@mui/icons-material/Search'
 import { cloneDeep } from 'lodash'
-import { Divider, FormControl, IconButton, InputBase, InputLabel, MenuItem, Paper } from '@mui/material'
-import { FilterControl, vsFilterContextsHumanReadable } from './FilterControl'
+import { FilterControl } from './FilterControl'
 
 const TdItem = styled.div`
   display: flex;
@@ -25,7 +19,7 @@ const COLORS = {
   update: '#FDF4DD'
 }
 
-interface ValueSetFilterItem {
+export interface ValueSetFilterItem {
   key: string
   label: string
   value: string
@@ -35,6 +29,16 @@ interface SimplifiedFilterItem {
   field: string
   searchTerm: string
 }
+
+export const vsFilterContextsHumanReadable = [
+  'Change', 'Name', 'OID', 'Condition Name',
+  'Condition Code', 'Condition System', 'Condition Operation'
+] as const
+
+export const VsFilterContextComputable = vsFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
+
+export type AllFilterContextMenuOptions = typeof vsFilterContextsHumanReadable
+export type ValueSetFilterContext = typeof VsFilterContextComputable[number]
 
 const generateConditionColor = (conditionItem) => {
   if (conditionItem?.conditionOperation?.startsWith('Add')) {
@@ -81,6 +85,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
       if (!filterItem.field.startsWith('condition')) {
         clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field]?.toLowerCase()?.includes(filterItem.searchTerm))
       } else {
+        // search within array of condition info for a match
         clonedOptions = clonedOptions.filter(opt => {
           const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
             const keys = Object.keys(conditionUpdateItem)

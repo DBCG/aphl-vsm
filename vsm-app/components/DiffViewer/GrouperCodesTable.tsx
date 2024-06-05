@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
+import { FilterControl } from './FilterControl'
 
 const COLORS = {
   add: '#EBEFE9',
@@ -97,15 +98,26 @@ const GrouperCodesTable = ({ grouperTableData }) => {
   }, [])
 
   return (
-    <DataTable
-      dense
-      title='Codes'
-      columns={columns}
-      data={codeSystemsTable}
-      conditionalRowStyles={conditionalRowStyles}
-      pagination
-      paginationPerPage={20}
-    />
+    <>
+      <FilterControl
+        controlType='code'
+        filterContext={filterContext}
+        filteredItems={filterItems}
+        setFilteredItems={setFilterItems}
+        removeValueSetFilteredItems={removeValueSetFilterItems}
+        filterMenuOptions={vsFilterContextsHumanReadable}
+        handleSetFilterContext={handleSetFilterContext}
+      />
+      <DataTable
+        dense
+        title='Codes'
+        columns={columns}
+        data={codeSystemsTable}
+        conditionalRowStyles={conditionalRowStyles}
+        pagination
+        paginationPerPage={20}
+      />
+    </>
   )
 }
 

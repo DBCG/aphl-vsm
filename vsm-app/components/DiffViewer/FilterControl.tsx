@@ -1,31 +1,15 @@
 import { FormControl, InputLabel, MenuItem, Paper, Select } from '@mui/material'
 import Creatable from 'react-select/creatable'
+import { AllFilterContextMenuOptions, ValueSetFilterContext, ValueSetFilterItem } from './GrouperValueSetsTable'
 
 const style = {
-  control: base => ({
+  control: (base: any) => ({
     ...base,
     border: 0,
     // This line disable the blue border
     boxShadow: 'none',
     minWidth: 300
   })
-}
-
-export const vsFilterContextsHumanReadable = [
-  'Change', 'Name', 'OID', 'Condition Name',
-  'Condition Code', 'Condition System', 'Condition Operation'
-] as const
-
-const VsFilterContextComputable = vsFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
-
-const CodeFilterContextsHumanReadable = [
-] as const
-
-type AllFilterContextMenuOptions = typeof VsFilterContextsHumanReadable
-type ValueSetFilterContext = typeof VsFilterContextComputable[number]
-
-interface CodeFilterContext {
-
 }
 
 interface FilterControlProps {
