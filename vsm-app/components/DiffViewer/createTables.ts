@@ -135,9 +135,10 @@ const generateGrouperMetadata = (grouperPage) => {
 }
 
 const generateMainChangeText = (grouperListItem) => {
-  const allConditionChangeTypes = uniq(grouperListItem.conditions
-    .filter(c => c?.operation)
-    .map(i => i?.operation?.type))
+  console.log('grouperListItem: ', grouperListItem)
+  const allConditionChangeTypes = uniq(grouperListItem?.conditions
+    ?.filter(c => c?.operation)
+    ?.map(i => i?.operation?.type)) || []
 
   // incomplete possibilities
   if (grouperListItem?.operation?.type === 'insert') {
@@ -149,7 +150,7 @@ const generateMainChangeText = (grouperListItem) => {
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
   } else {
-    return 'Unidentified change' // ?
+    return 'No change' // ?
   }
 }
 
@@ -157,31 +158,32 @@ const generateMainChangeText = (grouperListItem) => {
 // could be updates to code, text, system
 // might need to combine multiple "replace" fields
 const generateConditionUpdates = (conditionsList) => {
-  return conditionsList.map(li => {
+  if (!conditionsList) return []
+  return conditionsList?.map(li => {
     // if an operation occurred at all, return details
     if(li.operation) {
       // insert, also handle text field... thi
       if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
         return ({
-          operation: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
+          conditionOperation: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
           conditionName: undefined, // isn't currently being passed through...
-          codeSystemVersion: undefined, // same here
+          conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
       } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
         return ({
-          operation: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
+          conditionOperation: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
           conditionName: undefined, // isn't currently being passed through...
-          codeSystemVersion: undefined, // same here
+          conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
       }  else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
         return ({
-          operation: 'Add condition',
+          conditionOperation: 'Add condition',
           conditionName: li?.operation?.newValue?.text, // is the text field, not name...
-          codeSystemVersion: undefined, // same here
+          conditionCodeSystemVersion: undefined, // same here
           conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
           conditionSystem: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.system,
         })
@@ -189,9 +191,9 @@ const generateConditionUpdates = (conditionsList) => {
         const splitIndex = li.operation.path.lastIndexOf('.')
         const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
         return ({
-          operation: `Delete field: ${itemToDelete}`,
+          conditionOperation: `Delete field: ${itemToDelete}`,
           conditionName: undefined, // isn't currently being passed through...
-          codeSystemVersion: undefined, // same here
+          conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
@@ -199,9 +201,9 @@ const generateConditionUpdates = (conditionsList) => {
     // if no operation occurred, just return condition info
     } else {
       return ({
-        operation: undefined,
-        conditionName: undefined, //
-        codeSystemVersion: undefined, //
+        conditionOperation: undefined,
+        conditionName: undefined,
+        conditionCodeSystemVersion: undefined,
         conditionSystem: li.system,
         conditionCode: li.code
       })
@@ -215,7 +217,9 @@ const generateConditionUpdates = (conditionsList) => {
 // need status for code system (e.g. published?)
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage) => {
-  const newData = grouperPage.newData.grouperList.map(gi => ({
+  console.log('grouperPage.newData: ', grouperPage.newData)
+  // need to handle unchanged grouper?
+  const newData = grouperPage.newData.leafValuesets.map(gi => ({
     // 'priority': need grouper priority!
     oid: gi.memberOid,
     change: generateMainChangeText(gi),
@@ -233,7 +237,8 @@ const generateCodeChangesTable = (grouperPage) => {
     code: ci?.code,
     descriptor: ci?.display,
     codeSystem: ci?.system,
-    codeSystemVersion: ci?.version // undefined for now?
+    codeSystemVersion: ci?.version, // undefined for now?
+    codeSystemOID: ci?.codeSystemOid // undefined for now?
 
   }))
   console.log('new data: ', newData)

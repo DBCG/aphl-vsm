@@ -34,7 +34,6 @@ const createStyles = (style, conditionItem) => {
 }
 
 const GrouperCodesTable = ({ grouperTableData }) => {
-  console.log('grouper page: ', grouperTableData)
   const { codeSystemsTable } = grouperTableData
 
   const conditionalRowStyles = [
@@ -53,7 +52,7 @@ const GrouperCodesTable = ({ grouperTableData }) => {
         selector: (row: TableData) => row.change!,
         sortable: true,
         wrap: true,
-        maxWidth: '100px',
+        maxWidth: '100px'
       },
       {
         name: 'OID',
@@ -72,12 +71,14 @@ const GrouperCodesTable = ({ grouperTableData }) => {
       {
         name: 'Code',
         selector: (row: TableData) => row.code!,
-        wrap: true
+        wrap: true,
+        sortable: true
       },
       {
         name: 'Code System',
-        selector: (row: TableData) => row.codesystem!,
-        wrap: true
+        selector: (row: TableData) => row.codeSystem!,
+        wrap: true,
+        sortable: true
       },
       {
         name: 'Code System Version',
@@ -102,6 +103,8 @@ const GrouperCodesTable = ({ grouperTableData }) => {
       columns={columns}
       data={codeSystemsTable}
       conditionalRowStyles={conditionalRowStyles}
+      pagination
+      paginationPerPage={20}
     />
   )
 }

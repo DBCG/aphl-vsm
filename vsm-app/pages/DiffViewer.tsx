@@ -2,7 +2,7 @@ import { GrouperCodesTable } from '@/components/DiffViewer/GrouperCodesTable'
 import GrouperMetadataTable from '@/components/DiffViewer/GrouperMetadataTable'
 import { GrouperValueSetsTable } from '@/components/DiffViewer/GrouperValueSetsTable'
 import ProgramMetadataTable from '@/components/DiffViewer/ProgramMetadataTable'
-import { changelog } from '@/components/DiffViewer/changelog'
+import { changelog } from '@/components/DiffViewer/changelog_new'
 import { createTableData } from '@/components/DiffViewer/createTables'
 
 // const ProgramMetaData = ()
