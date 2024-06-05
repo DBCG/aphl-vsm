@@ -34,18 +34,16 @@ jobs:
       jdk: openjdk17
       language: java
       script:
-        - export MAVEN_OPTS="-Ddebug=false -Dorg.slf4j.simpleLogger.defaultLogLevel=error"
-        - echo $MAVEN_OPTS
         - ./bin/test_plugin.sh
       install: skip
     - stage: build-and-deploy-plugin
-      # if: branch IN (main) or tag IS present
+      if: branch IN (main) or tag IS present
       jdk: openjdk17
       language: java
       script:
         - ./bin/build_plugin.sh
     - stage: deploy
-      # if: branch IN (main) or tag IS present
+      if: branch IN (main) or tag IS present
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
         # TODO: Disabled for now as it stopped working with permission errors

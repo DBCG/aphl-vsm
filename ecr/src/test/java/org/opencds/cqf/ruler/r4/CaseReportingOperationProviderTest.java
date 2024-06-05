@@ -41,7 +41,15 @@ import static org.mockito.Mockito.mock;
 @DirtiesContext
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
 	classes = {CaseReportingConfig.class},
-	properties = {"hapi.fhir.fhir_version=r4", "hapi.fhir.security.basic_auth.enabled=false", "hapi.fhir.casereporting.enabled=true"})
+	properties = {
+		"hapi.fhir.fhir_version=r4", 
+		"hapi.fhir.security.basic_auth.enabled=false", 
+		"hapi.fhir.casereporting.enabled=true", 
+		"debug=false", 
+		"loader.debug=false",
+		// "logging.level.org.springframework=ERROR",
+		"logging.level.org.hibernate.SQL=ERROR"
+	})
 class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Autowired
 	private Environment environment;
