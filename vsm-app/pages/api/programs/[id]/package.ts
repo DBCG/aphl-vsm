@@ -103,7 +103,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
-    return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
+    return res.status(500).json({ error: diagnostics || error?.error || error.toString() || 'Unspecified error' })
   }
 }
 function addEndpointToParameters(parameters: fhir4.Parameters): fhir4.Parameters {
