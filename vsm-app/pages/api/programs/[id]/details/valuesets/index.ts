@@ -254,14 +254,14 @@ const isError = (res: any): res is ErrorRes => {
 // ------------------------------------------------------------------------------------------------
 type ExtendedReq = NextApiRequest & {
   query: {
-    id: string
+    id?: string
     findInOid?: string
     findInVsTitle?: string
     findInSteward?: string
     findInVersion?: string
     groups?: string
     conditions?: string
-    provisionalOnly?: boolean
+    provisionalOnly?: string
   }
 }
 

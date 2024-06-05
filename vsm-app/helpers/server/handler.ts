@@ -7,10 +7,16 @@ import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
 const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
 type requestTypes = typeof requestTypes[number]
-type handlerObjs = {
-  [k in requestTypes]?: { action: (req: NextApiRequest, res: NextApiResponse) => Promise<any>; access: string[] }
+type action<T extends NextApiRequest> = (req: T, res: NextApiResponse, session?: VSMSession) => Promise<any>
+// we have to do this intermediate step because TS doesn't support mapped generics nicely
+type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof T]: action<U> }> = {
+  [k in keyof T]?: T[k] extends action<infer V> ?
+  V extends NextApiRequest ?
+  { action: action<V>, access?: string[] } : never
+  : never
 }
-const handler = (methodHandlers: handlerObjs) => async (req: NextApiRequest, res: NextApiResponse) => {
+type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in requestTypes]: action<T> }>
+const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse) => {
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
   const methodFn = methodHandlers[req.method as requestTypes]
   if (!req.method || !(req.method in requestTypes) || !methodFn) {
@@ -28,7 +34,7 @@ const handler = (methodHandlers: handlerObjs) => async (req: NextApiRequest, res
       logger.error(`Role: ${role} is not authorized for ${req?.url}`)
       return res.status(401).json({ error: 'Unauthorized' })
     }
-    return await action(req, res)
+    return await action(req, res, session)
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = is.operationOutcome(error) ? error?.issue?.[0]?.diagnostics : error?.response?.data?.issue?.[0]?.diagnostics
