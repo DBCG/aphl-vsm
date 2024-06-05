@@ -53,7 +53,6 @@ export const FilterControl = ({
     <Paper
       component='form'
       sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 'fit-content' }}
-      style={{ marginBottom: '2rem', marginTop: '1rem'}}
     >
     <FormControl variant='standard'>
       <Creatable

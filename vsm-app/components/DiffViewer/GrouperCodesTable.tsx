@@ -42,11 +42,11 @@ const generateConditionColor = (conditionItem) => {
 
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+    // <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
       <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-        <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
+        <FormControlLabel control={<Switch />} label="Show unchanged Codes" />
       </FormGroup>
-    </div>
+    // </div>
   )
 }
 
@@ -153,16 +153,6 @@ const handleSetFilterContext = (e) => {
 
   return (
     <>
-      <FilterControl
-        controlType='code'
-        filterContext={filterContext}
-        filteredItems={filterItems}
-        setFilteredItems={setFilterItems}
-        removeValueSetFilteredItems={removeValueSetFilterItems}
-        filterMenuOptions={codeFilterContextsHumanReadable}
-        handleSetFilterContext={handleSetFilterContext}
-        filterContextHumanReadable={codeFilterContextsHumanReadable?.[filterContextIndex]}
-      />
       <DataTable
         defaultSortFieldId={1}
         dense
@@ -173,7 +163,22 @@ const handleSetFilterContext = (e) => {
         pagination
         paginationPerPage={20}
         subHeader
-        subHeaderComponent={<ToggleShowNoChange handleShowUnchanged={setShowUnchanged}/>}
+        subHeaderWrap
+        subHeaderComponent={
+          (<div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <FilterControl
+              controlType='code'
+              filterContext={filterContext}
+              filteredItems={filterItems}
+              setFilteredItems={setFilterItems}
+              removeValueSetFilteredItems={removeValueSetFilterItems}
+              filterMenuOptions={codeFilterContextsHumanReadable}
+              handleSetFilterContext={handleSetFilterContext}
+              filterContextHumanReadable={codeFilterContextsHumanReadable?.[filterContextIndex]}
+            />
+            <ToggleShowNoChange handleShowUnchanged={setShowUnchanged} />
+          </div>)
+        }
       />
     </>
   )

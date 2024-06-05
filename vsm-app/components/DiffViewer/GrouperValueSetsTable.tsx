@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, divide } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
 
@@ -66,11 +66,9 @@ const generateConditionColor = (conditionItem) => {
 
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
-      <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-        <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
-      </FormGroup>
-    </div>
+    <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
+      <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
+    </FormGroup>
   )
 }
 
@@ -119,7 +117,8 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   }
 
   const conditionalRowStyles = [
-    { when: (row) => row.change.toLowerCase() === 'added vs',
+    {
+      when: (row) => row.change.toLowerCase() === 'added vs',
       style: {
         backgroundColor: COLORS.add
       }
@@ -128,9 +127,9 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   ]
 
   // need to do this manually for deletion
-const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
-  setFilterItems(() => [...allFilterItems]) 
-}
+  const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
+    setFilterItems(() => [...allFilterItems])
+  }
 
   const columns = useMemo(() => {
     const fields = [
@@ -198,7 +197,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
                   return (
                     <TdItem style={createStyles({}, i)}>{i?.conditionCode || 'No Data'}</TdItem>
                   )
-        })
+                })
               }
             </TdContainer>
           )
@@ -251,19 +250,9 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
 
   return (
     <>
-      <FilterControl
-        controlType='valueset'
-        filterContext={filterContext}
-        filterContextHumanReadable={vsFilterContextsHumanReadable}
-        filteredItems={filterItems}
-        setFilteredItems={setFilterItems}
-        removeValueSetFilteredItems={removeValueSetFilterItems}
-        filterMenuOptions={vsFilterContextsHumanReadable}
-        handleSetFilterContext={handleSetFilterContext}
-      />
       <DataTable
         defaultSortFieldId={1}
-        style={{ marginBottom: '2em'}}
+        style={{ marginBottom: '2em' }}
         title='Value Sets'
         columns={columns}
         data={filteredValueSetOptions(filterItems, showUnchanged)}
@@ -272,7 +261,22 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
         conditionalRowStyles={conditionalRowStyles}
         dense
         subHeader
-        subHeaderComponent={<ToggleShowNoChange handleShowUnchanged={setShowUnchanged}/>}
+        subHeaderWrap
+        subHeaderComponent={(
+          <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <FilterControl
+              controlType='valueset'
+              filterContext={filterContext}
+              filterContextHumanReadable={vsFilterContextsHumanReadable}
+              filteredItems={filterItems}
+              setFilteredItems={setFilterItems}
+              removeValueSetFilteredItems={removeValueSetFilterItems}
+              filterMenuOptions={vsFilterContextsHumanReadable}
+              handleSetFilterContext={handleSetFilterContext}
+            />
+            <ToggleShowNoChange handleShowUnchanged={setShowUnchanged} />
+          </div>
+        )}
       />
     </>
   )
