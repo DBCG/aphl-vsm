@@ -69,6 +69,10 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
   const [filterItems, setFilterItems] = useState([])
 
+  const filterContextIndex = useMemo(() => {
+    return VsFilterContextComputable.findIndex((item) => item === filterContext)
+  }, [filterContext])
+
   const { valueSetsTable } = grouperTableData
 
   const filteredValueSetOptions = (activeFilters) => {
@@ -225,6 +229,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
   }, [])
 
   const handleSetFilterContext = (e) => {
+    console.log('e.target: ', e.target)
     setFilterContext(e.target.value)
   }
 
@@ -234,6 +239,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
       <FilterControl
         controlType='valueset'
         filterContext={filterContext}
+        filterContextHumanReadable={vsFilterContextsHumanReadable?.[filterContextIndex]}
         filteredItems={filterItems}
         setFilteredItems={setFilterItems}
         removeValueSetFilteredItems={removeValueSetFilterItems}

@@ -43,6 +43,10 @@ const GrouperCodesTable = ({ grouperTableData }) => {
   const [filterContext, setFilterContext] = useState<CodeFilterContext>('oid')
   const { codeSystemsTable } = grouperTableData
 
+  const filterContextIndex = useMemo(() => {
+    return CodeFilterContextComputable.findIndex((item) => item === filterContext)
+  }, [filterContext])
+
   const filteredCodeOptions = (activeFilters) => {
     if (!activeFilters?.length) return codeSystemsTable
     let clonedOptions = cloneDeep(codeSystemsTable)
@@ -142,6 +146,7 @@ const handleSetFilterContext = (e) => {
         removeValueSetFilteredItems={removeValueSetFilterItems}
         filterMenuOptions={codeFilterContextsHumanReadable}
         handleSetFilterContext={handleSetFilterContext}
+        filterContextHumanReadable={codeFilterContextsHumanReadable?.[filterContextIndex]}
       />
       <DataTable
         dense

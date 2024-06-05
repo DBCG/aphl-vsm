@@ -19,6 +19,7 @@ interface FilterControlProps {
   setFilteredItems: (current: any) => void
   removeValueSetFilteredItems: (current: any) => void
   handleSetFilterContext: (current: any) => void
+  filterContextHumanReadable: string | undefined
   filterMenuOptions: AllFilterContextMenuOptions
 }
 
@@ -29,7 +30,8 @@ export const FilterControl = ({
   setFilteredItems,
   removeValueSetFilteredItems,
   handleSetFilterContext,
-  filterMenuOptions
+  filterMenuOptions,
+  filterContextHumanReadable
 }: FilterControlProps) => {
 
   const menuItems = filterMenuOptions.map(opt => (
@@ -48,7 +50,7 @@ export const FilterControl = ({
     >
     <FormControl variant='standard'>
       <Creatable
-        noOptionsMessage={() => `Type your search for ${filterContext} field`}
+        noOptionsMessage={() => `Type your search for ${filterContextHumanReadable} field`}
         placeholder={`Filter ${controlType === 'valueset' ? 'Value Sets' : 'Codes'}`}
         styles={style}
         onCreateOption={(e) => {
@@ -64,7 +66,7 @@ export const FilterControl = ({
         }}
         onChange={removeValueSetFilteredItems}
         value={filteredItems}
-        formatCreateLabel={(i) => <p>Search <b>{i}</b> in <b>{filterContext}</b></p>}
+        formatCreateLabel={(i) => <p>Search <b>{i}</b> in <b>{filterContextHumanReadable}</b></p>}
         isMulti
         isClearable
       />
