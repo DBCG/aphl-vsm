@@ -179,7 +179,6 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
         name: <div>Condition Names</div>,
         sortable: true,
         wrap: true,
-        // maxWidth: '150px',
         cell: (row: TableData) => {
           return (
             <TdContainer>
