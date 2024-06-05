@@ -1,13 +1,22 @@
-import { useMemo } from 'react'
-import styled from 'styled-components'
+import { useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
+import { cloneDeep } from 'lodash'
 
 const COLORS = {
   add: '#EBEFE9',
   remove: '#FAE6E5',
   update: '#FDF4DD'
 }
+
+export const codeFilterContextsHumanReadable = [
+  'Change', 'OID', 'Descriptor', 'Code', 'Code System',
+  'Code System Version', 'Code System OID'
+] as const
+
+export const CodeFilterContextComputable = codeFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
+
+export type CodeFilterContext = typeof CodeFilterContextComputable[number]
 
 const generateConditionColor = (conditionItem) => {
   if (conditionItem?.operation?.startsWith('Add')) {
@@ -29,13 +38,30 @@ const generateConditionColor = (conditionItem) => {
   }
 }
 
-const createStyles = (style, conditionItem) => {
-  const colorOverride = generateConditionColor(conditionItem)
-  return Object.assign(style, colorOverride)
-}
-
 const GrouperCodesTable = ({ grouperTableData }) => {
+  const [filterItems, setFilterItems] = useState([])
+  const [filterContext, setFilterContext] = useState<CodeFilterContext>('oid')
   const { codeSystemsTable } = grouperTableData
+
+  const filteredCodeOptions = (activeFilters) => {
+    if (!activeFilters?.length) return codeSystemsTable
+    let clonedOptions = cloneDeep(codeSystemsTable)
+
+    const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
+      const [field, searchTerm] = filterItem.value.split('|')
+      return ({ field, searchTerm: searchTerm.trim() })
+    })
+
+    mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
+      clonedOptions = clonedOptions.filter(opt => {
+        const keys = Object.keys(opt)
+        const matchingKeyIndex = keys.map(k => k.toLowerCase()).findIndex(i => i === filterItem.field.toLowerCase())
+        return opt[keys[matchingKeyIndex]]?.toLowerCase()?.includes(filterItem.searchTerm)
+      })
+    })
+
+    return clonedOptions
+  }
 
   const conditionalRowStyles = [
     { when: (row) => row?.change?.toLowerCase() === 'insert',
@@ -45,6 +71,15 @@ const GrouperCodesTable = ({ grouperTableData }) => {
     }
     // need a remove case, but no existing data for that
   ]
+
+    // need to do this manually for deletion
+const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
+  setFilterItems(() => [...allFilterItems]) 
+}
+
+const handleSetFilterContext = (e) => {
+  setFilterContext(e.target.value)
+}
 
   const columns = useMemo(() => {
     const fields = [
@@ -105,14 +140,14 @@ const GrouperCodesTable = ({ grouperTableData }) => {
         filteredItems={filterItems}
         setFilteredItems={setFilterItems}
         removeValueSetFilteredItems={removeValueSetFilterItems}
-        filterMenuOptions={vsFilterContextsHumanReadable}
+        filterMenuOptions={codeFilterContextsHumanReadable}
         handleSetFilterContext={handleSetFilterContext}
       />
       <DataTable
         dense
         title='Codes'
         columns={columns}
-        data={codeSystemsTable}
+        data={filteredCodeOptions(filterItems)}
         conditionalRowStyles={conditionalRowStyles}
         pagination
         paginationPerPage={20}
