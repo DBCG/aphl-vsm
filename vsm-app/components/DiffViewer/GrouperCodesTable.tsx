@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
 import { cloneDeep, divide } from 'lodash'
-import { FormGroup, FormControlLabel, Switch } from '@mui/material'
+import { FormGroup, FormControlLabel, Switch, Checkbox } from '@mui/material'
 import { ValueSetFilterItem } from './GrouperValueSetsTable'
 
 const COLORS = {
@@ -44,7 +44,7 @@ const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
     // <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
       <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-        <FormControlLabel control={<Switch />} label="Show unchanged Codes" />
+        <FormControlLabel control={<Checkbox />} label="Show unchanged Codes" />
       </FormGroup>
     // </div>
   )

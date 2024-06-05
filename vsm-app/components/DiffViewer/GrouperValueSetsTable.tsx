@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
 import { cloneDeep, divide } from 'lodash'
 import { FilterControl } from './FilterControl'
-import { FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
+import { Checkbox, FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
 
 const TdItem = styled.div`
   display: flex;
@@ -67,7 +67,7 @@ const generateConditionColor = (conditionItem) => {
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
     <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-      <FormControlLabel control={<Switch />} label="Show unchanged Value Sets" />
+      <FormControlLabel control={<Checkbox />} label="Show unchanged Value Sets" />
     </FormGroup>
   )
 }
