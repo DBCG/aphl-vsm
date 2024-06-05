@@ -47,7 +47,6 @@ import static org.mockito.Mockito.mock;
 		"hapi.fhir.casereporting.enabled=true", 
 		"debug=false", 
 		"loader.debug=false",
-		// "logging.level.org.springframework=ERROR",
 		"logging.level.org.hibernate.SQL=ERROR"
 	})
 class CaseReportingOperationProviderTest extends RestIntegrationTest {
