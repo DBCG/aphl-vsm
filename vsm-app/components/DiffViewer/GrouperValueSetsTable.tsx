@@ -6,11 +6,15 @@ import { FilterControl } from './FilterControl'
 
 const TdItem = styled.div`
   display: flex;
+  flex-grow: 1;
+  padding: 1px;
 `
 
 const TdContainer = styled.div`
   display: flex;
   flex-direction: column;
+  align-self: stretch;
+  flex-grow: 1;
 `
 
 const COLORS = {
@@ -213,9 +217,10 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
           return (
             <TdContainer>
               {
-                row.conditionUpdates.map(i => (
-                  <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionChange || ''}</TdItem>
-                ))
+                row.conditionUpdates.map(i => {
+                  const color = !i?.conditionChange ? 'white' : 'inherit'
+                  return <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0, color }, i)}>{i?.conditionChange || '.'}</TdItem>
+                })
               }
             </TdContainer>
           )
