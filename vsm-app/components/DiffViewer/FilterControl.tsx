@@ -1,6 +1,7 @@
 import { FormControl, InputLabel, MenuItem, Paper, Select } from '@mui/material'
 import Creatable from 'react-select/creatable'
-import { AllFilterContextMenuOptions, ValueSetFilterContext, ValueSetFilterItem } from './GrouperValueSetsTable'
+import { AllFilterContextMenuOptions, ValueSetFilterContext, ValueSetFilterItem, VsFilterContextComputable } from './GrouperValueSetsTable'
+import { CodeFilterContextComputable } from './GrouperCodesTable'
 
 const style = {
   control: (base: any) => ({
@@ -19,7 +20,7 @@ interface FilterControlProps {
   setFilteredItems: (current: any) => void
   removeValueSetFilteredItems: (current: any) => void
   handleSetFilterContext: (current: any) => void
-  filterContextHumanReadable: string | undefined
+  filterContextHumanReadable: string[]
   filterMenuOptions: AllFilterContextMenuOptions
 }
 
@@ -31,8 +32,14 @@ export const FilterControl = ({
   removeValueSetFilteredItems,
   handleSetFilterContext,
   filterMenuOptions,
-  filterContextHumanReadable
+  // filterContextHumanReadable
 }: FilterControlProps) => {
+
+  const currentFilterContextIndex = controlType === 'valueset'
+    ? VsFilterContextComputable.findIndex((item) => item === filterContext)
+    : CodeFilterContextComputable.findIndex((item) => item === filterContext)
+
+  const readableFilterContext = filterMenuOptions[currentFilterContextIndex]
 
   const menuItems = filterMenuOptions.map(opt => (
     <MenuItem
@@ -50,7 +57,7 @@ export const FilterControl = ({
     >
     <FormControl variant='standard'>
       <Creatable
-        noOptionsMessage={() => `Type your search for ${filterContextHumanReadable} field`}
+        noOptionsMessage={() => `Filter by ${readableFilterContext} field`}
         placeholder={`Filter ${controlType === 'valueset' ? 'Value Sets' : 'Codes'}`}
         styles={style}
         onCreateOption={(e) => {
@@ -66,7 +73,7 @@ export const FilterControl = ({
         }}
         onChange={removeValueSetFilteredItems}
         value={filteredItems}
-        formatCreateLabel={(i) => <p>Search <b>{i}</b> in <b>{filterContextHumanReadable}</b></p>}
+        formatCreateLabel={(i) => <p>Search <b>{i}</b> in <b>{readableFilterContext}</b></p>}
         isMulti
         isClearable
       />

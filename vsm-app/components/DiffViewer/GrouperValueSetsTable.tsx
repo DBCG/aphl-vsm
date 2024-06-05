@@ -239,7 +239,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
       <FilterControl
         controlType='valueset'
         filterContext={filterContext}
-        filterContextHumanReadable={vsFilterContextsHumanReadable?.[filterContextIndex]}
+        filterContextHumanReadable={vsFilterContextsHumanReadable}
         filteredItems={filterItems}
         setFilteredItems={setFilterItems}
         removeValueSetFilteredItems={removeValueSetFilterItems}
