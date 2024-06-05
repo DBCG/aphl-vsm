@@ -61,11 +61,13 @@ export const FilterControl = ({
         placeholder={`Filter ${controlType === 'valueset' ? 'Value Sets' : 'Codes'}`}
         styles={style}
         onCreateOption={(e) => {
+          console.log('e: ', e)
+
           setFilteredItems((current: ValueSetFilterItem[]) => {
             const filteredCurrent = current.filter(i => !i?.label?.includes(filterContext))
             return (
               [...filteredCurrent,
-                { label: `${filterContext} | ${e}`,
+                { label: `${readableFilterContext} | ${e}`,
                 value: `${filterContext}|${e}`.toLowerCase(),
                 key: `${filterContext}|${e}`
               }])

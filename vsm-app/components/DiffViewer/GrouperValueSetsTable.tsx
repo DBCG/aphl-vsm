@@ -41,17 +41,17 @@ export type AllFilterContextMenuOptions = typeof vsFilterContextsHumanReadable
 export type ValueSetFilterContext = typeof VsFilterContextComputable[number]
 
 const generateConditionColor = (conditionItem) => {
-  if (conditionItem?.conditionOperation?.startsWith('Add')) {
+  if (conditionItem?.conditionChange?.startsWith('Add')) {
     return ({
       backgroundColor: COLORS.add
     })
   }
-  else if (conditionItem?.conditionOperation?.startsWith('Replace')) {
+  else if (conditionItem?.conditionChange?.startsWith('Replace')) {
     return ({
       backgroundColor: COLORS.update
     })
   }
-  else if (conditionItem?.conditionOperation?.startsWith('Remove')) {
+  else if (conditionItem?.conditionChange?.startsWith('Remove')) {
     return ({
       backgroundColor: COLORS.remove
     })
@@ -75,6 +75,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
 
   const { valueSetsTable } = grouperTableData
 
+  console.log('vs data here: ', valueSetsTable)
   const filteredValueSetOptions = (activeFilters) => {
     if (!activeFilters?.length) return valueSetsTable
     let clonedOptions = cloneDeep(valueSetsTable)
@@ -217,7 +218,7 @@ const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
             <TdContainer>
               {
                 row.conditionUpdates.map(i => (
-                  <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionOperation || ''}</TdItem>
+                  <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionChange || ''}</TdItem>
                 ))
               }
             </TdContainer>

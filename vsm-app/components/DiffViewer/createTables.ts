@@ -165,7 +165,7 @@ const generateConditionUpdates = (conditionsList) => {
       // insert, also handle text field... thi
       if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
         return ({
-          conditionOperation: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
+          conditionChange: `Replace condition code ${li.operation.oldValue} with ${li.code}`,
           conditionName: undefined, // isn't currently being passed through...
           conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
@@ -173,7 +173,7 @@ const generateConditionUpdates = (conditionsList) => {
         })
       } else if (li.operation.type === 'replace' && li.operation.path.endsWith('.text')) {
         return ({
-          conditionOperation: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
+          conditionChange: `Replace condition text ${li.operation.oldValue} with ${li.text}`,
           conditionName: undefined, // isn't currently being passed through...
           conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
@@ -181,7 +181,7 @@ const generateConditionUpdates = (conditionsList) => {
         })
       }  else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
         return ({
-          conditionOperation: 'Add condition',
+          conditionChange: 'Add condition',
           conditionName: li?.operation?.newValue?.text, // is the text field, not name...
           conditionCodeSystemVersion: undefined, // same here
           conditionCode: li?.operation?.newValue?.valueCodeableConcept?.coding?.[0]?.code,
@@ -191,7 +191,7 @@ const generateConditionUpdates = (conditionsList) => {
         const splitIndex = li.operation.path.lastIndexOf('.')
         const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
         return ({
-          conditionOperation: `Delete field: ${itemToDelete}`,
+          conditionChange: `Delete field: ${itemToDelete}`,
           conditionName: undefined, // isn't currently being passed through...
           conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
@@ -201,7 +201,7 @@ const generateConditionUpdates = (conditionsList) => {
     // if no operation occurred, just return condition info
     } else {
       return ({
-        conditionOperation: undefined,
+        conditionChange: undefined,
         conditionName: undefined,
         conditionCodeSystemVersion: undefined,
         conditionSystem: li.system,
