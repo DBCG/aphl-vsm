@@ -11,6 +11,14 @@ const COLORS = {
   update: '#FDF4DD'
 }
 
+const customStyle = {
+  subHeader: {
+    style: {
+      paddingLeft: '16px'
+    },
+  }
+}
+
 export const codeFilterContextsHumanReadable = [
   'Change', 'OID', 'Descriptor', 'Code', 'Code System',
   'Code System Version', 'Code System OID'
@@ -42,11 +50,9 @@ const generateConditionColor = (conditionItem) => {
 
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
-    // <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
       <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
         <FormControlLabel control={<Checkbox />} label="Show unchanged Codes" />
       </FormGroup>
-    // </div>
   )
 }
 
@@ -158,6 +164,7 @@ const handleSetFilterContext = (e) => {
         dense
         title='Codes'
         columns={columns}
+        customStyles={customStyle}
         data={filteredCodeOptions(filterItems, showUnchanged)}
         conditionalRowStyles={conditionalRowStyles}
         pagination

@@ -39,6 +39,14 @@ export const vsFilterContextsHumanReadable = [
   'Condition Code', 'Condition System', 'Condition Operation'
 ] as const
 
+const customStyle = {
+  subHeader: {
+    style: {
+      paddingLeft: '16px'
+    },
+  }
+}
+
 export const VsFilterContextComputable = vsFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
 
 export type AllFilterContextMenuOptions = typeof vsFilterContextsHumanReadable
@@ -253,6 +261,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
       <DataTable
         defaultSortFieldId={1}
         style={{ marginBottom: '2em' }}
+        customStyles={customStyle}
         title='Value Sets'
         columns={columns}
         data={filteredValueSetOptions(filterItems, showUnchanged)}
