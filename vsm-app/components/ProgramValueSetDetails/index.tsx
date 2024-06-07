@@ -161,23 +161,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
-    const info = {
-      grouperLoading,
-      conditionLoading,
-      isDeleting,
-      priorityLoading,
-      versionUpdateInFlight,
-      dataLoading
-    }
-
-    console.table(info)
     const result = grouperLoading
     || conditionLoading
     || isDeleting
     || priorityLoading
     || versionUpdateInFlight
     || dataLoading
-    console.table
     return result
 }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, dataLoading])
 
@@ -710,7 +699,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, blockChanges, progValueSetDets?.data]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {
