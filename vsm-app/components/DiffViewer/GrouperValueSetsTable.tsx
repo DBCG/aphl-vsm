@@ -8,6 +8,7 @@ import { Checkbox, FormControlLabel, FormGroup, Switch, ToggleButton } from '@mu
 const TdItem = styled.div`
   display: flex;
   flex-grow: 1;
+  padding-left: 6px !important;
 `
 
 const TdContainer = styled.div`
@@ -33,6 +34,20 @@ interface SimplifiedFilterItem {
   field: string
   searchTerm: string
 }
+
+const StyledTable = styled(DataTable)`
+  .rdt_TableCol {
+    padding-left: 6px !important;
+    padding-right: 0 !important;
+  };
+  .rdt_TableCell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  };
+  .rdt_TableHeader {
+    padding-left: 4px !important;
+  }
+`
 
 export const vsFilterContextsHumanReadable = [
   'Change', 'Name', 'OID', 'Condition Name',
@@ -147,33 +162,68 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
         sortable: true,
         wrap: true,
         maxWidth: '150px',
-        style: { textTransform: 'capitalize' }
+        style: { textTransform: 'capitalize' },
+        cell: (row: TableData) => {
+          return (
+            <TdContainer>
+              <TdItem>{row.change}</TdItem>
+            </TdContainer>
+          )
+        }
       },
       {
         name: <div>Name</div>,
         selector: (row: TableData) => row.name,
         sortable: true,
         wrap: true,
-        maxWidth: '150px'
+        maxWidth: '150px',
+        cell: (row: TableData) => {
+          return (
+            <TdContainer>
+              <TdItem>{row.name}</TdItem>
+            </TdContainer>
+          )
+        }
       },
       {
         name: <div>OID</div>,
         selector: (row: TableData) => row.oid!,
         wrap: true,
-        grow: 2
+        grow: 2,
+        cell: (row: TableData) => {
+          return (
+            <TdContainer>
+              <TdItem>{row.oid}</TdItem>
+            </TdContainer>
+          )
+        }
       },
       {
         name: <div>Code System</div>,
         selector: (row: TableData) => row.codeSystem!,
         sortable: true,
         wrap: true,
-        maxWidth: '150px'
+        maxWidth: '150px',
+        cell: (row: TableData) => {
+          return (
+            <TdContainer>
+              <TdItem>{row.codeSystem}</TdItem>
+            </TdContainer>
+          )
+        }
       },
       {
         name: <div>Code System OID</div>,
         selector: (row: TableData) => row.codeSystemOID!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        cell: (row: TableData) => {
+          return (
+            <TdContainer>
+              <TdItem>{row.codeSystemOID}</TdItem>
+            </TdContainer>
+          )
+        }
       },
       {
         name: <div>Condition Names</div>,
@@ -257,7 +307,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
 
   return (
     <>
-      <DataTable
+      <StyledTable
         defaultSortFieldId={1}
         style={{ marginBottom: '2em' }}
         customStyles={customStyle}
