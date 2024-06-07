@@ -40,13 +40,19 @@ const StyledTable = styled(DataTable)`
     padding-left: 6px !important;
     padding-right: 0 !important;
   };
+  .rdt_TableCol:first-of-type {
+    padding-left: 16px !important;
+  };
   .rdt_TableCell {
     padding-left: 0 !important;
     padding-right: 0 !important;
   };
+  .rdt_TableCell:first-of-type {
+    padding-left: 10px !important;
+  };
   .rdt_TableHeader {
     padding-left: 4px !important;
-  }
+  };
 `
 
 export const vsFilterContextsHumanReadable = [
