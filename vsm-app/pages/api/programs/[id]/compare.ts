@@ -3,6 +3,7 @@ import handler from '@/helpers/server/handler'
 import ExcelJS from 'exceljs'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
+import { getGrouperLibrary } from './details/valuesets'
 // import changeLogJson from '../../../../test_fixtures/change-log-response.json'
 
 const OPERATION_TYPES = {
@@ -15,7 +16,6 @@ const OPERATION_TYPES = {
 // recursive search for "operation"
 // if found in the case of replace
 // use path parameter against the root (aka most parent object) to get the new value, and use oldValue set in the operation for the old value
-
 const collector = (input) => {
   const operation = {
     delete: [],
@@ -27,6 +27,9 @@ const collector = (input) => {
     Object.entries(artifact).forEach(([key, value]) => {
       if (typeof value === 'object') {
         if ('operation' in value) {
+          if (typeof value === 'object') {
+            console.log(keyName, value)
+          }
           operation[value.operation.type].push({ keyName: keyName || key, change: value.operation.type, ...value })
         } else {
           gatherNewValues(value, key)
@@ -66,29 +69,30 @@ const autosortTable = (table, tableRows, sheet) => {
 }
 
 const changeLogDiffOperation = async (sourceId, targetId) => {
+  const input = JSON.stringify({
+    resourceType: 'Parameters',
+    parameter: [
+      {
+        name: 'source',
+        valueString: `Library/${sourceId}`
+      },
+      {
+        name: 'target',
+        valueString: `Library/${targetId}`
+      },
+      {
+        name: 'compareComputable',
+        valueBoolean: 'true'
+      },
+      {
+        name: 'compareExecutable',
+        valueBoolean: 'true'
+      }
+    ]
+  })
   const changeJson = (await fhirCdrClient.operation({
     name: '$create-changelog',
-    input: JSON.stringify({
-      resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'source',
-          valueString: `Library/${sourceId}`
-        },
-        {
-          name: 'target',
-          valueString: `Library/${targetId}`
-        },
-        {
-          name: 'compareComputable',
-          valueBoolean: 'true'
-        },
-        {
-          name: 'compareExecutable',
-          valueBoolean: 'true'
-        }
-      ]
-    }),
+    input,
     method: 'POST',
     options: {
       headers: {
@@ -128,6 +132,7 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
 }
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+  logger.info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
   const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id, req.query.targetId))
 
   const workbook = new ExcelJS.Workbook()
@@ -136,15 +141,21 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   workbook.created = new Date()
   workbook.modified = new Date()
 
+  const targetLibrary = (await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: req.query.targetId as string
+  })) as fhir4.Library
+  const grouperLibrary = await getGrouperLibrary(targetLibrary) as fhir4.Library
+
   /**
    * README SHEET for Root Library
    */
   const readmeSheet = workbook.addWorksheet('Read Me')
   readmeSheet.columns = [{ header: 'New Conditions', key: 'newConditions', width: 10 }]
-  logger.info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
-  const newConditions = extractConditions(changeJson.pages[0])
+  const rootLibraryChangesJson = changeJson.pages[0]
+  const newConditions = extractConditions(rootLibraryChangesJson)
 
-  const dataDiff = collector(changeJson.pages[0].oldData)
+  const dataDiff = collector(rootLibraryChangesJson?.oldData)
 
   const libDefRows = Object.values(dataDiff)
     ?.filter((i) => i?.length > 0)
@@ -204,30 +215,29 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   })
 
   /**
-   * ValueSet Library
+   * ValueSet Library SHEET
    */
 
-  const rctcLib = (await fhirCdrClient.read({
-    resourceType: 'Library',
-    id: 'library-rctc-example'
-    // id: req.query.id as string
-  })) as fhir4.Library
-  const rctcDataDiff = collector(changeJson.pages[1].oldData)
+  const grouperLibDiffJson = changeJson.pages.filter(
+    (page: any) => page.oldData.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === grouperLibrary.id
+  )?.[0]
+
+  const grouperLibDiff = collector(grouperLibDiffJson)
   const rctcSheet = workbook.addWorksheet('Value Set Library')
 
   const rctcInfoRows = [
-    ['Name', rctcLib.title],
-    ['OID', rctcLib?.identifier?.[0]?.value],
-    ['Status', rctcLib.status],
-    ['Publisher', rctcLib.publisher],
-    ['Purpose', rctcLib.purpose],
-    ['Description', rctcLib.description],
-    ['Version', rctcLib.version],
-    ['Date', rctcLib.effectivePeriod?.start]
+    ['Name', grouperLibrary.title],
+    ['OID', grouperLibrary?.identifier?.[0]?.value],
+    ['Status', grouperLibrary.status],
+    ['Publisher', grouperLibrary.publisher],
+    ['Purpose', grouperLibrary.purpose],
+    ['Description', grouperLibrary.description],
+    ['Version', grouperLibrary.version],
+    ['Date', grouperLibrary.effectivePeriod?.start]
   ]
   rctcSheet.addRows(rctcInfoRows)
 
-  const rctcRows = Object.values(rctcDataDiff)
+  const rctcRows = Object.values(grouperLibDiff)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
@@ -264,8 +274,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
       const grouperVs = (await fhirCdrClient.read({
         resourceType: 'ValueSet',
-        id: '2.16.840.1.113762.1.4.1146.1506'
-        // id: currentId
+        id: currentId
       })) as fhir4.ValueSet
 
       const vsInfo = [

@@ -40,7 +40,7 @@ const ProgramCompareModal = ({ isOpen, closeModal, programId, setExportError }: 
   const handleClickExport = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     setDownloadLoading(true)
-    const [version, id] = targetVersion.split('-')
+    const [version, id] = targetVersion.split('|')
     try {
       const res = await fetch(`/api/programs/${programId}/compare?targetId=${id}`, {
         method: 'POST'
@@ -85,7 +85,7 @@ const ProgramCompareModal = ({ isOpen, closeModal, programId, setExportError }: 
               }}
             >
               {availableVersions?.map(({ version, id }: { version: string, id: string }) => (
-                <MenuItem key={version} value={`${version}-${id}`}>
+                <MenuItem key={version} value={`${version}|${id}`}>
                   {version}
                 </MenuItem>
               ))}
