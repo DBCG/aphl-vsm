@@ -28,6 +28,7 @@ import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.adapter.IDependencyInfo;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.visitor.r4.KnowledgeArtifactPackageVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -339,10 +340,14 @@ public class KnowledgeArtifactProcessor {
 			ValueSetExpansionOptions options = new ValueSetExpansionOptions();
 			options.setIncludeHierarchy(true);
 
-			ValueSet e = dao.expand(vset,options);
+			KnowledgeArtifactPackageVisitor kapv = new KnowledgeArtifactPackageVisitor();
+
+			kapv.expandValueSet(vset, new Parameters(), Optional.empty());
+
+			//ValueSet e = dao.expand(vset,options);
 			// we need to do this because dao.expand sets the expansion to a subclass and then that breaks the FhirPatch
 			// `copy` creates the superclass again
-			vset.setExpansion(e.getExpansion().copy());
+			//vset.setExpansion(e.getExpansion().copy());
 			return;
 		}
 	}

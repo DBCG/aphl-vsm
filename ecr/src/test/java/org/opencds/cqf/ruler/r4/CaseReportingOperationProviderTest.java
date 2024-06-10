@@ -73,14 +73,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	);
 	private EndpointCredentials endpointCredentials;
 
-	// @BeforeAll
-	// public void init() {
-	// 	String apiKey = environment.getProperty("vsacapikey");
-	// 	EndpointCredentials ec = new EndpointCredentials();
-	// 	ec.setUsername(new StringType("apikey"));
-	// 	ec.setApiKey(new StringType(apiKey));
-	// 	endpointCredentials = ec;
-	// }
+	 @BeforeAll
+	 public void init() {
+	 	String apiKey = environment.getProperty("vsacapikey");
+	 	EndpointCredentials ec = new EndpointCredentials();
+	 	ec.setUsername(new StringType("apikey"));
+	 	ec.setApiKey(new StringType(apiKey));
+	 	endpointCredentials = ec;
+	 }
 
 	@Test
 	void draftOperation_test() {
@@ -1780,6 +1780,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareExecutable", new BooleanType(true));
+		diffParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(endpointCredentials);
 
 		Parameters returnedParams = getClient().operation()
 			.onServer()
@@ -1792,6 +1795,39 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
+		assertTrue(nestedChanges.size() == 3);
+		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
+		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
+		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
+		// old codes removed
+		assertTrue(deleteOperations.size() == 23);
+		// new codes added
+		assertTrue(insertOperations.size() == 32);
+	}
+
+	@Test
+	void artifact_diff_compare_executable_bug() throws Exception{
+		loadTransaction("ersd-spec-lib-diff.json");
+		//Bundle bundle = (Bundle) loadTransaction("small-drafted-ersd-bundle.json");
+		//Optional<Bundle.BundleEntryComponent> maybeLib = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst();
+		loadResource("artifactAssessment-search-parameter.json");
+		Thread.sleep(10000);
+		Parameters diffParams = new Parameters();
+		diffParams.addParameter("source", specificationLibReference);
+		diffParams.addParameter("target", "Library/54");
+		diffParams.addParameter("compareExecutable", new BooleanType(true));
+
+		Parameters returnedParams = getClient().operation()
+				.onServer()
+				.named("$artifact-diff")
+				.withParameters(diffParams)
+				.returnResourceType(Parameters.class)
+				.execute();
+		List<Parameters> nestedChanges = returnedParams.getParameter().stream()
+				.filter(p -> !p.getName().equals("operation"))
+				.map(p -> (Parameters)p.getResource())
+				.filter(p -> p != null)
+				.collect(Collectors.toList());
 		assertTrue(nestedChanges.size() == 3);
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
