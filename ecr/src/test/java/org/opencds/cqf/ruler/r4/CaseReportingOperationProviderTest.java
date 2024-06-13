@@ -73,14 +73,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	);
 	private EndpointCredentials endpointCredentials;
 
-	// @BeforeAll
-	// public void init() {
-	// 	String apiKey = environment.getProperty("vsacapikey");
-	// 	EndpointCredentials ec = new EndpointCredentials();
-	// 	ec.setUsername(new StringType("apikey"));
-	// 	ec.setApiKey(new StringType(apiKey));
-	// 	endpointCredentials = ec;
-	// }
+	 @BeforeAll
+	 public void init() {
+	 	String apiKey = environment.getProperty("vsacapikey");
+	 	EndpointCredentials ec = new EndpointCredentials();
+	 	ec.setUsername(new StringType("apikey"));
+	 	ec.setApiKey(new StringType(apiKey));
+	 	endpointCredentials = ec;
+	 }
 
 	@Test
 	void draftOperation_test() {
@@ -95,7 +95,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseDescriptionUrl));
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseLabelUrl));
 		assertTrue(baseLib.hasApprovalDate());
-		String version = "1.0.1.23";
+		String version = "1.0.1";
 		String draftedVersion = version + "-draft";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
@@ -145,7 +145,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withId("plandefinition-ersd-instance-example")
 			.execute();
 		assertTrue(planDef.hasEffectivePeriod());
-		String version = "1.01.21.273";
+		String version = "1.01.21";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
 		Bundle returnedBundle = getClient().operation()
@@ -166,7 +166,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.0.0.23");
+		params.addParameter("version", "1.0.0");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -186,7 +186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_cannot_create_draft_of_draft_test() {
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.2.1.23");
+		params.addParameter("version", "1.2.1");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -206,7 +206,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_wrong_id_test() {
 		loadTransaction("ersd-draft-transaction-bundle-example.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.3.1.23");
+		params.addParameter("version", "1.3.1");
 		ResourceNotFoundException maybeException = null;
 		try {
 			getClient().operation()
@@ -247,7 +247,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-release-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		String existingVersion = "1.2.3";
-		String versionData = "1.2.7.23";
+		String versionData = "1.2.7";
 		Parameters params1 = new Parameters();
 		params1.addParameter("version", new StringType(versionData));
 		params1.addParameter("versionBehavior", new CodeType("default"));
@@ -352,7 +352,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		// Existing version should be "1.2.3";
-		String newVersionToForce = "1.2.7.23";
+		String newVersionToForce = "1.2.7";
 
 		Parameters params = new Parameters();
 		params.addParameter("version", new StringType(newVersionToForce));
@@ -554,7 +554,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void release_missing_approvalDate_validation_test() {
 		loadTransaction("ersd-release-missing-approvalDate-validation-bundle.json");
-		String versionData = "1.2.3.23";
+		String versionData = "1.2.3";
 		String actualErrorMessage = "";
 
 		Parameters params1 = new Parameters();
@@ -606,7 +606,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		String releaseLabel = "release label test";
 		Parameters params = new Parameters();
 		params.addParameter("releaseLabel", new StringType(releaseLabel));
-		params.addParameter("version", "1.2.3.23");
+		params.addParameter("version", "1.2.3");
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource = getClient().operation()
@@ -699,7 +699,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource =	getClient().operation()
@@ -729,7 +729,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		UnprocessableEntityException noConditionExtension = null;
@@ -997,7 +997,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void packageOperation_should_apply_check_force_canonicalVersions() {
 		loadTransaction("ersd-active-transaction-no-versions.json");
-		String versionToUpdateTo = "1.3.1.23";
+		String versionToUpdateTo = "1.3.1";
 		Parameters params = new Parameters();
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/PlanDefinition/us-ecr-specification|" + versionToUpdateTo));
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/ValueSet/dxtc|" + versionToUpdateTo));

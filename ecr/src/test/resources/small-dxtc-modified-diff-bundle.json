@@ -13,7 +13,7 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"useContext": [
 					{
@@ -137,7 +137,7 @@
 			"request": {
 				"method": "POST",
 				"url": "Library/7",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary&version=1.0.0-draft"
 			}
 		},
 		{
@@ -151,7 +151,7 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"relatedArtifact": [
 					{
@@ -168,7 +168,7 @@
 			"request": {
 				"method": "POST",
 				"url": "PlanDefinition/8",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification&version=1.0.0-draft"
 			}
 		},
 		{
@@ -182,7 +182,7 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/Library/rctc",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"relatedArtifact": [
 					{
@@ -204,7 +204,7 @@
 			"request": {
 				"method": "POST",
 				"url": "Library/9",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/rctc&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/rctc&version=1.0.0-draft"
 			}
 		},
 		{
@@ -218,7 +218,7 @@
 					"source": "#YvcttWKq2KbM0Igj"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"useContext": [
 					{
@@ -275,7 +275,7 @@
 			"request": {
 				"method": "POST",
 				"url": "ValueSet/10",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/ValueSet/dxtc&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/ValueSet/dxtc&version=1.0.0-draft"
 			}
 		},
 		{
