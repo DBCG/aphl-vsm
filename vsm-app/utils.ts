@@ -36,7 +36,7 @@ export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
 
 interface IncrementParams {
   valueToIncrement: any
-  incrementType: 'major' | 'minor' | 'patch' | 'revision'
+  incrementType: 'major' | 'minor' | 'patch'
   fallbackValue: string
 }
 
@@ -61,7 +61,7 @@ export const incrementSemver = ({
   // if value is not semver format, return fallback
   if (!isValidSimpleSemver(semverWithoutTag)) return fallbackValue
 
-  let [major, minor, patch, revision] = semverWithoutTag.split('.')
+  let [major, minor, patch] = semverWithoutTag.split('.')
 
   switch (incrementType) {
     case 'major':
@@ -73,17 +73,9 @@ export const incrementSemver = ({
     case 'patch':
       patch = incrementStringValue(patch) || patch
       break
-    case 'revision':
-      revision = incrementStringValue(revision) || revision || '0'
-      break
   }
 
-  // clear out revision on increment if you are incrementing another field
-  if (incrementType !== 'revision') revision = '0'
-
-  // add a revision if it doesn't already exist
-  const result = `${major}.${minor}.${patch}${revision ? "." + revision : ".0"}`
-  return result
+  return `${major}.${minor}.${patch}`
 }
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')
