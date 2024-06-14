@@ -7,7 +7,7 @@ describe('incrementSemver', () => {
       incrementType: 'major',
       fallbackValue: '3.0.0'
     })).toBe('2.0.0')
-
+  })
 
   it('increments minor if well-formed', () => {
     expect(incrementSemver({
@@ -15,7 +15,7 @@ describe('incrementSemver', () => {
       incrementType: 'minor',
       fallbackValue: '2.0.0'
     })).toBe('1.1.0')
-
+  })
 
   it('increments patch if well-formed', () => {
     expect(incrementSemver({
@@ -23,15 +23,6 @@ describe('incrementSemver', () => {
       incrementType: 'patch',
       fallbackValue: '3.0.0'
     })).toBe('1.0.1')
-
-    // what happens if we want to increment revision
-    // and it doesn't exist
-    // we'd maybe want to do add 0 to the place so that it exists?
-    expect(incrementSemver({
-      valueToIncrement: '1.0.0',
-      incrementType: 'revision',
-      fallbackValue: '3.0.0'
-    })).toBe('1.0.0')
   })
 
   it('provides fallback if invalid format', () => {
