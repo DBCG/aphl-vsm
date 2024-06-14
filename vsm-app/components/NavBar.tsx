@@ -45,7 +45,7 @@ export const NavContext = createContext({
 } as NavContextType)
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode
 }
 
 // create context provider
@@ -76,6 +76,14 @@ const NavBar = () => {
             onClick={() => {
               signOut({ redirect: false })
               router.push('/api/auth/logout')
+            }}
+          />
+          <Button
+            text="Admin Tools"
+            id="admin"
+            onClick={() => {
+              signOut({ redirect: false })
+              router.push('/admin')
             }}
           />
         </Box>

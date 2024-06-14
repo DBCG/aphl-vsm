@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
+import { MutableRefObject } from 'react'
 
 const Input = styled(TextField)`
   & .MuiInputBase-multiline {
@@ -46,6 +47,7 @@ interface Props {
   errorMessage?: string | JSX.Element | null
   helperMessage?: string | null
   onKeyPress?: React.KeyboardEventHandler
+  inputRef?: MutableRefObject<any>
 }
 
 const TextArea = ({
@@ -60,7 +62,8 @@ const TextArea = ({
   style = {},
   errorMessage = null,
   helperMessage = null,
-  onKeyPress
+  onKeyPress,
+  inputRef
 }: Props) => {
   return (
     <Container style={style}>
@@ -92,6 +95,7 @@ const TextArea = ({
               return onKeyPress(e)
             }
           }}
+          inputRef={inputRef}
         />
       </>
     </Container>
