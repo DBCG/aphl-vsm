@@ -23,6 +23,15 @@ type ChangeValue = {
     type: string
     newValue: any
   }
+  display?: string
+  version?: string
+  system?: string
+  code?: string
+  memberOid?: string
+}
+
+type CollectedChangeMap = {
+  [key: string]: CollectedChange[]
 }
 
 // Go to newData
@@ -34,13 +43,15 @@ const collector = (input: any) => {
     delete: [],
     insert: [],
     replace: []
-  } as { [key: string]: CollectedChange[] }
+  } as CollectedChangeMap
 
   const gatherNewValues = (artifact: any, keyName?: string) => {
     Object.entries(artifact).forEach(([key, value]) => {
       if (value && typeof value === 'object') {
+        // @ts-ignore
         if ('operation' in value && typeof value?.value !== 'object') {
-          operation[value?.operation?.type].push({ keyName: keyName || key, change: value.operation.type, ...value })
+          // @ts-ignore
+          operation[value?.operation?.type].push({ keyName: keyName || key, change: value?.operation?.type, ...value } as CollectedChange)
         } else {
           gatherNewValues(value, key)
         }
@@ -51,14 +62,15 @@ const collector = (input: any) => {
   return operation
 }
 
-const autosortTable = (table, tableRows, sheet) => {
+const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: ExcelJS.Worksheet) => {
   // Calculate column width
   // https://github.com/exceljs/exceljs/discussions/2535#discussioncomment-8419612
-  const columnWidths = table.table.columns.map((column, columnIndex) => {
+  // @ts-ignore
+  const columnWidths = table.table.columns.map((column: ExcelJS.TableColumn, columnIndex: number) => {
     /**
      * Max width for each column.
      */
-    const maxContentWidth = tableRows.reduce((maxWidth, row) => {
+    const maxContentWidth = tableRows.reduce((maxWidth: number, row: ExcelJS.Row[]) => {
       const cellValue = row[columnIndex]
       const cellWidth = cellValue ? String(cellValue).length : 0
       return Math.max(maxWidth, cellWidth)
@@ -73,7 +85,7 @@ const autosortTable = (table, tableRows, sheet) => {
   /**
    * Apply width.
    */
-  columnWidths.forEach((width, columnIndex) => {
+  columnWidths.forEach((width: number, columnIndex: number) => {
     sheet.getColumn(columnIndex + 1).width = width
   })
 }
@@ -304,7 +316,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
       // ValueSet CodeSystem Changes
       const rows = [] as any
-      const fillRows = (data) => {
+      const fillRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
             const { change, display, version, system, code, memberOid } = rowValue
@@ -321,7 +333,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
           name: 'valueset_' + currentId,
           ref: `A${vsInfo.length + 5}`,
           headerRow: true,
-                style: {
+          style: {
             theme: 'TableStyleDark3',
             showRowStripes: true
           },

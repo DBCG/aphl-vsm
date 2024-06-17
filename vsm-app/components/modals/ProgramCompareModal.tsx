@@ -21,10 +21,9 @@ interface ModalInfo {
   isOpen: boolean
   programId: string
   closeModal: () => void
-  setExportError: (error: any) => void
 }
 
-const ProgramCompareModal = ({ isOpen, closeModal, programId, setExportError }: ModalInfo) => {
+const ProgramCompareModal = ({ isOpen, closeModal, programId }: ModalInfo) => {
   const [downloadLoading, setDownloadLoading] = useState(false)
   // const [availableVersions, setAvailableVersions] = useState<string[]>([])
 
