@@ -10,7 +10,7 @@
 	"timestamp": "2022-04-05T10:06:42.482-04:00",
 	"entry": [
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary|1.0.0",
 			"resource": {
 				"resourceType": "Library",
 				"id": "SpecificationLibrary",
@@ -93,7 +93,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0"
 					},
 					{
 						"extension": [
@@ -103,7 +103,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0"
 					},
 					{
 						"type": "composed-of",
@@ -111,11 +111,11 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0"
 					},
 					{
 						"type": "depends-on",
@@ -127,27 +127,27 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
 					},
 					{
 						"type": "depends-on",
@@ -1013,7 +1013,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0",
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "plandefinition-ersd-instance-example",
@@ -1073,7 +1073,7 @@
 					{
 						"type": "depends-on",
 						"label": "RCTC Value Set Library of Trigger Codes",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0"
 					},
 					{
 						"type": "composed-of",
@@ -1212,7 +1212,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
 											}
 										]
 									},
@@ -1228,7 +1228,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
 											}
 										]
 									},
@@ -1244,7 +1244,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 											}
 										]
 									}
@@ -1363,7 +1363,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
 											}
 										]
 									},
@@ -1379,7 +1379,7 @@
 										"codeFilter": [
 											{
 												"path": "reasonCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
 											}
 										]
 									},
@@ -1395,7 +1395,7 @@
 										"codeFilter": [
 											{
 												"path": "vaccineCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 											}
 										]
 									},
@@ -1411,7 +1411,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
 											}
 										]
 									},
@@ -1427,7 +1427,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
 											}
 										]
 									},
@@ -1443,7 +1443,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
 											}
 										]
 									},
@@ -1459,7 +1459,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0"
 											}
 										]
 									},
@@ -1475,7 +1475,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0"
 											}
 										]
 									},
@@ -1491,7 +1491,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 											}
 										]
 									},
@@ -1507,7 +1507,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 											}
 										]
 									},
@@ -1523,7 +1523,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
 											}
 										]
 									},
@@ -1539,7 +1539,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
 											}
 										]
 									},
@@ -1555,7 +1555,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
 											}
 										]
 									}
@@ -2038,7 +2038,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0",
 			"resource": {
 				"resourceType": "Library",
 				"id": "library-rctc-example",
@@ -2129,7 +2129,7 @@
 				"relatedArtifact": [
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2139,7 +2139,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2149,7 +2149,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2159,7 +2159,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2169,7 +2169,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2179,7 +2179,7 @@
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
 						"extension": [
 							{
 								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
@@ -2199,7 +2199,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "dxtc",
@@ -2665,7 +2665,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lotc",
@@ -2941,7 +2941,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lrtc",
@@ -3797,7 +3797,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "mrtc",
@@ -4133,7 +4133,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "ostc",
@@ -4689,7 +4689,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "sdtc",
