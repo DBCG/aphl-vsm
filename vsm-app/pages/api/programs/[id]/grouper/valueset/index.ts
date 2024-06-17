@@ -244,8 +244,6 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(400).send('Error with creating grouper valuesets')
     }
 
-    // the cqfUpdatesPayload is coming back empty here for valuesets that already exist
-    // const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
     const newValueSetUpdates = cqfUpdatesPayload?.map((i: any) => i?.resource?.url)?.filter(x => x) || []
     const existingVsToUpdate = Array.isArray(matchesInCqf) ? matchesInCqf?.map(m => m.url)?.filter(x => x) : []
     const leafReferencesToAdd = [...newValueSetUpdates, ...existingVsToUpdate]
