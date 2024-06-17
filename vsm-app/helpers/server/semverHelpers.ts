@@ -3,7 +3,7 @@ import sort from 'semver/functions/sort'
 
 const removeFlags = (item: string) => {
   const split = item?.split('-')
-  if (split.length > 2) {
+  if (split?.length > 2) {
     throw new Error("Invalid flags on version: " + item)
   }
   return item?.split('-')?.[0]
