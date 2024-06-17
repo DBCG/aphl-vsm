@@ -12,25 +12,35 @@ const OPERATION_TYPES = {
   DELETE: 'delete'
 }
 
+interface CollectedChange extends ChangeValue {
+  keyName: string
+  change: string
+}
+
+type ChangeValue = {
+  value: any
+  operation: {
+    type: string
+    newValue: any
+  }
+}
+
 // Go to newData
 // recursive search for "operation"
 // if found in the case of replace
 // use path parameter against the root (aka most parent object) to get the new value, and use oldValue set in the operation for the old value
-const collector = (input) => {
+const collector = (input: any) => {
   const operation = {
     delete: [],
     insert: [],
     replace: []
-  }
+  } as { [key: string]: CollectedChange[] }
 
-  const gatherNewValues = (artifact, keyName) => {
+  const gatherNewValues = (artifact: any, keyName?: string) => {
     Object.entries(artifact).forEach(([key, value]) => {
-      if (typeof value === 'object') {
-        if ('operation' in value) {
-          if (typeof value === 'object') {
-            console.log(keyName, value)
-          }
-          operation[value.operation.type].push({ keyName: keyName || key, change: value.operation.type, ...value })
+      if (value && typeof value === 'object') {
+        if ('operation' in value && typeof value?.value !== 'object') {
+          operation[value?.operation?.type].push({ keyName: keyName || key, change: value.operation.type, ...value })
         } else {
           gatherNewValues(value, key)
         }
@@ -145,7 +155,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     resourceType: 'Library',
     id: req.query.targetId as string
   })) as fhir4.Library
-  const grouperLibrary = await getGrouperLibrary(targetLibrary) as fhir4.Library
+  const grouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
 
   /**
    * README SHEET for Root Library
@@ -154,35 +164,35 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   readmeSheet.columns = [{ header: 'New Conditions', key: 'newConditions', width: 10 }]
   const rootLibraryChangesJson = changeJson.pages[0]
   const newConditions = extractConditions(rootLibraryChangesJson)
-
   const dataDiff = collector(rootLibraryChangesJson?.oldData)
 
   const libDefRows = Object.values(dataDiff)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
-    .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
+    .map((row) => [row.change, row.keyName, row.value, row?.operation?.newValue])
 
   newConditions.forEach((newConditions: string) => {
     readmeSheet.addRow({ newConditions })
   })
 
-  // readmeSheet.addTable({
-  //   name: 'Read Me',
-  //   ref: `A${newConditions.length + 5}`,
-  //   headerRow: true,
-  //   // totalsRow: true,
-  //   style: {
-  //     theme: 'TableStyleDark3',
-  //     showRowStripes: true
-  //   },
-  //   columns: [
-  //     { name: 'Change', filterButton: true },
-  //     { name: 'Field Name', filterButton: true },
-  //     { name: 'Old Value', filterButton: true },
-  //     { name: 'New Value', filterButton: true }
-  //   ],
-  //   rows: libDefRows
-  // })
+  const readMeTable = readmeSheet.addTable({
+    name: 'read_me',
+    ref: `A${newConditions.length + 5}`,
+    headerRow: true,
+    // totalsRow: true,
+    style: {
+      theme: 'TableStyleDark3',
+      showRowStripes: true
+    },
+    columns: [
+      { name: 'Change', filterButton: true },
+      { name: 'Field Name', filterButton: true },
+      { name: 'Old Value', filterButton: true },
+      { name: 'New Value', filterButton: true }
+    ],
+    rows: libDefRows
+  })
+  autosortTable(readMeTable, libDefRows, readmeSheet)
 
   /**
    * PlanDefinition SHEET
@@ -197,8 +207,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
 
   planDefinitionSheet.addTable({
-    name: 'PlanDefinition',
-    ref: `A1`,
+    name: 'plandefinition',
+    ref: 'A1',
     headerRow: true,
     // totalsRow: true,
     style: {
@@ -242,7 +252,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     .flatMap((i) => i)
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
 
-  rctcSheet.addTable({
+  const rctcTable = rctcSheet.addTable({
     name: 'rctcDiff',
     ref: `A${rctcInfoRows.length + 5}`,
     headerRow: true,
@@ -259,6 +269,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     ],
     rows: rctcRows
   })
+
+  autosortTable(rctcTable, rctcInfoRows, rctcSheet)
 
   /**
    *
@@ -286,7 +298,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
         ['Description', grouperVs.description],
         ['Version', grouperVs.version]
       ]
-      groupingValueSetSheet.addRows(rctcInfoRows)
+      groupingValueSetSheet.addRows(vsInfo)
 
       // ValueSet CodeSystem Changes
       const rows = [] as any
@@ -302,57 +314,30 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
       fillRows(oldData)
       fillRows(newData)
 
-      const table = groupingValueSetSheet.addTable({
-        name: 'ValueSets',
-        ref: `A${vsInfo.length + 5}`,
-        headerRow: true,
-        // totalsRow: true,
-        style: {
-          theme: 'TableStyleDark3',
-          showRowStripes: true
-        },
-        columns: [
-          { name: 'Change', filterButton: true },
-          { name: 'Name', filterButton: true },
-          { name: 'OID', filterButton: true },
-          { name: 'Version', filterButton: true },
-          { name: 'Code', filterButton: true },
-          { name: 'Code System', filterButton: true }
-        ],
-        rows
-      })
-      autosortTable(table, rows, groupingValueSetSheet)
+      if (rows?.length > 0) {
+        const table = groupingValueSetSheet.addTable({
+          name: 'valueset_' + currentId,
+          ref: `A${vsInfo.length + 5}`,
+          headerRow: true,
+          // totalsRow: true,
+          style: {
+            theme: 'TableStyleDark3',
+            showRowStripes: true
+          },
+          columns: [
+            { name: 'Change', filterButton: true },
+            { name: 'Name', filterButton: true },
+            { name: 'OID', filterButton: true },
+            { name: 'Version', filterButton: true },
+            { name: 'Code', filterButton: true },
+            { name: 'Code System', filterButton: true }
+          ],
+          rows
+        })
+        autosortTable(table, rows, groupingValueSetSheet)
+      }
     })
   )
-  //   // Start Drawing
-  //   const headerCells = ["A1", "B1", "C1", "D1", "E1", "F1"]
-  //   headerCells.map((key) => {
-  //     groupingValueSetSheet.getCell(key).font = { bold: true }
-  //     groupingValueSetSheet.getCell(key).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '884EA5' } }
-  //   })
-
-  //   groupingValueSetSheet.columns = [
-  //     { header: 'Change', key: 'change', width: 10 },
-  //     { header: 'Name', key: 'name', width: 80 },
-  //     { header: 'OID', key: 'memberOid', width: 50 },
-  //     { header: 'Version', key: 'version', width: 30 },
-  //     { header: 'Code', key: 'code', width: 20 },
-  //     { header: 'Code System', key: -'system', width: 30 }
-  //   ]
-
-  //   const addRowData = (data) => {
-  //     Object.entries(data).forEach(([key, value]) => {
-  //       value.forEach((rowValue) => {
-  //         const { change, display, version, system, code, memberOid } = rowValue
-  //         const row = groupingValueSetSheet.addRow({ change, name: display, memberOid, version, code, system }, 'n')
-  //         // row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFF' } }
-  //         // row.font = { bold: false }
-  //       })
-  //     })
-  //   }
-  //   addRowData(oldData)
-  //   addRowData(newData)
-  // })
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   res.setHeader('Content-Disposition', 'attachment; filename="Report.xlsx"')
