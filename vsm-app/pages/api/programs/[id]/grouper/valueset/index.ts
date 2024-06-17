@@ -259,6 +259,9 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       modifiedProgram = setVSPriority(modifiedProgram, vs.selectedPriority, [vs.selectedValueSet.url!])
     })
 
+    // add default grouper priority (routine) to the top-level spec library
+    modifiedProgram = setVSPriority(modifiedProgram, 'routine', [grouperVsUrl])
+
     const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(modifiedProgram as fhir4.Library, grouperVsUrl)
 
     if (is.errorResponse(rctcProgramLibUpdatePayload)) {
@@ -465,15 +468,15 @@ const updateProgramLibraryWithGrouperRef = async (
     }
 
     // there will only be one result because only one draft allowed currently
-    const libResource = vsLib.entry[0].resource as fhir4.Library
+    const valueSetLibrary = vsLib.entry[0].resource as fhir4.Library
 
-    if (!libResource.relatedArtifact) {
-      libResource.relatedArtifact = []
+    if (!valueSetLibrary.relatedArtifact) {
+      valueSetLibrary.relatedArtifact = []
     }
 
-    libResource.relatedArtifact.push({
+    valueSetLibrary.relatedArtifact.push({
       type: 'composed-of',
-      resource: grouperRef?.split('|')[0], // use unversioned
+      resource: grouperRef,
       extension: [
         {
           url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
@@ -484,10 +487,10 @@ const updateProgramLibraryWithGrouperRef = async (
 
     // at this point, the grouper's valueset library is updated, save & return 200 if success
     return {
-      resource: libResource,
+      resource: valueSetLibrary,
       request: {
         method: 'PUT',
-        url: `Library/${libResource.id}`
+        url: `Library/${valueSetLibrary.id}`
       }
     } as fhir4.BundleEntry
   } catch (e: HapiError | any) {
