@@ -138,6 +138,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
+  const [dataLoading, setDataLoading] = useState(true)
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
@@ -160,12 +161,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
-    return grouperLoading
+    const result = grouperLoading
     || conditionLoading
     || isDeleting
     || priorityLoading
     || versionUpdateInFlight
-}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
+    || dataLoading
+    return result
+}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, dataLoading])
 
 
   const conditionsMap = useMemo(() => {
@@ -293,6 +296,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     ...debouncedFilters
   }) as Result
 
+  // handle the change of dataLoading state based on progValueSetDets
+  useEffect(() => {
+    console.log(progValueSetDets)
+    if (progValueSetDets?.data) {
+      setDataLoading(false);
+    }
+  }, [progValueSetDets]);
+
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
   const totalLeafs = progValueSetDets?.totalLeafs
@@ -312,6 +323,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
+    // sets data loading to true when handleFilterChange is called
+    setDataLoading(true) 
   }
 
   // fetch options for Version field
@@ -686,7 +699,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, blockChanges, progValueSetDets?.data]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {

@@ -19,7 +19,10 @@ export interface ExpectedPackageBody {
 // optionally returns in XML
 const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>): Promise<void> => {
   const { data, planDefinition, targetVersion } = (req.body || {}) as ExpectedPackageBody
-  const parameters = data?.parameters
+  if (!data?.parameters) {
+    throw new Error("Missing parameters for Export")
+  }
+  const parameters = addEndpointToParameters(data?.parameters)
   const json = data?.json
   const useV1 = !data?.useV2
   try {
@@ -49,10 +52,10 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
           fullUrl: planDefinition?.url,
           resource: planDefinition
         })
-      // if planDefinition is provided in the request, use it to replace the one from the v2 package response
+        // if planDefinition is provided in the request, use it to replace the one from the v2 package response
       } else if (planDefFromV2Exist && planDefinition != null) {
         response.entry[planDefResourceIndex].resource = planDefinition
-      } else if(!planDefFromV2Exist && planDefinition == null) {
+      } else if (!planDefFromV2Exist && planDefinition == null) {
         logger.error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
         return res
           .status(400)
@@ -102,6 +105,26 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
     return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
   }
+}
+function addEndpointToParameters(parameters: fhir4.Parameters): fhir4.Parameters {
+  const updatedParameters = structuredClone(parameters)
+  const endpointWithVsacCredentials: fhir4.Endpoint = {
+    resourceType: "Endpoint",
+    extension: [
+      { url: "vsacUsername", valueString: process.env.VSAC_USERNAME },
+      { url: "apiKey", valueString: process.env.VSAC_API_KEY },
+    ],
+    address: process.env.NEXT_PUBLIC_VSAC_BASE_URL || "",
+    connectionType: { system: "http://hl7.org/fhir/ValueSet/endpoint-connection-type", code: "hl7-fhir-rest" },
+    status: "active",
+    payloadType: [{ coding: [{ system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type", code: "any" }] }]
+  }
+  updatedParameters.parameter ??= []
+  updatedParameters.parameter?.push({
+    name: "terminologyEndpoint",
+    resource: endpointWithVsacCredentials
+  })
+  return updatedParameters
 }
 
 export default handler({

@@ -6,11 +6,11 @@
 		"lastUpdated": "2022-04-15T18:26:27.000+00:00",
 		"source": "#8zRKOv2AelmrnTVL"
 	},
-	"type": "transaction",
+	"type": "collection",
 	"timestamp": "2022-04-05T10:06:42.482-04:00",
 	"entry": [
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary",
 			"resource": {
 				"resourceType": "Library",
 				"id": "SpecificationLibrary",
@@ -25,21 +25,7 @@
 					"div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Library</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Library \"SpecificationLibrary\" Version \"1.0.0\" </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-us-ph-specification-library.html\">US Public Health Specification Library</a></p></div><p><b>url</b>: <code>http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary</code></p><p><b>version</b>: 1.0.0</p><p><b>name</b>: SpecificationLibrary</p><p><b>title</b>: Specification Library</p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>type</b>: Asset Collection <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/3.1.0/CodeSystem-library-type.html\">LibraryType</a>#asset-collection)</span></p><p><b>publisher</b>: eCR</p><p><b>description</b>: Defines the asset-collection library containing the US Public Health specification assets.</p></div>"
 				},
 				"url": "http://hl7.org/fhir/us/ecr/Library/SpecificationLibrary",
-				"version": "1.0.0.23",
-				"approvalDate": "2023-08-08",
-				"effectivePeriod": {
-					"start": "2023-09-01"
-				},
-				"extension": [
-					{
-						"url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel",
-						"valueString": "Sample release label"
-					},
-					{
-						"url": "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription",
-						"valueMarkdown": "Sample release description"
-					}
-				],
+				"version": "1.0.0",
 				"name": "SpecificationLibrary",
 				"title": "Specification Library",
 				"status": "active",
@@ -86,940 +72,36 @@
 				],
 				"relatedArtifact": [
 					{
-						"extension": [
+						"type": "composed-of",
+						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
-						],
-						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
+						]
 					},
 					{
-						"extension": [
+						"type": "composed-of",
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
-						],
-						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
-					},
-					{
-						"type": "composed-of",
-						"resource": "http://notOwnedTest.com/Library/notOwnedRoot|0.1.1"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://notOwnedTest.com/Library/notOwnedRoot|0.1.1"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://notOwnedTest.com/Library/notOwnedLeaf|0.1.1"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
-					},
-					{
-						"type": "depends-on",
-						"resource": "http://notOwnedTest.com/Library/notOwnedLeaf1|0.1.1"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "emergent"
-										}
-									],
-									"text": "Emergent"
-								}
-							},
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "49649001"
-										}
-									],
-									"text": "Infection caused by Acanthamoeba (disorder)"
-								}
-							},
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "emergent"
-										}
-									],
-									"text": "Emergent"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
-					},
-					{
-						"extension": [
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
-					},
-					{
-						"extension": [
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "38362002"
-                    }
-                  ],
-                  "text": "Dengue (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
-					},
-					{
-						"extension": [
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "38362002"
-                    }
-                  ],
-                  "text": "Dengue (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "50711007"
-                    }
-                  ],
-                  "text": "Viral hepatitis type C (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "406575008"
-                    }
-                  ],
-                  "text": "Infection caused by vancomycin resistant enterococcus (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "406575008"
-                    }
-                  ],
-                  "text": "Infection caused by vancomycin resistant enterococcus (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "409498004"
-                    }
-                  ],
-                  "text": "Anthrax (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "409498004"
-                    }
-                  ],
-                  "text": "Anthrax (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "36989005"
-                    }
-                  ],
-                  "text": "Mumps (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "840539006"
-                    }
-                  ],
-                  "text": "Disease caused by severe acute respiratory syndrome coronavirus 2 (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "36989005"
-                    }
-                  ],
-                  "text": "Mumps (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "416707008"
-                    }
-                  ],
-                  "text": "Powassan encephalitis virus infection (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "416925005"
-                    }
-                  ],
-                  "text": "Eastern equine encephalitis virus infection (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "418182000"
-                    }
-                  ],
-                  "text": "Disease caused by California serogroup virus (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "76981000119106"
-                    }
-                  ],
-                  "text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "76981000119106"
-                    }
-                  ],
-                  "text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "76981000119106"
-                    }
-                  ],
-                  "text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "76981000119106"
-                    }
-                  ],
-                  "text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							} 
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "409498004"
-                    }
-                  ],
-                  "text": "Anthrax (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							} 
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "14168008"
-                    }
-                  ],
-                  "text": "Rabies (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							} 
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "14189004"
-                    }
-                  ],
-                  "text": "Measles (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "276197005"
-                    }
-                  ],
-                  "text": "Infection caused by Corynebacterium diphtheriae (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-                "valueCodeableConcept": {
-                  "coding": [
-                    {
-                      "system": "http://snomed.info/sct",
-                      "code": "240523007"
-                    }
-                  ],
-                  "text": "Viral hemorrhagic fever (disorder)"
-                }
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
-					},
-					{
-						"extension": [
-							{
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://snomed.info/sct",
-											"code": "767146004"
-										}
-									],
-									"text": "Toxic effect of arsenic and/or arsenic compound"
-								}
-							},
-              {
-								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-								"valueCodeableConcept": {
-									"coding": [
-										{
-											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-											"code": "routine"
-										}
-									],
-									"text": "Routine"
-								}
-							}
-						],
-						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
+						]
 					}
 				]
-			},
-			"request": {
-				"method": "PUT",
-				"url": "Library/SpecificationLibrary"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "plandefinition-ersd-instance-example",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition"
 					]
 				},
 				"text": {
@@ -1037,7 +119,7 @@
 					}
 				],
 				"url": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
-				"version": "1.0.0.23",
+				"version": "0.1",
 				"name": "PlanDefinition_eRSD_Instance_Example",
 				"title": "eRSD PlanDefinition Instance Example",
 				"type": {
@@ -1073,11 +155,7 @@
 					{
 						"type": "depends-on",
 						"label": "RCTC Value Set Library of Trigger Codes",
-						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23"
-					},
-					{
-						"type": "composed-of",
-						"resource": "http://notOwnedTest.com/Library/notOwnedLeaf|0.1.1"
+						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|2022-01-01"
 					}
 				],
 				"action": [
@@ -1212,7 +290,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc"
 											}
 										]
 									},
@@ -1228,7 +306,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
 											}
 										]
 									},
@@ -1244,7 +322,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
 											}
 										]
 									}
@@ -1363,7 +441,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
 											}
 										]
 									},
@@ -1379,7 +457,7 @@
 										"codeFilter": [
 											{
 												"path": "reasonCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc"
 											}
 										]
 									},
@@ -1395,7 +473,7 @@
 										"codeFilter": [
 											{
 												"path": "vaccineCode",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
 											}
 										]
 									},
@@ -1411,7 +489,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
 											}
 										]
 									},
@@ -1427,7 +505,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
 											}
 										]
 									},
@@ -1443,7 +521,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/lotc"
 											}
 										]
 									},
@@ -1459,7 +537,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/valueset-pctc-example"
 											}
 										]
 									},
@@ -1475,7 +553,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/pctc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/valueset-pctc-example"
 											}
 										]
 									},
@@ -1491,7 +569,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
 											}
 										]
 									},
@@ -1507,7 +585,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
 											}
 										]
 									},
@@ -1523,7 +601,7 @@
 										"codeFilter": [
 											{
 												"path": "medication",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc"
 											}
 										]
 									},
@@ -1539,7 +617,7 @@
 										"codeFilter": [
 											{
 												"path": "value",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
 											}
 										]
 									},
@@ -1555,7 +633,7 @@
 										"codeFilter": [
 											{
 												"path": "code",
-												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23"
+												"valueSet": "http://hl7.org/fhir/us/ecr/ValueSet/ostc"
 											}
 										]
 									}
@@ -2031,14 +1109,10 @@
 						]
 					}
 				]
-			},
-			"request": {
-				"method": "PUT",
-				"url": "PlanDefinition/plandefinition-ersd-instance-example"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example",
 			"resource": {
 				"resourceType": "Library",
 				"id": "library-rctc-example",
@@ -2052,7 +1126,7 @@
 				},
 				"text": {
 					"status": "generated",
-					"div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Library</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Library \"library-rctc-example\" Version \"2\" Updated \"2021-08-20 01:12:21-0600\" </p><p style=\"margin-bottom: 0px\">Information Source: #zJ5jHSo1bnD4qTAW!</p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-us-ph-triggering-valueset-library.html\">US Public Health Triggering ValueSet Library</a></p></div><p><b>url</b>: <code>http://hl7.org/fhir/us/ecr/Library/library-rctc-example</code></p><p><b>identifier</b>: id: urn:oid:2.16.840.1.114222.4.11.7508</p><p><b>version</b>: 2019-06-17</p><p><b>name</b>: Reportable_Condition_Trigger_Codes</p><p><b>title</b>: Reportable Condition Trigger Codes (RCTC) Example Library</p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>type</b>: Asset Collection <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/3.1.0/CodeSystem-library-type.html\">LibraryType</a>#asset-collection)</span></p><p><b>publisher</b>: {site.data.fhir.ig.publisher}</p><p><b>description</b>: This release includes code updates for the existing conditions and adds codes for Parkinson’s disease and 13 enteric conditions. Medication codes have also been added to this version.</p><p><b>jurisdiction</b>: United States of America <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (unknown#US)</span></p><p><b>purpose</b>: Triggers for initiating decision support for electronic case reports</p><p><b>effectivePeriod</b>: 2019-11-01 --&gt; (ongoing)</p></div>"
+					"div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: Library</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource Library \"library-rctc-example\" Version \"2\" Updated \"2021-08-20 01:12:21-0600\" </p><p style=\"margin-bottom: 0px\">Information Source: #zJ5jHSo1bnD4qTAW!</p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-us-ph-triggering-valueset-library.html\">US Public Health Triggering ValueSet Library</a></p></div><p><b>url</b>: <code>http://hl7.org/fhir/us/ecr/Library/library-rctc-example</code></p><p><b>identifier</b>: id: urn:oid:2.16.840.1.114222.4.11.7508</p><p><b>version</b>: 2019-06-17</p><p><b>name</b>: Reportable_Condition_Trigger_Codes</p><p><b>title</b>: Reportable Condition Trigger Codes (RCTC) Example Library</p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>type</b>: Asset Collection <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (<a href=\"http://terminology.hl7.org/3.1.0/CodeSystem-library-type.html\">LibraryType</a>#asset-collection)</span></p><p><b>publisher</b>: {site.data.fhir.ig.publisher}</p><p><b>description</b>: This release includes code updates for the existing conditions and adds codes for Parkinsonâ€™s disease and 13 enteric conditions. Medication codes have also been added to this version.</p><p><b>jurisdiction</b>: United States of America <span style=\"background: LightGoldenRodYellow; margin: 4px; border: 1px solid khaki\"> (unknown#US)</span></p><p><b>purpose</b>: Triggers for initiating decision support for electronic case reports</p><p><b>effectivePeriod</b>: 2019-11-01 --&gt; (ongoing)</p></div>"
 				},
 				"url": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example",
 				"identifier": [
@@ -2061,7 +1135,7 @@
 						"value": "urn:oid:2.16.840.1.114222.4.11.7508"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "2019-06-17",
 				"name": "Reportable_Condition_Trigger_Codes",
 				"title": "Reportable Condition Trigger Codes (RCTC) Example Library",
 				"status": "active",
@@ -2075,7 +1149,7 @@
 					]
 				},
 				"publisher": "{site.data.fhir.ig.publisher}",
-				"description": "This release includes code updates for the existing conditions and adds codes for Parkinson’s disease and 13 enteric conditions. Medication codes have also been added to this version.",
+				"description": "This release includes code updates for the existing conditions and adds codes for Parkinsonâ€™s disease and 13 enteric conditions. Medication codes have also been added to this version.",
 				"useContext": [
 					{
 						"code": {
@@ -2129,91 +1203,76 @@
 				"relatedArtifact": [
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
 					},
 					{
 						"type": "composed-of",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
-						"extension": [
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc",
+						"extension":[
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
 								"valueBoolean": true
 							}
 						]
-					},
-					{
-						"type": "composed-of",
-						"resource": "http://notOwnedTest.com/Library/notOwnedLeaf1|0.1.1"
 					}
 				]
-			},
-			"request": {
-				"method": "PUT",
-				"url": "Library/library-rctc-example"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "dxtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -2240,29 +1299,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.627"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "Diagnosis_ProblemTriggersforPublicHealthReporting",
 				"title": "Diagnosis_Problem Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains diagnoses or problems that represent that the patient may have a potentially reportable condition. For example, these may be diagnoses recorded in an EHR problem list and diagnosis codes used for billing for the encounter. Purpose: Data Element Scope - Diagnoses or problems documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -2289,17 +1332,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -2308,27 +1350,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
 							]
 						}
 					]
@@ -2658,28 +1700,17 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/dxtc"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lotc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lotc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -2706,29 +1737,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1056"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "LabOrderTestTriggersforPublicHealthReporting",
 				"title": "Lab Order Test Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains laboratory test names that may be used for placing a lab order for a test that represents that the patient may have a potentially reportable condition. These pertain to laboratory orders placed, coded in LOINC, where the lab order includes at least one test for a condition reportable upon suspicion of the condition. Purpose: Data Element Scope - Laboratory test names used in orders documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -2755,17 +1770,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -2774,27 +1788,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
 							]
 						}
 					]
@@ -2934,28 +1948,17 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/lotc"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "lrtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -2982,29 +1985,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1057"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "LabObsTestTriggersforPublicHealthReporting",
 				"title": "Lab Obs Test Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains laboratory observation test names that may represent that the patient may have a potentially reportable condition. These pertain to resulted laboratory reports, where the lab test name, coded in LOINC, is specific to a reportable condition. Purpose: Data Element Scope - Laboratory test names used in observations documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -3031,17 +2018,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -3050,27 +2036,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
 							]
 						}
 					]
@@ -3790,28 +2776,17 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/lrtc"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "mrtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -3838,29 +2813,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1060"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "MedicationsTriggersforPublicHealthReporting",
 				"title": "Medications Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains CVX,RXNORM,SNOMED medication codes that may represent that the patient may have a potentially reportable condition. These pertain to medications administered and medications prescribed, where the medication, coded in CVX,RXNORM,SNOMED, may be indicative of a reportable condition. Purpose: Data Element Scope - Prescription drugs names used in observations documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -3887,17 +2846,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -3906,27 +2864,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
 							]
 						}
 					]
@@ -4126,28 +3084,17 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/mrtc"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/ostc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "ostc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -4174,29 +3121,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1059"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "Organism_SubstanceReleaseTriggersforPublicHealthReporting",
 				"title": "Organism_Substance Release Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains organism and substance names received in a laboratory results report, that may represent that the patient has a potentially reportable condition. These pertain to resulted laboratory reports, where the test method is a non-specific test (e.g., general cultures not specific to a condition) and the result value, coded in SNOMED, includes the organism or substance name. Purpose: Data Element Scope - Nominal laboratory result values documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -4223,17 +3154,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -4242,27 +3172,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468"
 							]
 						}
 					]
@@ -4682,28 +3612,17 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/ostc"
 			}
 		},
 		{
-			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0.23",
+			"fullUrl": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "sdtc",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset"
-					],
-          "tag": [
-            {
-              "system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
-              "code": "vsm-authored"
-            }
-          ]
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
 				},
 				"text": {
 					"status": "extensions",
@@ -4730,29 +3649,13 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1479"
 					}
 				],
-				"version": "1.0.0.23",
+				"version": "1.0.0",
 				"name": "Suspected_DisorderTriggersforPublicHealthReporting",
 				"title": "Suspected_Disorder Triggers for Public Health Reporting",
-				"status": "active",
+				"status": "draft",
 				"experimental": true,
 				"publisher": "eCR",
 				"description": "Purpose: Clinical Focus - This set of values contains suspected diagnoses or problems that represent that the patient may have a potentially reportable condition. For example, these may be diagnoses recorded in an EHR problem list and diagnosis codes used for billing for the encounter. Purpose: Data Element Scope - Suspected diagnoses or problems documented in a clinical record. Purpose: Inclusion Criteria - See individual value sets. Purpose: Exclusion Criteria - See individual value sets. Note - Includes codes from selected value sets used in the Reportable Condition Knowledge Management System (RCKMS) reporting logic. RCKMS value sets in VSAC are for informational use only. When implementing trigger codes for electronic case reporting, use the Reportable Condition Trigger Codes (RCTC) file.",
-        "relatedArtifact": {
-          "extension": [
-            {
-              "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-              "valueCodeableConcept": {
-                "coding": [
-                  {
-                    "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                    "code": "routine"
-                  }
-                ],
-                "text": "Routine"
-              }
-            }
-          ]
-        },
 				"useContext": [
 					{
 						"code": {
@@ -4779,17 +3682,16 @@
 					},
 					{
 						"code": {
-							"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-							"code": "grouper-type"
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
 						},
 						"valueCodeableConcept": {
 							"coding": [
 								{
-									"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
-									"code": "model-grouper"
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
-							],
-							"text": "Model Grouper"
+							]
 						}
 					}
 				],
@@ -4798,27 +3700,27 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446"
 							]
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
 							]
 						}
 					]
@@ -4858,22 +3760,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/sdtc"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1506",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -4901,7 +3797,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1506"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersICD10CM",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (ICD10CM)",
 				"status": "active",
@@ -4909,6 +3805,21 @@
 				"publisher": "eCR",
 				"description": "Acanthamoeba Disease [Keratitis] (Disorders) (ICD10CM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "49649001"
+								}
+							],
+							"text": "Infection caused by Acanthamoeba (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -4919,6 +3830,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -4957,22 +3882,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1506"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505|20240123",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1505",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -5000,7 +3919,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1505"
 					}
 				],
-				"version": "20240123",
+				"version": "1.0.0",
 				"name": "AcanthamoebaDiseaseKeratitisDisordersSNOMED",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
 				"status": "active",
@@ -5008,6 +3927,21 @@
 				"publisher": "eCR",
 				"description": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "49649001"
+								}
+							],
+							"text": "Infection caused by Acanthamoeba (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -5018,6 +3952,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -5128,22 +4076,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1505"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1508",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -5171,7 +4113,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1508"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "ArsenicExposureandToxicityDisordersICD10CM",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (ICD10CM)",
 				"status": "active",
@@ -5179,6 +4121,21 @@
 				"publisher": "eCR",
 				"description": "Arsenic Exposure and Toxicity (Disorders) (ICD10CM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "767146004"
+								}
+							],
+							"text": "Toxic effect of arsenic and its compounds (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -5189,6 +4146,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -5290,22 +4261,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1508"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507|20230125",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1507",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -5333,7 +4298,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1507"
 					}
 				],
-				"version": "20230125",
+				"version": "1.0.0",
 				"name": "ArsenicExposureandToxicityDisordersSNOMED",
 				"title": "Arsenic Exposure and Toxicity (Disorders) (SNOMED)",
 				"status": "active",
@@ -5341,6 +4306,21 @@
 				"publisher": "eCR",
 				"description": "Arsenic Exposure and Toxicity (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "767146004"
+								}
+							],
+							"text": "Toxic effect of arsenic and its compounds (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -5351,6 +4331,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -5551,22 +4545,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1507"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20230602",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.6",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -5594,7 +4582,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.6"
 					}
 				],
-				"version": "20230602",
+				"version": "1.0.0",
 				"name": "DiphtheriaDisordersSNOMED",
 				"title": "Diphtheria (Disorders) (SNOMED)",
 				"status": "active",
@@ -5602,6 +4590,21 @@
 				"publisher": "eCR",
 				"description": "Diphtheria (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "276197005"
+								}
+							],
+							"text": "Infection caused by Corynebacterium diphtheriae (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -5612,6 +4615,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -5839,22 +4856,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.6"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480|20180620",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.480",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -5882,7 +4893,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.480"
 					}
 				],
-				"version": "20180620",
+				"version": "1.0.0",
 				"name": "AnthraxTestsforBacillisanthracisAntigen",
 				"title": "Anthrax (Tests for Bacillis anthracis Antigen)",
 				"status": "active",
@@ -5890,6 +4901,21 @@
 				"publisher": "eCR",
 				"description": "Anthrax (Tests for Bacillis anthracis Antigen)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "409498004"
+								}
+							],
+							"text": "Anthrax (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -5900,6 +4926,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -5974,22 +5014,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.480"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481|20180620",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.481",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6017,7 +5051,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.481"
 					}
 				],
-				"version": "20180620",
+				"version": "1.0.0",
 				"name": "AnthraxTestsforBacillisanthracisAntibody",
 				"title": "Anthrax (Tests for Bacillis anthracis Antibody)",
 				"status": "active",
@@ -6025,6 +5059,21 @@
 				"publisher": "eCR",
 				"description": "Anthrax (Tests for Bacillis anthracis Antibody)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "409498004"
+								}
+							],
+							"text": "Anthrax (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6035,6 +5084,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -6163,22 +5226,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.481"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761|20220119",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.761",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6206,7 +5263,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.761"
 					}
 				],
-				"version": "20220119",
+				"version": "1.0.0",
 				"name": "MumpsTestPanelsformumpsvirusNucleicAcid",
 				"title": "Mumps (Test Panels for mumps virus Nucleic Acid)",
 				"status": "active",
@@ -6214,6 +5271,21 @@
 				"publisher": "eCR",
 				"description": "Mumps (Test Panels for mumps virus Nucleic Acid)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "36989005"
+								}
+							],
+							"text": "Mumps (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6224,6 +5296,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -6262,22 +5348,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.761"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223|20210528",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1223",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6305,7 +5385,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1223"
 					}
 				],
-				"version": "20210528",
+				"version": "1.0.0",
 				"name": "COVID_19TestsforSARS_CoV_2byCultureandIdentificationMethod",
 				"title": "COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)",
 				"status": "active",
@@ -6313,6 +5393,21 @@
 				"publisher": "eCR",
 				"description": "COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "840539006"
+								}
+							],
+							"text": "Disease caused by severe acute respiratory syndrome coronavirus 2 (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6323,6 +5418,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -6361,22 +5470,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1223"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762|20191227",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.762",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6404,7 +5507,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.762"
 					}
 				],
-				"version": "20191227",
+				"version": "1.0.0",
 				"name": "MumpsTestPanelsformumpsvirusIgMIgGAntibody",
 				"title": "Mumps (Test Panels for mumps virus IgM IgG Antibody)",
 				"status": "active",
@@ -6412,6 +5515,21 @@
 				"publisher": "eCR",
 				"description": "Mumps (Test Panels for mumps virus IgM IgG Antibody)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "36989005"
+								}
+							],
+							"text": "Mumps (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6422,6 +5540,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -6478,22 +5610,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.762"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182|20220602",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1182",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6521,7 +5647,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1182"
 					}
 				],
-				"version": "20220602",
+				"version": "1.0.0",
 				"name": "PowassanVirusDiseaseTestsforPowassanVirusAntibodyQuantitative",
 				"title": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6529,6 +5655,21 @@
 				"publisher": "eCR",
 				"description": "Powassan Virus Disease (Tests for Powassan Virus Antibody [Quantitative])",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "416707008"
+								}
+							],
+							"text": "Powassan encephalitis virus infection (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6539,6 +5680,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -6694,22 +5849,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1182"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1181",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -6737,7 +5886,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1181"
 					}
 				],
-				"version": "20210526",
+				"version": "1.0.0",
 				"name": "EasternEquineEncephalitisVirusDiseaseTestsforEasternEquineEncephalitisVirusAntibodyQuantitative",
 				"title": "Eastern Equine Encephalitis Virus Disease (Tests for Eastern Equine Encephalitis Virus Antibody [Quantitative])",
 				"status": "active",
@@ -6745,6 +5894,21 @@
 				"publisher": "eCR",
 				"description": "Eastern Equine Encephalitis Virus Disease (Tests for Eastern Equine Encephalitis Virus Antibody [Quantitative])",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "416925005"
+								}
+							],
+							"text": "Eastern equine encephalitis virus infection (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -6755,6 +5919,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -7018,22 +6196,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1181"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1184",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -7061,7 +6233,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1184"
 					}
 				],
-				"version": "20210526",
+				"version": "1.0.0",
 				"name": "CaliforniaSerogroupVirusDiseasesTestsforCaliforniaSerogroupVirusAntibodyQuantitative",
 				"title": "California Serogroup Virus Diseases (Tests for California Serogroup Virus Antibody [Quantitative])",
 				"status": "active",
@@ -7069,6 +6241,21 @@
 				"publisher": "eCR",
 				"description": "California Serogroup Virus Diseases (Tests for California Serogroup Virus Antibody [Quantitative])",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "418182000"
+								}
+							],
+							"text": "Disease caused by California serogroup virus (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -7079,6 +6266,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -7837,22 +7038,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1184"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1601",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -7880,7 +7075,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1601"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "HIVInfectionARVBoostersCYP3A4InhibitorRXNORM",
 				"title": "HIV Infection (ARV Boosters [CYP3A4 Inhibitor]) (RXNORM)",
 				"status": "active",
@@ -7888,6 +7083,21 @@
 				"publisher": "eCR",
 				"description": "HIV Infection (ARV Boosters [CYP3A4 Inhibitor]) (RXNORM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "76981000119106"
+								}
+							],
+							"text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -7898,6 +7108,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8008,22 +7232,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1601"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600|20230602",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1600",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8051,7 +7269,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1600"
 					}
 				],
-				"version": "20230602",
+				"version": "1.0.0",
 				"name": "HIVInfectionARVIntegraseStrandTransferInhibitorsINSTIsRXNORM",
 				"title": "HIV Infection (ARV Integrase Strand Transfer Inhibitors [INSTIs]) (RXNORM)",
 				"status": "active",
@@ -8059,6 +7277,21 @@
 				"publisher": "eCR",
 				"description": "HIV Infection (ARV Integrase Strand Transfer Inhibitors [INSTIs]) (RXNORM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "76981000119106"
+								}
+							],
+							"text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -8069,6 +7302,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8287,22 +7534,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1600"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1603",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8330,7 +7571,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1603"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "HIVInfectionARVAttachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Attachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8338,6 +7579,21 @@
 				"publisher": "eCR",
 				"description": "HIV Infection (ARV Attachment Inhibitors) (RXNORM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "76981000119106"
+								}
+							],
+							"text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -8348,6 +7604,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8386,22 +7656,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1603"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1602",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8429,7 +7693,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1602"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "HIVInfectionARVPostattachmentInhibitorsRXNORM",
 				"title": "HIV Infection (ARV Postattachment Inhibitors) (RXNORM)",
 				"status": "active",
@@ -8437,6 +7701,21 @@
 				"publisher": "eCR",
 				"description": "HIV Infection (ARV Postattachment Inhibitors) (RXNORM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "76981000119106"
+								}
+							],
+							"text": "Human immunodeficiency virus (HIV) infection category B1 (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -8447,6 +7726,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8485,22 +7778,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1602"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082|20200513",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1082",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8528,7 +7815,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1082"
 					}
 				],
-				"version": "20200513",
+				"version": "1.0.0",
 				"name": "AnthraxVaccineRXNORM",
 				"title": "Anthrax Vaccine (RXNORM)",
 				"status": "active",
@@ -8536,6 +7823,21 @@
 				"publisher": "eCR",
 				"description": "Anthrax Vaccine (RXNORM)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "409498004"
+								}
+							],
+							"text": "Anthrax (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -8546,6 +7848,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8584,22 +7900,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1082"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528|20200516",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.528",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8627,7 +7937,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.528"
 					}
 				],
-				"version": "20200516",
+				"version": "1.0.0",
 				"name": "DengueVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Dengue Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -8635,6 +7945,21 @@
 				"publisher": "eCR",
 				"description": "Dengue Virus Infection (Organism or Substance in Lab Results)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "38362002"
+								}
+							],
+							"text": "Dengue (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -8645,6 +7970,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -8791,22 +8130,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.528"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408|20230122",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.408",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -8834,7 +8167,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.408"
 					}
 				],
-				"version": "20230122",
+				"version": "1.0.0",
 				"name": "HepatitisBVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis B Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -8846,6 +8179,15 @@
 						"code": {
 							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
 							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "66071002"
+								}
+							],
+							"text": "Viral hepatitis type B (disorder)"
 						}
 					},
 					{
@@ -8873,6 +8215,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9082,22 +8438,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.408"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409|20210527",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.409",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9125,7 +8475,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.409"
 					}
 				],
-				"version": "20210527",
+				"version": "1.0.0",
 				"name": "HepatitisCVirusInfectionOrganismorSubstanceinLabResults",
 				"title": "Hepatitis C Virus Infection (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9133,6 +8483,21 @@
 				"publisher": "eCR",
 				"description": "Hepatitis C Virus Infection (Organism or Substance in Lab Results)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "50711007"
+								}
+							],
+							"text": "Viral hepatitis type C (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9143,6 +8508,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9433,22 +8812,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.409"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469|20230122",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1469",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9476,7 +8849,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1469"
 					}
 				],
-				"version": "20230122",
+				"version": "1.0.0",
 				"name": "EnterococcusfaeciumorEfaecalisOrganismorSubstanceinLabResults",
 				"title": "Enterococcus faecium or E. faecalis (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9484,6 +8857,21 @@
 				"publisher": "eCR",
 				"description": "Enterococcus faecium or E. faecalis (Organism or Substance in Lab Results)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "406575008"
+								}
+							],
+							"text": "Infection caused by vancomycin resistant enterococcus (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9494,6 +8882,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9640,22 +9042,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1469"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468|20240123",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1468",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9683,7 +9079,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1468"
 					}
 				],
-				"version": "20240123",
+				"version": "1.0.0",
 				"name": "EnterococcusgallinarumorEcasseliflavusEflavescensOrganismorSubstanceinLabResults",
 				"title": "Enterococcus gallinarum or E. casseliflavus/E. flavescens (Organism or Substance in Lab Results)",
 				"status": "active",
@@ -9691,6 +9087,21 @@
 				"publisher": "eCR",
 				"description": "Enterococcus gallinarum or E. casseliflavus/E. flavescens (Organism or Substance in Lab Results)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "406575008"
+								}
+							],
+							"text": "Infection caused by vancomycin resistant enterococcus (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9701,6 +9112,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9748,22 +9173,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1468"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1439",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9791,7 +9210,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1439"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "RabiesSuspectedDisordersSNOMED",
 				"title": "Rabies [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -9799,6 +9218,21 @@
 				"publisher": "eCR",
 				"description": "Rabies [Suspected] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "14168008"
+								}
+							],
+							"text": "Rabies (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9809,6 +9243,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9847,22 +9295,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1439"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1436",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9890,7 +9332,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1436"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "MeaslesSuspectedDisordersSNOMED",
 				"title": "Measles [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -9898,6 +9340,21 @@
 				"publisher": "eCR",
 				"description": "Measles [Suspected] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "14189004"
+								}
+							],
+							"text": "Measles (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9908,6 +9365,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -9937,22 +9408,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1436"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1435",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -9980,7 +9445,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1435"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "DiphtheriaSuspectedDisordersSNOMED",
 				"title": "Diphtheria [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -9988,6 +9453,21 @@
 				"publisher": "eCR",
 				"description": "Diphtheria [Suspected] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "276197005"
+								}
+							],
+							"text": "Infection caused by Corynebacterium diphtheriae (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -9998,6 +9478,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -10027,22 +9521,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1435"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446|20230122",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1446",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -10070,7 +9558,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1446"
 					}
 				],
-				"version": "20230122",
+				"version": "1.0.0",
 				"name": "ViralHemorrhagicFeverSuspectedDisordersSNOMED",
 				"title": "Viral Hemorrhagic Fever [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10078,6 +9566,21 @@
 				"publisher": "eCR",
 				"description": "Viral Hemorrhagic Fever [Suspected] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "240523007"
+								}
+							],
+							"text": "Viral hemorrhagic fever (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -10088,6 +9591,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -10117,22 +9634,16 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1446"
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438|20220118",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.1438",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset",
-						"http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 					]
 				},
 				"text": {
@@ -10160,7 +9671,7 @@
 						"value": "urn:oid:2.16.840.1.113762.1.4.1146.1438"
 					}
 				],
-				"version": "20220118",
+				"version": "1.0.0",
 				"name": "PoliomyelitisSuspectedDisordersSNOMED",
 				"title": "Poliomyelitis [Suspected] (Disorders) (SNOMED)",
 				"status": "active",
@@ -10168,6 +9679,21 @@
 				"publisher": "eCR",
 				"description": "Poliomyelitis [Suspected] (Disorders) (SNOMED)",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "focus"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://snomed.info/sct",
+									"code": "398102009"
+								}
+							],
+							"text": "Acute poliomyelitis (disorder)"
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -10178,6 +9704,20 @@
 								{
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
 								}
 							]
 						}
@@ -10207,73 +9747,7 @@
 						}
 					]
 				}
-			},
-			"request": {
-				"method": "PUT",
-				"url": "ValueSet/2.16.840.1.113762.1.4.1146.1438"
 			}
-		},
-    {
-      "fullUrl": "http://localhost:8082/fhir/Basic/approval1428",
-      "resource": {
-        "resourceType": "Basic",
-        "id": "approval1428",
-        "meta": {
-          "versionId": "1",
-          "lastUpdated": "2023-08-08T01:11:33.529+00:00",
-          "source": "#bojbBl7a7T0wm1Eh",
-          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessment"]
-        },
-        "extension": [
-          {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentArtifact",
-            "valueReference": {
-              "reference": "Library/SpecificationLibrary"
-            }
-          },
-          {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentContent",
-            "extension": [
-              {
-                "url": "informationType",
-                "valueCode": "comment"
-              },
-              {
-                "url": "summary",
-                "valueMarkdown": "test comment text"
-              },
-              {
-                "url": "relatedArtifact",
-                "valueRelatedArtifact": {
-                  "type": "citation",
-                  "resource": "test program reference text"
-                }
-              },
-              {
-                "url": "author",
-                "valueReference": {
-                  "reference": "test user text"
-                }
-              },
-              {
-                "url": "relatedArtifact",
-                "valueRelatedArtifact": {
-                  "type": "derived-from",
-                  "resource": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.0.0"
-                }
-              }
-            ]
-          },
-          {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentDate",
-            "valueDateTime": "2023-08-08T01:11:33+00:00"
-          }
-        ]
-      },
-      "request": {
-        "method": "PUT",
-        "url": "Basic/approval1428"
-      }
-    }
+		}
 	]
 }

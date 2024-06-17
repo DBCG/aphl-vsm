@@ -1121,7 +1121,8 @@
 					"lastUpdated": "2021-08-20T01:12:21.049-06:00",
 					"source": "#zJ5jHSo1bnD4qTAW",
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library",
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset-library"
 					]
 				},
 				"text": {
@@ -1132,7 +1133,7 @@
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
-						"value": "urn:oid:2.16.840.1.114222.4.11.7508"
+						"value": "2.16.840.1.114222.4.11.7508"
 					}
 				],
 				"version": "2019-06-17",
@@ -1342,6 +1343,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -1781,6 +1789,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Laboratory test names used in orders documented in a clinical record.",
@@ -2028,6 +2043,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -2857,6 +2879,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Prescription drugs names used in observations documented in a clinical record.",
@@ -3164,6 +3193,13 @@
 									"code": "routine"
 								}
 							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -3693,6 +3729,13 @@
 								}
 							]
 						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
 					}
 				],
 				"purpose": "Suspected diagnoses or problems documented in a clinical record.",
@@ -3769,7 +3812,8 @@
 				"id": "2.16.840.1.113762.1.4.1146.1506",
 				"meta": {
 					"profile": [
-						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"
 					]
 				},
 				"text": {
