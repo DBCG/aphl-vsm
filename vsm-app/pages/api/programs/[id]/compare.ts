@@ -78,7 +78,7 @@ const autosortTable = (table, tableRows, sheet) => {
   })
 }
 
-const changeLogDiffOperation = async (sourceId, targetId) => {
+const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
   const input = JSON.stringify({
     resourceType: 'Parameters',
     parameter: [
@@ -143,7 +143,13 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   logger.info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
-  const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id, req.query.targetId))
+  if (req.query.id === req.query.targetId) {
+    return res.status(400).json({ error: 'Source and Target IDs cannot be the same' })
+  } else if (!req.query.id || !req.query.targetId) {
+    return res.status(400).json({ error: 'Source and Target IDs are required' })
+  }
+
+  const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id as string, req.query.targetId as string))
 
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'APHL VSM'
@@ -179,7 +185,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     name: 'read_me',
     ref: `A${newConditions.length + 5}`,
     headerRow: true,
-    // totalsRow: true,
     style: {
       theme: 'TableStyleDark3',
       showRowStripes: true
@@ -210,7 +215,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     name: 'plandefinition',
     ref: 'A1',
     headerRow: true,
-    // totalsRow: true,
     style: {
       theme: 'TableStyleDark3',
       showRowStripes: true
@@ -256,7 +260,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     name: 'rctcDiff',
     ref: `A${rctcInfoRows.length + 5}`,
     headerRow: true,
-    // totalsRow: true,
     style: {
       theme: 'TableStyleDark3',
       showRowStripes: true
@@ -273,7 +276,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   autosortTable(rctcTable, rctcInfoRows, rctcSheet)
 
   /**
-   *
    * GROUPING VALUE SETS SHEET
    */
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.newData.resourceType === 'ValueSet')
@@ -319,8 +321,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
           name: 'valueset_' + currentId,
           ref: `A${vsInfo.length + 5}`,
           headerRow: true,
-          // totalsRow: true,
-          style: {
+                style: {
             theme: 'TableStyleDark3',
             showRowStripes: true
           },
