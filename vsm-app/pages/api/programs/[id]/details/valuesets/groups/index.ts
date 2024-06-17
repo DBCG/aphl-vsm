@@ -92,7 +92,6 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
       ))
 
       const currentLeafCanonicalWithVersion = `${body.leafCanonical}${body.leafVersion ? `|${body.leafVersion}` : ''}`
-
       // easiest case: need to add a whole new canonical because it's not there
       if (!leafCanonicalExistsInGrouper && leafShouldExistInGrouper) {
         // add the grouper
