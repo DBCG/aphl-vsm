@@ -1797,9 +1797,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
 		// old codes removed
-		assertTrue(deleteOperations.size() == 23);
+		assertEquals(23, deleteOperations.size());
 		// new codes added
-		assertTrue(insertOperations.size() == 32);
+		assertEquals(32, insertOperations.size());
 	}
 
 	private Parameters createChangelogSetup() {
@@ -1961,6 +1961,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
@@ -1978,6 +1984,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		ObjectMapper mapper = new ObjectMapper();
@@ -1991,7 +2003,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("oldData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("oldData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(oldLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2004,7 +2018,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("newData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(newLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2037,11 +2053,13 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Exception expectNoException = null;
 		var oldLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.6", "delete"
+			"2.16.840.1.113762.1.4.1146.6", "delete",
+			"2.16.840.1.113762.1.4.1146.1505", ""
 		);
 		var newLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.163", "insert"
+			"2.16.840.1.113762.1.4.1146.163", "insert",
+			"2.16.840.1.113762.1.4.1146.1505", ""
 		);
 		try {
 			var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));

@@ -349,7 +349,7 @@ public class ChangeLog {
       super(title, id, version);
       if (contains != null) {
         contains.forEach(contained -> {
-          if (codeMap.get(contained.getCode()) != null) {
+          if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
             var code = codeMap.get(contained.getCode());
             this.codes.add(new Code(code.id, code.system, code.code, code.version, code.display, code.memberOid, code.operation));
           }
