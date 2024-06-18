@@ -364,7 +364,8 @@ const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Pr
     const payload = (await fhirCdrClient.search({
       resourceType: 'Library',
       searchParams: {
-        _elements: 'version'
+        _elements: 'version',
+        _count: 1000
       }
     })) as fhir4.Bundle
 
