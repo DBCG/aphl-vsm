@@ -2,6 +2,7 @@ import { FormControl, InputLabel, MenuItem, Paper, Select } from '@mui/material'
 import Creatable from 'react-select/creatable'
 import { AllFilterContextMenuOptions, ValueSetFilterContext, ValueSetFilterItem, VsFilterContextComputable } from './GrouperValueSetsTable'
 import { CodeFilterContextComputable } from './GrouperCodesTable'
+import { uniqBy } from 'lodash'
 
 const style = {
   control: (base: any) => ({
@@ -63,13 +64,22 @@ export const FilterControl = ({
           console.log('e: ', e)
 
           setFilteredItems((current: ValueSetFilterItem[]) => {
-            const filteredCurrent = current.filter(i => !i?.label?.includes(filterContext))
-            return (
-              [...filteredCurrent,
-                { label: `${readableFilterContext} | ${e}`,
-                value: `${filterContext}|${e}`.toLowerCase(),
-                key: `${filterContext}|${e}`
-              }])
+            console.log('current: ', current)
+            const filteredCurrent = current.filter(i => {
+              console.log('i.label: ', i.label)
+              return !i?.label?.includes(filterContext)
+            })
+            const result = (
+              uniqBy([
+                {
+                  label: `${readableFilterContext} | ${e}`,
+                  value: `${filterContext}|${e}`.toLowerCase(),
+                  key: `${filterContext}|${e}`,
+                  filterContext
+                },
+                ...filteredCurrent
+              ], 'filterContext'))
+            return result
           })
         }}
         onChange={removeValueSetFilteredItems}
