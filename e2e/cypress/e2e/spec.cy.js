@@ -58,7 +58,7 @@ describe("Smoke Tests", () => {
 
       // Run assertions to check for persistence after reload
       cy.get("#prog-title").should("have.value", "Draft Library");
-      cy.get("#prog-version").should("have.value", "1.1.0.0-draft");
+      cy.get("#prog-version").should("have.value", "1.1.0-draft");
       cy.get("#prog-desc").should("have.value", "Draft Library description");
       cy.get("#experimental-indicator input").should("not.be.checked");
       cy.get("#prog-release-desc").should("have.value", "this is a release description for the draft library");
@@ -273,13 +273,13 @@ describe("Smoke Tests", () => {
 
       cy.get("#view-valuesets").click();
       cy.wait(1000)
-      
+
       // Removing last condition on valueset should not break page
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true }).type('{backspace}')
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true }).type('{backspace}')
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('exist')
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"]').should('include.text', "Select...")
-      
+
       // add it back because conditions cannot be empty for release
       cy.get('[id="condition-selector-2.16.840.1.113762.1.4.1146.1506"] input').click({ force: true })
       cy.get("#react-select-condition-selector-listbox").contains("Acanthamoeba").click()
@@ -292,7 +292,7 @@ describe("Smoke Tests", () => {
       clickDraftProgramRow()
 
       cy.get("#approve").click();
-      
+
       // Fill out Approval form
       cy.get("#text").clear().type("This is a test approval");
       cy.get("#reference").clear().type("http://example.com");

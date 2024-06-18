@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLatestFromList, latestVersion } from '@/helpers/server/semverHelpers'
+import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
@@ -37,13 +37,12 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
 
   const latestSemverFromCdr = latestProgram
     ?.entry?.[0]?.resource?.version
-  
   const latestSemver = getLatestFromList([latestSemverFromCdr, latestProgramVersion])
 
   const latestIncrementedVersion = incrementSemver({
     valueToIncrement: latestSemver,
     incrementType: 'minor',
-    fallbackValue: '1.0.0.0'
+    fallbackValue: '1.0.0'
   })
 
   let versionToAttempt = latestIncrementedVersion
@@ -53,7 +52,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
     versionToAttempt = incrementSemver({
       valueToIncrement: versionToAttempt,
       incrementType: 'minor',
-      fallbackValue: '1.0.0.0'
+      fallbackValue: '1.0.0'
     })
   }
 

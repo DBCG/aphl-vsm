@@ -1,6 +1,7 @@
 import { createMocks } from 'node-mocks-http'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/pages/api/template'
+import { NextApiRequest, NextApiResponse } from 'next'
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
@@ -16,7 +17,7 @@ jest.mock('fhirClients')
 
 describe('/api/template', () => {
   test('POST /api/template, successfully clones a program', async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: 'POST',
       body: {
         latestProgramVersion: '1.0.0',
@@ -29,9 +30,13 @@ describe('/api/template', () => {
     })
 
     fhirCdrClient.search = jest.fn().mockResolvedValueOnce({
-      resourceType: 'Library',
-      id: '1234',
-      version: '1.0.0'
+      entry: [{
+        resource: {
+          resourceType: 'Library',
+          id: '1234',
+          version: '1.0.0'
+        }
+      }]
     })
 
     fhirCdrClient.operation = jest
