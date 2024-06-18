@@ -4,7 +4,7 @@ import sort from 'semver/functions/sort'
 const removeFlags = (item: string) => {
   const split = item?.split('-')
   if (split?.length > 2) {
-    throw new Error("Invalid flags on version: " + item)
+    throw new Error("Version contains multiple hyphens and the flag cannot be parsed: " + item)
   }
   return item?.split('-')?.[0]
 }
