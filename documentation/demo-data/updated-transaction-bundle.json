@@ -127,27 +127,111 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
+						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
+            "extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "Routine"
+								}
+							}
+            ]
 					},
 					{
 						"type": "depends-on",

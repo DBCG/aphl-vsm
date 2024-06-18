@@ -209,6 +209,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
   let { grouperVSets, grouperMetadata } = body
   grouperVSets = uniqBy(grouperVSets, 'selectedValueSet.id')
+
   try {
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
@@ -233,17 +234,19 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     /**
      * Start Creating Payloads here as a Transaction Bundle to submit to CDR
      */
-    const cqfUpdatesPayload = await submitUpdatesToCQF({
+    const cqfUpdatesPayload = await formatCqfUpdatesTransBundle({
       grouperVSets,
       matchesInCqf
     })
 
     if (is.errorResponse(cqfUpdatesPayload)) {
-      logger.error(`Error found at location 'submitUpdatesToCQF':  ${JSON.stringify(cqfUpdatesPayload, null, 2)}`)
+      logger.error(`Error found at location 'formatCqfUpdatesTransBundle':  ${JSON.stringify(cqfUpdatesPayload, null, 2)}`)
       return res.status(400).send('Error with creating grouper valuesets')
     }
 
-    const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
+    const newValueSetUpdates = cqfUpdatesPayload?.map((i: any) => i?.resource?.url)?.filter(x => x) || []
+    const existingVsToUpdate = Array.isArray(matchesInCqf) ? matchesInCqf?.map(m => m.url)?.filter(x => x) : []
+    const leafReferencesToAdd = [...newValueSetUpdates, ...existingVsToUpdate]
     const newGrouper = await createAndSaveGrouper(leafReferencesToAdd, grouperMetadata)
 
     if (is.operationOutcome(newGrouper)) {
@@ -258,6 +261,9 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       modifiedProgram = setVSConditions(modifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
       modifiedProgram = setVSPriority(modifiedProgram, vs.selectedPriority, [vs.selectedValueSet.url!])
     })
+
+    // add default grouper priority (routine) to the top-level spec library
+    modifiedProgram = setVSPriority(modifiedProgram, 'routine', [grouperVsUrl])
 
     const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(modifiedProgram as fhir4.Library, grouperVsUrl)
 
@@ -347,19 +353,19 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
   }
 }
 
-interface SubmitUpdatesToCQF {
+interface FormatCqfUpdateTransactionBundle {
   matchesInCqf: MatchesInCQF
   grouperVSets: FlatGrouperVSet[]
 }
 
-const submitUpdatesToCQF = async ({
+const formatCqfUpdatesTransBundle = async ({
   matchesInCqf,
   grouperVSets
-}: SubmitUpdatesToCQF): Promise<fhir4.BundleEntry[] | [] | ErrorResponse> => {
+}: FormatCqfUpdateTransactionBundle): Promise<fhir4.BundleEntry[] | [] | ErrorResponse> => {
+  // why error out if there are no matches??
   if (!matchesInCqf || is.errorResponse(matchesInCqf)) {
     return []
   }
-
   const transactionEntries = [] as fhir4.BundleEntry[]
   const matchesInCqfUrls = matchesInCqf?.map((vs) => vs.url)
   // get from remote
@@ -377,6 +383,7 @@ const submitUpdatesToCQF = async ({
   const vsToAddFromTermServer = grouperVSets.filter((flatVs) => {
     return urlsToAddFromRemote.includes(urlWithoutVersion(flatVs?.selectedValueSet?.url!))
   })
+
 
   if (vsToAddFromTermServer) {
     for (const flatGrouperItem of vsToAddFromTermServer) {
@@ -465,15 +472,15 @@ const updateProgramLibraryWithGrouperRef = async (
     }
 
     // there will only be one result because only one draft allowed currently
-    const libResource = vsLib.entry[0].resource as fhir4.Library
+    const valueSetLibrary = vsLib.entry[0].resource as fhir4.Library
 
-    if (!libResource.relatedArtifact) {
-      libResource.relatedArtifact = []
+    if (!valueSetLibrary.relatedArtifact) {
+      valueSetLibrary.relatedArtifact = []
     }
 
-    libResource.relatedArtifact.push({
+    valueSetLibrary.relatedArtifact.push({
       type: 'composed-of',
-      resource: grouperRef?.split('|')[0], // use unversioned
+      resource: grouperRef,
       extension: [
         {
           url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
@@ -484,10 +491,10 @@ const updateProgramLibraryWithGrouperRef = async (
 
     // at this point, the grouper's valueset library is updated, save & return 200 if success
     return {
-      resource: libResource,
+      resource: valueSetLibrary,
       request: {
         method: 'PUT',
-        url: `Library/${libResource.id}`
+        url: `Library/${valueSetLibrary.id}`
       }
     } as fhir4.BundleEntry
   } catch (e: HapiError | any) {
