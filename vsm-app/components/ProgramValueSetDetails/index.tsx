@@ -298,7 +298,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // handle the change of dataLoading state based on progValueSetDets
   useEffect(() => {
-    console.log(progValueSetDets)
     if (progValueSetDets?.data) {
       setDataLoading(false);
     }
