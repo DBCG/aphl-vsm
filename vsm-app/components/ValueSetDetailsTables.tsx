@@ -28,7 +28,8 @@ interface ExpansionTableData {
 interface GrouperTableDetail {
   title: string
   oid: string
-  canonical: string
+  canonical: string,
+  version?: string
 }
 
 interface ValueSetDetailsTablesProps {
@@ -105,7 +106,8 @@ const ValueSetDetailsTables = ({
     return pData?.map((i: DataItem) => ({
       title: i?.valueSet?.title,
       oid: i?.canonical?.split('/ValueSet/')?.[1],
-      canonical: i?.canonical
+      canonical: i?.canonical,
+      version: i?.version
     }))
 }
 
@@ -175,8 +177,11 @@ const ValueSetDetailsTables = ({
         name: 'Canonical',
         selector: (row: GrouperTableDetail) => row?.canonical!,
         sortable: true,
-        wrap: true
-      }
+        wrap: true,
+        cell: (row: GrouperTableDetail) => (
+          row?.version ? `${row?.canonical}|${row?.version}` : `${row?.canonical}`
+        ),
+      }      
     ]
 
     expansionColumns = EXPANSION_COLUMNS
@@ -243,7 +248,6 @@ const ValueSetDetailsTables = ({
       return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
     }
   }
-
   const filteredDefinitionData = filteredDefinitions(definitionData) 
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []

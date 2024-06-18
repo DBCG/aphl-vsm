@@ -38,7 +38,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
-    return res.status(500).json({ error: diagnostics || error?.error || error || 'Unspecified error' })
+    return res.status(500).json({ error: diagnostics || error?.error || error.toString() || 'Unspecified error' })
   }
 }
 
