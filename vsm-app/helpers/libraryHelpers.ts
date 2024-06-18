@@ -152,11 +152,15 @@ const createPriorityItem = (code: string) => (
 
 const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonicals: string[]) => {
   const clonedTarget = cloneDeep(target)
-
-  const newRA = clonedTarget.relatedArtifact?.map(item => {
+  // add RA block if doesn't exist
+  if (!clonedTarget.relatedArtifact) clonedTarget.relatedArtifact = []
+  // update on iterate
+  let newCanonicals = canonicals
+  // update relatedArtifacts that exist
+  let newRA = clonedTarget.relatedArtifact?.map(item => {
     // find the matching relatedArtifact by canonical
     if (item?.resource && canonicals.includes(item.resource) && item.type === 'depends-on') {
-
+      newCanonicals = newCanonicals.filter(c => c !== item.resource)
       // set if doesn't exist
       if (!item.extension) item.extension = []
       const matchIndex = item.extension?.findIndex(i => i.url.endsWith('vsm-valueset-priority'))
@@ -170,6 +174,14 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
     }
 
     return item
+  })
+
+  newCanonicals.forEach(url => {
+    newRA.push({
+      type: 'depends-on',
+      resource: url,
+      extension: [createPriorityItem(code)]
+    })
   })
 
   clonedTarget.relatedArtifact = newRA
