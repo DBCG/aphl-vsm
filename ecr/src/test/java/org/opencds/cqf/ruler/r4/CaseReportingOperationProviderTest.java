@@ -56,14 +56,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
 	private final List<String> badVersionList = Arrays.asList(
 		"11asd1",
-		"1.1.3.1.1",
-		"1.|1.1.1",
-		"1/.1.1.1",
+		"1.1.3.1",
+		"1.|1.1",
+		"1/.1.1",
 		"-1.-1.2.1",
 		"1.-1.2.1",
 		"1.1.-2.1",
 		"7.1..21",
-		"1.2.1.3-draft",
+		"1.2.1-draft",
 		"1.2.3-draft",
 		"3.2",
 		"1.",
@@ -1056,7 +1056,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(checkedVersionResource.isPresent());
 		assertTrue(checkedVersionResource.get().getVersion().equals(correctCheckVersion));
-		String versionToForceTo = "1.1.9.23";
+		String versionToForceTo = "1.1.9";
 		params = new Parameters();
 		params.addParameter("forceArtifactVersion", new CanonicalType("http://to-force-version/Library/rctc|" + versionToForceTo));
 		params.addParameter()
