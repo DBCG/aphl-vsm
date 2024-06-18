@@ -53,7 +53,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Autowired
 	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
-	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
+	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0";
 	private final List<String> badVersionList = Arrays.asList(
 		"11asd1",
 		"1.1.3.1",
@@ -73,14 +73,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	);
 	private EndpointCredentials endpointCredentials;
 
-	// @BeforeAll
-	// public void init() {
-	// 	String apiKey = environment.getProperty("vsacapikey");
-	// 	EndpointCredentials ec = new EndpointCredentials();
-	// 	ec.setUsername(new StringType("apikey"));
-	// 	ec.setApiKey(new StringType(apiKey));
-	// 	endpointCredentials = ec;
-	// }
+//	 @BeforeAll
+//	 public void init() {
+//	 	String apiKey = environment.getProperty("vsacapikey");
+//	 	EndpointCredentials ec = new EndpointCredentials();
+//	 	ec.setUsername(new StringType("apikey"));
+//	 	ec.setApiKey(new StringType(apiKey));
+//	 	endpointCredentials = ec;
+//	 }
 
 	@Test
 	void draftOperation_test() {
@@ -1754,7 +1754,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
@@ -1792,7 +1792,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
