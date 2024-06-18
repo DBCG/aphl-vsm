@@ -3,7 +3,7 @@
 	"type": "transaction",
 	"entry": [
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.2.653.1123-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.2.653-draft",
 			"resource": {
 				"resourceType": "Library",
 				"id": "7",
@@ -54,7 +54,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.2.653.1123-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.2.653-draft"
 					},
 					{
 						"extension": [
@@ -64,7 +64,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653.1123-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653-draft"
 					},
 					{
 						"type": "composed-of",
@@ -131,7 +131,7 @@
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653.1123-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653-draft"
 					}
 				]
 			},
@@ -142,7 +142,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.2.653.1123-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.2.653-draft",
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "8",
@@ -158,7 +158,7 @@
 					{
 						"type": "depends-on",
 						"label": "RCTC Value Set Library of Trigger Codes",
-						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653.1123-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653-draft"
 					},
 					{
 						"type": "composed-of",
@@ -173,7 +173,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653.1123-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.2.653-draft",
 			"resource": {
 				"resourceType": "Library",
 				"id": "9",
@@ -194,7 +194,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653.1123-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653-draft"
 					},
 					{
 						"type": "composed-of",
@@ -209,7 +209,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653.1123-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.2.653-draft",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "10",

@@ -1754,7 +1754,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
@@ -1792,7 +1792,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
