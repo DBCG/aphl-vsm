@@ -1025,7 +1025,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				.setName("terminologyEndpoint")
 				.setResource(endpointCredentials);
 
-		String correctCheckVersion = "20.2.10";
+		String correctCheckVersion = "2022-10-19";
 		PreconditionFailedException checkCanonicalThrewError = null;
 		try {
 			getClient().operation()
@@ -1276,7 +1276,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToEmergent = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6") && vs.getVersion().equals("20.1.5"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToEmergent.isPresent());
 		Optional<UsageContext> priority = shouldBeUpdatedToEmergent.get().getUseContext().stream()
@@ -1289,7 +1289,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10") && vs.getVersion().equals("20.1.5"))
+			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1317,14 +1317,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldHaveFocusSetToNewValue = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6") && vs.getVersion().equals("20.1.5"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldHaveFocusSetToNewValue.isPresent());
 		Optional<UsageContext> focus = shouldHaveFocusSetToNewValue.get().getUseContext().stream()
 			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.hl7UsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetConditionCode))
 			.findFirst();
 		assertTrue(focus.isPresent());
-		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49.4.0"));
+		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49649001"));
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getSystem().equals("http://snomed.info/sct"));
 	}
 
@@ -1339,8 +1339,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1349,8 +1349,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		));
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
