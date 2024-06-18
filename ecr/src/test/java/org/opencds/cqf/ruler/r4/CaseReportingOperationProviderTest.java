@@ -53,7 +53,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Autowired
 	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
-	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
+	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0";
 	private final List<String> badVersionList = Arrays.asList(
 		"11asd1",
 		"1.1.3.1",
