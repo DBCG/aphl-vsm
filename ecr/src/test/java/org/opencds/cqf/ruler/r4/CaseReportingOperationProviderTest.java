@@ -56,14 +56,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
 	private final List<String> badVersionList = Arrays.asList(
 		"11asd1",
-		"1.1.3.1.1",
-		"1.|1.1.1",
-		"1/.1.1.1",
+		"1.1.3.1",
+		"1.|1.1",
+		"1/.1.1",
 		"-1.-1.2.1",
 		"1.-1.2.1",
 		"1.1.-2.1",
 		"7.1..21",
-		"1.2.1.3-draft",
+		"1.2.1-draft",
 		"1.2.3-draft",
 		"3.2",
 		"1.",
@@ -95,7 +95,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseDescriptionUrl));
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseLabelUrl));
 		assertTrue(baseLib.hasApprovalDate());
-		String version = "1.0.1.23";
+		String version = "1.0.1";
 		String draftedVersion = version + "-draft";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
@@ -145,7 +145,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withId("plandefinition-ersd-instance-example")
 			.execute();
 		assertTrue(planDef.hasEffectivePeriod());
-		String version = "1.01.21.273";
+		String version = "1.01.21";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
 		Bundle returnedBundle = getClient().operation()
@@ -166,7 +166,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.0.0.23");
+		params.addParameter("version", "1.0.0");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -186,7 +186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_cannot_create_draft_of_draft_test() {
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.2.1.23");
+		params.addParameter("version", "1.2.1");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -206,7 +206,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_wrong_id_test() {
 		loadTransaction("ersd-draft-transaction-bundle-example.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.3.1.23");
+		params.addParameter("version", "1.3.1");
 		ResourceNotFoundException maybeException = null;
 		try {
 			getClient().operation()
@@ -247,7 +247,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-release-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		String existingVersion = "1.2.3";
-		String versionData = "1.2.7.23";
+		String versionData = "1.2.7";
 		Parameters params1 = new Parameters();
 		params1.addParameter("version", new StringType(versionData));
 		params1.addParameter("versionBehavior", new CodeType("default"));
@@ -352,7 +352,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		// Existing version should be "1.2.3";
-		String newVersionToForce = "1.2.7.23";
+		String newVersionToForce = "1.2.7";
 
 		Parameters params = new Parameters();
 		params.addParameter("version", new StringType(newVersionToForce));
@@ -554,7 +554,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void release_missing_approvalDate_validation_test() {
 		loadTransaction("ersd-release-missing-approvalDate-validation-bundle.json");
-		String versionData = "1.2.3.23";
+		String versionData = "1.2.3";
 		String actualErrorMessage = "";
 
 		Parameters params1 = new Parameters();
@@ -606,7 +606,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		String releaseLabel = "release label test";
 		Parameters params = new Parameters();
 		params.addParameter("releaseLabel", new StringType(releaseLabel));
-		params.addParameter("version", "1.2.3.23");
+		params.addParameter("version", "1.2.3");
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource = getClient().operation()
@@ -699,7 +699,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource =	getClient().operation()
@@ -729,7 +729,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		UnprocessableEntityException noConditionExtension = null;
@@ -997,7 +997,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void packageOperation_should_apply_check_force_canonicalVersions() {
 		loadTransaction("ersd-active-transaction-no-versions.json");
-		String versionToUpdateTo = "1.3.1.23";
+		String versionToUpdateTo = "1.3.1";
 		Parameters params = new Parameters();
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/PlanDefinition/us-ecr-specification|" + versionToUpdateTo));
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/ValueSet/dxtc|" + versionToUpdateTo));
@@ -1025,7 +1025,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				.setName("terminologyEndpoint")
 				.setResource(endpointCredentials);
 
-		String correctCheckVersion = "2022-10-19";
+		String correctCheckVersion = "20.2.10";
 		PreconditionFailedException checkCanonicalThrewError = null;
 		try {
 			getClient().operation()
@@ -1056,7 +1056,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(checkedVersionResource.isPresent());
 		assertTrue(checkedVersionResource.get().getVersion().equals(correctCheckVersion));
-		String versionToForceTo = "1.1.9.23";
+		String versionToForceTo = "1.1.9";
 		params = new Parameters();
 		params.addParameter("forceArtifactVersion", new CanonicalType("http://to-force-version/Library/rctc|" + versionToForceTo));
 		params.addParameter()
@@ -1276,7 +1276,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToEmergent = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6") && vs.getVersion().equals("20.1.5"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToEmergent.isPresent());
 		Optional<UsageContext> priority = shouldBeUpdatedToEmergent.get().getUseContext().stream()
@@ -1289,7 +1289,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10") && vs.getVersion().equals("20.1.5"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1317,14 +1317,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldHaveFocusSetToNewValue = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6") && vs.getVersion().equals("20.1.5"))
 			.findFirst();
 		assertTrue(shouldHaveFocusSetToNewValue.isPresent());
 		Optional<UsageContext> focus = shouldHaveFocusSetToNewValue.get().getUseContext().stream()
 			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.hl7UsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetConditionCode))
 			.findFirst();
 		assertTrue(focus.isPresent());
-		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49649001"));
+		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49.4.0"));
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getSystem().equals("http://snomed.info/sct"));
 	}
 
@@ -1339,8 +1339,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1349,8 +1349,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		));
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113762.1.4.6",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.113883.3.464.113.11.10"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
