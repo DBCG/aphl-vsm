@@ -158,7 +158,7 @@ const handleSetFilterContext = (e) => {
   }, [])
 
   return (
-    <>
+    <div id={`codes-table-${grouperTableData.groupIndex}`}>
       <DataTable
         defaultSortFieldId={1}
         dense
@@ -187,7 +187,7 @@ const handleSetFilterContext = (e) => {
           </div>)
         }
       />
-    </>
+    </div>
   )
 }
 

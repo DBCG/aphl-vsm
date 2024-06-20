@@ -116,7 +116,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   console.log('vs data here: ', valueSetsTable)
   const filteredValueSetOptions = (activeFilters, showUnchanged) => {
     let clonedOptions = cloneDeep(valueSetsTable)
-    if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt.change.toLowerCase() !== 'no change')
+    if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt.change.trim() !== '')
     if (!activeFilters?.length) return clonedOptions
 
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
@@ -312,7 +312,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
 
 
   return (
-    <>
+    <a href={`vs-table-${grouperTableData.groupIndex}`}>
       <StyledTable
         defaultSortFieldId={1}
         style={{ marginBottom: '2em' }}
@@ -342,7 +342,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           </div>
         )}
       />
-    </>
+    </a>
   )
 }
 

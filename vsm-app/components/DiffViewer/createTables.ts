@@ -150,7 +150,7 @@ const generateMainChangeText = (grouperListItem) => {
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
   } else {
-    return 'No change' // ?
+    return '' // ?
   }
 }
 
@@ -246,13 +246,26 @@ const generateCodeChangesTable = (grouperPage) => {
 }
 
 const generateGrouperPages = (allGrouperPages) => {
-  const res = allGrouperPages.map(grp => ({
+  const res = allGrouperPages.map((grp, index: string) => ({
     metadata: generateGrouperMetadata(grp),
     valueSetsTable: generateGrouperValueSetTable(grp),
-    codeSystemsTable: generateCodeChangesTable(grp)
+    codeSystemsTable: generateCodeChangesTable(grp),
+    groupIndex: index
   }))
-  console.log('res: ', res)
+
   return res
+}
+
+const generateId = (ind: number) => {
+  return ({
+    grouperId: `grouper-${ind}`,
+    vsTableId: `vs-table-${ind}`,
+    codesTableId: `codes-table-${ind}`
+  })
+}
+
+const generateAnchorLinkData = (grouperPageData) => {
+  return grouperPageData.map((g, ind) => (generateId(ind)))
 }
 
 export const createTableData = (diffData) => {
@@ -266,6 +279,7 @@ export const createTableData = (diffData) => {
   console.log('grouper page data: ', JSON.stringify(grouperPageData))
   return ({
     rootLibrary: generateRootTableData(oldRootData, newRootData),
-    grouperPages: grouperPageData
+    grouperPages: grouperPageData,
+    anchorLinkData: generateAnchorLinkData(grouperPageData)
   })
 }
