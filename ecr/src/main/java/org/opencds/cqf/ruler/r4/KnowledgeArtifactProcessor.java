@@ -850,7 +850,7 @@ public class KnowledgeArtifactProcessor {
 		 * @throws UnprocessableEntityException
 		 */
 		private void prepareForComparison	(Parameters theBase, FhirPatch thePatch, int theStartIndex, boolean theInsertOrDelete, List<T> theResourcesToAdd) throws UnprocessableEntityException {
-			if (this.myInsertions.size() > 0) {
+			if (theResourcesToAdd.size() > 0) {
 				MetadataResource empty;
 				MetadataResource hasNewResources;
 				if (this.t.isAssignableFrom(RelatedArtifact.class)) {
