@@ -754,7 +754,7 @@ public class KnowledgeArtifactProcessor {
 	}
 	private Optional<Parameters> checkOrUpdateDiffCache(String sourceCanonical, String targetCanonical, MetadataResource source, MetadataResource target, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) {
 		var retval = cache.getDiff(sourceCanonical, targetCanonical);
-		if (retval == null) {
+		if (retval == null && source != null && target != null) {
 			if (target != null) {
 				if (source instanceof Library || source instanceof PlanDefinition) {
 					retval = handleRelatedArtifactArrayElementsDiff(source, target, patch);
@@ -885,12 +885,12 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 		private void appendInsertOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
-			Parameters insertions = (Parameters) thePatch.diff(theSource,theTarget);
+			var insertions = (Parameters) thePatch.diff(theSource,theTarget);
 			fixInsertPathIndexes(insertions.getParameter(), theStartIndex);
 			theBase.getParameter().addAll(insertions.getParameter());
 		}
 		private void appendDeleteOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
-			Parameters deletions = (Parameters) thePatch.diff(theSource,theTarget);
+			var deletions = (Parameters) thePatch.diff(theSource,theTarget);
 			fixDeletePathIndexesAndAddValues(deletions.getParameter(), theStartIndex, theSource);
 			theBase.getParameter().addAll(deletions.getParameter());
 		}
