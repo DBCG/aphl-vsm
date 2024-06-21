@@ -83,7 +83,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	 	endpointCredentials = ec;
 
 		Endpoint ep = new Endpoint();
-		ep.setAddress("https://cts.nlm.nih.gov/fhir");
+		ep.setAddress("https://cts.nlm.nih.gov/fhir/ValueSet");
 		ep.addExtension("vsacUsername", new StringType("apikey"));
 		ep.addExtension("apiKey", new StringType(apiKey));
 		terminologyEndpoint = ep;
