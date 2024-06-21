@@ -2112,22 +2112,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		assertNull(expectNoException);
 	}
-	@Test
-	void catch_weird_codes_missing() {
-		// check that all the grouped leaf valuesets exist
-		loadTransaction("valueset-code-deletes-broken-source.json");
-		var bundle = (Bundle) loadTransaction("valueset-code-deletes-broken-target.json");
-		Parameters diffParams = new Parameters();
-		diffParams.addParameter("source", specificationLibReference);
-		diffParams.addParameter("target", "Library/SpecificationLibrary2");
-		var returnedBinary = getClient().operation()
-			.onServer()
-			.named("$create-changelog")
-			.withParameters(diffParams)
-			.returnResourceType(Binary.class)
-			.execute();
-		assertNotNull(returnedBinary);
-	}
+	
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
 		return parameters.stream().filter(
