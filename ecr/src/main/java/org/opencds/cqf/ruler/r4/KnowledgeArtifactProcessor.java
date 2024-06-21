@@ -714,8 +714,8 @@ public class KnowledgeArtifactProcessor {
 	private boolean conceptSetEquals(ConceptSetComponent ref1, ConceptSetComponent ref2) {
 		// consider any includes which share at least 1 URL
 		if (ref1.hasValueSet() && ref2.hasValueSet()) {
-			var ref1Urls = ref1.getValueSet().stream().map(CanonicalType::getValue).collect(Collectors.toList());
-			var intersect = ref2.getValueSet().stream().map(CanonicalType::getValue).filter(ref1Urls::contains).collect(Collectors.toList());		
+			var ref1Urls = ref1.getValueSet().stream().map(CanonicalType::getValue).map(Canonicals::getUrl).collect(Collectors.toList());
+			var intersect = ref2.getValueSet().stream().map(CanonicalType::getValue).map(Canonicals::getUrl).filter(ref1Urls::contains).collect(Collectors.toList());		
 			return intersect.size() > 0;
 		} else if (!ref1.hasValueSet() && !ref2.hasValueSet()) {
 			return ref1.getSystem().equals(ref2.getSystem());
