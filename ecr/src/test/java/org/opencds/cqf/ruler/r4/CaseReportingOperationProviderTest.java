@@ -72,15 +72,22 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		null
 	);
 	private EndpointCredentials endpointCredentials;
+	private Endpoint terminologyEndpoint;
 
-//	 @BeforeAll
-//	 public void init() {
-//	 	String apiKey = environment.getProperty("vsacapikey");
-//	 	EndpointCredentials ec = new EndpointCredentials();
-//	 	ec.setUsername(new StringType("apikey"));
-//	 	ec.setApiKey(new StringType(apiKey));
-//	 	endpointCredentials = ec;
-//	 }
+	 @BeforeAll
+	 public void init() {
+	 	String apiKey = environment.getProperty("vsacapikey");
+	 	EndpointCredentials ec = new EndpointCredentials();
+	 	ec.setUsername(new StringType("apikey"));
+	 	ec.setApiKey(new StringType(apiKey));
+	 	endpointCredentials = ec;
+
+		Endpoint ep = new Endpoint();
+		ep.setAddress("https://cts.nlm.nih.gov/fhir");
+		ep.addExtension("vsacUsername", new StringType("apikey"));
+		ep.addExtension("apiKey", new StringType(apiKey));
+		terminologyEndpoint = ep;
+	 }
 
 	@Test
 	void draftOperation_test() {
@@ -1742,6 +1749,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareComputable", new BooleanType(true));
+		diffParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(terminologyEndpoint);
 
 		Parameters returnedParams = getClient().operation()
 			.onServer()
@@ -1780,6 +1790,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareExecutable", new BooleanType(true));
+		diffParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(terminologyEndpoint);
 
 		Parameters returnedParams = getClient().operation()
 			.onServer()
@@ -1809,6 +1822,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
+		diffParams.addParameter()
+				.setName("terminologyEndpoint")
+				.setResource(terminologyEndpoint);
 		return diffParams;
 	}
 

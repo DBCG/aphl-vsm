@@ -8,6 +8,7 @@ import ca.uhn.fhir.jpa.patch.FhirPatch;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
 import org.opencds.cqf.ruler.ImportBundleProducer;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -206,7 +207,9 @@ public class KnowledgeArtifactProcessor {
 				return n;
 			});
 	}
-	public Parameters artifactDiff(MetadataResource theSourceLibrary, MetadataResource theTargetLibrary, FhirContext theContext, Repository hapiFhirRepository, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao, diffCache cache) throws UnprocessableEntityException {
+	public Parameters artifactDiff(MetadataResource theSourceLibrary, MetadataResource theTargetLibrary, FhirContext theContext, Repository hapiFhirRepository,
+								   boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao, diffCache cache,
+								   Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		// setup
 		var patch = new FhirPatch(theContext);
 		patch.setIncludePreviousValueInDiff(true);
@@ -223,7 +226,7 @@ public class KnowledgeArtifactProcessor {
 		cache.addSource(sourceCanonical, theSourceLibrary);
 		cache.addTarget(targetCanonical, theTargetLibrary);
 		cache.addDiff(sourceCanonical, targetCanonical, libraryDiff);
-		checkForChangesInChildren(libraryDiff, theSourceLibrary, theTargetLibrary, hapiFhirRepository, patch, cache, theContext, compareComputable, compareExecutable,dao);
+		checkForChangesInChildren(libraryDiff, theSourceLibrary, theTargetLibrary, hapiFhirRepository, patch, cache, theContext, compareComputable, compareExecutable, dao, terminologyEndpoint);
 		return libraryDiff;
 	}
 	private Parameters handleRelatedArtifactArrayElementsDiff(MetadataResource theSourceLibrary,MetadataResource theTargetLibrary, FhirPatch patch) {
@@ -327,23 +330,22 @@ public class KnowledgeArtifactProcessor {
 		}
 		return vsDiff;
 	}
-	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao) {
+	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint) {
 		Optional<Date> lastExpanded = Optional.ofNullable(vset.getExpansion()).map(e -> e.getTimestamp());
 		Optional<Date> lastUpdated = Optional.ofNullable(vset.getMeta()).map(m -> m.getLastUpdated());
 		if (lastExpanded.isPresent() && lastUpdated.isPresent() && lastExpanded.get().equals(lastUpdated.get())) {
 			// ValueSet was not changed after last expansion, don't need to update
 			return;
 		} else {
-			// clear obsolete expansion
-			vset.setExpansion(null);
-			ValueSetExpansionOptions options = new ValueSetExpansionOptions();
-			options.setIncludeHierarchy(true);
-
-			ValueSet e = dao.expand(vset,options);
-			// we need to do this because dao.expand sets the expansion to a subclass and then that breaks the FhirPatch
-			// `copy` creates the superclass again
-			vset.setExpansion(e.getExpansion().copy());
-			return;
+			try {
+				TerminologyServerClient ts = new TerminologyServerClient(theContext);
+				var username = terminologyEndpoint.getExtensionByUrl("vsacUsername").getValue().toString();
+				var password = terminologyEndpoint.getExtensionByUrl("apiKey").getValue().toString();
+				var exp = ts.expand(vset, terminologyEndpoint.getAddress(), new Parameters(), username, password);
+				vset.setExpansion(exp.getExpansion().copy());
+			} catch (Exception e) {
+				throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+			}
 		}
 	}
 
@@ -597,7 +599,9 @@ public class KnowledgeArtifactProcessor {
 			}
 		};
 	}
-	private void checkForChangesInChildren(Parameters baseDiff, MetadataResource theSourceBase, MetadataResource theTargetBase, Repository hapiFhirRepository, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) throws UnprocessableEntityException {
+	private void checkForChangesInChildren(Parameters baseDiff, MetadataResource theSourceBase, MetadataResource theTargetBase, Repository hapiFhirRepository,
+										   FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,
+										   IFhirResourceDaoValueSet<ValueSet> dao, Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		// get the references in both the source and target
 		var targetReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
 		var sourceReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
@@ -608,8 +612,8 @@ public class KnowledgeArtifactProcessor {
 				var targetCanonical = combinedReferenceList.getTargetMatches().get(i).getResource();
 				boolean diffNotAlreadyComputedAndPresent = baseDiff.getParameter(Canonicals.getUrl(targetCanonical)) == null;
 				if (diffNotAlreadyComputedAndPresent) {
-					var source = checkOrUpdateResourceCache(sourceCanonical, cache, hapiFhirRepository, dao, true);
-					var target = checkOrUpdateResourceCache(targetCanonical, cache, hapiFhirRepository, dao, false);
+					var source = checkOrUpdateResourceCache(sourceCanonical, cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint);
+					var target = checkOrUpdateResourceCache(targetCanonical, cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint);
 					// need to do something smart here to expand the executable or computable resources
 					checkOrUpdateDiffCache(sourceCanonical, targetCanonical, source, target, patch, cache, ctx, compareComputable, compareExecutable, dao)
 						.ifPresentOrElse(diffToAppend -> {
@@ -617,7 +621,7 @@ public class KnowledgeArtifactProcessor {
 							component.setName(Canonicals.getUrl(sourceCanonical));
 							component.setResource(diffToAppend);
 							// check for changes in the children of those as well
-							checkForChangesInChildren(diffToAppend, source, target, hapiFhirRepository, patch, cache, ctx, compareComputable, compareExecutable, dao);
+							checkForChangesInChildren(diffToAppend, source, target, hapiFhirRepository, patch, cache, ctx, compareComputable, compareExecutable, dao, terminologyEndpoint);
 						},
 						() -> {
 							if (target == null) {
@@ -640,7 +644,7 @@ public class KnowledgeArtifactProcessor {
 					var component = baseDiff.addParameter();
 					component.setName(Canonicals.getUrl(addition.getResource()));
 					component.setValue(new StringType("Related artifact was inserted"));
-					checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false);
+					checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint);
 				}
 			}
 		}
@@ -651,7 +655,7 @@ public class KnowledgeArtifactProcessor {
 					var component = baseDiff.addParameter();
 					component.setName(Canonicals.getUrl(deletion.getResource()));
 					component.setValue(new StringType("Related artifact was deleted"));
-					checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true);
+					checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint);
 				}
 			}
 		}
@@ -727,7 +731,8 @@ public class KnowledgeArtifactProcessor {
 	private boolean ValueSetContainsEquals(ValueSetExpansionContainsComponent ref1, ValueSetExpansionContainsComponent ref2) {
 		return ref1.getSystem().equals(ref2.getSystem()) && ref1.getCode().equals(ref2.getCode());
 	}
-	private MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository hapiFhirRepository, IFhirResourceDaoValueSet<ValueSet> dao, boolean isSource) throws UnprocessableEntityException {
+	private MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository hapiFhirRepository, IFhirResourceDaoValueSet<ValueSet> dao,
+														boolean isSource, FhirContext theContext, Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		var resource = cache.getResource(url).orElse(null);
 		if (resource == null) {
 			try {
@@ -738,7 +743,7 @@ public class KnowledgeArtifactProcessor {
 			if (resource != null) {
 				if (resource instanceof ValueSet) {
 					try {
-						doesValueSetNeedExpansion((ValueSet)resource, dao);
+						doesValueSetNeedExpansion((ValueSet)resource, dao, theContext, terminologyEndpoint);
 					} catch (Exception e) {
 						throw new UnprocessableEntityException("Could not expand ValueSet: " + e.getMessage());
 					}

@@ -409,7 +409,8 @@ public class CaseReportingOperationProvider {
 												  @OperationParam(name = "source") String source,
 												  @OperationParam(name = "target") String target,
 												  @OperationParam(name = "compareExecutable", typeName = "Boolean") IPrimitiveType<Boolean> compareExecutable,
-												  @OperationParam(name = "compareComputable", typeName = "Boolean") IPrimitiveType<Boolean> compareComputable
+												  @OperationParam(name = "compareComputable", typeName = "Boolean") IPrimitiveType<Boolean> compareComputable,
+									   			  @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
 	) throws UnprocessableEntityException, ResourceNotFoundException {
 		var repository = repositoryFactory.create(requestDetails);
 		var sourceId = new IdType(source);
@@ -426,14 +427,16 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("Source and target resources must be of the same type.");
 		}
 		var dao = (IFhirResourceDaoValueSet<ValueSet>) daoRegistry.getResourceDao(ValueSet.class);
-		return this.artifactProcessor.artifactDiff((MetadataResource) theSourceResource, (MetadataResource) theTargetResource, fhirContext, repository, compareComputable == null ? false : compareComputable.getValue(), compareExecutable == null ? false : compareExecutable.getValue(), dao, null);
+		return this.artifactProcessor.artifactDiff((MetadataResource) theSourceResource, (MetadataResource) theTargetResource, fhirContext, repository, compareComputable == null ? false : compareComputable.getValue(), compareExecutable == null ? false : compareExecutable.getValue(), dao, null, terminologyEndpoint);
 	}
 
 	@Operation(name = "$create-changelog", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$create-changelog", value = "Create a changelog object which can be easily rendered into a table")
 	public IBaseResource flattenDiffParametersToChangeLogJSON(RequestDetails requestDetails,
 																				 @OperationParam(name = "source") String source,
-																				 @OperationParam(name = "target") String target) {
+																				 @OperationParam(name = "target") String target,
+																				 @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint)
+	{
 		// 1) Create Diff Parameters Object as input
 		var cache = new KnowledgeArtifactProcessor.diffCache();
 		var repository = repositoryFactory.create(requestDetails);
@@ -449,7 +452,7 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("Target resource must exist and be a Libary.");
 		}
 		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
-		var diffParameters = this.artifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache);
+		var diffParameters = this.artifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
 		var changelog = new ChangeLog(manifestUrl);
 
