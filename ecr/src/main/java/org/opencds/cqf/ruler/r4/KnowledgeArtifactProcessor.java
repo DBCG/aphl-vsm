@@ -73,7 +73,7 @@ public class KnowledgeArtifactProcessor {
 		&& relatedArtifact.getResource() != null 
 		&& Canonicals.getResourceType(relatedArtifact.getResource()).equals("ValueSet")) {
 			var searchResults = BundleHelper.getEntryResources(SearchHelper.searchRepositoryByCanonicalWithPaging( hapiFhirRepository, relatedArtifact.getResource()));
-			if (searchResults.size() > 0) {
+			if (!searchResults.isEmpty()) {
 				resource = (MetadataResource)searchResults.get(0);
 			}
 		}
@@ -96,7 +96,7 @@ public class KnowledgeArtifactProcessor {
 		&& relatedArtifact.getReference() != null 
 		&& Canonicals.getResourceType(relatedArtifact.getReference()).equals("ValueSet")) {
 			var searchResults = BundleHelper.getEntryResources(SearchHelper.searchRepositoryByCanonicalWithPaging( hapiFhirRepository, relatedArtifact.getReference()));
-			if (searchResults.size() > 0) {
+			if (!searchResults.isEmpty()) {
 				resource = (MetadataResource)searchResults.get(0);
 			}
 		}
@@ -369,7 +369,7 @@ public class KnowledgeArtifactProcessor {
 			var resource = Optional.ofNullable(this.resources.get(url)).map(r -> r.resource);
 			if (!resource.isPresent()) {
 				var possibleMatches = getResourcesForUrl(url);
-				if (possibleMatches.size() > 0) {
+				if (!possibleMatches.isEmpty()) {
 					if (possibleMatches.size() > 1) {
 						throw new UnprocessableEntityException("Artifact contains multiple resources with the same URL:"+url);
 					}
@@ -850,7 +850,7 @@ public class KnowledgeArtifactProcessor {
 		 * @throws UnprocessableEntityException
 		 */
 		private void prepareForComparison	(Parameters theBase, FhirPatch thePatch, int theStartIndex, boolean theInsertOrDelete, List<T> theResourcesToAdd) throws UnprocessableEntityException {
-			if (theResourcesToAdd.size() > 0) {
+			if (!theResourcesToAdd.isEmpty()) {
 				MetadataResource empty;
 				MetadataResource hasNewResources;
 				if (this.t.isAssignableFrom(RelatedArtifact.class)) {
