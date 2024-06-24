@@ -129,7 +129,7 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
   return cdrResponseCollection
 }
 
-const executeJobBatch = async (urls: string[]) => {
+const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
@@ -157,15 +157,15 @@ const executeJobBatch = async (urls: string[]) => {
       Object.keys(cdrResponseCollection).map(async (url) => {
         const { valuesets } = cdrResponseCollection[url]
         let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
-        const { value } = getTerminologySource(valuesets[0]) //fetch the terminology server
+        const { value } = getTerminologySource(valuesets[0], refreshErrors) //fetch the terminology server
 
         switch (value) {
           case 'https://cts.nlm.nih.gov/fhir':
             serverType = 'vsac'
             break
-          // case 'https://r4.ontoserver.csiro.au/fhir':  ### NOT SUPPORTED ###
-          //   serverType = 'ontoserverR4'
-          //   break;
+          case 'Ontoserver (R4)':
+            refreshErrors.push(`Authoritative Source ${value} for Value Set ${valuesets[0].id} is currently unsupported`)
+             break;
           default:
             // default will also be vsac
             break
@@ -178,6 +178,10 @@ const executeJobBatch = async (urls: string[]) => {
           resourceType: 'ValueSet',
           searchParams: { url: idWithoutVersion(url) }
         })) as fhir4.Bundle
+
+        if (vsComparatorResponses?.total == 0) {
+          refreshErrors.push(`Refresh failed for Value Set ${valuesets[0].id}`)
+        }
 
         cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
       })
@@ -204,6 +208,7 @@ const executeJobBatch = async (urls: string[]) => {
  */
 valueSetUpdateQueue.process(async function (job, done) {
   const { urls = [], programId } = job.data
+  const refreshErrors: string[] = []
   const clonedUrls = [...urls]
   if (clonedUrls?.length === 0 || programId == null) {
     console.error('Urls and ProgramID required for valueset update worker')
@@ -214,7 +219,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   console.log(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors)
     if (batch) {
       batchedJobs.push(batch)
     }
@@ -241,7 +246,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   if (batchedJobs?.length > 0) {
     const allBatchJobIds: string[] = []
     for (const job of batchedJobs) {
-      job?.entry?.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
+      job?.entry?.forEach((i: any) => allBatchJobIds.push(i?.response?.location?.split('/')[1]))
     }
 
     let didFinishUpdate = false
@@ -266,7 +271,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   }
   job.progress(100)
   console.log('job finished')
-  done()
+  done(null, {errors: refreshErrors})
 })
 
 export default valueSetUpdateQueue
