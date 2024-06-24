@@ -78,9 +78,9 @@ const allFieldsExist = (codeItems: string[]) => {
 }
 
 const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem | undefined }) => {
-  if (!codeSystem) return null
-
+  
   const columns = useMemo(() => {
+    if (!codeSystem) return null
     const fields = [
       {
         name: 'Code',

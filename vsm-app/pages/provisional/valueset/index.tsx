@@ -333,7 +333,7 @@ const ProvisionalVSEdit = () => {
             if (programIdsWithProvisionals.length) {
               const results = programIdsWithProvisionals.map(p => {
                 return (
-                    <Chip target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                    <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
                 )
               })
               return (
