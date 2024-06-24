@@ -16,7 +16,7 @@ jest.mock('next-auth/next', () => ({
 
 describe('/api/codesystem/provisional', () => {
 
-  test('returns all the programs', async () => {
+  test('returns all the provisional codesystems', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 
     fhirCdrClient.search = jest.fn().mockImplementation(() => ({
@@ -51,9 +51,10 @@ describe('/api/codesystem/provisional', () => {
       ]
     }))
 
+    // @ts-expect-error
     const response = await handler(req, res)
-    console.log('data: ', response._getData())
+    const parsed = JSON.parse(response._getData())
     expect(response.statusCode).toBe(200)
-    expect(response._getData()).toHaveLength(1)
+    expect(parsed).toHaveLength(1)
   })
 })
