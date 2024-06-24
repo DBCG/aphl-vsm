@@ -9,7 +9,7 @@ import {
   idWithoutVersion,
   addProfileToValueSet
 } from "./valueSetHelpers";
-import { set, get, uniq } from 'lodash'
+import { uniq } from 'lodash'
 
 const VSM_LEAF_PROFILE_URLS = {
   CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',

@@ -4,6 +4,8 @@
 # https://github.com/ThisIsRuvos/ersd-keycloak/blob/master/configure
 set -e
 
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
 read -p 'VSM App Base URL: (http://localhost:3000) ' client
 read -p 'Admin Username: (admin) ' admin_username
@@ -38,7 +40,6 @@ echo 'Unable to fetch token.'
 echo $res
 exit 1
 fi
-
 echo -e '\n________________________________\n'
 echo -e 'Creating realm '$realm'...'
 curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/admin/realms
@@ -48,6 +49,36 @@ echo -e 'Creating client '$client' on realm '$realm'...'
 client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"attributes":{"post.logout.redirect.uris":"'$vsm_app_base_url'"},"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/admin/realms/$realm/clients -si | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
 echo "Created $client with id: $client_id"
 echo -e '\n________________________________\n'
+
+echo -e 'Creating Service client 'server_auth' on realm '$realm'...'
+server_auth_client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"protocol":"openid-connect","clientId":"server_auth","name":"","description":"","publicClient":false,"authorizationServicesEnabled":false,"serviceAccountsEnabled":true,"implicitFlowEnabled":false,"directAccessGrantsEnabled":true,"standardFlowEnabled":true,"frontchannelLogout":true,"attributes":{"saml_idp_initiated_sso_url_name":"","oauth2.device.authorization.grant.enabled":false,"oidc.ciba.grant.enabled":false},"alwaysDisplayInConsole":false,"rootUrl":"","baseUrl":""}' $base_url/admin/realms/$realm/clients -si | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
+echo "Created server_auth with id: $server_auth_client_id"
+echo -e '\n________________________________\n'
+
+echo -e '\n________________________________\n'
+echo -e 'Retrieving and Setting Server Auth Secret...'
+server_auth_client_secret=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/client-secret | jq -r '.value')
+sed -i '' "s/^KEYCLOAK_SECRET=.*/KEYCLOAK_SECRET=$server_auth_client_secret/" $DIR/../vsm-app/.env.local
+echo "Updated .env.local with server_auth secret"
+echo -e '\n________________________________\n'
+
+echo -e '\n________________________________\n'
+echo -e 'Updating Server Auth Settings...'
+curl -X PUT -H 'Content-Type: application/json' -H 'Authorization: Bearer '$token -d '{"attributes":{"access.token.lifespan": -1}}' $base_url/admin/realms/$realm/clients/$server_auth_client_id
+
+echo -e 'Updating Service User Role Settings...'
+realm_management_client_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients?first=0\&max=101 | jq -r '.[] | select(.clientId == "realm-management").id')
+service_account_user_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/service-account-user | jq -r '.id')
+echo "service_account_user_id: $service_account_user_id"
+manage_users_role_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/ui-ext/available-roles/users/$service_account_user_id?first=0\&max=101\&search="" | jq '.[] | select(.role == "manage-users").id')
+echo "manage_users_role: $manage_users_role_id" 
+echo "realm_management_client_id $realm_management_client_id"
+echo "{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }"
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d "[{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }]" $base_url/admin/realms/$realm/users/$service_account_user_id/role-mappings/clients/$realm_management_client_id
+
+echo -e 'Finished updating Server Auth Settings and '
+echo -e '\n________________________________\n'
+
 
 ##################
 ## Create Roles ##
