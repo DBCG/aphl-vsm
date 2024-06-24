@@ -26,7 +26,7 @@
           " SG: updated from plandefinition-ersd-instance "
       ]
   },
-  "version": "1.2.0.0",
+  "version": "1.2.0",
   "name": "PlanDefinition_eRSD_Skeleton_Instance",
   "_name": {
       "fhir_comments": [

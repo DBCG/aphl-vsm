@@ -51,7 +51,7 @@ const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> 
   return program
 }
 
-const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
+export const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
   // get the grouper canonical, which is a Library resource
   // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
   const grouperLibraryCanonical = getGrouperLibraryCanonical(program)

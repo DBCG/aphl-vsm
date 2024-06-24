@@ -73,8 +73,8 @@ public class ChangeLog {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new LibraryChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
-    var newData = new LibraryChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
+    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
+    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
     var url = theTargetResource.getUrl();
     var page = new Page<LibraryChild>(url, oldData, newData);
     this.pages.add(page);
@@ -297,15 +297,32 @@ public class ChangeLog {
       public String version;
       public String display;
       public String memberOid;
+      public String codeSystemOid;
       public Operation operation;
       Code(String id, String system, String code, String version, String display, String memberOid, Operation operation) {
         this.id = id;
         this.system = system;
+        if (system != null) {
+          this.codeSystemOid = getCodeSystemOid(system);
+        }
         this.code = code;
         this.version = version;
         this.display = display;
         this.memberOid = memberOid;
         this.operation = operation;
+      }
+      public String getCodeSystemOid(String systemUrl) {
+        if (system.contains("snomed")) {
+          return "2.16.840.1.113883.6.96";
+        } else if (system.contains("icd-10")) {
+          return "2.16.840.1.113883.6.90";
+        } else if (system.contains("icd-9")) {
+          return "2.16.840.1.113883.6.103, 2.16.840.1.113883.6.104";
+        } else if (system.contains("loinc")) {
+          return "2.16.840.1.113883.6.1";
+        } else {
+          return null;
+        }
       }
       public Operation getOperation() {
         return this.operation;
@@ -332,7 +349,7 @@ public class ChangeLog {
       super(title, id, version);
       if (contains != null) {
         contains.forEach(contained -> {
-          if (codeMap.get(contained.getCode()) != null) {
+          if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
             var code = codeMap.get(contained.getCode());
             this.codes.add(new Code(code.id, code.system, code.code, code.version, code.display, code.memberOid, code.operation));
           }
@@ -536,6 +553,14 @@ public class ChangeLog {
               operationTarget.get().operation = newOperation;
             }
           }
+        } else if (path.equals("name")) {
+          this.name.setOperation(newOperation);
+        } else if (path.contains("purpose")) {
+          this.purpose.setOperation(newOperation);
+        } else if (path.equals("approvalDate")) {
+          this.releaseDate.setOperation(newOperation);
+        } else if (path.contains("effectivePeriod")) {
+          this.effectiveStart.setOperation(newOperation);
         }
       }
     }

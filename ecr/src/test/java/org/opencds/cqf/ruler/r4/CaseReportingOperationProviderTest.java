@@ -53,17 +53,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Autowired
 	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
-	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0-23";
+	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0";
 	private final List<String> badVersionList = Arrays.asList(
 		"11asd1",
-		"1.1.3.1.1",
-		"1.|1.1.1",
-		"1/.1.1.1",
+		"1.1.3.1",
+		"1.|1.1",
+		"1/.1.1",
 		"-1.-1.2.1",
 		"1.-1.2.1",
 		"1.1.-2.1",
 		"7.1..21",
-		"1.2.1.3-draft",
+		"1.2.1-draft",
 		"1.2.3-draft",
 		"3.2",
 		"1.",
@@ -73,14 +73,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	);
 	private EndpointCredentials endpointCredentials;
 
-	// @BeforeAll
-	// public void init() {
-	// 	String apiKey = environment.getProperty("vsacapikey");
-	// 	EndpointCredentials ec = new EndpointCredentials();
-	// 	ec.setUsername(new StringType("apikey"));
-	// 	ec.setApiKey(new StringType(apiKey));
-	// 	endpointCredentials = ec;
-	// }
+//	 @BeforeAll
+//	 public void init() {
+//	 	String apiKey = environment.getProperty("vsacapikey");
+//	 	EndpointCredentials ec = new EndpointCredentials();
+//	 	ec.setUsername(new StringType("apikey"));
+//	 	ec.setApiKey(new StringType(apiKey));
+//	 	endpointCredentials = ec;
+//	 }
 
 	@Test
 	void draftOperation_test() {
@@ -95,7 +95,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseDescriptionUrl));
 		assertTrue(baseLib.hasExtension(KnowledgeArtifactProcessor.releaseLabelUrl));
 		assertTrue(baseLib.hasApprovalDate());
-		String version = "1.0.1.23";
+		String version = "1.0.1";
 		String draftedVersion = version + "-draft";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
@@ -145,7 +145,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withId("plandefinition-ersd-instance-example")
 			.execute();
 		assertTrue(planDef.hasEffectivePeriod());
-		String version = "1.01.21.273";
+		String version = "1.01.21";
 		Parameters params = new Parameters();
 		params.addParameter("version", version);
 		Bundle returnedBundle = getClient().operation()
@@ -166,7 +166,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.0.0.23");
+		params.addParameter("version", "1.0.0");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -186,7 +186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_cannot_create_draft_of_draft_test() {
 		loadResource("minimal-draft-to-test-version-conflict.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.2.1.23");
+		params.addParameter("version", "1.2.1");
 		String maybeException = null;
 		try {
 			getClient().operation()
@@ -206,7 +206,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void draftOperation_wrong_id_test() {
 		loadTransaction("ersd-draft-transaction-bundle-example.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", "1.3.1.23");
+		params.addParameter("version", "1.3.1");
 		ResourceNotFoundException maybeException = null;
 		try {
 			getClient().operation()
@@ -247,7 +247,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-release-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		String existingVersion = "1.2.3";
-		String versionData = "1.2.7.23";
+		String versionData = "1.2.7";
 		Parameters params1 = new Parameters();
 		params1.addParameter("version", new StringType(versionData));
 		params1.addParameter("versionBehavior", new CodeType("default"));
@@ -352,7 +352,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		// Existing version should be "1.2.3";
-		String newVersionToForce = "1.2.7.23";
+		String newVersionToForce = "1.2.7";
 
 		Parameters params = new Parameters();
 		params.addParameter("version", new StringType(newVersionToForce));
@@ -554,7 +554,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void release_missing_approvalDate_validation_test() {
 		loadTransaction("ersd-release-missing-approvalDate-validation-bundle.json");
-		String versionData = "1.2.3.23";
+		String versionData = "1.2.3";
 		String actualErrorMessage = "";
 
 		Parameters params1 = new Parameters();
@@ -606,7 +606,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		String releaseLabel = "release label test";
 		Parameters params = new Parameters();
 		params.addParameter("releaseLabel", new StringType(releaseLabel));
-		params.addParameter("version", "1.2.3.23");
+		params.addParameter("version", "1.2.3");
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource = getClient().operation()
@@ -699,7 +699,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-bundle.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		Bundle returnResource =	getClient().operation()
@@ -729,7 +729,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");
 		loadResource("artifactAssessment-search-parameter.json");
 		Parameters params = new Parameters();
-		params.addParameter("version", new StringType("1.2.3.23"));
+		params.addParameter("version", new StringType("1.2.3"));
 		params.addParameter("versionBehavior", new StringType("default"));
 
 		UnprocessableEntityException noConditionExtension = null;
@@ -997,7 +997,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void packageOperation_should_apply_check_force_canonicalVersions() {
 		loadTransaction("ersd-active-transaction-no-versions.json");
-		String versionToUpdateTo = "1.3.1.23";
+		String versionToUpdateTo = "1.3.1";
 		Parameters params = new Parameters();
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/PlanDefinition/us-ecr-specification|" + versionToUpdateTo));
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/ValueSet/dxtc|" + versionToUpdateTo));
@@ -1056,7 +1056,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.findFirst();
 		assertTrue(checkedVersionResource.isPresent());
 		assertTrue(checkedVersionResource.get().getVersion().equals(correctCheckVersion));
-		String versionToForceTo = "1.1.9.23";
+		String versionToForceTo = "1.1.9";
 		params = new Parameters();
 		params.addParameter("forceArtifactVersion", new CanonicalType("http://to-force-version/Library/rctc|" + versionToForceTo));
 		params.addParameter()
@@ -1754,7 +1754,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
@@ -1792,14 +1792,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertTrue(nestedChanges.size() == 3);
+		assertEquals(3, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
 		// old codes removed
-		assertTrue(deleteOperations.size() == 23);
+		assertEquals(23, deleteOperations.size());
 		// new codes added
-		assertTrue(insertOperations.size() == 32);
+		assertEquals(32, insertOperations.size());
 	}
 
 	private Parameters createChangelogSetup() {
@@ -1809,6 +1809,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
+		
 		return diffParams;
 	}
 
@@ -1829,14 +1830,15 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
-			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
+			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion"
 		);
 		Exception expectNoException = null;
 		try {
 			var node = mapper.readTree(decodedString);
 			assertTrue(node.get("pages").isArray());
 			var pages = node.get("pages");
-			assertEquals(pages.size(), pageURLS.size());
+			assertEquals(pageURLS.size(), pages.size());
 			for (final var url : pageURLS) {
 				var pageExists = StreamSupport.stream(pages.spliterator(), false)
 					.anyMatch(page -> page.get("url").asText().equals(url));
@@ -1890,17 +1892,22 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		oldCodes.put("75589004", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("7773002", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("789005009", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
-		var newCodes = Map.of(
-			"772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null),
-			"1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240350003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240351004", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"447282003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"63650001", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"81020007", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert")
-		);
+		oldCodes.put("127631000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion",null));
+		oldCodes.put("15693281000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion","delete"));
+		var newCodes = new HashMap<String, codeAndOperation>();
+		newCodes.put("772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null));
+		newCodes.put("1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240350003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240351004", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("447282003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("63650001", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("81020007", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("127631000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion",null));
+		newCodes.put("15693201000119102", new codeAndOperation("fake.oid.to.trigger.naive.expansion","insert"));
+		newCodes.put("15693241000119100", new codeAndOperation("fake.oid.to.trigger.naive.expansion","insert"));
+		
 		try {
 			var node = mapper.readTree(decodedString);
 			assertTrue(node.get("pages").isArray());
@@ -1961,6 +1968,18 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
+			),
+			"fake.oid.to.trigger.naive.expansion", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
@@ -1978,6 +1997,18 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
+			),
+			"fake.oid.to.trigger.naive.expansion", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		ObjectMapper mapper = new ObjectMapper();
@@ -1991,7 +2022,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("oldData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("oldData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(oldLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2004,7 +2037,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("newData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(newLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2037,11 +2072,15 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Exception expectNoException = null;
 		var oldLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.6", "delete"
+			"2.16.840.1.113762.1.4.1146.6", "delete",
+			"2.16.840.1.113762.1.4.1146.1505", "",
+			"fake.oid.to.trigger.naive.expansion", ""
 		);
 		var newLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.163", "insert"
+			"2.16.840.1.113762.1.4.1146.163", "insert",
+			"2.16.840.1.113762.1.4.1146.1505", "",
+			"fake.oid.to.trigger.naive.expansion", ""
 		);
 		try {
 			var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
@@ -2073,6 +2112,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		assertNull(expectNoException);
 	}
+	
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
 		return parameters.stream().filter(
