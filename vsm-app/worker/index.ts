@@ -179,7 +179,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
           searchParams: { url: idWithoutVersion(url) }
         })) as fhir4.Bundle
 
-        if (vsComparatorResponses?.total == 0) {
+        if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
           refreshErrors.push(`Refresh failed for Value Set ${valuesets[0].id}`)
         }
 
