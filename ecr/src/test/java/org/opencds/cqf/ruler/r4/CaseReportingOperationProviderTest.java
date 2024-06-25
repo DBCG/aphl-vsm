@@ -1810,9 +1810,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
 		// old codes removed
-		assertTrue(deleteOperations.size() == 23);
+		assertEquals(23, deleteOperations.size());
 		// new codes added
-		assertTrue(insertOperations.size() == 32);
+		assertEquals(32, insertOperations.size());
 	}
 
 	private Parameters createChangelogSetup() {
@@ -1845,14 +1845,15 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
-			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
+			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
+			"https://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion"
 		);
 		Exception expectNoException = null;
 		try {
 			var node = mapper.readTree(decodedString);
 			assertTrue(node.get("pages").isArray());
 			var pages = node.get("pages");
-			assertEquals(pages.size(), pageURLS.size());
+			assertEquals(pageURLS.size(), pages.size());
 			for (final var url : pageURLS) {
 				var pageExists = StreamSupport.stream(pages.spliterator(), false)
 					.anyMatch(page -> page.get("url").asText().equals(url));
@@ -1906,17 +1907,22 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		oldCodes.put("75589004", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("7773002", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
 		oldCodes.put("789005009", new codeAndOperation("2.16.840.1.113762.1.4.1146.6","delete"));
-		var newCodes = Map.of(
-			"772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null),
-			"1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240350003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"240351004", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"447282003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"63650001", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"),
-			"81020007", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert")
-		);
+		oldCodes.put("127631000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion",null));
+		oldCodes.put("15693281000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion","delete"));
+		var newCodes = new HashMap<String, codeAndOperation>();
+		newCodes.put("772155008", new codeAndOperation("2.16.840.1.113883.3.464.1003.113.11.1090",null));
+		newCodes.put("1193749009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("1193750009", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240349003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240350003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("240351004", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("447282003", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("63650001", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("81020007", new codeAndOperation("2.16.840.1.113762.1.4.1146.163","insert"));
+		newCodes.put("127631000119105", new codeAndOperation("fake.oid.to.trigger.naive.expansion",null));
+		newCodes.put("15693201000119102", new codeAndOperation("fake.oid.to.trigger.naive.expansion","insert"));
+		newCodes.put("15693241000119100", new codeAndOperation("fake.oid.to.trigger.naive.expansion","insert"));
+		
 		try {
 			var node = mapper.readTree(decodedString);
 			assertTrue(node.get("pages").isArray());
@@ -1977,6 +1983,18 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
+			),
+			"fake.oid.to.trigger.naive.expansion", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
@@ -1994,6 +2012,18 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"priority", List.of(
 					new codeAndOperation("emergent", null)
 				)
+			),
+			"2.16.840.1.113762.1.4.1146.1505", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
+			),
+			"fake.oid.to.trigger.naive.expansion", Map.of(
+				"conditions", List.of(
+					new codeAndOperation("49649001", null)
+				),
+				"priority", new ArrayList<>()
 			)
 		);
 		ObjectMapper mapper = new ObjectMapper();
@@ -2007,7 +2037,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("oldData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("oldData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(oldLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = oldLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2020,7 +2052,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
 					for (final var leaf: page.get("newData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
-						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(leaf.get("memberOid").asText()).get("conditions");
+						var memberOid = leaf.get("memberOid").asText();
+						assertTrue(newLeafsAndConditions.containsKey(memberOid));
+						List<codeAndOperation> expectedConditions = newLeafsAndConditions.get(memberOid).get("conditions");
 						assertTrue(expectedConditions.size() > 0);
 						for (final var condition: leaf.get("conditions")) {
 							Optional<codeAndOperation> conditionInList = expectedConditions.stream().filter(c -> c.code != null && c.code.equals(condition.get("code").asText())).findAny();
@@ -2053,11 +2087,15 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Exception expectNoException = null;
 		var oldLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.6", "delete"
+			"2.16.840.1.113762.1.4.1146.6", "delete",
+			"2.16.840.1.113762.1.4.1146.1505", "",
+			"fake.oid.to.trigger.naive.expansion", ""
 		);
 		var newLeafs = Map.of(
 			"2.16.840.1.113883.3.464.1003.113.11.1090", "",
-			"2.16.840.1.113762.1.4.1146.163", "insert"
+			"2.16.840.1.113762.1.4.1146.163", "insert",
+			"2.16.840.1.113762.1.4.1146.1505", "",
+			"fake.oid.to.trigger.naive.expansion", ""
 		);
 		try {
 			var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
@@ -2089,6 +2127,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		assertNull(expectNoException);
 	}
+	
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
 		return parameters.stream().filter(

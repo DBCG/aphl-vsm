@@ -74,7 +74,7 @@ public class KnowledgeArtifactProcessor {
 		&& relatedArtifact.getResource() != null 
 		&& Canonicals.getResourceType(relatedArtifact.getResource()).equals("ValueSet")) {
 			var searchResults = BundleHelper.getEntryResources(SearchHelper.searchRepositoryByCanonicalWithPaging( hapiFhirRepository, relatedArtifact.getResource()));
-			if (searchResults.size() > 0) {
+			if (!searchResults.isEmpty()) {
 				resource = (MetadataResource)searchResults.get(0);
 			}
 		}
@@ -97,7 +97,7 @@ public class KnowledgeArtifactProcessor {
 		&& relatedArtifact.getReference() != null 
 		&& Canonicals.getResourceType(relatedArtifact.getReference()).equals("ValueSet")) {
 			var searchResults = BundleHelper.getEntryResources(SearchHelper.searchRepositoryByCanonicalWithPaging( hapiFhirRepository, relatedArtifact.getReference()));
-			if (searchResults.size() > 0) {
+			if (!searchResults.isEmpty()) {
 				resource = (MetadataResource)searchResults.get(0);
 			}
 		}
@@ -371,7 +371,7 @@ public class KnowledgeArtifactProcessor {
 			var resource = Optional.ofNullable(this.resources.get(url)).map(r -> r.resource);
 			if (!resource.isPresent()) {
 				var possibleMatches = getResourcesForUrl(url);
-				if (possibleMatches.size() > 0) {
+				if (!possibleMatches.isEmpty()) {
 					if (possibleMatches.size() > 1) {
 						throw new UnprocessableEntityException("Artifact contains multiple resources with the same URL:"+url);
 					}
@@ -718,8 +718,8 @@ public class KnowledgeArtifactProcessor {
 	private boolean conceptSetEquals(ConceptSetComponent ref1, ConceptSetComponent ref2) {
 		// consider any includes which share at least 1 URL
 		if (ref1.hasValueSet() && ref2.hasValueSet()) {
-			var ref1Urls = ref1.getValueSet().stream().map(CanonicalType::getValue).collect(Collectors.toList());
-			var intersect = ref2.getValueSet().stream().map(CanonicalType::getValue).filter(ref1Urls::contains).collect(Collectors.toList());		
+			var ref1Urls = ref1.getValueSet().stream().map(CanonicalType::getValue).map(Canonicals::getUrl).collect(Collectors.toList());
+			var intersect = ref2.getValueSet().stream().map(CanonicalType::getValue).map(Canonicals::getUrl).filter(ref1Urls::contains).collect(Collectors.toList());		
 			return intersect.size() > 0;
 		} else if (!ref1.hasValueSet() && !ref2.hasValueSet()) {
 			return ref1.getSystem().equals(ref2.getSystem());
@@ -759,7 +759,7 @@ public class KnowledgeArtifactProcessor {
 	}
 	private Optional<Parameters> checkOrUpdateDiffCache(String sourceCanonical, String targetCanonical, MetadataResource source, MetadataResource target, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) {
 		var retval = cache.getDiff(sourceCanonical, targetCanonical);
-		if (retval == null) {
+		if (retval == null && source != null && target != null) {
 			if (target != null) {
 				if (source instanceof Library || source instanceof PlanDefinition) {
 					retval = handleRelatedArtifactArrayElementsDiff(source, target, patch);
@@ -855,7 +855,7 @@ public class KnowledgeArtifactProcessor {
 		 * @throws UnprocessableEntityException
 		 */
 		private void prepareForComparison	(Parameters theBase, FhirPatch thePatch, int theStartIndex, boolean theInsertOrDelete, List<T> theResourcesToAdd) throws UnprocessableEntityException {
-			if (this.myInsertions.size() > 0) {
+			if (!theResourcesToAdd.isEmpty()) {
 				MetadataResource empty;
 				MetadataResource hasNewResources;
 				if (this.t.isAssignableFrom(RelatedArtifact.class)) {
@@ -890,12 +890,12 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 		private void appendInsertOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
-			Parameters insertions = (Parameters) thePatch.diff(theSource,theTarget);
+			var insertions = (Parameters) thePatch.diff(theSource,theTarget);
 			fixInsertPathIndexes(insertions.getParameter(), theStartIndex);
 			theBase.getParameter().addAll(insertions.getParameter());
 		}
 		private void appendDeleteOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
-			Parameters deletions = (Parameters) thePatch.diff(theSource,theTarget);
+			var deletions = (Parameters) thePatch.diff(theSource,theTarget);
 			fixDeletePathIndexesAndAddValues(deletions.getParameter(), theStartIndex, theSource);
 			theBase.getParameter().addAll(deletions.getParameter());
 		}
