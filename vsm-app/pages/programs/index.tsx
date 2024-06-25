@@ -275,11 +275,11 @@ const Programs: NextPage = () => {
     [session]
   )
 
-  const handleCancelModal = () => {
+  const handleCancelReleaseModal = () => {
     setProgramToRelease(null)
   }
 
-  const handleModalAction = async (payload: ReleasePayload) => {
+  const handleReleaseModalAction = async (payload: ReleasePayload) => {
     setLoading(true)
     const endpoint = `/api/programs/${payload.programId}/release`
 
@@ -290,10 +290,16 @@ const Programs: NextPage = () => {
 
     if (!result.ok) {
       const res = await result.json()
+      let errorText
+      if (res?.error?.includes('HAPI-0389')) {
+        errorText = 'Draft program must be approved to release.'
+      } else if (!!res?.error) {
+        errorText = res.error
+      } else {
+        errorText = 'Please try again.'
+      }
       setError({
-        error: `Error occurred while releasing program: ${payload.programId}. ${
-          res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
-        }`
+        error: `Error occurred while releasing program: ${payload.programId}. ${errorText}`
       })
     } else {
       router.reload()
@@ -328,8 +334,8 @@ const Programs: NextPage = () => {
         <ReleaseModal
           isOpen={Boolean(programToRelease)}
           loading={loading}
-          handleCancelModal={handleCancelModal}
-          handleModalAction={handleModalAction}
+          handleCancelModal={handleCancelReleaseModal}
+          handleModalAction={handleReleaseModalAction}
           program={programToRelease}
           setProgramToRelease={setProgramToRelease}
         />

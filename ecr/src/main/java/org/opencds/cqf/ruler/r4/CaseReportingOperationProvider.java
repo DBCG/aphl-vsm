@@ -225,20 +225,11 @@ public class CaseReportingOperationProvider {
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
 			var visitor = new KnowledgeArtifactReleaseVisitor();
+			adapter.getRelatedArtifact()
+				.forEach(ra -> {
+					KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
+				});
 			var retval = (Bundle) adapter.accept(visitor, repository, params);
-			// not copying the extensions correctly and not releasing all the
-			// artifacts correctly (still have draft references)
-			forEachMetadataResource(
-				retval.getEntry(),
-				(r) -> {
-					if (r != null) {
-						adapterFactory.createKnowledgeArtifactAdapter(r).getRelatedArtifact()
-							.forEach(ra -> {
-								KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
-							});
-					}
-				},
-				repository);
 			return retval;
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
