@@ -376,6 +376,16 @@ class TransformProviderIT extends RestIntegrationTest {
 				.map(entry -> (ValueSet) entry.getResource())
 				.collect(Collectors.toList());
 
-		assertEquals(exportedGroupers.stream().filter(vs -> vs.getMeta().getProfile().stream().filter(profile -> !profile.getValue().equals(TransformProperties.ersdVSProfile)).count() == 0).collect(Collectors.toList()).size(), 0);
+		var exportedDxtc = exportedGroupers.stream().filter(vs -> vs.getUrl().contains("dxtc")).collect(Collectors.toList()).get(0);
+		assertEquals(1, (int) exportedDxtc.getMeta().getProfile().stream().filter(p -> p.getValue().equals(TransformProperties.ersdVSProfile)).count());
+
+		List<ValueSet> importedGroupers = results.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		var importedDxtc = importedGroupers.stream().filter(vs -> vs.getUrl().contains("dxtc")).collect(Collectors.toList()).get(0);
+		assertEquals(0, (int) importedDxtc.getMeta().getProfile().stream().filter(p -> p.getValue().equals(TransformProperties.ersdVSProfile)).count());
+
 	}
 }
