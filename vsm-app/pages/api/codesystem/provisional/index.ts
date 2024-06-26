@@ -96,7 +96,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     const updatedCodeSystems = [] as UpdatedCS[]
 
     for (const systemUrl of systemUrls) {
-      let searchParams = {
+      const searchParams = {
         version: 'PROVISIONAL',
         url: systemUrl
       }
