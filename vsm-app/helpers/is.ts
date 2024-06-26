@@ -1,6 +1,7 @@
 import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from 'pages/api/programs/[id]/grouper/valueset'
 import { HapiHttpErrorRes } from "./server/operationOutcomeHelpers"
+import { ErrorItem } from "@/pages/api/codesystem/provisional"
 
 type SemverType = `${number}.${number}.${number}`
 // this regex is numeric only and matches MAJOR.MINOR.PATCH
@@ -47,6 +48,9 @@ const is = {
   },
   errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
     return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
+  },
+  errorItem: (resource: ErrorItem | any): resource is ErrorItem => {
+    return typeof resource?.error === 'string'
   },
   hapiError: (error: any): error is HapiError => {
     return (

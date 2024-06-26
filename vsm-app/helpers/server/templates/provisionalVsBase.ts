@@ -5,13 +5,16 @@ export const provisionalVsBase = {
   meta: {
     profile: [
       'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset',
-      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+      'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset'
     ],
     tag: [
       {
         system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
         code: 'vsm-authored'
+      },
+      {
+        system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+        code: 'vsm-provisional'
       }
     ]
   },
@@ -27,11 +30,7 @@ export const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
-    },
-  {
-    url: 'vsm-test-extension', // need a real one, defined in IG?
-    valueBoolean: true
-  }
+    }
   ],
   useContext: [
     {

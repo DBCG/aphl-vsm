@@ -57,15 +57,15 @@ const TEST_VS_EXISTING_CODES = {
 
 const TEST_CODES_TO_ADD = {
   'www.system.com': [
-    { code: 'abc', display: 'overridden!' },
-    { code: 'new-code', display: 'a brand new code' }
+    { code: 'abc', display: 'overridden!', definition: 'test' },
+    { code: 'new-code', display: 'a brand new code', definition: 'test' }
   ]
 }
 
 const TEST_CODES_FOR_REMOVE = {
   'www.system.com': [
-    { code: 'abc', display: 'display does not matter' },
-    { code: 'new-code', display: 'a brand new code' }
+    { code: 'abc', definition: 'test', display: 'display does not matter' },
+    { code: 'new-code', definition: 'test2', display: 'a brand new code' }
   ]
 }
 
@@ -76,8 +76,8 @@ describe('addOrRemoveVsCodes', () => {
       system: 'www.system.com',
       version: 'PROVISIONAL',
       concept: [
-        { code: 'abc', display: 'overridden!' },
-        { code: 'new-code', display: 'a brand new code' }
+        { code: 'abc', display: 'overridden!', definition: 'test' },
+        { code: 'new-code', display: 'a brand new code', definition: 'test' }
       ]
     }
     ])
@@ -90,8 +90,8 @@ describe('addOrRemoveVsCodes', () => {
       version: 'PROVISIONAL',
       concept: [
         // this shows 'abc' getting overridden via new data
-        { code: 'abc', display: 'overridden!' },
-        { code: 'new-code', display: 'a brand new code' },
+        { code: 'abc', display: 'overridden!', definition: 'test' },
+        { code: 'new-code', display: 'a brand new code', definition: 'test' },
         { code: 'def', display: 'display-to-keep' },
       ]
     },
@@ -108,7 +108,7 @@ describe('addOrRemoveVsCodes', () => {
 
   it('adds codes correctly if the system does not exist yet', () => {
     const NEW_SYSTEM_ADDITIONS = {
-      'new-system': [{ code: 'new', display: 'new system!' }]
+      'new-system': [{ code: 'new', display: 'new system!', definition: 'test' }]
     } 
   
     const result = addOrRemoveVsCodes(TEST_VS_EXISTING_CODES, NEW_SYSTEM_ADDITIONS, 'add')
@@ -131,7 +131,7 @@ describe('addOrRemoveVsCodes', () => {
       }, {
         system: 'new-system',
         version: 'PROVISIONAL',
-        concept: [{ code: 'new', display: 'new system!' }]
+        concept: [{ code: 'new', display: 'new system!', definition: 'test' }]
       }
     ])
   })
@@ -278,7 +278,7 @@ describe('generateProvisionalVs', () => {
       stewardToUpdate
     })
 
-    expect(result?.extension).toHaveLength(4)
+    expect(result?.extension).toHaveLength(3)
     // existing base provisional resource info should exist
     expect(result?.resourceType).toBe('ValueSet')
     expect(result?.status).toBe('draft')
@@ -414,7 +414,44 @@ describe('generateProvisionalVs', () => {
 
     const result = createProvisionalCodeSystem({
       systemBaseUrl: 'www.test.com',
-      codeItems: testCodeItems
+      codeItems: testCodeItems,
+      name: 'test'
     })
+
+    expect(result).toStrictEqual(
+      {
+        resourceType: 'CodeSystem',
+        meta: {
+          tag: [
+            {
+              system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+              code: 'vsm-authored'
+            },
+            {
+              system: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes',
+              code: 'vsm-provisional'
+            }
+          ]
+        },
+        version: 'PROVISIONAL',
+        status: 'draft',
+        experimental: true,
+        content: 'complete',
+        url: 'www.test.com',
+        name: 'test',
+        concept: [
+          {
+            code: 'code1',
+            display: 'code 1',
+            definition: 'code 1 definition'
+          },
+          {
+            code: 'code2',
+            display: 'code 2',
+            definition: 'code 2 definition'
+          }
+        ]
+      }
+    )
   })
 })
