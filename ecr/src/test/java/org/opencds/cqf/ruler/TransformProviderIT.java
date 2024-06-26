@@ -332,4 +332,50 @@ class TransformProviderIT extends RestIntegrationTest {
 		// After the import, check all of them have the group type as use context
 		assertEquals(6,importedGroupers.size());
 	}
+
+	@Test
+	void testImportOperationRemoveErsdValueset() throws InterruptedException {
+		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example-v1-vs.json");
+		Parameters v2BundleParams = new Parameters();
+		v2BundleParams.addParameter()
+				.setName("bundle")
+				.setResource(v2Bundle);
+
+		getClient()
+				.operation()
+				.onServer()
+				.named("$ersd-v2-import")
+				.withParameters(v2BundleParams)
+				.returnResourceType(OperationOutcome.class)
+				.execute();
+
+		Thread.sleep(1000);
+
+		int bundleSearchTries = 0;
+
+		Bundle results = getClient().search()
+				.forResource(ValueSet.class)
+				.returnBundle(Bundle.class)
+				.execute();
+
+		while (results.getEntry().isEmpty() && bundleSearchTries < 3) {
+			Thread.sleep(1500);
+			bundleSearchTries++;
+			results = getClient().search()
+					.forResource(ValueSet.class)
+					.returnBundle(Bundle.class)
+					.execute();
+		}
+
+		if (results.getEntry().isEmpty()) {
+			fail("Bundle is empty, fetching the import is not returning any entries");
+		}
+
+		List<ValueSet> exportedGroupers = v2Bundle.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet) entry.getResource())
+				.collect(Collectors.toList());
+
+		assertEquals(exportedGroupers.stream().filter(vs -> vs.getMeta().getProfile().stream().filter(profile -> !profile.getValue().equals(TransformProperties.ersdVSProfile)).count() == 0).collect(Collectors.toList()).size(), 0);
+	}
 }

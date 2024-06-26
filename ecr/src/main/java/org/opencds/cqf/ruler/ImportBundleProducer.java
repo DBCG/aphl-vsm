@@ -100,12 +100,13 @@ public class ImportBundleProducer {
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
-            valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
+            			valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
 						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
 						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
-							valueSet.getMeta().setProfile(grouperProfiles);
+							var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
+							valueSet.getMeta().setProfile(filteredGrouperProfiles);
 							groupers.add(valueSetCanonicalUrl);
 						} else {
 							// Leaf ValueSets
