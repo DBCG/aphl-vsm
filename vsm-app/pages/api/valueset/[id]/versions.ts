@@ -32,7 +32,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
 
   // identify the terminology server for the valueSet
   // this will try to infer the source if the extension isn't there
-  var errors: string[] = []
+  const errors: string[] = []
   const terminologySource = getTerminologySource(response, errors)?.value
 
   // if there is no terminology source that matches the URL's pattern, don't continue
