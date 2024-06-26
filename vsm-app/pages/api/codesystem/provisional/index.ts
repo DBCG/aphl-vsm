@@ -98,10 +98,9 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
       codesBySystemToUpdate
     } = body
 
-    const systemUrls = Object.keys(codesBySystemToUpdate)
     const updatedCodeSystems = [] as UpdatedCS[]
 
-    for (const systemUrl of systemUrls) {
+    for (const systemUrl in codesBySystemToUpdate) {
       const searchParams = {
         version: 'PROVISIONAL',
         url: systemUrl
@@ -148,29 +147,30 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
         })
       }
     }
-      const transactionBody = transactionBuilder(updatedCodeSystems)
 
-      if (is.errorItem(transactionBody)) {
-        return res.status(400).json({ error: transactionBody.error})  
-      }
-      const updatedCS = await fhirCdrClient.transaction({
-        body: transactionBody
-      })
+    const transactionBody = transactionBuilder(updatedCodeSystems)
 
-      if (is.operationOutcome(updatedCS)) {
-        console.error('error creating prov code items')
-        return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
-      } else {
-        return res.status(200).json({})
-      }
-
-
-
-    } catch(e) {
-      logger.error(e)
-      res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
+    if (is.errorItem(transactionBody)) {
+      return res.status(400).json({ error: transactionBody.error})  
     }
+    const updatedCS = await fhirCdrClient.transaction({
+      body: transactionBody
+    })
+
+    if (is.operationOutcome(updatedCS)) {
+      console.error('error creating prov code items')
+      return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
+    } else {
+      return res.status(200).json({})
+    }
+
+
+
+  } catch(e) {
+    logger.error(e)
+    res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
+}
 
 export default handler({
     GET: { action: getProvisionalCodeSystems, access: ['reviewer', 'admin', 'editor'] },
