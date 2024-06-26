@@ -12,6 +12,10 @@ interface CodeItem {
   definition: string
 }
 
+export interface ErrorItem {
+  error: string
+}
+
 type CodesBySysToUpdate = Record<string, CodeItem[]>
 
 interface GetBody {
@@ -29,8 +33,8 @@ interface UpdatedCS {
 }
 
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
-  type: 'transaction';
-} => {
+  type: 'transaction'
+} | ErrorItem => {
   const transactionEntry = items.map(i => {
     const resourceType = i?.resourceType || i?.resource?.resourceType as string
     const resourceId = i?.resourceId || i?.resource?.id as string
@@ -45,6 +49,8 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
       resource = i.resource
     } else if (method === 'GET') {
       url = `${resourceType}/${resourceId}`
+    } else {
+      return ({ error: `Method '${method}' not supported`})
     }
 
     let requestBody = {
@@ -87,7 +93,7 @@ const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiRespon
 // this can update multiple code systems at once
 const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
   try {
-    const body = await req.body
+    const body = req.body
     const {
       codesBySystemToUpdate
     } = body
@@ -144,6 +150,9 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     }
       const transactionBody = transactionBuilder(updatedCodeSystems)
 
+      if (is.errorItem(transactionBody)) {
+        return res.status(400).json({ error: transactionBody.error})  
+      }
       const updatedCS = await fhirCdrClient.transaction({
         body: transactionBody
       })
