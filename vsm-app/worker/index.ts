@@ -10,6 +10,7 @@ import { getTerminologySource, idWithoutVersion } from '@/helpers/valueSetHelper
 import { sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
+import logger from '@/helpers/server/logger'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -51,7 +52,7 @@ const buildValueSetEntry = (bundleWithVersions: fhir4.Resource[], useContext: Us
           }
         } as BundleEntry
       } else {
-        console.log('No update required for url', url)
+        logger.info('No update required for url', url)
         return null
       }
     })
@@ -69,7 +70,7 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
   Object.keys(cdrResponseCollection).forEach((url) => {
     const { versions, latestVersion, latestVersionUseContext, vsComparatorResponses } = cdrResponseCollection[url]
     if (latestVersion == null || latestVersionUseContext == null) {
-      console.error(`latestVersion or latestVersionUseContext not found for ValueSet at ${url}`)
+      logger.error(`latestVersion or latestVersionUseContext not found for ValueSet at ${url}`)
       return
     }
     // Find if latest version is not in cqf store
@@ -78,7 +79,7 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
         ?.map((bundleEntry: BundleEntry) => {
           const resource = bundleEntry.resource as ValueSet
           if (resource?.version && is.valueSet(resource) && dayjs(resource.version).isAfter(latestVersion)) {
-            console.log(`Adding new resource, latest version found for: ${resource.name} version: ${resource.version}`)
+            logger.info(`Adding new resource, latest version found for: ${resource.name} version: ${resource.version}`)
             return resource
           }
         })
@@ -105,7 +106,7 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
     valueSets?.forEach((valueSet) => {
       const { url, version, useContext } = valueSet
       if (!url || !version || !useContext) {
-        console.error(`url, version, or useContext not found for ValueSet at ${url}`)
+        logger.error(`url, version, or useContext not found for ValueSet at ${url}`)
         return
       }
 
@@ -129,7 +130,7 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
   return cdrResponseCollection
 }
 
-const executeJobBatch = async (urls: string[]) => {
+const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
@@ -157,15 +158,15 @@ const executeJobBatch = async (urls: string[]) => {
       Object.keys(cdrResponseCollection).map(async (url) => {
         const { valuesets } = cdrResponseCollection[url]
         let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
-        const { value } = getTerminologySource(valuesets[0]) //fetch the terminology server
+        const { value } = getTerminologySource(valuesets[0], refreshErrors) //fetch the terminology server
 
         switch (value) {
           case 'https://cts.nlm.nih.gov/fhir':
             serverType = 'vsac'
             break
-          // case 'https://r4.ontoserver.csiro.au/fhir':  ### NOT SUPPORTED ###
-          //   serverType = 'ontoserverR4'
-          //   break;
+          case 'Ontoserver (R4)':
+            refreshErrors.push(`Authoritative Source ${value} for Value Set ${valuesets[0].id} is currently unsupported`)
+             break;
           default:
             // default will also be vsac
             break
@@ -178,6 +179,10 @@ const executeJobBatch = async (urls: string[]) => {
           resourceType: 'ValueSet',
           searchParams: { url: idWithoutVersion(url) }
         })) as fhir4.Bundle
+
+        if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
+          refreshErrors.push(`Refresh failed for Value Set ${valuesets[0].id}`)
+        }
 
         cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
       })
@@ -195,7 +200,7 @@ const executeJobBatch = async (urls: string[]) => {
       })
     }
   } catch (err) {
-    console.error(err)
+    logger.error(err)
   }
 }
 
@@ -204,28 +209,29 @@ const executeJobBatch = async (urls: string[]) => {
  */
 valueSetUpdateQueue.process(async function (job, done) {
   const { urls = [], programId } = job.data
+  const refreshErrors: string[] = []
   const clonedUrls = [...urls]
   if (clonedUrls?.length === 0 || programId == null) {
-    console.error('Urls and ProgramID required for valueset update worker')
+    logger.error('Urls and ProgramID required for valueset update worker')
     done()
   }
   const maxIterations = Math.floor(clonedUrls.length / MAX_JOB_SIZE) + 1
   let iteration = 0
-  console.log(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
+  logger.info(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE))
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors)
     if (batch) {
       batchedJobs.push(batch)
     }
     iteration += 1
     let progress = (iteration / maxIterations) * 100
     if (progress >= 100) {
-      console.log('Progress: 99, begin checking for update to finish')
+      logger.info('Progress: 99, begin checking for update to finish')
       job.progress(99) // prevent job from finishing
       break
     } else {
-      console.log('Progress:', (iteration / maxIterations) * 100)
+      logger.info('Progress:', (iteration / maxIterations) * 100)
 
       job.progress(progress)
       await sleep(5000)
@@ -241,7 +247,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   if (batchedJobs?.length > 0) {
     const allBatchJobIds: string[] = []
     for (const job of batchedJobs) {
-      job?.entry?.forEach((i: any) => allBatchJobIds.push(i.response.location.split('/')[1]))
+      job?.entry?.forEach((i: any) => allBatchJobIds.push(i?.response?.location?.split('/')[1]))
     }
 
     let didFinishUpdate = false
@@ -252,21 +258,21 @@ valueSetUpdateQueue.process(async function (job, done) {
 
       // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
       const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value))
-      console.log('New VS ids', allBatchJobIds)
-      console.log('current VS ids', currentVsIds)
+      logger.info('New VS ids', allBatchJobIds)
+      logger.info('current VS ids', currentVsIds)
       if (anyIntersection?.length) {
-        console.log('Update finished')
+        logger.info('Update finished')
         didFinishUpdate = true
         break
       } else {
-        console.log('Waiting for update to finish, leaf values intersection ids did not match')
+        logger.info('Waiting for update to finish, leaf values intersection ids did not match')
         await sleep(5000)
       }
     }
   }
   job.progress(100)
-  console.log('job finished')
-  done()
+  logger.info('job finished')
+  done(null, {errors: refreshErrors})
 })
 
 export default valueSetUpdateQueue
