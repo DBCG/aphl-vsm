@@ -78,7 +78,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	 public void init() {
 	 	String apiKey = environment.getProperty("vsacapikey");
 	 	EndpointCredentials ec = new EndpointCredentials();
-	 	ec.setUsername(new StringType("apikey"));
+	 	ec.setUsername(new StringType("tahaattarismile"));
 	 	ec.setApiKey(new StringType(apiKey));
 	 	endpointCredentials = ec;
 

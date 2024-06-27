@@ -6,8 +6,11 @@ import ca.uhn.fhir.context.support.ValueSetExpansionOptions;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoValueSet;
 import ca.uhn.fhir.jpa.patch.FhirPatch;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
+import org.opencds.cqf.fhir.utility.client.Clients;
 import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
 import org.opencds.cqf.ruler.ImportBundleProducer;
 import org.opencds.cqf.ruler.TransformProperties;
@@ -33,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
 import java.time.Instant;
 import java.util.*;
@@ -330,25 +335,71 @@ public class KnowledgeArtifactProcessor {
 		}
 		return vsDiff;
 	}
-	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint) {
+	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint, Repository repository) {
 		Optional<Date> lastExpanded = Optional.ofNullable(vset.getExpansion()).map(e -> e.getTimestamp());
 		Optional<Date> lastUpdated = Optional.ofNullable(vset.getMeta()).map(m -> m.getLastUpdated());
 		if (lastExpanded.isPresent() && lastUpdated.isPresent() && lastExpanded.get().equals(lastUpdated.get())) {
 			// ValueSet was not changed after last expansion, don't need to update
 			return;
 		} else {
-			try {
-				TerminologyServerClient ts = new TerminologyServerClient(theContext);
-				var username = terminologyEndpoint.getExtensionByUrl("vsacUsername").getValue().toString();
-				var password = terminologyEndpoint.getExtensionByUrl("apiKey").getValue().toString();
-				var exp = ts.expand(vset, terminologyEndpoint.getAddress(), new Parameters(), username, password);
-				vset.setExpansion(exp.getExpansion().copy());
-			} catch (Exception e) {
-				throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+			TerminologyServerClient ts = new TerminologyServerClient(theContext);
+			var username = terminologyEndpoint.getExtensionByUrl("vsacUsername").getValue().toString();
+			var password = terminologyEndpoint.getExtensionByUrl("apiKey").getValue().toString();
+			var address = terminologyEndpoint.getAddress();
+			if (isGrouper(vset)) {
+				var exp = new ValueSet.ValueSetExpansionComponent();
+				for (final var leaf : vset.getCompose().getInclude()) {
+					if (leaf.hasValueSet()) {
+						var canonical = leaf.getValueSet().get(0);
+						try {
+							var params2 = new Parameters();
+							params2.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
+							params2.addParameter("valueSetVersion", Canonicals.getVersion(canonical));
+							var exp2 = ts.expand(new ValueSet(), address, params2, username, password);
+							exp.getContains().addAll(exp2.getExpansion().copy().getContains());
+						} catch (ResourceNotFoundException e) {
+							try {
+								naiveExpand(null, dao, canonical.getValue(), repository);
+							} catch (ResourceNotFoundException e2) {
+								// append to the end later
+							}
+						} catch (Exception e) {
+							throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+						}
+					}
+				}
+				vset.setExpansion(exp);
+			} else {
+				try {
+					var exp = ts.expand(vset, address, new Parameters(), username, password);
+					vset.setExpansion(exp.getExpansion().copy());
+				} catch (ResourceNotFoundException e) {
+					String url = vset.getUrl();
+					if (vset.hasVersion()) {
+						url += "|"+vset.getVersion();
+					}
+					try {
+						naiveExpand(vset, dao, url, repository);
+					} catch (ResourceNotFoundException e2) {
+						// append to the end later
+					}
+				} catch (Exception e) {
+					throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+				}
 			}
 		}
 	}
-
+	private ValueSet naiveExpand(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, String canonical, Repository repository) throws ResourceNotFoundException{
+		ValueSet expanded = null;
+		if (vset != null) {
+			expanded = vset.copy();
+		} else {
+			expanded = (ValueSet) retrieveResourcesByCanonical(canonical, repository);
+		}
+		expanded = dao.expand(expanded, new ValueSetExpansionOptions());
+		expanded.setExpansion(expanded.getExpansion().copy());
+		return expanded;
+	}
 	public static class diffCache {
 		private final Map<String,Parameters> diffs = new HashMap<String,Parameters>();
 		private final Map<String,DiffCacheResource> resources = new HashMap<String,DiffCacheResource>();
@@ -731,19 +782,19 @@ public class KnowledgeArtifactProcessor {
 	private boolean ValueSetContainsEquals(ValueSetExpansionContainsComponent ref1, ValueSetExpansionContainsComponent ref2) {
 		return ref1.getSystem().equals(ref2.getSystem()) && ref1.getCode().equals(ref2.getCode());
 	}
-	private MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository hapiFhirRepository, IFhirResourceDaoValueSet<ValueSet> dao,
+	private MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao,
 														boolean isSource, FhirContext theContext, Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		var resource = cache.getResource(url).orElse(null);
 		if (resource == null) {
 			try {
-				resource = retrieveResourcesByCanonical(url, hapiFhirRepository);
+				resource = retrieveResourcesByCanonical(url, repository);
 			} catch (ResourceNotFoundException e) {
 				// ignore
 			}
 			if (resource != null) {
 				if (resource instanceof ValueSet) {
 					try {
-						doesValueSetNeedExpansion((ValueSet)resource, dao, theContext, terminologyEndpoint);
+						doesValueSetNeedExpansion((ValueSet)resource, dao, theContext, terminologyEndpoint, repository);
 					} catch (Exception e) {
 						throw new UnprocessableEntityException("Could not expand ValueSet: " + e.getMessage());
 					}

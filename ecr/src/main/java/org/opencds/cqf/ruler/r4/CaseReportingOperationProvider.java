@@ -40,6 +40,7 @@ import org.opencds.cqf.fhir.api.Repository;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
 import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactApproveVisitor;
 import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactDraftVisitor;
 import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactPackageVisitor;
@@ -452,10 +453,20 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("Target resource must exist and be a Libary.");
 		}
 		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
+		var ts = new TerminologyServerClient(fhirContext);
+		String username = terminologyEndpoint.getExtensionByUrl("vsacUsername").getValue().toString();
+		String password = terminologyEndpoint.getExtensionByUrl("apiKey").getValue().toString();
+		Consumer<ValueSet> expand = (ValueSet vset) -> {
+			ts.expand(vset, terminologyEndpoint.getAddress(), new Parameters(), username, password);
+		};
+		try {
+			expand.accept(null);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		var diffParameters = this.artifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
 		var changelog = new ChangeLog(manifestUrl);
-
 		// 2) Recursively process the Parameters into a flat ChangeLog
 		processChanges(diffParameters.getParameter(), changelog, cache, manifestUrl);
 
