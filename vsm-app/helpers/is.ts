@@ -8,6 +8,10 @@ type SemverType = `${number}.${number}.${number}`
 // matches values like 1.0.0.or 1.0.1, 20.1.1, 4000.29439.8198, etc
 const semverRegex = /^(\d+\.)(\d+\.)(\d+)$/
 
+interface ErrorMessage {
+  error: string
+}
+
 const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | any): resource is fhir4.ActivityDefinition => {
     return resource?.resourceType === 'ActivityDefinition'
@@ -49,8 +53,8 @@ const is = {
   errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
     return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
   },
-  errorItem: (resource: ErrorItem | any): resource is ErrorItem => {
-    return typeof resource?.error === 'string'
+  errorMessage: (resource: any): resource is ErrorMessage => {
+    return typeof resource?.error === 'string' && Object.keys(resource).length === 1
   },
   hapiError: (error: any): error is HapiError => {
     return (
