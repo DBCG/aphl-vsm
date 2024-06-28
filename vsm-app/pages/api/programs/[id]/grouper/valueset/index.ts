@@ -239,12 +239,12 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     }
 
     const grouperLib = await getGrouperLibrary(program)
-    if (is.errorMessage(grouperLib)) {
+    if (is.errorItem(grouperLib)) {
       return sendError({ errorMessage: grouperLib?.error, resStatus: 400 })
     }
 
     const allExistingGrouperVS = await getGrouperValuesets(grouperLib)
-    if (is.errorMessage(allExistingGrouperVS)) {
+    if (is.errorItem(allExistingGrouperVS)) {
       return sendError({ errorMessage: allExistingGrouperVS.error, resStatus: 400 })
     }
     // get the list of all leaf refs in all groupers
