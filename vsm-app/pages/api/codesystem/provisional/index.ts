@@ -12,10 +12,6 @@ interface CodeItem {
   definition: string
 }
 
-export interface ErrorItem {
-  error: string
-}
-
 type CodesBySysToUpdate = Record<string, CodeItem[]>
 
 interface GetBody {

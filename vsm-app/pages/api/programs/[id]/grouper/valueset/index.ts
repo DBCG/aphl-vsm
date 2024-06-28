@@ -21,23 +21,41 @@ import logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
+import { ErrorItem } from '@/helpers/is'
 
 export type ErrorResponse = {
   errorMessage: string
   resStatus: number
 }
 
-const replaceUnversionedRefsWithExistingVersions = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]) => {
+const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): string[] | ErrorItem[] => {
   // new refs are unversioned when a grouper is created (we do not give the ability to set version on grouper create)
   // if a leaf already exists in the program that is versioned, the new ref should also share that version
   const updatedRefs = newRefsToAdd.map(newUrl => {
-    const existingMatch = existingLeafRefsInGroupers.find(existingUrl => {
+    const existingMatches = existingLeafRefsInGroupers.filter(existingUrl => {
       const [exUrl, version] = existingUrl.toLowerCase().split('|')
       return exUrl === newUrl.toLowerCase()
     })
-    return existingMatch || newUrl
+
+    if (existingMatches.length > 1) {
+      const allVersions = existingMatches?.map(urlStr => {
+        const [url, version] = urlStr.split('|')
+        return version || 'latest'
+      })
+      return ({ error: `Error encountered: this program contains multiple versions of valueset with url ${newUrl} in this program. (${allVersions.join(', ')})` })
+    } else {
+      return existingMatches || newUrl
+    }
   })
-  return updatedRefs
+
+  const existingErrors = updatedRefs?.filter(r => is.errorItem(r)) as ErrorItem[]
+
+  if (existingErrors.length) {
+    return existingErrors
+  } else {
+    // @ts-expect-error
+    return updatedRefs
+  }
 }
 
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
@@ -278,8 +296,12 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     const existingVsToUpdate = Array.isArray(matchesInCqf) ? matchesInCqf?.map(m => m.url)?.filter(x => x) : []
     // if a versioned leaf reference exists in another grouper, we need to ensure that we are adding that versioned url
     // we should only have 1 version of a leaf valueset in a program at any given time
-    const leafReferencesToAdd = replaceUnversionedRefsWithExistingVersions([...newValueSetUpdates, ...existingVsToUpdate], allExistingLeafRefs)
-    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd, grouperMetadata)
+    const leafReferencesToAdd = syncUnversionedRef([...newValueSetUpdates, ...existingVsToUpdate], allExistingLeafRefs)
+    const versionErrors = leafReferencesToAdd?.filter(i => is.errorItem(i))
+    if (versionErrors.length) {
+      return res.status(400).send(versionErrors.map(e => typeof e !== 'string' && e.error).join(', ')) 
+    }
+    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd as string[], grouperMetadata)
 
     if (is.operationOutcome(newGrouper)) {
       return res.status(400).send('Error creating new grouper valueset')
