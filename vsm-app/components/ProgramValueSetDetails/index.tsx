@@ -30,6 +30,7 @@ import { USHealthVSPriority, getVSPriority, getVSConditions } from '@/helpers/li
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
+import TextLinkComponent from '../TextLinK'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string, setRefreshErrors: any) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -397,7 +398,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         style: { fontSize: '14px' },
         sortable: false,
         maxWidth: '350px',
-        wrap: true
+        wrap: true,
+        cell: (row: TableRow) => (
+          <TextLinkComponent
+          href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
+          linkText={row.title}
+          hasIcon={true}
+          forceReload={false}
+        />
+        )
       },
       {
         name: (
@@ -799,11 +808,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           pagination
           clearSelectedRows={toggleUpdateData}
           highlightOnHover={true}
-          onRowClicked={(row) => {
-            router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)
-          }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable', { fontSize: '12px' })}
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
         />

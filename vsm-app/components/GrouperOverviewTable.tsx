@@ -10,6 +10,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { customTableStyles } from './tables/themes'
+import TextLinkComponent from './TextLinK'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -109,7 +110,15 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         selector: (row: fhir4.ValueSet) => row.title!,
         sortable: true,
         wrap: true,
-        minWidth: '20rem'
+        minWidth: '20rem',
+        cell: (row: fhir4.ValueSet) => (
+          <TextLinkComponent
+            href={`/programs/${programId}/valuesets/${row.id}`}
+            linkText={row.title}
+            hasIcon={true}
+            forceReload={false}
+          />
+        )
       },
       {
         name: 'Version',
@@ -158,11 +167,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         progressPending={deleting || groupsLoading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
-        customStyles={customTableStyles('clickable')}
         highlightOnHover={true}
-        onRowClicked={(row: fhir4.ValueSet) => {
-          router.push(`/programs/${programId}/valuesets/${row.id}`)
-        }}
         data={groups || []}
         pagination
         paginationPerPage={10}
