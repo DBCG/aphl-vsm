@@ -1,5 +1,5 @@
 import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
-import { is } from '@/helpers/is'
+import { ErrorItem, is } from '@/helpers/is'
 import { createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'

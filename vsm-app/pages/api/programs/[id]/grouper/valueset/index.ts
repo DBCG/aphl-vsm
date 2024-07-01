@@ -28,7 +28,7 @@ export type ErrorResponse = {
   resStatus: number
 }
 
-const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): string[] | ErrorItem[] => {
+const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): (string|ErrorItem)[] => {
   // new refs are unversioned when a grouper is created (we do not give the ability to set version on grouper create)
   // if a leaf already exists in the program that is versioned, the new ref should also share that version
   const updatedRefs = newRefsToAdd.map(newUrl => {
