@@ -113,7 +113,8 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
       }
     ]
   }
-  const input = JSON.stringify(addTerminologyEndpointToParameters(parameters, process.env.NEXT_PUBLIC_VSAC_BASE_URL + "/ValueSet"))
+  // TODO: need to have an ID on this because of a bug in the string parsing
+  const input = JSON.stringify(addTerminologyEndpointToParameters(parameters, process.env.NEXT_PUBLIC_VSAC_BASE_URL + '/ValueSet/1'))
   const changeJson = (await fhirCdrClient.operation({
     name: '$create-changelog',
     input,

@@ -405,7 +405,9 @@ public class KnowledgeArtifactProcessor {
 		} else {
 			expanded = (ValueSet) retrieveResourcesByCanonical(canonical, repository);
 		}
-		expanded = dao.expand(expanded, new ValueSetExpansionOptions());
+		var options = new ValueSetExpansionOptions();
+		options.setFailOnMissingCodeSystem(false);
+		expanded = dao.expand(expanded, options);
 		expanded.setExpansion(expanded.getExpansion().copy());
 		return expanded;
 	}
