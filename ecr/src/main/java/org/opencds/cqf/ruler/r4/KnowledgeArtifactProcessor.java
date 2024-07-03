@@ -350,7 +350,7 @@ public class KnowledgeArtifactProcessor {
 					if (leaf.hasValueSet()) {
 						var canonical = leaf.getValueSet().get(0);
 						try {
-							var expanded = vsacExpandOrFallback(canonical, ts, address, username, password, repository, dao);
+							var expanded = vsacExpandOrFallbackToNaive(canonical, ts, address, username, password, repository, dao);
 							exp.getContains().addAll(expanded.getExpansion().getContains());
 						} catch (ResourceNotFoundException e) {
 							// TODO: handle exception
@@ -368,7 +368,7 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 	}
-	private ValueSet vsacExpandOrFallback(CanonicalType canonical, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
+	private ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
 		try {
 			var urlAndVersionParams = new Parameters();
 			urlAndVersionParams.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
@@ -385,7 +385,7 @@ public class KnowledgeArtifactProcessor {
 		if (valueSet.hasVersion()) {
 			canonicalString += "|" + valueSet.getVersion();
 		}
-		return vsacExpandOrFallback(new CanonicalType(canonicalString), ts, address, username, password, repository, dao);
+		return vsacExpandOrFallbackToNaive(new CanonicalType(canonicalString), ts, address, username, password, repository, dao);
 	}
 	private boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
 		Optional<Date> lastExpanded = Optional.ofNullable(valueSet.getExpansion()).map(e -> e.getTimestamp());
