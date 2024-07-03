@@ -4,6 +4,7 @@ import ExcelJS from 'exceljs'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
 import { getGrouperLibrary } from './details/valuesets'
+import { addTerminologyEndpointToParameters } from './package'
 // import changeLogJson from '../../../../test_fixtures/change-log-response.json'
 
 const OPERATION_TYPES = {
@@ -91,7 +92,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
 }
 
 const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
-  const input = JSON.stringify({
+  const parameters: fhir4.Parameters = {
     resourceType: 'Parameters',
     parameter: [
       {
@@ -104,14 +105,15 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
       },
       {
         name: 'compareComputable',
-        valueBoolean: 'true'
+        valueBoolean: true
       },
       {
         name: 'compareExecutable',
-        valueBoolean: 'true'
+        valueBoolean: true
       }
     ]
-  })
+  }
+  const input = JSON.stringify(addTerminologyEndpointToParameters(parameters, process.env.NEXT_PUBLIC_VSAC_BASE_URL + "/ValueSet"))
   const changeJson = (await fhirCdrClient.operation({
     name: '$create-changelog',
     input,

@@ -22,7 +22,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
   if (!data?.parameters) {
     throw new Error("Missing parameters for Export")
   }
-  const parameters = addEndpointToParameters(data?.parameters)
+  const parameters = addTerminologyEndpointToParameters(data?.parameters)
   const json = data?.json
   const useV1 = !data?.useV2
   try {
@@ -106,7 +106,7 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
     return res.status(500).json({ error: diagnostics || error?.error || error.toString() || 'Unspecified error' })
   }
 }
-function addEndpointToParameters(parameters: fhir4.Parameters): fhir4.Parameters {
+export function addTerminologyEndpointToParameters(parameters: fhir4.Parameters, address?: string): fhir4.Parameters {
   const updatedParameters = structuredClone(parameters)
   const endpointWithVsacCredentials: fhir4.Endpoint = {
     resourceType: "Endpoint",
@@ -114,7 +114,7 @@ function addEndpointToParameters(parameters: fhir4.Parameters): fhir4.Parameters
       { url: "vsacUsername", valueString: process.env.VSAC_USERNAME },
       { url: "apiKey", valueString: process.env.VSAC_API_KEY },
     ],
-    address: process.env.NEXT_PUBLIC_VSAC_BASE_URL || "",
+    address: address || process.env.NEXT_PUBLIC_VSAC_BASE_URL || "",
     connectionType: { system: "http://hl7.org/fhir/ValueSet/endpoint-connection-type", code: "hl7-fhir-rest" },
     status: "active",
     payloadType: [{ coding: [{ system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type", code: "any" }] }]
