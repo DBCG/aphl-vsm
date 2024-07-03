@@ -427,6 +427,7 @@ public class CaseReportingOperationProvider {
 																				 @OperationParam(name = "target") String target,
 																				 @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint)
 	{
+		// TODO: check the requestDetails for MIME type and return accordingly
 		// 1) Create Diff Parameters Object as input
 		var cache = new KnowledgeArtifactProcessor.diffCache();
 		var repository = repositoryFactory.create(requestDetails);

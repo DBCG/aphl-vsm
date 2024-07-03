@@ -390,7 +390,8 @@ public class KnowledgeArtifactProcessor {
 	private boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
 		Optional<Date> lastExpanded = Optional.ofNullable(valueSet.getExpansion()).map(e -> e.getTimestamp());
 		Optional<Date> lastUpdated = Optional.ofNullable(valueSet.getMeta()).map(m -> m.getLastUpdated());
-		return !(lastExpanded.isPresent() && lastUpdated.isPresent() && (lastExpanded.get().before(lastUpdated.get()) || lastExpanded.get().equals(lastUpdated.get())));
+		// if lastExpanded after lastUpdated then we know the VS was NOT changed since the last expansion
+		return !(lastExpanded.isPresent() && lastUpdated.isPresent() && (lastExpanded.get().after(lastUpdated.get())));
 	}
 	private ValueSet naiveExpand(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, String canonical, Repository repository) throws ResourceNotFoundException{
 		ValueSet expanded = null;
