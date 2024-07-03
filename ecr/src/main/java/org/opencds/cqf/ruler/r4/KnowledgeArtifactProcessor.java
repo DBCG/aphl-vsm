@@ -335,14 +335,12 @@ public class KnowledgeArtifactProcessor {
 		}
 		return vsDiff;
 	}
-	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint, Repository repository) {
-		Optional<Date> lastExpanded = Optional.ofNullable(vset.getExpansion()).map(e -> e.getTimestamp());
-		Optional<Date> lastUpdated = Optional.ofNullable(vset.getMeta()).map(m -> m.getLastUpdated());
-		if (lastExpanded.isPresent() && lastUpdated.isPresent() && lastExpanded.get().equals(lastUpdated.get())) {
-			// ValueSet was not changed after last expansion, don't need to update
+	private void tryExpandValueSet(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint, Repository repository) {
+		if (!wasValueSetChangedSinceLastExpansion(vset)) {
+			// ValueSet was not changed since last expansion, don't need to update
 			return;
 		} else {
-			TerminologyServerClient ts = new TerminologyServerClient(theContext);
+			var ts = new TerminologyServerClient(theContext);
 			var username = terminologyEndpoint.getExtensionByUrl("vsacUsername").getValue().toString();
 			var password = terminologyEndpoint.getExtensionByUrl("apiKey").getValue().toString();
 			var address = terminologyEndpoint.getAddress();
@@ -352,42 +350,47 @@ public class KnowledgeArtifactProcessor {
 					if (leaf.hasValueSet()) {
 						var canonical = leaf.getValueSet().get(0);
 						try {
-							var params2 = new Parameters();
-							params2.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
-							params2.addParameter("valueSetVersion", Canonicals.getVersion(canonical));
-							var exp2 = ts.expand(new ValueSet(), address, params2, username, password);
-							exp.getContains().addAll(exp2.getExpansion().copy().getContains());
+							var expanded = vsacExpandOrFallback(canonical, ts, address, username, password, repository, dao);
+							exp.getContains().addAll(expanded.getExpansion().getContains());
 						} catch (ResourceNotFoundException e) {
-							try {
-								naiveExpand(null, dao, canonical.getValue(), repository);
-							} catch (ResourceNotFoundException e2) {
-								// append to the end later
-							}
-						} catch (Exception e) {
-							throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+							// TODO: handle exception
 						}
 					}
 				}
 				vset.setExpansion(exp);
 			} else {
 				try {
-					var exp = ts.expand(vset, address, new Parameters(), username, password);
-					vset.setExpansion(exp.getExpansion().copy());
+					var exp = vsacExpandOrFallback(vset, ts, address, username, password, repository, dao);
+					vset.setExpansion(exp.getExpansion().copy());	
 				} catch (ResourceNotFoundException e) {
-					String url = vset.getUrl();
-					if (vset.hasVersion()) {
-						url += "|"+vset.getVersion();
-					}
-					try {
-						naiveExpand(vset, dao, url, repository);
-					} catch (ResourceNotFoundException e2) {
-						// append to the end later
-					}
-				} catch (Exception e) {
-					throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+					// TODO: handle exception
 				}
 			}
 		}
+	}
+	private ValueSet vsacExpandOrFallback(CanonicalType canonical, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
+		try {
+			var urlAndVersionParams = new Parameters();
+			urlAndVersionParams.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
+			urlAndVersionParams.addParameter("valueSetVersion", Canonicals.getVersion(canonical));
+			return ts.expand(new ValueSet(), address, urlAndVersionParams, username, password);
+		} catch (ResourceNotFoundException e) {
+				return naiveExpand(null, dao, canonical.getValue(), repository);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Value set expansion failed: " + e.getMessage());
+		}
+	}
+	private ValueSet vsacExpandOrFallback(ValueSet valueSet, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
+		var canonicalString = valueSet.getUrl();
+		if (valueSet.hasVersion()) {
+			canonicalString += "|" + valueSet.getVersion();
+		}
+		return vsacExpandOrFallback(new CanonicalType(canonicalString), ts, address, username, password, repository, dao);
+	}
+	private boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
+		Optional<Date> lastExpanded = Optional.ofNullable(valueSet.getExpansion()).map(e -> e.getTimestamp());
+		Optional<Date> lastUpdated = Optional.ofNullable(valueSet.getMeta()).map(m -> m.getLastUpdated());
+		return !(lastExpanded.isPresent() && lastUpdated.isPresent() && (lastExpanded.get().before(lastUpdated.get()) || lastExpanded.get().equals(lastUpdated.get())));
 	}
 	private ValueSet naiveExpand(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, String canonical, Repository repository) throws ResourceNotFoundException{
 		ValueSet expanded = null;
@@ -794,7 +797,7 @@ public class KnowledgeArtifactProcessor {
 			if (resource != null) {
 				if (resource instanceof ValueSet) {
 					try {
-						doesValueSetNeedExpansion((ValueSet)resource, dao, theContext, terminologyEndpoint, repository);
+						tryExpandValueSet((ValueSet)resource, dao, theContext, terminologyEndpoint, repository);
 					} catch (Exception e) {
 						throw new UnprocessableEntityException("Could not expand ValueSet: " + e.getMessage());
 					}
