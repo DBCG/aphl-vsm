@@ -96,7 +96,7 @@ const LoadingModal = ({
   useEffect(() => {
     const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
     if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck) {
-      setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0.0 are valid')
+      setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0 are valid')
     } else if (matches.length) {
       setVersionError(`Version ${versionToCheck} is already used for a Program. Please pick a unique version.`)
     } else {

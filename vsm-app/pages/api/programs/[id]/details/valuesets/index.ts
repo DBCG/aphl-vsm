@@ -78,13 +78,14 @@ const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
 
 // All leaf valuesets are required to belong to at least one grouper
 // so if none exist, this is a problem
-const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
+export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
   const grouperValueSetCanonicals = grouperLib.relatedArtifact
     ?.filter((a) => a.type == 'composed-of')
     .map((res) => res.resource)
     .filter(isDefinedString)
-
+  
   if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
+  
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)

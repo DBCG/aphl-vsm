@@ -138,7 +138,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
       return {
         request: {
           method: 'GET',
-          url: `/ValueSet?url=${url}`
+          url: `/ValueSet?url=${idWithoutVersion(url)}`
         }
       }
     })
@@ -231,8 +231,7 @@ valueSetUpdateQueue.process(async function (job, done) {
       job.progress(99) // prevent job from finishing
       break
     } else {
-      logger.info('Progress:', (iteration / maxIterations) * 100)
-
+      logger.info('Progress: ' +(iteration / maxIterations) * 100)
       job.progress(progress)
       await sleep(5000)
     }
