@@ -49,8 +49,6 @@ import static org.mockito.Mockito.mock;
 		"logging.level.org.hibernate.SQL=ERROR"
 	})
 class CaseReportingOperationProviderTest extends RestIntegrationTest {
-	@Autowired
-	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
 	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0";
 	private final List<String> badVersionList = Arrays.asList(
@@ -71,16 +69,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		null
 	);
 	private Endpoint endpointCredentials = new Endpoint();
-	//  @BeforeAll
-	//  public void init() {
-	// 		var username = new Extension("vsacUsername");
-	// 		username.setValue(new StringType("fakeUserName"));
-	//  		endpointCredentials.addExtension(username);
-	// 		var apiKey = new Extension("apiKey");
-	// 		apiKey.setValue(new StringType("fakeApiKey"));
-	// 		endpointCredentials.addExtension(apiKey);
-	// 		endpointCredentials.setAddress("fakeAddress");
-	//  }
 
 	@Test
 	void draftOperation_test() {
