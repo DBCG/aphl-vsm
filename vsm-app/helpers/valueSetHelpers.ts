@@ -94,7 +94,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
-const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
+const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
     const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
@@ -104,6 +104,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
       hasExtension: true
     }
   } else {
+    errors.push(`Value Set ${valueSet.id} has no Authoritative Source`)
     // if no other choice, INFER the terminology server
     // check if valueset url shares a base url with one of the terminology servers
     // if so, use that as the return
