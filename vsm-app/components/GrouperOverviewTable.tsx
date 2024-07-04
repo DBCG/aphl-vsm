@@ -9,6 +9,7 @@ import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
+import TextLink from './TextLink'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -20,10 +21,8 @@ const ButtonContainer = styled.div`
 `
 
 interface GrouperTable {
-  data: fhir4.ValueSet[]
-  toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
-  programStatus: fhir4.Library['status']
+  programStatus: fhir4.Library['status'] | undefined
 }
 
 const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => {
@@ -113,7 +112,15 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         name: 'Name',
         selector: (row: fhir4.ValueSet) => row.name!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        cell: (row: fhir4.ValueSet) => (
+          <TextLink
+            href={`/programs/${programId}/valuesets/${row?.id}`}
+            linkText={row?.title}
+            hasIcon={true}
+            forceReload={false}
+          />
+        )
       },
       {
         name: 'Title',
@@ -159,7 +166,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
     ]
 
     return fields
-  }, [deleteGrouper, grouperLibId, programStatus, session])
+  }, [deleteGrouper, grouperLibId, programStatus, session, programId])
 
   return (
     <>
