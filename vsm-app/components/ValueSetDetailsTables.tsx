@@ -11,7 +11,7 @@ import { useRouter } from 'next/router'
 import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import { customTableStyles } from './tables/themes'
-import TextLinkComponent from './TextLinK'
+import TextLink from './TextLink'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -168,7 +168,7 @@ const ValueSetDetailsTables = ({
         sortable: true,
         wrap: true,
         cell: (row: GrouperTableDetail) => (
-          <TextLinkComponent
+          <TextLink
             href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.oid}`}
             linkText={row.title}
             hasIcon={true}

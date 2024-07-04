@@ -24,7 +24,7 @@ interface TextLinkProps {
   forceReload?: boolean;
 }
 
-const TextLinkComponent = ({
+const TextLink = ({
   href,
   linkText,
   className,
@@ -59,4 +59,4 @@ const TextLinkComponent = ({
   );
 };
 
-export default TextLinkComponent;
+export default TextLink;

@@ -4,13 +4,11 @@ import styled from 'styled-components'
 import { useSession } from 'next-auth/react'
 import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
-import { allowEditing, can, VSMSession } from '@/helpers/rolesHelper'
+import { can, VSMSession } from '@/helpers/rolesHelper'
 import { IconButton } from './buttons/IconButton'
 import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
-import { customTableStyles } from './tables/themes'
-import TextLinkComponent from './TextLinK'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -22,6 +20,7 @@ const ButtonContainer = styled.div`
 `
 
 interface GrouperTable {
+  data: fhir4.ValueSet[]
   toggleRefreshData: () => void
   grouperLibId: fhir4.Library['id']
   programStatus: fhir4.Library['status']
@@ -79,8 +78,8 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           type: 'delete_failed',
           message: 'Failed to delete grouper Value Set'
         })
+        setDeleting(false)
       }
-      setDeleting(false)
     },
     [programId]
   )
@@ -94,6 +93,11 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
     }
   }, [error, groupsError])
 
+  useEffect(() => {
+    {
+      can(session, 'edit') && status === 'draft'
+    }
+  })
 
   // whenever data coming from props changes, reset deleting state
   useEffect(() => {
@@ -106,26 +110,16 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   const columns = useMemo(() => {
     const fields = [
       {
+        name: 'Name',
+        selector: (row: fhir4.ValueSet) => row.name!,
+        sortable: true,
+        wrap: true
+      },
+      {
         name: 'Title',
         selector: (row: fhir4.ValueSet) => row.title!,
         sortable: true,
-        wrap: true,
-        minWidth: '20rem',
-        cell: (row: fhir4.ValueSet) => (
-          <TextLinkComponent
-            href={`/programs/${programId}/valuesets/${row.id}`}
-            linkText={row.title}
-            hasIcon={true}
-            forceReload={false}
-          />
-        )
-      },
-      {
-        name: 'Version',
-        selector: (row: fhir4.ValueSet) => row.version!,
-        sortable: true,
-        wrap: true,
-        maxWidth: '8rem'
+        wrap: true
       },
       {
         name: 'URL',
@@ -133,15 +127,21 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         wrap: true
       },
       {
+        name: 'Version',
+        selector: (row: fhir4.ValueSet) => row.version!,
+        sortable: true,
+        wrap: true,
+        maxWidth: '150px'
+      },
+      {
         name: 'Remove Group',
-        maxWidth: '10rem',
+        maxWidth: '150px',
         center: true,
-        omit: !allowEditing({ session, programStatus }),
+        omit: !(can(session, 'edit') && programStatus === 'draft'),
         cell: (row: fhir4.ValueSet) => {
           return (
             <ButtonContainer>
               <IconButton
-                deletedItemDescription={`grouper "${row.title}" from Program ${programId}`}
                 onClick={async () => {
                   await deleteGrouper({
                     grouperLibId,
@@ -162,18 +162,30 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   }, [deleteGrouper, grouperLibId, programStatus, session])
 
   return (
-    <div id="grouper-overview-table">
+    <>
       <DataTable
         progressPending={deleting || groupsLoading}
         progressComponent={<LoadingIndicator />}
         columns={columns}
+        customStyles={{
+          rows: {
+            style: {
+              cursor: 'pointer'
+            },
+            highlightOnHoverStyle: {
+              backgroundColor: '#DBF0F3'
+            }
+          }
+        }}
         highlightOnHover={true}
-        data={groups || []}
+        onRowClicked={(row: fhir4.ValueSet) => {
+          router.push(`/programs/${programId}/valuesets/${row.id}`)
+        }}
+        data={groups}
         pagination
         paginationPerPage={10}
-        theme="aphl"
       />
-    </div>
+    </>
   )
 }
 

@@ -15,10 +15,9 @@ import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
-import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
-import TextLinkComponent from '@/components/TextLinK'
+import TextLink from '@/components/TextLink'
 
 const Col = styled.div`
   display: flex;
@@ -191,7 +190,7 @@ const Programs: NextPage = () => {
         maxWidth: '8rem',
         wrap: true,
         cell: (row: fhir4.Library) => (
-          <TextLinkComponent
+          <TextLink
           href={`/programs/${row.id}`}
           linkText={row.id}
           hasIcon={true}
