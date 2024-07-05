@@ -38,9 +38,6 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
       identifier: "terminologyEndpoint"
     }
   }) as fhir4.Bundle
-  console.log(req.query)
-  console.log(endpointBundle.total)
-  console.log(endpointBundle.entry?.length)
   res.status(200).send({ endpoints: endpointBundle?.entry?.map(e => e.resource as fhir4.Endpoint) || [], total: endpointBundle?.total || 0 })
 }
 export default handler({
