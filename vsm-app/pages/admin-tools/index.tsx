@@ -1,12 +1,10 @@
 import type { NextPage } from 'next'
-import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import DT from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { VSMSession } from '@/helpers/rolesHelper'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@mui/material'
@@ -30,19 +28,6 @@ const ButtonWrapper = styled.div`
   justify-content: center;
   width: 100%;
 `
-
-export interface StatusProps {
-  status: string
-  experimental: boolean
-}
-
-export interface ReleasePayload {
-  programId: string
-  releaseDescription?: string
-  releaseLabel?: string
-  effectiveStartDate: string | Date
-  releaseAsVersion: string
-}
 
 const TerminologyEndpoints: NextPage = () => {
   const [loading, setLoading] = useState(false)
