@@ -402,7 +402,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           <TextLink
           href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
           linkText={row.title}
-          hasIcon={true}
           forceReload={false}
         />
         )

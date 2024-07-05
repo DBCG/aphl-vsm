@@ -193,7 +193,6 @@ const Programs: NextPage = () => {
           <TextLink
           href={`/programs/${row.id}`}
           linkText={row.id}
-          hasIcon={true}
           forceReload={false}
         />
         )

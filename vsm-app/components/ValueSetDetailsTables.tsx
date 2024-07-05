@@ -171,7 +171,6 @@ const ValueSetDetailsTables = ({
           <TextLink
             href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.oid}`}
             linkText={row.title}
-            hasIcon={true}
             forceReload={true}
           />
         )

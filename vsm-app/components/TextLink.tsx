@@ -28,7 +28,6 @@ const TextLink = ({
   href,
   linkText,
   className,
-  hasIcon = false,
   forceReload = false,
 }: TextLinkProps) => {
 

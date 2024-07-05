@@ -117,7 +117,6 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           <TextLink
             href={`/programs/${programId}/valuesets/${row?.id}`}
             linkText={row?.title}
-            hasIcon={true}
             forceReload={false}
           />
         )
