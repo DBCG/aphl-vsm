@@ -1,6 +1,7 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { Button, IconButton } from '@mui/material'
+import { IconButton } from '@mui/material'
+import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import Select from 'react-select'
@@ -132,7 +133,7 @@ const ProgramCompare = () => {
   const router = useRouter()
   const { selectedBase, selectedTarget } = router.query
   const [menuOpen, setMenuOpen] = useState(false)
-
+  const [isLoadingDiff, setIsLoadingDiff] = useState(false)
   const [baseProgram, setBaseProgram] = useState(selectedBase || null)
   const [targetProgram, setTargetProgram] = useState(selectedTarget || null)
   const [diffData, setDiffData] = useState(null)
@@ -150,6 +151,7 @@ const ProgramCompare = () => {
   })
 
   const handleGenerateDifference = async () => {
+    setIsLoadingDiff(true)
     // handle error
     if (!baseProgram || !targetProgram) return
     const response = await fetch('/api/programs/changelog', {
@@ -173,7 +175,7 @@ const ProgramCompare = () => {
       const formattedChangelog = createTableData(json)
       setDiffData(formattedChangelog)
     }
-
+    setIsLoadingDiff(false)
     console.log('response: ', response)
   }
 
@@ -199,11 +201,11 @@ const ProgramCompare = () => {
       </ProgramContainer>
       <ButtonContainer>
         <Button
+          text='Generate Difference'
           style={{ marginBottom: '2rem', marginTop: '1rem' }}
           onClick={handleGenerateDifference}
-        >
-          Generate difference
-        </Button>
+          loading={isLoadingDiff}
+        />
 
       </ButtonContainer>
       {diffData && (
