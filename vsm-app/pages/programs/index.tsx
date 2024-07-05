@@ -15,10 +15,10 @@ import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
-import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import { ProgramApiResponse } from '../api/programs'
+import TextLink from '@/components/TextLink'
 
 const Col = styled.div`
   display: flex;
@@ -190,7 +190,14 @@ const Programs: NextPage = () => {
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         maxWidth: '8rem',
-        wrap: true
+        wrap: true,
+        cell: (row: fhir4.Library) => (
+          <TextLink
+          href={`/programs/${row.id}`}
+          linkText={row.id}
+          forceReload={false}
+        />
+        )
       },
       {
         name: 'Title',
@@ -355,8 +362,6 @@ const Programs: NextPage = () => {
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
         highlightOnHover={true}
-        onRowClicked={(row) => router.push(`/programs/${row.id}`)}
-        customStyles={customTableStyles('clickable')}
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
       />
