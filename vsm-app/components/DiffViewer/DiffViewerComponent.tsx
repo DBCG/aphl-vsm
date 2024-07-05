@@ -11,6 +11,16 @@ const RelativeContainer = styled.div`
   position: relative;
 `
 
+const PageContainer = styled.div`
+  background-color: rgba(255,255,255,0.8);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+`
+
+const CodesTableContainer = styled.div`
+  margin: 2rem 0;
+`
+
 const DiffViewerComponent = ({ changelogData }) => {
   const [currentPage, setCurrentPage] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -20,13 +30,13 @@ const DiffViewerComponent = ({ changelogData }) => {
   console.log('formattedChangelog.grouperpa', changelogData.grouperPages.length)
   console.log('menu: ', changelogData.anchorLinkData)
   const pages = changelogData.grouperPages.map((p, idx) => (
-    <div style={{ backgroundColor: 'rgba(255,255,255,0.8)', paddingBottom: '2rem', marginBottom: '2rem'}}>
+    <PageContainer>
       <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>
       <GrouperValueSetsTable id={changelogData.anchorLinkData[idx + 1].vsTableId} grouperTableData={p}/>
-      <div style={{ margin: '2rem 0' }}>
+      <CodesTableContainer>
         <GrouperCodesTable id={changelogData.anchorLinkData[idx + 1].codesTableId} grouperTableData={p}/>
-      </div>
-    </div>
+      </CodesTableContainer>
+    </PageContainer>
   ))
   return (
     <RelativeContainer>
