@@ -5,7 +5,7 @@ type TerminologyServerCredentials = {
 }
 
 type TerminologyServerCredentialsRequest = {
-    userId: String,
+    userId: string,
     terminologyServerUrl: string,
     username: string,
     password: string

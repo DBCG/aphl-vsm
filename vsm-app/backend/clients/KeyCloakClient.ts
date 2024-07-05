@@ -6,9 +6,41 @@ interface KeyCloakClient {
     storeBasicAuthCreds(userId: String, inputUrl: String, username: String, password: String): Promise<void>
 }
 
-class KeyCloakClientImpl implements KeyCloak {
+class KeyCloakClientImpl implements KeyCloakClient {
+    private static instance: KeyCloakClientImpl
 
+    public static getInstance(): KeyCloakClientImpl {
+        if (!this.instance) {
+            this.instance = new KeyCloakClientImpl
+        }
+
+        return this.instance
+    }
+
+    async getAllUserCredentials(userId: String): Promise<TerminologyServerCredentials[]> {
+        const creds:TerminologyServerCredentials = {
+            terminologyServerUrl: "http://testts.com",
+            username: "someUsername",
+            password: "somePassword"
+          }
+          return [creds]
+    }
+
+    async getUserCredentials(userId: String, inputUrl: string): Promise<TerminologyServerCredentials> {
+        const creds:TerminologyServerCredentials = {
+            terminologyServerUrl: "http://testts.com",
+            username: "someUsername",
+            password: "somePassword"
+          }
+          return creds
+    }
+
+    async storeBasicAuthCreds(userId: String, inputUrl: String, username: String, password: String): Promise<void> {
+        return
+    }
 }
 
-export {KeyCloakClientImpl}
+const keyCloakClient = KeyCloakClientImpl.getInstance()
+
+export {KeyCloakClientImpl, keyCloakClient}
 export type {KeyCloakClient}
