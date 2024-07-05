@@ -1,8 +1,14 @@
-import { injectable, inject } from "inversify";
-import "reflect-metadata";
-import { TYPES } from "./types";
 
-@injectable()
+interface FhirClient {
+    //readonly fhirClient: FhirClient
+
+    getTerminologyServers(): Promise<fhir4.Endpoint[]>
+
+}
+
 class FhirClientImpl implements FhirClient {
 
 }
+
+export {FhirClientImpl}
+export type {FhirClient}
