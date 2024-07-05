@@ -598,7 +598,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 onChange={(e) => setSearchTerm(e.target.value)}
                 id="vs-search"
                 label="Search Text"
-                hasIcon={true}
                 info={searchInfoText[searchType.value]}
                 helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
                 errorMessage={errorMessageComponent}

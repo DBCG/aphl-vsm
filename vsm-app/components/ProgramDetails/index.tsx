@@ -29,10 +29,6 @@ const ProgramDetails = () => {
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [showProgramCompareModal, setShowCompareProgramModal] = useState(false)
 
-  const toggleRefreshData = () => {
-    setRefreshData(!refreshData)
-  }
-
   const handleCloseErrors = () => {
     setExportError(null)
   }
@@ -143,9 +139,7 @@ const ProgramDetails = () => {
         )}
       </Row>
       <GrouperOverviewTable
-        toggleRefreshData={toggleRefreshData}
         grouperLibId={programAndGrouperData?.grouperLibrary?.id}
-        // @ts-ignore-next-line
         programStatus={programAndGrouperData?.program?.status}
       />
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
