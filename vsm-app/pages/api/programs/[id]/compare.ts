@@ -29,6 +29,7 @@ type ChangeValue = {
   system?: string
   code?: string
   memberOid?: string
+  codeSystemOid?: string
 }
 
 type CollectedChangeMap = {
@@ -322,8 +323,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
       const fillRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { change, display, version, system, code, memberOid } = rowValue
-            rows.push([change, display, version, system, code, memberOid])
+            const { change, display, memberOid, version, code, system, codeSystemOid } = rowValue
+            rows.push([change, display, memberOid, version, code, system, codeSystemOid])
           })
         })
       }
@@ -346,7 +347,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
             { name: 'OID', filterButton: true },
             { name: 'Version', filterButton: true },
             { name: 'Code', filterButton: true },
-            { name: 'Code System', filterButton: true }
+            { name: 'Code System', filterButton: true },
+            { name: 'Code System OID', filterButton: true }
           ],
           rows
         })
