@@ -1,74 +1,111 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
-import Select, { SelectInstance, SingleValue } from 'react-select'
+import Select, { SelectInstance } from 'react-select'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
 import { SearchInput } from '@/components/SearchInput'
-import { TextArea } from '@/components/TextArea'
-import { toast } from 'react-toastify'
 import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { Row, SubtitleRow, LabelStyled, Col, GridContainer } from './styles'
-import { approvalFormParams, authenticationOptions, authenticationTypes } from './types'
+import { authenticationOptions } from './types'
+import { TestRequest } from '@/pages/api/endpoint/test'
+import { useRouter } from 'next/router'
+import { EndpointRequest } from '@/pages/api/endpoint'
+export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
 
-type ApproveFormProps = {
-  programAndGrouperData: any
-}
-
-export const TerminologyServerForm = () => {
+export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [addressError, setAddressError] = useState('')
-  const [endpoint, setEndpoint] = useState<fhir4.Endpoint>({
-    resourceType: 'Endpoint'
-  })
+  const [endpointToUpdate, setEndpointToUpdate] = useState<fhir4.Endpoint>()
   const name = useRef<HTMLInputElement>(null)
   const address = useRef<HTMLInputElement>(null)
   const authenticationType = useRef<SelectInstance<{ value: string; label: string } | null>>(null)
-
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setLoading(true)
     const updatedEndpoint: fhir4.Endpoint = {
-      ...endpoint,
+      ...(endpointToUpdate || {}),
+      resourceType: 'Endpoint',
+      identifier: [{ value: 'terminologyEndpoint' }],
+      connectionType: { code: 'fhir', system: 'http://hl7.org/fhir/ValueSet/endpoint-connection-type' },
+      status: 'active',
+      payloadType: [],
       name: name?.current?.value,
-      address: address?.current?.value || '',
-      extension: [...(endpoint.extension || []), { url: 'auth', valueString: authenticationType?.current?.getValue()?.[0]?.value }]
+      address: address?.current?.value || ''
+    }
+    updatedEndpoint.extension ??= []
+    const authenticationTypeValue = authenticationType.current?.getValue()?.[0]?.value
+    const authenticationExtension = updatedEndpoint.extension?.find((ext) => ext.url === authenticationTypeUrl)
+    if (authenticationExtension) {
+      authenticationExtension.valueString = authenticationTypeValue
+    } else {
+      updatedEndpoint.extension.push({ url: authenticationTypeUrl, valueString: authenticationTypeValue })
     }
     const url = `/api/endpoint`
+    const body: EndpointRequest['body'] = { endpoint: updatedEndpoint }
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(updatedEndpoint)
+      body: JSON.stringify(body)
     }).then((res) => res.json())
     if (response?.resourceType === 'Endpoint') {
-      setEndpoint(response as fhir4.Endpoint)
+      const updatedEndpoint = response as fhir4.Endpoint
+      if (!router.query.id) {
+        window.location.href = `/admin-tools/endpoint/edit/${updatedEndpoint.id!}`
+      }
+      setEndpointToUpdate(response as fhir4.Endpoint)
+      setLoading(false)
     }
   }
   function validateAddress(e: ChangeEvent<HTMLInputElement>) {
     const address = e.target.value
+    const invalid = 'Invalid address'
     if (!address) {
       setAddressError('')
       return
     }
-    return fetch(address, { method: 'HEAD' })
+    const endpoint = `/api/endpoint/test`
+    const body: TestRequest['body'] = { endpoint: address }
+    return fetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
       .then((res) => {
         if (res.ok) {
           setAddressError('')
         } else {
-          setAddressError('Invalid address')
+          setAddressError(invalid)
         }
       })
-      .catch(() => setAddressError('Invalid address'))
+      .catch(() => setAddressError(invalid))
   }
-
+  useEffect(() => {
+    if (!!endpoint) {
+      setEndpointToUpdate(endpoint)
+    }
+  }, [endpoint])
+  useEffect(() => {
+    if (address.current) {
+      address.current.value = endpointToUpdate?.address || ''
+    }
+    if (authenticationType.current) {
+      const type = endpointToUpdate?.extension?.find((ext) => ext?.url === authenticationTypeUrl)?.valueString
+      const authenticationOption = authenticationOptions.find((a) => a.value === type)
+      if (authenticationOption) {
+        authenticationType.current.setValue(authenticationOption, 'select-option')
+      }
+    }
+    if (name.current) {
+      name.current.value = endpointToUpdate?.name || ''
+    }
+  }, [endpointToUpdate])
   return (
     <>
       <GridContainer>
         <Col>
           <SubtitleRow>
-            <StyledSpan>Add / Edit Endpoint</StyledSpan>
+            <StyledSpan>{endpoint ? 'Edit' : 'Add'} Endpoint</StyledSpan>
           </SubtitleRow>
           <SearchInput id="name" label="Name" helperMessage="Human readable name for the Endpoint" inputRef={name} />
           <SearchInput

@@ -82,8 +82,7 @@ const NavBar = () => {
             text="Admin Tools"
             id="admin"
             onClick={() => {
-              signOut({ redirect: false })
-              router.push('/admin')
+              router.push('/admin-tools')
             }}
           />
         </Box>
