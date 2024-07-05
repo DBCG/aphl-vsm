@@ -9,6 +9,7 @@ const Container = styled.div`
   background-color: white;
   margin-bottom: 2rem;
   padding: 24px 16px;
+  font-size: 90%;
 `
 
 const Th = styled.th`
@@ -29,6 +30,7 @@ export const FlexTableTitle = styled.h4`
 `
 
 export const VerticalRowTitle = styled.tr`
+  font-weight: 600;
 `
 
 type DataItem = [string | undefined, string | undefined]

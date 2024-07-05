@@ -60,10 +60,14 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   useEffect(() => {
     if (router) {
-      const withoutQueryStrings = router.asPath.split('?')[0].split('/')
-      const grouperIndex = withoutQueryStrings.indexOf('valuesets')
-      if (isGrouperView && grouperIndex > -1) {
-        withoutQueryStrings[grouperIndex] = 'grouper'
+      let routePath = router.asPath
+      if (router.pathname.includes('/programs/compare')) {
+        routePath = routePath.split('#')[0]
+      }
+      const crumbs = routePath.split('/')
+      const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
+      if (isGrouperView && withoutQueryStrings.indexOf('valuesets') === -1) {
+        withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
       }
 
       setBreadCrumbs(withoutQueryStrings)

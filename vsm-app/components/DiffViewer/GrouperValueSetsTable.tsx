@@ -4,6 +4,7 @@ import DataTable from 'react-data-table-component'
 import { cloneDeep, divide } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
+import { NoDataTableComponent } from './NoDataTableComponent'
 
 const TdItem = styled.div`
   display: flex;
@@ -18,7 +19,7 @@ const TdContainer = styled.div`
   flex-grow: 1;
 `
 
-const COLORS = {
+export const COLORS = {
   add: '#EBEFE9',
   remove: '#FAE6E5',
   update: '#FDF4DD'
@@ -106,7 +107,7 @@ const createStyles = (style, conditionItem) => {
   return Object.assign(style, colorOverride)
 }
 
-const GrouperValueSetsTable = ({ grouperTableData }) => {
+const GrouperValueSetsTable = ({ grouperTableData, id }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
   const [filterItems, setFilterItems] = useState([])
   const [showUnchanged, setShowUnchanged] = useState(false)
@@ -116,7 +117,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
   console.log('vs data here: ', valueSetsTable)
   const filteredValueSetOptions = (activeFilters, showUnchanged) => {
     let clonedOptions = cloneDeep(valueSetsTable)
-    if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt.change.trim() !== '')
+    if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
 
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
@@ -147,9 +148,15 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
 
   const conditionalRowStyles = [
     {
-      when: (row) => row.change.toLowerCase() === 'added vs',
+      when: (row) => row?.change?.toLowerCase() === 'added vs',
       style: {
         backgroundColor: COLORS.add
+      }
+    },
+    {
+      when: (row) => row?.change?.toLowerCase() === 'removed vs',
+      style: {
+        backgroundColor: COLORS.remove
       }
     }
     // need a remove case, but no existing data for that
@@ -239,7 +246,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           return (
             <TdContainer>
               {
-                row.conditionUpdates.map(i => (
+                row?.conditionUpdates?.map(i => (
                   <TdItem style={createStyles({}, i)}>{i?.conditionName || 'No Data'}</TdItem>
                 ))
               }
@@ -256,7 +263,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           return (
             <TdContainer>
               {
-                row.conditionUpdates.map(i => {
+                row?.conditionUpdates?.map(i => {
                   return (
                     <TdItem style={createStyles({}, i)}>{i?.conditionCode || 'No Data'}</TdItem>
                   )
@@ -275,7 +282,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           return (
             <TdContainer>
               {
-                row.conditionUpdates.map(i => (
+                row?.conditionUpdates?.map(i => (
                   <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionSystem || 'No Data'}</TdItem>
                 ))
               }
@@ -292,7 +299,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           return (
             <TdContainer>
               {
-                row.conditionUpdates.map(i => {
+                row?.conditionUpdates?.map(i => {
                   const color = !i?.conditionChange ? 'white' : 'inherit'
                   return <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0, color }, i)}>{i?.conditionChange || '.'}</TdItem>
                 })
@@ -310,11 +317,12 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
     setFilterContext(e.target.value)
   }
 
-
+console.log('vs table id: ', id)
   return (
-    <a href={`vs-table-${grouperTableData.groupIndex}`}>
+    <div id={id}>
       <StyledTable
         defaultSortFieldId={1}
+        noDataComponent={<NoDataTableComponent resourceType='valueset'/>}
         style={{ marginBottom: '2em' }}
         customStyles={customStyle}
         title='Value Sets'
@@ -342,7 +350,7 @@ const GrouperValueSetsTable = ({ grouperTableData }) => {
           </div>
         )}
       />
-    </a>
+    </div>
   )
 }
 

@@ -18,7 +18,7 @@ const rootLibDataPaths = {
     ],
     new: [
       'newData.name.value',
-      'oldData.name.operation.newValue' 
+      'oldData.name.operation.newValue'
     ]
   },
   version: {
@@ -69,7 +69,7 @@ const getValue = (path, oldData, newData) => {
     return get(oldData.oldData, p)
   } else if (path.startsWith('newData')) {
     const p = path.split('oldData.')[1]
-    return get(newData.newData, p) 
+    return get(newData.newData, p)
   }
 }
 
@@ -89,7 +89,7 @@ const generateRootTableData = (oldData, newData) => {
     const oldVal = rootLibDataPaths[title].old
       .map(path => getValue(path, oldData, newData))
       .filter(x => x)[0]
-    
+
     const newVal = rootLibDataPaths[title].new
       .map(path => getValue(path, oldData, newData))
       .filter(x => x)[0]
@@ -99,9 +99,9 @@ const generateRootTableData = (oldData, newData) => {
   return result
 }
 
+// not currently generating planDefinition info
 export const generatePlanDefinitionData = () => {
   const planDefPages = pages.filter(p => p.resourceType === 'PlanDefinition')
-  console.log('plan def pages: ', planDefPages)
 }
 
 // grouper metadata only cares about the newest info
@@ -124,7 +124,7 @@ const generateGrouperMetadata = (grouperPage) => {
         const uniqueSystems = Array.from(new Set(newData.codes
           .filter(c => c?.operation !== 'delete')
           .map(i => i.system)))
-          result[k] = uniqueSystems
+        result[k] = uniqueSystems
       } else {
         result[k] = get(newData, paths[k])
       }
@@ -157,11 +157,12 @@ const generateMainChangeText = (grouperListItem) => {
 // conditions can be added, removed, or updated
 // could be updates to code, text, system
 // might need to combine multiple "replace" fields
-const generateConditionUpdates = (conditionsList) => {
+const generateConditionUpdates = (conditionsList, hideConditionChangeText) => {
+  console.log('conditionsList: ', conditionsList)
   if (!conditionsList) return []
   return conditionsList?.map(li => {
     // if an operation occurred at all, return details
-    if(li.operation) {
+    if (li.operation) {
       // insert, also handle text field... thi
       if (li.operation.type === 'replace' && li.operation.path.endsWith('.code')) {
         return ({
@@ -179,7 +180,7 @@ const generateConditionUpdates = (conditionsList) => {
           conditionCode: li.code,
           conditionSystem: li.system,
         })
-      }  else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
+      } else if (li.operation.type === 'insert' && li.operation.path.endsWith('.extension')) {
         return ({
           conditionChange: 'Add condition',
           conditionName: li?.operation?.newValue?.text, // is the text field, not name...
@@ -191,14 +192,14 @@ const generateConditionUpdates = (conditionsList) => {
         const splitIndex = li.operation.path.lastIndexOf('.')
         const itemToDelete = splitIndex ? li?.operation?.path?.slice?.(splitIndex + 1) : null
         return ({
-          conditionChange: `Delete field: ${itemToDelete}`,
+          conditionChange: hideConditionChangeText ? '' : `Delete field: ${itemToDelete}`,
           conditionName: undefined, // isn't currently being passed through...
           conditionCodeSystemVersion: undefined, // same here
           conditionCode: li.code,
           conditionSystem: li.system,
         })
       }
-    // if no operation occurred, just return condition info
+      // if no operation occurred, just return condition info
     } else {
       return ({
         conditionChange: undefined,
@@ -217,32 +218,78 @@ const generateConditionUpdates = (conditionsList) => {
 // need status for code system (e.g. published?)
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage) => {
-  console.log('grouperPage.newData: ', grouperPage.newData)
-  // need to handle unchanged grouper?
-  const newData = grouperPage.newData.leafValuesets.map(gi => ({
-    // 'priority': need grouper priority!
-    oid: gi.memberOid,
-    change: generateMainChangeText(gi),
-    conditionUpdates: generateConditionUpdates(gi.conditions)
-  }))
+  // doing this here because it's not explicitly noted in the changelog
+  const allOldLeafIds = grouperPage.oldData.leafValuesets.map(oldLeaf => oldLeaf.memberOid)
+  const newLeafIds = grouperPage.newData.leafValuesets.map(newLeaf => newLeaf.memberOid)
 
+  const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
+  const deletedValueSets = grouperPage.oldData.leafValuesets.filter(vs => deletedLeafIds.includes(vs.memberOid))
+
+  let newData = grouperPage.newData.leafValuesets.map(gi => {
+    // const deletedItems = grouperPage.oldData.leafValueSets.find(i => i.memberOid === gi.memberOid)
+    // 'priority': need grouper priority!
+    return ({
+      oid: gi.memberOid,
+      change: generateMainChangeText(gi),
+      conditionUpdates: generateConditionUpdates(gi.conditions)
+    })
+  })
+
+  // if any deleted valuesets, add them to the set
+  // deleted valuesets are currently not part of the operations array
+  if (deletedValueSets?.length) {
+    const removedItems = deletedValueSets.map(vsItem => ({
+      oid: vsItem.memberOid,
+      change: 'Removed VS',
+      conditionUpdates: generateConditionUpdates(vsItem.conditions, true)
+    }))
+    newData = [...newData, ...removedItems]
+  }
+  console.log('new data: ', newData)
   return newData
 }
 
-const generateCodeChangesTable = (grouperPage) => {
-  console.log('this is called')
-  const newData = grouperPage.newData.codes.map(ci => ({
-    change: ci?.operation?.type,
-    oid: ci?.memberOid,
-    code: ci?.code,
-    descriptor: ci?.display,
-    codeSystem: ci?.system,
-    codeSystemVersion: ci?.version, // undefined for now?
-    codeSystemOID: ci?.codeSystemOid // undefined for now?
+interface FormatCodeItems {
+  codeItems: any
+  defaultChange?: string
+}
 
+const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
+  return codeItems.map(ci => ({
+    change: defaultChange || ci?.operation?.type || '',
+    oid: ci?.memberOid || '',
+    code: ci?.code || '',
+    descriptor: ci?.display || '',
+    codeSystem: ci?.system || '',
+    codeSystemVersion: ci?.version || '',
+    codeSystemOID: ci?.codeSystemOid || ''
   }))
-  console.log('new data: ', newData)
-  return newData
+}
+
+const generateCodeChangesTable = (grouperPage) => {
+  const newCodes = grouperPage.newData.codes
+  const oldCodes = grouperPage.oldData.codes
+  let codeChangeData = formatCodeData({ codeItems: newCodes })
+
+  const deletedCodes = oldCodes.filter(oldCodeItem => {
+    const hasMatchInNewCodes = Boolean(newCodes.find(newCodeItem => {
+      return (
+        (newCodeItem.code === oldCodeItem.code)
+        && (newCodeItem.system === oldCodeItem.system)
+        && (newCodeItem.version === oldCodeItem.version)
+      )
+    }
+    ))
+    return !hasMatchInNewCodes
+  }) || []
+
+  // deletions are not tracked by create-changelog, so do manually:
+  if (deletedCodes.length) {
+    const formattedDeletions = formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
+    codeChangeData = [...codeChangeData, ...formattedDeletions]
+  }
+
+  return codeChangeData
 }
 
 const generateGrouperPages = (allGrouperPages) => {
@@ -265,7 +312,12 @@ const generateId = (ind: number) => {
 }
 
 const generateAnchorLinkData = (grouperPageData) => {
-  return grouperPageData.map((g, ind) => (generateId(ind)))
+  const base = [{
+    rootLibId: `program-metadata`,
+    // eventually have PlanDefinition here, too
+  }]
+  const groupers = grouperPageData.map((g, ind) => (generateId(ind)))
+  return [...base, ...groupers]
 }
 
 export const createTableData = (diffData) => {
@@ -273,10 +325,8 @@ export const createTableData = (diffData) => {
   const newRootData = diffData.pages.find(p => p.newData)
 
   const allGrouperPages = diffData.pages.filter(p => p.newData.resourceType === 'ValueSet')
-  console.log('all groupers: ', allGrouperPages)
   const grouperPageData = generateGrouperPages(allGrouperPages)
 
-  console.log('grouper page data: ', JSON.stringify(grouperPageData))
   return ({
     rootLibrary: generateRootTableData(oldRootData, newRootData),
     grouperPages: grouperPageData,

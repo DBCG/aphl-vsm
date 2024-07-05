@@ -4,6 +4,7 @@ import { FilterControl } from './FilterControl'
 import { cloneDeep, divide } from 'lodash'
 import { FormGroup, FormControlLabel, Switch, Checkbox } from '@mui/material'
 import { ValueSetFilterItem } from './GrouperValueSetsTable'
+import { NoDataTableComponent } from './NoDataTableComponent'
 
 const COLORS = {
   add: '#EBEFE9',
@@ -56,12 +57,13 @@ const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   )
 }
 
-const GrouperCodesTable = ({ grouperTableData }) => {
+const GrouperCodesTable = ({ grouperTableData, id }) => {
   const [filterItems, setFilterItems] = useState([])
   const [filterContext, setFilterContext] = useState<CodeFilterContext>('oid')
   const [showUnchanged, setShowUnchanged] = useState(false)
   const { codeSystemsTable } = grouperTableData
 
+  console.log('grouper codes id: ', id)
   const filterContextIndex = useMemo(() => {
     return CodeFilterContextComputable.findIndex((item) => item === filterContext)
   }, [filterContext])
@@ -92,7 +94,12 @@ const GrouperCodesTable = ({ grouperTableData }) => {
       style: {
         backgroundColor: COLORS.add
       }
+    },
+    { when: (row) => row?.change?.toLowerCase() === 'deleted',
+    style: {
+      backgroundColor: COLORS.remove
     }
+  }
     // need a remove case, but no existing data for that
   ]
 
@@ -116,14 +123,14 @@ const handleSetFilterContext = (e) => {
         style: { textTransform: 'capitalize' }
       },
       {
-        name: <div>OID</div>,
+        name: <div>Value Set OID</div>,
         selector: (row: TableData) => row.oid,
         sortable: true,
         wrap: true,
         grow: 1.5
       },
       {
-        name: <div>Descriptor</div>,
+        name: <div>Code Descriptor</div>,
         sortable: true,
         wrap: true,
         selector: (row: TableData) => row.descriptor!,
@@ -158,7 +165,7 @@ const handleSetFilterContext = (e) => {
   }, [])
 
   return (
-    <div id={`codes-table-${grouperTableData.groupIndex}`}>
+    <div id={id}>
       <DataTable
         defaultSortFieldId={1}
         dense
@@ -171,6 +178,7 @@ const handleSetFilterContext = (e) => {
         paginationPerPage={20}
         subHeader
         subHeaderWrap
+        noDataComponent={<NoDataTableComponent resourceType='code'/>}
         subHeaderComponent={
           (<div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
             <FilterControl

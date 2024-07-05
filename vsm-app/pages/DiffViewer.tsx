@@ -5,9 +5,10 @@ import ProgramMetadataTable from '@/components/DiffViewer/ProgramMetadataTable'
 import { changelog } from '@/components/DiffViewer/changelog_new'
 import { createTableData } from '@/components/DiffViewer/createTables'
 
+
 // const ProgramMetaData = ()
-const DiffPage = () => {
-  const formattedChangelog = createTableData(changelog)
+const DiffPage = ({ changelogData }) => {
+  const formattedChangelog = createTableData(changelogData)
   console.log('formatted changelog: ', formattedChangelog)
   console.log('this: ', formattedChangelog.grouperPages[0].metadata)
   console.log('formattedChangelog.grouperpa', formattedChangelog.grouperPages.length)

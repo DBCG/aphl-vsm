@@ -1,3 +1,4 @@
+import { is } from '@/helpers/is'
 import styled from 'styled-components'
 
 const Container = styled.div`
@@ -28,24 +29,50 @@ interface TableData {
 
 const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
 
-const GrouperMetadataTable = ({ grouperTableData }: { grouperTableData: TableData }) => {
+interface StringForUI {
+  itemForDisplay: any
+  placeholder: string
+}
+
+
+const produceStringForUI = ({ itemForDisplay, placeholder='' }: StringForUI): string => {
+  if (typeof itemForDisplay === 'string') {
+    return itemForDisplay
+  } else if (is.stringArray(itemForDisplay)) {
+    return itemForDisplay.join(', ')
+  }
+    return placeholder
+}
+
+const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: TableData }) => {
   if (!grouperTableData) return null
   console.log('grouper table dta: ', grouperTableData)
   const rowKeys = Object.keys(grouperTableData)
+  console.log('groupermetadata id: ', id)
+
   return (
-    <div style={{
-      background: 'white',
-      padding: '0px 16px',
-      borderTop: '1px solid rgba(0,0,0,.12)'
-    }}>
-    <a href={`#codes-table-${0}`}>test</a>
-    <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>
+    <div
+      id={id}
+      style={{
+        background: 'white',
+        padding: '0px 16px',
+        borderTop: '1px solid rgba(0,0,0,.12)',
+        fontSize: '90%'
+      }}
+    >
+      <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>
       <Container>
         <table>
           {rowKeys.map(k => (
             <tr>
               <Th key={k}>{formatRowTitle(k)}</Th>
-              <td key={k}>{grouperTableData[k] || '[no data]'}</td>
+              <td key={k}>
+                {produceStringForUI(
+                  { itemForDisplay: grouperTableData[k],
+                    placeholder: '[no data]'
+                  }
+                )}
+              </td>
             </tr>
           ))}
         </table>
