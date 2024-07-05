@@ -8,7 +8,7 @@ class FhirClientTest implements FhirClient {
     async getTerminologyServers(): Promise<fhir4.Endpoint[]> {
         const endpoint:fhir4.Endpoint = {
           resourceType: "Endpoint",
-          address: "",
+          address: "http://testts.com",
           connectionType: { code: "" },
           payloadType: [],
           status: "active"
@@ -46,9 +46,23 @@ test('TsCredentialService saves credentials on existing terminology server', asy
     const keyCloakClient = new KeyCloakClientTest()
     const tsService = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
 
-    const creds = await tsService.getCredentials("someUserId", "http://testts.com")
+    const creds = await tsService.saveCredentials("someUserId", "http://testts.com","someUsername", "somePassword")
 
     expect(creds.username).toBe("someUsername")
     expect(creds.password).toBe("somePassword")
     expect(creds.terminologyServerUrl).toBe("http://testts.com")
+  });
+
+  test('TsCredentialService fails on save credentials on non existing terminology server', async () => {
+    try {
+        const fhirClient = new FhirClientTest()
+        const keyCloakClient = new KeyCloakClientTest()
+        const tsService = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
+
+        const creds = await tsService.saveCredentials("someUserId", "http://nonexistingtestts.com","someUsername", "somePassword")
+
+        expect(true).toBe(false);
+    } catch (e) {
+        expect(e).toBe("Trying to save credentials for unsupported terminology server")
+    }
   });
