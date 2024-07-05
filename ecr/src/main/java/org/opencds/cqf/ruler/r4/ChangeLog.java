@@ -32,8 +32,8 @@ public class ChangeLog {
     Map<String, ValueSetChild.Code> codeMap = new HashMap<String, ValueSetChild.Code>();
     updateCodeMap(codeMap, theSourceResource, cache);
     updateCodeMap(codeMap, theTargetResource, cache);
-    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap);
-    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap);
+    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap);
+    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap);
     var url = theTargetResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
@@ -74,8 +74,8 @@ public class ChangeLog {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
-    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
+    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getUrl(), Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
+    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getUrl(), Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
     var url = theTargetResource.getUrl();
     var page = new Page<LibraryChild>(url, oldData, newData);
     this.pages.add(page);
@@ -85,8 +85,8 @@ public class ChangeLog {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion());
-    var newData = new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion());
+    var oldData = new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl());
+    var newData = new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl());
     var url = theTargetResource.getUrl();
     var page = new Page<PlanDefinitionChild>(url, oldData, newData);
     this.pages.add(page);
@@ -261,8 +261,10 @@ public class ChangeLog {
     public ValueAndOperation title  = new ValueAndOperation();
     public ValueAndOperation id = new ValueAndOperation();
     public ValueAndOperation version = new ValueAndOperation();
+    public ValueAndOperation name = new ValueAndOperation();
+    public ValueAndOperation url = new ValueAndOperation();
     public String resourceType;
-    PageBase(String title, String id, String version) {
+    PageBase(String title, String id, String version, String name, String url) {
       if (!StringUtils.isEmpty(title)) {
         this.title.value = title;
       }
@@ -271,6 +273,12 @@ public class ChangeLog {
       }
       if (!StringUtils.isEmpty(version)) {
         this.version.value = version;
+      }
+      if (!StringUtils.isEmpty(name)) {
+        this.name.value = name;
+      }
+      if (!StringUtils.isEmpty(url)) {
+        this.url.value = url;
       }
     }
     public void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
@@ -342,12 +350,14 @@ public class ChangeLog {
     }
     public static class Leaf {
       public String memberOid;
+      public String name;
+      public String url;
       public List<Code> conditions = new ArrayList<Code>();
       public ValueAndOperation priority = new ValueAndOperation();
       public Operation operation;
     }
-    ValueSetChild(String title, String id, String version, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap) {
-      super(title, id, version);
+    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap) {
+      super(title, id, version, name, url);
       if (contains != null) {
         contains.forEach(contained -> {
           if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
@@ -423,8 +433,8 @@ public class ChangeLog {
   }
   public static class PlanDefinitionChild extends PageBase {
     public final String resourceType = "PlanDefinition";
-    PlanDefinitionChild(String title, String id, String version) {
-      super(title, id, version);
+    PlanDefinitionChild(String title, String id, String version, String name, String url) {
+      super(title, id, version, name, url);
     }
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
@@ -455,16 +465,12 @@ public class ChangeLog {
   }
   public static class LibraryChild extends PageBase {
     public final String resourceType = "Library";
-    public ValueAndOperation name = new ValueAndOperation();
     public ValueAndOperation purpose = new ValueAndOperation();
     public ValueAndOperation effectiveStart = new ValueAndOperation();
     public ValueAndOperation releaseDate = new ValueAndOperation();
     public List<RelatedArtifactUrlWithOperation> relatedArtifacts = new ArrayList<>();
-    LibraryChild(String name, String purpose, String title, String id, String version, String effectiveStart, String releaseDate, List<RelatedArtifact> relatedArtifacts) {
-      super(title, id, version);
-      if (!StringUtils.isEmpty(name)) {
-        this.name.value = name;
-      }
+    LibraryChild(String name, String purpose, String title, String id, String version, String url, String effectiveStart, String releaseDate, List<RelatedArtifact> relatedArtifacts) {
+      super(title, id, version, name, url);
       if (!StringUtils.isEmpty(purpose)) {
         this.purpose.value = purpose;
       }
