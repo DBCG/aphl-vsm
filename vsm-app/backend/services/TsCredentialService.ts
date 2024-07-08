@@ -1,5 +1,5 @@
-import {FhirClient} from '../clients/FhirClient'
-import {KeyCloakClient} from '../clients/KeyCloakClient'
+import {FhirClient, fhirClient} from '../clients/FhirClient'
+import {KeyCloakClient, keyCloakClient} from '../clients/KeyCloakClient'
 import {TerminologyServerCredentials} from '../model/TerminologyServerCredential'
 
 interface TsCredentialService {
@@ -11,8 +11,18 @@ interface TsCredentialService {
 
 class TsCredentialServiceImpl implements TsCredentialService {
 
+    private static instance: TsCredentialServiceImpl
+
     readonly fhirClient: FhirClient;
     readonly keyCloakClient: KeyCloakClient;
+
+    public static getInstance(fhirClient: FhirClient, keyCloakClient: KeyCloakClient): TsCredentialServiceImpl {
+        if(!this.instance) {
+            this.instance = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
+        }
+
+        return this.instance
+    }
 
     public constructor(
 	     fhirClient: FhirClient,
@@ -55,6 +65,8 @@ class TsCredentialServiceImpl implements TsCredentialService {
 
 }
 
-export { TsCredentialServiceImpl };    
+const tsCredentialService = TsCredentialServiceImpl.getInstance(fhirClient, keyCloakClient)
+
+export { TsCredentialServiceImpl, tsCredentialService };    
 export type { TsCredentialService };
 
