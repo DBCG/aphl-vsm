@@ -12,7 +12,6 @@ import org.opencds.cqf.ruler.TransformProperties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.fhir.utility.Canonicals;
@@ -50,8 +49,6 @@ import static org.mockito.Mockito.mock;
 		"logging.level.org.hibernate.SQL=ERROR"
 	})
 class CaseReportingOperationProviderTest extends RestIntegrationTest {
-	@Autowired
-	private Environment environment;
 	private final String specificationLibReference = "Library/SpecificationLibrary";
 	private final String minimalLibReference = "Library/SpecificationLibraryDraftVersion-1-0-0";
 	private final List<String> badVersionList = Arrays.asList(
@@ -71,16 +68,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		"",
 		null
 	);
-	private EndpointCredentials endpointCredentials;
-
-//	 @BeforeAll
-//	 public void init() {
-//	 	String apiKey = environment.getProperty("vsacapikey");
-//	 	EndpointCredentials ec = new EndpointCredentials();
-//	 	ec.setUsername(new StringType("apikey"));
-//	 	ec.setApiKey(new StringType(apiKey));
-//	 	endpointCredentials = ec;
-//	 }
+	private Endpoint endpointCredentials = new Endpoint();
 
 	@Test
 	void draftOperation_test() {
@@ -741,7 +729,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				.returnResourceType(Bundle.class)
 				.execute();
 		} catch (UnprocessableEntityException e) {
-			// TODO: handle exception
 			noConditionExtension = e;
 		}
 		assertNotNull(noConditionExtension);
@@ -1491,7 +1478,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				.returnResourceType(Bundle.class)
 				.execute();
 		} catch (UnprocessableEntityException e) {
-			// TODO: handle exception
 			noConditionExtension = e;
 		}
 		assertNotNull(noConditionExtension);
@@ -1659,6 +1645,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.collect(Collectors.toList());
 	}
 
+	@Test
 	void basic_artifact_diff() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Bundle bundle = (Bundle) loadTransaction("small-drafted-ersd-bundle.json");
@@ -1667,7 +1654,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
-
+		// we don't need a terminology endpoint if compareExecutable == false because no
+		// valuesets need to be expanded
 		Parameters returnedParams = getClient().operation()
 			.onServer()
 			.named("artifact-diff")
@@ -1687,7 +1675,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"Library.relatedArtifact[4].resource"  // DXTC Grouper version update
 		);
 		List<String> libraryDeletedPaths = List.of(
-			"Library.relatedArtifact[5]"  // deleted DXTC leaf VS
+			"Library.relatedArtifact[5]",  // deleted DXTC leaf VS
+			"Library.relatedArtifact[3].extension[1]"  // deleted condition
 		);
 		List<String> libraryInsertedPaths = List.of(
 			"Library.relatedArtifact"  // new DXTC leaf VS
@@ -1742,7 +1731,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareComputable", new BooleanType(true));
-
+		// we don't need a terminology endpoint if compareExecutable == false because no
+		// valuesets need to be expanded
 		Parameters returnedParams = getClient().operation()
 			.onServer()
 			.named("$artifact-diff")
@@ -1773,14 +1763,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void artifact_diff_compare_executable() {
 		loadTransaction("ersd-small-active-bundle.json");
-		Bundle bundle = (Bundle) loadTransaction("small-drafted-ersd-bundle.json");
+		var bundle = (Bundle) loadTransaction("small-drafted-ersd-bundle.json");
 		Optional<Bundle.BundleEntryComponent> maybeLib = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst();
 		loadResource("artifactAssessment-search-parameter.json");
-		Parameters diffParams = new Parameters();
+		var diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareExecutable", new BooleanType(true));
-
+		// only testing local expansion currently
+		// diffParams.addParameter()
+		// 		.setName("terminologyEndpoint")
+		// 		.setResource(endpointCredentials);
 		Parameters returnedParams = getClient().operation()
 			.onServer()
 			.named("$artifact-diff")
@@ -1809,7 +1802,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
-		
+		// only testing local expansion currently
+				// diffParams.addParameter()
+				// 		.setName("terminologyEndpoint")
+				// 		.setResource(endpointCredentials);
 		return diffParams;
 	}
 
@@ -1845,7 +1841,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				assertTrue(pageExists);
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 			expectNoException = e;
 		}
 		assertNull(expectNoException);
@@ -1935,7 +1930,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				}
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 			expectNoException = e;
 		}
 		assertNull(expectNoException);
@@ -2052,7 +2046,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				}
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 			expectNoException = e;
 		}
 		assertNull(expectNoException);
@@ -2107,7 +2100,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				}
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
 			expectNoException = e;
 		}
 		assertNull(expectNoException);

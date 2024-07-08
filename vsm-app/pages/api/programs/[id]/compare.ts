@@ -4,6 +4,7 @@ import ExcelJS from 'exceljs'
 import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
 import { getGrouperLibrary } from './details/valuesets'
+import { addTerminologyEndpointToParameters } from './package'
 // import changeLogJson from '../../../../test_fixtures/change-log-response.json'
 
 const OPERATION_TYPES = {
@@ -28,6 +29,7 @@ type ChangeValue = {
   system?: string
   code?: string
   memberOid?: string
+  codeSystemOid?: string
 }
 
 type CollectedChangeMap = {
@@ -91,7 +93,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
 }
 
 const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
-  const input = JSON.stringify({
+  const parameters: fhir4.Parameters = {
     resourceType: 'Parameters',
     parameter: [
       {
@@ -104,14 +106,16 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
       },
       {
         name: 'compareComputable',
-        valueBoolean: 'true'
+        valueBoolean: true
       },
       {
         name: 'compareExecutable',
-        valueBoolean: 'true'
+        valueBoolean: true
       }
     ]
-  })
+  }
+  // TODO: need to have an ID on this because of a bug in the string parsing
+  const input = JSON.stringify(addTerminologyEndpointToParameters(parameters, process.env.NEXT_PUBLIC_VSAC_BASE_URL + '/ValueSet/1'))
   const changeJson = (await fhirCdrClient.operation({
     name: '$create-changelog',
     input,
@@ -319,8 +323,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
       const fillRows = (data: CollectedChangeMap) => {
         Object.entries(data).forEach(([key, value]) => {
           value?.forEach((rowValue) => {
-            const { change, display, version, system, code, memberOid } = rowValue
-            rows.push([change, display, version, system, code, memberOid])
+            const { change, display, memberOid, version, code, system, codeSystemOid } = rowValue
+            rows.push([change, display, memberOid, version, code, system, codeSystemOid])
           })
         })
       }
@@ -343,7 +347,8 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
             { name: 'OID', filterButton: true },
             { name: 'Version', filterButton: true },
             { name: 'Code', filterButton: true },
-            { name: 'Code System', filterButton: true }
+            { name: 'Code System', filterButton: true },
+            { name: 'Code System OID', filterButton: true }
           ],
           rows
         })

@@ -15,9 +15,10 @@ import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
-import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
+import { ProgramApiResponse } from '../api/programs'
+import TextLink from '@/components/TextLink'
 
 const Col = styled.div`
   display: flex;
@@ -54,12 +55,7 @@ interface Error {
   error?: string
 }
 
-interface ProgramListResponse {
-  programs: fhir4.Library[]
-  total: number
-}
-
-interface PaginationState {
+export interface PaginationState {
   page: number
   countPerPage: number
   searchTotal: number | null
@@ -93,7 +89,7 @@ const Programs: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
-  const { data = {}, mutate } = useSWR(
+  const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
     {
       url: '/api/programs',
       args: {
@@ -102,11 +98,17 @@ const Programs: NextPage = () => {
         count: pagination?.countPerPage
       }
     },
-    fetchWithProgram,
+    (args) =>
+      fetchWithProgram(args).then((resp: ProgramApiResponse) => {
+        if ('error' in resp) {
+          setError(resp)
+          return
+        }
+        return resp
+      }),
     { revalidateOnFocus: false }
   )
-  const { programs, total } = data as ProgramListResponse
-
+  const { programs, total } = data
   useEffect(() => {
     if (total !== pagination?.searchTotal) {
       setPagination({ ...pagination, searchTotal: total })
@@ -188,7 +190,14 @@ const Programs: NextPage = () => {
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         maxWidth: '8rem',
-        wrap: true
+        wrap: true,
+        cell: (row: fhir4.Library) => (
+          <TextLink
+          href={`/programs/${row.id}`}
+          linkText={row.id}
+          forceReload={false}
+        />
+        )
       },
       {
         name: 'Title',
@@ -353,8 +362,6 @@ const Programs: NextPage = () => {
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
         highlightOnHover={true}
-        onRowClicked={(row) => router.push(`/programs/${row.id}`)}
-        customStyles={customTableStyles('clickable')}
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
       />

@@ -8,6 +8,8 @@ import ca.uhn.fhir.jpa.patch.FhirPatch;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
 import org.opencds.cqf.ruler.ImportBundleProducer;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -28,12 +30,10 @@ import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.adapter.IDependencyInfo;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.time.Instant;
+import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +50,7 @@ public class KnowledgeArtifactProcessor {
 			TransformProperties.vsmCondition
 		);
 
-	private MetadataResource retrieveResourcesByCanonical(String reference, Repository hapiFhirRepository) throws ResourceNotFoundException {
+	private static MetadataResource retrieveResourcesByCanonical(String reference, Repository hapiFhirRepository) throws ResourceNotFoundException {
 		var referencedResourceBundle = SearchHelper.searchRepositoryByCanonicalWithPaging(hapiFhirRepository, reference);
 		var referencedResource = KnowledgeArtifactAdapter.findLatestVersion(referencedResourceBundle);
 		if (referencedResource.isEmpty()) {
@@ -206,7 +206,9 @@ public class KnowledgeArtifactProcessor {
 				return n;
 			});
 	}
-	public Parameters artifactDiff(MetadataResource theSourceLibrary, MetadataResource theTargetLibrary, FhirContext theContext, Repository hapiFhirRepository, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao, diffCache cache) throws UnprocessableEntityException {
+	public static Parameters artifactDiff(MetadataResource theSourceLibrary, MetadataResource theTargetLibrary, FhirContext theContext, Repository hapiFhirRepository,
+								   boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao, diffCache cache,
+								   Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		// setup
 		var patch = new FhirPatch(theContext);
 		patch.setIncludePreviousValueInDiff(true);
@@ -223,10 +225,10 @@ public class KnowledgeArtifactProcessor {
 		cache.addSource(sourceCanonical, theSourceLibrary);
 		cache.addTarget(targetCanonical, theTargetLibrary);
 		cache.addDiff(sourceCanonical, targetCanonical, libraryDiff);
-		checkForChangesInChildren(libraryDiff, theSourceLibrary, theTargetLibrary, hapiFhirRepository, patch, cache, theContext, compareComputable, compareExecutable,dao);
+		checkForChangesInChildren(libraryDiff, theSourceLibrary, theTargetLibrary, hapiFhirRepository, patch, cache, theContext, compareComputable, compareExecutable, dao, terminologyEndpoint);
 		return libraryDiff;
 	}
-	private Parameters handleRelatedArtifactArrayElementsDiff(MetadataResource theSourceLibrary,MetadataResource theTargetLibrary, FhirPatch patch) {
+	private static Parameters handleRelatedArtifactArrayElementsDiff(MetadataResource theSourceLibrary,MetadataResource theTargetLibrary, FhirPatch patch) {
 		var updateSource = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceLibrary);
 		var updateTarget = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetLibrary);
 		
@@ -244,7 +246,7 @@ public class KnowledgeArtifactProcessor {
 		processedRelatedArtifacts.reorderArrayElements(theSourceLibrary, theTargetLibrary);
 		return updateOperations;
 	}
-	private Parameters diffWithExtensions(KnowledgeArtifactAdapter updateSource, KnowledgeArtifactAdapter updateTarget, additionsAndDeletions<RelatedArtifact> processedRelatedArtifacts, FhirPatch patch) {
+	private static Parameters diffWithExtensions(KnowledgeArtifactAdapter updateSource, KnowledgeArtifactAdapter updateTarget, additionsAndDeletions<RelatedArtifact> processedRelatedArtifacts, FhirPatch patch) {
 		updateSource.setRelatedArtifact(processedRelatedArtifacts.getSourceMatches());
 		updateTarget.setRelatedArtifact(processedRelatedArtifacts.getTargetMatches());
 
@@ -268,14 +270,14 @@ public class KnowledgeArtifactProcessor {
 		}
 		return updateOperations;
 	}
-	private IDomainResource removeRelatedArtifactExtensions(KnowledgeArtifactAdapter resource) {
+	private static IDomainResource removeRelatedArtifactExtensions(KnowledgeArtifactAdapter resource) {
 		var retval = resource.copy();
 		AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(retval).getRelatedArtifact().stream().forEach(ra -> {
 			((RelatedArtifact)ra).setExtension(new ArrayList<>());
 		});
 		return retval;
 	}
-	private boolean ExtensionEquals(Extension source, Extension target) {
+	private static boolean ExtensionEquals(Extension source, Extension target) {
 		if (!source.getValue().getClass().equals(target.getValue().getClass())) {
 			return false;
 		}
@@ -288,7 +290,7 @@ public class KnowledgeArtifactProcessor {
 			return source.equals(target);
 		}
 	}
-	private Parameters advancedValueSetDiff(MetadataResource theSourceValueSet,MetadataResource theTargetValueSet, FhirPatch patch, boolean compareComputable, boolean compareExecutable) {
+	private static Parameters advancedValueSetDiff(MetadataResource theSourceValueSet,MetadataResource theTargetValueSet, FhirPatch patch, boolean compareComputable, boolean compareExecutable) {
 		var updateSource = (ValueSet)theSourceValueSet.copy();
 		var updateTarget = (ValueSet)theTargetValueSet.copy();
 		var composeIncludeProcessed = extractAdditionsAndDeletions(updateSource.getCompose().getInclude(), updateTarget.getCompose().getInclude(), ConceptSetComponent.class);
@@ -327,26 +329,88 @@ public class KnowledgeArtifactProcessor {
 		}
 		return vsDiff;
 	}
-	private void doesValueSetNeedExpansion(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao) {
-		Optional<Date> lastExpanded = Optional.ofNullable(vset.getExpansion()).map(e -> e.getTimestamp());
-		Optional<Date> lastUpdated = Optional.ofNullable(vset.getMeta()).map(m -> m.getLastUpdated());
-		if (lastExpanded.isPresent() && lastUpdated.isPresent() && lastExpanded.get().equals(lastUpdated.get())) {
-			// ValueSet was not changed after last expansion, don't need to update
+	private static void tryExpandValueSet(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, FhirContext theContext, Endpoint terminologyEndpoint, Repository repository) {
+		if (!wasValueSetChangedSinceLastExpansion(vset)) {
+			// ValueSet was not changed since last expansion, don't need to update
 			return;
 		} else {
-			// clear obsolete expansion
-			vset.setExpansion(null);
-			ValueSetExpansionOptions options = new ValueSetExpansionOptions();
-			options.setIncludeHierarchy(true);
-
-			ValueSet e = dao.expand(vset,options);
-			// we need to do this because dao.expand sets the expansion to a subclass and then that breaks the FhirPatch
-			// `copy` creates the superclass again
-			vset.setExpansion(e.getExpansion().copy());
-			return;
+			var ts = new TerminologyServerClient(theContext);
+			var username = Optional.ofNullable(terminologyEndpoint).map(te -> te.getExtensionByUrl("vsacUsername")).map(e -> e.getValue()).map(v -> v.toString());
+			var password = Optional.ofNullable(terminologyEndpoint).map(te -> te.getExtensionByUrl("apiKey")).map(e -> e.getValue()).map(v -> v.toString());
+			var address = Optional.ofNullable(terminologyEndpoint).map(te -> te.getAddress());
+			if (isGrouper(vset)) {
+				var exp = new ValueSet.ValueSetExpansionComponent();
+				for (final var leaf : vset.getCompose().getInclude()) {
+					if (leaf.hasValueSet()) {
+						var canonical = leaf.getValueSet().get(0);
+						try {
+							ValueSet expanded;
+							if (terminologyEndpoint != null) {
+								expanded = vsacExpandOrFallbackToNaive(canonical, ts, address.get(), username.get(), password.get(), repository, dao);
+							} else {
+								expanded = naiveExpand(null, dao, canonical.getValue(), repository);
+							}
+							exp.getContains().addAll(expanded.getExpansion().getContains());
+						} catch (ResourceNotFoundException e) {
+							// TODO: handle exception
+						}
+					}
+				}
+				vset.setExpansion(exp);
+			} else {
+				try {
+					ValueSet exp;
+					if (terminologyEndpoint != null) {
+						exp = vsacExpandOrFallbackToNaive(vset, ts, address.get(), username.get(), password.get(), repository, dao);
+					} else {
+						exp = naiveExpand(vset, dao, null, repository);
+					}
+					vset.setExpansion(exp.getExpansion().copy());	
+				} catch (ResourceNotFoundException e) {
+					// TODO: handle exception
+				}
+			}
 		}
 	}
-
+	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
+		try {
+			var urlAndVersionParams = new Parameters();
+			urlAndVersionParams.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
+			urlAndVersionParams.addParameter("valueSetVersion", Canonicals.getVersion(canonical));
+			return ts.expand(new ValueSet(), address, urlAndVersionParams, username, password);
+		} catch (ResourceNotFoundException e) {
+			return naiveExpand(null, dao, canonical.getValue(), repository);
+		}
+	}
+	public static String extractCanonicalFromValueSet(ValueSet valueSet) {
+		var canonicalString = valueSet.getUrl();
+		if (valueSet.hasVersion()) {
+			canonicalString += "|" + valueSet.getVersion();
+		}
+		return canonicalString;
+	}
+	public static ValueSet vsacExpandOrFallbackToNaive(ValueSet valueSet, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
+		return vsacExpandOrFallbackToNaive(new CanonicalType(extractCanonicalFromValueSet(valueSet)), ts, address, username, password, repository, dao);
+	}
+	private static boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
+		Optional<Date> lastExpanded = Optional.ofNullable(valueSet.getExpansion()).map(e -> e.getTimestamp());
+		Optional<Date> lastUpdated = Optional.ofNullable(valueSet.getMeta()).map(m -> m.getLastUpdated());
+		// if lastExpanded after lastUpdated then we know the VS was NOT changed since the last expansion
+		return !(lastExpanded.isPresent() && lastUpdated.isPresent() && (lastExpanded.get().after(lastUpdated.get())));
+	}
+	private static ValueSet naiveExpand(ValueSet vset, IFhirResourceDaoValueSet<ValueSet> dao, String canonical, Repository repository) throws ResourceNotFoundException{
+		ValueSet expanded = null;
+		if (vset != null) {
+			expanded = vset.copy();
+		} else {
+			expanded = (ValueSet) retrieveResourcesByCanonical(canonical, repository);
+		}
+		var options = new ValueSetExpansionOptions();
+		options.setFailOnMissingCodeSystem(false);
+		expanded = dao.expand(expanded, options);
+		expanded.setExpansion(expanded.getExpansion().copy());
+		return expanded;
+	}
 	public static class diffCache {
 		private final Map<String,Parameters> diffs = new HashMap<String,Parameters>();
 		private final Map<String,DiffCacheResource> resources = new HashMap<String,DiffCacheResource>();
@@ -393,7 +457,7 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 	}
-	private void fixDeletePathIndexesAndAddValues(List<ParametersParameterComponent> parameters, int newStart, IBaseResource sourceResource) {
+	private static void fixDeletePathIndexesAndAddValues(List<ParametersParameterComponent> parameters, int newStart, IBaseResource sourceResource) {
 		for (int i = 0; i < parameters.size(); i++) {
 			ParametersParameterComponent parameter = parameters.get(i);
 			Optional<ParametersParameterComponent> path = parameter.getPart().stream()
@@ -436,7 +500,7 @@ public class KnowledgeArtifactProcessor {
 			}
 		};
 	}
-	private void fixRelatedArtifactExtensionDiffPaths(List<ParametersParameterComponent> parameters, String resourceType, int relatedArtifactIndex) {
+	private static void fixRelatedArtifactExtensionDiffPaths(List<ParametersParameterComponent> parameters, String resourceType, int relatedArtifactIndex) {
 		for (int i = 0; i < parameters.size(); i++) {
 			var parameter = parameters.get(i);
 			Optional<ParametersParameterComponent> path = parameter.getPart().stream()
@@ -453,13 +517,13 @@ public class KnowledgeArtifactProcessor {
 				}
 			};
 	}
-	private String removeBase(EncodeContextPath path) {
+	private static String removeBase(EncodeContextPath path) {
 		return path.getPath().subList(1, path.getPath().size())
 		.stream()
 		.map(t -> t.toString())
 		.collect(Collectors.joining("."));
 	}
-	private void fixInsertPathIndexes (List<ParametersParameterComponent> parameters, int newStart) {
+	private static void fixInsertPathIndexes (List<ParametersParameterComponent> parameters, int newStart) {
 		int opCounter = 0;
 		for (ParametersParameterComponent parameter:parameters) {
 			// ParametersParameterComponent parameter = parameters.get(i);
@@ -597,7 +661,9 @@ public class KnowledgeArtifactProcessor {
 			}
 		};
 	}
-	private void checkForChangesInChildren(Parameters baseDiff, MetadataResource theSourceBase, MetadataResource theTargetBase, Repository hapiFhirRepository, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) throws UnprocessableEntityException {
+	private static void checkForChangesInChildren(Parameters baseDiff, MetadataResource theSourceBase, MetadataResource theTargetBase, Repository hapiFhirRepository,
+										   FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,
+										   IFhirResourceDaoValueSet<ValueSet> dao, Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		// get the references in both the source and target
 		var targetReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
 		var sourceReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
@@ -608,8 +674,8 @@ public class KnowledgeArtifactProcessor {
 				var targetCanonical = combinedReferenceList.getTargetMatches().get(i).getResource();
 				boolean diffNotAlreadyComputedAndPresent = baseDiff.getParameter(Canonicals.getUrl(targetCanonical)) == null;
 				if (diffNotAlreadyComputedAndPresent) {
-					var source = checkOrUpdateResourceCache(sourceCanonical, cache, hapiFhirRepository, dao, true);
-					var target = checkOrUpdateResourceCache(targetCanonical, cache, hapiFhirRepository, dao, false);
+					var source = checkOrUpdateResourceCache(sourceCanonical, cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint, compareExecutable);
+					var target = checkOrUpdateResourceCache(targetCanonical, cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint, compareExecutable);
 					// need to do something smart here to expand the executable or computable resources
 					checkOrUpdateDiffCache(sourceCanonical, targetCanonical, source, target, patch, cache, ctx, compareComputable, compareExecutable, dao)
 						.ifPresentOrElse(diffToAppend -> {
@@ -617,7 +683,7 @@ public class KnowledgeArtifactProcessor {
 							component.setName(Canonicals.getUrl(sourceCanonical));
 							component.setResource(diffToAppend);
 							// check for changes in the children of those as well
-							checkForChangesInChildren(diffToAppend, source, target, hapiFhirRepository, patch, cache, ctx, compareComputable, compareExecutable, dao);
+							checkForChangesInChildren(diffToAppend, source, target, hapiFhirRepository, patch, cache, ctx, compareComputable, compareExecutable, dao, terminologyEndpoint);
 						},
 						() -> {
 							if (target == null) {
@@ -640,7 +706,7 @@ public class KnowledgeArtifactProcessor {
 					var component = baseDiff.addParameter();
 					component.setName(Canonicals.getUrl(addition.getResource()));
 					component.setValue(new StringType("Related artifact was inserted"));
-					checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false);
+					checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint, compareExecutable);
 				}
 			}
 		}
@@ -651,12 +717,12 @@ public class KnowledgeArtifactProcessor {
 					var component = baseDiff.addParameter();
 					component.setName(Canonicals.getUrl(deletion.getResource()));
 					component.setValue(new StringType("Related artifact was deleted"));
-					checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true);
+					checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint, compareExecutable);
 				}
 			}
 		}
 	}
-	private <T> additionsAndDeletions<T> extractAdditionsAndDeletions(List<T> source, List<T> target, Class<T> t) {
+	private static <T> additionsAndDeletions<T> extractAdditionsAndDeletions(List<T> source, List<T> target, Class<T> t) {
 		List<T> sourceCopy = new ArrayList<T>(source);
 		List<T> targetCopy = new ArrayList<T>(target);
 		// this is n^2 with Lists but can be nlog(n) if we use TreeSets
@@ -708,10 +774,10 @@ public class KnowledgeArtifactProcessor {
 		});
 		return new additionsAndDeletions<T>(sourceMatches,targetMatches,insertions,deletions,t);
 	}
-	private boolean relatedArtifactEquals(RelatedArtifact ref1, RelatedArtifact ref2) {
+	private static boolean relatedArtifactEquals(RelatedArtifact ref1, RelatedArtifact ref2) {
 		return Canonicals.getUrl(ref1.getResource()).equals(Canonicals.getUrl(ref2.getResource())) && ref1.getType() == ref2.getType();
 	}
-	private boolean conceptSetEquals(ConceptSetComponent ref1, ConceptSetComponent ref2) {
+	private static boolean conceptSetEquals(ConceptSetComponent ref1, ConceptSetComponent ref2) {
 		// consider any includes which share at least 1 URL
 		if (ref1.hasValueSet() && ref2.hasValueSet()) {
 			var ref1Urls = ref1.getValueSet().stream().map(CanonicalType::getValue).map(Canonicals::getUrl).collect(Collectors.toList());
@@ -724,21 +790,22 @@ public class KnowledgeArtifactProcessor {
 			return false;
 		}
 	}
-	private boolean ValueSetContainsEquals(ValueSetExpansionContainsComponent ref1, ValueSetExpansionContainsComponent ref2) {
+	private static boolean ValueSetContainsEquals(ValueSetExpansionContainsComponent ref1, ValueSetExpansionContainsComponent ref2) {
 		return ref1.getSystem().equals(ref2.getSystem()) && ref1.getCode().equals(ref2.getCode());
 	}
-	private MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository hapiFhirRepository, IFhirResourceDaoValueSet<ValueSet> dao, boolean isSource) throws UnprocessableEntityException {
+	private static MetadataResource checkOrUpdateResourceCache(String url, diffCache cache, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao,
+														boolean isSource, FhirContext theContext, Endpoint terminologyEndpoint, boolean needsExpandedValueSets) throws UnprocessableEntityException {
 		var resource = cache.getResource(url).orElse(null);
 		if (resource == null) {
 			try {
-				resource = retrieveResourcesByCanonical(url, hapiFhirRepository);
+				resource = retrieveResourcesByCanonical(url, repository);
 			} catch (ResourceNotFoundException e) {
 				// ignore
 			}
 			if (resource != null) {
-				if (resource instanceof ValueSet) {
+				if (resource instanceof ValueSet && needsExpandedValueSets) {
 					try {
-						doesValueSetNeedExpansion((ValueSet)resource, dao);
+						tryExpandValueSet((ValueSet)resource, dao, theContext, terminologyEndpoint, repository);
 					} catch (Exception e) {
 						throw new UnprocessableEntityException("Could not expand ValueSet: " + e.getMessage());
 					}
@@ -752,7 +819,7 @@ public class KnowledgeArtifactProcessor {
 		}
 		return resource;
 	}
-	private Optional<Parameters> checkOrUpdateDiffCache(String sourceCanonical, String targetCanonical, MetadataResource source, MetadataResource target, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) {
+	private static Optional<Parameters> checkOrUpdateDiffCache(String sourceCanonical, String targetCanonical, MetadataResource source, MetadataResource target, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) {
 		var retval = cache.getDiff(sourceCanonical, targetCanonical);
 		if (retval == null && source != null && target != null) {
 			if (target != null) {
@@ -769,7 +836,7 @@ public class KnowledgeArtifactProcessor {
 		return Optional.ofNullable(retval);
 	}
 	/* $revise */
-	public MetadataResource revise(Repository hapiFhirRepository, MetadataResource resource) {
+	public static MetadataResource revise(Repository hapiFhirRepository, MetadataResource resource) {
 		var existingResource = (MetadataResource)SearchHelper.readRepository(hapiFhirRepository, resource.getIdElement());
 		if (existingResource == null) {
 			throw new IllegalArgumentException(String.format("Resource with ID: '%s' not found.", resource.getId()));
@@ -787,7 +854,7 @@ public class KnowledgeArtifactProcessor {
 
 		return resource;
 	}
-	private class additionsAndDeletions<T> {
+	private static class additionsAndDeletions<T> {
 		private List<T> mySourceMatches;
 		private List<T> myTargetMatches;
 		private List<T> myInsertions;
@@ -889,7 +956,7 @@ public class KnowledgeArtifactProcessor {
 			fixInsertPathIndexes(insertions.getParameter(), theStartIndex);
 			theBase.getParameter().addAll(insertions.getParameter());
 		}
-		private void appendDeleteOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
+		private static void appendDeleteOperations(Parameters theBase, IBaseResource theSource,IBaseResource theTarget, FhirPatch thePatch, int theStartIndex) {
 			var deletions = (Parameters) thePatch.diff(theSource,theTarget);
 			fixDeletePathIndexesAndAddValues(deletions.getParameter(), theStartIndex, theSource);
 			theBase.getParameter().addAll(deletions.getParameter());

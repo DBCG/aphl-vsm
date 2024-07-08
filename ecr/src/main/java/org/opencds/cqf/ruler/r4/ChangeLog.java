@@ -32,8 +32,8 @@ public class ChangeLog {
     Map<String, ValueSetChild.Code> codeMap = new HashMap<String, ValueSetChild.Code>();
     updateCodeMap(codeMap, theSourceResource, cache);
     updateCodeMap(codeMap, theTargetResource, cache);
-    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap);
-    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap);
+    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap);
+    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap);
     var url = theTargetResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
@@ -45,7 +45,7 @@ public class ChangeLog {
       valueSet.getCompose().getInclude()
         .forEach(concept -> {
           if (concept.hasConcept()) {
-            mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()));
+            mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
           }
           if (concept.hasValueSet()) {
             concept.getValueSet().stream()
@@ -57,24 +57,25 @@ public class ChangeLog {
     }
 
   }
-  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source){
+  // can this be done with a fhir operation? tx server work?
+  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String url){
       var system = concept.getSystem();
       var id = concept.getId();
       var version = concept.getVersion();
       concept.getConcept()
-      .stream()
-      .filter(ValueSet.ConceptReferenceComponent::hasCode)
-      .forEach(conceptReference -> {
-        var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, null);
-        codeMap.put(conceptReference.getCode(), code);
-      });
+        .stream()
+        .filter(ValueSet.ConceptReferenceComponent::hasCode)
+        .forEach(conceptReference -> {
+          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, url, null);
+          codeMap.put(conceptReference.getCode(), code);
+        });
   }
   public Page<LibraryChild> addPage(Library theSourceResource, Library theTargetResource) throws UnprocessableEntityException {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(),Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
-    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(),Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
+    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getUrl(), Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
+    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getUrl(), Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
     var url = theTargetResource.getUrl();
     var page = new Page<LibraryChild>(url, oldData, newData);
     this.pages.add(page);
@@ -84,8 +85,8 @@ public class ChangeLog {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion());
-    var newData = new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion());
+    var oldData = new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl());
+    var newData = new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl());
     var url = theTargetResource.getUrl();
     var page = new Page<PlanDefinitionChild>(url, oldData, newData);
     this.pages.add(page);
@@ -108,25 +109,27 @@ public class ChangeLog {
           if (page.oldData instanceof ValueSetChild) {
             for (final var ra: manifestOldData.relatedArtifacts) {
               ((ValueSetChild)page.oldData).leafValuesets.stream()
-                .filter(g -> g.memberOid != null && g.memberOid.equals(Canonicals.getIdPart(ra.targetUrl)))
-                .forEach(g -> {
+                .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
+                .forEach(leafValueSet -> {
                   ra.conditions.forEach(condition -> {
                     if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
                       var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      g.conditions.add(new ValueSetChild.Code(
+                      leafValueSet.conditions.add(new ValueSetChild.Code(
                         coding.getId(), 
                         coding.getSystem(), 
                         coding.getCode(), 
                         coding.getVersion(), 
                         coding.getDisplay(), 
-                        null, 
+                        null,
+                        null,
+                        null,
                         condition.operation));
                     }
                   });
                   if (ra.priority.value != null && ra.priority.value.hasValue()) {
                     var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    g.priority.value = coding.getCode();
-                    g.priority.operation = ra.priority.operation;
+                    leafValueSet.priority.value = coding.getCode();
+                    leafValueSet.priority.operation = ra.priority.operation;
                   }
                 });
             }
@@ -134,25 +137,27 @@ public class ChangeLog {
           if (page.newData instanceof ValueSetChild) {
             for (final var ra: manifestNewData.relatedArtifacts) {
               ((ValueSetChild)page.newData).leafValuesets.stream()
-                .filter(g -> g.memberOid != null && g.memberOid.equals(Canonicals.getIdPart(ra.targetUrl)))
-                .forEach(g -> {
+                .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
+                .forEach(leafValueSet -> {
                   ra.conditions.forEach(condition -> {
                     if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
                       var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      g.conditions.add(new ValueSetChild.Code(
+                      leafValueSet.conditions.add(new ValueSetChild.Code(
                         coding.getId(), 
                         coding.getSystem(), 
                         coding.getCode(), 
                         coding.getVersion(), 
                         coding.getDisplay(), 
                         null, 
+                        null,
+                        null,
                         condition.operation));
                     }
                   });
                   if (ra.priority.value != null && ra.priority.value.hasValue()) {
                     var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    g.priority.value = coding.getCode();
-                    g.priority.operation = ra.operation;
+                    leafValueSet.priority.value = coding.getCode();
+                    leafValueSet.priority.operation = ra.operation;
                   }
                 });
             }
@@ -171,17 +176,17 @@ public class ChangeLog {
         this.oldData = oldData;
         this.newData = newData;
       }
-      void addOperation(String type, String path, Object newValue, Object original, ChangeLog parent) {
+      void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
         if (type != null) {
           switch (type) {
             case "replace":
-              addReplaceOperation(type, path, newValue, original, parent);
+              addReplaceOperation(type, path, currentValue, originalValue, parent);
               break;
             case "delete":
-              addDeleteOperation(type, path, null, original, parent);
+              addDeleteOperation(type, path, null, originalValue, parent);
               break;
             case "insert":
-              addInsertOperation(type, path, newValue, null, parent);
+              addInsertOperation(type, path, currentValue, null, parent);
               break;
             default:
               throw new UnprocessableEntityException("Unknown type provided when adding an operation to the ChangeLog");
@@ -190,24 +195,24 @@ public class ChangeLog {
           throw new UnprocessableEntityException("Type must be provided when adding an operation to the ChangeLog");
         }
       }
-      void addInsertOperation(String type, String path, Object newValue, Object original, ChangeLog parent) {
+      void addInsertOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
         if (type != "insert") {
           throw new UnprocessableEntityException("wrong type");
         }
-        this.newData.addOperation(type, path, newValue, original, parent);
+        this.newData.addOperation(type, path, currentValue, originalValue, parent);
       }
-      void addDeleteOperation(String type, String path, Object value, Object original, ChangeLog parent) {
+      void addDeleteOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
         if (type != "delete") {
           throw new UnprocessableEntityException("wrong type");
         }
-        this.oldData.addOperation(type, path, value, original, parent);
+        this.oldData.addOperation(type, path, currentValue, originalValue, parent);
       }
-      void addReplaceOperation(String type, String path, Object value, Object original, ChangeLog parent) {
+      void addReplaceOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
         if (type != "replace") {
           throw new UnprocessableEntityException("wrong type");
         }
-        this.oldData.addOperation(type, path, value, null, parent);
-        this.newData.addOperation(type, path, null, original, parent);
+        this.oldData.addOperation(type, path, currentValue, null, parent);
+        this.newData.addOperation(type, path, null, originalValue, parent);
       }
   }
   public static class ValueAndOperation {
@@ -236,15 +241,15 @@ public class ChangeLog {
       this.oldValue = original;
       this.newValue = newValue;
     }
-    Operation(String type, String path, Object newValue, Object original) {
+    Operation(String type, String path, Object newValue, Object originalValue) {
       this.type = type;
       this.path = path;
-      if (original instanceof IPrimitiveType) {
-        this.oldValue = ((IPrimitiveType)original).getValue();
-      } else if (original instanceof IBase) {
-        this.oldValue = original;
-      } else if (original != null) {
-        this.oldValue = original.toString();
+      if (originalValue instanceof IPrimitiveType) {
+        this.oldValue = ((IPrimitiveType)originalValue).getValue();
+      } else if (originalValue instanceof IBase) {
+        this.oldValue = originalValue;
+      } else if (originalValue != null) {
+        this.oldValue = originalValue.toString();
       }
       if (newValue instanceof IPrimitiveType) {
         this.newValue = ((IPrimitiveType)newValue).getValue();
@@ -260,8 +265,10 @@ public class ChangeLog {
     public ValueAndOperation title  = new ValueAndOperation();
     public ValueAndOperation id = new ValueAndOperation();
     public ValueAndOperation version = new ValueAndOperation();
+    public ValueAndOperation name = new ValueAndOperation();
+    public ValueAndOperation url = new ValueAndOperation();
     public String resourceType;
-    PageBase(String title, String id, String version) {
+    PageBase(String title, String id, String version, String name, String url) {
       if (!StringUtils.isEmpty(title)) {
         this.title.value = title;
       }
@@ -271,10 +278,16 @@ public class ChangeLog {
       if (!StringUtils.isEmpty(version)) {
         this.version.value = version;
       }
+      if (!StringUtils.isEmpty(name)) {
+        this.name.value = name;
+      }
+      if (!StringUtils.isEmpty(url)) {
+        this.url.value = url;
+      }
     }
-    public void addOperation(String type, String path, Object newValue, Object original, ChangeLog parent) {
+    public void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
       if (type != null) {
-        var newOp = new Operation(type, path, newValue, original);
+        var newOp = new Operation(type, path, currentValue, originalValue);
         if (path.equals("id")) {
           this.id.setOperation(newOp);
         } else if (path.contains("title")) {
@@ -298,8 +311,10 @@ public class ChangeLog {
       public String display;
       public String memberOid;
       public String codeSystemOid;
+      public String parentValueSetName;
+      public String parentValueSetUrl;
       public Operation operation;
-      Code(String id, String system, String code, String version, String display, String memberOid, Operation operation) {
+      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetUrl, Operation operation) {
         this.id = id;
         this.system = system;
         if (system != null) {
@@ -310,6 +325,8 @@ public class ChangeLog {
         this.display = display;
         this.memberOid = memberOid;
         this.operation = operation;
+        this.parentValueSetName = parentValueSetName;
+        this.parentValueSetUrl = parentValueSetUrl;
       }
       public String getCodeSystemOid(String systemUrl) {
         if (system.contains("snomed")) {
@@ -341,17 +358,18 @@ public class ChangeLog {
     }
     public static class Leaf {
       public String memberOid;
+      public String name;
+      public String url;
       public List<Code> conditions = new ArrayList<Code>();
       public ValueAndOperation priority = new ValueAndOperation();
       public Operation operation;
     }
-    ValueSetChild(String title, String id, String version, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap) {
-      super(title, id, version);
+    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap) {
+      super(title, id, version, name, url);
       if (contains != null) {
         contains.forEach(contained -> {
           if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
-            var code = codeMap.get(contained.getCode());
-            this.codes.add(new Code(code.id, code.system, code.code, code.version, code.display, code.memberOid, code.operation));
+            this.codes.add(codeMap.get(contained.getCode()));
           }
         });
       }
@@ -367,11 +385,6 @@ public class ChangeLog {
             this.leafValuesets.add(leaf);
           });
       }
-    }
-    public Code addCode(String id, String system, String code, String version, String memberOid, String display) {
-      var newCodeObj = new Code(id, system, code, version, display, memberOid, null);
-      this.codes.add(newCodeObj);
-      return newCodeObj;
     }
     @Override
     public void addOperation(String type, String path, Object newValue, Object originalValue, ChangeLog parent) {
@@ -427,14 +440,12 @@ public class ChangeLog {
   }
   public static class PlanDefinitionChild extends PageBase {
     public final String resourceType = "PlanDefinition";
-    PlanDefinitionChild(String title, String id, String version) {
-      super(title, id, version);
+    PlanDefinitionChild(String title, String id, String version, String name, String url) {
+      super(title, id, version, name, url);
     }
   }
-  public static class RelatedArtifactWithOperation {
-    public RelatedArtifact value;
-    public Operation operation;
-    public String targetUrl;
+  public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
+    public RelatedArtifact fullRelatedArtifact;
     public List<extensionWithOperation> conditions = new ArrayList<>();
     public extensionWithOperation priority = new extensionWithOperation(null);
     public static class extensionWithOperation {
@@ -444,33 +455,29 @@ public class ChangeLog {
         this.value = e;
       }
     }
-    RelatedArtifactWithOperation(RelatedArtifact value) {
-      if (value != null) {
-        this.targetUrl = value.getResource();
-        this.conditions = value.getExtensionsByUrl(TransformProperties.vsmCondition).stream()
+    RelatedArtifactUrlWithOperation(RelatedArtifact relatedArtifact) {
+      if (relatedArtifact != null) {
+        this.value = relatedArtifact.getResource();
+        this.conditions = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmCondition).stream()
           .map(e -> new extensionWithOperation(e)).collect(Collectors.toList());
-        var priorities = value.getExtensionsByUrl(TransformProperties.vsmPriority);
+        var priorities = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmPriority);
         if (priorities.size() > 1) {
           throw new UnprocessableEntityException("too many priorities");
         } else if (priorities.size() == 1) {
           this.priority.value = priorities.get(0);
         }
       }
-      this.value = value;
+      this.fullRelatedArtifact = relatedArtifact;
     }
   }
   public static class LibraryChild extends PageBase {
     public final String resourceType = "Library";
-    public ValueAndOperation name = new ValueAndOperation();
     public ValueAndOperation purpose = new ValueAndOperation();
     public ValueAndOperation effectiveStart = new ValueAndOperation();
     public ValueAndOperation releaseDate = new ValueAndOperation();
-    public List<RelatedArtifactWithOperation> relatedArtifacts = new ArrayList<>();
-    LibraryChild(String name, String purpose, String title, String id, String version, String effectiveStart, String releaseDate, List<RelatedArtifact> relatedArtifacts) {
-      super(title, id, version);
-      if (!StringUtils.isEmpty(name)) {
-        this.name.value = name;
-      }
+    public List<RelatedArtifactUrlWithOperation> relatedArtifacts = new ArrayList<>();
+    LibraryChild(String name, String purpose, String title, String id, String version, String url, String effectiveStart, String releaseDate, List<RelatedArtifact> relatedArtifacts) {
+      super(title, id, version, name, url);
       if (!StringUtils.isEmpty(purpose)) {
         this.purpose.value = purpose;
       }
@@ -481,13 +488,13 @@ public class ChangeLog {
         this.releaseDate.value = releaseDate;
       }
       if (!relatedArtifacts.isEmpty()) {
-        relatedArtifacts.forEach(ra -> this.relatedArtifacts.add(new RelatedArtifactWithOperation(ra)));
+        relatedArtifacts.forEach(ra -> this.relatedArtifacts.add(new RelatedArtifactUrlWithOperation(ra)));
       }
     }
-    private Optional<RelatedArtifactWithOperation> getRelatedArtifactFromUrl(String target) {
-      return this.relatedArtifacts.stream().filter(ra -> ra.targetUrl != null && ra.targetUrl.equals(target)).findAny();
+    private Optional<RelatedArtifactUrlWithOperation> getRelatedArtifactFromUrl(String target) {
+      return this.relatedArtifacts.stream().filter(ra -> ra.value != null && ra.value.equals(target)).findAny();
     }
-    private void tryAddConditionOperation(Extension maybeCondition, RelatedArtifactWithOperation target, Operation newOperation) {
+    private void tryAddConditionOperation(Extension maybeCondition, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybeCondition.getUrl().equals(TransformProperties.vsmCondition)) {
         target.conditions.stream()
           .filter(e -> e.value.getUrl().equals(TransformProperties.vsmCondition)
@@ -501,7 +508,7 @@ public class ChangeLog {
           });
       }
     }
-    private void tryAddPriorityOperation(Extension maybePriority, RelatedArtifactWithOperation target, Operation newOperation) {
+    private void tryAddPriorityOperation(Extension maybePriority, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybePriority.getUrl().equals(TransformProperties.vsmPriority)) {
         if (target.priority.value != null
           && target.priority.value.getUrl().equals(TransformProperties.vsmPriority)
@@ -514,16 +521,16 @@ public class ChangeLog {
       }
     }
     @Override
-    public void addOperation(String type, String path, Object value, Object original, ChangeLog parent) {
+    public void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
       if(type != null) {
-        super.addOperation(type, path, value, original, parent);
-        var newOperation = new Operation(type, path, value, original);
-        Optional<RelatedArtifactWithOperation> operationTarget = Optional.ofNullable(null);
+        super.addOperation(type, path, currentValue, originalValue, parent);
+        var newOperation = new Operation(type, path, currentValue, originalValue);
+        Optional<RelatedArtifactUrlWithOperation> operationTarget = Optional.ofNullable(null);
         if (path != null && path.contains("elatedArtifact") ){
-          if (value instanceof RelatedArtifact) {
-            operationTarget = getRelatedArtifactFromUrl(((RelatedArtifact) value).getResource());
-          } else if (original instanceof RelatedArtifact) {
-            operationTarget = getRelatedArtifactFromUrl(((RelatedArtifact) original).getResource());
+          if (currentValue instanceof RelatedArtifact) {
+            operationTarget = getRelatedArtifactFromUrl(((RelatedArtifact) currentValue).getResource());
+          } else if (originalValue instanceof RelatedArtifact) {
+            operationTarget = getRelatedArtifactFromUrl(((RelatedArtifact) originalValue).getResource());
           } else if (path.contains("[")) {
             var matcher = Pattern
 										.compile("relatedArtifact\\[(\\d+)\\]")
@@ -539,16 +546,16 @@ public class ChangeLog {
 										.compile("xtension\\[(\\d+)\\]")
 										.matcher(path);
               if (matcher.find()) {
-                var extension = operationTarget.get().value.getExtension().get(Integer.parseInt(matcher.group(1)));
+                var extension = operationTarget.get().fullRelatedArtifact.getExtension().get(Integer.parseInt(matcher.group(1)));
                 tryAddConditionOperation(extension, operationTarget.orElse(null), newOperation);
                 tryAddPriorityOperation(extension, operationTarget.orElse(null), newOperation);
               }
-            } else if (value instanceof Extension){
-              tryAddConditionOperation((Extension)value, operationTarget.orElse(null), newOperation);
-              tryAddPriorityOperation((Extension)value, operationTarget.orElse(null), newOperation);
-            } else if (original instanceof Extension){
-              tryAddConditionOperation((Extension)original, operationTarget.orElse(null), newOperation);
-              tryAddPriorityOperation((Extension)original, operationTarget.orElse(null), newOperation);
+            } else if (currentValue instanceof Extension){
+              tryAddConditionOperation((Extension)currentValue, operationTarget.orElse(null), newOperation);
+              tryAddPriorityOperation((Extension)currentValue, operationTarget.orElse(null), newOperation);
+            } else if (originalValue instanceof Extension){
+              tryAddConditionOperation((Extension)originalValue, operationTarget.orElse(null), newOperation);
+              tryAddPriorityOperation((Extension)originalValue, operationTarget.orElse(null), newOperation);
             } else {
               operationTarget.get().operation = newOperation;
             }

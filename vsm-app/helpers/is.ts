@@ -1,7 +1,10 @@
 import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from 'pages/api/programs/[id]/grouper/valueset'
 import { HapiHttpErrorRes } from "./server/operationOutcomeHelpers"
-import { ErrorItem } from "@/pages/api/codesystem/provisional"
+
+export interface ErrorItem {
+  error: string
+}
 
 type SemverType = `${number}.${number}.${number}`
 // this regex is numeric only and matches MAJOR.MINOR.PATCH

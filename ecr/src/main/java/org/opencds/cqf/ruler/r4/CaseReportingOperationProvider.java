@@ -7,7 +7,6 @@ import ca.uhn.fhir.cr.common.IRepositoryFactory;
 import ca.uhn.fhir.jpa.api.dao.DaoRegistry;
 import ca.uhn.fhir.jpa.api.dao.IFhirResourceDaoValueSet;
 import ca.uhn.fhir.jpa.validation.ValidatorResourceFetcher;
-import ca.uhn.fhir.model.api.annotation.Child;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.parser.path.EncodeContextPath;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -36,7 +35,6 @@ import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
-import org.opencds.cqf.fhir.api.Repository;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
@@ -52,7 +50,6 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class CaseReportingOperationProvider {
@@ -64,9 +61,6 @@ public class CaseReportingOperationProvider {
 
 	@Autowired
 	private FhirContext fhirContext;
-
-	@Autowired
-	private KnowledgeArtifactProcessor artifactProcessor;
 
 	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
@@ -236,28 +230,6 @@ public class CaseReportingOperationProvider {
 		}
 	}
 
-	private void forEachMetadataResource(List<Bundle.BundleEntryComponent> entries, Consumer<MetadataResource> callback, Repository repository) {
-		entries.stream()
-			.map(entry -> entry.getResponse().getLocation())
-			.map(location -> {
-				switch (location.split("/")[0]) {
-					case "ActivityDefinition":
-						return repository.read(ActivityDefinition.class, new IdType(location));
-					case "Library":
-						return repository.read(Library.class, new IdType(location));
-					case "Measure":
-						return repository.read(Measure.class, new IdType(location));
-					case "PlanDefinition":
-						return repository.read(PlanDefinition.class, new IdType(location));
-					case "ValueSet":
-						return repository.read(ValueSet.class, new IdType(location));
-					default:
-						return null;
-				}
-			})
-			.forEach(callback);
-	}
-
 	@Operation(name = "$package", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$package", value = "Package an artifact and components / dependencies")
 	public Bundle packageOperation(
@@ -341,7 +313,7 @@ public class CaseReportingOperationProvider {
 	public IBaseResource reviseOperation(RequestDetails requestDetails, @OperationParam(name = "resource") IBaseResource resource)
 		throws FHIRException {
 		var repository = repositoryFactory.create(requestDetails);
-		return (IBaseResource) this.artifactProcessor.revise(repository, (MetadataResource) resource);
+		return (IBaseResource) KnowledgeArtifactProcessor.revise(repository, (MetadataResource) resource);
 	}
 
 	@Operation(name = "$validate", idempotent = true, global = true, type = MetadataResource.class)
@@ -400,7 +372,8 @@ public class CaseReportingOperationProvider {
 												  @OperationParam(name = "source") String source,
 												  @OperationParam(name = "target") String target,
 												  @OperationParam(name = "compareExecutable", typeName = "Boolean") IPrimitiveType<Boolean> compareExecutable,
-												  @OperationParam(name = "compareComputable", typeName = "Boolean") IPrimitiveType<Boolean> compareComputable
+												  @OperationParam(name = "compareComputable", typeName = "Boolean") IPrimitiveType<Boolean> compareComputable,
+									   			  @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
 	) throws UnprocessableEntityException, ResourceNotFoundException {
 		var repository = repositoryFactory.create(requestDetails);
 		var sourceId = new IdType(source);
@@ -417,14 +390,17 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("Source and target resources must be of the same type.");
 		}
 		var dao = (IFhirResourceDaoValueSet<ValueSet>) daoRegistry.getResourceDao(ValueSet.class);
-		return this.artifactProcessor.artifactDiff((MetadataResource) theSourceResource, (MetadataResource) theTargetResource, fhirContext, repository, compareComputable == null ? false : compareComputable.getValue(), compareExecutable == null ? false : compareExecutable.getValue(), dao, null);
+		return KnowledgeArtifactProcessor.artifactDiff((MetadataResource) theSourceResource, (MetadataResource) theTargetResource, fhirContext, repository, compareComputable == null ? false : compareComputable.getValue(), compareExecutable == null ? false : compareExecutable.getValue(), dao, null, terminologyEndpoint);
 	}
 
 	@Operation(name = "$create-changelog", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$create-changelog", value = "Create a changelog object which can be easily rendered into a table")
 	public IBaseResource flattenDiffParametersToChangeLogJSON(RequestDetails requestDetails,
 																				 @OperationParam(name = "source") String source,
-																				 @OperationParam(name = "target") String target) {
+																				 @OperationParam(name = "target") String target,
+																				 @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint)
+	{
+		// TODO: check the requestDetails for MIME type and return accordingly
 		// 1) Create Diff Parameters Object as input
 		var cache = new KnowledgeArtifactProcessor.diffCache();
 		var repository = repositoryFactory.create(requestDetails);
@@ -440,10 +416,9 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException("Target resource must exist and be a Libary.");
 		}
 		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
-		var diffParameters = this.artifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache);
+		var diffParameters = KnowledgeArtifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
 		var changelog = new ChangeLog(manifestUrl);
-
 		// 2) Recursively process the Parameters into a flat ChangeLog
 		processChanges(diffParameters.getParameter(), changelog, cache, manifestUrl);
 
@@ -525,11 +500,6 @@ public class CaseReportingOperationProvider {
 					page.addOperation(type, path.orElse(null), newValue.orElse(null), originalValue.orElse(null), changelog);
 				} else {
 					// 5) Ignore the changelog entries for deleted or not owned entries
-					var thing = change;
-					var name = change.getName();
-					var hasResource = change.hasResource();
-					var getResource = change.getResource();
-					var instanceofparam = change.getResource() instanceof Parameters;
 				}
 			}
 		}

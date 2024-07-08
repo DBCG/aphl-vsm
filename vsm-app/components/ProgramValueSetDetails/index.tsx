@@ -24,12 +24,12 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { TableActions } from './TableActions'
 import { NextRouter } from 'next/router'
-import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { USHealthVSPriority, getVSPriority, getVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
+import TextLink from '../TextLink'
 
 const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string, setRefreshErrors: any) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
@@ -210,11 +210,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows([])
   }, [toggleUpdateData])
 
-  const handleUpdateValueSets = async () => {
+  const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
     const canonicalUrls: string[] = []
-    if (progValueSetDets?.groupsInProgram?.length) {
-      for (const grouper of progValueSetDets?.groupsInProgram) {
-        const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+    if (groupsInProgram?.length) {
+      for (const grouper of groupsInProgram) {
+        const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter(i => i) || []) as string[]
         canonicalUrls.push(...urls)
       }
     }
@@ -397,7 +397,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         style: { fontSize: '14px' },
         sortable: false,
         maxWidth: '350px',
-        wrap: true
+        wrap: true,
+        cell: (row: TableRow) => (
+          <TextLink
+          href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
+          linkText={row.title}
+          forceReload={false}
+        />
+        )
       },
       {
         name: (
@@ -731,7 +738,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
             />
           </Tooltip>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets(progValueSetDets?.groupsInProgram)} />
         </div>
           <Button
             text="Code Search"
@@ -799,11 +806,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           pagination
           clearSelectedRows={toggleUpdateData}
           highlightOnHover={true}
-          onRowClicked={(row) => {
-            router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)
-          }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable', { fontSize: '12px' })}
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
         />
