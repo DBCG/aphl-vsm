@@ -91,7 +91,7 @@ const getProvisionalValueSetDataByProgram = async () => {
     const grouperLib = await getGrouperLibrary(programLib)
     const groupers = await getGrouperValuesets(grouperLib as fhir4.Library)
 
-    if (!is.errorObj(groupers)) {
+    if (!is.errorItem(groupers)) {
       for await (const grouperVs of groupers) {
         const leafValueSetCanonicals = getLeafUrlsFromGrouper(grouperVs).filter(x => is.string(x)) as string[]
         const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })

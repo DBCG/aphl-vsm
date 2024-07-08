@@ -8,7 +8,7 @@ import { Button, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { getVsAuthor } from '@/helpers/valueSetHelpers'
-import { formatValuesetDate } from '@/helpers/formatDates'
+import { formatResourceDate } from '@/helpers/formatDates'
 import { VSMSession, can } from '@/helpers/rolesHelper'
 import { useSession } from 'next-auth/react'
 
@@ -48,7 +48,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
       {
         name: 'Last Updated',
-        selector: (row: fhir4.CodeSystem) => formatValuesetDate({ resource: row, dateType: 'lastUpdated'}) || 'No date provided'
+        selector: (row: fhir4.CodeSystem) => formatResourceDate({ resource: row, dateType: 'lastUpdated'}) || 'No date provided'
       },
       {
         name: 'Action',
@@ -100,7 +100,7 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
       },
       {
         name: 'Last Updated',
-        selector: (row: fhir4.ValueSet) => formatValuesetDate({ resource: row, dateType: 'lastUpdated' }) || 'No Date Specified'
+        selector: (row: fhir4.ValueSet) => formatResourceDate({ resource: row, dateType: 'lastUpdated' }) || 'No Date Specified'
       },
       {
         name: 'Action',

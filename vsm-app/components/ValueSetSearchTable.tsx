@@ -16,7 +16,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
-import { formatValuesetDate } from '@/helpers/formatDates'
+import { formatResourceDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
@@ -724,7 +724,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       }
       if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
-          const lastUpdateDate = formatValuesetDate({ resource: vs, dateType: 'lastUpdated' })
+          const lastUpdateDate = formatResourceDate({ resource: vs, dateType: 'lastUpdated' })
           return lastUpdateDate?.includes(findInLastUpdated)
         })
       }
