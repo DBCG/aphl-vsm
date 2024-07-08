@@ -49,8 +49,8 @@ const TextLink = ({
     <Link href={href} passHref>
       {hasIcon ? (
         <LinkContainer>
+          <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginRight: '8px' }} />
           {content}
-          <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginLeft: '8px' }} />
         </LinkContainer>
       ) : (
         content

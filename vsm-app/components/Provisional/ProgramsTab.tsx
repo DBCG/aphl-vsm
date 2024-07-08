@@ -187,7 +187,8 @@ const ProgramsTab: NextPage = () => {
         name: 'ID',
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
-        maxWidth: '8rem',
+        minWidth: '12rem',
+        maxWidth: '15rem',
         wrap: true,
         cell: (row: fhir4.Library) => (
           <TextLink
