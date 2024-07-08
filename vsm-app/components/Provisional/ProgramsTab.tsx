@@ -2,12 +2,11 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useEffect, useMemo, useState } from 'react'
-import { Button } from '@mui/material'
+import { Button, Tooltip } from '@mui/material'
 import useSWR from 'swr'
 import styled from 'styled-components'
 import { debounce } from 'lodash'
 import DT from 'react-data-table-component'
-import OpenInFullIcon from '@mui/icons-material/OpenInFull'
 import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
@@ -31,27 +30,12 @@ const Row = styled.div`
   justify-content: space-between;
 `
 
-const ButtonWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-`
-
-const ActionRow = styled.div`
-  display: flex;
-`
-
-const ActionCol = styled.div`
-  display: flex;
-  flex-direction: column;
 `
 
 export interface StatusProps {
@@ -76,99 +60,15 @@ interface PaginationState {
 
 const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release') => {
   if (actionType === 'clone' && program.status !== 'active') {
-    return '• Only Active programs may be cloned'
+    return 'Only Active programs may be cloned'
   } else if (actionType === 'release') {
     if (program.status !== 'draft') {
-      return '• Only Draft programs may be released'
+      return 'Only Draft programs may be released'
     } else if (!program.approvalDate) {
-      return '• You must approve the program before releasing'
+      return 'You must approve the program before releasing'
     }
   }
-  return '• Action blocked'
-}
-
-interface ButtonTblProps {
-  program: fhir4.Library
-  session: VSMSession
-  handleClickClone: (item: string) => void
-  setError: (item: any) => void
-  setProgramToRelease: (lib: fhir4.Library) => void
-}
-
-const ButtonTable = ({ program, session, handleClickClone, setError, setProgramToRelease }: ButtonTblProps) => {
-  const canClone = allowClone({ session, programStatus: program.status! })
-  const canRelease = allowRelease({ session, programStatus: program.status!, hasApproval: Boolean(program?.approvalDate) })
-
-  const buttons = {
-    'clone': (
-      <Button
-        size='small'
-        variant='contained'
-        disabled={program.status !== 'active'}
-        onClick={() => {
-          handleClickClone(program.id!)
-        }}
-        style={{ height: 'fit-content' }}
-      // buttoncontext={`clone-${program.status}`}
-      >Clone</Button>
-    ),
-    'release': (
-      <Button
-        size='small'
-        variant='contained'
-        style={{ height: 'fit-content' }}
-        disabled={program.status !== 'draft' || !program.approvalDate}
-        onClick={() => {
-          setError({})
-          setProgramToRelease(program)
-        }}
-      // buttoncontext={program?.approvalDate ? `release-${program.status}` : `mustApproveRelease-${program.status}`}
-      >Release</Button>
-    )
-  } as const
-
-  return (
-    <ActionRow style={{ fontSize: '80%', padding: '.4rem 0 .4rem 4rem' }}>
-      <ActionCol style={{ border: '1px solid lightgray', padding: '.2rem .5rem .5rem', borderRight: 'none' }}>
-        <p>Available Actions</p>
-        {canClone && buttons['clone']}
-        {canRelease && buttons['release']}
-      </ActionCol>
-      <ActionCol style={{ flex: 1, justifyContent: 'flex-start', border: '1px solid lightgray', padding: '.2rem .5rem .5rem' }}>
-        <p>Blocked Actions</p>
-          {!canClone && (
-        <ActionRow style={{ flexWrap: 'wrap', padding: 0, marginBottom: '.4rem' }}>
-            <ActionRow style={{ gap: '1rem', flex: 1 }}>
-              <ActionCol style={{ justifyContent: 'flex-start', width: '5rem' }}>
-                <ButtonWrapper style={{ justifyContent: 'flex-start' }}>
-                  {buttons['clone']}
-                </ButtonWrapper>
-              </ActionCol>
-              <ActionCol>
-                <p style={{ display: 'flex', flex: 1, margin: 0 }}>{generateBlockedReason(program, 'clone')}</p>
-              </ActionCol>
-            </ActionRow>
-          </ActionRow>
-          )}
-          {!canRelease && (
-          <ActionRow>
-            <ActionRow style={{ gap: '1rem', flex: 1 }}>
-              <ActionCol style={{ width: '5rem'}}>
-                <ButtonWrapper style={{ justifyContent: 'flex-start' }}>
-                  {buttons['release']}
-                </ButtonWrapper>
-
-              </ActionCol>
-              <ActionCol>
-
-                <p style={{ display: 'flex', flex: 1, margin: 0 }}>{generateBlockedReason(program, 'release')}</p>
-              </ActionCol>
-            </ActionRow>
-        </ActionRow>
-          )}
-      </ActionCol>
-    </ActionRow>
-  )
+  return 'Action blocked'
 }
 
 const ProgramsTab: NextPage = () => {
@@ -263,18 +163,6 @@ const ProgramsTab: NextPage = () => {
     }
   }
 
-  interface DataItems {
-    data: fhir4.Library 
-  }
-
-  const ExpansionComponent = ({ data }: DataItems) => {
-    return (
-      <div>
-        <ButtonTable program={data} session={session} handleClickClone={handleClickClone} setError={setError} setProgramToRelease={setProgramToRelease} />
-      </div>
-    )
-  }
-
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
 
   const columns = useMemo(
@@ -341,6 +229,65 @@ const ProgramsTab: NextPage = () => {
         maxWidth: '15rem',
         minWidth: '10rem',
         wrap: true
+      },
+      {
+        name: 'Create New',
+        selector: (row: fhir4.Library) => row.id || '',
+        sortable: true,
+        // maxWidth: '15rem',
+        // minWidth: '10rem',
+        wrap: true,
+        cell: (row: fhir4.Library) => {
+          const canClone = allowClone({ session, programStatus: row.status! })
+        const blockedReason = !canClone && generateBlockedReason(row, 'clone') 
+         return (
+          <Tooltip title={blockedReason} arrow>
+            <span>
+              <Button
+                size='small'
+                variant='contained'
+                disabled={row.status !== 'active'}
+                onClick={() => {
+                  handleClickClone(row.id!)
+                }}
+                style={{ height: 'fit-content' }}
+              // buttoncontext={`clone-${program.status}`}
+              >Clone</Button>
+
+            </span>
+          </Tooltip>
+        )
+      }
+      },
+      {
+        name: 'Release',
+        selector: (row: fhir4.Library) => row.id || '',
+        sortable: true,
+        // maxWidth: '15rem',
+        // minWidth: '10rem',
+        wrap: true,
+        cell: (row: fhir4.Library) => {
+        const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+         const blockedReason = !canRelease && generateBlockedReason(row, 'release') 
+         return (
+          <Tooltip title={blockedReason} arrow>
+            <span>
+              <Button
+                size='small'
+                variant='contained'
+                style={{ height: 'fit-content' }}
+                disabled={row.status !== 'draft' || !row.approvalDate}
+                onClick={() => {
+                  setError({})
+                  setProgramToRelease(row)
+                }}
+              // buttoncontext={program?.approvalDate ? `release-${program.status}` : `mustApproveRelease-${program.status}`}
+              >Release</Button>
+
+            </span>
+          </Tooltip>
+        )
+      }
       }
     ],
     [session]
@@ -423,10 +370,6 @@ const ProgramsTab: NextPage = () => {
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
-        expandableRows={can(session, 'edit')}
-        expandableRowsComponent={ExpansionComponent}
-        expandableRowsComponentProps={{ rowTitle: 'test' }}
-        expandableIcon={{ collapsed: <OpenInFullIcon/>, expanded: <OpenInFullIcon/> }}
         data={programs}
         columns={columns}
         theme="aphl"
