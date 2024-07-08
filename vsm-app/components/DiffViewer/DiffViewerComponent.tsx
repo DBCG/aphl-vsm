@@ -25,7 +25,6 @@ const DiffViewerComponent = ({ changelogData }) => {
   const [currentPage, setCurrentPage] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
   console.log('changelog: ', changelogData)
-  console.log('formatted changelog: ', changelogData)
   console.log('this: ', changelogData.grouperPages[0].metadata)
   console.log('formattedChangelog.grouperpa', changelogData.grouperPages.length)
   console.log('menu: ', changelogData.anchorLinkData)
