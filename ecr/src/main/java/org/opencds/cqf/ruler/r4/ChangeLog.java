@@ -111,26 +111,8 @@ public class ChangeLog {
               ((ValueSetChild)page.oldData).leafValuesets.stream()
                 .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
                 .forEach(leafValueSet -> {
-                  ra.conditions.forEach(condition -> {
-                    if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
-                      var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      leafValueSet.conditions.add(new ValueSetChild.Code(
-                        coding.getId(), 
-                        coding.getSystem(), 
-                        coding.getCode(), 
-                        coding.getVersion(), 
-                        coding.getDisplay(), 
-                        null,
-                        null,
-                        null,
-                        condition.operation));
-                    }
-                  });
-                  if (ra.priority.value != null && ra.priority.value.hasValue()) {
-                    var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    leafValueSet.priority.value = coding.getCode();
-                    leafValueSet.priority.operation = ra.priority.operation;
-                  }
+                  updateConditions(ra, leafValueSet);
+                  updatePriorities(ra, leafValueSet);
                 });
             }
           }
@@ -139,31 +121,38 @@ public class ChangeLog {
               ((ValueSetChild)page.newData).leafValuesets.stream()
                 .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
                 .forEach(leafValueSet -> {
-                  ra.conditions.forEach(condition -> {
-                    if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
-                      var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      leafValueSet.conditions.add(new ValueSetChild.Code(
-                        coding.getId(), 
-                        coding.getSystem(), 
-                        coding.getCode(), 
-                        coding.getVersion(), 
-                        coding.getDisplay(), 
-                        null, 
-                        null,
-                        null,
-                        condition.operation));
-                    }
-                  });
-                  if (ra.priority.value != null && ra.priority.value.hasValue()) {
-                    var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    leafValueSet.priority.value = coding.getCode();
-                    leafValueSet.priority.operation = ra.operation;
-                  }
+                  updateConditions(ra, leafValueSet);
+                  updatePriorities(ra, leafValueSet);
                 });
             }
           }
         }
       }
+    }
+  }
+  private void updateConditions(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
+    ra.conditions.forEach(condition -> {
+      if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
+        var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
+        var conditionName = (coding.getDisplay() == null || coding.getDisplay().isBlank()) ? ((CodeableConcept)condition.value.getValue()).getText() : coding.getDisplay();
+        leafValueSet.conditions.add(new ValueSetChild.Code(
+          coding.getId(), 
+          coding.getSystem(), 
+          coding.getCode(), 
+          coding.getVersion(), 
+          conditionName, 
+          null, 
+          null,
+          null,
+          condition.operation));
+      }
+    });
+  }
+  private void updatePriorities(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
+    if (ra.priority.value != null && ra.priority.value.hasValue()) {
+      var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
+      leafValueSet.priority.value = coding.getCode();
+      leafValueSet.priority.operation = ra.priority.operation;
     }
   }
   public static class Page<T extends PageBase> {
