@@ -45,7 +45,7 @@ public class ChangeLog {
       valueSet.getCompose().getInclude()
         .forEach(concept -> {
           if (concept.hasConcept()) {
-            mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()));
+            mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
           }
           if (concept.hasValueSet()) {
             concept.getValueSet().stream()
@@ -58,17 +58,17 @@ public class ChangeLog {
 
   }
   // can this be done with a fhir operation? tx server work?
-  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source){
+  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String url){
       var system = concept.getSystem();
       var id = concept.getId();
       var version = concept.getVersion();
       concept.getConcept()
-      .stream()
-      .filter(ValueSet.ConceptReferenceComponent::hasCode)
-      .forEach(conceptReference -> {
-        var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, null);
-        codeMap.put(conceptReference.getCode(), code);
-      });
+        .stream()
+        .filter(ValueSet.ConceptReferenceComponent::hasCode)
+        .forEach(conceptReference -> {
+          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, url, null);
+          codeMap.put(conceptReference.getCode(), code);
+        });
   }
   public Page<LibraryChild> addPage(Library theSourceResource, Library theTargetResource) throws UnprocessableEntityException {
     if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
@@ -109,25 +109,27 @@ public class ChangeLog {
           if (page.oldData instanceof ValueSetChild) {
             for (final var ra: manifestOldData.relatedArtifacts) {
               ((ValueSetChild)page.oldData).leafValuesets.stream()
-                .filter(g -> g.memberOid != null && g.memberOid.equals(Canonicals.getIdPart(ra.value)))
-                .forEach(g -> {
+                .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
+                .forEach(leafValueSet -> {
                   ra.conditions.forEach(condition -> {
                     if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
                       var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      g.conditions.add(new ValueSetChild.Code(
+                      leafValueSet.conditions.add(new ValueSetChild.Code(
                         coding.getId(), 
                         coding.getSystem(), 
                         coding.getCode(), 
                         coding.getVersion(), 
                         coding.getDisplay(), 
-                        null, 
+                        null,
+                        null,
+                        null,
                         condition.operation));
                     }
                   });
                   if (ra.priority.value != null && ra.priority.value.hasValue()) {
                     var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    g.priority.value = coding.getCode();
-                    g.priority.operation = ra.priority.operation;
+                    leafValueSet.priority.value = coding.getCode();
+                    leafValueSet.priority.operation = ra.priority.operation;
                   }
                 });
             }
@@ -135,25 +137,27 @@ public class ChangeLog {
           if (page.newData instanceof ValueSetChild) {
             for (final var ra: manifestNewData.relatedArtifacts) {
               ((ValueSetChild)page.newData).leafValuesets.stream()
-                .filter(g -> g.memberOid != null && g.memberOid.equals(Canonicals.getIdPart(ra.value)))
-                .forEach(g -> {
+                .filter(leafValueSet -> leafValueSet.memberOid != null && leafValueSet.memberOid.equals(Canonicals.getIdPart(ra.value)))
+                .forEach(leafValueSet -> {
                   ra.conditions.forEach(condition -> {
                     if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
                       var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-                      g.conditions.add(new ValueSetChild.Code(
+                      leafValueSet.conditions.add(new ValueSetChild.Code(
                         coding.getId(), 
                         coding.getSystem(), 
                         coding.getCode(), 
                         coding.getVersion(), 
                         coding.getDisplay(), 
                         null, 
+                        null,
+                        null,
                         condition.operation));
                     }
                   });
                   if (ra.priority.value != null && ra.priority.value.hasValue()) {
                     var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
-                    g.priority.value = coding.getCode();
-                    g.priority.operation = ra.operation;
+                    leafValueSet.priority.value = coding.getCode();
+                    leafValueSet.priority.operation = ra.operation;
                   }
                 });
             }
@@ -307,8 +311,10 @@ public class ChangeLog {
       public String display;
       public String memberOid;
       public String codeSystemOid;
+      public String parentValueSetName;
+      public String parentValueSetUrl;
       public Operation operation;
-      Code(String id, String system, String code, String version, String display, String memberOid, Operation operation) {
+      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetUrl, Operation operation) {
         this.id = id;
         this.system = system;
         if (system != null) {
@@ -319,6 +325,8 @@ public class ChangeLog {
         this.display = display;
         this.memberOid = memberOid;
         this.operation = operation;
+        this.parentValueSetName = parentValueSetName;
+        this.parentValueSetUrl = parentValueSetUrl;
       }
       public String getCodeSystemOid(String systemUrl) {
         if (system.contains("snomed")) {
@@ -361,8 +369,7 @@ public class ChangeLog {
       if (contains != null) {
         contains.forEach(contained -> {
           if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
-            var code = codeMap.get(contained.getCode());
-            this.codes.add(new Code(code.id, code.system, code.code, code.version, code.display, code.memberOid, code.operation));
+            this.codes.add(codeMap.get(contained.getCode()));
           }
         });
       }
