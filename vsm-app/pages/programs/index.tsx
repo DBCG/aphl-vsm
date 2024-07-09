@@ -108,7 +108,7 @@ const Programs: NextPage = () => {
       }),
     { revalidateOnFocus: false }
   )
-  const { programs, total = 0 } = data
+  const { programs, total } = data
   useEffect(() => {
     if (total !== pagination?.searchTotal) {
       setPagination({ ...pagination, searchTotal: total })
