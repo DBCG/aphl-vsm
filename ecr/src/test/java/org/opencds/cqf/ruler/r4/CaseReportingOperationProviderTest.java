@@ -2104,7 +2104,64 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		assertNull(expectNoException);
 	}
-	
+	@Test
+	void create_changelog_extracts_vs_name_and_url() {
+		var returnedBinary = getClient().operation()
+			.onServer()
+			.named("$create-changelog")
+			.withParameters(createChangelogSetup())
+			.returnResourceType(Binary.class)
+			.execute();
+			assertNotNull(returnedBinary);
+			ObjectMapper mapper = new ObjectMapper();
+			Exception expectNoException = null;
+			var oldLeafValueSetNames = List.of(
+				"Diagnosis_ProblemTriggersforPublicHealthReporting",
+				"DiphtheriaDisordersSNOMED",
+				"AnkylosingSpondylitis",
+				"AcanthamoebaDiseaseKeratitisDisordersSNOMED"
+			);
+			var newLeafValueSetNames = List.of(
+				"Diagnosis_ProblemTriggersforPublicHealthReporting",
+				"AnkylosingSpondylitis",
+				"Cholera (Disorders) (SNOMED)",
+				"UpdatedName"
+			);
+			try {
+				var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
+				assertTrue(node.get("pages").isArray());
+				var pages = node.get("pages");
+				for (final var page : pages) {
+					if (Canonicals.getResourceType(page.get("url").asText()).equals("ValueSet")) {
+						assertTrue(oldLeafValueSetNames.contains(page.get("oldData").get("name").get("value").asText()));
+						assertTrue(newLeafValueSetNames.contains(page.get("newData").get("name").get("value").asText()));
+					}
+					if (Canonicals.getIdPart(page.get("url").asText()).equals("dxtc")) {
+						assertTrue(page.get("oldData").get("leafValuesets").isArray());
+						assertEquals(3, page.get("oldData").get("leafValuesets").size());
+						for (final var leaf: page.get("oldData").get("leafValuesets")) {
+							var name = leaf.get("name").asText();
+							assertTrue(oldLeafValueSetNames.contains(name));
+							assertNotNull(leaf.get("codeSystems").iterator().next().get("name").asText());
+							assertNotNull(leaf.get("codeSystems").iterator().next().get("oid").asText());
+						}
+						assertTrue(page.get("newData").get("leafValuesets").isArray());
+						assertEquals(3, page.get("newData").get("leafValuesets").size());
+						for (final var leaf: page.get("newData").get("leafValuesets")) {
+							var name = leaf.get("name").asText();
+							assertTrue(newLeafValueSetNames.contains(name));
+							if (leaf.get("url").asText().equals("https://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion&version")) {
+								assertTrue(leaf.get("name").get("operation").get("path").asText().equals("name")); 
+								assertTrue(leaf.get("name").get("operation").get("type").asText().equals("replace")); 
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				expectNoException = e;
+			}
+			assertNull(expectNoException);
+	}
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
 		return parameters.stream().filter(

@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
 import org.opencds.cqf.fhir.utility.Canonicals;
 
 import java.util.*;
@@ -30,32 +31,61 @@ public class ChangeLog {
     }
     // Map< [Code], [Object with code, version, system, etc.] > 
     Map<String, ValueSetChild.Code> codeMap = new HashMap<String, ValueSetChild.Code>();
-    updateCodeMap(codeMap, theSourceResource, cache);
-    updateCodeMap(codeMap, theTargetResource, cache);
-    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap);
-    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap);
+    // Map< [URL], Map <[Version], [Object with name, version, and other metadata] >> 
+    Map<String, Map<String,ValueSetChild.Leaf>> leafMetadataMap = new HashMap<String, Map<String,ValueSetChild.Leaf>>();
+    
+    updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theSourceResource, cache);
+    updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theTargetResource, cache);
+    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap);
+    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap);
     var url = theTargetResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
   }
-  private void updateCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
-    // looks like deleted and inserted leafs dont get cached, need to update diff method
+  private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
+    var leafCodeSystems = updateLeafMap(leafMap, valueSet).codeSystems;
     if (valueSet.getCompose().hasInclude()) {
       valueSet.getCompose().getInclude()
         .forEach(concept -> {
           if (concept.hasConcept()) {
+            var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
+            var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
+            leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
             mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
           }
           if (concept.hasValueSet()) {
             concept.getValueSet().stream()
             .map(vs -> cache.getResource(vs.getValue()).map(v -> (ValueSet) v))
             .filter(Optional::isPresent).map(Optional::get)
-            .forEach(vs -> updateCodeMap(codeMap, vs, cache));
+            .forEach(vs -> {
+              updateLeafMap(leafMap, vs);
+              updateCodeMapAndLeafMetadataMap(codeMap, leafMap, vs, cache);
+            });
           }
         });
     }
 
+  }
+  private ValueSetChild.Leaf updateLeafMap(Map<String, Map<String, ValueSetChild.Leaf>> leafMap, ValueSet valueSet) throws UnprocessableEntityException {
+    if (!valueSet.hasVersion()) {
+      throw new UnprocessableEntityException("ValueSet " + valueSet.getUrl() + " does not have a version");
+    }
+
+    var versionedLeafMap = leafMap.get(valueSet.getUrl());;
+    if (!leafMap.containsKey(valueSet.getUrl())) {
+      versionedLeafMap = new HashMap<String, ValueSetChild.Leaf>();
+      leafMap.put(valueSet.getUrl(),versionedLeafMap);
+    }
+
+    var leaf = versionedLeafMap.get(valueSet.getVersion());
+    if (!versionedLeafMap.containsKey(valueSet.getVersion())) {
+      leaf = new ValueSetChild.Leaf(Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl(), 
+      valueSet.getStatus()
+      );
+      versionedLeafMap.put(valueSet.getVersion(), leaf);
+    }
+    return leaf;
   }
   // can this be done with a fhir operation? tx server work?
   private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String url){
@@ -283,6 +313,10 @@ public class ChangeLog {
           this.title.setOperation(newOp);
         } else if (path.equals("version")) {
           this.version.setOperation(newOp);
+        } else if (path.equals("name")) {
+          this.name.setOperation(newOp);
+        } else if (path.equals("url")) {
+          this.url.setOperation(newOp);
         }
       }
     }
@@ -300,6 +334,7 @@ public class ChangeLog {
       public String display;
       public String memberOid;
       public String codeSystemOid;
+      public String codeSystemName;
       public String parentValueSetName;
       public String parentValueSetUrl;
       public Operation operation;
@@ -308,6 +343,7 @@ public class ChangeLog {
         this.system = system;
         if (system != null) {
           this.codeSystemOid = getCodeSystemOid(system);
+          this.codeSystemName = getCodeSystemName(system);
         }
         this.code = code;
         this.version = version;
@@ -317,15 +353,28 @@ public class ChangeLog {
         this.parentValueSetName = parentValueSetName;
         this.parentValueSetUrl = parentValueSetUrl;
       }
-      public String getCodeSystemOid(String systemUrl) {
-        if (system.contains("snomed")) {
+      public static String getCodeSystemOid(String systemUrl) {
+        if (systemUrl.contains("snomed")) {
           return "2.16.840.1.113883.6.96";
-        } else if (system.contains("icd-10")) {
+        } else if (systemUrl.contains("icd-10")) {
           return "2.16.840.1.113883.6.90";
-        } else if (system.contains("icd-9")) {
+        } else if (systemUrl.contains("icd-9")) {
           return "2.16.840.1.113883.6.103, 2.16.840.1.113883.6.104";
-        } else if (system.contains("loinc")) {
+        } else if (systemUrl.contains("loinc")) {
           return "2.16.840.1.113883.6.1";
+        } else {
+          return null;
+        }
+      }
+      public static String getCodeSystemName(String systemUrl) {
+        if (systemUrl.contains("snomed")) {
+          return "SNOMEDCT";
+        } else if (systemUrl.contains("icd-10")) {
+          return "ICD10CM";
+        } else if (systemUrl.contains("icd-9")) {
+          return "ICD9CM";
+        } else if (systemUrl.contains("loinc")) {
+          return "LOINC";
         } else {
           return null;
         }
@@ -349,11 +398,27 @@ public class ChangeLog {
       public String memberOid;
       public String name;
       public String url;
+      public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();;
+      public String status;
       public List<Code> conditions = new ArrayList<Code>();
       public ValueAndOperation priority = new ValueAndOperation();
       public Operation operation;
+      public static class NameAndOid {
+        public String name;
+        public String oid;
+        NameAndOid(String name, String oid) {
+          this.name = name;
+          this.oid = oid;
+        }
+      }
+      Leaf(String memberOid, String name, String url, PublicationStatus status) {
+        this.memberOid = memberOid;
+        this.name = name;
+        this.url = url;
+        this.status = status.getDisplay();
+      }
     }
-    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap) {
+    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap) {
       super(title, id, version, name, url);
       if (contains != null) {
         contains.forEach(contained -> {
@@ -369,9 +434,18 @@ public class ChangeLog {
           .filter(vs -> vs.hasValue())
           .map(vs -> vs.getValue())
           .forEach(vs -> {
-            var leaf = new Leaf();
-            leaf.memberOid = Canonicals.getIdPart(vs);
-            this.leafValuesets.add(leaf);
+            // sometimes the value set is unversioned and then what do we do?
+            // we need to make sure the diff operation only has the latest version in it, thereby we can get away with just having one url in the map and taking it
+            var urlPart = Canonicals.getUrl(vs);
+            if (Canonicals.getVersion(vs) == null) {
+              // assume there is only the latest version
+              var latest = leafMetadataMap.get(urlPart).entrySet().iterator().next().getValue();
+              leafValuesets.add(latest);
+            } else {
+              var versionPart = Canonicals.getVersion(vs);
+              var leaf = leafMetadataMap.get(urlPart).get(versionPart);
+              leafValuesets.add(leaf);
+            }
           });
       }
     }
@@ -394,9 +468,9 @@ public class ChangeLog {
           }
           if (urlToCheck != null) {
             final var urlNotNull = Canonicals.getIdPart(urlToCheck);
-            this.leafValuesets.stream().forEach(grouper -> {
-              if (grouper.memberOid.equals(urlNotNull)) {
-                grouper.operation = operation;
+            this.leafValuesets.stream().forEach(leafValueSet -> {
+              if (leafValueSet.memberOid.equals(urlNotNull)) {
+                leafValueSet.operation = operation;
               }
             });
           }
