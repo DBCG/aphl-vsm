@@ -841,8 +841,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
@@ -1402,8 +1401,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
@@ -1987,8 +1985,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
@@ -2404,8 +2401,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
@@ -3044,8 +3040,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
@@ -3503,8 +3498,7 @@
           "versionId": "1",
           "lastUpdated": "2024-05-13T21:47:24.599+00:00",
           "source": "#f7fT3wiXhym5Z6ad",
-          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"],
-          "tag": []
+          "profile": ["http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset"]
         },
         "text": {
           "status": "extensions",
