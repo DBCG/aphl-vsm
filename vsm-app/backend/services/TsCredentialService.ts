@@ -17,7 +17,7 @@ class TsCredentialServiceImpl implements TsCredentialService {
     readonly keyCloakClient: KeyCloakClient;
 
     public static getInstance(fhirClient: FhirClient, keyCloakClient: KeyCloakClient): TsCredentialServiceImpl {
-        if(!this.instance) {
+        if(!this.instance || this.instance.fhirClient != fhirClient || this.instance.keyCloakClient != keyCloakClient) {
             this.instance = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
         }
 
@@ -39,7 +39,7 @@ class TsCredentialServiceImpl implements TsCredentialService {
                 .then(() => {
                     let cred: TerminologyServerCredentials = {terminologyServerUrl, username, password}
                     return cred
-                }, () => Promise.reject("Problem storing basic auth cred"))
+                }, () => Promise.reject("Problem storing basic auth credd"))
         } else {
             return Promise.reject("Trying to save credentials for unsupported terminology server")
         }
