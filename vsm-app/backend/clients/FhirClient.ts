@@ -29,5 +29,7 @@ class FhirClientImpl implements FhirClient {
     }
 }
 
-export {FhirClientImpl}
+const fhirClient = FhirClientImpl.getInstance()
+
+export {FhirClientImpl, fhirClient}
 export type {FhirClient}
