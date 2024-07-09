@@ -89,7 +89,7 @@ const Programs: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
-  const { data = { programs: [], assessments: [], total: 0 } , mutate } = useSWR(
+  const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
     {
       url: '/api/programs',
       args: {
