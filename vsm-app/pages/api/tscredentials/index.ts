@@ -9,6 +9,7 @@ import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerC
 import handler from '@/helpers/server/handler'
 
 export type SaveCredentialsApiResponse = TerminologyServerCredentials | { error: string }
+export type GetCredentialsApiResponse = TerminologyServerCredentials[] | { error: string }
 
 const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
   try {
@@ -18,17 +19,29 @@ const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCre
     }
   catch (e: any) {
     logSimpleError(e)
-    return res.status(400).json('Saving credentials failed.' )
+    return res.status(400).json('Saving credentials failed' )
+  }
+}
+
+const updateCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
+  try {
+      const credReq: TerminologyServerCredentialsRequest = handleSaveCredentialsRequest(req)
+      const creds = await tsCredentialService.updateCredentials(credReq.userId, credReq.terminologyServerUrl, credReq.username, credReq.password)
+      return res.status(200).send(creds)
+    }
+  catch (e: any) {
+    logSimpleError(e)
+    return res.status(400).json('Updating credentials failed' )
   }
 }
 
 function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCredentialsRequest {
   try {
     return {
-      userId: req.query['userId'] as string,
-      terminologyServerUrl: req.query['terminologyServerUrl'] as string,
-      username: req.query['username'] as string,
-      password: req.query['password'] as string
+      userId: req.body.userId as string,
+      terminologyServerUrl: req.body.terminologyServerUrl,
+      username: req.body.username,
+      password: req.body.password
     }
    } catch(e) {
       logSimpleError(req)
@@ -42,9 +55,25 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
     }
   }
 
+const getCredentials = async (req: NextApiRequest, res: NextApiResponse<GetCredentialsApiResponse | {}>) => {
+  try {
+      const creds = await tsCredentialService.getAllCredentials(req.query['userId'] as string)
+      return res.status(200).send(creds)
+    }
+  catch (e: any) {
+    logSimpleError(e)
+    return res.status(400).json('Getting credentials failed' )
+  }
+}
 
 export default handler({
+  GET: {
+    action: getCredentials
+  },
   POST: {
     action: saveCredentials
+  },
+  PUT: {
+    action: updateCredentials
   }
 })

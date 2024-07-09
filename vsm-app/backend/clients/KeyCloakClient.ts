@@ -23,7 +23,12 @@ class KeyCloakClientImpl implements KeyCloakClient {
             username: "someUsername",
             password: "somePassword"
           }
-          return [creds]
+        const creds2:TerminologyServerCredentials = {
+        terminologyServerUrl: "http://testts2.com",
+        username: "someUsername",
+        password: "somePassword"
+        }
+          return [creds, creds2]
     }
 
     async getUserCredentials(userId: String, inputUrl: string): Promise<TerminologyServerCredentials> {
