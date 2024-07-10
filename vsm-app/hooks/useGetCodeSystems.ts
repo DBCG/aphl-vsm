@@ -5,7 +5,7 @@ interface ReturnedData {
   name: string
 }
 
-const useGetCS = (refresh: HTMLElement | null): [] | ReturnedData[] => {
+const useGetCS = (refresh: HTMLElement | null): ReturnedData[] => {
   const [codeSystems, setCodeSystems] = useState<ReturnedData[]>([])
   useEffect(() => {
     async function getCS(): Promise<void> {

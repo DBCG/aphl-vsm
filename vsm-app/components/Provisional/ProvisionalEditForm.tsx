@@ -77,33 +77,29 @@ const allFieldsExist = (codeItems: string[]) => {
   return allFieldsPopulated
 }
 
-const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem | undefined }) => {
-  
+const ExistingCodesTable = ({ codeSystem }: { codeSystem?: fhir4.CodeSystem }) => {
   const columns = useMemo(() => {
-    if (!codeSystem) return null
+    if (!codeSystem) return []
     const fields = [
       {
         name: 'Code',
-        selector: (row: fhir4.CodeSystemConcept) => row.code,
+        selector: (row: fhir4.CodeSystemConcept) => row.code
       },
       {
         name: 'Display',
-        selector: (row: fhir4.CodeSystemConcept) => row.display,
+        selector: (row: fhir4.CodeSystemConcept) => row.display || ''
       },
       {
         name: 'Definition',
-        selector: (row: fhir4.CodeSystemConcept) => row.definition,
+        selector: (row: fhir4.CodeSystemConcept) => row.definition || '',
         minWidth: '20rem',
-        cell: (row: fhir4.CodeSystemConcept) => (<p>{row.definition}</p>)
+        cell: (row: fhir4.CodeSystemConcept) => <p>{row.definition}</p>
       }
     ]
     return fields
   }, [codeSystem])
 
-  return (
-    // @ts-ignore
-    <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
-  )
+  return <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
 }
 
 interface ProvisionalEditProps {
@@ -123,7 +119,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
-  const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
+  const [codeItemsToAdd, setCodeItemsToAdd] = useState<fhir4.CodeSystemConcept[]>([])
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
@@ -272,54 +268,45 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         )}
         { can(session, 'edit') && (
           <>
-          <QuestionnaireRowContainer>
-            <SearchInput
-              label='Code'
-              onChange={(e) => {
-                // handle empty string case
-                setCodeToAdd(e.target.value)
-              }}
-              value={codeToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
-            />
-            <SearchInput
-              label='Display'
-              onChange={(e) => setDisplayToAdd(e.target.value)}
-              value={displayToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
-            />
-            <TextArea
-              label='Definition (more detail about this code)'
-              onChange={(e) => setDefinitionToAdd(e.target.value)}
-              value={definitionToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
-            />
-          </QuestionnaireRowContainer>
-          <ButtonRowContainer>
-            <Button
-              text='Add to List'
-              onClick={handleAddToList}
-              disabled={!enableAdd}
-            />
-          </ButtonRowContainer>
-          <p>{`Code List to add: `}</p>
-          <DataTable
-            // @ts-ignore
-            data={codeItemsToAdd}
-            columns={codeColumns}
-            noDataComponent={noDataComponent('setProvisionals')}
-          />
-          <ButtonRowContainer>
-            <Button
-              text='ADD TO SYSTEM'
-              disabled={!Boolean(codeItemsToAdd?.length)}
-              onClick={(e) => handleUpdateCS()}
-              loading={formSubmitting}
-            />
-          </ButtonRowContainer>
+            <QuestionnaireRowContainer>
+              <SearchInput
+                label="Code"
+                onChange={(e) => {
+                  // handle empty string case
+                  setCodeToAdd(e.target.value)
+                }}
+                value={codeToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+              <SearchInput
+                label="Display"
+                onChange={(e) => setDisplayToAdd(e.target.value)}
+                value={displayToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+              <TextArea
+                label="Definition (more detail about this code)"
+                onChange={(e) => setDefinitionToAdd(e.target.value)}
+                value={definitionToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+            </QuestionnaireRowContainer>
+            <ButtonRowContainer>
+              <Button text="Add to List" onClick={handleAddToList} disabled={!enableAdd} />
+            </ButtonRowContainer>
+            <p>{`Code List to add: `}</p>
+            <DataTable data={codeItemsToAdd} columns={codeColumns} noDataComponent={noDataComponent('setProvisionals')} />
+            <ButtonRowContainer>
+              <Button
+                text="ADD TO SYSTEM"
+                disabled={!Boolean(codeItemsToAdd?.length)}
+                onClick={(e) => handleUpdateCS()}
+                loading={formSubmitting}
+              />
+            </ButtonRowContainer>
           </>
         )}
       </div>

@@ -292,14 +292,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
   }
 
-  const progValueSetDets = useGetProgramValueSetDetails({
+  const progValueSetDets: Result = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
     toggleUpdateData,
     ...debouncedFilters
-  }) as Result
+  })
 
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
