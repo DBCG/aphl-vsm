@@ -50,10 +50,10 @@ const TerminologyEndpoints: NextPage = () => {
       .then((res: EndpointResponse) => {
         setData(res.endpoints)
         // if we don't use the callback `react-exhaustive-deps` thinks this is a mutable function
-        // if (res.total != pagination.searchTotal) {
-        setPagination((current) => {
-          return { ...current, searchTotal: res.total }
-        })
+        if (res.total != pagination.searchTotal) {
+          setPagination((current) => {
+            return { ...current, searchTotal: res.total }
+          })
         // }
       })
       .catch((error) => setError({ error: error.error || error.toString() }))
