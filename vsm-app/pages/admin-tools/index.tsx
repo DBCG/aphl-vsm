@@ -54,7 +54,7 @@ const TerminologyEndpoints: NextPage = () => {
           setPagination((current) => {
             return { ...current, searchTotal: res.total }
           })
-        // }
+        }
       })
       .catch((error) => setError({ error: error.error || error.toString() }))
       .finally(() => setLoading(false))
