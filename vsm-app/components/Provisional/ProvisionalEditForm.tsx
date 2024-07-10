@@ -173,18 +173,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const codeColumns = useMemo(() => {
     const fields = [
       {
-        name: 'Delete',
-        selector: (row: CodeTableData) => row.code!,
-        maxWidth: '4rem',
-        cell: (row: CodeTableData) => (
-          <IconButton
-            onClick={() => handleDelete(row)}
-          >
-            <DeleteForeverSharp color='error' />
-          </IconButton>
-        )
-      },
-      {
         name: 'Code',
         selector: (row: CodeTableData) => row.code!,
         sortable: true,
@@ -202,7 +190,19 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         name: 'Definition',
         selector: (row: CodeTableData) => row.definition!,
         wrap: true
-      }
+      },
+      {
+        name: 'Delete',
+        selector: (row: CodeTableData) => row.code!,
+        maxWidth: '4rem',
+        cell: (row: CodeTableData) => (
+          <IconButton
+            onClick={() => handleDelete(row)}
+          >
+            <DeleteForeverSharp color='error' />
+          </IconButton>
+        )
+      },
     ]
 
     return fields
