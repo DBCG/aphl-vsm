@@ -421,6 +421,10 @@ public class ChangeLog {
       public Leaf copy() {
         var copy = new Leaf(this.memberOid, this.name, this.url, null);
         copy.status = this.status;
+        copy.codeSystems = this.codeSystems;
+        copy.conditions = this.conditions;
+        copy.priority = this.priority;
+        copy.operation = this.operation;
         return copy;
       }
     }
