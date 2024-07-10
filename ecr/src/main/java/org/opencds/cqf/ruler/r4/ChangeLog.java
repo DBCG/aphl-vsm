@@ -352,6 +352,9 @@ public class ChangeLog {
         this.parentValueSetName = parentValueSetName;
         this.parentValueSetUrl = parentValueSetUrl;
       }
+      public Code copy() {
+        return new Code(this.id, this.system, this.code, this.version, this.display, this.memberOid, this.parentValueSetName, this.parentValueSetUrl, this.operation);
+      }
       public static String getCodeSystemOid(String systemUrl) {
         if (systemUrl.contains("snomed")) {
           return "2.16.840.1.113883.6.96";
@@ -409,6 +412,9 @@ public class ChangeLog {
           this.name = name;
           this.oid = oid;
         }
+        public NameAndOid copy() {
+          return new NameAndOid(this.name, this.oid);
+        }
       }
       Leaf(String memberOid, String name, String url, PublicationStatus status) {
         this.memberOid = memberOid;
@@ -421,9 +427,11 @@ public class ChangeLog {
       public Leaf copy() {
         var copy = new Leaf(this.memberOid, this.name, this.url, null);
         copy.status = this.status;
-        copy.codeSystems = this.codeSystems;
-        copy.conditions = this.conditions;
-        copy.priority = this.priority;
+        copy.codeSystems = this.codeSystems.stream().map(c -> c.copy()).collect(Collectors.toList());
+        copy.conditions = this.conditions.stream().map(c -> c.copy()).collect(Collectors.toList());
+        copy.priority = new ValueAndOperation();
+        copy.priority.value = this.priority.value;
+        copy.priority.operation = this.priority.operation;
         copy.operation = this.operation;
         return copy;
       }
