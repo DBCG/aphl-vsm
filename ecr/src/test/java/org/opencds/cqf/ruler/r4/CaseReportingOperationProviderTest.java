@@ -21,9 +21,7 @@ import org.opencds.cqf.fhir.utility.r4.ArtifactAssessment;
 import org.opencds.cqf.ruler.CaseReportingConfig;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
@@ -2161,6 +2159,25 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				expectNoException = e;
 			}
 			assertNull(expectNoException);
+	}
+
+	@Test
+	@Disabled
+	void catch_weird_codes_missing() {
+		// check that all the grouped leaf valuesets exist
+		loadTransaction("valueset-code-deletes-broken-source.json");
+		var bundle = (Bundle) loadTransaction("valueset-code-deletes-broken-target.json");
+		var maybeLib = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst();
+		Parameters diffParams = new Parameters();
+		diffParams.addParameter("source", specificationLibReference);
+		diffParams.addParameter("target", "Library/SpecificationLibrary2");
+		var returnedBinary = getClient().operation()
+			.onServer()
+			.named("$create-changelog")
+			.withParameters(diffParams)
+			.returnResourceType(Binary.class)
+			.execute();
+		assertNotNull(returnedBinary);
 	}
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {

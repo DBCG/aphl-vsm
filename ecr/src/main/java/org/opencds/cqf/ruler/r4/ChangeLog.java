@@ -189,7 +189,6 @@ public class ChangeLog {
       public T oldData;
       public T newData;
       public String url;
-      public List<Page<? extends PageBase>> children;
       Page(String url, T oldData, T newData) {
         this.url = url;
         this.oldData = oldData;
@@ -415,7 +414,14 @@ public class ChangeLog {
         this.memberOid = memberOid;
         this.name = name;
         this.url = url;
-        this.status = status.getDisplay();
+        if (status != null) {
+          this.status = status.getDisplay();
+        }
+      }
+      public Leaf copy() {
+        var copy = new Leaf(this.memberOid, this.name, this.url, null);
+        copy.status = this.status;
+        return copy;
       }
     }
     ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap) {
@@ -434,17 +440,19 @@ public class ChangeLog {
           .filter(vs -> vs.hasValue())
           .map(vs -> vs.getValue())
           .forEach(vs -> {
-            // sometimes the value set is unversioned and then what do we do?
+            // sometimes the value set reference is unversioned - implying that the latest version should be used
             // we need to make sure the diff operation only has the latest version in it, thereby we can get away with just having one url in the map and taking it
             var urlPart = Canonicals.getUrl(vs);
             if (Canonicals.getVersion(vs) == null) {
               // assume there is only the latest version
               var latest = leafMetadataMap.get(urlPart).entrySet().iterator().next().getValue();
-              leafValuesets.add(latest);
+              // creating a new object because modifying it causes weirdness later
+              leafValuesets.add(latest.copy());
             } else {
               var versionPart = Canonicals.getVersion(vs);
               var leaf = leafMetadataMap.get(urlPart).get(versionPart);
-              leafValuesets.add(leaf);
+              // creating a new object because modifying it causes weirdness later
+              leafValuesets.add(leaf.copy());
             }
           });
       }
