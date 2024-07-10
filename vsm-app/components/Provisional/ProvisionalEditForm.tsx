@@ -14,6 +14,7 @@ import { IconButton } from '@mui/material'
 import { DeleteForeverSharp } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
+import { LoadingMessage } from '../ProgramValueSetDetails/styles'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -245,6 +246,8 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <Select
             isClearable={false}
             isDisabled={!canEdit}
+            isLoading={isCsLoading}
+            loadingMessage={() => <LoadingMessage>Loading...</LoadingMessage>}
             options={selectOptions}
             isMulti={false}
             value={selectedCodeSystemBase}
@@ -302,7 +305,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             <Button
               text='Add to List'
               onClick={handleAddToList}
-              disabled={!enableAdd}
+              disabled={!enableAdd || isCsLoading}
             />
           </ButtonRowContainer>
           <p>{`Code List to add: `}</p>
@@ -315,7 +318,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <ButtonRowContainer>
             <Button
               text='ADD TO SYSTEM'
-              disabled={!Boolean(codeItemsToAdd?.length)}
+              disabled={!Boolean(codeItemsToAdd?.length) || isCsLoading}
               onClick={(e) => handleUpdateCS()}
               loading={formSubmitting}
             />
