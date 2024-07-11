@@ -214,7 +214,8 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
 
   const handleUpdateCS = async () => {
     setFormSubmitting(true)
-    const codesBySystemToUpdate = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
+    if (!selectedCodeSystemBase) throw new Error('No CodeSystemBase selected!')
+    const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
 
     const submitBody = { codesBySystemToUpdate }
 
