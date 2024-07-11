@@ -144,7 +144,6 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
 const ProvisionalResourcesTab = () => {
   const vsData = useGetProvisionalVS()
   const { provisionalVS, isVsLoading } = vsData
-  console.log('vs data: ', vsData)
   const csData = useGetProvisionalCS()
   const { provisionalCS, isCsLoading } = csData
   const { data: session } = useSession() as unknown as { data: VSMSession }
