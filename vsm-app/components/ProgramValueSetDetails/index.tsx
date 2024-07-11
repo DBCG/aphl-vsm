@@ -299,11 +299,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     valueSetPriorityMap,
     toggleUpdateData,
     ...debouncedFilters
-<<<<<<< HEAD
-  }) as Result
-=======
   })
->>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
 
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
@@ -745,26 +741,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   return (
     <>
-<<<<<<< HEAD
-      <Row>
-        <FlexRow style={{ width: '80%' }}>
-          <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
-        </FlexRow>
-        <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
-          {isEditable && (
-            <>
-              <Button
-                id="add-valueset"
-                text="Add Valuesets"
-                style={{ minHeight: '40px', minWidth: '150px' }}
-                onClick={() => router.push(`${router.asPath}/search`)}
-              />
-            </>
-          )}
-          {updateVSetsButton}
-        </Col>
-      </Row>
-=======
       <Col>
         {refreshErrors && <ErrorMessage style={{ marginBottom: '2em' }} error={refreshErrors} handleClose={handleCloseErrors}/>}
         <Row>
@@ -787,7 +763,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         </Row>
       </Col>
 
->>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={handleBatchDelete}
