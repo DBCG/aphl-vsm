@@ -52,8 +52,8 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
       {
         name: 'Action',
-        selector: (row: fhir4.ValueSet) => row.id,
-        cell: (row: fhir4.ValueSet) => {
+        selector: (row: fhir4.CodeSystem) => row.id,
+        cell: (row: fhir4.CodeSystem) => {
           return (
           <Box>
             {/* maybe pass thru row id as prop to default the edit? */}
