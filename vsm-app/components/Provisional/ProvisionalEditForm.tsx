@@ -207,7 +207,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     ]
 
     return fields
-  }, [codeItemsToAdd])
+  }, [codeItemsToAdd, handleDelete])
 
   const handleAddToList = () => {
     setCodeItemsToAdd(prev => [
