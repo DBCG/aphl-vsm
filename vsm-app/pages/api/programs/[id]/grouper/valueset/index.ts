@@ -20,10 +20,42 @@ import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
+import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
+import { ErrorItem } from '@/helpers/is'
 
 export type ErrorResponse = {
   errorMessage: string
   resStatus: number
+}
+
+const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): (string|ErrorItem)[] => {
+  // new refs are unversioned when a grouper is created (we do not give the ability to set version on grouper create)
+  // if a leaf already exists in the program that is versioned, the new ref should also share that version
+  const updatedRefs = newRefsToAdd.map(newUrl => {
+    const existingMatches = existingLeafRefsInGroupers.filter(existingUrl => {
+      const [exUrl, version] = existingUrl.toLowerCase().split('|')
+      return exUrl === newUrl.toLowerCase()
+    })
+
+    if (existingMatches.length > 1) {
+      const allVersions = existingMatches?.map(urlStr => {
+        const [url, version] = urlStr.split('|')
+        return version || 'latest'
+      })
+      return ({ error: `Error encountered: this program contains multiple versions of valueset with url ${newUrl} in this program. (${allVersions.join(', ')})` })
+    } else {
+      return existingMatches || newUrl
+    }
+  })
+
+  const existingErrors = updatedRefs?.filter(r => is.errorItem(r)) as ErrorItem[]
+
+  if (existingErrors.length) {
+    return existingErrors
+  } else {
+    // @ts-expect-error
+    return updatedRefs
+  }
 }
 
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
@@ -207,8 +239,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
   // programId will always be a string
   const programId = req.query.id as string
 
-  let { grouperVSets, grouperMetadata } = body
-  grouperVSets = uniqBy(grouperVSets, 'selectedValueSet.id')
+  let { grouperVSets: groupersToUpdate, grouperMetadata } = body
+  groupersToUpdate = uniqBy(groupersToUpdate, 'selectedValueSet.id')
 
   try {
     // fn to return out of API with error
@@ -221,12 +253,27 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // get program
     const program = await getProgram(programId)
     if (is.errorResponse(program)) {
-      sendError(program)
+      return sendError(program)
     }
+
+    const grouperLib = await getGrouperLibrary(program)
+    if (is.errorItem(grouperLib)) {
+      return sendError({ errorMessage: grouperLib?.error, resStatus: 400 })
+    }
+
+    const allExistingGrouperVS = await getGrouperValuesets(grouperLib)
+    if (is.errorItem(allExistingGrouperVS)) {
+      return sendError({ errorMessage: allExistingGrouperVS.error, resStatus: 400 })
+    }
+    // get the list of all leaf refs in all groupers
+    const allExistingLeafRefs = allExistingGrouperVS.map(vs => {
+      const refsInGrouper = vs?.compose?.include?.map(i => i?.valueSet?.[0])?.filter(leafRefUrl => typeof leafRefUrl === 'string') || []
+      return refsInGrouper
+    }).flat() as string[]
 
     // find any leaf matches that exist in our HAPI server
     // (these may or may not exist)
-    const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
+    const matchesInCqf = await getMatchingLeafsFromCQF(groupersToUpdate)
     if (is.errorResponse(matchesInCqf)) {
       sendError(matchesInCqf)
     }
@@ -235,7 +282,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
      * Start Creating Payloads here as a Transaction Bundle to submit to CDR
      */
     const cqfUpdatesPayload = await formatCqfUpdatesTransBundle({
-      grouperVSets,
+      grouperVSets: groupersToUpdate,
       matchesInCqf
     })
 
@@ -244,10 +291,17 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(400).send('Error with creating grouper valuesets')
     }
 
+
     const newValueSetUpdates = cqfUpdatesPayload?.map((i: any) => i?.resource?.url)?.filter(x => x) || []
     const existingVsToUpdate = Array.isArray(matchesInCqf) ? matchesInCqf?.map(m => m.url)?.filter(x => x) : []
-    const leafReferencesToAdd = [...newValueSetUpdates, ...existingVsToUpdate]
-    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd, grouperMetadata)
+    // if a versioned leaf reference exists in another grouper, we need to ensure that we are adding that versioned url
+    // we should only have 1 version of a leaf valueset in a program at any given time
+    const leafReferencesToAdd = syncUnversionedRef([...newValueSetUpdates, ...existingVsToUpdate], allExistingLeafRefs)
+    const versionErrors = leafReferencesToAdd?.filter(i => is.errorItem(i))
+    if (versionErrors.length) {
+      return res.status(400).send(versionErrors.map(e => typeof e !== 'string' && e.error).join(', ')) 
+    }
+    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd as string[], grouperMetadata)
 
     if (is.operationOutcome(newGrouper)) {
       return res.status(400).send('Error creating new grouper valueset')
@@ -256,7 +310,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
     // Set Conditions onto the program library
     let modifiedProgram = program as fhir4.Library
-    grouperVSets.forEach((vs) => {
+    groupersToUpdate.forEach((vs) => {
       // these leaf valuesets are set to the latest version and will not have a version in their canonical url
       modifiedProgram = setVSConditions(modifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
       modifiedProgram = setVSPriority(modifiedProgram, vs.selectedPriority, [vs.selectedValueSet.url!])
@@ -431,6 +485,7 @@ const formatCqfUpdatesTransBundle = async ({
 
 const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
+
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
 
   const result = await fhirCdrClient.create({

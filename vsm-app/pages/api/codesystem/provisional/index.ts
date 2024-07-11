@@ -1,5 +1,5 @@
 import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
-import { is } from '@/helpers/is'
+import { ErrorItem, is } from '@/helpers/is'
 import { createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
@@ -29,8 +29,8 @@ interface UpdatedCS {
 }
 
 const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
-  type: 'transaction';
-} => {
+  type: 'transaction'
+} | ErrorItem => {
   const transactionEntry = items.map(i => {
     const resourceType = i?.resourceType || i?.resource?.resourceType as string
     const resourceId = i?.resourceId || i?.resource?.id as string
@@ -45,6 +45,8 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
       resource = i.resource
     } else if (method === 'GET') {
       url = `${resourceType}/${resourceId}`
+    } else {
+      return ({ error: `Method '${method}' not supported`})
     }
 
     let requestBody = {
@@ -87,16 +89,15 @@ const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiRespon
 // this can update multiple code systems at once
 const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
   try {
-    const body = await req.body
+    const body = req.body
     const {
       codesBySystemToUpdate
     } = body
 
-    const systemUrls = Object.keys(codesBySystemToUpdate)
     const updatedCodeSystems = [] as UpdatedCS[]
 
-    for (const systemUrl of systemUrls) {
-      let searchParams = {
+    for (const systemUrl in codesBySystemToUpdate) {
+      const searchParams = {
         version: 'PROVISIONAL',
         url: systemUrl
       }
@@ -142,26 +143,30 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
         })
       }
     }
-      const transactionBody = transactionBuilder(updatedCodeSystems)
 
-      const updatedCS = await fhirCdrClient.transaction({
-        body: transactionBody
-      })
+    const transactionBody = transactionBuilder(updatedCodeSystems)
 
-      if (is.operationOutcome(updatedCS)) {
-        console.error('error creating prov code items')
-        return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
-      } else {
-        return res.status(200).json({})
-      }
-
-
-
-    } catch(e) {
-      logger.error(e)
-      res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
+    if (is.errorItem(transactionBody)) {
+      return res.status(400).json({ error: transactionBody.error})  
     }
+    const updatedCS = await fhirCdrClient.transaction({
+      body: transactionBody
+    })
+
+    if (is.operationOutcome(updatedCS)) {
+      console.error('error creating prov code items')
+      return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
+    } else {
+      return res.status(200).json({})
+    }
+
+
+
+  } catch(e) {
+    logger.error(e)
+    res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
+}
 
 export default handler({
     GET: { action: getProvisionalCodeSystems, access: ['reviewer', 'admin', 'editor'] },

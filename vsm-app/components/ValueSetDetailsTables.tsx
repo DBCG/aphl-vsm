@@ -11,6 +11,7 @@ import { useRouter } from 'next/router'
 import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import { customTableStyles } from './tables/themes'
+import TextLink from './TextLink'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -165,7 +166,14 @@ const ValueSetDetailsTables = ({
         name: 'Title',
         selector: (row: GrouperTableDetail) => row?.title!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        cell: (row: GrouperTableDetail) => (
+          <TextLink
+            href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.oid}`}
+            linkText={row.title}
+            forceReload={true}
+          />
+        )
       },
       {
         name: 'OID',
@@ -252,12 +260,6 @@ const ValueSetDetailsTables = ({
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
 
-  const handleDefinitionRowClick = (row: GrouperTableDetail) => {
-    if (row.oid) {
-      window.location.href = `/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row.oid}`;
-    }
-  };
-
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -300,11 +302,9 @@ const ValueSetDetailsTables = ({
           data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}
-          customStyles={isGrouperValueSet ? customTableStyles('clickable') : undefined}
           highlightOnHover={isGrouperValueSet}
           progressPending={isLoadingDefinition}
           progressComponent={<LoadingIndicator />}
-          onRowClicked={isGrouperValueSet ? handleDefinitionRowClick : undefined}
         />
       </TabPanel>
       <TabPanel value={value} index={1}>

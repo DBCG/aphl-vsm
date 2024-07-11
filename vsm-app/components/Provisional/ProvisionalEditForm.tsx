@@ -78,33 +78,29 @@ const allFieldsExist = (codeItems: string[]) => {
   return allFieldsPopulated
 }
 
-const ExistingCodesTable = ({ codeSystem }: { codeSystem: fhir4.CodeSystem | undefined }) => {
-  
+const ExistingCodesTable = ({ codeSystem }: { codeSystem?: fhir4.CodeSystem }) => {
   const columns = useMemo(() => {
-    if (!codeSystem) return null
+    if (!codeSystem) return []
     const fields = [
       {
         name: 'Code',
-        selector: (row: fhir4.CodeSystemConcept) => row.code,
+        selector: (row: fhir4.CodeSystemConcept) => row.code
       },
       {
         name: 'Display',
-        selector: (row: fhir4.CodeSystemConcept) => row.display,
+        selector: (row: fhir4.CodeSystemConcept) => row.display || ''
       },
       {
         name: 'Definition',
-        selector: (row: fhir4.CodeSystemConcept) => row.definition,
+        selector: (row: fhir4.CodeSystemConcept) => row.definition || '',
         minWidth: '20rem',
-        cell: (row: fhir4.CodeSystemConcept) => (<p>{row.definition}</p>)
+        cell: (row: fhir4.CodeSystemConcept) => <p>{row.definition}</p>
       }
     ]
     return fields
   }, [codeSystem])
 
-  return (
-    // @ts-ignore
-    <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
-  )
+  return <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
 }
 
 interface ProvisionalEditProps {
@@ -124,7 +120,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
-  const [codeItemsToAdd, setCodeItemsToAdd] = useState([] as fhir4.CodeSystemConcept[])
+  const [codeItemsToAdd, setCodeItemsToAdd] = useState<fhir4.CodeSystemConcept[]>([])
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
@@ -219,7 +215,8 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
 
   const handleUpdateCS = async () => {
     setFormSubmitting(true)
-    const codesBySystemToUpdate = { [selectedCodeSystemBase?.value as string]: codeItemsToAdd }
+    if (!selectedCodeSystemBase) throw new Error('No CodeSystemBase selected!')
+    const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
 
     const submitBody = { codesBySystemToUpdate }
 

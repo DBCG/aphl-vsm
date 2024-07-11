@@ -83,8 +83,9 @@ export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fh
     ?.filter((a) => a.type == 'composed-of')
     .map((res) => res.resource)
     .filter(isDefinedString)
-
+  
   if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
+  
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)

@@ -10,6 +10,7 @@ import DT from 'react-data-table-component'
 import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
+<<<<<<< HEAD
 import { ReleaseModal } from '@/components/modals/ReleaseModal'
 import { allowClone, allowRelease, can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
@@ -17,6 +18,15 @@ import { StatusChip } from '@/components/data-display/Chips'
 import { customTableStyles } from '@/components/tables/themes'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
+=======
+import { ReleaseModal, ReleasePayload } from '@/components/modals/ReleaseModal'
+import { allowClone, allowRelease, can, VSMSession } from '@/helpers/rolesHelper'
+import { ErrorMessage } from '@/components/ErrorMessage'
+import { StatusChip } from '@/components/data-display/Chips'
+import { formatDateForTable } from '@/helpers/formatDates'
+import { getLatestFromList } from '@/helpers/server/semverHelpers'
+import TextLink from '@/components/TextLink'
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
 
 const Col = styled.div`
   display: flex;
@@ -187,8 +197,21 @@ const ProgramsTab: NextPage = () => {
         name: 'ID',
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
+<<<<<<< HEAD
         maxWidth: '8rem',
         wrap: true
+=======
+        minWidth: '12rem',
+        maxWidth: '15rem',
+        wrap: true,
+        cell: (row: fhir4.Library) => (
+          <TextLink
+          href={`/programs/${row.id}`}
+          linkText={row.id}
+          forceReload={false}
+        />
+        )
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
       },
       {
         name: 'Title',
@@ -293,6 +316,7 @@ const ProgramsTab: NextPage = () => {
     [session]
   )
 
+<<<<<<< HEAD
   const handleCancelModal = () => {
     setProgramToPublish(null)
     setProgramToRelease(null)
@@ -319,22 +343,53 @@ const ProgramsTab: NextPage = () => {
     result = await fetch(endpoint, {
       method: 'POST',
       body: JSON.stringify(reqBody)
+=======
+  const handleCancelReleaseModal = () => {
+    setProgramToRelease(null)
+  }
+
+  // release payload?
+  const handleReleaseModalAction = async (payload: ReleasePayload) => {
+    setLoading(true)
+    const endpoint = `/api/programs/${payload.programId}/release`
+
+    const result = await fetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
     })
 
     if (!result.ok) {
       const res = await result.json()
+<<<<<<< HEAD
       setError({
         error: `Error occurred while ${actionType === 'release' ? 'releasing' : 'publishing'} program: ${program.id}. ${res?.error?.includes('HAPI-0389') ? 'Draft program must be approved to release.' : 'Please try again.'
           }`
+=======
+      let errorText
+      if (res?.error?.includes('HAPI-0389')) {
+        errorText = 'Draft program must be approved to release.'
+      } else if (!!res?.error) {
+        errorText = res.error
+      } else {
+        errorText = 'Please try again.'
+      }
+      setError({
+        error: `Error occurred while releasing program: ${payload.programId}. ${errorText}`
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
       })
     } else {
       router.reload()
     }
 
     setLoading(false)
+<<<<<<< HEAD
     setProgramToPublish(null)
     setProgramToRelease(null)
     setVersionToRelease(null)
+=======
+    setProgramToRelease(null)
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
   }
 
   if (!data) return <LoadingIndicator />
@@ -359,6 +414,7 @@ const ProgramsTab: NextPage = () => {
       </Row>
       {programToRelease && (
         <ReleaseModal
+<<<<<<< HEAD
           isOpen={Boolean(programToRelease)}
           loading={loading}
           handleCancelModal={handleCancelModal}
@@ -367,6 +423,15 @@ const ProgramsTab: NextPage = () => {
           updateVersion={setVersionToRelease}
           setProgramToRelease={setProgramToRelease}
         />
+=======
+        isOpen={Boolean(programToRelease)}
+        loading={loading}
+        handleCancelModal={handleCancelReleaseModal}
+        handleModalAction={handleReleaseModalAction}
+        program={programToRelease}
+        setProgramToRelease={setProgramToRelease}
+      />
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
@@ -381,8 +446,11 @@ const ProgramsTab: NextPage = () => {
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
         highlightOnHover={true}
+<<<<<<< HEAD
         onRowClicked={(row) => router.push(`/programs/${row.id}`)}
         customStyles={customTableStyles('clickable')}
+=======
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
       />

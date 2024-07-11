@@ -16,7 +16,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
-import { formatValuesetDate } from '@/helpers/formatDates'
+import { formatResourceDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual } from 'utils'
@@ -724,7 +724,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       }
       if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
+<<<<<<< HEAD
           const lastUpdateDate = formatValuesetDate({ resource: vs, dateType: 'lastUpdated' })
+=======
+          const lastUpdateDate = formatResourceDate({ resource: vs, dateType: 'lastUpdated' })
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
           return lastUpdateDate?.includes(findInLastUpdated)
         })
       }
@@ -931,7 +935,10 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                     onChange={(e) => setSearchTerm(e.target.value)}
                     id="vs-search"
                     label="Search Text"
+<<<<<<< HEAD
                     hasIcon={true}
+=======
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
                     info={searchInfoText[searchType.value]}
                     helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
                     errorMessage={errorMessageComponent}

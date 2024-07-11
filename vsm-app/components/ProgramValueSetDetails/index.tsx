@@ -24,14 +24,14 @@ import { Col, Row, FlexRow } from '@/styles'
 import { SelectInputContainer, SelectInputTitle, ReadOnlyContainer, ReadOnlyTag, LoadingMessage } from './styles'
 import { TableActions } from './TableActions'
 import { NextRouter } from 'next/router'
-import { customTableStyles } from '../tables/themes'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { USHealthVSPriority, getVSPriority, getVSConditions } from '@/helpers/libraryHelpers'
 import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/valuesets/groups'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
+import TextLink from '../TextLink'
 
-const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string) => {
+const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string, setRefreshErrors: any) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
     progress: number
   }
@@ -40,10 +40,13 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
     setJobStatus(jobStatus.progress)
     if (jobStatus.progress < 100) {
       await new Promise((resolve) => setTimeout(resolve, 5000))
-      await subscribe(setJobStatus, jobId)
+      await subscribe(setJobStatus, jobId, setRefreshErrors)
     } else {
       toast.success('ValueSet Update finished.')
       setJobStatus(null) // No Job in progress
+      if (jobStatus?.returnvalue?.errors.length > 0) {
+        setRefreshErrors({"ValueSet Update Errors": jobStatus?.returnvalue?.errors})
+      }
     }
   } else {
     console.error(jobStatus.error)
@@ -109,6 +112,7 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 }
 
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
+  const [refreshErrors, setRefreshErrors] = useState<null | string[]>(null)
   const [versions, setVersions] = useState({} as any)
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
@@ -127,6 +131,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
+
+  const handleCloseErrors = () => {
+    setRefreshErrors(null)
+  }
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
@@ -199,11 +207,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows([])
   }, [toggleUpdateData])
 
-  const handleUpdateValueSets = async () => {
+  const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
     const canonicalUrls: string[] = []
-    if (progValueSetDets?.groupsInProgram?.length) {
-      for (const grouper of progValueSetDets?.groupsInProgram) {
-        const urls = grouper?.compose?.include?.[0]?.valueSet?.filter((url) => !url.includes('|')) || []
+    if (groupsInProgram?.length) {
+      for (const grouper of groupsInProgram) {
+        const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter(i => i) || []) as string[]
         canonicalUrls.push(...urls)
       }
     }
@@ -213,7 +221,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       body: JSON.stringify({ urls: canonicalUrls, programId: currentProgram?.id })
     }).then((res) => res.json())
 
-    subscribe(setJobInStatusProgress, job?.id)
+    subscribe(setJobInStatusProgress, job?.id, setRefreshErrors)
   }
 
   const handleChange = ({ selectedRows }: SelectedRows) => {
@@ -284,14 +292,18 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
   }
 
-  const progValueSetDets = useGetProgramValueSetDetails({
+  const progValueSetDets: Result = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
     toggleUpdateData,
     ...debouncedFilters
+<<<<<<< HEAD
   }) as Result
+=======
+  })
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
 
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
@@ -377,7 +389,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         style: { fontSize: '14px' },
         sortable: false,
         maxWidth: '350px',
-        wrap: true
+        wrap: true,
+        cell: (row: TableRow) => (
+          <TextLink
+          href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
+          linkText={row.title}
+          forceReload={false}
+        />
+        )
       },
       {
         name: (
@@ -474,7 +493,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           if (currentProgram?.status === 'active' || !can(session, 'edit')) {
             return row?.valueSetPinnedVersion || 'latest'
           }
-          const terminologyInfo = getTerminologySource(row.valueSet)
+          var errors: string[] = []
+          const terminologyInfo = getTerminologySource(row.valueSet, errors)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
@@ -542,7 +562,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '100px',
         wrap: true,
         cell: (row: TableRow) => {
-          const terminologyInfo = getTerminologySource(row.valueSet)
+          var errors: string[] = []
+          const terminologyInfo = getTerminologySource(row.valueSet, errors)
           return (
             <div>
               {terminologyInfo.value}
@@ -709,7 +730,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
             />
           </Tooltip>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets()} />
+          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets(progValueSetDets?.groupsInProgram)} />
         </div>
           <Button
             text="Code Search"
@@ -724,6 +745,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   return (
     <>
+<<<<<<< HEAD
       <Row>
         <FlexRow style={{ width: '80%' }}>
           <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
@@ -742,6 +764,30 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           {updateVSetsButton}
         </Col>
       </Row>
+=======
+      <Col>
+        {refreshErrors && <ErrorMessage style={{ marginBottom: '2em' }} error={refreshErrors} handleClose={handleCloseErrors}/>}
+        <Row>
+          <FlexRow style={{ width: '80%' }}>
+            <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
+          </FlexRow>
+          <Col style={{ flex: 1, gap: '12px', marginBottom: '12px' }}>
+            {isEditable && (
+              <>
+                <Button
+                  id="add-valueset"
+                  text="Add Valuesets"
+                  style={{ minHeight: '40px', minWidth: '150px' }}
+                  onClick={() => router.push(`${router.asPath}/search`)}
+                />
+              </>
+            )}
+            {updateVSetsButton}
+          </Col>
+        </Row>
+      </Col>
+
+>>>>>>> be4a5382f9935743785ecdc0cce4415df09e6d4f
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={handleBatchDelete}
@@ -767,11 +813,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           pagination
           clearSelectedRows={toggleUpdateData}
           highlightOnHover={true}
-          onRowClicked={(row) => {
-            router.push(`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`)
-          }}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          customStyles={customTableStyles('clickable', { fontSize: '12px' })}
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
         />
