@@ -18,6 +18,7 @@ interface Query {
 export type ProgramApiResponse = {
   programs: fhir4.Library[]
   assessments: fhir4.Basic[]
+  total: number
 } | { error: string }
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {

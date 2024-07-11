@@ -17,6 +17,7 @@ import { StatusChip } from '@/components/data-display/Chips'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
+import { ProgramApiResponse } from '@/pages/api/programs'
 
 const Col = styled.div`
   display: flex;
@@ -47,12 +48,7 @@ interface Error {
   error?: string
 }
 
-interface ProgramListResponse {
-  programs: fhir4.Library[]
-  total: number
-}
-
-interface PaginationState {
+export interface PaginationState {
   page: number
   countPerPage: number
   searchTotal: number | null
@@ -75,9 +71,7 @@ const ProgramsTab: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const [loading, setLoading] = useState(false)
-  const [programToPublish, setProgramToPublish] = useState<fhir4.Library | null>(null)
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [versionToRelease, setVersionToRelease] = useState<null | string | undefined>(null)
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
 
@@ -93,7 +87,7 @@ const ProgramsTab: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
-  const { data = {}, mutate } = useSWR(
+  const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
     {
       url: '/api/programs',
       args: {
@@ -102,10 +96,17 @@ const ProgramsTab: NextPage = () => {
         count: pagination?.countPerPage
       }
     },
-    fetchWithProgram,
+    (args) =>
+      fetchWithProgram(args).then((resp: ProgramApiResponse) => {
+        if ('error' in resp) {
+          setError(resp)
+          return
+        }
+        return resp
+      }),
     { revalidateOnFocus: false }
   )
-  const { programs, total } = data as ProgramListResponse
+  const { programs, total } = data
 
   useEffect(() => {
     if (total !== pagination?.searchTotal) {
