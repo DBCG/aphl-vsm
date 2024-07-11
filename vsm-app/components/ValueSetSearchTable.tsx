@@ -183,11 +183,11 @@ const SelectGrouperContainer = styled.div`
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
   return grouperVsets?.map((vSet: fhir4.ValueSet) => ({
-    label: vSet.title!,
-    url: vSet.url!,
-    version: vSet.version!,
-    id: vSet.id!,
-    value: vSet.url!
+    label: vSet.title || 'No Title',
+    url: vSet.url || 'No URL',
+    version: vSet.version || 'No Version',
+    id: vSet.id || 'No ID',
+    value: vSet?.url
   }))
 }
 
