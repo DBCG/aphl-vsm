@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { useSession } from 'next-auth/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { VSMSession, allowEditing, can } from '@/helpers/rolesHelper'
@@ -130,10 +130,10 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
 
   const { provisionalCS, isCsLoading } = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
-  const handleDelete = (item: CodeTableData) => {
+  const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
     setCodeItemsToAdd(filteredItems)
-  }
+  }, [codeItemsToAdd])
 
   const clearCurrentCodeItems = () => {
     setCodeToAdd('')
