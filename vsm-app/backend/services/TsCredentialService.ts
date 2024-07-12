@@ -3,10 +3,10 @@ import {KeyCloakClient, keyCloakClient} from '../clients/KeyCloakClient'
 import {TerminologyServerCredentials} from '../model/TerminologyServerCredential'
 
 interface TsCredentialService {
-    saveCredentials(userId: string, terminologyServerUrl: string, username: string, password: string): Promise<TerminologyServerCredentials>
+    saveCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials>
     getAllCredentials(userId: string): Promise<TerminologyServerCredentials[]>
-    getCredentials(userId: string, terminologyServerUrl: string): Promise<TerminologyServerCredentials>
-    updateCredentials(userId: string, terminologyServerUrl: string, username: string, password: string): Promise<TerminologyServerCredentials>
+    getCredentials(userId: string, terminologyServerId: string): Promise<TerminologyServerCredentials>
+    updateCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials>
 }
 
 class TsCredentialServiceImpl implements TsCredentialService {
@@ -32,12 +32,12 @@ class TsCredentialServiceImpl implements TsCredentialService {
         this.keyCloakClient = keyCloakClient;
     }
 
-    public async saveCredentials(userId: string, terminologyServerUrl: string, username: string, password: string): Promise<TerminologyServerCredentials> {
+    public async saveCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials> {
         const endpoints = await this.fhirClient.getTerminologyServers()
-        if(endpoints.find(e => e.address == terminologyServerUrl)) {
-            return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerUrl, username, password)
+        if(endpoints.find(e => e.address == terminologyServerId)) {
+            return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerId, username, password)
                 .then(() => {
-                    let cred: TerminologyServerCredentials = {terminologyServerUrl, username, password}
+                    let cred: TerminologyServerCredentials = {terminologyServerId: terminologyServerId, username, password}
                     return cred
                 }, () => Promise.reject("Problem storing basic auth credd"))
         } else {
@@ -46,8 +46,8 @@ class TsCredentialServiceImpl implements TsCredentialService {
 
     }
 
-    public async getCredentials(userId: string, terminologyServerUrl: string): Promise<TerminologyServerCredentials> {
-        let cred: Promise<TerminologyServerCredentials> = this.keyCloakClient.getUserCredentials(userId, terminologyServerUrl)
+    public async getCredentials(userId: string, terminologyServerId: string): Promise<TerminologyServerCredentials> {
+        let cred: Promise<TerminologyServerCredentials> = this.keyCloakClient.getUserCredentials(userId, terminologyServerId)
         return cred
     }
 
@@ -55,10 +55,10 @@ class TsCredentialServiceImpl implements TsCredentialService {
         return this.keyCloakClient.getAllUserCredentials(userId)
     }
 
-    public async updateCredentials(userId: string, terminologyServerUrl: string, username: string, password: string): Promise<TerminologyServerCredentials> {
-        return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerUrl, username, password)
+    public async updateCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials> {
+        return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerId, username, password)
                 .then(() => {
-                    let cred: TerminologyServerCredentials = {terminologyServerUrl, username, password}
+                    let cred: TerminologyServerCredentials = {terminologyServerId: terminologyServerId, username, password}
                     return cred
                 }, () => Promise.reject("Problem storing basic auth cred"))
     }
