@@ -1,12 +1,12 @@
 type TerminologyServerCredentials = {
-    terminologyServerUrl: string,
+    terminologyServerId: string,
     username: string,
     password: string
 }
 
 type TerminologyServerCredentialsRequest = {
     userId: string,
-    terminologyServerUrl: string,
+    terminologyServerId: string,
     username: string,
     password: string
 }

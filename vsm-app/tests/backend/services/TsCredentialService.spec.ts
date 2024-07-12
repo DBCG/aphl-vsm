@@ -20,7 +20,7 @@ class FhirClientTest implements FhirClient {
 class KeyCloakClientTest implements KeyCloakClient {
     async getAllUserCredentials(userId: String): Promise<TerminologyServerCredentials[]> {
         const creds:TerminologyServerCredentials = {
-            terminologyServerUrl: "http://testts.com",
+            terminologyServerId: "http://testts.com",
             username: "someUsername",
             password: "somePassword"
           }
@@ -29,7 +29,7 @@ class KeyCloakClientTest implements KeyCloakClient {
 
     async getUserCredentials(userId: String, inputUrl: string): Promise<TerminologyServerCredentials> {
         const creds:TerminologyServerCredentials = {
-            terminologyServerUrl: "http://testts.com",
+            terminologyServerId: "http://testts.com",
             username: "someUsername",
             password: "somePassword"
           }
@@ -50,7 +50,7 @@ test('TsCredentialService saves credentials on existing terminology server', asy
 
     expect(creds.username).toBe("someUsername")
     expect(creds.password).toBe("somePassword")
-    expect(creds.terminologyServerUrl).toBe("http://testts.com")
+    expect(creds.terminologyServerId).toBe("http://testts.com")
   });
 
   test('TsCredentialService fails on save credentials on non existing terminology server', async () => {
