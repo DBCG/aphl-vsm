@@ -14,7 +14,7 @@ export type GetCredentialsApiResponse = TerminologyServerCredentials[] | { error
 const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
   try {
       const credReq: TerminologyServerCredentialsRequest = handleSaveCredentialsRequest(req)
-      const creds = await tsCredentialService.saveCredentials(credReq.userId, credReq.terminologyServerUrl, credReq.username, credReq.password)
+      const creds = await tsCredentialService.saveCredentials(credReq.userId, credReq.terminologyServerId, credReq.username, credReq.password)
       return res.status(200).send(creds)
     }
   catch (e: any) {
@@ -26,7 +26,7 @@ const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCre
 const updateCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
   try {
       const credReq: TerminologyServerCredentialsRequest = handleSaveCredentialsRequest(req)
-      const creds = await tsCredentialService.updateCredentials(credReq.userId, credReq.terminologyServerUrl, credReq.username, credReq.password)
+      const creds = await tsCredentialService.updateCredentials(credReq.userId, credReq.terminologyServerId, credReq.username, credReq.password)
       return res.status(200).send(creds)
     }
   catch (e: any) {
@@ -39,7 +39,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
   try {
     return {
       userId: req.body.userId as string,
-      terminologyServerUrl: req.body.terminologyServerUrl,
+      terminologyServerId: req.body.terminologyServerUrl,
       username: req.body.username,
       password: req.body.password
     }
@@ -48,7 +48,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
       logSimpleError(e)
       return {
         userId: "errorUserId",
-        terminologyServerUrl: "errorTsServerUrl",
+        terminologyServerId: "errorTsServerUrl",
         username: "errorUSername",
         password: "errorPass"
       }
