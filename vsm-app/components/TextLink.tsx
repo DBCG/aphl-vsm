@@ -38,17 +38,13 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
     </StyledLink>
   )
 
-  return (
-    <div>
-      {hasIcon ? (
-        <LinkContainer>
-          {content}
-          <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginLeft: '8px' }} />
-        </LinkContainer>
-      ) : (
-        content
-      )}
-    </div>
+  return hasIcon ? (
+    <LinkContainer>
+      {content}
+      <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginLeft: '8px' }} />
+    </LinkContainer>
+  ) : (
+    content
   )
 }
 
