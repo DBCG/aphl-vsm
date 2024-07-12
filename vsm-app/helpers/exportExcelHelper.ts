@@ -34,15 +34,14 @@ type CollectedChangeMap = {
 const collector = (input: any) => {
   const operation = {
     delete: [],
-    insert: [],
-    replace: []
+    insert: []
   } as CollectedChangeMap
 
   const gatherNewValues = (artifact: any, keyName?: string) => {
     Object.entries(artifact).forEach(([key, value]) => {
       if (value && typeof value === 'object') {
         // @ts-ignore
-        if ('operation' in value && typeof value?.value !== 'object') {
+        if ('operation' in value && value.operation.type !== 'replace' && typeof value?.value !== 'object') {
           // @ts-ignore
           operation[value?.operation?.type].push({ keyName: keyName || key, change: value?.operation?.type, ...value } as CollectedChange)
         } else {
@@ -57,7 +56,6 @@ const collector = (input: any) => {
 
 const OPERATION_TYPES = {
   INSERT: 'insert',
-  REPLACE: 'replace',
   DELETE: 'delete'
 }
 
@@ -159,38 +157,52 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
   return conditions
 }
 
+// Merges the old and new data into a single object
+const mergeChanges = (oldData: CollectedChangeMap, newData: CollectedChangeMap) => {
+  const mergedData = {} as CollectedChangeMap
+  Object.entries(oldData).forEach(([key, value]) => {
+    if (newData[key]) {
+      mergedData[key] = value?.concat(newData[key])
+    } else {
+      mergedData[key] = value
+    }
+  })
+  return mergedData
+}
+
 const generateReadMeSheet = (workbook: ExcelJS.Workbook, rootLibraryChangesJson: any) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
 
   // New Conditions
-  const newConditions = extractConditions(rootLibraryChangesJson)
+  let newConditions = extractConditions(rootLibraryChangesJson)
 
   if (newConditions.length > 0) {
     readmeSheet.columns = [{ header: 'New Conditions', key: 'newConditions', width: 10 }]
-    uniq(newConditions).forEach((newConditions: string) => {
+    newConditions = uniq(newConditions)
+    newConditions.forEach((newConditions: string) => {
       readmeSheet.addRow({ newConditions })
     })
     readmeSheet.getCell('A1').font = { bold: true }
   }
-  const dataDiff = collector(rootLibraryChangesJson?.oldData)
+  const dataDiff = mergeChanges(collector(rootLibraryChangesJson?.oldData), collector(rootLibraryChangesJson?.newData))
   const libDefRows = Object.values(dataDiff)
-    ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
-    .map((row) => [row.change, row.keyName, row.value, row?.operation?.newValue])
+    .map((row) => [row.keyName, row.value, row?.operation?.newValue, row.change])
+    .filter((i) => i[0] !== 'relatedArtifacts') // The new value doesn't look very good in the table because its a nested json
 
   const readMeTable = readmeSheet.addTable({
     name: 'read_me',
-    ref: `A${newConditions.length + 5}`,
+    ref: `A${newConditions.length + 3}`,
     headerRow: true,
     style: {
       theme: 'TableStyleDark3',
       showRowStripes: true
     },
     columns: [
-      { name: 'Change', filterButton: true },
       { name: 'Field Name', filterButton: true },
       { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true }
+      { name: 'New Value', filterButton: true },
+      { name: 'Change', filterButton: true }
     ],
     rows: libDefRows
   })
@@ -198,34 +210,34 @@ const generateReadMeSheet = (workbook: ExcelJS.Workbook, rootLibraryChangesJson:
 }
 
 const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) => {
-  const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
-
-  const oldData = collector(planDefChanges.oldData)
-  const planDefRows = Object.values(oldData)
+  const planDefData = mergeChanges(collector(planDefChanges.oldData), collector(planDefChanges.newData))
+  const planDefRows = Object.values(planDefData)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
-
-  planDefinitionSheet.addTable({
-    name: 'plandefinition',
-    ref: 'A1',
-    headerRow: true,
-    style: {
-      theme: 'TableStyleDark3',
-      showRowStripes: true
-    },
-    columns: [
-      { name: 'Change', filterButton: true },
-      { name: 'Field Name', filterButton: true },
-      { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true }
-    ],
-    rows: planDefRows
-  })
+  if (planDefRows.length > 0) {
+    const planDefinitionSheet = workbook.addWorksheet('Plan Definition')
+    planDefinitionSheet.addTable({
+      name: 'plandefinition',
+      ref: 'A1',
+      headerRow: true,
+      style: {
+        theme: 'TableStyleDark3',
+        showRowStripes: true
+      },
+      columns: [
+        { name: 'Change', filterButton: true },
+        { name: 'Field Name', filterButton: true },
+        { name: 'Old Value', filterButton: true },
+        { name: 'New Value', filterButton: true }
+      ],
+      rows: planDefRows
+    })
+  }
 }
 
 const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Library, grouperLibDiffJson: any) => {
-  const grouperLibDiff = collector(grouperLibDiffJson)
+  const grouperLibDiff = mergeChanges(collector(grouperLibDiffJson.oldData), collector(grouperLibDiffJson.newData))
   const rctcSheet = workbook.addWorksheet('Value Set Library')
 
   const rctcInfoRows = [
@@ -239,7 +251,10 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
     ['Date', grouperLibrary.effectivePeriod?.start]
   ]
   rctcSheet.addRows(rctcInfoRows)
-
+  rctcInfoRows.forEach((row, index) => {
+    const cell = rctcSheet.getCell(`A${index + 1}`)
+    cell.font = { bold: true, color: { argb: 'FF0000FF' } }
+  })
   const rctcRows = Object.values(grouperLibDiff)
     ?.filter((i) => i?.length > 0)
     .flatMap((i) => i)
@@ -254,10 +269,10 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
       showRowStripes: true
     },
     columns: [
-      { name: 'Change', filterButton: true },
       { name: 'Field Name', filterButton: true },
       { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true }
+      { name: 'New Value', filterButton: true },
+      { name: 'Change', filterButton: true }
     ],
     rows: rctcRows
   })
@@ -327,10 +342,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         })
       }
 
-      const oldLeafValuesets = collector(page.oldData.leafValuesets)
-      const newLeafValuesets = collector(page.newData.leafValuesets)
-      fillGroupingListTableRows(oldLeafValuesets) // Contains removed data
-      fillGroupingListTableRows(newLeafValuesets) // Contains new data
+      const leafValueSets = mergeChanges(collector(page.oldData.leafValuesets), collector(page.newData.leafValuesets))
+      fillGroupingListTableRows(leafValueSets)
 
       if (groupingListRows.length > 0) {
         const groungListTableTitle = groupingValueSetSheet.getCell(`A${groupingTableStartRowCount}`)
@@ -373,10 +386,9 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-      const oldDataCodes = collector(page.oldData.codes)
-      const newDataCodes = collector(page.newData.codes)
-      fillCodeRows(oldDataCodes) // Contains removed data
-      fillCodeRows(newDataCodes) // Contains new data
+      const dataCodes = mergeChanges(collector(page.oldData.codes), collector(page.newData.codes))
+
+      fillCodeRows(dataCodes)
 
       const codeRowsStartRowCount = groupingTableStartRowCount + conditionsAdded + 5
       if (codeRows.length > 0) {
