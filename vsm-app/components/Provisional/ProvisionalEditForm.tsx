@@ -15,6 +15,7 @@ import { DeleteForeverSharp } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
 import { LoadingMessage } from '../ProgramValueSetDetails/styles'
+import { debounce } from 'lodash'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -213,7 +214,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     clearCurrentCodeItems()
   }
 
-  const handleUpdateCS = async () => {
+  const handleUpdateCS = debounce(async () => {
     setFormSubmitting(true)
     if (!selectedCodeSystemBase) throw new Error('No CodeSystemBase selected!')
     const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
@@ -230,7 +231,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     } else {
       setFormSubmitting(false)
     }
-  }
+  }, 2000, { leading: true, trailing: false })
 
   if (!provisionalCS && !canEdit) {
     return <p>Editing Code Systems not permitted here.</p>
