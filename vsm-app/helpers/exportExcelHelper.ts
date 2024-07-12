@@ -32,12 +32,16 @@ type CollectedChangeMap = {
 // if found in the case of replace
 // use path parameter against the root (aka most parent object) to get the new value, and use oldValue set in the operation for the old value
 const collector = (input: any) => {
-  const operation = {
+  const operation: CollectedChangeMap = {
     delete: [],
     insert: []
-  } as CollectedChangeMap
+  }
 
-  const gatherNewValues = (artifact: any, keyName?: string) => {
+  if (input) {
+    gatherNewValues(input)
+  }
+  return operation
+  function gatherNewValues(artifact: any, keyName?: string) {
     Object.entries(artifact).forEach(([key, value]) => {
       if (value && typeof value === 'object') {
         // @ts-ignore
@@ -50,8 +54,6 @@ const collector = (input: any) => {
       }
     })
   }
-  gatherNewValues(input)
-  return operation
 }
 
 const OPERATION_TYPES = {
@@ -159,8 +161,9 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
 
 // Merges the old and new data into a single object
 const mergeChanges = (oldData: CollectedChangeMap, newData: CollectedChangeMap) => {
-  const mergedData = {} as CollectedChangeMap
-  Object.entries(oldData).forEach(([key, value]) => {
+  const mergedData: CollectedChangeMap = {}
+  const entries = Object.entries(oldData).length ? Object.entries(oldData) : Object.entries(newData)
+  entries.forEach(([key, value]) => {
     if (newData[key]) {
       mergedData[key] = value?.concat(newData[key])
     } else {
@@ -283,12 +286,12 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
 const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, groupingValueSetsChangeLogs: any) => {
   await Promise.all(
     groupingValueSetsChangeLogs.map(async (page: any) => {
-      const currentId = page.newData.id.value // Possibility that id has changed but we taking the new one for title
+      const currentId = page.newData?.id?.value || page.oldData?.id?.value // use new ID unless it's a deleted grouper
+      console.log(currentId)
       const grouperVs = (await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: currentId
       })) as fhir4.ValueSet
-
       const groupingValueSetSheet: ExcelJS.Worksheet = workbook.addWorksheet(grouperVs?.name || grouperVs?.title)
       const vsInfo = [
         ['Value Set Name', grouperVs.title],
@@ -310,7 +313,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       })
 
       // ValueSet CodeSystem Changes
-      const groupingListRows = [] as any
+      // TODO: fix this
+      const groupingListRows: any[] = []
 
       const groupingTableStartRowCount = vsInfo.length + 3
       let conditionsAdded = 0 // Every condition will be a row we need to increment for Code List table start
@@ -341,8 +345,12 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-
-      const leafValueSets = mergeChanges(collector(page.oldData.leafValuesets), collector(page.newData.leafValuesets))
+      const oldToMerge = collector(page.oldData?.leafValuesets)
+      const newToMerge = collector(page.newData?.leafValuesets)
+      const leafValueSets = mergeChanges(oldToMerge, newToMerge)
+      console.log(leafValueSets)
+      console.log(oldToMerge)
+      console.log(newToMerge)
       fillGroupingListTableRows(leafValueSets)
 
       if (groupingListRows.length > 0) {
@@ -386,7 +394,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           })
         })
       }
-      const dataCodes = mergeChanges(collector(page.oldData.codes), collector(page.newData.codes))
+      const dataCodes = mergeChanges(collector(page.oldData?.codes), collector(page.newData?.codes))
 
       fillCodeRows(dataCodes)
 

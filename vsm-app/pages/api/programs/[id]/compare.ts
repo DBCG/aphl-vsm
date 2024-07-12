@@ -21,7 +21,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   }
 
   const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id as string, req.query.targetId as string))
-  // console.log(JSON.stringify(changeJson))
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'APHL VSM'
   workbook.lastModifiedBy = 'APHL VSM'
@@ -32,15 +31,14 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     resourceType: 'Library',
     id: req.query.targetId as string
   })) as fhir4.Library
-
+  console.log(changeJson)
   const grouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
   const grouperLibDiffJson = changeJson.pages.filter(
-    (page: any) => page.oldData.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === grouperLibrary.id
+    (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === grouperLibrary.id
   )?.[0]
-  const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.newData.resourceType === 'ValueSet')
-
+  const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page?.resourceType === 'ValueSet')
   generateReadMeSheet(workbook, changeJson.pages[0])
-  generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.newData.resourceType === 'PlanDefinition')?.[0])
+  generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
   generateRCTCSheet(workbook, grouperLibrary, grouperLibDiffJson)
 
   await generateGrouperValuesetSheet(workbook, groupingValueSetsChangeLogs)

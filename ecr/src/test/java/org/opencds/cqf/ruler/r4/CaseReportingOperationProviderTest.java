@@ -22,6 +22,7 @@ import org.opencds.cqf.ruler.CaseReportingConfig;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
@@ -2162,22 +2163,44 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	}
 
 	@Test
-	@Disabled
-	void catch_weird_codes_missing() {
+	void created_deleted_groupers_should_be_visible() throws Exception{
 		// check that all the grouped leaf valuesets exist
-		loadTransaction("valueset-code-deletes-broken-source.json");
-		var bundle = (Bundle) loadTransaction("valueset-code-deletes-broken-target.json");
-		var maybeLib = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst();
+		// check that all the expansion contains and compose include get operations
+		loadTransaction("small-vsm-gen-grouper-bundle.json");
+		var bundle = (Bundle) loadTransaction("small-dxtc-modified-diff-bundle.json");
+		var modifiedLibReference = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst().get().getResponse().getLocation();
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
-		diffParams.addParameter("target", "Library/SpecificationLibrary2");
+		diffParams.addParameter("target", modifiedLibReference);
+		ObjectMapper mapper = new ObjectMapper();
 		var returnedBinary = getClient().operation()
 			.onServer()
 			.named("$create-changelog")
 			.withParameters(diffParams)
 			.returnResourceType(Binary.class)
 			.execute();
-		assertNotNull(returnedBinary);
+			assertNotNull(returnedBinary);
+
+			var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
+			assertTrue(node.get("pages").isArray());
+			var pages = node.get("pages");
+			StreamUtils.createStreamFromIterator(pages.iterator()).anyMatch((page) -> page.get("url").asText().contains("www.test.com"));
+
+			Parameters reversedDiffParams = new Parameters();
+			reversedDiffParams.addParameter("target", specificationLibReference);
+			reversedDiffParams.addParameter("source", modifiedLibReference);
+			var returnedBinary2 = getClient().operation()
+				.onServer()
+				.named("$create-changelog")
+				.withParameters(reversedDiffParams)
+				.returnResourceType(Binary.class)
+				.execute();
+			assertNotNull(returnedBinary2);
+			var node2 = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary2.getContentAsBase64())));
+			assertTrue(node2.get("pages").isArray());
+			var pages2 = node2.get("pages");
+			StreamUtils.createStreamFromIterator(pages2.iterator()).anyMatch((page) -> page.get("url").asText().contains("www.test.com"));
+		
 	}
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
