@@ -243,8 +243,6 @@ const ProgramsTab: NextPage = () => {
         name: 'Create New',
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
-        // maxWidth: '15rem',
-        // minWidth: '10rem',
         wrap: true,
         cell: (row: fhir4.Library) => {
           const canClone = allowClone({ session, programStatus: row.status! })
@@ -260,7 +258,6 @@ const ProgramsTab: NextPage = () => {
                   handleClickClone(row.id!)
                 }}
                 style={{ height: 'fit-content' }}
-              // buttoncontext={`clone-${program.status}`}
               >Clone</Button>
 
             </span>
@@ -272,8 +269,6 @@ const ProgramsTab: NextPage = () => {
         name: 'Release',
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
-        // maxWidth: '15rem',
-        // minWidth: '10rem',
         wrap: true,
         cell: (row: fhir4.Library) => {
         const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
@@ -290,7 +285,6 @@ const ProgramsTab: NextPage = () => {
                   setError({})
                   setProgramToRelease(row)
                 }}
-              // buttoncontext={program?.approvalDate ? `release-${program.status}` : `mustApproveRelease-${program.status}`}
               >Release</Button>
 
             </span>

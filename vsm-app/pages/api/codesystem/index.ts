@@ -1,5 +1,6 @@
 import { vsacFhirClient } from '@/fhirClients'
 import handler from '@/helpers/server/handler'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface GetBody {
@@ -25,8 +26,7 @@ const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse<CodeS
     return res.status(200).json(availableCs)
 
   } catch (e) {
-    // logger.error(e)
-    console.error(e)
+    logSimpleError(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
 }
