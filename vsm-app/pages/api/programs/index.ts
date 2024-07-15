@@ -76,7 +76,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       const asstResources = asstSearchResult?.entry?.map((e) => e?.resource)
       const programs = libResources?.filter(is.library)
       let assessments = asstResources?.filter(is.basic)
-      if(req.query['id']) {
+      if (req.query['id']) {
         assessments = assessments
           ?.filter(
             a => a?.extension?.find((ext) => (

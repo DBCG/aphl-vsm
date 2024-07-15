@@ -13,8 +13,8 @@ const EXTENSIONS = {
 } as const
 
 const VSM_LEAF_PROFILE_URLS = {
-   CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-   HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+  CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
+  HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
@@ -225,7 +225,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.name?.replace(' ', '')}` })
+  const vs: fhir4.ValueSet = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.name?.replace(' ', '')}` })
 
   // apply extension
   vs.extension = [

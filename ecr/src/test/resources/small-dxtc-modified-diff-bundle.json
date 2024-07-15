@@ -237,6 +237,7 @@
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "10",
+				"name":"Diagnosis_ProblemTriggersforPublicHealthReporting",
 				"meta": {
 					"versionId": "2",
 					"lastUpdated": "2023-12-14T15:43:06.193-05:00",
@@ -571,7 +572,7 @@
 					}
 				],
 				"version": "1.0.1",
-				"name": "AcanthamoebaDiseaseKeratitisDisordersSNOMED",
+				"name": "UpdatedName",
 				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
 				"status": "active",
 				"experimental": true,

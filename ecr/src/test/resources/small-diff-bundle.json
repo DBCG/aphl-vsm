@@ -228,6 +228,7 @@
 			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"resource": {
 				"resourceType": "ValueSet",
+				"name":"Diagnosis_ProblemTriggersforPublicHealthReporting",
 				"id": "dxtc",
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 				"version": "2022-10-19",
@@ -290,6 +291,7 @@
 					}
 				],
 				"version": "20210526",
+				"name":"DiphtheriaDisordersSNOMED",
 				"status": "active",
 				"compose": {
 					"include": [
@@ -432,6 +434,7 @@
 					}
 				],
 				"version": "20210526",
+				"name":"AnkylosingSpondylitis",
 				"status": "active",
 				"compose": {
 					"include": [

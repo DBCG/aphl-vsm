@@ -38,7 +38,7 @@ interface FlatGrouperVSet {
   selectedValueSet: SelectedValueSet;
   selectedConditions: Condition[];
   selectedGroupers?: SelectedGrouper[];
-  selectedTerminologyServer: string;
+  selectedTerminologyServer: 'vsac' | 'ontoserverR4';
   selectedPriority: 'routine' | 'emergent'
 }
 
@@ -46,7 +46,7 @@ interface CombinedGrouperVSets {
   selectedValueSets: SelectedValueSet[];
   selectedConditions: Condition[];
   selectedGroupers?: SelectedGrouper[];
-  selectedTerminologyServer: string;
+  selectedTerminologyServer: 'vsac' | 'ontoserverR4';
   selectedPriority: 'emergent' | 'routine'
 }
 
