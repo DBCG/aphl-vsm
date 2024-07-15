@@ -53,7 +53,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
       {
         name: 'Action',
-        selector: (row: fhir4.CodeSystem) => row.id,
+        selector: (row: fhir4.CodeSystem) => row.id || 'No ID',
         cell: (row: fhir4.CodeSystem) => {
           return (
           <Box>
