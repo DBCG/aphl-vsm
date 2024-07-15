@@ -2,9 +2,9 @@ import APITokenHandler from "@/helpers/server/ApiTokenHandler"
 import { TerminologyServerCredentials } from "../model/TerminologyServerCredential"
 
 interface KeyCloakClient {
-    getAllUserCredentials(userId: String): Promise<TerminologyServerCredentials[]>
-    getUserCredentials(userId: String, inputUrl: string): Promise<TerminologyServerCredentials>
-    storeBasicAuthCreds(userId: String, inputUrl: String, username: String, password: String): Promise<void>
+    getAllUserCredentials(userId: string): Promise<TerminologyServerCredentials[]>
+    getUserCredentials(userId: string, serverId: string): Promise<TerminologyServerCredentials>
+    storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string): Promise<void>
 }
 
 class KeyCloakClientImpl implements KeyCloakClient {
@@ -38,8 +38,8 @@ class KeyCloakClientImpl implements KeyCloakClient {
           return [creds, creds2]
     }
 
-    async getUserCredentials(userId: string, inputUrl: string): Promise<TerminologyServerCredentials> {
-        const basicAuthCredsPromise = this.tokenHandler.getBasicAuthCreds(userId, inputUrl)
+    async getUserCredentials(userId: string, serverId: string): Promise<TerminologyServerCredentials> {
+        const basicAuthCredsPromise = this.tokenHandler.getBasicAuthCreds(userId, serverId)
         const basicAuthCreds = await basicAuthCredsPromise
         const creds:TerminologyServerCredentials = {
             terminologyServerId: basicAuthCreds.url,
@@ -49,8 +49,9 @@ class KeyCloakClientImpl implements KeyCloakClient {
           return creds
     }
 
-    async storeBasicAuthCreds(userId: String, inputUrl: String, username: String, password: String): Promise<void> {
-        return
+    async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string): Promise<void> {
+        console.log("User: " + userId + " - serverId:" + serverId)
+        return this.tokenHandler.storeBasicAuthCreds(userId, serverId, username, password)
     }
 }
 
