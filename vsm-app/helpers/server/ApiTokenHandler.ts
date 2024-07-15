@@ -57,13 +57,12 @@ class APITokenHandler {
   /**
    * Stores basic auth creds for a given url
    */
-  public async storeBasicAuthCreds(userId: string, inputUrl: string, username: string, password: string) {
-    const url = inputUrl.toLowerCase()
+  public async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string) {
     await this.renewKeyCloakToken()
     const basicAuthCred = btoa(`${username}:${password}`)
     const userIV = await this.getUserIV(userId)
     const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }), userIV)
-    await this.storeCredsKeyCloak(userId, url, encryptedCreds)
+    await this.storeCredsKeyCloak(userId, serverId, encryptedCreds)
   }
 
   private encryptData(data: string, userIV: string) {
