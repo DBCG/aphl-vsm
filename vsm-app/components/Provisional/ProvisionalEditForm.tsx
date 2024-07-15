@@ -125,7 +125,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const { provisionalCS, isCsLoading } = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
+  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
