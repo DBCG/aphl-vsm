@@ -323,8 +323,8 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
       {
         name: 'Contains Provisional Code System(s)',
         selector: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map(ci => ci.system) || []
-          return systems
+          const systems = row?.compose?.include?.map(ci => ci.system || '[system missing]') || []
+          return systems.join(',')
         },
         sortable: true,
         wrap: true,
