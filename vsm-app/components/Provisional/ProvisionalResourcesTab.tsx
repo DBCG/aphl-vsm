@@ -129,7 +129,7 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
       <DataTable
         title='VSM Provisional Value Sets'
         data={provisionalVS}
-        loading={isLoading}
+        progressPending={isLoading}
         pagination
         // @ts-ignore
         columns={columns}
