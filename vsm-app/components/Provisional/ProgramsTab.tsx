@@ -92,7 +92,7 @@ const ProgramsTab: NextPage = () => {
       url: '/api/programs',
       args: {
         list: true, // use this so on the server side we don't need to load all details of the program
-        offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : null,
+        offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : 0,
         count: pagination?.countPerPage
       }
     },
