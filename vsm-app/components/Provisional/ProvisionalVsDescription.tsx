@@ -6,14 +6,8 @@ import { AccordionP, AccordionHeading } from '../Typography'
 
 
 const ProvisionalVSDescription = () => {
-
-  // const accordionStyle = context === 'release-modal' ? {
-  //   backgroundColor: 'var(--theme-color-transparent)',
-  //   borderBottom: '2px solid var(--theme-200)'
-  // } : { boxShadow: 'none' }
   
   const accordionStyle = {
-    // backgroundColor: 'var(--theme-color-transparent)',
     borderBottom: '2px solid var(--theme-200)',
     marginBottom: '1rem'
   }

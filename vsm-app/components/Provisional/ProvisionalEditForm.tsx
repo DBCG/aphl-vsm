@@ -57,12 +57,6 @@ const noDataComponent = (tableType: 'setProvisionals' | 'reviewProvisionals') =>
   }
 }
 
-interface ProvisionalEditForm {
-  itemType: 'vs' | 'cs'
-  readOnly: boolean
-  existingResource?: fhir4.CodeSystem | fhir4.ValueSet
-}
-
 interface CodeTableData {
   code: string
   display: string

@@ -70,7 +70,7 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
     ]
     return fields
-  }, [provisionalCS])
+  }, [provisionalCS, canEdit])
   return (
     <div>
       {/* @ts-ignore */}
@@ -122,7 +122,7 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
       },
     ]
     return fields
-  }, [provisionalVS])
+  }, [provisionalVS, canEdit])
 
   return (
     <div>
