@@ -30,6 +30,10 @@ const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vs
   limiter: {
     max: 1,
     duration: 10000
+  },
+  redis: {
+    tls: {rejectUnauthorized: false},
+    enableTLSForSentinelMode: false
   }
 })
 
