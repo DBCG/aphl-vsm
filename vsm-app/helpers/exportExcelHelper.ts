@@ -287,7 +287,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
   await Promise.all(
     groupingValueSetsChangeLogs.map(async (page: any) => {
       const currentId = page.newData?.id?.value || page.oldData?.id?.value // use new ID unless it's a deleted grouper
-      console.log(currentId)
       const grouperVs = (await fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: currentId
@@ -348,9 +347,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       const oldToMerge = collector(page.oldData?.leafValuesets)
       const newToMerge = collector(page.newData?.leafValuesets)
       const leafValueSets = mergeChanges(oldToMerge, newToMerge)
-      console.log(leafValueSets)
-      console.log(oldToMerge)
-      console.log(newToMerge)
       fillGroupingListTableRows(leafValueSets)
 
       if (groupingListRows.length > 0) {
