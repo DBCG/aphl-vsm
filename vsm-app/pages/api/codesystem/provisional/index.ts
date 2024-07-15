@@ -169,6 +169,6 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
 }
 
 export default handler({
-    GET: { action: getProvisionalCodeSystems, access: ['admin', 'editor'] },
+    GET: { action: getProvisionalCodeSystems, access: ['admin', 'editor', 'reviewer'] },
     POST: { action: updateProvisionalCodeSystems, access: ['admin', 'editor'] },
   })
