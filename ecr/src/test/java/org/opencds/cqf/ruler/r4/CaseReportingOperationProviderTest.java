@@ -1743,7 +1743,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertEquals(3, nestedChanges.size());
+		assertEquals(5, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
@@ -1784,7 +1784,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertEquals(3, nestedChanges.size());
+		assertEquals(5, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
@@ -1825,8 +1825,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
-			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion"
+			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
 		);
 		Exception expectNoException = null;
 		try {
@@ -2169,6 +2168,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadTransaction("small-vsm-gen-grouper-bundle.json");
 		var bundle = (Bundle) loadTransaction("small-dxtc-modified-diff-bundle.json");
 		var modifiedLibReference = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst().get().getResponse().getLocation();
+		var metadataProperties = List.of("id", "name", "url", "version", "title");
+		var VSMGrouperCodes = List.of(
+			"1010333003",
+			"1010334009",
+			"106001000119101",
+			"10692761000119107",
+			"1177120001"
+		);
+		var VSMGrouperLeafVsets = List.of(
+			"2.16.840.1.113762.1.4.1251.40"
+		);
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", modifiedLibReference);
@@ -2179,28 +2189,69 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(diffParams)
 			.returnResourceType(Binary.class)
 			.execute();
-			assertNotNull(returnedBinary);
-
-			var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
-			assertTrue(node.get("pages").isArray());
-			var pages = node.get("pages");
-			StreamUtils.createStreamFromIterator(pages.iterator()).anyMatch((page) -> page.get("url").asText().contains("www.test.com"));
-
-			Parameters reversedDiffParams = new Parameters();
-			reversedDiffParams.addParameter("target", specificationLibReference);
-			reversedDiffParams.addParameter("source", modifiedLibReference);
-			var returnedBinary2 = getClient().operation()
-				.onServer()
-				.named("$create-changelog")
-				.withParameters(reversedDiffParams)
-				.returnResourceType(Binary.class)
-				.execute();
-			assertNotNull(returnedBinary2);
-			var node2 = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary2.getContentAsBase64())));
-			assertTrue(node2.get("pages").isArray());
-			var pages2 = node2.get("pages");
-			StreamUtils.createStreamFromIterator(pages2.iterator()).anyMatch((page) -> page.get("url").asText().contains("www.test.com"));
 		
+		assertNotNull(returnedBinary);
+		var node = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary.getContentAsBase64())));
+		assertTrue(node.get("pages").isArray());
+		var pages = node.get("pages");
+		
+		// new grouper was deleted
+		var deletedGrouperPage = StreamUtils.createStreamFromIterator(pages.iterator()).filter((page) -> page.get("url").asText().contains("www.test.com")).findAny();
+		assertTrue(deletedGrouperPage.isPresent());
+		
+		// all codes and properties in the grouper should be "insert"
+		for (final var property: metadataProperties) {
+			// all props have a "delete" operation
+			assertTrue(deletedGrouperPage.get().get("oldData").get(property).get("operation").get("type").asText().equals("delete"));
+		}
+
+		assertEquals(VSMGrouperCodes.size(), deletedGrouperPage.get().get("oldData").get("codes").size());
+		for (final var code: deletedGrouperPage.get().get("oldData").get("codes")) {
+			// all codes have a "delete" operation
+			assertTrue(code.get("operation").get("type").asText().equals("delete"));
+			assertTrue(VSMGrouperCodes.contains(code.get("code").asText()));
+		}
+
+		assertEquals(VSMGrouperLeafVsets.size(), deletedGrouperPage.get().get("oldData").get("leafValuesets").size());
+		for (final var leaf: deletedGrouperPage.get().get("oldData").get("leafValuesets")) {
+			// all leaf valuesets have a "delete" operation
+			assertTrue(leaf.get("operation").get("type").asText().equals("delete"));
+			assertTrue(VSMGrouperLeafVsets.contains(leaf.get("memberOid").asText()));
+		}
+
+		Parameters reversedDiffParams = new Parameters();
+		reversedDiffParams.addParameter("target", specificationLibReference);
+		reversedDiffParams.addParameter("source", modifiedLibReference);
+		var returnedBinary2 = getClient().operation()
+			.onServer()
+			.named("$create-changelog")
+			.withParameters(reversedDiffParams)
+			.returnResourceType(Binary.class)
+			.execute();
+		assertNotNull(returnedBinary2);
+		var node2 = mapper.readTree(new String(Base64.getDecoder().decode(returnedBinary2.getContentAsBase64())));
+		assertTrue(node2.get("pages").isArray());
+		var pages2 = node2.get("pages");
+
+		//  grouper was created
+		var createdGrouperPage = StreamUtils.createStreamFromIterator(pages2.iterator()).filter((page) -> page.get("url").asText().contains("www.test.com")).findAny();
+		assertTrue(createdGrouperPage.isPresent());
+		// all codes and properties should show as inserted
+		for (final var property: metadataProperties) {
+			assertTrue(createdGrouperPage.get().get("newData").get(property).get("operation").get("type").asText().equals("insert"));
+		}
+
+		assertEquals(VSMGrouperCodes.size(), createdGrouperPage.get().get("newData").get("codes").size());
+		for (final var code: createdGrouperPage.get().get("newData").get("codes")) {
+			assertTrue(code.get("operation").get("type").asText().equals("insert"));
+			assertTrue(VSMGrouperCodes.contains(code.get("code").asText()));
+		}
+
+		assertEquals(VSMGrouperLeafVsets.size(), createdGrouperPage.get().get("newData").get("leafValuesets").size());
+		for (final var leaf: createdGrouperPage.get().get("newData").get("leafValuesets")) {
+			assertTrue(leaf.get("operation").get("type").asText().equals("insert"));
+			assertTrue(VSMGrouperLeafVsets.contains(leaf.get("memberOid").asText()));
+		}
 	}
 
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {

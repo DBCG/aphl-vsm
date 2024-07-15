@@ -233,6 +233,52 @@
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 				"version": "2022-10-19",
 				"status": "active",
+				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "program"
+						},
+						"valueReference": {
+							"reference": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification"
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "priority"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "routine"
+								}
+							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
+						}
+					}
+				],
 				"compose": {
 					"include": [
 						{
