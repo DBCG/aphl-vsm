@@ -9,6 +9,7 @@ import {
 } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -279,16 +280,21 @@ export const getProvisionals = async ({ resourceType, params={} }: GetProvParams
 }
 
 const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { title, url } = req.query
-  const params = {
-    ...(title && { 'title:contains': title }),
-    ...(url && { 'url': url }),
+  try {
+    const { title, url } = req.query
+    const params = {
+      ...(title && { 'title:contains': title }),
+      ...(url && { 'url': url }),
+    }
+    const results = await getProvisionals({ resourceType: 'ValueSet', params })
+    if (results.error) {
+      return res.status(400).send(results)
+    }
+    return res.status(200).json(results || [])
+  } catch (e) {
+    logSimpleError(e)
+    return res.status(500).json({ error: 'Error encountered finding Provisional Value Sets'})
   }
-  const results = await getProvisionals({ resourceType: 'ValueSet', params })
-  if (results.error) {
-    return res.status(400).send(results)
-  }
-  return res.status(200).json(results || [])
 }
 
 export default handler({
