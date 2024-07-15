@@ -34,12 +34,13 @@ class TsCredentialServiceImpl implements TsCredentialService {
 
     public async saveCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials> {
         const endpoints = await this.fhirClient.getTerminologyServers()
-        if(endpoints.find(e => e.address == terminologyServerId)) {
+        if(endpoints.find(e => e.id == terminologyServerId)) {
             return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerId, username, password)
                 .then(() => {
-                    let cred: TerminologyServerCredentials = {terminologyServerId: terminologyServerId, username, password}
+                    let cred: TerminologyServerCredentials = {terminologyServerId, username, password}
+                    console.log(cred)
                     return cred
-                }, () => Promise.reject("Problem storing basic auth credd"))
+                }, () => Promise.reject("Problem storing basic auth creds"))
         } else {
             return Promise.reject("Trying to save credentials for unsupported terminology server")
         }
