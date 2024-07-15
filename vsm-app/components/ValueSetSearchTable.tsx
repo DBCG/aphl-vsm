@@ -187,7 +187,7 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
     url: vSet.url || 'No URL',
     version: vSet.version || 'No Version',
     id: vSet.id || 'No ID',
-    value: vSet?.url
+    value: vSet?.url || ''
   }))
 }
 
@@ -881,7 +881,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         )}
       </Row>
       {searchTableContext === 'vsm-provisional' ? (
-        <VsmProvisionalSearchForm allConditions={allConditions} document={myDocument} formattedGroups={formattedGroups} />
+        <VsmProvisionalSearchForm
+          allConditions={allConditions}
+          document={myDocument}
+          formattedGroups={formattedGroups}
+        />
       ) : (
         <div>
           <TitleRow>

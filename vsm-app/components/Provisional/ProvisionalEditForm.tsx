@@ -125,7 +125,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
+  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS(selectedCodeSystemBase?.value)
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -260,7 +260,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         {provisionalCS?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={provisionalCS.find(c => c?.url === selectedCodeSystemBase?.value)} />
+            <ExistingCodesTable codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)} />
             { can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
             )}

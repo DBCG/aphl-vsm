@@ -238,7 +238,7 @@ const ProvisionalVSEdit = () => {
   // NOTE! provisional value sets are not associated with conditions at this point
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
-  const existingProvisionalCs = useGetProvisionalCS({ systemUrl: selectedCodeSystemBase?.value })
+  const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
   const allVsacCS = useGetCS(null)
   const { provisionalContext, isContextLoading } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -291,10 +291,10 @@ const ProvisionalVSEdit = () => {
   }, [])
 
   useEffect(() => {
-    const matchingVs = provisionalVS?.find(vs => vs?.id === provisionalVsIdForUpdate)
+    const matchingVs = provisionalVS?.find((vs: fhir4.ValueSet | undefined) => vs?.id === provisionalVsIdForUpdate)
     const defaultTitle = matchingVs?.title || ''
-    const defaultAuthor = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
-    const defaultSteward = matchingVs?.extension?.find(ext => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
+    const defaultAuthor = matchingVs?.extension?.find((ext: fhir4.Extension | undefined) => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
+    const defaultSteward = matchingVs?.extension?.find((ext: fhir4.Extension | undefined) => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
     setTitle(defaultTitle)
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
@@ -471,7 +471,7 @@ const ProvisionalVSEdit = () => {
   const handleProvisionalVsUpdate = async () => {
     setLoading(true)
     // identify urls of all codesystems that don't exist yet
-    const newCsUrls = Object.keys(codesBySystemToAdd).filter(system => !provisionalCS?.find(cs => cs.url === system))
+    const newCsUrls = Object.keys(codesBySystemToAdd).filter(system => !provisionalCS?.find((cs: fhir4.CodeSystem | undefined) => cs?.url === system))
     const newNameUrlPairs = csSelectOptions?.filter(o => newCsUrls.includes(o.value))
     const submitBody = {
       newCodeSystemItems: newNameUrlPairs,
@@ -582,7 +582,7 @@ const ProvisionalVSEdit = () => {
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
                   <ExistingCodesTable
                     systemName={selectedCodeSystemBase?.label!}
-                    codeSystem={existingProvisionalCs?.provisionalCS?.find(c => c.url === selectedCodeSystemBase?.value)!}
+                    codeSystem={existingProvisionalCs?.provisionalCS?.find((c: fhir4.CodeSystem | undefined) => c?.url === selectedCodeSystemBase?.value)!}
                     handleAddCodes={handleUpdateStaging}
                   />
                   <p style={{ marginBottom: '1rem' }}>You may add custom provisional codes to your code system below:</p>
