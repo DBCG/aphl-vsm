@@ -19,6 +19,7 @@ import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
 import { Chip } from '@mui/material'
 import { ArrowOutward } from '@mui/icons-material'
 import { ProvisionalsByProgram } from '@/pages/api/programs/provisional'
+import { ErrorMessage } from '@/components/ErrorMessage'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -226,8 +227,8 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
 
 const ProvisionalVSEdit = () => {
   // get existing prov valuesets + codesystems
-  const { provisionalVS, isVsLoading } = useGetProvisionalVS()
-  const { provisionalCS, isCsLoading } = useGetProvisionalCS()
+  const { provisionalVS, isVsLoading, provVsError } = useGetProvisionalVS()
+  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS()
   const [showVsForm, setShowVsForm] = useState(false)
   const [selectedVS, setSelectedVS] = useState<null | fhir4.ValueSet>(null)
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
@@ -240,7 +241,7 @@ const ProvisionalVSEdit = () => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
   const allVsacCS = useGetCS(null)
-  const { provisionalContext, isContextLoading } = useGetProvisionalContext()
+  const { provisionalContext, isContextLoading, provContextError } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
   const [title, setTitle] = useState('')
@@ -509,6 +510,8 @@ const ProvisionalVSEdit = () => {
           />
         </div>
       )}
+      <ErrorMessage error={provVsError}/>
+      <ErrorMessage error={provContextError}/>
       <DataTable
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         pagination={true}
@@ -577,6 +580,7 @@ const ProvisionalVSEdit = () => {
                   }}
                 />
               </QuestionnaireRowContainer>
+              <ErrorMessage error={provCsError}/>
               {existingProvisionalCs?.provisionalCS?.length ? (
                 <div>
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>

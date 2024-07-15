@@ -16,6 +16,7 @@ import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
 import { LoadingMessage } from '../ProgramValueSetDetails/styles'
 import { debounce } from 'lodash'
+import { ErrorMessage } from '../ErrorMessage'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -66,10 +67,6 @@ interface CodeTableData {
   code: string
   display: string
   definition: string
-}
-
-interface ExistingCodesTableData {
-  codeSystem: fhir4.CodeSystem
 }
 
 const allFieldsExist = (codeItems: string[]) => {
@@ -239,6 +236,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     return (
       <div>
         <PageTitle>{`${can(session, 'edit') ? 'Create or Edit' : 'View'} VSM Provisional Code System`}</PageTitle>
+        <ErrorMessage error={provCsError}/>
         <p>Select a Code System URL</p>
         <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
           <Select

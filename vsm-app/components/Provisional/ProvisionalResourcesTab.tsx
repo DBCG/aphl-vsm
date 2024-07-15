@@ -11,6 +11,7 @@ import { getVsAuthor } from '@/helpers/valueSetHelpers'
 import { formatResourceDate } from '@/helpers/formatDates'
 import { VSMSession, can } from '@/helpers/rolesHelper'
 import { useSession } from 'next-auth/react'
+import { ErrorMessage } from '../ErrorMessage'
 
 interface ProvisionalType {
   provisionalType: 'Value Set' | 'Code System'
@@ -143,9 +144,9 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
 
 const ProvisionalResourcesTab = () => {
   const vsData = useGetProvisionalVS()
-  const { provisionalVS, isVsLoading } = vsData
+  const { provisionalVS, isVsLoading, provVsError } = vsData
   const csData = useGetProvisionalCS()
-  const { provisionalCS, isCsLoading } = csData
+  const { provisionalCS, isCsLoading, provCsError } = csData
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const canEdit = can(session, 'edit')
   const router = useRouter()
@@ -155,6 +156,7 @@ const ProvisionalResourcesTab = () => {
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white' }}>
+            <ErrorMessage error={provCsError}/>
             <ProvisionalCodeSystemsTable isLoading={Boolean(isCsLoading)} provisionalCS={provisionalCS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
@@ -165,6 +167,7 @@ const ProvisionalResourcesTab = () => {
         </Grid>
         <Grid item xs={12}>
           <div style={{ backgroundColor: 'white'}}>
+            <ErrorMessage error={provVsError}/>
             <ProvisionalValueSetsTable isLoading={Boolean(isVsLoading)} csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
