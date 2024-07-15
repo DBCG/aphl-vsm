@@ -299,5 +299,5 @@ const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
 
 export default handler({
   POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
-  GET: { action: getProvisionalVs, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'editor', 'reviewer'] },
 })
