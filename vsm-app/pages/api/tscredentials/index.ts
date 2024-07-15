@@ -7,14 +7,18 @@ import { TerminologyServerCredentialsRequest } from '@/backend/model/Terminology
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 import handler from '@/helpers/server/handler'
+import { VSMSession } from '@/helpers/rolesHelper'
+import { getServerSession } from 'next-auth/next'
+import { AuthOptions } from '../auth/[...nextauth]'
 
 export type SaveCredentialsApiResponse = TerminologyServerCredentials | { error: string }
 export type GetCredentialsApiResponse = TerminologyServerCredentials[] | { error: string }
 
 const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
   try {
+      const session = <VSMSession> await getServerSession(req, res, AuthOptions)
       const credReq: TerminologyServerCredentialsRequest = handleSaveCredentialsRequest(req)
-      const creds = await tsCredentialService.saveCredentials(credReq.userId, credReq.terminologyServerId, credReq.username, credReq.password)
+      const creds = await tsCredentialService.saveCredentials(session.user.id, credReq.terminologyServerId, credReq.username, credReq.password)
       return res.status(200).send(creds)
     }
   catch (e: any) {
@@ -39,7 +43,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
   try {
     return {
       userId: req.body.userId as string,
-      terminologyServerId: req.body.terminologyServerUrl,
+      terminologyServerId: req.body.terminologyServerId,
       username: req.body.username,
       password: req.body.password
     }
@@ -48,7 +52,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
       logSimpleError(e)
       return {
         userId: "errorUserId",
-        terminologyServerId: "errorTsServerUrl",
+        terminologyServerId: "errorTsServerId",
         username: "errorUSername",
         password: "errorPass"
       }

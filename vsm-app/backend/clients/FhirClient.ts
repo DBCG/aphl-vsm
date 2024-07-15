@@ -1,4 +1,5 @@
 import { Endpoint } from "fhir/r4";
+import { fhirCdrClient } from "@/fhirClients"
 
 interface FhirClient {
 
@@ -18,14 +19,15 @@ class FhirClientImpl implements FhirClient {
     }
 
     async getTerminologyServers(): Promise<Endpoint[]> {
-        const endpoint:fhir4.Endpoint = {
-            resourceType: "Endpoint",
-            address: "http://testts.com",
-            connectionType: { code: "" },
-            payloadType: [],
-            status: "active"
-          }
-          return [endpoint]
+        const endpointBundle = await fhirCdrClient.search({
+            resourceType: 'Endpoint',
+            searchParams: {
+                _total: "accurate",
+                identifier: "terminologyEndpoint"
+            }
+            }) as fhir4.Bundle
+
+          return endpointBundle?.entry?.map(e => e.resource as fhir4.Endpoint) || []
     }
 }
 
