@@ -177,7 +177,8 @@ const generateReadMeSheet = (
   rootLibraryChangesJson: any
 ) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
-
+  readmeSheet.getColumn('A').width = 30
+  readmeSheet.getColumn('B').width = 60
   const style = {
     alignment: { vertical: 'middle', horizontal: 'left' },
     fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E2EFDA' } },
@@ -198,7 +199,7 @@ const generateReadMeSheet = (
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', sourceGrouperLibrary?.version]
   ])
-  readmeSheet.addRow([])
+  readmeSheet.addRow([]) // Add new line
   const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
   previousVersionHeader.font = { bold: true }
   const previousVersion = readmeSheet.addRows([
@@ -209,8 +210,8 @@ const generateReadMeSheet = (
     ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', targetGrouperLibrary?.version]
   ])
-  const cellsToModify = [currentVersion, previousVersion]
-  cellsToModify.forEach((rows) => {
+  const cellsToStyle = [currentVersion, previousVersion]
+  cellsToStyle.forEach((rows) => {
     rows.forEach((cell) => {
       times(2, (i) => {
         if (i === 0) {
@@ -223,8 +224,7 @@ const generateReadMeSheet = (
     })
   })
 
-  readmeSheet.getColumn('A').width = 30
-  readmeSheet.getColumn('B').width = 60
+  readmeSheet.addRows([[],[]]) // Add new line
   // New Conditions
   let newConditions = extractConditions(rootLibraryChangesJson)
 
@@ -250,10 +250,7 @@ const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) =
       name: 'plandefinition',
       ref: 'A1',
       headerRow: true,
-      style: {
-        theme: 'TableStyleDark3',
-        showRowStripes: true
-      },
+      style: {},
       columns: [
         { name: 'Change', filterButton: true },
         { name: 'Field Name', filterButton: true },
@@ -268,7 +265,8 @@ const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) =
 const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Library, grouperLibDiffJson: any) => {
   const grouperLibDiff = mergeChanges(collector(grouperLibDiffJson.oldData), collector(grouperLibDiffJson.newData))
   const rctcSheet = workbook.addWorksheet('Value Set Library')
-
+  rctcSheet.getColumn('A').width = 30
+  rctcSheet.getColumn('B').width = 60
   const rctcInfoRows = [
     ['Name', grouperLibrary.title],
     ['OID', grouperLibrary?.identifier?.[0]?.value],
@@ -294,10 +292,7 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
       name: 'rctcDiff',
       ref: `A${rctcInfoRows.length + 5}`,
       headerRow: true,
-      style: {
-        theme: 'TableStyleDark3',
-        showRowStripes: true
-      },
+      style: {},
       columns: [
         { name: 'Field Name', filterButton: true },
         { name: 'Old Value', filterButton: true },
@@ -321,6 +316,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       })) as fhir4.ValueSet
 
       const groupingValueSetSheet: ExcelJS.Worksheet = workbook.addWorksheet(grouperVs?.name || grouperVs?.title)
+      groupingValueSetSheet.getColumn('A').width = 30
+      groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
         ['Value Set Name', grouperVs.title],
         ['OID', grouperVs?.identifier?.[0]?.value],
@@ -384,10 +381,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           name: 'valueset_groupinglist_' + currentId,
           ref: `A${groupingTableStartRowCount + 1}`,
           headerRow: true,
-          style: {
-            theme: 'TableStyleDark3',
-            showRowStripes: true
-          },
+          style: {},
           columns: [
             { name: 'Name', filterButton: true },
             { name: 'OID', filterButton: true },
@@ -430,10 +424,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           name: 'valueset_codelist_' + currentId,
           ref: `A${codeRowsStartRowCount + 1}`,
           headerRow: true,
-          style: {
-            // theme: 'TableStyleDark3',
-            showRowStripes: false
-          },
+          style: {},
           columns: [
             { name: 'Name', filterButton: true },
             { name: 'Member OID', filterButton: true },
