@@ -55,7 +55,7 @@ public class ChangeLog {
               if (!doesOidExistInList) {
                 leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
               }
-              mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
+              mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
             }
             if (concept.hasValueSet()) {
               concept.getValueSet().stream()
@@ -89,7 +89,7 @@ public class ChangeLog {
     return leaf;
   }
   // can this be done with a fhir operation? tx server work?
-  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String url){
+  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String title, String url){
       var system = concept.getSystem();
       var id = concept.getId();
       var version = concept.getVersion();
@@ -97,7 +97,7 @@ public class ChangeLog {
         .stream()
         .filter(ValueSet.ConceptReferenceComponent::hasCode)
         .forEach(conceptReference -> {
-          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, url, null);
+          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, title, url, null);
           codeMap.put(conceptReference.getCode(), code);
         });
   }
@@ -171,8 +171,9 @@ public class ChangeLog {
           coding.getSystem(), 
           coding.getCode(), 
           coding.getVersion(), 
-          conditionName, 
+          conditionName,
           null, 
+          null,
           null,
           null,
           condition.operation));
@@ -342,9 +343,10 @@ public class ChangeLog {
       public String codeSystemOid;
       public String codeSystemName;
       public String parentValueSetName;
+      public String parentValueSetTitle;
       public String parentValueSetUrl;
       public Operation operation;
-      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetUrl, Operation operation) {
+      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetTitle, String parentValueSetUrl, Operation operation) {
         this.id = id;
         this.system = system;
         if (system != null) {
@@ -357,10 +359,11 @@ public class ChangeLog {
         this.memberOid = memberOid;
         this.operation = operation;
         this.parentValueSetName = parentValueSetName;
+        this.parentValueSetTitle = parentValueSetTitle;
         this.parentValueSetUrl = parentValueSetUrl;
       }
       public Code copy() {
-        return new Code(this.id, this.system, this.code, this.version, this.display, this.memberOid, this.parentValueSetName, this.parentValueSetUrl, this.operation);
+        return new Code(this.id, this.system, this.code, this.version, this.display, this.memberOid, this.parentValueSetName, this.parentValueSetTitle, this.parentValueSetUrl, this.operation);
       }
       public static String getCodeSystemOid(String systemUrl) {
         if (systemUrl.contains("snomed")) {
