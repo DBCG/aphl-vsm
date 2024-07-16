@@ -80,9 +80,7 @@ public class ChangeLog {
 
     var leaf = versionedLeafMap.get(valueSet.getVersion());
     if (!versionedLeafMap.containsKey(valueSet.getVersion())) {
-      leaf = new ValueSetChild.Leaf(Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl(), 
-      valueSet.getStatus()
-      );
+      leaf = new ValueSetChild.Leaf(Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl(), valueSet.getStatus());
       versionedLeafMap.put(valueSet.getVersion(), leaf);
     }
     return leaf;
@@ -405,6 +403,7 @@ public class ChangeLog {
     public static class Leaf {
       public String memberOid;
       public String name;
+      public String title;
       public String url;
       public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();;
       public String status;
@@ -422,16 +421,17 @@ public class ChangeLog {
           return new NameAndOid(this.name, this.oid);
         }
       }
-      Leaf(String memberOid, String name, String url, PublicationStatus status) {
+      Leaf(String memberOid, String name, String title, String url, PublicationStatus status) {
         this.memberOid = memberOid;
         this.name = name;
+        this.title = title;
         this.url = url;
         if (status != null) {
           this.status = status.getDisplay();
         }
       }
       public Leaf copy() {
-        var copy = new Leaf(this.memberOid, this.name, this.url, null);
+        var copy = new Leaf(this.memberOid, this.name, this.title, this.url, null);
         copy.status = this.status;
         copy.codeSystems = this.codeSystems.stream().map(c -> c.copy()).collect(Collectors.toList());
         copy.conditions = this.conditions.stream().map(c -> c.copy()).collect(Collectors.toList());
