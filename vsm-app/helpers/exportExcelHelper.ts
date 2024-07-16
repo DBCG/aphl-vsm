@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import { fhirCdrClient } from '@/fhirClients'
 import { getVsSteward, getVsAuthor } from '@/helpers/valueSetHelpers'
-import { startCase, uniq } from 'lodash'
+import { startCase, times, uniq } from 'lodash'
 
 interface CollectedChange extends ChangeValue {
   keyName: string
@@ -170,43 +170,72 @@ const mergeChanges = (oldData: CollectedChangeMap, newData: CollectedChangeMap) 
   return mergedData
 }
 
-const generateReadMeSheet = (workbook: ExcelJS.Workbook, rootLibraryChangesJson: any) => {
+const generateReadMeSheet = (
+  workbook: ExcelJS.Workbook,
+  sourceGrouperLibrary: fhir4.Library,
+  targetGrouperLibrary: fhir4.Library,
+  rootLibraryChangesJson: any
+) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
 
+  const style = {
+    alignment: { vertical: 'middle', horizontal: 'left' },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E2EFDA' } },
+    border: {
+      top: { style: 'thick' },
+      left: { style: 'thick' },
+      bottom: { style: 'thick' },
+      right: { style: 'thick' }
+    }
+  }
+  const currentVersionHeader = readmeSheet.addRow(['Current Version'])
+  currentVersionHeader.font = { bold: true }
+  const currentVersion = readmeSheet.addRows([
+    ['Name', sourceGrouperLibrary.title],
+    ['Purpose', sourceGrouperLibrary?.purpose],
+    ['RCTC OID', sourceGrouperLibrary?.id?.toString()],
+    ['RCTC Definition Version', sourceGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', sourceGrouperLibrary?.version]
+  ])
+  readmeSheet.addRow([])
+  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
+  previousVersionHeader.font = { bold: true }
+  const previousVersion = readmeSheet.addRows([
+    ['Name', targetGrouperLibrary.title],
+    ['Purpose', targetGrouperLibrary?.purpose],
+    ['RCTC OID', targetGrouperLibrary?.id],
+    ['RCTC Definition Version', targetGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', targetGrouperLibrary?.version]
+  ])
+  const cellsToModify = [currentVersion, previousVersion]
+  cellsToModify.forEach((rows) => {
+    rows.forEach((cell) => {
+      times(2, (i) => {
+        if (i === 0) {
+          cell.getCell(i + 1).font = { bold: true }
+        }
+        cell.getCell(i + 1).alignment = style.alignment
+        cell.getCell(i + 1).fill = style.fill
+        cell.getCell(i + 1).border = style.border
+      })
+    })
+  })
+
+  readmeSheet.getColumn('A').width = 30
+  readmeSheet.getColumn('B').width = 60
   // New Conditions
   let newConditions = extractConditions(rootLibraryChangesJson)
 
   if (newConditions.length > 0) {
-    readmeSheet.columns = [{ header: 'New Conditions', key: 'newConditions', width: 10 }]
+    const conditionTitle = readmeSheet.addRow(['New Conditions'])
+    conditionTitle.font = { bold: true }
     newConditions = uniq(newConditions)
     newConditions.forEach((newConditions: string) => {
-      readmeSheet.addRow({ newConditions })
+      readmeSheet.addRow([newConditions])
     })
-    readmeSheet.getCell('A1').font = { bold: true }
   }
-  const dataDiff = mergeChanges(collector(rootLibraryChangesJson?.oldData), collector(rootLibraryChangesJson?.newData))
-  const libDefRows = Object.values(dataDiff)
-    .flatMap((i) => i)
-    .map((row) => [row.keyName, row.value, row?.operation?.newValue, row.change])
-    .filter((i) => i[0] !== 'relatedArtifacts') // The new value doesn't look very good in the table because its a nested json
-
-  const readMeTable = readmeSheet.addTable({
-    name: 'read_me',
-    ref: `A${newConditions.length + 3}`,
-    headerRow: true,
-    style: {
-      theme: 'TableStyleDark3',
-      showRowStripes: true
-    },
-    columns: [
-      { name: 'Field Name', filterButton: true },
-      { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true },
-      { name: 'Change', filterButton: true }
-    ],
-    rows: libDefRows
-  })
-  autosortTable(readMeTable, libDefRows, readmeSheet)
 }
 
 const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) => {
@@ -260,24 +289,26 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
     .flatMap((i) => i)
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
 
-  const rctcTable = rctcSheet.addTable({
-    name: 'rctcDiff',
-    ref: `A${rctcInfoRows.length + 5}`,
-    headerRow: true,
-    style: {
-      theme: 'TableStyleDark3',
-      showRowStripes: true
-    },
-    columns: [
-      { name: 'Field Name', filterButton: true },
-      { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true },
-      { name: 'Change', filterButton: true }
-    ],
-    rows: rctcRows
-  })
+  if (rctcRows.length > 0) {
+    const rctcTable = rctcSheet.addTable({
+      name: 'rctcDiff',
+      ref: `A${rctcInfoRows.length + 5}`,
+      headerRow: true,
+      style: {
+        theme: 'TableStyleDark3',
+        showRowStripes: true
+      },
+      columns: [
+        { name: 'Field Name', filterButton: true },
+        { name: 'Old Value', filterButton: true },
+        { name: 'New Value', filterButton: true },
+        { name: 'Change', filterButton: true }
+      ],
+      rows: rctcRows
+    })
 
-  autosortTable(rctcTable, rctcInfoRows, rctcSheet)
+    autosortTable(rctcTable, rctcInfoRows, rctcSheet)
+  }
 }
 
 const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, groupingValueSetsChangeLogs: any) => {
@@ -400,8 +431,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           ref: `A${codeRowsStartRowCount + 1}`,
           headerRow: true,
           style: {
-            theme: 'TableStyleDark3',
-            showRowStripes: true
+            // theme: 'TableStyleDark3',
+            showRowStripes: false
           },
           columns: [
             { name: 'Name', filterButton: true },
