@@ -1,14 +1,15 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { IconButton } from '@mui/material'
+import { IconButton, Tooltip } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import ChangeCircleIcon from '@mui/icons-material/ChangeCircle'
 import { createTableData } from '@/components/DiffViewer/createTables'
-import Link from 'next/link'
+import COLORS from '@/components/DiffViewer/GrouperValueSetsTable'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -88,7 +89,21 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
       return (
         <Ul>
           <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.grouperId}`}>
-            <Li>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
+            <div style={{ display: 'flex' }}>
+              <div>
+                
+              </div>
+              <Li style={{ display: 'block'}}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
+              { i.hasChange && (
+                <Tooltip title="This grouper contains changes">
+                  <IconButton>
+                    <ChangeCircleIcon color='info' fontSize='small'/>
+                  </IconButton>
+                </Tooltip>
+
+              )}
+
+            </div>
           </a>
           <Ul>
             <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.vsTableId}`}>

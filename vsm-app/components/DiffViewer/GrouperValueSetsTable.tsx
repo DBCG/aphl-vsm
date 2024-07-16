@@ -57,8 +57,8 @@ const StyledTable = styled(DataTable)`
 `
 
 export const vsFilterContextsHumanReadable = [
-  'Change', 'Name', 'OID', 'Condition Name',
-  'Condition Code', 'Condition System', 'Condition Operation'
+  'Change', 'Name', 'OID', 'Priority', 'Code System Name(s)', 'Code System OID(s)', 'Condition Name',
+  'Condition Code', 'Condition System', 'Condition Change'
 ] as const
 
 const customStyle = {
@@ -116,6 +116,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
 
   console.log('vs data here: ', valueSetsTable)
   const filteredValueSetOptions = (activeFilters, showUnchanged) => {
+    console.log('active filters: ', activeFilters)
     let clonedOptions = cloneDeep(valueSetsTable)
     if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
@@ -126,9 +127,21 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     })
 
     mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
+      console.log('clonedOptions: ', clonedOptions)
       // handle non-nested fields first
       if (!filterItem.field.startsWith('condition')) {
         clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field]?.toLowerCase()?.includes(filterItem.searchTerm))
+      } else if (filterItem.field.startsWith('codesystemname')) {
+        console.log('cloned options: ', clonedOptions)
+        clonedOptions = clonedOptions.filter(opt => {
+          const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
+            const keys = Object.keys(conditionUpdateItem)
+            const fieldIndex = keys.findIndex(item => item.toLowerCase() === filterItem.field.toLowerCase())
+            const result = conditionUpdateItem[keys[fieldIndex]]?.toLowerCase()?.includes(filterItem.searchTerm)
+            return result
+          })
+          return hasMatch
+        })
       } else {
         // search within array of condition info for a match
         clonedOptions = clonedOptions.filter(opt => {
@@ -212,7 +225,20 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         }
       },
       {
-        name: <div>Code System</div>,
+        name: <div>Priority</div>,
+        selector: (row: TableData) => row.priority!,
+        wrap: true,
+        // grow: 2,
+        cell: (row: TableData) => {
+          return (
+            <TdContainer style={{ backgroundColor: row.change === 'Updated Priority' ? COLORS.update : 'inherit' }}>
+              <TdItem style={{ textTransform: 'capitalize'}}>{row?.priority || 'No priority specified'}</TdItem>
+            </TdContainer>
+          )
+        }
+      },
+      {
+        name: <div>Code System OID(s)</div>,
         selector: (row: TableData) => row.codeSystem!,
         sortable: true,
         wrap: true,
@@ -220,20 +246,28 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         cell: (row: TableData) => {
           return (
             <TdContainer>
-              <TdItem>{row.codeSystem}</TdItem>
+              {
+                row?.codeSystems?.map(i => (
+                  <TdItem style={createStyles({}, i)}>{i?.oid || 'No Data'}</TdItem>
+                ))
+              }
             </TdContainer>
           )
         }
       },
       {
-        name: <div>Code System OID</div>,
+        name: <div>Code System Name(s)</div>,
         selector: (row: TableData) => row.codeSystemOID!,
         sortable: true,
         wrap: true,
         cell: (row: TableData) => {
           return (
             <TdContainer>
-              <TdItem>{row.codeSystemOID}</TdItem>
+              {
+                row?.codeSystems?.map(i => (
+                  <TdItem style={createStyles({}, i)}>{i?.name || 'No Data'}</TdItem>
+                ))
+              }
             </TdContainer>
           )
         }
@@ -317,7 +351,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     setFilterContext(e.target.value)
   }
 
-console.log('vs table id: ', id)
   return (
     <div id={id}>
       <StyledTable

@@ -1,4 +1,4 @@
-import { get, uniq } from 'lodash'
+import { get, uniq, uniqWith } from 'lodash'
 
 const rootLibDataPaths = {
   id: {
@@ -149,11 +149,23 @@ const generateMainChangeText = (grouperListItem) => {
     return 'Update Conditions'
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
+  } else if (grouperListItem?.priority?.operation) {
+    return 'Updated Priority'
   } else {
     return '' // ?
   }
 }
 
+const generateCodeSystemUpdates = (csItems) => {
+  if (!csItems || csItems?.length === 0) {
+    return null
+  }
+
+  return csItems.map(i => ({
+    csName: i?.name,
+    csOid: i?.oid
+  }))
+}
 // conditions can be added, removed, or updated
 // could be updates to code, text, system
 // might need to combine multiple "replace" fields
@@ -212,6 +224,17 @@ const generateConditionUpdates = (conditionsList, hideConditionChangeText) => {
   })
 }
 
+const dedupeCodeSystems = (csArray) => {
+  return csArray.filter(cs)
+}
+
+const uniqueCodeSystems = (csArray) => (uniqWith(
+  csArray,
+  (cs1, cs2) =>
+    cs1.name === cs2.name &&
+    cs1.oid === cs2.oid
+))
+
 // need status in grouperlist for valuesets table
 // need title in grouperlist for vs table
 // need code system for valueset
@@ -228,9 +251,13 @@ const generateGrouperValueSetTable = (grouperPage) => {
   let newData = grouperPage.newData.leafValuesets.map(gi => {
     // const deletedItems = grouperPage.oldData.leafValueSets.find(i => i.memberOid === gi.memberOid)
     // 'priority': need grouper priority!
+    const newCodeSystems = uniqueCodeSystems(gi.codeSystems)
     return ({
-      oid: gi.memberOid,
       change: generateMainChangeText(gi),
+      codeSystems: newCodeSystems,
+      name: gi.name,
+      oid: gi.memberOid,
+      priority: gi.priority.value,
       conditionUpdates: generateConditionUpdates(gi.conditions)
     })
   })
@@ -238,11 +265,17 @@ const generateGrouperValueSetTable = (grouperPage) => {
   // if any deleted valuesets, add them to the set
   // deleted valuesets are currently not part of the operations array
   if (deletedValueSets?.length) {
-    const removedItems = deletedValueSets.map(vsItem => ({
-      oid: vsItem.memberOid,
+    const removedItems = deletedValueSets.map(vsItem => {
+      const oldCodeSystems = uniqueCodeSystems(vsItem.codeSystems)
+     return ({
       change: 'Removed VS',
+      codeSystems: oldCodeSystems,
+      name: vsItem.name,
+      oid: vsItem.memberOid,
+      priority: vsItem.priority.value,
       conditionUpdates: generateConditionUpdates(vsItem.conditions, true)
-    }))
+    })
+  })
     newData = [...newData, ...removedItems]
   }
   console.log('new data: ', newData)
@@ -303,24 +336,34 @@ const generateGrouperPages = (allGrouperPages) => {
   return res
 }
 
-const generateId = (ind: number) => {
+const generateId = (ind: number, group) => {
+  console.log('group: ', group)
+  const hasChange = group?.valueSetsTable?.find(i => i.change && i?.change !== '')
   return ({
     grouperId: `grouper-${ind}`,
     vsTableId: `vs-table-${ind}`,
-    codesTableId: `codes-table-${ind}`
+    codesTableId: `codes-table-${ind}`,
+    hasChange
   })
 }
 
 const generateAnchorLinkData = (grouperPageData) => {
+
   const base = [{
     rootLibId: `program-metadata`,
     // eventually have PlanDefinition here, too
   }]
-  const groupers = grouperPageData.map((g, ind) => (generateId(ind)))
+  const groupers = grouperPageData.map(
+    (group, ind) => (generateId(ind, group))
+  )
   return [...base, ...groupers]
 }
 
 export const createTableData = (diffData) => {
+  console.log('diffData: ', diffData)
+  if (!diffData) {
+    return null
+  }
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
 
