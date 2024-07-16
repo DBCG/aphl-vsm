@@ -83,7 +83,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
     /**
      * Add a extra space.
      */
-    return maxContentWidth + 2
+    return maxContentWidth + 4
   })
 
   /**
@@ -148,11 +148,6 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
         conditions.push(...conditionNames)
       }
     }
-
-    /// TODO: What about handling the case of condition changes? e.g. replace?
-    // artifact.conditions.forEach((condition: any) => {
-    //   if ("operation" in condition)
-    // })
   })
   return conditions
 }
@@ -214,17 +209,25 @@ const generateReadMeSheet = (
   cellsToStyle.forEach((rows) => {
     rows.forEach((cell) => {
       times(2, (i) => {
-        if (i === 0) {
-          cell.getCell(i + 1).font = { bold: true }
+        const retrievedCell = cell.getCell(i + 1) // Add 1 because not zero based index
+        if (retrievedCell == null) {
+          throw new Error('Something went wrong while generating README Sheet')
         }
-        cell.getCell(i + 1).alignment = style.alignment
-        cell.getCell(i + 1).fill = style.fill
-        cell.getCell(i + 1).border = style.border
+        if (i === 0) {
+          // Bold only the first column
+          retrievedCell.font = { bold: true }
+        }
+        //@ts-ignore
+        retrievedCell.alignment = style.alignment
+        //@ts-ignore
+        retrievedCell.fill = style.fill
+        //@ts-ignore
+        retrievedCell.border = style.border
       })
     })
   })
 
-  readmeSheet.addRows([[],[]]) // Add new line
+  readmeSheet.addRows([[], []]) // Add new line
   // New Conditions
   let newConditions = extractConditions(rootLibraryChangesJson)
 
@@ -347,7 +350,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           // @ts-ignore todo: fix this
           change?.forEach((rowValue) => {
             const { conditions, memberOid, name, codeSystems, status } = rowValue
-
             const vsCodeSystemName = codeSystems?.[0]?.name || ''
             const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
             conditions?.forEach((condition: any) => {
@@ -383,16 +385,16 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           headerRow: true,
           style: {},
           columns: [
-            { name: 'Name', filterButton: true },
-            { name: 'OID', filterButton: true },
-            { name: 'Code System', filterButton: true },
-            { name: 'Code System OID', filterButton: true },
-            { name: 'Status', filterButton: true },
-            { name: 'Condition Name', filterButton: true },
-            { name: 'Condition Code', filterButton: true },
-            { name: 'Condition Code System', filterButton: true },
-            { name: 'Condition Code Version', filterButton: true },
-            { name: 'Change', filterButton: true }
+            { name: 'Name' },
+            { name: 'OID' },
+            { name: 'Code System' },
+            { name: 'Code System OID' },
+            { name: 'Status' },
+            { name: 'Condition Name' },
+            { name: 'Condition Code' },
+            { name: 'Condition Code System' },
+            { name: 'Condition Code Version' },
+            { name: 'Change' }
           ],
           rows: groupingListRows
         })
