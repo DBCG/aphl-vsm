@@ -61,6 +61,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest): TerminologyServerCre
 
 const getCredentials = async (req: NextApiRequest, res: NextApiResponse<GetCredentialsApiResponse | {}>) => {
   try {
+    console.log('req.query: ', req.query)
       const creds = await tsCredentialService.getAllCredentials(req.query['userId'] as string)
       return res.status(200).send(creds)
     }
