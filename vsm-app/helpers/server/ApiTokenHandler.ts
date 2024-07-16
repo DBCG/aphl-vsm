@@ -1,5 +1,6 @@
 import logger from './logger'
 import crypto from 'crypto'
+import { cloneDeep } from 'lodash'
 
 if (process.env.KEY == null) {
   logger.error('Symmetric key not found in env variables')
@@ -54,15 +55,34 @@ class APITokenHandler {
     }
   }
 
+  public async getBasicAuthCredsForAllUrls(userId: string) {
+    await this.renewKeyCloakToken()
+    const user = await this.retrieveStoredAttributes(userId)
+    const attributes = cloneDeep(user.attributes)
+    const userIV = attributes.iv[0]
+    delete attributes.iv
+    const urls = Object.keys(attributes)
+    const creds = urls.map((terminologyServerId) => {
+      const encryptedCreds = attributes[terminologyServerId][0]
+      const decryptedCreds = this.decryptData(encryptedCreds, userIV)
+      const base64Data = JSON.parse(decryptedCreds).value
+      const [username, password] = atob(base64Data).split(':')
+      return { terminologyServerId, username, password }
+    })
+
+    return creds    
+  }
+
   /**
    * Stores basic auth creds for a given url
    */
-  public async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string) {
+  public async storeBasicAuthCreds(userId: string, inputUrl: string, username: string, password: string) {
+    const url = inputUrl.toLowerCase()
     await this.renewKeyCloakToken()
     const basicAuthCred = btoa(`${username}:${password}`)
     const userIV = await this.getUserIV(userId)
     const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }), userIV)
-    await this.storeCredsKeyCloak(userId, serverId, encryptedCreds)
+    await this.storeCredsKeyCloak(userId, url, encryptedCreds)
   }
 
   private encryptData(data: string, userIV: string) {
