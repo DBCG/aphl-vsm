@@ -51,7 +51,10 @@ public class ChangeLog {
             if (concept.hasConcept()) {
               var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
               var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
-              leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+              var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+              if (!doesOidExistInList) {
+                leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+              }
               mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
             }
             if (concept.hasValueSet()) {
