@@ -411,7 +411,7 @@ public class ChangeLog {
       public String name;
       public String title;
       public String url;
-      public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();;
+      public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();
       public String status;
       public List<Code> conditions = new ArrayList<Code>();
       public ValueAndOperation priority = new ValueAndOperation();
@@ -530,8 +530,6 @@ public class ChangeLog {
               codeToCheck = ((ValueSet.ValueSetExpansionContainsComponent) originalValue).getCode();
             }
             updateCodeOperation(codeToCheck, operation);
-          } else if (newValue instanceof IPrimitiveType || originalValue instanceof IPrimitiveType) {
-            var n = newValue;
           } else if (newValue instanceof ValueSet.ValueSetExpansionComponent || originalValue instanceof ValueSet.ValueSetExpansionComponent) {
             var contains = newValue instanceof ValueSet.ValueSetExpansionComponent ? (ValueSet.ValueSetExpansionComponent) newValue  : (ValueSet.ValueSetExpansionComponent) originalValue;
             contains.getContains().forEach(c -> {
