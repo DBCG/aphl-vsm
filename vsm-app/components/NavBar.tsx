@@ -2,13 +2,13 @@ import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { signOut, useSession } from 'next-auth/react'
 import { BreadCrumbs } from './navigation/Breadcrumbs'
-import { Button } from './buttons/Button'
 import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
-import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
+import { Logout, MoreVert, Settings, House } from '@mui/icons-material'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -42,7 +42,7 @@ interface NavContextType {
 // create toggle context
 export const NavContext = createContext({
   isGrouperView: false,
-  changeGrouperView: () => {}
+  changeGrouperView: () => { }
 } as NavContextType)
 
 interface Props {
@@ -60,6 +60,17 @@ export const NavContextProvider: React.FC<Props> = ({ children }) => {
 }
 
 const NavBar = () => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -88,8 +99,66 @@ const NavBar = () => {
               }}
             />
           )}
+          <IconButton
+            aria-label="more"
+            id="long-button"
+            aria-controls={open ? 'long-menu' : undefined}
+            aria-expanded={open ? 'true' : undefined}
+            aria-haspopup="true"
+            onClick={handleClick}
+          >
+            <MoreVert />
+          </IconButton>
         </Box>
       </Bar>
+      <Menu
+        style={{ border: '1px solid red' }}
+        anchorEl={anchorEl}
+        id="account-menu"
+        open={open}
+        onClose={handleClose}
+        onClick={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        { router.pathname !== '/settings' && (
+          <>
+            <MenuItem onClick={() => router.push('/settings')}>
+              <ListItemIcon>
+                <Settings />
+              </ListItemIcon>
+              Settings
+            </MenuItem>
+            <Divider />
+          </>
+        )}
+        {router.pathname !== '/programs' && (
+          <>
+            <MenuItem onClick={() => router.push('/programs')}>
+              <ListItemIcon>
+                <House />
+              </ListItemIcon>
+              Programs
+            </MenuItem>
+            <Divider />
+          </>
+        )}
+        <MenuItem
+          onClick={() => {
+            signOut({ redirect: false })
+            router.push('/api/auth/logout')
+          }}
+        >
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
+          Sign Out
+        </MenuItem>
+        <Divider />
+        <MenuItem disabled={true}>
+          {`App Version v-${packageInfo.version}`}
+        </MenuItem>
+      </Menu>
     </BarWrapper>
   )
 }
