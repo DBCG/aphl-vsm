@@ -2,6 +2,7 @@ export const provisionalVsBase = {
   resourceType: 'ValueSet',
   experimental: true,
   status: 'draft',
+  version: '1.0.0',
   meta: {
     profile: [
       'http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset',
