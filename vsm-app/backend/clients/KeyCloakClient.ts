@@ -24,18 +24,8 @@ class KeyCloakClientImpl implements KeyCloakClient {
         return this.instance
     }
 
-    async getAllUserCredentials(userId: String): Promise<TerminologyServerCredentials[]> {
-        const creds:TerminologyServerCredentials = {
-            terminologyServerId: "http://testts.com",
-            username: "someUsername",
-            password: "somePassword"
-          }
-        const creds2:TerminologyServerCredentials = {
-        terminologyServerId: "http://testts2.com",
-        username: "someUsername",
-        password: "somePassword"
-        }
-          return [creds, creds2]
+    async getAllUserCredentials(userId: string): Promise<TerminologyServerCredentials[]> {
+        return this.tokenHandler.getBasicAuthCredsForAllUrls(userId)
     }
 
     async getUserCredentials(userId: string, serverId: string): Promise<TerminologyServerCredentials> {
@@ -46,11 +36,11 @@ class KeyCloakClientImpl implements KeyCloakClient {
             username: basicAuthCreds.username,
             password: basicAuthCreds.password
           }
-          return creds
+          
+        return creds
     }
 
     async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string): Promise<void> {
-        console.log("User: " + userId + " - serverId:" + serverId)
         return this.tokenHandler.storeBasicAuthCreds(userId, serverId, username, password)
     }
 }
