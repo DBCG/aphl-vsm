@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash'
 import logger from './logger'
 import crypto from 'crypto'
 
@@ -52,6 +53,23 @@ class APITokenHandler {
     } else {
       throw new Error('No basic auth creds found for this url')
     }
+  }
+
+  public async getBasicAuthCredsForAllUrls(userId: string) {
+    await this.renewKeyCloakToken()
+    const user = await this.retrieveStoredAttributes(userId)
+    const attributes = cloneDeep(user.attributes)
+    const userIV = attributes.iv[0]
+    delete attributes.iv
+    const urls = Object.keys(attributes)
+    const creds = urls.map((url) => {
+      const encryptedCreds = attributes[url][0]
+      const decryptedCreds = this.decryptData(encryptedCreds, userIV)
+      const base64Data = JSON.parse(decryptedCreds).value
+      const [username, password] = atob(base64Data).split(':')
+      return { url, username, password }
+    })
+    return creds    
   }
 
   /**
