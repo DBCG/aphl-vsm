@@ -71,6 +71,12 @@ public class ChangeLog {
       if (valueSet.getExpansion().hasContains()) {
         valueSet.getExpansion().getContains().forEach((cnt) -> {
           if (!codeMap.containsKey(cnt.getCode())) {
+            var codeSystemName = ValueSetChild.Code.getCodeSystemName(cnt.getSystem());
+            var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(cnt.getSystem());
+            var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+            if (!doesOidExistInList) {
+              leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+            }
             mapExpansionContainsToCodeMap(codeMap, cnt, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
           }
         });
