@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -352,7 +353,7 @@ public class KnowledgeArtifactProcessor {
 							}
 							exp.getContains().addAll(expanded.getExpansion().getContains());
 						} catch (ResourceNotFoundException e) {
-							// TODO: handle exception
+							// TODO: add exception to OperationOutcome and append to bundle
 						}
 					}
 				}
@@ -367,7 +368,7 @@ public class KnowledgeArtifactProcessor {
 					}
 					vset.setExpansion(exp.getExpansion().copy());	
 				} catch (ResourceNotFoundException e) {
-					// TODO: handle exception
+					// TODO: add exception to OperationOutcome and append to bundle
 				}
 			}
 		}
@@ -828,20 +829,20 @@ public class KnowledgeArtifactProcessor {
 		var retval = cache.getDiff(sourceCanonical == null ? "empty" : sourceCanonical, targetCanonical == null ? "empty" : targetCanonical);
 		if (sourceCanonical == null && target != null) {
 			try {
-				var empty = target.getClass().newInstance();
+				var empty = target.getClass().getDeclaredConstructor((Class<?>[])null).newInstance((Object[])null);
 				retval = (Parameters) patch.diff(empty, target);
 				cache.addDiff("empty", targetCanonical, retval);
-			} catch (InstantiationException | IllegalAccessException e) {
-				// TODO Auto-generated catch block
+			} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+				// TODO: add OperationOutcome to bundle
 				e.printStackTrace();
 			}
 		} else if (targetCanonical == null && source != null) {
 			try {
-				var empty = source.getClass().newInstance();
+				var empty = source.getClass().getDeclaredConstructor((Class<?>[])null).newInstance((Object[])null);
 				retval = (Parameters) patch.diff(source, empty);
 				cache.addDiff(sourceCanonical, "empty", retval);
-			} catch (InstantiationException | IllegalAccessException e) {
-				// TODO Auto-generated catch block
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				// TODO: add OperationOutcome to bundle
 				e.printStackTrace();
 			}
 		} else if (retval == null && source != null && target != null) {
