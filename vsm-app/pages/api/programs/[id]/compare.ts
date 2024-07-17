@@ -31,14 +31,21 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     resourceType: 'Library',
     id: req.query.targetId as string
   })) as fhir4.Library
-  const grouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
+  const sourceLibrary = (await fhirCdrClient.read({
+    resourceType: 'Library',
+    id: req.query.id as string
+  })) as fhir4.Library
+
+  const sourceGrouperLibrary = (await getGrouperLibrary(sourceLibrary)) as fhir4.Library
+  const targetGrouperLibrary = (await getGrouperLibrary(targetLibrary)) as fhir4.Library
   const grouperLibDiffJson = changeJson.pages.filter(
-    (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === grouperLibrary.id
+    (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === targetGrouperLibrary.id
   )?.[0]
-  const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page?.resourceType === 'ValueSet')
-  generateReadMeSheet(workbook, changeJson.pages[0])
+  const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
+
+  generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])
   generatePlanDefSheet(workbook, changeJson.pages.filter((page: any) => page.resourceType === 'PlanDefinition')?.[0])
-  generateRCTCSheet(workbook, grouperLibrary, grouperLibDiffJson)
+  generateRCTCSheet(workbook, targetGrouperLibrary, grouperLibDiffJson)
 
   await generateGrouperValuesetSheet(workbook, groupingValueSetsChangeLogs)
 

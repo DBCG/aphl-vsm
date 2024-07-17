@@ -146,7 +146,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
-  const [dataLoading, setDataLoading] = useState(true)
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
@@ -169,14 +168,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
-    const result = grouperLoading
+    return grouperLoading
     || conditionLoading
     || isDeleting
     || priorityLoading
     || versionUpdateInFlight
-    || dataLoading
-    return result
-}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, dataLoading])
+}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
 
 
   const conditionsMap = useMemo(() => {
@@ -295,21 +292,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
   }
 
-  const progValueSetDets = useGetProgramValueSetDetails({
+  const progValueSetDets: Result = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
     toggleUpdateData,
     ...debouncedFilters
-  }) as Result
-
-  // handle the change of dataLoading state based on progValueSetDets
-  useEffect(() => {
-    if (progValueSetDets?.data) {
-      setDataLoading(false);
-    }
-  }, [progValueSetDets]);
+  })
 
   const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
@@ -330,8 +320,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
     const updatedFilters = { ...filters, [type]: e }
     setFilters(updatedFilters)
-    // sets data loading to true when handleFilterChange is called
-    setDataLoading(true) 
   }
 
   // fetch options for Version field
@@ -498,7 +486,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          if (currentProgram?.status === 'active') {
+          if (currentProgram?.status === 'active' || !can(session, 'edit')) {
             return row?.valueSetPinnedVersion || 'latest'
           }
           var errors: string[] = []
@@ -506,8 +494,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
-
           const isProvisional = isProvisionalVs(row.valueSet)
+
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
               { isProvisional ? (
@@ -715,7 +703,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, blockChanges, progValueSetDets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {
@@ -764,15 +752,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               <>
                 <Button
                   id="add-valueset"
-                  text="Add Valuesets from Terminology Server"
+                  text="Add Valuesets"
                   style={{ minHeight: '40px', minWidth: '150px' }}
                   onClick={() => router.push(`${router.asPath}/search`)}
-                />
-                <Button
-                  id="add-valueset"
-                  text="Add/Edit Provisional Valuesets"
-                  style={{ minHeight: '40px', minWidth: '150px' }}
-                  onClick={() => router.push(`${router.asPath}/provisional`)}
                 />
               </>
             )}

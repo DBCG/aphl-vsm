@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs'
 import { fhirCdrClient } from '@/fhirClients'
 import { getVsSteward, getVsAuthor } from '@/helpers/valueSetHelpers'
-import { startCase, uniq } from 'lodash'
+import { startCase, times, uniq } from 'lodash'
 
 interface CollectedChange extends ChangeValue {
   keyName: string
@@ -85,7 +85,7 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
     /**
      * Add a extra space.
      */
-    return maxContentWidth + 2
+    return maxContentWidth + 4
   })
 
   /**
@@ -150,11 +150,6 @@ const extractConditions = (rootLibraryChangeDiff: any) => {
         conditions.push(...conditionNames)
       }
     }
-
-    /// TODO: What about handling the case of condition changes? e.g. replace?
-    // artifact.conditions.forEach((condition: any) => {
-    //   if ("operation" in condition)
-    // })
   })
   return conditions
 }
@@ -173,43 +168,80 @@ const mergeChanges = (oldData: CollectedChangeMap, newData: CollectedChangeMap) 
   return mergedData
 }
 
-const generateReadMeSheet = (workbook: ExcelJS.Workbook, rootLibraryChangesJson: any) => {
+const generateReadMeSheet = (
+  workbook: ExcelJS.Workbook,
+  sourceGrouperLibrary: fhir4.Library,
+  targetGrouperLibrary: fhir4.Library,
+  rootLibraryChangesJson: any
+) => {
   const readmeSheet = workbook.addWorksheet('Read Me')
+  readmeSheet.getColumn('A').width = 30
+  readmeSheet.getColumn('B').width = 60
+  const style = {
+    alignment: { vertical: 'middle', horizontal: 'left' },
+    fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'E2EFDA' } },
+    border: {
+      top: { style: 'thick' },
+      left: { style: 'thick' },
+      bottom: { style: 'thick' },
+      right: { style: 'thick' }
+    }
+  }
+  const currentVersionHeader = readmeSheet.addRow(['Current Version'])
+  currentVersionHeader.font = { bold: true }
+  const currentVersion = readmeSheet.addRows([
+    ['Name', sourceGrouperLibrary.title],
+    ['Purpose', sourceGrouperLibrary?.purpose],
+    ['RCTC OID', sourceGrouperLibrary?.id?.toString()],
+    ['RCTC Definition Version', sourceGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', sourceGrouperLibrary?.version]
+  ])
+  readmeSheet.addRow([]) // Add new line
+  const previousVersionHeader = readmeSheet.addRow(['Previous Version'])
+  previousVersionHeader.font = { bold: true }
+  const previousVersion = readmeSheet.addRows([
+    ['Name', targetGrouperLibrary.title],
+    ['Purpose', targetGrouperLibrary?.purpose],
+    ['RCTC OID', targetGrouperLibrary?.id],
+    ['RCTC Definition Version', targetGrouperLibrary?.version],
+    ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
+    ['RCTC Release Label', targetGrouperLibrary?.version]
+  ])
+  const cellsToStyle = [currentVersion, previousVersion]
+  cellsToStyle.forEach((rows) => {
+    rows.forEach((cell) => {
+      times(2, (i) => {
+        const retrievedCell = cell.getCell(i + 1) // Add 1 because not zero based index
+        if (retrievedCell == null) {
+          throw new Error('Something went wrong while generating README Sheet')
+        }
+        if (i === 0) {
+          // Bold only the first column
+          retrievedCell.font = { bold: true }
+        }
+        //@ts-ignore
+        retrievedCell.alignment = style.alignment
+        //@ts-ignore
+        retrievedCell.fill = style.fill
+        //@ts-ignore
+        retrievedCell.border = style.border
+      })
+    })
+  })
 
+  readmeSheet.addRows([[], []]) // Add new line
   // New Conditions
   let newConditions = extractConditions(rootLibraryChangesJson)
 
   if (newConditions.length > 0) {
-    readmeSheet.columns = [{ header: 'New Conditions', key: 'newConditions', width: 10 }]
+    const conditionTitle = readmeSheet.addRow(['New Conditions'])
+    conditionTitle.font = { bold: true }
     newConditions = uniq(newConditions)
     newConditions.forEach((newConditions: string) => {
-      readmeSheet.addRow({ newConditions })
+      readmeSheet.addRow([newConditions])
     })
-    readmeSheet.getCell('A1').font = { bold: true }
   }
-  const dataDiff = mergeChanges(collector(rootLibraryChangesJson?.oldData), collector(rootLibraryChangesJson?.newData))
-  const libDefRows = Object.values(dataDiff)
-    .flatMap((i) => i)
-    .map((row) => [row.keyName, row.value, row?.operation?.newValue, row.change])
-    .filter((i) => i[0] !== 'relatedArtifacts') // The new value doesn't look very good in the table because its a nested json
-
-  const readMeTable = readmeSheet.addTable({
-    name: 'read_me',
-    ref: `A${newConditions.length + 3}`,
-    headerRow: true,
-    style: {
-      theme: 'TableStyleDark3',
-      showRowStripes: true
-    },
-    columns: [
-      { name: 'Field Name', filterButton: true },
-      { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true },
-      { name: 'Change', filterButton: true }
-    ],
-    rows: libDefRows
-  })
-  autosortTable(readMeTable, libDefRows, readmeSheet)
 }
 
 const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) => {
@@ -224,10 +256,7 @@ const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) =
       name: 'plandefinition',
       ref: 'A1',
       headerRow: true,
-      style: {
-        theme: 'TableStyleDark3',
-        showRowStripes: true
-      },
+      style: {},
       columns: [
         { name: 'Change', filterButton: true },
         { name: 'Field Name', filterButton: true },
@@ -242,7 +271,8 @@ const generatePlanDefSheet = (workbook: ExcelJS.Workbook, planDefChanges: any) =
 const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Library, grouperLibDiffJson: any) => {
   const grouperLibDiff = mergeChanges(collector(grouperLibDiffJson.oldData), collector(grouperLibDiffJson.newData))
   const rctcSheet = workbook.addWorksheet('Value Set Library')
-
+  rctcSheet.getColumn('A').width = 30
+  rctcSheet.getColumn('B').width = 60
   const rctcInfoRows = [
     ['Name', grouperLibrary.title],
     ['OID', grouperLibrary?.identifier?.[0]?.value],
@@ -263,24 +293,23 @@ const generateRCTCSheet = (workbook: ExcelJS.Workbook, grouperLibrary: fhir4.Lib
     .flatMap((i) => i)
     .map((row) => [row.change, row.keyName, row.value, row.operation.newValue])
 
-  const rctcTable = rctcSheet.addTable({
-    name: 'rctcDiff',
-    ref: `A${rctcInfoRows.length + 5}`,
-    headerRow: true,
-    style: {
-      theme: 'TableStyleDark3',
-      showRowStripes: true
-    },
-    columns: [
-      { name: 'Field Name', filterButton: true },
-      { name: 'Old Value', filterButton: true },
-      { name: 'New Value', filterButton: true },
-      { name: 'Change', filterButton: true }
-    ],
-    rows: rctcRows
-  })
+  if (rctcRows.length > 0) {
+    const rctcTable = rctcSheet.addTable({
+      name: 'rctcDiff',
+      ref: `A${rctcInfoRows.length + 5}`,
+      headerRow: true,
+      style: {},
+      columns: [
+        { name: 'Field Name', filterButton: true },
+        { name: 'Old Value', filterButton: true },
+        { name: 'New Value', filterButton: true },
+        { name: 'Change', filterButton: true }
+      ],
+      rows: rctcRows
+    })
 
-  autosortTable(rctcTable, rctcInfoRows, rctcSheet)
+    autosortTable(rctcTable, rctcInfoRows, rctcSheet)
+  }
 }
 
 const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, groupingValueSetsChangeLogs: any) => {
@@ -292,6 +321,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         id: currentId
       })) as fhir4.ValueSet
       const groupingValueSetSheet: ExcelJS.Worksheet = workbook.addWorksheet(grouperVs?.name || grouperVs?.title)
+      groupingValueSetSheet.getColumn('A').width = 30
+      groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
         ['Value Set Name', grouperVs.title],
         ['OID', grouperVs?.identifier?.[0]?.value],
@@ -322,7 +353,6 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           // @ts-ignore todo: fix this
           change?.forEach((rowValue) => {
             const { conditions, memberOid, name, codeSystems, status } = rowValue
-
             const vsCodeSystemName = codeSystems?.[0]?.name || ''
             const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
             conditions?.forEach((condition: any) => {
@@ -357,21 +387,18 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           name: 'valueset_groupinglist_' + currentId,
           ref: `A${groupingTableStartRowCount + 1}`,
           headerRow: true,
-          style: {
-            theme: 'TableStyleDark3',
-            showRowStripes: true
-          },
+          style: {},
           columns: [
-            { name: 'Name', filterButton: true },
-            { name: 'OID', filterButton: true },
-            { name: 'Code System', filterButton: true },
-            { name: 'Code System OID', filterButton: true },
-            { name: 'Status', filterButton: true },
-            { name: 'Condition Name', filterButton: true },
-            { name: 'Condition Code', filterButton: true },
-            { name: 'Condition Code System', filterButton: true },
-            { name: 'Condition Code Version', filterButton: true },
-            { name: 'Change', filterButton: true }
+            { name: 'Name' },
+            { name: 'OID' },
+            { name: 'Code System' },
+            { name: 'Code System OID' },
+            { name: 'Status' },
+            { name: 'Condition Name' },
+            { name: 'Condition Code' },
+            { name: 'Condition Code System' },
+            { name: 'Condition Code Version' },
+            { name: 'Change' }
           ],
           rows: groupingListRows
         })
@@ -403,10 +430,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           name: 'valueset_codelist_' + currentId,
           ref: `A${codeRowsStartRowCount + 1}`,
           headerRow: true,
-          style: {
-            theme: 'TableStyleDark3',
-            showRowStripes: true
-          },
+          style: {},
           columns: [
             { name: 'Name', filterButton: true },
             { name: 'Member OID', filterButton: true },

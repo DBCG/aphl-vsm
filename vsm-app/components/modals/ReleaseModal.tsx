@@ -15,7 +15,14 @@ import { getIdFromSystem, searchAvailableUpdates, updateManifest } from '@/compo
 import { ManifestSystemVersionPair, SelectedManifestDataVersion, SystemSelection } from '@/types/manifestTypes'
 import { customTableStyles } from '../tables/themes'
 import ManifestDescription from '../EditManifestDetails/ManifestDescription'
-import { ReleasePayload } from '@/pages/programs'
+
+export interface ReleasePayload {
+  programId: string
+  releaseDescription?: string
+  releaseLabel?: string
+  effectiveStartDate: string | Date
+  releaseAsVersion: string
+}
 
 interface ModalInfo {
   isOpen: boolean

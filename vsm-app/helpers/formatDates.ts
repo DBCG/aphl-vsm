@@ -1,13 +1,13 @@
 import { format } from 'date-fns'
 
-interface FormatVs {
-  valueSet: fhir4.ValueSet
+interface FormatResourceDate {
+  resource: fhir4.ValueSet | fhir4.CodeSystem
   dateType: string
 }
 
-const formatValuesetDate = ({ valueSet, dateType }: FormatVs) => {
+const formatResourceDate = ({ resource, dateType }: FormatResourceDate) => {
   if (dateType === 'lastUpdated') {
-    const date = valueSet?.meta?.lastUpdated || valueSet?.date
+    const date = resource?.meta?.lastUpdated || resource?.date
     if (date) {
       const test = format(new Date(date), 'YYY-M-d')
       return test
@@ -34,4 +34,4 @@ const formatDateForTable = (date: string | any, format: string): string => {
   }
 }
 
-export { formatValuesetDate, formatDateForTable }
+export { formatResourceDate, formatDateForTable }
