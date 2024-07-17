@@ -111,6 +111,36 @@
 						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
 					},
 					{
+            "extension": [
+                {
+                    "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "http://snomed.info/sct",
+                                "code": "715174007"
+                            }
+                        ],
+                        "text": "Carbapenem-resistant Acinetobacter baumannii (CRAB)"
+                    }
+                },
+                {
+                    "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                                "code": "routine"
+                            }
+                        ],
+                        "text": "Routine"
+                    }
+                }
+            ],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40|20231001"
+					},
+					{
 						"extension": [
 							{
 								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
@@ -161,7 +191,25 @@
 					{
 						"type": "depends-on",
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19"
-					}
+					},
+					{
+            "extension": [
+                {
+                    "url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+                    "valueCodeableConcept": {
+                        "coding": [
+                            {
+                                "system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+                                "code": "routine"
+                            }
+                        ],
+                        "text": "Routine"
+                    }
+                }
+            ],
+            "type": "depends-on",
+            "resource": "http://www.test.com/fhir/ValueSet/VSMGeneratedGrouper2|1.2.0-draft"
+        }
 				]
 			},
 			"request": {
@@ -214,6 +262,16 @@
 						]
 					},
 					{
+						"extension": [
+								{
+										"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+										"valueBoolean": true
+								}
+						],
+						"type": "composed-of",
+						"resource": "http://www.test.com/fhir/ValueSet/VSMGeneratedGrouper2|1.2.0-draft"
+					},
+					{
 						"type": "composed-of",
 						"resource": "http://notOwnedTest.com/Library/notOwnedLeaf2|0.1.1"
 					}
@@ -225,7 +283,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19",
 			"resource": {
 				"resourceType": "ValueSet",
 				"name":"Diagnosis_ProblemTriggersforPublicHealthReporting",
@@ -233,52 +291,6 @@
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 				"version": "2022-10-19",
 				"status": "active",
-				"useContext": [
-					{
-						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "program"
-						},
-						"valueReference": {
-							"reference": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification"
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "reporting"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "triggering"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "routine"
-								}
-							]
-						}
-					},
-					{
-						"code":{
-							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code":"grouper-type",
-							"display":"model-grouper"
-						}
-					}
-				],
 				"compose": {
 					"include": [
 						{
@@ -322,6 +334,96 @@
 			"request": {
 				"method": "PUT",
 				"url": "ValueSet/dxtc"
+			}
+		},
+		{
+			"fullUrl": "http://www.test.com/fhir/ValueSet/VSMGeneratedGrouper2|1.2.0-draft",
+			"resource": {
+				"resourceType": "ValueSet",
+				"meta": {
+						"lastUpdated": "2024-07-08T23:14:42.386+00:00",
+						"profile": [
+								"http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset",
+								"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
+								"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+						],
+						"tag": [
+								{
+										"system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
+										"code": "vsm-authored"
+								}
+						]
+				},
+				"extension": [
+						{
+								"url": "http://www.test.com/fhir/StructureDefinition/valueset-author",
+								"valueContactDetail": {
+										"name": "CSTE Author"
+								}
+						}
+				],
+				"url": "http://www.test.com/fhir/ValueSet/VSMGeneratedGrouper2",
+				"version": "1.2.0-draft",
+				"name": "VSMGeneratedGrouper2",
+				"title": "VSM-Generated Grouper 2",
+				"status": "draft",
+				"experimental": true,
+				"publisher": "CSTE Steward",
+				"description": "I am describing a VSM Grouper",
+				"useContext": [
+						{
+								"code": {
+										"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+										"code": "program"
+								},
+								"valueReference": {
+										"reference": "PlanDefinition/us-ecr-specification"
+								}
+						},
+						{
+								"code": {
+										"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+										"code": "reporting"
+								},
+								"valueCodeableConcept": {
+										"coding": [
+												{
+														"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+														"code": "triggering"
+												}
+										]
+								}
+						},
+						{
+								"code": {
+										"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+										"code": "grouper-type"
+								},
+								"valueCodeableConcept": {
+										"coding": [
+												{
+														"system": "http://aphl.org/fhir/vsm/CodeSystem/usage-context-type",
+														"code": "model-grouper"
+												}
+										],
+										"text": "Model Grouper"
+								}
+						}
+				],
+				"purpose": "I am a VSM Grouper",
+        "compose": {
+          "include": [
+              {
+                  "valueSet": [
+                      "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40"
+                  ]
+              }
+          ]
+      }
+		},
+			"request": {
+				"method": "POST",
+				"url": "ValueSet"
 			}
 		},
 		{
@@ -582,6 +684,121 @@
 				"method": "PUT",
 				"url": "ValueSet/fake.oid.to.trigger.naive.expansion",
 				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion&version=1.0.0"
+			}
+		},
+		{
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40|20231001",
+			"resource": {
+        "resourceType": "ValueSet",
+        "id": "2.16.840.1.113762.1.4.1251.40",
+        "meta": {
+            "versionId": "10",
+            "lastUpdated": "2023-12-21T17:43:03.000-05:00",
+            "profile": [
+                "http://hl7.org/fhir/StructureDefinition/shareablevalueset",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-valueset-cqfm",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-10-01"
+            }
+        ],
+        "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40",
+        "identifier": [
+            {
+                "system": "urn:ietf:rfc:3986",
+                "value": "urn:oid:2.16.840.1.113762.1.4.1251.40"
+            }
+        ],
+        "version": "20231001",
+        "name": "ChronicObstructivePulmonaryDisease",
+        "title": "Chronic Obstructive Pulmonary Disease",
+        "status": "active",
+        "date": "2023-10-01T01:01:17-04:00",
+        "publisher": "UTSW Clinical Informatics Center Steward",
+				"compose": {
+					"include": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "http://snomed.info/sct/731000124108/version/20240301",
+							"concept": [
+								{
+									"code": "1010333003",
+									"display": "Emphysema of left lung (disorder)"
+								},
+								{
+									"code": "1010334009",
+									"display": "Emphysema of right lung (disorder)"
+								},{
+                    "code": "106001000119101",
+                    "display": "Chronic obstructive pulmonary disease with acute bronchitis (disorder)"
+								},{
+										"code": "10692761000119107",
+                    "display": "Asthma-chronic obstructive pulmonary disease overlap syndrome (disorder)"
+								},{
+									"code": "1177120001",
+                    "display": "Bronchiolitis obliterans syndrome due to and following allogeneic stem cell transplant (disorder)"
+								}
+							]
+						}
+					]
+				},
+        "expansion": {
+            "identifier": "urn:uuid:547ae256-8987-4afb-910e-8b2e613df5ee",
+            "timestamp": "2024-07-10T12:56:43-04:00",
+            "total": 46,
+            "offset": 0,
+            "parameter": [
+                {
+                    "name": "count",
+                    "valueInteger": 1000
+                },
+                {
+                    "name": "offset",
+                    "valueInteger": 0
+                }
+            ],
+            "contains": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "1010333003",
+                    "display": "Emphysema of left lung (disorder)"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "1010334009",
+                    "display": "Emphysema of right lung (disorder)"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "106001000119101",
+                    "display": "Chronic obstructive pulmonary disease with acute bronchitis (disorder)"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "10692761000119107",
+                    "display": "Asthma-chronic obstructive pulmonary disease overlap syndrome (disorder)"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "1177120001",
+                    "display": "Bronchiolitis obliterans syndrome due to and following allogeneic stem cell transplant (disorder)"
+                }
+            ]
+        }
+    },
+			"request": {
+				"method": "PUT",
+				"url": "ValueSet/2.16.840.1.113762.1.4.1251.40",
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40&version=20231001"
 			}
 		}
 	]

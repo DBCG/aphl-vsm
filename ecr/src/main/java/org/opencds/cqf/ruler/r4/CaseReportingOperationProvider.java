@@ -45,6 +45,8 @@ import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactReleaseVisitor;
 import org.opencds.cqf.ruler.IBaseSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Date;
@@ -457,7 +459,13 @@ public class CaseReportingOperationProvider {
 		if (!resources.isEmpty() && !wasPageAlreadyProcessed) {
 			final MetadataResource sourceResource = resources.get(0).isSource ? resources.get(0).resource : (resources.size() > 1 ? resources.get(1).resource : null);
 			final MetadataResource targetResource = resources.get(0).isSource ? (resources.size() > 1 ? resources.get(1).resource : null) : resources.get(0).resource;
-
+			// don't generate changeLog pages for non-grouper ValueSets
+			if (resourceType.equals("ValueSet") 
+			&&  ((sourceResource != null && !isGrouper(sourceResource))
+				|| (targetResource != null && !isGrouper(targetResource))
+				  )) {
+				return;
+			}
 			// 2) Generate a page for each resource pair based on ResourceType
 			var page = changelog.getPage(url).orElseGet(() -> {
 				switch (resourceType) {
@@ -498,8 +506,6 @@ public class CaseReportingOperationProvider {
 
 					// 4) Add a new operation to the ChangeLog
 					page.addOperation(type, path.orElse(null), newValue.orElse(null), originalValue.orElse(null), changelog);
-				} else {
-					// 5) Ignore the changelog entries for deleted or not owned entries
 				}
 			}
 		}

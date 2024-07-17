@@ -26,46 +26,62 @@ public class ChangeLog {
     return page;
   }
   public Page<ValueSetChild> addPage(ValueSet theSourceResource, ValueSet theTargetResource, KnowledgeArtifactProcessor.diffCache cache) throws UnprocessableEntityException {
-    if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
+    if (theSourceResource != null && theTargetResource != null && !theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
     // Map< [Code], [Object with code, version, system, etc.] > 
     Map<String, ValueSetChild.Code> codeMap = new HashMap<String, ValueSetChild.Code>();
     // Map< [URL], Map <[Version], [Object with name, version, and other metadata] >> 
     Map<String, Map<String,ValueSetChild.Leaf>> leafMetadataMap = new HashMap<String, Map<String,ValueSetChild.Leaf>>();
-    
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theSourceResource, cache);
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theTargetResource, cache);
-    var oldData = new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap);
-    var newData = new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap);
-    var url = theTargetResource.getUrl();
+    var oldData = theSourceResource == null ? null : new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap);
+    var newData = theTargetResource == null ? null : new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap);
+    var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
   }
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
-    var leafCodeSystems = updateLeafMap(leafMap, valueSet).codeSystems;
-    if (valueSet.getCompose().hasInclude()) {
-      valueSet.getCompose().getInclude()
-        .forEach(concept -> {
-          if (concept.hasConcept()) {
-            var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
-            var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
-            leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
-            mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl());
-          }
-          if (concept.hasValueSet()) {
-            concept.getValueSet().stream()
-            .map(vs -> cache.getResource(vs.getValue()).map(v -> (ValueSet) v))
-            .filter(Optional::isPresent).map(Optional::get)
-            .forEach(vs -> {
-              updateLeafMap(leafMap, vs);
-              updateCodeMapAndLeafMetadataMap(codeMap, leafMap, vs, cache);
-            });
+    if (valueSet != null) {
+      var leafCodeSystems = updateLeafMap(leafMap, valueSet).codeSystems;
+      if (valueSet.getCompose().hasInclude()) {
+        valueSet.getCompose().getInclude()
+          .forEach(concept -> {
+            if (concept.hasConcept()) {
+              var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
+              var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
+              var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+              if (!doesOidExistInList) {
+                leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+              }
+              mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
+            }
+            if (concept.hasValueSet()) {
+              concept.getValueSet().stream()
+              .map(vs -> cache.getResource(vs.getValue()).map(v -> (ValueSet) v))
+              .filter(Optional::isPresent).map(Optional::get)
+              .forEach(vs -> {
+                updateLeafMap(leafMap, vs);
+                updateCodeMapAndLeafMetadataMap(codeMap, leafMap, vs, cache);
+              });
+            }
+          });
+      }
+      if (valueSet.getExpansion().hasContains()) {
+        valueSet.getExpansion().getContains().forEach((cnt) -> {
+          if (!codeMap.containsKey(cnt.getCode())) {
+            var codeSystemName = ValueSetChild.Code.getCodeSystemName(cnt.getSystem());
+            var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(cnt.getSystem());
+            var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+            if (!doesOidExistInList) {
+              leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+            }
+            mapExpansionContainsToCodeMap(codeMap, cnt, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
           }
         });
+      }
     }
-
   }
   private ValueSetChild.Leaf updateLeafMap(Map<String, Map<String, ValueSetChild.Leaf>> leafMap, ValueSet valueSet) throws UnprocessableEntityException {
     if (!valueSet.hasVersion()) {
@@ -80,15 +96,22 @@ public class ChangeLog {
 
     var leaf = versionedLeafMap.get(valueSet.getVersion());
     if (!versionedLeafMap.containsKey(valueSet.getVersion())) {
-      leaf = new ValueSetChild.Leaf(Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getUrl(), 
-      valueSet.getStatus()
-      );
+      leaf = new ValueSetChild.Leaf(Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl(), valueSet.getStatus());
       versionedLeafMap.put(valueSet.getVersion(), leaf);
     }
     return leaf;
   }
+  private void mapExpansionContainsToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ValueSetExpansionContainsComponent containsComponent, String source, String name, String title, String url){
+    var system = containsComponent.getSystem();
+    var id = containsComponent.getId();
+    var version = containsComponent.getVersion();
+    var codeValue = containsComponent.getCode();
+    var display = containsComponent.getDisplay();
+    var code = new ValueSetChild.Code(id, system, codeValue, version, display, source, name, title, url, null);
+    codeMap.put(codeValue, code);
+}
   // can this be done with a fhir operation? tx server work?
-  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String url){
+  private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String title, String url){
       var system = concept.getSystem();
       var id = concept.getId();
       var version = concept.getVersion();
@@ -96,28 +119,30 @@ public class ChangeLog {
         .stream()
         .filter(ValueSet.ConceptReferenceComponent::hasCode)
         .forEach(conceptReference -> {
-          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, url, null);
-          codeMap.put(conceptReference.getCode(), code);
+          if (!codeMap.containsKey(conceptReference.getCode())) {
+            var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, title, url, null);
+            codeMap.put(conceptReference.getCode(), code);
+          }
         });
   }
   public Page<LibraryChild> addPage(Library theSourceResource, Library theTargetResource) throws UnprocessableEntityException {
-    if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
+    if (theSourceResource != null && theTargetResource != null && !theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getUrl(), Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
-    var newData = new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getUrl(), Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
-    var url = theTargetResource.getUrl();
+    var oldData = theSourceResource == null? null : new LibraryChild(theSourceResource.getName(), theSourceResource.getPurpose(), theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getUrl(), Optional.ofNullable((Period)theSourceResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theSourceResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theSourceResource.getRelatedArtifact());
+    var newData = theTargetResource == null? null : new LibraryChild(theTargetResource.getName(), theTargetResource.getPurpose(), theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getUrl(), Optional.ofNullable((Period)theTargetResource.getEffectivePeriod()).map(p -> p.getStart()).map(s-> s.toString()).orElse(null), Optional.ofNullable(theTargetResource.getApprovalDate()).map(s-> s.toString()).orElse(null), theTargetResource.getRelatedArtifact());    
+    var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<LibraryChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
   }
   public Page<PlanDefinitionChild> addPage(PlanDefinition theSourceResource, PlanDefinition theTargetResource) throws UnprocessableEntityException {
-    if (!theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
+    if (theSourceResource != null && theTargetResource != null && !theSourceResource.getUrl().equals(theTargetResource.getUrl())) {
       throw new UnprocessableEntityException("URLs don't match");
     }
-    var oldData = new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl());
-    var newData = new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl());
-    var url = theTargetResource.getUrl();
+    var oldData = theSourceResource == null ? null : new PlanDefinitionChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl());
+    var newData = theTargetResource == null ? null : new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl());
+    var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<PlanDefinitionChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
@@ -170,8 +195,9 @@ public class ChangeLog {
           coding.getSystem(), 
           coding.getCode(), 
           coding.getVersion(), 
-          conditionName, 
+          conditionName,
           null, 
+          null,
           null,
           null,
           condition.operation));
@@ -189,10 +215,16 @@ public class ChangeLog {
       public T oldData;
       public T newData;
       public String url;
+      public String resourceType;
       Page(String url, T oldData, T newData) {
         this.url = url;
         this.oldData = oldData;
         this.newData = newData;
+        if (oldData != null && oldData.resourceType != null) {
+          this.resourceType = oldData.resourceType;
+        } else if (newData != null && newData.resourceType != null) {
+          this.resourceType = newData.resourceType;
+        }
       }
       void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
         if (type != null) {
@@ -286,7 +318,7 @@ public class ChangeLog {
     public ValueAndOperation name = new ValueAndOperation();
     public ValueAndOperation url = new ValueAndOperation();
     public String resourceType;
-    PageBase(String title, String id, String version, String name, String url) {
+    PageBase(String title, String id, String version, String name, String url, String resourceType) {
       if (!StringUtils.isEmpty(title)) {
         this.title.value = title;
       }
@@ -302,6 +334,7 @@ public class ChangeLog {
       if (!StringUtils.isEmpty(url)) {
         this.url.value = url;
       }
+      this.resourceType = resourceType;
     }
     public void addOperation(String type, String path, Object currentValue, Object originalValue, ChangeLog parent) {
       if (type != null) {
@@ -323,7 +356,6 @@ public class ChangeLog {
   public static class ValueSetChild extends PageBase {
     public List<Code> codes = new ArrayList<>();
     public List<Leaf> leafValuesets = new ArrayList<>();
-    public final String resourceType = "ValueSet";
     public List<Operation> operations = new ArrayList<>();
     public static class Code {
       public String id;
@@ -335,9 +367,10 @@ public class ChangeLog {
       public String codeSystemOid;
       public String codeSystemName;
       public String parentValueSetName;
+      public String parentValueSetTitle;
       public String parentValueSetUrl;
       public Operation operation;
-      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetUrl, Operation operation) {
+      Code(String id, String system, String code, String version, String display, String memberOid, String parentValueSetName, String parentValueSetTitle, String parentValueSetUrl, Operation operation) {
         this.id = id;
         this.system = system;
         if (system != null) {
@@ -350,10 +383,11 @@ public class ChangeLog {
         this.memberOid = memberOid;
         this.operation = operation;
         this.parentValueSetName = parentValueSetName;
+        this.parentValueSetTitle = parentValueSetTitle;
         this.parentValueSetUrl = parentValueSetUrl;
       }
       public Code copy() {
-        return new Code(this.id, this.system, this.code, this.version, this.display, this.memberOid, this.parentValueSetName, this.parentValueSetUrl, this.operation);
+        return new Code(this.id, this.system, this.code, this.version, this.display, this.memberOid, this.parentValueSetName, this.parentValueSetTitle, this.parentValueSetUrl, this.operation);
       }
       public static String getCodeSystemOid(String systemUrl) {
         if (systemUrl.contains("snomed")) {
@@ -399,8 +433,9 @@ public class ChangeLog {
     public static class Leaf {
       public String memberOid;
       public String name;
+      public String title;
       public String url;
-      public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();;
+      public List<NameAndOid> codeSystems = new ArrayList<NameAndOid>();
       public String status;
       public List<Code> conditions = new ArrayList<Code>();
       public ValueAndOperation priority = new ValueAndOperation();
@@ -416,16 +451,17 @@ public class ChangeLog {
           return new NameAndOid(this.name, this.oid);
         }
       }
-      Leaf(String memberOid, String name, String url, PublicationStatus status) {
+      Leaf(String memberOid, String name, String title, String url, PublicationStatus status) {
         this.memberOid = memberOid;
         this.name = name;
+        this.title = title;
         this.url = url;
         if (status != null) {
           this.status = status.getDisplay();
         }
       }
       public Leaf copy() {
-        var copy = new Leaf(this.memberOid, this.name, this.url, null);
+        var copy = new Leaf(this.memberOid, this.name, this.title, this.url, null);
         copy.status = this.status;
         copy.codeSystems = this.codeSystems.stream().map(c -> c.copy()).collect(Collectors.toList());
         copy.conditions = this.conditions.stream().map(c -> c.copy()).collect(Collectors.toList());
@@ -437,7 +473,7 @@ public class ChangeLog {
       }
     }
     ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap) {
-      super(title, id, version, name, url);
+      super(title, id, version, name, url, "ValueSet");
       if (contains != null) {
         contains.forEach(contained -> {
           if (contained.getCode() != null && codeMap.containsKey(contained.getCode())) {
@@ -474,57 +510,86 @@ public class ChangeLog {
       if (type != null) {
         super.addOperation(type, path, newValue, originalValue, parent);
         var operation = new Operation(type,path,newValue,originalValue);
-        if (path.contains("compose.include")) {
+        if (path.contains("compose")) {
           // if the valuesets changed
           String urlToCheck = null;
+          // default to the original operation for use with primitive types
+          Operation updatedOperation = operation;
           if (newValue instanceof IPrimitiveType) {
             urlToCheck = ((IPrimitiveType<String>) newValue).getValue();
           } else if (originalValue instanceof IPrimitiveType){
             urlToCheck = ((IPrimitiveType<String>) originalValue).getValue();
-          } else if ( newValue instanceof ValueSet.ValueSetComposeComponent){
+          } else if ( newValue instanceof ValueSet.ValueSetComposeComponent
+          && ((ValueSet.ValueSetComposeComponent) newValue).getIncludeFirstRep().hasValueSet()) {
             urlToCheck = ((ValueSet.ValueSetComposeComponent) newValue).getIncludeFirstRep().getValueSet().get(0).getValue();
-          }else if (originalValue instanceof ValueSet.ValueSetComposeComponent){
+            updatedOperation = new Operation(
+              type,
+              path,
+              urlToCheck, 
+              type.equals("replace") ? originalValue : null);
+          } else if (originalValue instanceof ValueSet.ValueSetComposeComponent
+          && ((ValueSet.ValueSetComposeComponent) originalValue).getIncludeFirstRep().hasValueSet()){
             urlToCheck = ((ValueSet.ValueSetComposeComponent) originalValue).getIncludeFirstRep().getValueSet().get(0).getValue();
+            updatedOperation = new Operation(
+              type,
+              path,
+              type.equals("replace") ? newValue : null, 
+              urlToCheck);
           }
           if (urlToCheck != null) {
             final var urlNotNull = Canonicals.getIdPart(urlToCheck);
-            this.leafValuesets.stream().forEach(leafValueSet -> {
+            for (final var leafValueSet: this.leafValuesets) {
               if (leafValueSet.memberOid.equals(urlNotNull)) {
-                leafValueSet.operation = operation;
+                leafValueSet.operation = updatedOperation;
               }
+            }
+          }
+        } else if (path.contains("expansion")) {
+          if (path.contains("expansion.contains[")) {
+            // if the codes themselves changed
+            String codeToCheck = null;
+            if (newValue instanceof IPrimitiveType || originalValue instanceof IPrimitiveType) {
+              codeToCheck = newValue instanceof IPrimitiveType ? ((IPrimitiveType<String>) newValue).getValue() : ((IPrimitiveType<String>) originalValue).getValue();
+            } else if (originalValue instanceof ValueSet.ValueSetExpansionContainsComponent){
+              codeToCheck = ((ValueSet.ValueSetExpansionContainsComponent) originalValue).getCode();
+            }
+            updateCodeOperation(codeToCheck, operation);
+          } else if (newValue instanceof ValueSet.ValueSetExpansionComponent || originalValue instanceof ValueSet.ValueSetExpansionComponent) {
+            var contains = newValue instanceof ValueSet.ValueSetExpansionComponent ? (ValueSet.ValueSetExpansionComponent) newValue  : (ValueSet.ValueSetExpansionComponent) originalValue;
+            contains.getContains().forEach(c -> {
+              Operation updatedOperation;
+              if (newValue instanceof ValueSet.ValueSetExpansionComponent) {
+                updatedOperation = new Operation(type,path,c.getCode(),null);
+              } else {
+                updatedOperation = new Operation(type,path,null,c.getCode());
+              }
+              updateCodeOperation(c.getCode(), updatedOperation);
             });
-          }
-        } else if (path.contains("expansion.contains[")) {
-          // if the codes themselves changed
-          String codeToCheck = null;
-          if (newValue instanceof IPrimitiveType || originalValue instanceof IPrimitiveType) {
-            codeToCheck = newValue instanceof IPrimitiveType ? ((IPrimitiveType<String>) newValue).getValue() : ((IPrimitiveType<String>) originalValue).getValue();
-          } else if (originalValue instanceof ValueSet.ValueSetExpansionContainsComponent){
-            codeToCheck = ((ValueSet.ValueSetExpansionContainsComponent) originalValue).getCode();
-          }
-          if (codeToCheck != null) {
-            final String codeNotNull = codeToCheck;
-            this.codes.stream()
-              .filter(code -> code.code != null)
-              .filter(code -> code.code.equals(codeNotNull)).findAny()
-              .ifPresentOrElse(code -> {
-                code.setOperation(operation);
-              },
-              () -> {
-                // drop unmatched operations in the base operations list
-                this.operations.add(operation);
-              }); 
           }
         } else {
           this.operations.add(operation);
         }
       }
     }
+    private void updateCodeOperation(String codeToCheck, Operation operation) {
+      if (codeToCheck != null) {
+        final String codeNotNull = codeToCheck;
+        this.codes.stream()
+          .filter(code -> code.code != null)
+          .filter(code -> code.code.equals(codeNotNull)).findAny()
+          .ifPresentOrElse(code -> {
+            code.setOperation(operation);
+          },
+          () -> {
+            // drop unmatched operations in the base operations list
+            this.operations.add(operation);
+          }); 
+      }
+    }
   }
   public static class PlanDefinitionChild extends PageBase {
-    public final String resourceType = "PlanDefinition";
     PlanDefinitionChild(String title, String id, String version, String name, String url) {
-      super(title, id, version, name, url);
+      super(title, id, version, name, url, "PlanDefinition");
     }
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
@@ -554,13 +619,12 @@ public class ChangeLog {
     }
   }
   public static class LibraryChild extends PageBase {
-    public final String resourceType = "Library";
     public ValueAndOperation purpose = new ValueAndOperation();
     public ValueAndOperation effectiveStart = new ValueAndOperation();
     public ValueAndOperation releaseDate = new ValueAndOperation();
     public List<RelatedArtifactUrlWithOperation> relatedArtifacts = new ArrayList<>();
     LibraryChild(String name, String purpose, String title, String id, String version, String url, String effectiveStart, String releaseDate, List<RelatedArtifact> relatedArtifacts) {
-      super(title, id, version, name, url);
+      super(title, id, version, name, url, "Library");
       if (!StringUtils.isEmpty(purpose)) {
         this.purpose.value = purpose;
       }
