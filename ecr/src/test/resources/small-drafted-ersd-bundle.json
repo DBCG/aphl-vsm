@@ -127,7 +127,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
 					},
 					{
 						"type": "depends-on",
@@ -225,7 +225,7 @@
 					"include": [
 						{
 							"valueSet": [
-								"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
 							]
 						},
 						{
@@ -272,7 +272,7 @@
 			}
 		},
 		{
-			"fullUrl": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
@@ -281,7 +281,7 @@
 					"lastUpdated": "2023-12-14T15:38:33.243-05:00",
 					"source": "#MT6tY32vbfEfzQmh"
 				},
-				"url": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
@@ -312,7 +312,7 @@
 			"request": {
 				"method": "POST",
 				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
-				"ifNoneExist": "url=https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20210526"
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20210526"
 			}
 		},
 		{
@@ -348,7 +348,7 @@
 					},
 					{
 						"url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-						"valueUri": "https://cts.nlm.nih.gov/fhir"
+						"valueUri": "http://cts.nlm.nih.gov/fhir"
 					}
 				],
 				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163",
@@ -365,37 +365,6 @@
 				"experimental": false,
 				"date": "2022-06-03T01:06:35-04:00",
 				"publisher": "CSTE Steward",
-				"useContext": [
-					{
-						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "49649001"
-								}
-							],
-							"text": "Infection caused by Acanthamoeba (disorder)"
-						}
-					},
-					{
-						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "767146004"
-								}
-							]
-						}
-					}
-				],
 				"jurisdiction": [
 					{
 						"extension": [
@@ -411,6 +380,7 @@
 					"include": [
 						{
 							"system": "http://snomed.info/sct",
+							"version": "1.2.3",
 							"concept": [
 								{
 									"code": "1193749009",

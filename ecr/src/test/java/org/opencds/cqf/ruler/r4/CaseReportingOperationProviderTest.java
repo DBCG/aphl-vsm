@@ -1705,7 +1705,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://notOwnedTest.com/Library/notOwnedRoot", // will be empty / unable to retrieve
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163", // the new VS added to the DXTC
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6" // the VS deleted from the DXTC
@@ -1791,7 +1791,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		// old codes removed
 		assertEquals(23, deleteOperations.size());
 		// new codes added
-		assertEquals(32, insertOperations.size());
+		assertEquals(40, insertOperations.size());
 	}
 
 	private Parameters createChangelogSetup() {
