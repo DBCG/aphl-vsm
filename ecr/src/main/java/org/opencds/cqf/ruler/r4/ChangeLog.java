@@ -68,6 +68,13 @@ public class ChangeLog {
             }
           });
       }
+      if (valueSet.getExpansion().hasContains()) {
+        valueSet.getExpansion().getContains().forEach((cnt) -> {
+          if (!codeMap.containsKey(cnt.getCode())) {
+            mapExpansionContainsToCodeMap(codeMap, cnt, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
+          }
+        });
+      }
     }
   }
   private ValueSetChild.Leaf updateLeafMap(Map<String, Map<String, ValueSetChild.Leaf>> leafMap, ValueSet valueSet) throws UnprocessableEntityException {
@@ -88,6 +95,15 @@ public class ChangeLog {
     }
     return leaf;
   }
+  private void mapExpansionContainsToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ValueSetExpansionContainsComponent containsComponent, String source, String name, String title, String url){
+    var system = containsComponent.getSystem();
+    var id = containsComponent.getId();
+    var version = containsComponent.getVersion();
+    var codeValue = containsComponent.getCode();
+    var display = containsComponent.getDisplay();
+    var code = new ValueSetChild.Code(id, system, codeValue, version, display, source, name, title, url, null);
+    codeMap.put(codeValue, code);
+}
   // can this be done with a fhir operation? tx server work?
   private void mapConceptSetToCodeMap(Map<String, ValueSetChild.Code> codeMap, ValueSet.ConceptSetComponent concept, String source, String name, String title, String url){
       var system = concept.getSystem();
@@ -97,8 +113,10 @@ public class ChangeLog {
         .stream()
         .filter(ValueSet.ConceptReferenceComponent::hasCode)
         .forEach(conceptReference -> {
-          var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, title, url, null);
-          codeMap.put(conceptReference.getCode(), code);
+          if (!codeMap.containsKey(conceptReference.getCode())) {
+            var code = new ValueSetChild.Code(id, system, conceptReference.getCode(), version, conceptReference.getDisplay(), source, name, title, url, null);
+            codeMap.put(conceptReference.getCode(), code);
+          }
         });
   }
   public Page<LibraryChild> addPage(Library theSourceResource, Library theTargetResource) throws UnprocessableEntityException {
