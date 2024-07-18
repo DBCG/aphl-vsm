@@ -53,7 +53,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     if (response?.resourceType === 'Endpoint') {
       const updatedEndpoint = response as fhir4.Endpoint
       if (!router.query.id) {
-        window.location.href = `/admin-tools/edit-endpoint/${updatedEndpoint.id!}`
+        router.push(`/admin-tools/edit-endpoint/${updatedEndpoint.id!}`)
       }
       setEndpointToUpdate(response as fhir4.Endpoint)
       setLoading(false)
@@ -141,7 +141,14 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-        <Button id="submit-approve" text="Submit" onClick={handleSubmit} loading={loading} />
+        <Button style={{ marginRight: '15px' }} id="submit-approve" text="Submit" onClick={handleSubmit} loading={loading} />
+        <Button
+          style={{ marginLeft: '15px' }}
+          id="back-to-admin-tools"
+          text="Back to Admin Tools"
+          onClick={() => router.push('/admin-tools')}
+          loading={loading}
+        />
       </Row>
     </>
   )

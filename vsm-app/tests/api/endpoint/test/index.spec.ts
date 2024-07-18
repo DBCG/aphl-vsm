@@ -1,7 +1,6 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
 import handler, { TestRequest } from '@/pages/api/endpoint/test'
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiResponse } from 'next'
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
