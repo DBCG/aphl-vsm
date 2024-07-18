@@ -35,6 +35,7 @@ interface Props {
   placeholder?: string
   defaultValue?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
+  onBlur?: React.FocusEventHandler<HTMLInputElement>
   label: string
   id?: string
   value?: string
@@ -53,6 +54,7 @@ interface Props {
 const SearchInput = ({
   placeholder,
   onChange,
+  onBlur,
   label,
   value,
   defaultValue,
@@ -85,6 +87,7 @@ const SearchInput = ({
           error={!!errorMessage}
           placeholder={placeholder}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
           required={required}
           value={value}

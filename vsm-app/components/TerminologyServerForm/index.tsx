@@ -10,6 +10,7 @@ import { authenticationOptions } from './types'
 import { TestRequest } from '@/pages/api/endpoint/test'
 import { useRouter } from 'next/router'
 import { EndpointRequest } from '@/pages/api/endpoint'
+import { debounce } from 'lodash'
 export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
 
 export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
@@ -52,7 +53,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     if (response?.resourceType === 'Endpoint') {
       const updatedEndpoint = response as fhir4.Endpoint
       if (!router.query.id) {
-        window.location.href = `/admin-tools/endpoint/edit/${updatedEndpoint.id!}`
+        window.location.href = `/admin-tools/edit-endpoint/${updatedEndpoint.id!}`
       }
       setEndpointToUpdate(response as fhir4.Endpoint)
       setLoading(false)
@@ -60,7 +61,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   }
   function validateAddress(e: ChangeEvent<HTMLInputElement>) {
     const address = e.target.value
-    const invalid = 'Invalid address'
+    const invalid = 'Warning: The address provided does not appear to be valid'
     if (!address) {
       setAddressError('')
       return
@@ -80,6 +81,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       })
       .catch(() => setAddressError(invalid))
   }
+  const debouncedValidate = debounce(validateAddress, 1500)
   useEffect(() => {
     if (!!endpoint) {
       setEndpointToUpdate(endpoint)
@@ -114,7 +116,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             helperMessage="Endpoint address / URL"
             inputRef={address}
             errorMessage={addressError}
-            onChange={(v) => validateAddress(v)}
+            onChange={(v) => debouncedValidate(v)}
+            onBlur={(v) => validateAddress(v)}
           />
           <LabelStyled>
             Type{' '}

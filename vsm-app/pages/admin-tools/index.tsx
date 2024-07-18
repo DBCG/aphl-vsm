@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
-import DT from 'react-data-table-component'
+import DT, { TableColumn } from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -9,7 +9,7 @@ import { formatDateForTable } from '@/helpers/formatDates'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@mui/material'
 import { EndpointResponse } from '../api/endpoint'
-import { PaginationState } from '../programs'
+import { PaginationState } from '@/components/Provisional/ProgramsTab'
 
 const Col = styled.div`
   display: flex;
@@ -37,45 +37,52 @@ const TerminologyEndpoints: NextPage = () => {
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     countPerPage: 10,
-    searchTotal: null
+    searchTotal: 0
   })
-  useEffect(() => {
-    fetchEndpoints((pagination.page - 1) * pagination.countPerPage, pagination.page * pagination.countPerPage)
-  }, [pagination.page, pagination.countPerPage])
   const fetchEndpoints = async (offset: number, count: number) => {
     const url = `/api/endpoint?_offset=${offset}&_count=${count}`
-    setLoading(true)
     return fetch(url)
       .then((res) => res.json())
       .then((res: EndpointResponse) => {
         setData(res.endpoints)
         // if we don't use the callback `react-exhaustive-deps` thinks this is a mutable function
-        if (res.total != pagination.searchTotal) {
-          setPagination((current) => {
+        setPagination((current) => {
+          if (res.total != current.searchTotal) {
             return { ...current, searchTotal: res.total }
-          })
-        }
+          } else {
+            return current
+          }
+        })
       })
       .catch((error) => setError({ error: error.error || error.toString() }))
-      .finally(() => setLoading(false))
   }
+  useEffect(() => {
+    setLoading(true)
+    fetchEndpoints((pagination.page - 1) * pagination.countPerPage, pagination.page * pagination.countPerPage).finally(() =>
+      setLoading(false)
+    )
+  }, [pagination.page, pagination.countPerPage])
   const handlePageChange = (newPage: number) =>
     setPagination((current) => {
-      return { ...current, page: newPage }
+      if (current.page != newPage) {
+        return { ...current, page: newPage }
+      } else {
+        return current
+      }
     })
-  const columns = useMemo(
+  const columns: TableColumn<fhir4.Endpoint>[] = useMemo(
     () => [
       {
         name: 'Name',
         selector: (row: fhir4.Endpoint) => row.name || '',
-        sortable: true,
+        sortable: false,
         maxWidth: '12rem',
         wrap: true
       },
       {
         name: 'Endpoint',
         selector: (row: fhir4.Endpoint) => row.address,
-        sortable: true,
+        sortable: false,
         minWidth: '10rem',
         wrap: true
       },
@@ -85,7 +92,7 @@ const TerminologyEndpoints: NextPage = () => {
           const formattedDate = formatDateForTable(row?.meta?.lastUpdated, 'm/d/yyyy')
           return formattedDate
         },
-        sortable: true,
+        sortable: false,
         wrap: true,
         maxWidth: '8rem'
       },
@@ -101,7 +108,7 @@ const TerminologyEndpoints: NextPage = () => {
           <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
             <IconButton
               onClick={() => {
-                window.location.href = `/admin-tools/endpoint/edit/${row.id}`
+                window.location.href = `/admin-tools/edit-endpoint/${row.id}`
               }}
               buttoncontext={'edit'}
             />
@@ -131,7 +138,7 @@ const TerminologyEndpoints: NextPage = () => {
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <h4>Endpoints</h4>
-        <Button onClick={() => (window.location.href = '/admin-tools/endpoint/new')}>Create Endpoint</Button>
+        <Button onClick={() => (window.location.href = '/admin-tools/create-endpoint')}>Create Endpoint</Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT
@@ -145,7 +152,15 @@ const TerminologyEndpoints: NextPage = () => {
         onChangePage={handlePageChange}
         onChangeRowsPerPage={(newRowsPerPage, newPage) =>
           setPagination((current) => {
-            return { ...current, page: newPage, countPerPage: newRowsPerPage }
+            if (newRowsPerPage !== current.countPerPage || newPage !== current.page) {
+              if ((current.searchTotal || 0) < current.countPerPage && (current.searchTotal || 0) < newRowsPerPage) {
+                current.countPerPage = newRowsPerPage
+                return current
+              }
+              return { ...current, page: newPage, countPerPage: newRowsPerPage }
+            } else {
+              return current
+            }
           })
         }
         progressPending={loading}
