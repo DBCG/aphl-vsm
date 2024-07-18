@@ -1,371 +1,39 @@
+import { useEffect, useState } from 'react'
 import type { NextPage } from 'next'
+import ProgramsTab from '@/components/Provisional/ProgramsTab'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { Box, Tab } from '@mui/material'
+import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
 import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { useEffect, useMemo, useState } from 'react'
-import useSWR from 'swr'
-import styled from 'styled-components'
-import { debounce } from 'lodash'
-import DT from 'react-data-table-component'
-import { fetchWithProgram } from '@/utils'
-import { IconButton } from '@/components/buttons/IconButton'
-import { PageTitle } from '@/components/Typography'
-import LoadingIndicator from '@/components/LoadingIndicator'
-import { LoadingModal } from '@/components/modals/LoadingModal'
-import { ReleaseModal } from '@/components/modals/ReleaseModal'
-import { can, VSMSession } from '@/helpers/rolesHelper'
-import { ErrorMessage } from '@/components/ErrorMessage'
-import { StatusChip } from '@/components/data-display/Chips'
-import { formatDateForTable } from '@/helpers/formatDates'
-import { getLatestFromList } from '@/helpers/server/semverHelpers'
-import { ProgramApiResponse } from '../api/programs'
-import TextLink from '@/components/TextLink'
-
-const Col = styled.div`
-  display: flex;
-  flex-direction: column;
-  height: fit-content;
-`
-
-const Row = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-`
-
-const ButtonWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  width: 100%;
-`
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-`
-
-export interface StatusProps {
-  status: string
-  experimental: boolean
-}
-
-interface Error {
-  error?: string
-}
-
-export interface PaginationState {
-  page: number
-  countPerPage: number
-  searchTotal: number | null
-}
-
-export interface ReleasePayload {
-  programId: string
-  releaseDescription?: string
-  releaseLabel?: string
-  effectiveStartDate: string | Date
-  releaseAsVersion: string
-}
 
 const Programs: NextPage = () => {
+  const [value, setValue] = useState('1')
   const router = useRouter()
-  const { data: session } = useSession() as unknown as { data: VSMSession }
-  const [loading, setLoading] = useState(false)
-  const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
-  const [error, setError] = useState<Error>({})
-  const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
-
-  // Table Pagination
-  const [pagination, setPagination] = useState<PaginationState>({
-    page: 1,
-    countPerPage: 10,
-    searchTotal: null
-  })
-
-  // clone template
-  const [cloneLoading, setCloneLoading] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [progIdToClone, setProgIdToClone] = useState('')
-
-  const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
-    {
-      url: '/api/programs',
-      args: {
-        list: true, // use this query param so on the server side we don't need to load all details of the program
-        offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : null,
-        count: pagination?.countPerPage
-      }
-    },
-    (args) =>
-      fetchWithProgram(args).then((resp: ProgramApiResponse) => {
-        if ('error' in resp) {
-          setError(resp)
-          return
-        }
-        return resp
-      }),
-    { revalidateOnFocus: false }
-  )
-  const { programs, total } = data
   useEffect(() => {
-    if (total !== pagination?.searchTotal) {
-      setPagination({ ...pagination, searchTotal: total })
+    if (router?.query?.resourceType === 'provisional') {
+      setValue('2')
     }
-  }, [total, pagination.searchTotal, setPagination, pagination])
+  }, [router.query])
 
-  useEffect(() => {
-    const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
-    if (programs?.length) {
-      setLatestProgramVersion(getLatestFromList(programList))
-    } else {
-      setLatestProgramVersion(null)
-    }
-  }, [programs])
-
-  const handlePageChange = (newPage: number) => setPagination({ ...pagination, page: newPage })
-
-  const handleClickClone = (programId: string | undefined) => {
-    if (!programId) return
-    setProgIdToClone(programId)
-    setModalOpen(true)
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    setValue(newValue)
   }
-
-  const cloneProgram = async (programId: string) => {
-    if (cloneLoading) return
-    setCloneLoading(true)
-    setError({})
-    let libraryData: any = ''
-    libraryData = programs.find((p) => p.id === programId)
-    const json = JSON.stringify({ libraryData, latestProgramVersion })
-
-    try {
-      const res = await fetch('/api/template', {
-        method: 'POST',
-        body: json
-      })
-
-      if (!res?.ok) {
-        const json = (await res.json()) as { message: string } | { error: string }
-        if ('error' in json) {
-          setError({ error: json.error })
-        } else {
-          console.error(json)
-          throw new Error(JSON.stringify(json))
-        }
-      }
-    } catch (e) {
-      setError({ error: `Error cloning program ${programId}` })
-    } finally {
-      setPagination({ ...pagination, searchTotal: null })
-      mutate()
-      setModalOpen(false)
-      setCloneLoading(false)
-    }
-  }
-
-  const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
-
-  const columns = useMemo(
-    () => [
-      {
-        name: 'Status',
-        selector: (row: fhir4.Library) => row.status,
-        sortable: true,
-        maxWidth: '8rem',
-        wrap: true,
-        center: true,
-        cell: (row: fhir4.Library) => {
-          const experimental = Boolean(row.experimental)
-          return (
-            <Container>
-              <StatusChip experimental={experimental} style={{ justifySelf: 'center' }} label={row.status} />
-            </Container>
-          )
-        }
-      },
-      {
-        name: 'ID',
-        selector: (row: fhir4.Library) => row.id || '',
-        sortable: true,
-        maxWidth: '8rem',
-        wrap: true,
-        cell: (row: fhir4.Library) => (
-          <TextLink
-          href={`/programs/${row.id}`}
-          linkText={row.id}
-          forceReload={false}
-        />
-        )
-      },
-      {
-        name: 'Title',
-        selector: (row: fhir4.Library) => row.title || '',
-        sortable: true,
-        maxWidth: '15rem',
-        minWidth: '10rem',
-        wrap: true
-      },
-      {
-        name: 'Version',
-        selector: (row: fhir4.Library) => row.version || '',
-        sortable: true,
-        wrap: true,
-        maxWidth: '8rem'
-      },
-      {
-        name: 'Last Updated',
-        selector: (row: fhir4.Library) => {
-          const formattedDate = formatDateForTable(row?.meta?.lastUpdated, 'm/d/yyyy')
-          return formattedDate
-        },
-        sortable: true,
-        wrap: true,
-        maxWidth: '8rem'
-      },
-      {
-        name: 'Description',
-        selector: (row: fhir4.Library) => row.description || '',
-        sortable: false,
-        wrap: true,
-        minWidth: '20rem'
-      },
-      {
-        name: 'Steward',
-        selector: (row: fhir4.Library) => row.publisher || '',
-        sortable: true,
-        maxWidth: '15rem',
-        minWidth: '10rem',
-        wrap: true
-      },
-      {
-        name: 'Clone',
-        selector: (row: fhir4.Library) => row.name || '',
-        sortable: false,
-        omit: !can(session, 'clone'),
-        wrap: true,
-        center: true,
-        maxWidth: '3rem',
-        cell: (row: fhir4.Library) => (
-          <ButtonWrapper>
-            <IconButton
-              disabled={row.status !== 'active'}
-              onClick={() => {
-                handleClickClone(row.id)
-              }}
-              buttoncontext={`clone-${row.status}`}
-            />
-          </ButtonWrapper>
-        )
-      },
-      {
-        name: 'Release',
-        selector: (row: fhir4.Library) => row.name || '',
-        sortable: false,
-        omit: !can(session, 'release'),
-        wrap: true,
-        center: true,
-        maxWidth: '3rem',
-        cell: (row: fhir4.Library) => (
-          <ButtonWrapper>
-            <IconButton
-              disabled={row.status !== 'draft' || !row.approvalDate}
-              onClick={() => {
-                setError({})
-                setProgramToRelease(row)
-              }}
-              buttoncontext={`mustApproveRelease-${row.status}`}
-            />
-          </ButtonWrapper>
-        )
-      }
-    ],
-    [session]
-  )
-
-  const handleCancelReleaseModal = () => {
-    setProgramToRelease(null)
-  }
-
-  const handleReleaseModalAction = async (payload: ReleasePayload) => {
-    setLoading(true)
-    const endpoint = `/api/programs/${payload.programId}/release`
-
-    const result = await fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    })
-
-    if (!result.ok) {
-      const res = await result.json()
-      let errorText
-      if (res?.error?.includes('HAPI-0389')) {
-        errorText = 'Draft program must be approved to release.'
-      } else if (!!res?.error) {
-        errorText = res.error
-      } else {
-        errorText = 'Please try again.'
-      }
-      setError({
-        error: `Error occurred while releasing program: ${payload.programId}. ${errorText}`
-      })
-    } else {
-      router.reload()
-    }
-
-    setLoading(false)
-    setProgramToRelease(null)
-  }
-
-  if (!data) return <LoadingIndicator />
 
   return (
-    <Col>
-      {modalOpen && (
-        <LoadingModal
-          actionType="clone"
-          isOpen={modalOpen}
-          handleModalAction={async () => {
-            // throttle this action based on if it is already ongoing
-            if (cloneLoading) return
-            debouncedCloneProgram(progIdToClone)
-          }}
-          program={null}
-          loading={cloneLoading}
-          handleCancelModal={() => setModalOpen(false)}
-        />
-      )}
-      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-        <PageTitle>Programs</PageTitle>
-      </Row>
-      {programToRelease && (
-        <ReleaseModal
-          isOpen={Boolean(programToRelease)}
-          loading={loading}
-          handleCancelModal={handleCancelReleaseModal}
-          handleModalAction={handleReleaseModalAction}
-          program={programToRelease}
-          setProgramToRelease={setProgramToRelease}
-        />
-      )}
-      <ErrorMessage error={error?.error || null} />
-      <DT
-        data={programs}
-        columns={columns}
-        theme="aphl"
-        pagination
-        paginationServer
-        paginationTotalRows={pagination.searchTotal || 0}
-        paginationPerPage={pagination.countPerPage}
-        onChangePage={handlePageChange}
-        onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
-        fixedHeader
-        highlightOnHover={true}
-        progressPending={!programs?.length}
-        progressComponent={<LoadingIndicator />}
-      />
-    </Col>
+    <TabContext value={value}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <TabList onChange={handleChange} aria-label="dashboard tabs">
+          <Tab onClick={() => router.push('/programs')} label="Programs" value="1" />
+          <Tab onClick={() => router.push('/programs?resourceType=provisional')} label="Provisional Resources" value="2" />
+        </TabList>
+      </Box>
+      <TabPanel value="1">
+        <ProgramsTab />
+      </TabPanel>
+      <TabPanel value="2">
+        <ProvisionalResourcesTab />
+      </TabPanel>
+    </TabContext>
   )
 }
 

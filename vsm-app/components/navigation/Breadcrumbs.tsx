@@ -39,7 +39,11 @@ const composePath = (pathItems: string, lastOfPath: string) => {
     return pathItems.split('/valuesets')[0]
   }
   const idx = pathItems.indexOf(lastOfPath)
-  return pathItems.slice(0, idx + lastOfPath.length)
+  let result = pathItems.slice(0, idx + lastOfPath.length)
+  if (result === '/provisional') {
+    result = `/programs?resourceType=provisional`
+  }
+  return result
 }
 
 type BreadCrumbProps = {
@@ -52,11 +56,11 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   useEffect(() => {
     if (router) {
-      const crumbs = router.asPath.split('/')
-      const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
+      const withoutQueryStrings = router.asPath.split('?')[0].split('/')
       if (isGrouperView && withoutQueryStrings.indexOf('valuesets') === -1) {
         withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
       }
+
       setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])

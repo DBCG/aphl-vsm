@@ -3,7 +3,6 @@ package org.opencds.cqf.ruler.r4;
 import org.opencds.cqf.ruler.ImportBundleProducer;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.TimeType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.jupiter.api.Assertions;

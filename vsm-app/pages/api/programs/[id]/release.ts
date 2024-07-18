@@ -10,7 +10,7 @@ import {
   setEffectivePeriodStart,
   setReleaseLabel
 } from '@/helpers/libraryHelpers'
-import { ReleasePayload } from '@/pages/programs'
+import { ReleasePayload } from '@/components/modals/ReleaseModal'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {

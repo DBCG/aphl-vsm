@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Checkbox, FormControl, FormControlLabel, FormGroup, Grid } from '@mui/material'
+import { FormControl, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
 import { SearchInput } from '../SearchInput'
@@ -13,7 +13,6 @@ import { NextRouter } from 'next/router'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
-import { CheckBox } from '@mui/icons-material'
 
 interface Props {
   programId: string
@@ -54,8 +53,7 @@ const CodeSearch = ({ programId, router }: Props) => {
   const [error, setError] = useState<null | string>(null)
 
   const progValueSetDets = useGetProgramValueSetDetails({
-    id: programId,
-    provisionalOnly: false
+    id: programId
   }) as Result
 
   const {
@@ -144,9 +142,9 @@ const CodeSearch = ({ programId, router }: Props) => {
         Find Codes in Program {programId}
       </PageTitle>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
-        <FormGroup>
+        {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
-        </FormGroup>
+        </FormGroup> */}
         <PageP>
           Find ValueSets in this program that...
         </PageP>

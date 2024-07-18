@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -352,7 +353,7 @@ public class KnowledgeArtifactProcessor {
 							}
 							exp.getContains().addAll(expanded.getExpansion().getContains());
 						} catch (ResourceNotFoundException e) {
-							// TODO: handle exception
+							// TODO: add exception to OperationOutcome and append to bundle
 						}
 					}
 				}
@@ -367,7 +368,7 @@ public class KnowledgeArtifactProcessor {
 					}
 					vset.setExpansion(exp.getExpansion().copy());	
 				} catch (ResourceNotFoundException e) {
-					// TODO: handle exception
+					// TODO: add exception to OperationOutcome and append to bundle
 				}
 			}
 		}
@@ -676,7 +677,6 @@ public class KnowledgeArtifactProcessor {
 				if (diffNotAlreadyComputedAndPresent) {
 					var source = checkOrUpdateResourceCache(sourceCanonical, cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint, compareExecutable);
 					var target = checkOrUpdateResourceCache(targetCanonical, cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint, compareExecutable);
-					// need to do something smart here to expand the executable or computable resources
 					checkOrUpdateDiffCache(sourceCanonical, targetCanonical, source, target, patch, cache, ctx, compareComputable, compareExecutable, dao)
 						.ifPresentOrElse(diffToAppend -> {
 							var component = baseDiff.addParameter();
@@ -703,10 +703,13 @@ public class KnowledgeArtifactProcessor {
 			if (addition.hasResource()) {
 				boolean diffNotAlreadyComputedAndPresent = baseDiff.getParameter(Canonicals.getUrl(addition.getResource())) == null;
 				if (diffNotAlreadyComputedAndPresent) {
-					var component = baseDiff.addParameter();
-					component.setName(Canonicals.getUrl(addition.getResource()));
-					component.setValue(new StringType("Related artifact was inserted"));
-					checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint, compareExecutable);
+					var targetResource = checkOrUpdateResourceCache(addition.getResource(), cache, hapiFhirRepository, dao, false, ctx, terminologyEndpoint, compareExecutable);
+					checkOrUpdateDiffCache(null, addition.getResource(), null, targetResource, patch, cache, ctx, compareComputable, compareExecutable, dao)
+						.ifPresent(diffToAppend -> {
+							var component = baseDiff.addParameter();
+							component.setName(Canonicals.getUrl(addition.getResource()));
+							component.setResource(diffToAppend);
+						});
 				}
 			}
 		}
@@ -714,10 +717,13 @@ public class KnowledgeArtifactProcessor {
 			if (deletion.hasResource()) {
 				boolean diffNotAlreadyComputedAndPresent = baseDiff.getParameter(Canonicals.getUrl(deletion.getResource())) == null;
 				if (diffNotAlreadyComputedAndPresent) {
-					var component = baseDiff.addParameter();
-					component.setName(Canonicals.getUrl(deletion.getResource()));
-					component.setValue(new StringType("Related artifact was deleted"));
-					checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint, compareExecutable);
+					var sourceResource = checkOrUpdateResourceCache(deletion.getResource(), cache, hapiFhirRepository, dao, true, ctx, terminologyEndpoint, compareExecutable);
+					checkOrUpdateDiffCache( deletion.getResource(), null, sourceResource, null, patch, cache, ctx, compareComputable, compareExecutable, dao)
+						.ifPresent(diffToAppend -> {
+							var component = baseDiff.addParameter();
+							component.setName(Canonicals.getUrl(deletion.getResource()));
+							component.setResource(diffToAppend);
+						});
 				}
 			}
 		}
@@ -820,8 +826,26 @@ public class KnowledgeArtifactProcessor {
 		return resource;
 	}
 	private static Optional<Parameters> checkOrUpdateDiffCache(String sourceCanonical, String targetCanonical, MetadataResource source, MetadataResource target, FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,IFhirResourceDaoValueSet<ValueSet> dao) {
-		var retval = cache.getDiff(sourceCanonical, targetCanonical);
-		if (retval == null && source != null && target != null) {
+		var retval = cache.getDiff(sourceCanonical == null ? "empty" : sourceCanonical, targetCanonical == null ? "empty" : targetCanonical);
+		if (sourceCanonical == null && target != null) {
+			try {
+				var empty = target.getClass().getDeclaredConstructor((Class<?>[])null).newInstance((Object[])null);
+				retval = (Parameters) patch.diff(empty, target);
+				cache.addDiff("empty", targetCanonical, retval);
+			} catch (NoSuchMethodException | IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+				// TODO: add OperationOutcome to bundle
+				e.printStackTrace();
+			}
+		} else if (targetCanonical == null && source != null) {
+			try {
+				var empty = source.getClass().getDeclaredConstructor((Class<?>[])null).newInstance((Object[])null);
+				retval = (Parameters) patch.diff(source, empty);
+				cache.addDiff(sourceCanonical, "empty", retval);
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				// TODO: add OperationOutcome to bundle
+				e.printStackTrace();
+			}
+		} else if (retval == null && source != null && target != null) {
 			if (target != null) {
 				if (source instanceof Library || source instanceof PlanDefinition) {
 					retval = handleRelatedArtifactArrayElementsDiff(source, target, patch);

@@ -3,7 +3,7 @@ import DataTable from 'react-data-table-component'
 import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle } from '@/components/ProgramValueSetDetails/styles'
-import { formatValuesetDate } from '@/helpers/formatDates'
+import { formatResourceDate } from '@/helpers/formatDates'
 import { TableContextType } from './ValueSetSearchTable'
 import { customTableStyles } from './tables/themes'
 
@@ -37,7 +37,7 @@ const parseValueSets = (valueSets: ValueSet[] | undefined): TableData[] => {
     const { id, name, publisher, url, status, meta, date, version } = vs
     let updatedDate
     if (meta?.lastUpdated || date) {
-      updatedDate = formatValuesetDate({ valueSet: vs, dateType: 'lastUpdated' }) || 'Unknown'
+      updatedDate = formatResourceDate({ resource: vs, dateType: 'lastUpdated' }) || 'Unknown'
     } else {
       updatedDate = 'Unknown'
     }
