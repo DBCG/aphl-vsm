@@ -4,21 +4,19 @@
  **/
 import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
-import { Bundle, BundleEntry, ValueSet, UsageContext } from 'fhir/r4'
-import { is } from '@/helpers/is'
-import { getTerminologySource, idWithoutVersion } from '@/helpers/valueSetHelpers'
-import { sleep } from 'utils'
+import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
+import { addExtensionToVs, EXTENSIONS, getTerminologySource } from '@/helpers/valueSetHelpers'
+import { deepEqual, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import logger from '@/helpers/server/logger'
+import { getTerminologySourceEndpoint } from '@/fhirClientOptions'
 
 type CDRResponseCollection = {
   [url: string]: {
-    valuesets: ValueSet[]
-    latestVersion?: string
-    latestVersionUseContext?: UsageContext[]
-    versions: string[]
-    vsComparatorResponses?: Bundle
+    cdrValueSet: ValueSet
+    authorativeValueSet?: ValueSet
+    terminologySource: string
   }
 }
 
@@ -37,64 +35,14 @@ const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vs
   }
 })
 
-/**
- * Builds Bundle Entry for batch request
- */
-const buildValueSetEntry = (bundleWithVersions: fhir4.Resource[], useContext: UsageContext[], url: string) => {
-  const entry = bundleWithVersions
-    .flatMap((valueSet) => {
-      if (is.valueSet(valueSet)) {
-        return {
-          resource: {
-            ...valueSet,
-            useContext,
-            url
-          },
-          request: {
-            method: 'POST',
-            url: `/ValueSet`
-          }
-        } as BundleEntry
-      } else {
-        logger.info('No update required for url', url)
-        return null
-      }
-    })
-    .filter((i) => i)
-  return entry as BundleEntry
-}
-
-/**
- * Parses the responses from the targeted terminology server and checks to see if there
- * are any new versions of the ValueSet. If there are, it will return a BundleEntry
- * with the new ValueSet resource to be added to the CQF Ruler server.
- */
-const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection) => {
-  const entries: BundleEntry[] = []
-  Object.keys(cdrResponseCollection).forEach((url) => {
-    const { versions, latestVersion, latestVersionUseContext, vsComparatorResponses } = cdrResponseCollection[url]
-    if (latestVersion == null || latestVersionUseContext == null) {
-      logger.error(`latestVersion or latestVersionUseContext not found for ValueSet at ${url}`)
-      return
+const findLatestVersionValueSet = (valuesets: ValueSet[]) => {
+  let latestVersion = valuesets[0]
+  valuesets.forEach((valueSet) => {
+    if (dayjs(valueSet.version).isAfter(latestVersion.version)) {
+      latestVersion = valueSet
     }
-    // Find if latest version is not in cqf store
-    const vsComparatorResponsesWithVersions =
-      (vsComparatorResponses?.entry
-        ?.map((bundleEntry: BundleEntry) => {
-          const resource = bundleEntry.resource as ValueSet
-          if (resource?.version && is.valueSet(resource) && dayjs(resource.version).isAfter(latestVersion)) {
-            logger.info(`Adding new resource, latest version found for: ${resource.name} version: ${resource.version}`)
-            return resource
-          }
-        })
-        .filter((i) => !!i) as ValueSet[]) || [] //filter out undefined
-
-    if (vsComparatorResponsesWithVersions?.length === 0) return
-
-    const entry = buildValueSetEntry(vsComparatorResponsesWithVersions, latestVersionUseContext, url)
-    if (entry != null) entries.push(entry)
   })
-  return entries.flat()
+  return latestVersion
 }
 
 /**
@@ -102,47 +50,79 @@ const parseVSComparatorResponses = (cdrResponseCollection: CDRResponseCollection
  * and pins the latest version valueset and its useContext
  */
 const parseCdrResponses = (cdrResponse: Bundle) => {
-  const cdrResponseCollection: CDRResponseCollection = {}
-
-  cdrResponse?.entry?.forEach((cdrBundle: BundleEntry) => {
-    const bundle = cdrBundle?.resource as Bundle
-    const valueSets = bundle?.entry?.map(({ resource }) => resource as ValueSet).filter((i) => !!i)
-    valueSets?.forEach((valueSet) => {
-      const { url, version, useContext } = valueSet
-      if (!url || !version || !useContext) {
-        logger.error(`url, version, or useContext not found for ValueSet at ${url}`)
+  return cdrResponse?.entry
+    ?.map((cdrBundle: BundleEntry) => {
+      const bundle = cdrBundle?.resource as Bundle
+      const valueSets = bundle?.entry?.map(({ resource }) => resource as ValueSet).filter((i) => !!i) || []
+      if (valueSets.length > 1) {
+        return findLatestVersionValueSet(valueSets)
+      } else if (valueSets.length === 1) {
+        return valueSets[0]
+      } else {
+        logger.error(`No ValueSets found in bundle for ${bundle.link?.[0]?.url}`)
         return
       }
-
-      if (cdrResponseCollection[url]) {
-        cdrResponseCollection[url].valuesets.push(valueSet)
-        cdrResponseCollection[url].versions.push(version)
-        // Set the latest version and useContext
-        if (valueSet.useContext && dayjs(version).isAfter(cdrResponseCollection[url].latestVersion)) {
-          cdrResponseCollection[url].latestVersion = version
-          cdrResponseCollection[url].latestVersionUseContext = valueSet.useContext
-        }
-      } else {
-        cdrResponseCollection[url] = { valuesets: [valueSet], versions: [version] }
-        if (valueSet.useContext) {
-          cdrResponseCollection[url].latestVersion = version
-          cdrResponseCollection[url].latestVersionUseContext = useContext
-        }
-      }
     })
-  })
-  return cdrResponseCollection
+    .filter((i) => i) as ValueSet[]
+}
+
+const compareValueSets = (cdrVs: ValueSet, authoritativeVs: ValueSet, authSrcUrl: string) => {
+  let authoritativeVsClone = JSON.parse(JSON.stringify(authoritativeVs))
+  // delete these values so comparison is accurate
+  delete authoritativeVsClone.meta
+  delete authoritativeVsClone.id
+  delete authoritativeVsClone.text
+  authoritativeVsClone = addExtensionToVs(authoritativeVsClone, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
+
+  const cdrVsClone = JSON.parse(JSON.stringify(cdrVs))
+  // delete these values so comparison is accurate
+  delete cdrVsClone.meta
+  delete cdrVsClone.id
+  delete cdrVsClone.text
+  
+  const isDifferent = !deepEqual(cdrVsClone, authoritativeVsClone)
+
+  return isDifferent
+}
+
+// Compare the ValueSets from the CDR and the authoritative source for differences
+const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
+  const upgradeRequired = [] as BundleEntry[]
+  for (const url in toUpdateCollection) {
+    const { cdrValueSet, authorativeValueSet, terminologySource } = toUpdateCollection[url]
+    const authSrcUrl = getTerminologySourceEndpoint(terminologySource) as unknown as string
+    const needsUpdate = compareValueSets(cdrValueSet, authorativeValueSet!, authSrcUrl)
+    authorativeValueSet.id = cdrValueSet.id // set the id to the same cdr value set id
+    authorativeValueSet.meta.profile = cdrValueSet?.meta?.profile // set the meta to the cdr value set meta
+    const updatedAuthorativeValueSet = addExtensionToVs(authorativeValueSet!, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
+    if (needsUpdate) {
+      logger.info(`ValueSet ${cdrValueSet.id} needs to be updated`)
+      upgradeRequired.push({
+        resource: updatedAuthorativeValueSet,
+        request: {
+          method: 'PUT',
+          url: `/ValueSet/${cdrValueSet.id}`
+        }
+      })
+    }
+  }
+  return upgradeRequired
 }
 
 const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
-    entry: urls.map((url: string) => {
+    entry: urls.map((startUrl: string) => {
+      const [vsUrl, version] = startUrl.split('|')
+      let url = `/ValueSet?url=${vsUrl}`
+      if (version) {
+        url = `/ValueSet?url=${vsUrl}&version=${version}`
+      }
       return {
         request: {
           method: 'GET',
-          url: `/ValueSet?url=${idWithoutVersion(url)}`
+          url
         }
       }
     })
@@ -150,27 +130,23 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
 
   try {
     // Gather request to CQF server for the ValueSets in local CQF instance
-    const cdrResponse = await fhirCdrClient.batch({
-      body: batchBundle
-    })
+    const cdrResponse = await fhirCdrClient.batch({ body: batchBundle })
 
-    // Collect Versions and Latest UseContext to be applied
-    const cdrResponseCollection = parseCdrResponses(cdrResponse as Bundle)
-
-    // Gather all bundles for batch creation
+    const cachedCdrVS = parseCdrResponses(cdrResponse as Bundle) || []
+    const toUpdateCollection = {} as CDRResponseCollection
+    // Gather all the valuesets from their respective authorative sources
     await Promise.all(
-      Object.keys(cdrResponseCollection).map(async (url) => {
-        const { valuesets } = cdrResponseCollection[url]
+      cachedCdrVS.map(async (valueset) => {
         let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
-        const { value } = getTerminologySource(valuesets[0], refreshErrors) //fetch the terminology server
+        const { value } = getTerminologySource(valueset, refreshErrors) //fetch the terminology server
 
         switch (value) {
           case 'https://cts.nlm.nih.gov/fhir':
             serverType = 'vsac'
             break
           case 'Ontoserver (R4)':
-            refreshErrors.push(`Authoritative Source ${value} for Value Set ${valuesets[0].id} is currently unsupported`)
-             break;
+            refreshErrors.push(`Authoritative Source ${value} for Value Set ${valueset.id} is currently unsupported`)
+            break
           default:
             // default will also be vsac
             break
@@ -181,25 +157,32 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
 
         const vsComparatorResponses = (await targetFhirClient?.search({
           resourceType: 'ValueSet',
-          searchParams: { url: idWithoutVersion(url) }
+          searchParams: { url: valueset.url!, version: valueset.version! }
         })) as fhir4.Bundle
 
         if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
-          refreshErrors.push(`Refresh failed for Value Set ${valuesets[0].id}`)
+          logger.error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${value}`)
+          refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${value}`)
+          return null
         }
 
-        cdrResponseCollection[url].vsComparatorResponses = vsComparatorResponses
+        const authorativeValueSet = vsComparatorResponses.entry?.[0].resource as ValueSet
+        toUpdateCollection[valueset.url!] = {
+          cdrValueSet: valueset,
+          authorativeValueSet,
+          terminologySource: value
+        }
       })
     )
 
-    const entry = parseVSComparatorResponses(cdrResponseCollection)
+    const updatesToBeMade = gatherVsToUpdate(toUpdateCollection)
 
-    if (entry?.length > 0) {
+    if (updatesToBeMade?.length > 0) {
       return fhirCdrClient.batch({
         body: {
           resourceType: 'Bundle',
           type: 'batch',
-          entry
+          entry: updatesToBeMade
         }
       })
     }
@@ -219,9 +202,9 @@ valueSetUpdateQueue.process(async function (job, done) {
     logger.error('Urls and ProgramID required for valueset update worker')
     done()
   }
-  const maxIterations = Math.floor(clonedUrls.length / MAX_JOB_SIZE) + 1
+  const maxIterations = Math.ceil(clonedUrls.length / MAX_JOB_SIZE) // Scale batch number
   let iteration = 0
-  logger.info(`Starting job: ${job.id} urls and dividing into ${maxIterations} batches`)
+  logger.info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
     const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors)
@@ -235,7 +218,7 @@ valueSetUpdateQueue.process(async function (job, done) {
       job.progress(99) // prevent job from finishing
       break
     } else {
-      logger.info('Progress: ' +(iteration / maxIterations) * 100)
+      logger.info('Progress: ' + (iteration / maxIterations) * 100)
       job.progress(progress)
       await sleep(5000)
     }
@@ -275,7 +258,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   }
   job.progress(100)
   logger.info('job finished')
-  done(null, {errors: refreshErrors})
+  done(null, { errors: refreshErrors })
 })
 
 export default valueSetUpdateQueue

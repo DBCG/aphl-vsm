@@ -45,7 +45,46 @@ const incrementStringValue = (str: string) => {
   }
 }
 
-export const incrementSemver = ({ valueToIncrement, incrementType, fallbackValue }: IncrementParams) => {
+// Deep compare two objects
+// Ignores sort order of keys in arrays
+export const deepEqual = (obj1: any, obj2: any): boolean => {
+  if (obj1 === obj2) return true;
+
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
+    return false;
+  }
+
+  if (Array.isArray(obj1) && Array.isArray(obj2)) {
+    if (obj1.length !== obj2.length) return false;
+    obj1 = obj1.slice().sort();
+    obj2 = obj2.slice().sort();
+    return obj1.every((value: any, index: number) => deepEqual(value, obj2[index]));
+  }
+
+  if (Array.isArray(obj1) !== Array.isArray(obj2)) {
+    return false;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  keys1.sort();
+  keys2.sort();
+
+  return keys1.every((key, index) => {
+    if (key !== keys2[index]) return false;
+    return deepEqual(obj1[key], obj2[key]);
+  });
+}
+
+
+export const incrementSemver = ({
+  valueToIncrement,
+  incrementType,
+  fallbackValue
+}: IncrementParams) => {
   // if not a string to begin with, return fallback default
   if (typeof valueToIncrement !== 'string') return fallbackValue
 

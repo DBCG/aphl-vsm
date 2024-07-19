@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-import { uniqBy } from 'lodash'
+import { uniq, uniqBy } from 'lodash'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
@@ -43,6 +43,7 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
       await subscribe(setJobStatus, jobId, setRefreshErrors)
     } else {
       toast.success('ValueSet Update finished.')
+      window?.location?.reload()
       setJobStatus(null) // No Job in progress
       if (jobStatus?.returnvalue?.errors.length > 0) {
         setRefreshErrors({"ValueSet Update Errors": jobStatus?.returnvalue?.errors})
@@ -211,7 +212,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
     const job = await fetch(`/api/valueset/update`, {
       method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls, programId: currentProgram?.id })
+      body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
     }).then((res) => res.json())
 
     subscribe(setJobInStatusProgress, job?.id, setRefreshErrors)
