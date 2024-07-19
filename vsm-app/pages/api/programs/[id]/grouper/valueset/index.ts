@@ -33,7 +33,7 @@ const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: 
   // if a leaf already exists in the program that is versioned, the new ref should also share that version
   const uniqueExisitingLeafRefs = uniq(existingLeafRefsInGroupers) // remove duplicates for refs that are present in multiple groupers
   const newRefsToAddSet = new Set(newRefsToAdd)
-  console.log(uniqueExisitingLeafRefs, newRefsToAdd)
+
   // Collect all urls that are matching in the new refs and existing refs
   uniqueExisitingLeafRefs.forEach((ref) => {
     const url = ref.toLowerCase().split('|')?.[0]
