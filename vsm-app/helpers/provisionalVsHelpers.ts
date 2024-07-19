@@ -3,7 +3,7 @@ import { uniqBy } from 'lodash'
 import { provisionalVsBase } from './server/templates/provisionalVsBase'
 import { provisionalCsBase } from './server/templates/provisionalCsBase'
 import { generateNameFromTitle } from './stringHelpers'
-import { authoritativeSourceExtensionUrl } from './valueSetHelpers'
+import { EXTENSIONS } from './valueSetHelpers'
 
 interface CodeItem {
   code: string
@@ -130,12 +130,12 @@ export const updateVsMetadata = ({
         clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
       }
 
-      const authSourceExists = clonedVs.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
+      const authSourceExists = clonedVs.extension?.find(ext => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
       // add authoritative source if it doesn't exist
       // needed to wait for this until URL was generated
       if (!authSourceExists) {
         extensionsToUpdate.push({
-          url: authoritativeSourceExtensionUrl,
+          url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
           valueUri: clonedVs.url
         })
       }

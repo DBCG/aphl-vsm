@@ -355,7 +355,6 @@ const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
   return valueset;
 }
 
-const authoritativeSourceExtensionUrl = EXTENSIONS.AUTH_SOURCE_EXTENSION_URL
 export {
   getVsSteward,
   isVSMOwnedVSet,
@@ -363,7 +362,7 @@ export {
   getOid,
   addExtensionToVs,
   addValueSetToGrouper,
-  authoritativeSourceExtensionUrl,
+  EXTENSIONS,
   getProgramManifestVersions,
   getTerminologySource,
   removeValueSetFromGrouper,

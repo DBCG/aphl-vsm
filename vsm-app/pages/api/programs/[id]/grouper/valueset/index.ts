@@ -3,13 +3,13 @@ import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import {
   addExtensionToVs,
   addValueSetToGrouper,
-  authoritativeSourceExtensionUrl,
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
   idWithoutVersion,
   urlWithoutVersion,
-  addProfileToValueSet
+  addProfileToValueSet,
+  EXTENSIONS
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -18,7 +18,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
-import { uniqBy } from 'lodash'
+import { uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
 import { ErrorItem } from '@/helpers/is'
@@ -31,30 +31,18 @@ export type ErrorResponse = {
 const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): (string | ErrorItem)[] => {
   // new refs are unversioned when a grouper is created (we do not give the ability to set version on grouper create)
   // if a leaf already exists in the program that is versioned, the new ref should also share that version
-  const updatedRefs = newRefsToAdd.map(newUrl => {
-    const existingMatches = existingLeafRefsInGroupers.filter(existingUrl => {
-      const [exUrl, version] = existingUrl.toLowerCase().split('|')
-      return exUrl === newUrl.toLowerCase()
-    })
-
-    if (existingMatches.length > 1) {
-      const allVersions = existingMatches?.map(urlStr => {
-        const [url, version] = urlStr.split('|')
-        return version || 'latest'
-      })
-      return ({ error: `Error encountered: this program contains multiple versions of valueset with url ${newUrl}. (${allVersions.join(', ')})` })
-    } else {
-      return existingMatches[0] || newUrl
+  const uniqueExisitingLeafRefs = uniq(existingLeafRefsInGroupers) // remove duplicates for refs that are present in multiple groupers
+  const newRefsToAddSet = new Set(newRefsToAdd)
+  console.log(uniqueExisitingLeafRefs, newRefsToAdd)
+  // Collect all urls that are matching in the new refs and existing refs
+  uniqueExisitingLeafRefs.forEach((ref) => {
+    const url = ref.toLowerCase().split('|')?.[0]
+    if (newRefsToAddSet.has(url)) {
+      newRefsToAddSet.add(ref)
+      newRefsToAddSet.delete(url)
     }
   })
-
-  const existingErrors = updatedRefs?.filter(r => is.errorItem(r))
-
-  if (existingErrors.length) {
-    return existingErrors
-  } else {
-    return updatedRefs
-  }
+  return Array.from(newRefsToAddSet);
 }
 
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
@@ -468,7 +456,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
         )?.value?.url
 
         // handle if no matching authoritativeSource url
-        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, authoritativeSourceExtensionUrl, authSrcUrl as string)
+        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl as string)
         const updatedVSWithAuthSource = addProfileToValueSet(vsWithAuthSource)
         const vsAddedToCache: fhir4.BundleEntry = {
           resource: updatedVSWithAuthSource,
