@@ -15,6 +15,21 @@ class FhirClientTest implements FhirClient {
         }
         return [endpoint]
       }
+
+      async getTerminologyServer(id: string): Promise<fhir4.Endpoint> {
+        if (id = "non-exist") {
+          return undefined
+        } else {
+        const endpoint:fhir4.Endpoint = {
+          resourceType: "Endpoint",
+          address: id,
+          connectionType: { code: "" },
+          payloadType: [],
+          status: "active"
+        }
+        return endpoint
+      }
+    }
 }
 
 class KeyCloakClientTest implements KeyCloakClient {
@@ -46,11 +61,11 @@ test('TsCredentialService saves credentials on existing terminology server', asy
     const keyCloakClient = new KeyCloakClientTest()
     const tsService = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
 
-    const creds = await tsService.saveCredentials("someUserId", "http://testts.com","someUsername", "somePassword")
+    const creds = await tsService.saveCredentials("someUserId", "someId","someUsername", "somePassword")
 
     expect(creds.username).toBe("someUsername")
     expect(creds.password).toBe("somePassword")
-    expect(creds.terminologyServerId).toBe("http://testts.com")
+    expect(creds.terminologyServerId).toBe("someId")
   });
 
   test('TsCredentialService fails on save credentials on non existing terminology server', async () => {
@@ -59,7 +74,7 @@ test('TsCredentialService saves credentials on existing terminology server', asy
         const keyCloakClient = new KeyCloakClientTest()
         const tsService = new TsCredentialServiceImpl(fhirClient, keyCloakClient)
 
-        const creds = await tsService.saveCredentials("someUserId", "http://nonexistingtestts.com","someUsername", "somePassword")
+        const creds = await tsService.saveCredentials("someUserId", "non-exist","someUsername", "somePassword")
 
         expect(true).toBe(false);
     } catch (e) {
