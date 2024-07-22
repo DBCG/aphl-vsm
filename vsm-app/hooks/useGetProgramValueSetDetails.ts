@@ -27,6 +27,7 @@ export interface DataItem {
   programId: string
   groups: GroupItem[]
   title: string
+  publisher: string
   version: string
   valueSet: fhir4.ValueSet
   programStatus: fhir4.Library['status']
