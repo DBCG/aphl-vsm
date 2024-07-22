@@ -43,6 +43,7 @@ interface Args {
   id: string
   findInVsTitle?: string
   findInVersion?: string
+  findInPublisher?: string
   findInOid?: string
   findInSteward?: string
   activePriority?: string[]
@@ -63,6 +64,7 @@ const useGetProgramValueSetDetails = ({
   findInOid,
   findInVersion,
   findInSteward,
+  findInPublisher,
   activeGroups,
   activeConditions,
   activePriority,
@@ -101,6 +103,10 @@ const useGetProgramValueSetDetails = ({
 
       if (findInOid?.length) {
         queries.push(`findInOid=${encodeURIComponent(findInOid)}`)
+      }
+
+      if (findInPublisher?.length) {
+        queries.push(`findInPublisher=${encodeURIComponent(findInPublisher)}`)
       }
 
       if (activeGroups?.length) {
@@ -153,6 +159,7 @@ const useGetProgramValueSetDetails = ({
     findInVsTitle,
     findInVersion,
     findInSteward,
+    findInPublisher,
     findInOid,
     activeGroups,
     activeConditions,

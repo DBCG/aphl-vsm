@@ -83,6 +83,7 @@ export type PriorityLevelOption = typeof priorityLevelOptions[number]
 const DEFAULT_FILTERS = {
   findInOid: '',
   findInVsTitle: '',
+  findInPublisher: '',
   findInSteward: '',
   findInVersion: '',
   activeConditions: [],
@@ -533,6 +534,19 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             </SelectInputContainer>
           )
         }
+      },
+      {
+        name: (
+          <div>
+            <SelectInputTitle>Publisher</SelectInputTitle>
+            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInPublisher')} style={{ height: '30px' }} />
+          </div>
+        ),
+        selector: (row: TableRow) => row.publisher,
+        style: { fontSize: '12px' },
+        sortable: true,
+        maxWidth: '120px',
+        wrap: true
       },
       {
         name: (

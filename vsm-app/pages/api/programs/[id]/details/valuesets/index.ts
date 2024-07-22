@@ -101,6 +101,7 @@ interface GetLeafs {
   allGrouperVSets: fhir4.ValueSet[]
   titleToFind: string
   stewardToFind: string
+  publisherToFind: string
   versionToFind: string
   oidToFind: string
   provisionalOnly: boolean
@@ -118,6 +119,7 @@ const getLeafValueSets = async ({
   allGrouperVSets,
   titleToFind,
   stewardToFind,
+  publisherToFind,
   versionToFind,
   oidToFind,
   provisionalOnly=false
@@ -144,6 +146,7 @@ const getLeafValueSets = async ({
     leafValueSetCanonicals,
     titleToFind,
     stewardToFind,
+    publisherToFind,
     versionToFind,
     oidToFind,
     whitelistFields: WHITELIST_VALUESET_FIELDS,
@@ -232,12 +235,14 @@ const formatValuesetData = (
 
       return {
         keyField: `${valueSet.url}-${valueSet.version}-${index}`,
-        programName: program?.name || 'Undefined',
-        programId: program?.id || 'Undefined',
-        programStatus: program?.status || 'Unknown', // I don't think really need these program values as most routes start with retrieving a program
-        title: valueSet?.name || 'Undefined',
-        canonical: valueSet?.url || 'Undefined',
-        version: valueSet?.version || '',
+        programName: program?.name || '[Undefined]',
+        programId: program?.id || '[Undefined]',
+        programStatus: program?.status || '[Undefined]', // I don't think really need these program values as most routes start with retrieving a program
+        title: valueSet?.title || '[Undefined]',
+        name: valueSet?.name || '[Undefined]',
+        canonical: valueSet?.url || '[Undefined]',
+        publisher: valueSet?.publisher || '[Undefined]',
+        version: valueSet?.version || '[Undefined]',
         valueSetPinnedVersion,
         valueSet: valueSet,
         groups: groupsVsBelongsTo
@@ -259,6 +264,7 @@ type ExtendedReq = NextApiRequest & {
     findInOid?: string
     findInVsTitle?: string
     findInSteward?: string
+    findInPublisher?: string
     findInVersion?: string
     groups?: string
     conditions?: string
@@ -270,6 +276,7 @@ type RequestQueryParams = {
   findInOid?: string
   findInVsTitle?: string
   findInSteward?: string
+  findInPublisher?: string
   findInVersion?: string
   groups?: string
   conditions?: string
@@ -280,6 +287,7 @@ export const getProgramDetailsValuesets = async ({
   id: programId,
   findInOid,
   findInSteward,
+  findInPublisher,
   findInVersion,
   findInVsTitle,
   groups,
@@ -311,6 +319,7 @@ export const getProgramDetailsValuesets = async ({
       allGrouperVSets: grouperValueSets,
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
+      publisherToFind: findInPublisher || '',
       versionToFind: findInVersion || '',
       titleToFind: findInVsTitle || '',
       provisionalOnly: false
