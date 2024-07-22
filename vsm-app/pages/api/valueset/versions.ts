@@ -1,4 +1,4 @@
-import { addExtensionToVs, addProfileToValueSet, authoritativeSourceExtensionUrl, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
@@ -72,7 +72,7 @@ const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir
   const authSrcUrl = terminologyServerEndpoints?.find((grp) => grp.value.title.toLowerCase() === terminologyInfo?.value?.toLowerCase())
     ?.value?.url as string
 
-  const vsWithAuthSrc = addExtensionToVs(clonedVs, authoritativeSourceExtensionUrl, authSrcUrl)
+  const vsWithAuthSrc = addExtensionToVs(clonedVs, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
   return vsWithAuthSrc
 }
 

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
 import { fhirCdrClient } from 'fhirClients'
-import { addExtensionToVs, addProfileToValueSet, authoritativeSourceExtensionUrl, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
@@ -91,7 +91,7 @@ const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number |
                 if (authSrcUrl) {
                   // add authoritativeSource extension
                   // this allows us to keep track of where valuesets come from
-                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, authoritativeSourceExtensionUrl, authSrcUrl)
+                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
                 }
 
                 const updatedMatchingVSetFromRemoteServer = addProfileToValueSet(matchingVSetFromRemoteServer)
