@@ -33,8 +33,8 @@ class TsCredentialServiceImpl implements TsCredentialService {
     }
 
     public async saveCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials> {
-        const endpoints = await this.fhirClient.getTerminologyServers()
-        if(endpoints.find(e => e.id == terminologyServerId)) {
+        const endpoint = await this.fhirClient.getTerminologyServer(terminologyServerId)
+        if(endpoint) {
             return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerId, username, password)
                 .then(() => {
                     let cred: TerminologyServerCredentials = {terminologyServerId, username, password}
