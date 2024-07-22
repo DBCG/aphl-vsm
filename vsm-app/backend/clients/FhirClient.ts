@@ -4,6 +4,7 @@ import { fhirCdrClient } from "@/fhirClients"
 interface FhirClient {
 
     getTerminologyServers(): Promise<fhir4.Endpoint[]>
+    getTerminologyServer(id: string): Promise<Endpoint>
 
 }
 
@@ -28,6 +29,13 @@ class FhirClientImpl implements FhirClient {
             }) as fhir4.Bundle
 
           return endpointBundle?.entry?.map(e => e.resource as fhir4.Endpoint) || []
+    }
+
+    async getTerminologyServer(id: string): Promise<Endpoint> {
+        return await fhirCdrClient.read({
+            resourceType: 'Endpoint',
+            id: id
+            }) as fhir4.Endpoint
     }
 }
 
