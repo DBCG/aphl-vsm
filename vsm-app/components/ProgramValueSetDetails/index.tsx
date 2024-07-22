@@ -787,7 +787,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           theme="aphl"
           pagination
           clearSelectedRows={toggleUpdateData}
-          highlightOnHover={true}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}

@@ -183,10 +183,6 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
             }
           }
         }}
-        highlightOnHover={true}
-        onRowClicked={(row: fhir4.ValueSet) => {
-          router.push(`/programs/${programId}/valuesets/${row.id}`)
-        }}
         data={groups}
         pagination
         paginationPerPage={10}

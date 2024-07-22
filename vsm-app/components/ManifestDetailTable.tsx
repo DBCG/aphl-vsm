@@ -164,7 +164,6 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
         progressComponent={<LoadingIndicator />}
         progressPending={loading}
         columns={columns}
-        highlightOnHover
         customStyles={customTableStyles('readonly')}
         data={preppedData}
         pagination
