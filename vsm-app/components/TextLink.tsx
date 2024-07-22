@@ -2,18 +2,21 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward'
 
+const LinkContainer = styled.div`
+display: flex;
+color: var(--theme-300);
+align-items: center;
+&:hover {
+  color: var(--theme-500);
+};
+`
+
 const StyledLink = styled(Link)`
-  color: var(--theme-300);
   width: 100%;
   text-align: left;
   border: none;
   background: none;
   padding: 0;
-`
-
-const LinkContainer = styled.div`
-  display: flex;
-  align-items: center;
 `
 
 interface TextLinkProps {

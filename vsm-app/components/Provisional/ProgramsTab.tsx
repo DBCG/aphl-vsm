@@ -240,7 +240,7 @@ const ProgramsTab: NextPage = () => {
         wrap: true
       },
       {
-        name: 'Create New',
+        name: <p>Create New</p>,
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         wrap: true,
@@ -373,7 +373,6 @@ const ProgramsTab: NextPage = () => {
         onChangePage={handlePageChange}
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
-        highlightOnHover={true}
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
       />
