@@ -64,8 +64,6 @@ interface Input {
   setClearSelectedRows: (eventItem: any) => void
   findInTitle: string
   setFindInTitle: (eventItem: any) => void
-  findInSteward: string
-  setFindInSteward: (eventItem: any) => void
   findInStatus: string
   setFindInStatus: (eventItem: any) => void
   findInOid: string
@@ -90,8 +88,6 @@ const SearchTable = ({
   setSelectedValueSets,
   findInTitle,
   setFindInTitle,
-  findInSteward,
-  setFindInSteward,
   findInOid,
   setFindInOid,
   findInLastUpdated,
@@ -183,21 +179,9 @@ const SearchTable = ({
     },
     {
       name: (
-        <div>
-          <SelectInputTitle>Steward</SelectInputTitle>
-          {showFilters && (
-            <FilterInput
-              onChange={(e: React.ChangeEvent<Element>) => {
-                const target = e.target as HTMLInputElement
-                setFindInSteward(target.value.trim())
-              }}
-              style={{
-                height: '30px'
-              }}
-              value={findInSteward}
-            />
-          )}
-        </div>
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+        <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Steward</SelectInputTitle>
+      </div>
       ),
       maxWidth: '15rem',
       selector: (row: TableData) => row.steward!,

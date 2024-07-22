@@ -45,7 +45,6 @@ interface Args {
   findInVersion?: string
   findInPublisher?: string
   findInOid?: string
-  findInSteward?: string
   activePriority?: string[]
   valueSetPriorityMap?: Record<string, string>
   conditionsMap?: Record<string, {id: string}[]>
@@ -63,7 +62,6 @@ const useGetProgramValueSetDetails = ({
   findInVsTitle,
   findInOid,
   findInVersion,
-  findInSteward,
   findInPublisher,
   activeGroups,
   activeConditions,
@@ -95,10 +93,6 @@ const useGetProgramValueSetDetails = ({
 
       if (findInVersion?.length) {
         queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
-      }
-
-      if (findInSteward?.length) {
-        queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
       }
 
       if (findInOid?.length) {
@@ -158,7 +152,6 @@ const useGetProgramValueSetDetails = ({
     id,
     findInVsTitle,
     findInVersion,
-    findInSteward,
     findInPublisher,
     findInOid,
     activeGroups,
