@@ -73,11 +73,11 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   if (!breadCrumbs.length) return null
 
-  const items = breadCrumbs.map((c, index) => {
+  const items = breadCrumbs.map((c) => {
     if (c !== '') {
       return (
         <Link key={c} href={composePath(router.asPath, c)} passHref>
-          <NavItem id={`breadcrumb-${c}`} alpha={index / 0.1}>{`${c.replace('?id=', ' ')}`}</NavItem>
+          <NavItem id={`breadcrumb-${c}`} alpha={1}>{`${c.replace('?id=', ' ')}`}</NavItem>
         </Link>
       )
     }
