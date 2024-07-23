@@ -32,6 +32,10 @@ const NavItem = styled.li<Props>`
     cursor: pointer;
   }
 `
+const HomepageItem = styled(NavItem)`
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 8px;
+`
 
 const composePath = (pathItems: string, lastOfPath: string) => {
   if (lastOfPath === 'grouper') {
@@ -78,6 +82,11 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
       )
     }
   })
+  items.unshift(
+    <Link key={'homepage'} href={'/'} passHref>
+      <HomepageItem id={`breadcrumb-homepage`} alpha={1}>{`Home`}</HomepageItem>
+    </Link>
+  )
 
   return (
     <nav>
