@@ -10,7 +10,7 @@ import {
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, EXTENSIONS } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -189,7 +189,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     // update url here
     leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
     // update authoritative source here
-    provisionalLeaf = addExtensionToVs(leaf, authoritativeSourceExtensionUrl, leaf.url)
+    provisionalLeaf = addExtensionToVs(leaf, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, leaf.url)
     // PUT to update leaf
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
   }

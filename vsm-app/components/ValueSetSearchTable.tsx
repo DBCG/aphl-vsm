@@ -529,7 +529,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   // filters
   const [findInTitle, setFindInTitle] = useState('')
-  const [findInSteward, setFindInSteward] = useState('')
   const [findInStatus, setFindInStatus] = useState('')
   const [findInOid, setFindInOid] = useState('')
   const [findInLastUpdated, setFindInLastUpdated] = useState('')
@@ -576,11 +575,10 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     () =>
       findInTitle?.length ||
       findInStatus?.length ||
-      findInSteward?.length ||
       findInVersion?.length ||
       findInOid?.length ||
       findInLastUpdated?.length,
-    [findInLastUpdated?.length, findInTitle?.length, findInOid?.length, findInStatus?.length, findInVersion?.length, findInSteward?.length]
+    [findInLastUpdated?.length, findInTitle?.length, findInOid?.length, findInStatus?.length, findInVersion?.length]
   )
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
 
@@ -719,9 +717,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
           return vs?.status?.toLowerCase()?.includes(findInStatus.toLowerCase())
         })
       }
-      if (findInSteward?.length) {
-        filteredValueSets = filteredValueSets?.filter((vs) => getVsSteward(vs).toLocaleLowerCase()?.includes(findInSteward?.toLocaleLowerCase()))
-      }
       if (findInLastUpdated?.length) {
         filteredValueSets = filteredValueSets?.filter((vs: fhir4.ValueSet) => {
           const lastUpdateDate = formatResourceDate({ resource: vs, dateType: 'lastUpdated' })
@@ -736,7 +731,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       filteredValueSets = filteredValueSets.filter((i) => !currentSelectedVSId?.includes(i?.id as string))
       setFilteredVSets(filteredValueSets)
     }
-  }, [valueSets, findInTitle, findInStatus, findInVersion, findInSteward, findInOid, findInLastUpdated, filterExists])
+  }, [valueSets, findInTitle, findInStatus, findInVersion, findInOid, findInLastUpdated, filterExists])
 
   // unused for now because VSAC FHIR does not seem support _filter params...
   const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
@@ -1050,8 +1045,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
             setClearSelectedRows={setToggledClearRows}
             findInTitle={findInTitle}
             setFindInTitle={setFindInTitle}
-            findInSteward={findInSteward}
-            setFindInSteward={setFindInSteward}
             findInStatus={findInStatus}
             setFindInStatus={setFindInStatus}
             findInVersion={findInVersion}

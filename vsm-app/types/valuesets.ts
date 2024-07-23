@@ -38,6 +38,7 @@ export interface TableRow {
   canonical: string
   title: string
   version: string
+  publisher: string
   valueSet: fhir4.ValueSet
   groups: GroupItem[]
   valueSetPinnedVersion?: string

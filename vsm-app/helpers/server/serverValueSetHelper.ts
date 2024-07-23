@@ -75,6 +75,7 @@ interface FetchLeafs {
   leafValueSetCanonicals: string[],
   titleToFind?: string,
   stewardToFind?: string,
+  publisherToFind?: string,
   versionToFind?: string,
   whitelistFields?: string[],
   oidToFind?: string,
@@ -89,6 +90,7 @@ export const fetchLeafValueSets = async ({
   leafValueSetCanonicals,
   titleToFind,
   stewardToFind,
+  publisherToFind,
   versionToFind,
   whitelistFields,
   oidToFind,
@@ -103,16 +105,16 @@ export const fetchLeafValueSets = async ({
   }
 
   // this isn't right, finding the steward is done by looking at extensions
-  if (isValidString(stewardToFind)) {
-    searchParams['publisher:contains'] = stewardToFind
+  if (isValidString(publisherToFind)) {
+    searchParams['publisher:contains'] = publisherToFind
   }
 
   if (isValidString(versionToFind)) {
     searchParams['version:contains'] = versionToFind
   }
 
-  if (provisionalOnly) {
-    
+  if (isValidString(stewardToFind)) {
+    searchParams['version:contains'] = versionToFind
   }
 
     // url:contains is not currently working on CQF for a partial string search
