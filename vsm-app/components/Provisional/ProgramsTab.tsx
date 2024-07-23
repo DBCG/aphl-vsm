@@ -234,7 +234,7 @@ const ProgramsTab: NextPage = () => {
       {
         name: 'Steward',
         selector: (row: fhir4.Library) => row.publisher || '',
-        sortable: true,
+        sortable: false,
         maxWidth: '15rem',
         minWidth: '10rem',
         wrap: true
