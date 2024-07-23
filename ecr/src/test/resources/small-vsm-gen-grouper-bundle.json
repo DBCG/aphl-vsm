@@ -143,6 +143,48 @@
 					{
 						"extension": [
 							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "emergent"
+										}
+									],
+									"text": "Emergent"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "999999999999999"
+										}
+									],
+									"text": "unknown condition help call House"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1248.138|20240120"
+					},
+					{
+						"extension": [
+							{
 								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
 								"valueCodeableConcept": {
 									"coding": [
@@ -417,7 +459,12 @@
                   "valueSet": [
                       "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40"
                   ]
-              }
+              },
+							{
+								"valueSet": [
+										"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1248.138|20240120"
+								]
+						}
           ]
       }
 		},
@@ -794,11 +841,108 @@
                 }
             ]
         }
-    },
+    	},
 			"request": {
 				"method": "PUT",
 				"url": "ValueSet/2.16.840.1.113762.1.4.1251.40",
 				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1251.40&version=20231001"
+			}
+		},
+		{
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1248.138|20240120",
+			"resource": {
+        "resourceType": "ValueSet",
+        "id": "2.16.840.1.113762.1.4.1248.138",
+        "meta": {
+            "versionId": "10",
+            "lastUpdated": "2023-12-21T17:43:03.000-05:00",
+            "profile": [
+                "http://hl7.org/fhir/StructureDefinition/shareablevalueset",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-valueset-cqfm",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-10-01"
+            }
+        ],
+        "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1248.138",
+        "identifier": [
+            {
+                "system": "urn:ietf:rfc:3986",
+                "value": "urn:oid:2.16.840.1.113762.1.4.1248.138"
+            }
+        ],
+        "version": "20240120",
+        "name": "COVID something",
+        "title": "COVID COVID COVID",
+        "status": "active",
+        "date": "2023-10-01T01:01:17-04:00",
+        "publisher": "UTSW Clinical Informatics Center Steward",
+				"compose": {
+					"include": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "http://snomed.info/sct/731000124108/version/20240301",
+							"concept": [
+								{
+									"code": "123123444111",
+									"display": "Some covid disorder"
+								},
+								{
+									"code": "123123444112",
+									"display": "a second covid disorder"
+								},{
+									"code": "123123444113",
+									"display": "3 covids"
+								}
+							]
+						}
+					]
+				},
+        "expansion": {
+            "identifier": "urn:uuid:547ae256-8987-4afb-910e-8b2e613df5ee",
+            "timestamp": "2024-07-10T12:56:43-04:00",
+            "total": 46,
+            "offset": 0,
+            "parameter": [
+                {
+                    "name": "count",
+                    "valueInteger": 1000
+                },
+                {
+                    "name": "offset",
+                    "valueInteger": 0
+                }
+            ],
+            "contains": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+										"code": "123123444111",
+										"display": "Some covid disorder"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "123123444112",
+										"display": "a second covid disorder"
+                },
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240301",
+                    "code": "123123444113",
+                    "display": "3 covids"
+                }
+            ]
+        }
+    	},
+			"request": {
+				"method": "PUT",
+				"url": "ValueSet/2.16.840.1.113762.1.4.1248.138",
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1248.138&version=20240120"
 			}
 		}
 	]

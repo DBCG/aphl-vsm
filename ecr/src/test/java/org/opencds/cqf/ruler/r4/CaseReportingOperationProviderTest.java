@@ -2169,15 +2169,20 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		var bundle = (Bundle) loadTransaction("small-dxtc-modified-diff-bundle.json");
 		var modifiedLibReference = bundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findFirst().get().getResponse().getLocation();
 		var metadataProperties = List.of("id", "name", "url", "version", "title");
+		var versions = List.of("Provisional_2022-01-10","http://snomed.info/sct/731000124108/version/20240301","Provisional_2022-04-25");
 		var VSMGrouperCodes = List.of(
 			"1010333003",
 			"1010334009",
 			"106001000119101",
 			"10692761000119107",
-			"1177120001"
+			"1177120001",
+			"123123444111",
+			"123123444112",
+			"123123444113"
 		);
 		var VSMGrouperLeafVsets = List.of(
-			"2.16.840.1.113762.1.4.1251.40"
+			"2.16.840.1.113762.1.4.1251.40",
+			"2.16.840.1.113762.1.4.1248.138"
 		);
 		Parameters diffParams = new Parameters();
 		diffParams.addParameter("source", specificationLibReference);
@@ -2210,6 +2215,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			// all codes have a "delete" operation
 			assertTrue(code.get("operation").get("type").asText().equals("delete"));
 			assertTrue(VSMGrouperCodes.contains(code.get("code").asText()));
+			assertNotNull(code.get("version").asText());
 		}
 
 		assertEquals(VSMGrouperLeafVsets.size(), deletedGrouperPage.get().get("oldData").get("leafValuesets").size());
