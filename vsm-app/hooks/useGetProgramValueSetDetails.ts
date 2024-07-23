@@ -27,6 +27,7 @@ export interface DataItem {
   programId: string
   groups: GroupItem[]
   title: string
+  publisher: string
   version: string
   valueSet: fhir4.ValueSet
   programStatus: fhir4.Library['status']
@@ -43,8 +44,8 @@ interface Args {
   id: string
   findInVsTitle?: string
   findInVersion?: string
+  findInPublisher?: string
   findInOid?: string
-  findInSteward?: string
   activePriority?: string[]
   valueSetPriorityMap?: Record<string, string>
   conditionsMap?: Record<string, {id: string}[]>
@@ -62,7 +63,7 @@ const useGetProgramValueSetDetails = ({
   findInVsTitle,
   findInOid,
   findInVersion,
-  findInSteward,
+  findInPublisher,
   activeGroups,
   activeConditions,
   activePriority,
@@ -95,12 +96,12 @@ const useGetProgramValueSetDetails = ({
         queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
       }
 
-      if (findInSteward?.length) {
-        queries.push(`findInSteward=${encodeURIComponent(findInSteward)}`)
-      }
-
       if (findInOid?.length) {
         queries.push(`findInOid=${encodeURIComponent(findInOid)}`)
+      }
+
+      if (findInPublisher?.length) {
+        queries.push(`findInPublisher=${encodeURIComponent(findInPublisher)}`)
       }
 
       if (activeGroups?.length) {
@@ -152,7 +153,7 @@ const useGetProgramValueSetDetails = ({
     id,
     findInVsTitle,
     findInVersion,
-    findInSteward,
+    findInPublisher,
     findInOid,
     activeGroups,
     activeConditions,

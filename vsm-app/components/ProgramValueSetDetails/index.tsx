@@ -83,7 +83,7 @@ export type PriorityLevelOption = typeof priorityLevelOptions[number]
 const DEFAULT_FILTERS = {
   findInOid: '',
   findInVsTitle: '',
-  findInSteward: '',
+  findInPublisher: '',
   findInVersion: '',
   activeConditions: [],
   activeGroups: [],
@@ -537,13 +537,25 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       {
         name: (
           <div>
-            <SelectInputTitle>Steward</SelectInputTitle>
-            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInSteward')} style={{ height: '30px' }} />
+            <SelectInputTitle>Publisher</SelectInputTitle>
+            <FilterInput onChange={(e) => handleFilterChange(e.target.value, 'findInPublisher')} style={{ height: '30px' }} />
+          </div>
+        ),
+        selector: (row: TableRow) => row.publisher,
+        style: { fontSize: '12px' },
+        sortable: true,
+        maxWidth: '120px',
+        wrap: true
+      },
+      {
+        name: (
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <SelectInputTitle style={{ marginBottom: '30px', marginRight: '0' }}>Steward</SelectInputTitle>
           </div>
         ),
         selector: (row: TableRow) => getVsSteward(row.valueSet),
         style: { fontSize: '12px' },
-        sortable: true,
+        sortable: false,
         maxWidth: '120px',
         wrap: true
       },
