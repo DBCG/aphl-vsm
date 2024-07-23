@@ -34,7 +34,7 @@ const NavItem = styled.li<Props>`
 `
 const HomepageItem = styled(NavItem)`
   clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
-  padding-left: 8px;
+  padding-left: 14px;
 `
 
 const composePath = (pathItems: string, lastOfPath: string) => {
