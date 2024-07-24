@@ -2216,6 +2216,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			assertTrue(code.get("operation").get("type").asText().equals("delete"));
 			assertTrue(VSMGrouperCodes.contains(code.get("code").asText()));
 			assertNotNull(code.get("version").asText());
+			assertTrue(versions.contains(code.get("version").asText()));
 		}
 
 		assertEquals(VSMGrouperLeafVsets.size(), deletedGrouperPage.get().get("oldData").get("leafValuesets").size());
@@ -2251,6 +2252,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		for (final var code: createdGrouperPage.get().get("newData").get("codes")) {
 			assertTrue(code.get("operation").get("type").asText().equals("insert"));
 			assertTrue(VSMGrouperCodes.contains(code.get("code").asText()));
+			assertNotNull(code.get("version").asText());
+			assertTrue(versions.contains(code.get("version").asText()));
 		}
 
 		assertEquals(VSMGrouperLeafVsets.size(), createdGrouperPage.get().get("newData").get("leafValuesets").size());
