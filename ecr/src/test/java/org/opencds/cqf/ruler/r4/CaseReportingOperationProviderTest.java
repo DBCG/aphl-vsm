@@ -2263,6 +2263,41 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 	}
 
+	@Test
+	void draftOperation_should_correctly_preserve_contained_and_extensions() {
+		var expUrl = "http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters";
+		loadTransaction("small-expansion-bundle.json");
+		var inputLib = getClient()
+			.read()
+			.resource(Library.class)
+			.withId("SmallSpecificationLibrary")
+			.execute();
+		var version = "1.0.1";
+		var params = new Parameters();
+		params.addParameter("version", version);
+		// verify only 1 expansion parameters contained resource exists
+		assertTrue(inputLib.hasExtension(expUrl));
+		assertEquals(1, inputLib.getExtensionsByUrl(expUrl).size());
+		assertEquals(1, inputLib.getContained().size());
+		// verify that the contained resource matches the extension
+		assertTrue(inputLib.getContained().get(0).getId().equals( ((Reference)inputLib.getExtensionByUrl(expUrl).getValue()).getReference()));
+		var returnedBundle = getClient().operation()
+			.onInstance("Library/SmallSpecificationLibrary")
+			.named("$draft")
+			.withParameters(params)
+			.returnResourceType(Bundle.class)
+			.execute();			
+		var maybeLib = returnedBundle.getEntry().stream()
+				.filter(entry -> entry.getResponse().getLocation().contains("Library"))
+				.findAny();
+		var outputLib = getClient().fetchResourceFromUrl(Library.class,maybeLib.get().getResponse().getLocation());
+		assertTrue(inputLib.hasExtension(expUrl));
+		assertEquals(inputLib.getContained().size(), outputLib.getContained().size());
+		assertEquals(inputLib.getExtensionsByUrl(expUrl).size(), outputLib.getExtensionsByUrl(expUrl).size());
+		// valueReferences for contained expansion parameters should match
+		assertTrue(((Reference)inputLib.getExtensionByUrl(expUrl).getValue()).getReference().equals(((Reference)outputLib.getExtensionByUrl(expUrl).getValue()).getReference()));
+	}
+
 	private List<Parameters.ParametersParameterComponent> getOperationsByType(List<Parameters.ParametersParameterComponent> parameters, String type) {
 		return parameters.stream().filter(
 			p -> p.getName().equals("operation")
