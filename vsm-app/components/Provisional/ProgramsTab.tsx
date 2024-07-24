@@ -138,7 +138,7 @@ const ProgramsTab: NextPage = () => {
     const json = JSON.stringify({ programId, latestProgramVersion })
 
     try {
-      const res = await fetch('/api/clone', {
+      const res = await fetch('/api/programs/clone', {
         method: 'POST',
         body: json
       })
@@ -189,13 +189,7 @@ const ProgramsTab: NextPage = () => {
         minWidth: '12rem',
         maxWidth: '15rem',
         wrap: true,
-        cell: (row: fhir4.Library) => (
-          <TextLink
-          href={`/programs/${row.id}`}
-          linkText={row.id}
-          forceReload={false}
-        />
-        )
+        cell: (row: fhir4.Library) => <TextLink href={`/programs/${row.id}`} linkText={row.id} forceReload={false} />
       },
       {
         name: 'Title',
@@ -244,24 +238,25 @@ const ProgramsTab: NextPage = () => {
         wrap: true,
         cell: (row: fhir4.Library) => {
           const canClone = allowClone({ session, programStatus: row.status! })
-        const blockedReason = !canClone && generateBlockedReason(row, 'clone') 
-         return (
-          <Tooltip title={blockedReason} arrow>
-            <span>
-              <Button
-                size='small'
-                variant='contained'
-                disabled={row.status !== 'active'}
-                onClick={() => {
-                  handleClickClone(row.id!)
-                }}
-                style={{ height: 'fit-content' }}
-              >Clone</Button>
-
-            </span>
-          </Tooltip>
-        )
-      }
+          const blockedReason = !canClone && generateBlockedReason(row, 'clone')
+          return (
+            <Tooltip title={blockedReason} arrow>
+              <span>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={row.status !== 'active'}
+                  onClick={() => {
+                    handleClickClone(row.id!)
+                  }}
+                  style={{ height: 'fit-content' }}
+                >
+                  Clone
+                </Button>
+              </span>
+            </Tooltip>
+          )
+        }
       },
       {
         name: 'Release',
@@ -269,26 +264,27 @@ const ProgramsTab: NextPage = () => {
         sortable: true,
         wrap: true,
         cell: (row: fhir4.Library) => {
-        const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
-         const blockedReason = !canRelease && generateBlockedReason(row, 'release') 
-         return (
-          <Tooltip title={blockedReason} arrow>
-            <span>
-              <Button
-                size='small'
-                variant='contained'
-                style={{ height: 'fit-content' }}
-                disabled={row.status !== 'draft' || !row.approvalDate}
-                onClick={() => {
-                  setError({})
-                  setProgramToRelease(row)
-                }}
-              >Release</Button>
-
-            </span>
-          </Tooltip>
-        )
-      }
+          const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+          const blockedReason = !canRelease && generateBlockedReason(row, 'release')
+          return (
+            <Tooltip title={blockedReason} arrow>
+              <span>
+                <Button
+                  size="small"
+                  variant="contained"
+                  style={{ height: 'fit-content' }}
+                  disabled={row.status !== 'draft' || !row.approvalDate}
+                  onClick={() => {
+                    setError({})
+                    setProgramToRelease(row)
+                  }}
+                >
+                  Release
+                </Button>
+              </span>
+            </Tooltip>
+          )
+        }
       }
     ],
     [session]
@@ -347,17 +343,16 @@ const ProgramsTab: NextPage = () => {
           handleCancelModal={() => setModalOpen(false)}
         />
       )}
-      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-      </Row>
+      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}></Row>
       {programToRelease && (
         <ReleaseModal
-        isOpen={Boolean(programToRelease)}
-        loading={loading}
-        handleCancelModal={handleCancelReleaseModal}
-        handleModalAction={handleReleaseModalAction}
-        program={programToRelease}
-        setProgramToRelease={setProgramToRelease}
-      />
+          isOpen={Boolean(programToRelease)}
+          loading={loading}
+          handleCancelModal={handleCancelReleaseModal}
+          handleModalAction={handleReleaseModalAction}
+          program={programToRelease}
+          setProgramToRelease={setProgramToRelease}
+        />
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
