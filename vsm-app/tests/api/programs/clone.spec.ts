@@ -1,6 +1,6 @@
 import { createMocks } from 'node-mocks-http'
 import { fhirCdrClient } from 'fhirClients'
-import handler from '@/pages/api/template'
+import handler from '@/pages/api/programs/clone'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 // Mock Auth for Setup
@@ -15,17 +15,13 @@ jest.mock('next-auth/next', () => ({
 }))
 jest.mock('fhirClients')
 
-describe('/api/template', () => {
-  test('POST /api/template, successfully clones a program', async () => {
+describe('/api/clone', () => {
+  test('POST /api/clone, successfully clones a program', async () => {
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: 'POST',
       body: {
         latestProgramVersion: '1.0.0',
-        libraryData: {
-          resourceType: 'Library',
-          id: '1234',
-          version: '1.0.0'
-        }
+        programId: '1234'
       }
     })
 

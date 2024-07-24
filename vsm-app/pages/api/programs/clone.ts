@@ -18,7 +18,7 @@ interface ResponseItem {
 type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | { error: { message: string; type: string } }
 export type DraftAPIResponse = { message: string } | { error: string } | fhir4.OperationOutcome
 // this code ingests a FHIR Library, and will POST a modified clone as a template
-const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>) => {
+const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>) => {
   // create library template
   const latestProgram = await fhirCdrClient.search({
     resourceType: 'Library',
@@ -31,13 +31,14 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
     }
   })
 
-  let body = req.body
+  const { programId, latestProgramVersion } = req.body
 
-  const { libraryData, latestProgramVersion } = body
+  if (!latestProgramVersion || !programId) {
+    return res.status(400).json({ error: 'Missing required parameters' })
+  }
 
-  const latestSemverFromCdr = latestProgram
-    ?.entry?.[0]?.resource?.version
-  const latestSemver = getLatestFromList([latestSemverFromCdr, latestProgramVersion])
+  const latestSemverFromCdr = latestProgram?.entry?.[0]?.resource?.version
+  const latestSemver = getLatestFromList([latestProgramVersion, latestSemverFromCdr])
 
   const latestIncrementedVersion = incrementSemver({
     valueToIncrement: latestSemver,
@@ -80,7 +81,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
       const clientResponse = await fhirCdrClient.operation({
         name: '$draft',
         method: 'POST',
-        id: `Library/${libraryData.id}`,
+        id: `Library/${programId}`,
         options: {
           headers: {
             'content-type': 'application/json'
@@ -90,7 +91,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
       }) as fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] }
       if (!clientResponse?.entry?.length && attempts > 0) {
         logger.error(`
-          Error: could not $draft Library/${libraryData.id} with version ${versionToAttempt}.
+          Error: could not $draft Library/${programId} with version ${versionToAttempt}.
           Attempt #${attempts}/5.
         `)
         attempts = attempts - 1
@@ -136,7 +137,7 @@ const setDraft = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRespon
 
 export default handler({
   POST: {
-    action: setDraft,
+    action: cloneProgram,
     access: ['admin', 'editor']
   }
 })
