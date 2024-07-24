@@ -135,12 +135,10 @@ const ProgramsTab: NextPage = () => {
     if (cloneLoading) return
     setCloneLoading(true)
     setError({})
-    let libraryData: any = ''
-    libraryData = programs.find((p) => p.id === programId)
-    const json = JSON.stringify({ libraryData, latestProgramVersion })
+    const json = JSON.stringify({ programId, latestProgramVersion })
 
     try {
-      const res = await fetch('/api/template', {
+      const res = await fetch('/api/clone', {
         method: 'POST',
         body: json
       })
