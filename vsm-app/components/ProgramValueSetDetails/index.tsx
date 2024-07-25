@@ -42,11 +42,12 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
       await new Promise((resolve) => setTimeout(resolve, 5000))
       await subscribe(setJobStatus, jobId, setRefreshErrors)
     } else {
-      toast.success('ValueSet Update finished.')
-      window?.location?.reload()
-      setJobStatus(null) // No Job in progress
       if (jobStatus?.returnvalue?.errors.length > 0) {
         setRefreshErrors({"ValueSet Update Errors": jobStatus?.returnvalue?.errors})
+        setJobStatus(null) // No Job in progress
+      } else {
+        toast.success('ValueSet Update finished.')
+        window?.location?.reload()
       }
     }
   } else {
