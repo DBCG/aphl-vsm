@@ -383,8 +383,8 @@ const ProvisionalVSEdit = () => {
   }
 
   // set a default selected row on initial render via query params if exists
-  const defaultSelectedRows = useCallback((row) => {
-    const result = row.id && router?.query?.vsSelected && (row.id === router?.query?.vsSelected)
+  const defaultSelectedRows = useCallback((row: fhir4.ValueSet) => {
+    const result = Boolean(row.id && router?.query?.vsSelected && (row.id === router?.query?.vsSelected))
     if (result) {
       setShowVsForm(true)
       setProvisionalVsIdForUpdate(row.id)
