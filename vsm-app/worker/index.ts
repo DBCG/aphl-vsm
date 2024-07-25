@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import logger from '@/helpers/server/logger'
 import { getTerminologySourceEndpoint } from '@/fhirClientOptions'
+import { set } from 'lodash'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -92,7 +93,15 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
     const { cdrValueSet, authorativeValueSet, terminologySource } = toUpdateCollection[url]
     const authSrcUrl = getTerminologySourceEndpoint(terminologySource) as unknown as string
     const needsUpdate = compareValueSets(cdrValueSet, authorativeValueSet!, authSrcUrl)
+    if (!authorativeValueSet) {
+      logger.error(`No authoritative ValueSet found for ${cdrValueSet.id}`)
+      continue;
+    }
     authorativeValueSet.id = cdrValueSet.id // set the id to the same cdr value set id
+    if (!authorativeValueSet?.meta?.profile) {
+      set(authorativeValueSet, 'meta.profile', [])
+    }
+    // @ts-ignore - typescript still complaining even though we are setting it if undefined
     authorativeValueSet.meta.profile = cdrValueSet?.meta?.profile // set the meta to the cdr value set meta
     const updatedAuthorativeValueSet = addExtensionToVs(authorativeValueSet!, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
     if (needsUpdate) {
