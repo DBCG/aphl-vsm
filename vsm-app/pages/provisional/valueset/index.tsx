@@ -1,6 +1,6 @@
 import { Button } from '@/components/buttons/Button'
 import Select, { SingleValue } from 'react-select'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { TextArea } from '@/components/TextArea'
 import styled from 'styled-components'
@@ -165,11 +165,10 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
       selectableRowsNoSelectAll
       pagination
       // @ts-ignore
-      data={(codeSystem.concept || []) as CodeSystemExtended['concept']}
+      data={(codeSystem?.concept || []) as CodeSystemExtended['concept']}
       // @ts-ignore
       columns={columns}
       onSelectedRowsChange={(r) => {
-        console.log('r here is : ', r)
         handleChangeSelectedRows(r)
       }}
       contextActions={contextActions}
@@ -383,6 +382,16 @@ const ProvisionalVSEdit = () => {
     setShowVsForm(true)
   }
 
+  // set a default selected row on initial render via query params if exists
+  const defaultSelectedRows = useCallback((row) => {
+    const result = row.id && router?.query?.vsSelected && (row.id === router?.query?.vsSelected)
+    if (result) {
+      setShowVsForm(true)
+      setProvisionalVsIdForUpdate(row.id)
+    }
+    return result
+  }, [router?.query?.vsSelected])
+
   const allEntriesExist = (fieldsToCheck: string[]) => {
     const startingLength = fieldsToCheck.length
     const allExist = fieldsToCheck.filter((i: string) => i.trim().length > 0).length === startingLength
@@ -429,7 +438,6 @@ const ProvisionalVSEdit = () => {
   }
 
   const handleChangeSelectedStagingRows = (r: SelectedRows) => {
-    console.log('r selectedRows: ', r)
     setSelectedStagingRows(r.selectedRows)
   }
 
@@ -520,6 +528,7 @@ const ProvisionalVSEdit = () => {
         selectableRows={can(session, 'edit')}
         selectableRowsSingle={true}
         data={provisionalVS || []}
+        selectableRowSelected={defaultSelectedRows}
         // @ts-ignore
         columns={existingProvisionalVsColumns}
         onSelectedRowsChange={(e) => {
