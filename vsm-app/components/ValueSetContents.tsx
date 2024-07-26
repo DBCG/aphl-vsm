@@ -277,8 +277,7 @@ export default function ValueSetContents({
                   id="vs-title"
                   label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
-                  value={grouperTitle}
-                  defaultValue={defaultGrouperTitle}
+                  value={grouperTitle || defaultGrouperTitle}
                   placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} title set`}
                   onChange={(e) => setGrouperTitle(e.target.value)}
                 />
@@ -289,8 +288,7 @@ export default function ValueSetContents({
                     id="vs-oid"
                     label={'OID'}
                     readonly={true}
-                    value={getOid(currentValueSet)}
-                    defaultValue={getOid(currentValueSet)}
+                    value={getOid(currentValueSet) || getOid(currentValueSet)}
                     placeholder={'No valueset oid was set'}
                   />
                 )}
@@ -300,8 +298,7 @@ export default function ValueSetContents({
                   id="vs-publisher"
                   label="Publisher"
                   readonly={!isEditing}
-                  value={grouperPublisher}
-                  defaultValue={defaultGrouperPublisher}
+                  value={grouperPublisher || defaultGrouperPublisher}
                   placeholder={'No valueset publisher set'}
                   onChange={(e) => setGrouperPublisher(e.target.value)}
                 />
@@ -311,8 +308,7 @@ export default function ValueSetContents({
                   id="vs-author"
                   label="Author"
                   readonly={!isEditing}
-                  value={grouperAuthor}
-                  defaultValue={defaultGrouperAuthor}
+                  value={grouperAuthor || defaultGrouperAuthor}
                   placeholder={'No valueset author set'}
                   onChange={(e) => setGrouperAuthor(e.target.value)}
                 />
@@ -322,8 +318,7 @@ export default function ValueSetContents({
                   id="vs-purpose"
                   label="Purpose"
                   readonly={!isEditing}
-                  value={grouperPurpose}
-                  defaultValue={defaultGrouperPurpose}
+                  value={grouperPurpose || defaultGrouperPurpose}
                   placeholder={'No valueset purpose set'}
                   onChange={(e) => setGrouperPurpose(e.target.value)}
                 />
@@ -333,8 +328,7 @@ export default function ValueSetContents({
                   id="vs-description"
                   label="Description"
                   readonly={!isEditing}
-                  value={grouperDescription}
-                  defaultValue={defaultGrouperDescription}
+                  value={grouperDescription || defaultGrouperDescription}
                   placeholder={'No valueset description set'}
                   onChange={(e) => setGrouperDescription(e.target.value)}
                 />

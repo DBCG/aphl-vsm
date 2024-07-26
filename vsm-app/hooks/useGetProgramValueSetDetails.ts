@@ -1,4 +1,6 @@
+import { fetcher } from '@/utils'
 import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 
 interface Group {
   label: string
@@ -48,7 +50,7 @@ interface Args {
   findInOid?: string
   activePriority?: string[]
   valueSetPriorityMap?: Record<string, string>
-  conditionsMap?: Record<string, {id: string}[]>
+  conditionsMap?: Record<string, { id: string }[]>
   activeGroups?: Group[]
   activeConditions?: ConditionItem[]
   updatedGrouperValueSets?: fhir4.ValueSet[]
@@ -73,118 +75,78 @@ const useGetProgramValueSetDetails = ({
   updatedGrouper,
   versionToUpdate,
   toggleUpdateData,
-  provisionalOnly,
+  provisionalOnly
 }: Args): Result | {} => {
-  const [data, setData] = useState<Result>({})
-  const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
+  // const [data, setData] = useState<Result>({})
+  // const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
 
-  useEffect(() => {
-    async function getData(): Promise<void> {
-      if (!id) {
-        setData({})
-        return
-      }
+  let endpoint = `/api/programs/${id}/details/valuesets`
+  let queries = []
 
-      let endpoint = `/api/programs/${id}/details/valuesets`
-      let queries = []
+  if (findInVsTitle?.length) {
+    queries.push(`findInVsTitle=${encodeURIComponent(findInVsTitle)}`)
+  }
 
-      if (findInVsTitle?.length) {
-        queries.push(`findInVsTitle=${encodeURIComponent(findInVsTitle)}`)
-      }
+  if (findInVersion?.length) {
+    queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
+  }
 
-      if (findInVersion?.length) {
-        queries.push(`findInVersion=${encodeURIComponent(findInVersion)}`)
-      }
+  if (findInOid?.length) {
+    queries.push(`findInOid=${encodeURIComponent(findInOid)}`)
+  }
 
-      if (findInOid?.length) {
-        queries.push(`findInOid=${encodeURIComponent(findInOid)}`)
-      }
+  if (findInPublisher?.length) {
+    queries.push(`findInPublisher=${encodeURIComponent(findInPublisher)}`)
+  }
 
-      if (findInPublisher?.length) {
-        queries.push(`findInPublisher=${encodeURIComponent(findInPublisher)}`)
-      }
+  if (activeGroups?.length) {
+    const canonicals = activeGroups.map((g) => g.value)
+    const result = canonicals.join(',')
+    queries.push(`groups=${encodeURIComponent(result)}`)
+  }
 
-      if (activeGroups?.length) {
-        const canonicals = activeGroups.map((g) => g.value)
-        const result = canonicals.join(',')
-        queries.push(`groups=${encodeURIComponent(result)}`)
-      }
+  if (updatedGrouperValueSets?.length) {
+    queries.push('useCache=false')
+  }
 
-      if (updatedGrouperValueSets?.length) {
-        queries.push('useCache=false')
-      }
+  if (provisionalOnly === true) {
+    queries.push('useCache=false')
+  }
 
-      if (provisionalOnly === true) {
-        queries.push('useCache=false')
-      }
-
-      queries.forEach((queryItem, idx) => {
-        if (idx == 0) {
-          endpoint = endpoint.concat(`?${queryItem}`)
-        } else {
-          endpoint = endpoint.concat(`&${queryItem}`)
-        }
-      })
-
-      try {
-        setRequestStatus('pending')
-        const response: Response = await fetch(endpoint)
-        const programJson = await response.json()
-        if (!programJson.error) {
-          setData(programJson)
-        } else {
-          console.error(programJson.error)
-          // handle error better
-          setData({})
-        }
-      } catch (e) {
-        console.error('error: ', e)
-        //TODO: handle error better
-        setData({})
-      } finally {
-        setRequestStatus('idle')
-      }
+  queries.forEach((queryItem, idx) => {
+    if (idx == 0) {
+      endpoint = endpoint.concat(`?${queryItem}`)
+    } else {
+      endpoint = endpoint.concat(`&${queryItem}`)
     }
+  })
 
-    if (requestStatus === 'idle') {
-      getData()
-    }
-  }, [
-    id,
-    findInVsTitle,
-    findInVersion,
-    findInPublisher,
-    findInOid,
-    activeGroups,
-    activeConditions,
-    activePriority,
-    updatedGrouperValueSets,
-    updatedGrouper,
-    versionToUpdate,
-    toggleUpdateData
-  ])
+  const { data, isLoading } = useSWR(id != null ? endpoint : null, fetcher)
+
+  if (!data || isLoading) {
+    return {}
+  }
 
   if (activePriority && activePriority?.length > 0) {
-    const filteredData = data?.data
-      ?.filter((vs) => {
-        if (!vs.valueSet.url) {
-          return false
-        }
-        const currentPriority = valueSetPriorityMap[vs.valueSet.url]
-        return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
-      })
+    const filteredData = data?.data?.filter((vs: DataItem) => {
+      if (!vs.valueSet.url) {
+        return false
+      }
+      const currentPriority = valueSetPriorityMap[vs.valueSet.url]
+      return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
+    })
     data.data = filteredData
   }
 
   if (activeConditions && activeConditions?.length > 0) {
-    const activeConditionsMap = activeConditions.map(i => i.value.system + '|' + i.value.code)
-    const filteredConditionData = data?.data?.filter((vs) => {
+    const activeConditionsMap = activeConditions.map((i) => i.value.system + '|' + i.value.code)
+    const filteredConditionData = data?.data?.filter((vs: DataItem) => {
       if (!vs.valueSet.url) {
         return false
       }
       const currentConditions = conditionsMap[vs.valueSet.url]?.map((i) => i?.id)
       // Test for intersection of either array
-      return currentConditions?.filter(value => activeConditionsMap.includes(value)).length > 0;
+      return currentConditions?.filter((value) => activeConditionsMap.includes(value)).length > 0
     })
 
     data.data = filteredConditionData
