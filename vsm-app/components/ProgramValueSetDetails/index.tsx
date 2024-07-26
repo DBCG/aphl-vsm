@@ -388,10 +388,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         cell: (row: TableRow) => (
           <TextLink
-          href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
-          linkText={row.title}
-          forceReload={false}
-        />
+            href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
+            linkText={row.title}
+            forceReload={false}
+          />
         )
       },
       {

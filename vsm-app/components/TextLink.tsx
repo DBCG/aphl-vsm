@@ -8,6 +8,7 @@ color: var(--theme-300);
 align-items: center;
 &:hover {
   color: var(--theme-500);
+  cursor: pointer;
 };
 `
 
@@ -41,13 +42,13 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
     </StyledLink>
   )
 
-  return hasIcon ? (
+  return (
     <LinkContainer>
-      <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginRight: '8px' }} />
+      { hasIcon &&
+        <ArrowOutwardIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px', marginRight: '8px' }} />
+      }
       {content}
     </LinkContainer>
-  ) : (
-    content
   )
 }
 
