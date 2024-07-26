@@ -1,3 +1,4 @@
+import React from 'react'
 import Link from 'next/link'
 import styled from 'styled-components'
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward'
@@ -41,7 +42,7 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
     }
   }
 
-  const wrapWithLink = ({ content }) => {
+  const wrapWithLink = ({ content }: {content: string | React.ReactNode}) => {
     return (
       <StyledLink href={href} className={className} onClick={handleClick}>
         {content}
