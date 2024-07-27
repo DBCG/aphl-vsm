@@ -107,8 +107,7 @@ interface CodeSystemBase {
 const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const router = useRouter()
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<CodeSystemBase | undefined>()
-  const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
-  const allVsacCS = useGetCS(myDocument)
+  const allVsacCS = useGetCS()
   const [codeToAdd, setCodeToAdd] = useState('')
   const [displayToAdd, setDisplayToAdd] = useState('')
   const [definitionToAdd, setDefinitionToAdd] = useState('')
@@ -132,11 +131,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   useEffect(() => {
     clearCurrentCodeItems()
   }, [selectedCodeSystemBase])
-
-  useEffect(() => {
-    setMyDocument(document.body)
-  }, [])
-
   
   const selectOptions = useMemo(() => {
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
@@ -241,7 +235,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             options={selectOptions}
             isMulti={false}
             value={selectedCodeSystemBase}
-            menuPortalTarget={myDocument}
             styles={reactSelectOptionStyle({ minWidth: '30rem' })}
             onChange={(e: SingleValue<CodeSystemBase>) => {
               router.push(`${router.asPath.split('?')[0]}?csSelected=${(e?.value)}`)
