@@ -240,7 +240,7 @@ const ProvisionalVSEdit = () => {
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
-  const allVsacCS = useGetCS(null)
+  const allVsacCS = useGetCS()
   const { provisionalContext, isContextLoading, provContextError } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
