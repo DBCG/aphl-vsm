@@ -3,13 +3,13 @@ import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import {
   addExtensionToVs,
   addValueSetToGrouper,
-  authoritativeSourceExtensionUrl,
   createGrouperWithMetadata,
   updateGrouperWithMetadata,
   removeValueSetFromGrouper,
   idWithoutVersion,
   urlWithoutVersion,
-  addProfileToValueSet
+  addProfileToValueSet,
+  EXTENSIONS
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -18,12 +18,31 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
-import { uniqBy } from 'lodash'
+import { uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
+import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
+import { ErrorItem } from '@/helpers/is'
 
 export type ErrorResponse = {
   errorMessage: string
   resStatus: number
+}
+
+const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: string[]): (string | ErrorItem)[] => {
+  // new refs are unversioned when a grouper is created (we do not give the ability to set version on grouper create)
+  // if a leaf already exists in the program that is versioned, the new ref should also share that version
+  const uniqueExisitingLeafRefs = uniq(existingLeafRefsInGroupers) // remove duplicates for refs that are present in multiple groupers
+  const newRefsToAddSet = new Set(newRefsToAdd)
+
+  // Collect all urls that are matching in the new refs and existing refs
+  uniqueExisitingLeafRefs.forEach((ref) => {
+    const url = ref.toLowerCase().split('|')?.[0]
+    if (newRefsToAddSet.has(url)) {
+      newRefsToAddSet.add(ref)
+      newRefsToAddSet.delete(url)
+    }
+  })
+  return Array.from(newRefsToAddSet);
 }
 
 const formatTransactionSearchEntry = (items: any): fhir4.Bundle & { type: 'transaction' } => {
@@ -207,8 +226,9 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
   // programId will always be a string
   const programId = req.query.id as string
 
-  let { grouperVSets, grouperMetadata } = body
-  grouperVSets = uniqBy(grouperVSets, 'selectedValueSet.id')
+  let { grouperVSets: groupersToUpdate, grouperMetadata } = body
+  groupersToUpdate = uniqBy(groupersToUpdate, 'selectedValueSet.id')
+
   try {
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
@@ -220,31 +240,59 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // get program
     const program = await getProgram(programId)
     if (is.errorResponse(program)) {
-      sendError(program)
+      return sendError(program)
     }
+
+    const grouperLib = await getGrouperLibrary(program)
+    if (is.errorItem(grouperLib)) {
+      return sendError({ errorMessage: grouperLib?.error, resStatus: 400 })
+    }
+
+    const allExistingGrouperVS = await getGrouperValuesets(grouperLib)
+    if (is.errorItem(allExistingGrouperVS)) {
+      return sendError({ errorMessage: allExistingGrouperVS.error, resStatus: 400 })
+    }
+    // get the list of all leaf refs in all groupers
+    const allExistingLeafRefs = allExistingGrouperVS.flatMap(vs => {
+      const refsInGrouper = vs?.compose?.include
+        ?.filter(i => !!i?.valueSet?.[0])
+        ?.map(i => i.valueSet?.[0]!) || []
+      return refsInGrouper
+    })
 
     // find any leaf matches that exist in our HAPI server
     // (these may or may not exist)
-    const matchesInCqf = await getMatchingLeafsFromCQF(grouperVSets)
-    if (is.errorResponse(matchesInCqf)) {
-      sendError(matchesInCqf)
+    const matchesInServer = await getMatchingLeafsFromServer(groupersToUpdate)
+    if (is.errorResponse(matchesInServer)) {
+      sendError(matchesInServer)
     }
 
     /**
      * Start Creating Payloads here as a Transaction Bundle to submit to CDR
      */
-    const cqfUpdatesPayload = await submitUpdatesToCQF({
-      grouperVSets,
-      matchesInCqf
+    const serverUpdatesPayload = await generateTransactionBundleEntriesToAddMissingValueSetsToServer({
+      grouperVSets: groupersToUpdate,
+      matchesInServer: matchesInServer
     })
 
-    if (is.errorResponse(cqfUpdatesPayload)) {
-      logger.error(`Error found at location 'submitUpdatesToCQF':  ${JSON.stringify(cqfUpdatesPayload, null, 2)}`)
+    if (is.errorResponse(serverUpdatesPayload)) {
+      logger.error(`Error found at location 'generateTransactionBundleEntriesToAddMissingValueSetsToServer':  ${JSON.stringify(serverUpdatesPayload, null, 2)}`)
       return res.status(400).send('Error with creating grouper valuesets')
     }
 
-    const leafReferencesToAdd = cqfUpdatesPayload?.map((i: any) => i?.resource?.url) || []
-    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd, grouperMetadata)
+
+    const newValueSetsToBeAddedFromTermServer = serverUpdatesPayload
+      ?.filter(entry => entry?.resource?.resourceType === "ValueSet").map(entry => entry.resource as fhir4.ValueSet)
+      ?.map((i) => i.url)?.filter(x => !!x).map(x => x!) || []
+    const existingVsToUpdate = Array.isArray(matchesInServer) ? matchesInServer?.map(m => m.url)?.filter(x => !!x).map(x => x!) : []
+    // if a versioned leaf reference exists in another grouper, we need to ensure that we are adding that versioned url
+    // we should only have 1 version of a leaf valueset in a program at any given time
+    const leafReferencesToAdd = syncUnversionedRef([...newValueSetsToBeAddedFromTermServer, ...existingVsToUpdate], allExistingLeafRefs)
+    const versionErrors = leafReferencesToAdd?.filter(i => is.errorItem(i))
+    if (versionErrors.length) {
+      return res.status(400).send(versionErrors.map(e => typeof e !== 'string' && e.error).join(', '))
+    }
+    const newGrouper = await createAndSaveGrouper(leafReferencesToAdd as string[], grouperMetadata)
 
     if (is.operationOutcome(newGrouper)) {
       return res.status(400).send('Error creating new grouper valueset')
@@ -253,11 +301,14 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
     // Set Conditions onto the program library
     let modifiedProgram = program as fhir4.Library
-    grouperVSets.forEach((vs) => {
+    groupersToUpdate.forEach((vs) => {
       // these leaf valuesets are set to the latest version and will not have a version in their canonical url
       modifiedProgram = setVSConditions(modifiedProgram, vs.selectedConditions, [vs.selectedValueSet.url!], 'add')
       modifiedProgram = setVSPriority(modifiedProgram, vs.selectedPriority, [vs.selectedValueSet.url!])
     })
+
+    // add default grouper priority (routine) to the top-level spec library
+    modifiedProgram = setVSPriority(modifiedProgram, 'routine', [grouperVsUrl])
 
     const rctcProgramLibUpdatePayload = await updateProgramLibraryWithGrouperRef(modifiedProgram as fhir4.Library, grouperVsUrl)
 
@@ -268,7 +319,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
         resourceType: 'Bundle',
         type: 'transaction',
         entry: [
-          ...cqfUpdatesPayload,
+          ...serverUpdatesPayload,
           rctcProgramLibUpdatePayload,
           {
             resource: modifiedProgram,
@@ -327,9 +378,9 @@ const buildBatchSearchEntries = (grouperVSets: FlatGrouperVSet[]): fhir4.BundleE
   })
 }
 
-type MatchesInCQF = fhir4.ValueSet[] | undefined | ErrorResponse
+type MatchesInServer = fhir4.ValueSet[] | ErrorResponse
 
-const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise<MatchesInCQF> => {
+const getMatchingLeafsFromServer = async (grouperVSets: FlatGrouperVSet[]): Promise<MatchesInServer> => {
   try {
     const getRequestBundle: fhir4.Bundle & { type: 'batch' } = {
       resourceType: 'Bundle',
@@ -337,31 +388,37 @@ const getMatchingLeafsFromCQF = async (grouperVSets: FlatGrouperVSet[]): Promise
       entry: buildBatchSearchEntries(grouperVSets)
     }
 
-    const responsesFromCdrGet = await fhirCdrClient.batch({ body: getRequestBundle })
-    // only get the first resource in each nested array, should be ordered by version
-    // so first is most recent
-    return responsesFromCdrGet?.entry?.map((i: any) => i?.resource?.entry?.[0]?.resource)?.filter((x: fhir4.ValueSet | undefined) => x)
+    const batchSearchResponseBundleOfBundles = await fhirCdrClient.batch({ body: getRequestBundle }) as fhir4.Bundle
+    return batchSearchResponseBundleOfBundles?.entry
+      ?.filter((outerBundleEntry) => outerBundleEntry.resource?.resourceType === "Bundle")
+      ?.map((outerBundleEntry) => outerBundleEntry.resource as fhir4.Bundle)
+      // only get the first resource in each nested array, should be ordered by version
+      // so first is most recent
+      ?.map((innerBundle) => innerBundle.entry?.[0])
+      ?.map((innerBundleEntry) => innerBundleEntry?.resource)
+      ?.filter((resource) => resource?.resourceType === "ValueSet")
+      ?.map((resource) => resource as fhir4.ValueSet) || []
   } catch (e: HapiError | any) {
     logSimpleError(e, 'getMatchingLeafsFromCQF')
     return { resStatus: 400, errorMessage: 'Could not find batch ValueSets' }
   }
 }
 
-interface SubmitUpdatesToCQF {
-  matchesInCqf: MatchesInCQF
+interface FormatCqfUpdateTransactionBundle {
+  matchesInServer: MatchesInServer
   grouperVSets: FlatGrouperVSet[]
 }
 
-const submitUpdatesToCQF = async ({
-  matchesInCqf,
+const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
+  matchesInServer,
   grouperVSets
-}: SubmitUpdatesToCQF): Promise<fhir4.BundleEntry[] | [] | ErrorResponse> => {
-  if (!matchesInCqf || is.errorResponse(matchesInCqf)) {
+}: FormatCqfUpdateTransactionBundle): Promise<fhir4.BundleEntry[] | ErrorResponse> => {
+  // why error out if there are no matches??
+  if (is.errorResponse(matchesInServer)) {
     return []
   }
-
-  const transactionEntries = [] as fhir4.BundleEntry[]
-  const matchesInCqfUrls = matchesInCqf?.map((vs) => vs.url)
+  const transactionEntries: fhir4.BundleEntry[] = []
+  const matchesInCqfUrls = matchesInServer?.map((vs) => vs.url)
   // get from remote
   // identify leaf urls that were not already in CQF, as they need to be grabbed from term servers
   const urlsToAddFromRemote = grouperVSets
@@ -378,10 +435,11 @@ const submitUpdatesToCQF = async ({
     return urlsToAddFromRemote.includes(urlWithoutVersion(flatVs?.selectedValueSet?.url!))
   })
 
+
   if (vsToAddFromTermServer) {
     for (const flatGrouperItem of vsToAddFromTermServer) {
       try {
-        terminologyClient.setClient(flatGrouperItem?.selectedTerminologyServer as 'vsac' | 'ontoserverR4')
+        terminologyClient.setClient(flatGrouperItem?.selectedTerminologyServer)
         const terminologyClientInstance = terminologyClient.getClient()
         // vsac appends version to the id, search by unversioned
         // must do a read operation to get whole valueset instead of subsetted
@@ -398,15 +456,15 @@ const submitUpdatesToCQF = async ({
         )?.value?.url
 
         // handle if no matching authoritativeSource url
-        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, authoritativeSourceExtensionUrl, authSrcUrl as string)
+        const vsWithAuthSource = addExtensionToVs(valueSetToAdd as fhir4.ValueSet, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl as string)
         const updatedVSWithAuthSource = addProfileToValueSet(vsWithAuthSource)
-        const vsAddedToCache = {
+        const vsAddedToCache: fhir4.BundleEntry = {
           resource: updatedVSWithAuthSource,
           request: {
             method: 'POST',
             url: 'ValueSet'
           }
-        } as fhir4.BundleEntry
+        }
 
         transactionEntries.push(vsAddedToCache)
       } catch (e: HapiError | any) {
@@ -425,7 +483,6 @@ const submitUpdatesToCQF = async ({
 const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
-
   const result = await fhirCdrClient.create({
     resourceType: 'ValueSet',
     body: grouperWithLeafRefs
@@ -465,15 +522,15 @@ const updateProgramLibraryWithGrouperRef = async (
     }
 
     // there will only be one result because only one draft allowed currently
-    const libResource = vsLib.entry[0].resource as fhir4.Library
+    const valueSetLibrary = vsLib.entry[0].resource as fhir4.Library
 
-    if (!libResource.relatedArtifact) {
-      libResource.relatedArtifact = []
+    if (!valueSetLibrary.relatedArtifact) {
+      valueSetLibrary.relatedArtifact = []
     }
 
-    libResource.relatedArtifact.push({
+    valueSetLibrary.relatedArtifact.push({
       type: 'composed-of',
-      resource: grouperRef?.split('|')[0], // use unversioned
+      resource: grouperRef,
       extension: [
         {
           url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
@@ -484,10 +541,10 @@ const updateProgramLibraryWithGrouperRef = async (
 
     // at this point, the grouper's valueset library is updated, save & return 200 if success
     return {
-      resource: libResource,
+      resource: valueSetLibrary,
       request: {
         method: 'PUT',
-        url: `Library/${libResource.id}`
+        url: `Library/${valueSetLibrary.id}`
       }
     } as fhir4.BundleEntry
   } catch (e: HapiError | any) {

@@ -1,4 +1,4 @@
-import { useState, SetStateAction, Dispatch } from 'react'
+import { useState, SetStateAction, Dispatch, useEffect } from 'react'
 import { Tabs, Box, Tab, Tooltip, TextField, IconButton } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
@@ -9,6 +9,9 @@ import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
 import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
+import LoadingIndicator from './LoadingIndicator'
+import { customTableStyles } from './tables/themes'
+import TextLink from './TextLink'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -26,7 +29,8 @@ interface ExpansionTableData {
 interface GrouperTableDetail {
   title: string
   oid: string
-  canonical: string
+  canonical: string,
+  version?: string
 }
 
 interface ValueSetDetailsTablesProps {
@@ -87,16 +91,24 @@ const ValueSetDetailsTables = ({
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
+  const [isLoadingDefinition, setIsLoadingDefinition] = useState(true);
 
   const programData = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
 
+  useEffect(() => {
+    if (programData) {
+      setIsLoadingDefinition(false);
+    }
+  }, [programData]);
+
   const router = useRouter()
-  
+
   const leafDataForDisplay = (pData: any) => {
     return pData?.map((i: DataItem) => ({
       title: i?.valueSet?.title,
       oid: i?.canonical?.split('/ValueSet/')?.[1],
-      canonical: i?.canonical
+      canonical: i?.canonical,
+      version: i?.version
     }))
 }
 
@@ -154,7 +166,14 @@ const ValueSetDetailsTables = ({
         name: 'Title',
         selector: (row: GrouperTableDetail) => row?.title!,
         sortable: true,
-        wrap: true
+        wrap: true,
+        cell: (row: GrouperTableDetail) => (
+          <TextLink
+            href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.oid}`}
+            linkText={row.title}
+            forceReload={true}
+          />
+        )
       },
       {
         name: 'OID',
@@ -166,8 +185,11 @@ const ValueSetDetailsTables = ({
         name: 'Canonical',
         selector: (row: GrouperTableDetail) => row?.canonical!,
         sortable: true,
-        wrap: true
-      }
+        wrap: true,
+        cell: (row: GrouperTableDetail) => (
+          row?.version ? `${row?.canonical}|${row?.version}` : `${row?.canonical}`
+        ),
+      }      
     ]
 
     expansionColumns = EXPANSION_COLUMNS
@@ -234,10 +256,10 @@ const ValueSetDetailsTables = ({
       return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
     }
   }
-
-  const filteredDefinitionData = filteredDefinitions(definitionData)
+  const filteredDefinitionData = filteredDefinitions(definitionData) 
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
+
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -280,6 +302,9 @@ const ValueSetDetailsTables = ({
           data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}
+          highlightOnHover={isGrouperValueSet}
+          progressPending={isLoadingDefinition}
+          progressComponent={<LoadingIndicator />}
         />
       </TabPanel>
       <TabPanel value={value} index={1}>

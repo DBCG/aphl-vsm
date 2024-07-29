@@ -3,7 +3,7 @@
 	"type": "transaction",
 	"entry": [
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.0.0.0-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary|1.0.0-draft",
 			"resource": {
 				"resourceType": "Library",
 				"id": "7",
@@ -13,8 +13,14 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
+				"name": "Updated name",
+				"purpose": "UpdatedPurpose",
+				"effectivePeriod":{
+					"start":"2020-10-01",
+					"end":"2025-10-01"
+				},
 				"useContext": [
 					{
 						"code": {
@@ -54,7 +60,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.0.0.0-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.0.0-draft"
 					},
 					{
 						"extension": [
@@ -64,7 +70,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0.0-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0-draft"
 					},
 					{
 						"type": "composed-of",
@@ -109,7 +115,8 @@
 											"system": "http://snomed.info/sct",
 											"code": "767146004"
 										}
-									]
+									],
+									"text": "Toxic effect of arsenic and its compounds (disorder)"
 								}
 							},
 							{
@@ -126,22 +133,40 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion|1.0.1"
 					},
 					{
 						"type": "depends-on",
-						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0.0-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0-draft"
 					}
 				]
 			},
 			"request": {
 				"method": "POST",
 				"url": "Library/7",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary&version=1.0.0-draft"
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.0.0.0-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|1.0.0-draft",
 			"resource": {
 				"resourceType": "PlanDefinition",
 				"id": "8",
@@ -151,13 +176,13 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"relatedArtifact": [
 					{
 						"type": "depends-on",
 						"label": "RCTC Value Set Library of Trigger Codes",
-						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0.0-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0-draft"
 					},
 					{
 						"type": "composed-of",
@@ -168,11 +193,11 @@
 			"request": {
 				"method": "POST",
 				"url": "PlanDefinition/8",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification&version=1.0.0-draft"
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0.0-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0-draft",
 			"resource": {
 				"resourceType": "Library",
 				"id": "9",
@@ -182,7 +207,7 @@
 					"source": "#FNgLVm21fIyZMxwE"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/Library/rctc",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"relatedArtifact": [
 					{
@@ -193,7 +218,7 @@
 							}
 						],
 						"type": "composed-of",
-						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0.0-draft"
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0-draft"
 					},
 					{
 						"type": "composed-of",
@@ -204,23 +229,47 @@
 			"request": {
 				"method": "POST",
 				"url": "Library/9",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/rctc&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/Library/rctc&version=1.0.0-draft"
 			}
 		},
 		{
-			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0.0-draft",
+			"fullUrl": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0-draft",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "10",
+				"name":"Diagnosis_ProblemTriggersforPublicHealthReporting",
 				"meta": {
 					"versionId": "2",
 					"lastUpdated": "2023-12-14T15:43:06.193-05:00",
 					"source": "#YvcttWKq2KbM0Igj"
 				},
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
-				"version": "1.0.0.0-draft",
+				"version": "1.0.0-draft",
 				"status": "draft",
 				"useContext": [
+					{
+						"code": {
+							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code": "program"
+						},
+						"valueReference": {
+							"reference": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification"
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
 					{
 						"code": {
 							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
@@ -232,8 +281,14 @@
 									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
 									"code": "routine"
 								}
-							],
-							"text": "Routine"
+							]
+						}
+					},
+					{
+						"code":{
+							"system":"http://terminology.hl7.org/CodeSystem/usage-context-type",
+							"code":"grouper-type",
+							"display":"model-grouper"
 						}
 					}
 				],
@@ -241,12 +296,16 @@
 					"include": [
 						{
 							"valueSet": [
-								"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
 							]
 						},
 						{
 							"valueSet": [
 								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163"
+							]
+						},{
+							"valueSet": [
+								"http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion|1.0.1"
 							]
 						}
 					]
@@ -275,11 +334,11 @@
 			"request": {
 				"method": "POST",
 				"url": "ValueSet/10",
-				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/ValueSet/dxtc&version=1.0.0.0-draft"
+				"ifNoneExist": "url=http://ersd.aimsplatform.org/fhir/ValueSet/dxtc&version=1.0.0-draft"
 			}
 		},
 		{
-			"fullUrl": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
@@ -288,7 +347,7 @@
 					"lastUpdated": "2023-12-14T15:38:33.243-05:00",
 					"source": "#MT6tY32vbfEfzQmh"
 				},
-				"url": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
@@ -347,7 +406,7 @@
 			"request": {
 				"method": "POST",
 				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
-				"ifNoneExist": "url=https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20210526"
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20210526"
 			}
 		},
 		{
@@ -383,7 +442,7 @@
 					},
 					{
 						"url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-						"valueUri": "https://cts.nlm.nih.gov/fhir"
+						"valueUri": "http://cts.nlm.nih.gov/fhir"
 					}
 				],
 				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163",
@@ -400,52 +459,6 @@
 				"experimental": false,
 				"date": "2022-06-03T01:06:35-04:00",
 				"publisher": "CSTE Steward",
-				"useContext": [
-					{
-						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "49649001"
-								}
-							],
-							"text": "Infection caused by Acanthamoeba (disorder)"
-						}
-					},
-					{
-						"code": {
-							"system": "http://terminology.hl7.org/CodeSystem/usage-context-type",
-							"code": "focus"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://snomed.info/sct",
-									"code": "767146004"
-								}
-							]
-						}
-					},
-					{
-						"code": {
-							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
-							"code": "priority"
-						},
-						"valueCodeableConcept": {
-							"coding": [
-								{
-									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-									"code": "emergent"
-								}
-							],
-							"text": "Emergent"
-						}
-					}
-				],
 				"jurisdiction": [
 					{
 						"extension": [
@@ -461,6 +474,7 @@
 					"include": [
 						{
 							"system": "http://snomed.info/sct",
+							"version": "1.2.3",
 							"concept": [
 								{
 									"code": "1193749009",
@@ -503,6 +517,97 @@
 				"method": "POST",
 				"url": "ValueSet/11",
 				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163&version=20220603"
+			}
+		},
+		{
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion|1.0.1",
+			"resource": {
+				"resourceType": "ValueSet",
+				"id": "fake.oid.to.trigger.naive.expansion",
+				"meta": {
+					"profile": [
+						"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+					]
+				},
+				"text": {
+					"status": "extensions",
+					"div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative: ValueSet</b></p><div style=\"display: inline-block; background-color: #d9e0e7; padding: 6px; margin: 4px; border: 1px solid #8da1b4; border-radius: 5px; line-height: 60%\"><p style=\"margin-bottom: 0px\">Resource ValueSet \"fake.oid.to.trigger.naive.expansion\" </p><p style=\"margin-bottom: 0px\">Profile: <a href=\"StructureDefinition-us-ph-triggering-valueset.html\">US Public Health Triggering ValueSet</a></p></div><p><b>author</b>: CSTE Author: </p><p><b>steward</b>: CSTE Steward: </p><p><b>url</b>: <code>http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion</code></p><p><b>identifier</b>: id: urn:oid:fake.oid.to.trigger.naive.expansion</p><p><b>version</b>: 1.0.0</p><p><b>name</b>: AcanthamoebaDiseaseKeratitisDisordersSNOMED</p><p><b>title</b>: Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)</p><p><b>status</b>: active</p><p><b>experimental</b>: true</p><p><b>publisher</b>: eCR</p><p><b>description</b>: Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)</p><blockquote><p><b>compose</b></p><blockquote><p><b>include</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><blockquote><p><b>concept</b></p><p><b>code</b>: 127631000119105</p><p><b>display</b>: Corneal ulcer due to acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693201000119102</p><p><b>display</b>: Keratitis of bilateral eyes caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693241000119100</p><p><b>display</b>: Keratitis of left eye caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15693281000119105</p><p><b>display</b>: Keratitis of right eye caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15698841000119105</p><p><b>display</b>: Ulcer of right cornea caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 15698881000119100</p><p><b>display</b>: Ulcer of left cornea caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 231896005</p><p><b>display</b>: Acanthamoeba keratitis (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 711645008</p><p><b>display</b>: Corneal ulcer caused by Acanthamoeba (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 840444002</p><p><b>display</b>: Dacryoadenitis due to Acanthamoeba keratitis (disorder)</p></blockquote><blockquote><p><b>concept</b></p><p><b>code</b>: 840484006</p><p><b>display</b>: Conjunctivitis caused by Acanthamoeba (disorder)</p></blockquote></blockquote></blockquote><blockquote><p><b>expansion</b></p><p><b>timestamp</b>: 2022-04-05 10:06:43-0400</p><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 127631000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693201000119102</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693241000119100</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15693281000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15698841000119105</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 15698881000119100</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 231896005</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 711645008</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 840444002</p></blockquote><blockquote><p><b>contains</b></p><p><b>system</b>: <a href=\"http://hl7.org/fhir/R4/codesystem-snomedct.html\">SNOMED CT (all versions)</a></p><p><b>version</b>: Provisional_2022-01-10</p><p><b>code</b>: 840484006</p></blockquote></blockquote></div>"
+				},
+				"extension": [
+					{
+						"url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+						"valueContactDetail": {
+							"name": "CSTE Author"
+						}
+					},
+					{
+						"url": "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+						"valueContactDetail": {
+							"name": "CSTE Steward"
+						}
+					}
+				],
+				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion",
+				"identifier": [
+					{
+						"system": "urn:ietf:rfc:3986",
+						"value": "urn:oid:fake.oid.to.trigger.naive.expansion"
+					}
+				],
+				"version": "1.0.1",
+				"name": "UpdatedName",
+				"title": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
+				"status": "active",
+				"experimental": true,
+				"publisher": "eCR",
+				"description": "Acanthamoeba Disease [Keratitis] (Disorders) (SNOMED)",
+				"compose": {
+					"include": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"concept": [
+								{
+									"code": "127631000119105",
+									"display": "Corneal ulcer due to acanthamoeba (disorder)"
+								},
+								{
+									"code": "15693201000119102",
+									"display": "Keratitis of bilateral eyes caused by Acanthamoeba (disorder)"
+								},
+								{
+									"code": "15693241000119100",
+									"display": "Keratitis of left eye caused by Acanthamoeba (disorder)"
+								}
+							]
+						}
+					]
+				},
+				"expansion": {
+					"timestamp": "2022-04-05T10:06:43-04:00",
+					"contains": [
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"code": "127631000119105"
+						},
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"code": "15693201000119102"
+						},
+						{
+							"system": "http://snomed.info/sct",
+							"version": "Provisional_2022-01-10",
+							"code": "15693241000119100"
+						}
+					]
+				}
+			},
+			"request": {
+				"method": "POST",
+				"url": "ValueSet",
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion&version=1.0.1"
 			}
 		}
 	]

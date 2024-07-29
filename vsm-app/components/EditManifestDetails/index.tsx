@@ -197,7 +197,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           </Typography>
           <DT
             data={availableLeafValueSetCodeSystems}
-            highlightOnHover
             keyField={'version'}
             defaultSortAsc={false}
             defaultSortFieldId={3}
@@ -248,7 +247,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                 wrap: true
               }
             ]}
-            theme="aphl"
             fixedHeader
             customStyles={customTableStyles('readonly')}
             className="detail-table"
@@ -331,7 +329,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           <StyledLabel>Available Versions</StyledLabel>
           <DT
             data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
-            highlightOnHover
             progressComponent={<LoadingIndicator />}
             progressPending={pageLoading}
             defaultSortAsc={false}

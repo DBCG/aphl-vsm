@@ -32,6 +32,10 @@ const NavItem = styled.li<Props>`
     cursor: pointer;
   }
 `
+const HomepageItem = styled(NavItem)`
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 14px;
+`
 
 const composePath = (pathItems: string, lastOfPath: string) => {
   if (lastOfPath === 'grouper') {
@@ -39,7 +43,11 @@ const composePath = (pathItems: string, lastOfPath: string) => {
     return pathItems.split('/valuesets')[0]
   }
   const idx = pathItems.indexOf(lastOfPath)
-  return pathItems.slice(0, idx + lastOfPath.length)
+  let result = pathItems.slice(0, idx + lastOfPath.length)
+  if (result === '/provisional') {
+    result = `/programs?resourceType=provisional`
+  }
+  return result
 }
 
 type BreadCrumbProps = {
@@ -52,11 +60,11 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   useEffect(() => {
     if (router) {
-      const crumbs = router.asPath.split('/')
-      const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
+      const withoutQueryStrings = router.asPath.split('?')[0].split('/')
       if (isGrouperView && withoutQueryStrings.indexOf('valuesets') === -1) {
         withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
       }
+
       setBreadCrumbs(withoutQueryStrings)
     } else {
       setBreadCrumbs([])
@@ -65,15 +73,20 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   if (!breadCrumbs.length) return null
 
-  const items = breadCrumbs.map((c, index) => {
+  const items = breadCrumbs.map((c) => {
     if (c !== '') {
       return (
         <Link key={c} href={composePath(router.asPath, c)} passHref>
-          <NavItem id={`breadcrumb-${c}`} alpha={index / 0.1}>{`${c.replace('?id=', ' ')}`}</NavItem>
+          <NavItem id={`breadcrumb-${c}`} alpha={1}>{`${c.replace('?id=', ' ')}`}</NavItem>
         </Link>
       )
     }
   })
+  items.unshift(
+    <Link key={'homepage'} href={'/'} passHref>
+      <HomepageItem id={`breadcrumb-homepage`} alpha={1}>{`Home`}</HomepageItem>
+    </Link>
+  )
 
   return (
     <nav>

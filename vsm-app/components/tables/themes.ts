@@ -19,9 +19,6 @@ createTheme(
     rows: {
       style: {
         cursor: 'pointer',
-      },
-      highlightOnHoverStyle: {
-        backgroundColor: '#DBF0F3'
       }
     }
   },

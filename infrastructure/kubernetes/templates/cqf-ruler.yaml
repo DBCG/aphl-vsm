@@ -56,6 +56,8 @@ spec:
               value: "true"
             - name: hapi.fhir.security.basic_auth.username
               value: admin
+            - name: hapi.fhir.casereporting.enabled
+              value: "true"
             - name: hapi.fhir.rulercr.enabled
               value: "true"
             - name: hapi.fhir.rulercr.vsac-username

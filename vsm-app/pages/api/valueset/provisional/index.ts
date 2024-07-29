@@ -1,12 +1,17 @@
 import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
-import { fhirCdrClient } from '@/fhirClients'
+import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
-import { CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem, generateProvisionalVs, updateCsCodes, updateVsMetadata } from '@/helpers/provisionalVsHelpers'
+import {
+  CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem,
+  generateProvisionalVs, updateCsCodes, updateVsMetadata
+} from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-import { addExtensionToVs, authoritativeSourceExtensionUrl } from '@/helpers/valueSetHelpers'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { addExtensionToVs, EXTENSIONS } from '@/helpers/valueSetHelpers'
+import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 interface Body extends CreateProvisionalVs {
@@ -15,13 +20,16 @@ interface Body extends CreateProvisionalVs {
   updatedConditions: Condition[]
   updatedPriority: PriorityLevelOption
   provisionalVsIdForUpdate: string
+  author: string
+  title: string
+  steward: string
 }
 
 interface ReqInfo extends NextApiRequest {
   body: Body
 }
 
-interface BuilderItem {
+export interface BuilderItem {
   method: 'PUT' | 'POST' | 'GET'
   resource?: fhir4.ValueSet | fhir4.CodeSystem | fhir4.Library
   resourceId?: string
@@ -73,9 +81,9 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
 const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse) => {
   try {
     const {
-      authorToUpdate,
-      stewardToUpdate,
-      titleToUpdate,
+      author,
+      steward,
+      title,
       codesBySystemToAdd,
       grouperIds,
       programId,
@@ -83,8 +91,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
-
-    if (!Object.keys(codesBySystemToAdd)?.length || !titleToUpdate || !grouperIds?.length) {
+    if (!Object.keys(codesBySystemToAdd)?.length || !title) {
       return res.status(400).json({ error: 'Invalid input. Endpoint requires the codes, title, and grouper IDs of the ValueSet being created.' })
     }
 
@@ -110,9 +117,22 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         const updatedCS = updateCsCodes({ codeSystem: codeSystemToEdit, codeItems: codesBySystemToAdd[systemUrl], action: 'add' })
         resourcesToSaveFirst.push({ resource: updatedCS, method: 'PUT' })
       } else {
+        const codeSystemFromTermServer = await vsacFhirClient.search({
+          resourceType: 'CodeSystem',
+          searchParams: {
+            status: 'active',
+            _sort: 'latest',
+            url: systemUrl,
+            _count: 1
+          }
+        })
+    
+        const csName = codeSystemFromTermServer?.entry?.[0]?.resource?.name
+
         codeSystemToEdit = createProvisionalCodeSystem({
           systemBaseUrl: systemUrl,
-          codeItems: codesBySystemToAdd[systemUrl]
+          codeItems: codesBySystemToAdd[systemUrl],
+          name: csName || 'No name provided'
         })
         resourcesToSaveFirst.push({ resource: codeSystemToEdit, method: 'POST' })
       }
@@ -126,7 +146,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         id: provisionalVsIdForUpdate
       }) as fhir4.ValueSet
 
-      provisionalLeaf = updateVsMetadata({ authorToUpdate, stewardToUpdate, titleToUpdate, vsToUpdate: provisionalLeaf })
+      provisionalLeaf = updateVsMetadata({ authorToUpdate: author, stewardToUpdate: steward, titleToUpdate: title, vsToUpdate: provisionalLeaf })
       // remove codes to be removed, add codes to be added
       if (codesBySystemToAdd) {
         provisionalLeaf = addOrRemoveVsCodes(provisionalLeaf, codesBySystemToAdd, 'add')
@@ -135,9 +155,9 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     } else {
       // first, create the value set
       provisionalLeaf = generateProvisionalVs({
-        authorToUpdate,
-        stewardToUpdate,
-        titleToUpdate,
+        authorToUpdate: author,
+        stewardToUpdate: steward,
+        titleToUpdate: title,
         codesBySystemToAdd
       }) as fhir4.ValueSet
 
@@ -169,59 +189,60 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     // update url here
     leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
     // update authoritative source here
-    provisionalLeaf = addExtensionToVs(leaf, authoritativeSourceExtensionUrl, leaf.url)
+    provisionalLeaf = addExtensionToVs(leaf, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, leaf.url)
     // PUT to update leaf
     resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
   }
+  
+  if (programId) {
+    let program = await fhirCdrClient.read({
+      resourceType: 'Library',
+      id: programId
+    }) as fhir4.Library
+  
+    if (updatedConditions) {
+      // update program with conditions
+      program = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
+    }
+    // always update priority, since it's required
+    program = setVSPriority(program, updatedPriority.value, [provisionalLeaf.url!])
+    resourcesToSaveLast.push({ method: 'PUT', resource: program })
 
-  let program = await fhirCdrClient.read({
-    resourceType: 'Library',
-    id: programId
-  }) as fhir4.Library
-
-  if (updatedConditions) {
-    // update program with conditions
-    program = setVSConditions(program, updatedConditions, [provisionalLeaf.url!], 'override')
-  }
-  // always update priority, since it's required
-  program = setVSPriority(program, updatedPriority.value, [provisionalLeaf.url!])
-  resourcesToSaveLast.push({ method: 'PUT', resource: program })
-
-  if (grouperIds) {
-    // get the associated groupers and update with the reference
-    const grouperReqItems = grouperIds?.map((id: string) => (
-      {
-        resourceType: 'ValueSet',
-        method: 'GET',
-        resourceId: id
+    if (grouperIds) {
+      // get the associated groupers and update with the reference
+      const grouperReqItems = grouperIds?.map((id: string) => (
+        {
+          resourceType: 'ValueSet',
+          method: 'GET',
+          resourceId: id
+        }
+      ))
+  
+      const getGrouperTransaction = transactionBuilder(grouperReqItems as BuilderItem[])
+  
+      // handles the 'add' case
+      const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
+  
+      if (is.operationOutcome(allGroupersToUpdate)) {
+        return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
       }
-    ))
-
-    const getGrouperTransaction = transactionBuilder(grouperReqItems as BuilderItem[])
-
-    // handles the 'add' case
-    const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
-
-    if (is.operationOutcome(allGroupersToUpdate)) {
-      return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
+  
+      // if groupers are all found, update their references with provisionalVS urls
+      const groupersToUpdate = allGroupersToUpdate.entry.map((i: fhir4.BundleEntry) => (
+        updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf.url!], 'add').grouper
+      ))
+      
+      groupersToUpdate.forEach((g: fhir4.ValueSet) => resourcesToSaveLast.push({ method: 'PUT', resource: g }))
+  
     }
+  }
+  const finalUpdates = transactionBuilder(resourcesToSaveLast)
 
-    // if groupers are all found, update their references with provisionalVS urls
-    const groupersToUpdate = allGroupersToUpdate.entry.map((i: fhir4.BundleEntry) => (
-      updateGrouperLeafs(i.resource as fhir4.ValueSet, [provisionalLeaf.url!], 'add').grouper
-    ))
-    
-    groupersToUpdate.forEach((g: fhir4.ValueSet) => resourcesToSaveLast.push({ method: 'PUT', resource: g }))
-
-    const grouperUpdateTransaction = transactionBuilder(resourcesToSaveLast)
-
-    const updatedGroupers = await fhirCdrClient.transaction({ body: grouperUpdateTransaction })
-
-    if (is.operationOutcome(updatedGroupers)) {
-      return res.status(500).json({ error: `Failed to update grouper references to provisional value set` }) 
-    } else {
-      return res.status(200).send({ newId: provisionalLeafId })
-    }
+  const updatedResources = await fhirCdrClient.transaction({ body: finalUpdates })
+  if (is.operationOutcome(updatedResources)) {
+    return res.status(500).json({ error: `Failed to update grouper references to provisional value set` }) 
+  } else {
+    return res.status(200).send({ newId: provisionalLeafId })
   }
 
   } catch (e) {
@@ -230,47 +251,53 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
   }
 }
 
-interface GetBody {
-  reference?: fhir4.CodeSystem['url']
+interface GetProvParams {
+  resourceType: 'ValueSet' | 'CodeSystem'
+  params: fhir4.SearchParameterComponent | {}
 }
 
-interface ProvisionalReqGet  extends NextApiRequest {
-  body: GetBody
-}
-
-const getProvisionalVs = async (req: ProvisionalReqGet, res: NextApiResponse) => {
+export const getProvisionals = async ({ resourceType, params={} }: GetProvParams) => {
+  if (!resourceType) return []
   try {
 
-    const {
-      // reference will only exist if users searching for
-      // a particular valueset system
-      // https://build.fhir.org/valueset.html#:~:text=ValueSet.compose.include.system
-      reference
-    } = req.body
+    const searchParams = Object.assign({
+      _tag: 'vsm-provisional'
+    }, params) as SearchParams
 
-   let searchParams = {
-    _tag: 'vsm-authored'
-  }
 
-    // ideally I wouldn't be doing this and would just be using a searchParam on
-    // an extension that designates provisional?
-    const allVsmOwnedVS = await fhirCdrClient.search({
-      resourceType: 'ValueSet',
+    const provisionalBundle = await fhirCdrClient.search({
+      resourceType,
       searchParams
     })
 
-    const results = allVsmOwnedVS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-    const provisionalLeafsOnly = results?.filter((r: any) => r.extension.find((e: any) => e.url.includes('vsm-test-extension')))
-
-    return res.status(200).json(provisionalLeafsOnly || [])
+    const allProvisionals = provisionalBundle?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[] | fhir4.CodeSystem[]
+    return allProvisionals
 
   } catch (e) {
     logger.error(e)
-    res.status(400).json({ error: 'Search for Provisional Value Sets Failed' })
+    return({ error: `Search for Provisional ${resourceType} Failed` })
+  } 
+}
+
+const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
+  try {
+    const { title, url } = req.query
+    const params = {
+      ...(title && { 'title:contains': title }),
+      ...(url && { 'url': url }),
+    }
+    const results = await getProvisionals({ resourceType: 'ValueSet', params })
+    if (results.error) {
+      return res.status(400).send(results)
+    }
+    return res.status(200).json(results || [])
+  } catch (e) {
+    logSimpleError(e)
+    return res.status(500).json({ error: 'Error encountered finding Provisional Value Sets'})
   }
 }
 
 export default handler({
   POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
-  GET: { action: getProvisionalVs, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'editor', 'reviewer'] },
 })

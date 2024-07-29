@@ -3,7 +3,7 @@ import { uniqBy } from 'lodash'
 import { provisionalVsBase } from './server/templates/provisionalVsBase'
 import { provisionalCsBase } from './server/templates/provisionalCsBase'
 import { generateNameFromTitle } from './stringHelpers'
-import { authoritativeSourceExtensionUrl } from './valueSetHelpers'
+import { EXTENSIONS } from './valueSetHelpers'
 
 interface CodeItem {
   code: string
@@ -115,6 +115,7 @@ export const updateVsMetadata = ({
     })
   }
 
+  // TODO something doesn't seem right here with nesting
   if (titleToAdd) {
     clonedVs.title = titleToAdd
     // if vs name already exists on the valueset, keep it and url the same
@@ -128,17 +129,17 @@ export const updateVsMetadata = ({
       if (!clonedVs.url) {
         clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
       }
-    }
-  }
 
-  const authSourceExists = clonedVs.extension?.find(ext => ext.url === authoritativeSourceExtensionUrl)
-  // add authoritative source if it doesn't exist
-  // needed to wait for this until URL was generated
-  if (!authSourceExists) {
-    extensionsToUpdate.push({
-      url: authoritativeSourceExtensionUrl,
-      valueUri: clonedVs.url
-    })
+      const authSourceExists = clonedVs.extension?.find(ext => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+      // add authoritative source if it doesn't exist
+      // needed to wait for this until URL was generated
+      if (!authSourceExists) {
+        extensionsToUpdate.push({
+          url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
+          valueUri: clonedVs.url
+        })
+      }
+    }
   }
 
   clonedVs.extension = extensionsToUpdate
@@ -183,6 +184,7 @@ interface CodeItem {
 interface ProvisionalCodeSystemItems {
   systemBaseUrl: string
   codeItems: CodeItem[]
+  name: string
 }
 
 const createConceptItems = (codeItemsToAdd: CodeItem[]) => {
@@ -225,12 +227,14 @@ export const updateCsCodes = ({
 // pull out into codeSystem helpers maybe
 export const createProvisionalCodeSystem = ({
   systemBaseUrl,
-  codeItems
+  codeItems,
+  name
 }: ProvisionalCodeSystemItems): fhir4.CodeSystem => {
   let codeSystemBase = provisionalCsBase
 
   // this is dynamic based on the code system, so can't be templated
   codeSystemBase.url = systemBaseUrl
+  codeSystemBase.name = name
 
   const concept = createConceptItems(codeItems)
 
@@ -238,6 +242,5 @@ export const createProvisionalCodeSystem = ({
 
   return result
 }
-
 
 

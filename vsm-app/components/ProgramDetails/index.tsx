@@ -9,12 +9,13 @@ import { is } from '@/helpers/is'
 import { useSession } from 'next-auth/react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
-import { allowEditing, can, VSMSession } from '@/helpers/rolesHelper'
-import { Row, Col, MetadataTitle, StatusTag, ManifestContainer, IndicatorContainer } from './styles'
+import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
+import { Row, Col, MetadataTitle, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
+import { ProgramCompareModal } from '../modals/ProgramCompareModal'
 import { StatusChip } from '../data-display/Chips'
 
 const ProgramDetails = () => {
@@ -26,10 +27,7 @@ const ProgramDetails = () => {
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
-
-  const toggleRefreshData = () => {
-    setRefreshData(!refreshData)
-  }
+  const [showProgramCompareModal, setShowCompareProgramModal] = useState(false)
 
   const handleCloseErrors = () => {
     setExportError(null)
@@ -60,7 +58,6 @@ const ProgramDetails = () => {
       setProgram(json)
     }
   }
-
 
   // early return if no data, must be a library if there's data
   if (!is.library(program)) {
@@ -93,6 +90,18 @@ const ProgramDetails = () => {
               setExportError(null)
               setShowExportOptionsModal(true)
             }}
+          />
+          <Button
+            text={'Compare'}
+            style={{ marginTop: '15px' }}
+            onClick={() => {
+              setShowCompareProgramModal(true)
+            }}
+          />
+          <ProgramCompareModal
+            isOpen={showProgramCompareModal}
+            programId={id}
+            closeModal={() => setShowCompareProgramModal(false)}
           />
           <ExportPackageDetailsModal
             isOpen={showExportOptionsModal}
@@ -130,9 +139,7 @@ const ProgramDetails = () => {
         )}
       </Row>
       <GrouperOverviewTable
-        toggleRefreshData={toggleRefreshData}
         grouperLibId={programAndGrouperData?.grouperLibrary?.id}
-        // @ts-ignore-next-line
         programStatus={programAndGrouperData?.program?.status}
       />
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>

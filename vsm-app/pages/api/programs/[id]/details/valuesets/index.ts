@@ -51,7 +51,7 @@ const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> 
   return program
 }
 
-const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
+export const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
   // get the grouper canonical, which is a Library resource
   // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
   const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
@@ -70,7 +70,7 @@ const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library 
   return { error: `Could not get Grouper Library for Program ${program.id}` }
 }
 
-const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
+export const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
   grouperVs?.compose?.include
     ?.map((item) => item?.valueSet)
     ?.filter((x) => !!x) // filter out undefined
@@ -78,13 +78,14 @@ const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
 
 // All leaf valuesets are required to belong to at least one grouper
 // so if none exist, this is a problem
-const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
+export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
   const grouperValueSetCanonicals = grouperLib.relatedArtifact
     ?.filter((a) => a.type == 'composed-of')
     .map((res) => res.resource)
     .filter(isDefinedString)
 
   if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
+
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
@@ -100,9 +101,10 @@ interface GetLeafs {
   allGrouperVSets: fhir4.ValueSet[]
   titleToFind: string
   stewardToFind: string
+  publisherToFind: string
   versionToFind: string
   oidToFind: string
-  provisionalOnly?: boolean
+  provisionalOnly: boolean
 }
 
 type LeafVersionsByUrl = Record<string, string>
@@ -117,9 +119,10 @@ const getLeafValueSets = async ({
   allGrouperVSets,
   titleToFind,
   stewardToFind,
+  publisherToFind,
   versionToFind,
   oidToFind,
-  provisionalOnly
+  provisionalOnly = false
 }: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
@@ -132,10 +135,10 @@ const getLeafValueSets = async ({
     })
   })
   if (!leafValueSetCanonicals.length) {
-      return ({
-        leafValueSets: [],
-        leafVersionsByCanonical: {},
-        totalLeafs: 0
+    return ({
+      leafValueSets: [],
+      leafVersionsByCanonical: {},
+      totalLeafs: 0
     })
   }
 
@@ -143,6 +146,7 @@ const getLeafValueSets = async ({
     leafValueSetCanonicals,
     titleToFind,
     stewardToFind,
+    publisherToFind,
     versionToFind,
     oidToFind,
     whitelistFields: WHITELIST_VALUESET_FIELDS,
@@ -231,12 +235,14 @@ const formatValuesetData = (
 
       return {
         keyField: `${valueSet.url}-${valueSet.version}-${index}`,
-        programName: program?.name || 'Undefined',
-        programId: program?.id || 'Undefined',
-        programStatus: program?.status || 'Unknown', // I don't think really need these program values as most routes start with retrieving a program
-        title: valueSet?.name || 'Undefined',
-        canonical: valueSet?.url || 'Undefined',
-        version: valueSet?.version || '',
+        programName: program?.name || '[Undefined]',
+        programId: program?.id || '[Undefined]',
+        programStatus: program?.status || '[Undefined]', // I don't think really need these program values as most routes start with retrieving a program
+        title: valueSet?.title || '[Undefined]',
+        name: valueSet?.name || '[Undefined]',
+        canonical: valueSet?.url || '[Undefined]',
+        publisher: valueSet?.publisher || '[Undefined]',
+        version: valueSet?.version || '[Undefined]',
         valueSetPinnedVersion,
         valueSet: valueSet,
         groups: groupsVsBelongsTo
@@ -258,10 +264,10 @@ type ExtendedReq = NextApiRequest & {
     findInOid?: string
     findInVsTitle?: string
     findInSteward?: string
+    findInPublisher?: string
     findInVersion?: string
     groups?: string
     conditions?: string
-    provisionalOnly?: string
   }
 }
 
@@ -270,10 +276,10 @@ type RequestQueryParams = {
   findInOid?: string
   findInVsTitle?: string
   findInSteward?: string
+  findInPublisher?: string
   findInVersion?: string
   groups?: string
   conditions?: string
-  provisionalOnly?: boolean
 }
 
 // TODO: maybe move this out of the route?
@@ -281,11 +287,11 @@ export const getProgramDetailsValuesets = async ({
   id: programId,
   findInOid,
   findInSteward,
+  findInPublisher,
   findInVersion,
   findInVsTitle,
   groups,
-  conditions,
-  provisionalOnly
+  conditions
 }: RequestQueryParams) => {
   try {
     const program = await getProgram(programId)
@@ -303,7 +309,6 @@ export const getProgramDetailsValuesets = async ({
     }
 
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
-
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
       logger.error(`Problem encountered getting grouper valuesets for Program ${programId}`)
       return { status: 400, payload: { error: grouperValueSets.error } }
@@ -314,9 +319,10 @@ export const getProgramDetailsValuesets = async ({
       allGrouperVSets: grouperValueSets,
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
+      publisherToFind: findInPublisher || '',
       versionToFind: findInVersion || '',
       titleToFind: findInVsTitle || '',
-      provisionalOnly: Boolean(provisionalOnly)
+      provisionalOnly: false
     })
 
     if (isError(leafVsetResponse)) {
@@ -341,7 +347,7 @@ export const getProgramDetailsValuesets = async ({
           vsInRequiredGroup({
             groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
             groupIdsToFilterBy: filterGroups
-          }) 
+          })
       )
       .filter((x) => !!x)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)

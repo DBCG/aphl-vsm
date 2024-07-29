@@ -13,8 +13,8 @@ const EXTENSIONS = {
 } as const
 
 const VSM_LEAF_PROFILE_URLS = {
-   CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
-   HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
+  CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
+  HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
@@ -94,7 +94,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
-const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
+const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
     const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
@@ -104,6 +104,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet): TerminologyResult => {
       hasExtension: true
     }
   } else {
+    errors.push(`Value Set ${valueSet.id} has no Authoritative Source`)
     // if no other choice, INFER the terminology server
     // check if valueset url shares a base url with one of the terminology servers
     // if so, use that as the return
@@ -224,7 +225,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
   const { author, ...rest } = metadata
 
   // apply all fields that are flat
-  const vs = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.name?.replace(' ', '')}` })
+  const vs: fhir4.ValueSet = Object.assign({}, templateVS, rest, { url: `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${metadata.name?.replace(' ', '')}` })
 
   // apply extension
   vs.extension = [
@@ -354,7 +355,6 @@ const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
   return valueset;
 }
 
-const authoritativeSourceExtensionUrl = EXTENSIONS.AUTH_SOURCE_EXTENSION_URL
 export {
   getVsSteward,
   isVSMOwnedVSet,
@@ -362,7 +362,7 @@ export {
   getOid,
   addExtensionToVs,
   addValueSetToGrouper,
-  authoritativeSourceExtensionUrl,
+  EXTENSIONS,
   getProgramManifestVersions,
   getTerminologySource,
   removeValueSetFromGrouper,

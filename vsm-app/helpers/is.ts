@@ -2,10 +2,14 @@ import { HapiError } from "@/types/hapiError"
 import { ErrorResponse } from 'pages/api/programs/[id]/grouper/valueset'
 import { HapiHttpErrorRes } from "./server/operationOutcomeHelpers"
 
-type SemverType = `${number}.${number}.${number}.${number}` | `${number}.${number}.${number}`
-// this regex is numeric only and matches MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH.REVISION
-// matches values like 1.0.0.0 or 1.0.1, 20.1.1.10 or 20.1.1, 4000.29439.8198.1234 or 4000.29439.8198 etc
-const semverRegex = /^(\d+\.)(\d+\.)(\d+\.)?(\*|\d+)$/
+export interface ErrorItem {
+  error: string
+}
+
+type SemverType = `${number}.${number}.${number}`
+// this regex is numeric only and matches MAJOR.MINOR.PATCH
+// matches values like 1.0.0.or 1.0.1, 20.1.1, 4000.29439.8198, etc
+const semverRegex = /^(\d+\.)(\d+\.)(\d+)$/
 
 const is = {
   activityDefinition: (resource: fhir4.ActivityDefinition | any): resource is fhir4.ActivityDefinition => {
@@ -47,6 +51,9 @@ const is = {
   },
   errorResponse: (resource: ErrorResponse | any): resource is ErrorResponse => {
     return typeof resource?.errorMessage === 'string' && typeof resource?.resStatus === 'number'
+  },
+  errorItem: (resource: ErrorItem | any): resource is ErrorItem => {
+    return typeof resource?.error === 'string'
   },
   hapiError: (error: any): error is HapiError => {
     return (
