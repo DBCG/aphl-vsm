@@ -27,7 +27,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v2 bundle for download', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       data: {
         json: true,
         useV2: true,
@@ -79,7 +79,7 @@ describe('/api/programs/[id]/package', () => {
     expect(fetchMock.mock.calls[1][0]).toContain('/fhir/$ersd-v2-to-v1-transform?_format=json')
     expect(fetchMock.mock.calls.length).toEqual(2)
 
-    const inputPayload = JSON.parse(fetchMock.mock.calls[1][1].body)
+    const inputPayload = JSON.parse(fetchMock?.mock?.calls?.[1]?.[1]?.body as string)
     expect(inputPayload.parameter[1].name).toEqual('targetVersion')
     expect(inputPayload.parameter[1].valueString).toEqual('4.0.0')
 
@@ -118,7 +118,7 @@ describe('/api/programs/[id]/package', () => {
 
     await handler(req, res)
 
-    const inputPayload = JSON.parse(fetchMock.mock.calls[1][1].body)
+    const inputPayload = JSON.parse(fetchMock?.mock?.calls?.[1]?.[1]?.body as string)
     const replacedPlanDef = inputPayload.parameter[0].resource.entry.find((e: any) => e.resource.resourceType === 'PlanDefinition')
 
     expect(replacedPlanDef.resource.id).toEqual('superspecial')
