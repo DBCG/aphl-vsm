@@ -1,9 +1,10 @@
 import { createMocks } from 'node-mocks-http'
-import handler, { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
+import handler, { ExpectedPackageBody, PackageResponse } from '@/pages/api/programs/[id]/package'
 import fetchMock from 'jest-fetch-mock'
 import v2ExportResponse from '@/test_fixtures/ersd-export-v2.json'
 import v1ExportResponse from '@/test_fixtures/ersd-export-v1.json'
 import { cloneDeep } from 'lodash'
+import { NextApiResponse } from 'next'
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
@@ -35,7 +36,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -51,7 +52,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       data: {
         json: true,
@@ -61,7 +62,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -87,7 +88,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download with provided planDefintion', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       planDefinition: {
         resourceType: 'PlanDefinition',
@@ -103,7 +104,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -125,7 +126,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 error for missing planDefinition from v2 and not provided', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       data: {
         json: true,
@@ -135,7 +136,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -145,7 +146,7 @@ describe('/api/programs/[id]/package', () => {
 
     const v2ExportResponseMissingPlanDef = cloneDeep(v2ExportResponse)
     v2ExportResponseMissingPlanDef.entry = v2ExportResponseMissingPlanDef.entry.filter(
-      (e: any) => e.resource.resourceType !== 'PlanDefinition'
+      (e) => e.resource.resourceType !== 'PlanDefinition'
     )
 
     // v2 export response
@@ -153,8 +154,8 @@ describe('/api/programs/[id]/package', () => {
 
     await handler(req, res)
     expect(res._getStatusCode()).toBe(400)
-    expect(res._getData()).toBe(
-      '{"error":"No PlanDefinition resource found in v2 package response nor was uploaded as part of the request"}'
+    expect(res._getData()).toEqual(
+      { error: "No PlanDefinition resource found in v2 package response nor was uploaded as part of the request" }
     )
   })
 })

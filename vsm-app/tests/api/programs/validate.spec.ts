@@ -1,8 +1,9 @@
 import { createMocks } from 'node-mocks-http'
 import { fhirCdrClient } from 'fhirClients'
-import handler from '@/pages/api/programs/validate'
+import handler, { ValidateBody, ValidateErrorResponse } from '@/pages/api/programs/validate'
+import { NextApiResponse } from 'next'
 
-const testValidationPackage = {
+const testValidationPackage: fhir4.Bundle = {
   resourceType: 'Bundle',
   type: 'transaction',
   entry: [
@@ -10,7 +11,8 @@ const testValidationPackage = {
       fullUrl: 'http://test-full-url',
       resource: {
         resourceType: 'ValueSet',
-        id: '123'
+        id: '123',
+        status: "active"
       },
       request: {
         method: 'POST',
@@ -18,9 +20,9 @@ const testValidationPackage = {
       }
     }
   ]
-} as fhir4.Bundle
+}
 
-const parameterizedValidationPackage = {
+const parameterizedValidationPackage: fhir4.Parameters = {
   resourceType: 'Parameters',
   parameter: [
     {
@@ -40,11 +42,16 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve({ test: 100 }),
+  }),
+) as jest.Mock;
 
 describe('/api/programs/validate', () => {
 
   test('should call cqf $validate', async () => {
-    const { req, res } = createMocks({
+    const { req, res } = createMocks<ValidateBody, NextApiResponse<ValidateErrorResponse>>({
       method: 'POST',
       body: {
         pkg: testValidationPackage
@@ -52,15 +59,12 @@ describe('/api/programs/validate', () => {
     })
 
     await handler(req, res)
-    expect(fhirCdrClient.operation).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.operation).toHaveBeenCalledWith({
-      name: '$validate',
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(global.fetch).toHaveBeenCalledWith("undefined/$validate", {
       method: 'POST',
-      input: JSON.stringify(parameterizedValidationPackage),
-      options: {
-        headers: {
-          'Content-Type': `application/fhir+json`
-        }
+      body: JSON.stringify(parameterizedValidationPackage),
+      headers: {
+        'Content-Type': `application/fhir+json`
       }
     })
   })

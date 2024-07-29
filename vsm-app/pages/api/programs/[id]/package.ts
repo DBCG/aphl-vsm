@@ -49,12 +49,21 @@ const crmiPackage = async (
       if (response.resourceType === 'OperationOutcome') {
         return res.status(500).send({ error: response?.issue?.map((e) => e?.diagnostics!).join(", ") || 'Error encountered while packaging V1' })
       }
-      response = await convertV2toV1(
-        response,
-        format = json, // reset to actual format for v1
-        planDefinition,
-        targetVersion
-      )
+      try {
+        response = await convertV2toV1(
+          response,
+          format = json, // reset to actual format for v1
+          planDefinition,
+          targetVersion
+        )
+      } catch (error: any) {
+        // print V2/V1 errors
+        if (typeof error === "string") {
+          return res.status(400).send({ error })
+        } else {
+          throw error
+        }
+      }
     }
     if ((typeof response !== "string" && response.resourceType === 'OperationOutcome')
       || (typeof response === "string" && response.startsWith("<OperationOutcome"))) {
