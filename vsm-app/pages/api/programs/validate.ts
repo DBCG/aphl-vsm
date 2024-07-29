@@ -37,11 +37,13 @@ const validatePackage = async (
       }
     })
 
-    const breakingErrors = formatErrors(validateResponse)
+    const nonBreakingErrors = formatErrors(validateResponse)
 
     // validation failure does not break the workflow in the app
-    return res.status(200).send({ error: breakingErrors?.map(e =>
-      `Location: ${e.location!.join(' ')}: \n${e.diagnostics!}`) || [] })
+    return res.status(200).send({
+      error: nonBreakingErrors?.map(e =>
+        `Location: ${e.location?.join(' ') || "[Unknown Location]"}: \n${e.diagnostics || "[Unknown Issue]"}`) || []
+    })
   } catch (e) {
     logSimpleError(e, 'validate.ts')
     return res.status(500).send({ error: 'Resource validation failed' })
