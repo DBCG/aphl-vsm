@@ -19,7 +19,8 @@ type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in
 const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse) => {
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
   const methodFn = methodHandlers[req.method as requestTypes]
-  if (!req.method || !(req.method in requestTypes) || !methodFn) {
+  // have to do "as any" because TS is annoying about readonlys
+  if (!req.method || !(requestTypes.includes(req.method as any)) || !methodFn) {
     logger.error(`${req.method} not allowed for ${req.url}`)
     return res.status(405).json({ error: 'Method not allowed' })
   }
