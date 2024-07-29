@@ -98,7 +98,7 @@ export const formatErrors = (
     return result
   } else if (is.operationOutcome(opOutcome)) {
     return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || []
-  } else if (opOutcome.resourceType === 'Bundle') {
+  } else if (opOutcome?.resourceType === 'Bundle') {
     return opOutcome.entry
       ?.filter(entry => entry?.resource?.resourceType === "OperationOutcome")
       ?.flatMap(entry => formatErrors(entry.resource as fhir4.OperationOutcome)) || []
