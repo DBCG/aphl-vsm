@@ -14,7 +14,7 @@ interface ParsedIssueItem {
 interface IssueItem {
   severity: string
   code: string
-  diagnostics: string
+  diagnostics?: string
   location?: string[]
 }
 
@@ -31,7 +31,7 @@ const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => {
   }) as IssueItem
 
   if (item.location) {
-    res.location = item.location['@_value'] 
+    res.location = item.location['@_value']
   }
 
   return res
@@ -78,24 +78,28 @@ export interface HapiHttpErrorRes {
 // currently returns only breaking errors
 // when opOutcome is a string it's xml + needs to be parsed
 export const formatErrors = (
-  opOutcome: fhir4.OperationOutcome | 'string' | HapiHttpErrorRes | any
-): IssueItem[] | fhir4.OperationOutcomeIssue[] => {
+  opOutcome: fhir4.OperationOutcome | string | HapiHttpErrorRes | fhir4.Bundle
+): IssueItem[] => {
   if (typeof opOutcome === 'string') {
     if (opOutcome.startsWith('<OperationOutcome')) {
       const jsObj = parser.parse(opOutcome)
       if (conformsToIssueFormat(jsObj) === true) {
         return normalizeIssueFormat(jsObj.OperationOutcome.issue)
       } else {
-        logSimpleError('Input not properly formatted') 
+        logSimpleError('Input not properly formatted')
       }
     } else {
-      logSimpleError('Input not an OperationOutcome')
+      logSimpleError('Expected XML OperationOutcome, received unknown string')
     }
   } else if (is.hapiErrorHttpRes(opOutcome)) {
     const result = [simplifyHapiHttpError(opOutcome)]
     return result
   } else if (is.operationOutcome(opOutcome)) {
     return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || []
+  } else if (opOutcome.resourceType === 'Bundle') {
+    return opOutcome.entry
+      ?.filter(entry => entry?.resource?.resourceType === "OperationOutcome")
+      ?.flatMap(entry => formatErrors(entry.resource as fhir4.OperationOutcome)) || []
   }
   return []
 }
