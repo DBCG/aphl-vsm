@@ -35,7 +35,22 @@ const crmiPackage = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundl
         // should be Basic Auth creds
         ...fhirCdrClient.customHeaders
       }
-    }).then((r) => (json || useV1 ? r.json() : r.text()))
+    })
+      .then((r) => {
+        if (r.ok) {
+          return data?.json || useV1 ? r.json() : r.text() as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>
+        } else {
+          throw new Error("Unknown error executing package")
+        }
+      })
+      .catch((err) => {
+        logSimpleError(err)
+        if ("cause" in err) {
+          throw err.cause
+        } else {
+          throw err
+        }
+      })
 
     if (useV1) {
       format = json ? 'json' : 'xml' // reset to actual format for v1
