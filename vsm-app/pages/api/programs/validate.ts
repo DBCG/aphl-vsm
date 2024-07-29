@@ -4,38 +4,58 @@ import { fhirCdrClient } from '@/fhirClients'
 import handler from '@/helpers/server/handler'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
-interface ErrorResponse {
+export interface ValidateErrorResponse {
   error: string | string[]
+}
+export interface ValidateBody extends NextApiRequest {
+  body: {
+    pkg: fhir4.Bundle | string
+  }
 }
 
 // confirmed only need to validate JSON
 const validatePackage = async (
-  req: NextApiRequest,
-  res: NextApiResponse<[] | ErrorResponse>): Promise<void> => {
+  req: ValidateBody,
+  res: NextApiResponse<ValidateErrorResponse>): Promise<void> => {
   try {
     const { pkg } = req.body
-
-    const validateParameters = {
-      resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'resource',
-          resource: pkg
-        }
-      ]
-    }
-
-    const validateResponse = await fhirCdrClient.operation({
-      name: '$validate',
-      input: JSON.stringify(validateParameters),
-      method: 'POST',
-      options: {
-        headers: {
-          'Content-Type': `application/fhir+json`,
-          ...fhirCdrClient.customHeaders
-        }
+    let parameters: string;
+    // string means XML
+    if (typeof pkg === 'string') {
+      parameters = `<Parameters xmlns='http://hl7.org/fhir'>
+                      <parameter>
+                        <name value='resource'/>
+                        <resource>
+                            ${pkg}
+                        </resource>
+                      </parameter>
+                    </Parameters>`
+    } else {
+      const validateParameters: fhir4.Parameters = {
+        resourceType: 'Parameters',
+        parameter: [
+          {
+            name: 'resource',
+            resource: pkg
+          }
+        ]
       }
-    })
+      parameters = JSON.stringify(validateParameters)
+    }
+    const validateResponse = (await fetch(fhirCdrClient.baseUrl + '/$validate', {
+      method: 'POST',
+      body: parameters,
+      headers: {
+        'Content-Type': `application/fhir+${typeof pkg === "string" ? "xml" : "json"}`,
+        ...fhirCdrClient.customHeaders
+      }
+    }).then((response => {
+      if (typeof pkg === "string") {
+        return response.text()
+      } else {
+        return response.json()
+      }
+    }))) as fhir4.OperationOutcome | string
 
     const nonBreakingErrors = formatErrors(validateResponse)
 

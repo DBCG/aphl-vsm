@@ -8,7 +8,7 @@ interface ParsedIssueItem {
   severity: { '@_value': string }
   code: { '@_value': string }
   diagnostics: { '@_value': string }
-  location?: { '@_value': string[] }
+  location?: { '@_value': string } | { '@_value': string }[]
 }
 
 interface IssueItem {
@@ -30,8 +30,10 @@ const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => {
     diagnostics: item.diagnostics['@_value'],
   }) as IssueItem
 
-  if (item.location) {
-    res.location = item.location['@_value']
+  if (item.location && Array.isArray(item.location)) {
+    res.location = item.location.map(l => l["@_value"])
+  } else if (item.location) {
+    res.location = [item.location['@_value']]
   }
 
   return res

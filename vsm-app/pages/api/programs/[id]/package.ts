@@ -56,8 +56,9 @@ const crmiPackage = async (
         targetVersion
       )
     }
-    const errors = formatErrors(response)
-    if (errors.length || (typeof response !== "string" && response.resourceType === 'OperationOutcome')) {
+    if ((typeof response !== "string" && response.resourceType === 'OperationOutcome')
+      || (typeof response === "string" && response.startsWith("<OperationOutcome"))) {
+      const errors = formatErrors(response)
       return res.status(500).send({ error: errors.map(e => e.diagnostics!).join(", ") })
     }
     res.send(sanitizeExport(response))
