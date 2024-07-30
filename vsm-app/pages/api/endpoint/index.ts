@@ -12,6 +12,12 @@ export interface EndpointResponse {
   total: number
 }
 const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.Endpoint | FhirResource>) => {
+  if (!req.body?.endpoint?.address?.trim()) {
+    throw "Missing address/URL on submitted resource"
+  }
+  if (!req.body?.endpoint?.name?.trim()) {
+    throw "Missing human-readable name on submitted resource"
+  }
   // add/edit endpoint
   let updatedEndpoint: FhirResource | fhir4.Endpoint
   if (req.body?.endpoint?.id) {
