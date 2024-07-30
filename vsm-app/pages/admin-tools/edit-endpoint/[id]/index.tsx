@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import { TerminologyServerForm } from '@/components/TerminologyServerForm'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import LoadingIndicator from '../../../../components/LoadingIndicator'
+import LoadingIndicator from '@/components/LoadingIndicator'
 import { ErrorMessage } from '@/components/ErrorMessage'
 
 const EditEndpointPage: NextPage = () => {
