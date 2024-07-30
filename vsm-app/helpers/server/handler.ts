@@ -5,15 +5,27 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
-
-const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse) => {
+const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
+type requestTypes = typeof requestTypes[number]
+type action<T extends NextApiRequest> = (req: T, res: NextApiResponse, session?: VSMSession) => Promise<any>
+// we have to do this intermediate step because TS doesn't support mapped generics nicely
+type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof T]: action<U> }> = {
+  [k in keyof T]?: T[k] extends action<infer V> ?
+  V extends NextApiRequest ?
+  { action: action<V>, access?: string[] } : never
+  : never
+}
+type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in requestTypes]: action<T> }>
+const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse): Promise<void> => {
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
-  const methodFn = methodHandlers[req.method as string]
-  logger.info(`Request: ${req?.method} ${req?.url}`)
-  if (methodFn == null) {
+  const methodFn = methodHandlers[req.method as requestTypes]
+  // have to do "as any" because TS is annoying about readonlys
+  if (!req.method || !(requestTypes.includes(req.method as any)) || !methodFn) {
     logger.error(`${req.method} not allowed for ${req.url}`)
     return res.status(405).json({ error: 'Method not allowed' })
   }
+
+  logger.info(`Request: ${req?.method} ${req?.url}`)
 
   try {
     const { action, access } = methodFn
