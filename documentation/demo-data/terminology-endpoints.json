@@ -8,15 +8,15 @@
           "fullUrl": "Endpoint/vsac-endpoint",
           "resource":
           {
-            resourceType: "Endpoint",
-            id: "vsac-endpoint",
-            identifier: [{ value: "terminologyEndpoint" }],
-            connectionType: { code: "fhir", system: "http://hl7.org/fhir/ValueSet/endpoint-connection-type" },
-            status: "active",
-            payloadType: [],
-            name: "VSAC",
-            address: "https://cts.nlm.nih.gov/fhir",
-            extension: [{url:"http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type", valueString:"Basic Authentication"}]
+            "resourceType": "Endpoint",
+            "id": "vsac-endpoint",
+            "identifier": [{ "value": "terminologyEndpoint" }],
+            "connectionType": { "code": "fhir", "system": "http://hl7.org/fhir/ValueSet/endpoint-connection-type" },
+            "status": "active",
+            "payloadType": [],
+            "name": "VSAC",
+            "address": "https://cts.nlm.nih.gov/fhir",
+            "extension": [{"url":"http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type", "valueString":"Basic Authentication"}]
           },
           "request":
           {
