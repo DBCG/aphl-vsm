@@ -59,13 +59,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       setLoading(false)
     }
   }
-  function validateAddress(e: ChangeEvent<HTMLInputElement>) {
-    const address = e.target.value
-    const invalid = 'Warning: The address provided does not appear to be valid'
-    if (!address) {
-      setAddressError('')
-      return
-    }
+  function validateWithHttpCall(address: string) {
+    const invalid = 'Warning: The address provided could not be resolved'
     const endpoint = `/api/endpoint/test`
     const body: TestRequest['body'] = { endpoint: address }
     return fetch(endpoint, {
@@ -81,7 +76,18 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       })
       .catch(() => setAddressError(invalid))
   }
-  const debouncedValidate = debounce(validateAddress, 1500)
+  function isValidUrl(url: string) {
+    try {
+      new URL(url)
+    } catch (_) {
+      setAddressError('Error: The address provided is malformed')
+      return false
+    }
+    setAddressError('')
+    return true
+  }
+  const debouncedValidateWithHTTPCall = debounce(validateWithHttpCall, 1500)
+  const debouncedValidUrl = debounce(isValidUrl, 150)
   useEffect(() => {
     if (!!endpoint) {
       setEndpointToUpdate(endpoint)
@@ -109,15 +115,30 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
           <SubtitleRow>
             <StyledSpan>{endpoint ? 'Edit' : 'Add'} Endpoint</StyledSpan>
           </SubtitleRow>
-          <SearchInput id="name" label="Name" helperMessage="Human readable name for the Endpoint" inputRef={name} />
+          <SearchInput id="name" label="Name" helperMessage="Human readable name for the Endpoint" inputRef={name} disabled={loading} />
           <SearchInput
             id="address"
             label="Address"
             helperMessage="Endpoint address / URL"
             inputRef={address}
             errorMessage={addressError}
-            onChange={(v) => debouncedValidate(v)}
-            onBlur={(v) => validateAddress(v)}
+            onChange={(v) => {
+              const address = v.target.value
+              if (!address) {
+                setAddressError('')
+                return
+              }
+              if (debouncedValidUrl(address)) {
+                debouncedValidateWithHTTPCall(address)
+              }
+            }}
+            onBlur={(v) => {
+              const address = v.target.value
+              if (isValidUrl(address)) {
+                validateWithHttpCall(address)
+              }
+            }}
+            disabled={loading}
           />
           <LabelStyled>
             Type{' '}
@@ -137,17 +158,25 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             ref={authenticationType}
             onChange={() => authenticationType?.current?.focus()}
             instanceId={'commentType'}
+            isDisabled={loading}
           />
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-        <Button style={{ marginRight: '15px' }} id="submit-approve" text="Submit" onClick={handleSubmit} loading={loading} />
+        <Button
+          style={{ marginRight: '15px' }}
+          id="submit-approve"
+          text="Submit"
+          onClick={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        />
         <Button
           style={{ marginLeft: '15px' }}
           id="back-to-admin-tools"
           text="Back to Admin Tools"
           onClick={() => router.push('/admin-tools')}
-          loading={loading}
+          disabled={loading}
         />
       </Row>
     </>
