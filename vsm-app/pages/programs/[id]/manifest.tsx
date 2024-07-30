@@ -4,7 +4,8 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import { useRouter } from 'next/router'
 import { Row } from '@/styles'
 import { Button } from '@/components/buttons/Button'
-import { getLibraryServerSide, LibraryServerSideProps } from '@/utils/getLibraryServerSide'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
 const ManifestPage = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
@@ -27,14 +28,5 @@ const ManifestPage = ({ program }: LibraryServerSideProps) => {
     </>
   )
 }
-
-export const getServerSideProps = getLibraryServerSide(async ({ program }: LibraryServerSideProps) => {
-  return {
-    props: {
-      program
-    }
-  }
-})
-
 
 export default ManifestPage

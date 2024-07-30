@@ -1,4 +1,3 @@
-import { getLibraryServerSide, LibraryServerSideProps } from '@/utils/getLibraryServerSide'
 import React, { useEffect, useState } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
@@ -23,6 +22,8 @@ import { CombinedGrouperVSets, FlatGrouperVSet, GrouperMetadata } from '@/types/
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
 const defaultFormData = {
   name: '',
@@ -62,7 +63,7 @@ export interface PriorityHandler {
   vsId: fhir4.ValueSet['id']
 }
 
-const AddGrouper = ({ program }: { program: fhir4.Library }) => {
+const AddGrouper = ({ program }: LibraryServerSideProps) => {
   const [grouperVSets, setGrouperVSets] = useState<FlatGrouperVSet[]>([])
   const [title, setTitle] = useState(defaultFormData.title)
   const [name, setName] = useState(defaultFormData.name)
@@ -298,13 +299,5 @@ const AddGrouper = ({ program }: { program: fhir4.Library }) => {
     </>
   )
 }
-
-export const getServerSideProps = getLibraryServerSide(async ({ program }: LibraryServerSideProps) => {
-  return {
-    props: {
-      program
-    }
-  }
-})
 
 export default AddGrouper
