@@ -281,10 +281,12 @@ export const getProvisionals = async ({ resourceType, params={} }: GetProvParams
 
 const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { title, url } = req.query
+    const { title, url, codeSystemUrl, containsCode } = req.query
     const params = {
       ...(title && { 'title:contains': title }),
       ...(url && { 'url': url }),
+      ...(codeSystemUrl && { 'reference': codeSystemUrl }),
+      ...(containsCode && { 'code': containsCode }),
     }
     const results = await getProvisionals({ resourceType: 'ValueSet', params })
     if (results.error) {

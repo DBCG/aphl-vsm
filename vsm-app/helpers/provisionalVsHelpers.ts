@@ -198,7 +198,7 @@ const createConceptItems = (codeItemsToAdd: CodeItem[]) => {
 interface UpdateCSCodes {
   codeSystem: fhir4.CodeSystem
   codeItems: fhir4.CodeSystemConcept[]
-  action: 'add' | 'remove'
+  action: 'add' | 'remove' | 'override'
 }
 // if code already exists, 'add' will override with the latest definition
 export const updateCsCodes = ({
@@ -209,6 +209,9 @@ export const updateCsCodes = ({
   const clonedCS = cloneDeep(codeSystem)
   const existingConcept = clonedCS.concept || []
   if (action === 'add') {
+    const newConcept = uniqBy([...codeItems, ...existingConcept], 'code')
+    clonedCS.concept = newConcept
+  } if (action === 'override') {
     const newConcept = uniqBy([...codeItems, ...existingConcept], 'code')
     clonedCS.concept = newConcept
   } else if (action === 'remove') {

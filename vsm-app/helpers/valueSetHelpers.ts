@@ -6,6 +6,8 @@ import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { get, uniq } from 'lodash'
 import { VSM_META_PROFILE_URLS } from '@/constants'
+import { UpdateData } from '@/pages/api/codesystem/provisional'
+import logger from './server/logger'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
@@ -358,6 +360,42 @@ const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
   return valueset;
 }
 
+
+interface UpdateVsItems {
+  vs: fhir4.ValueSet
+  action: 'replace'
+  updateData: UpdateData
+  csUrl: string
+}
+
+const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
+  try {
+    const clonedVs = cloneDeep(vs)
+    let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
+  
+    if (action === 'replace') {
+      updateData.codeUpdates.forEach(updateItem => {
+        const indexOfSystem = composeBlock.include?.findIndex((i) => i.system === csUrl)
+        const indexOfUpdateItem = composeBlock.include[indexOfSystem]?.concept.findIndex((i) => i.code === updateItem.old.code)
+        if (indexOfUpdateItem !== undefined && indexOfUpdateItem > -1) {
+          const itemForVsComposeConcept = {
+            code: updateItem.new.code,
+            display: updateItem.new.display
+          }
+          composeBlock.include[indexOfSystem].concept[indexOfUpdateItem] = itemForVsComposeConcept
+        } else {
+          const errorText = `Failed to replace code in system with url ${csUrl} in Value Set with url ${vs.url} (${vs.title || vs.name})`
+          throw new Error(errorText)
+        }
+      })
+    }
+    clonedVs.compose = composeBlock
+    return clonedVs
+  } catch (e) {
+    return ({ error: e?.message || `Error encountered while replacing code in Value Set with url ${vs.url}` })
+  }
+}
+
 export {
   getVsSteward,
   isVSMOwnedVSet,
@@ -381,5 +419,6 @@ export {
   transformFromVSACToCqf,
   isProvisionalVs,
   isGrouperValueSet,
-  addProfileToValueSet
+  addProfileToValueSet,
+  updateVsCodeItem
 }

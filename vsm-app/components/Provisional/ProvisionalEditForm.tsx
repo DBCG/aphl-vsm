@@ -10,13 +10,21 @@ import { TextArea } from '@/components/TextArea'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
 import DataTable from 'react-data-table-component'
-import { IconButton } from '@mui/material'
-import { DeleteForeverSharp } from '@mui/icons-material'
+import { Box, Chip, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, MenuList, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
 import { LoadingMessage } from '../ProgramValueSetDetails/styles'
+import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
 import { debounce } from 'lodash'
 import { ErrorMessage } from '../ErrorMessage'
+import ModeEditIcon from '@mui/icons-material/ModeEdit'
+import { toast } from 'react-toastify'
+import { updateProvisionalCs } from '@/hooks/useUpdateProvisionalCS'
+import { findProvVsUsingCode } from '@/hooks/findProvVsUsingCode'
+import Modal from '@mui/material/Modal'
+import style from 'styled-jsx/style'
+import { findProgramByProvisionalLeaf } from '@/pages/provisional/valueset'
+import ArrowOutward from '@mui/icons-material/ArrowOutward'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -40,6 +48,17 @@ const NoProvVsWrapper = styled.div`
   background-color: white;
   flex-grow: 1;
 `
+
+const modalStyle = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  maxWidth: '100%',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+};
 
 const noDataComponent = (tableType: 'setProvisionals' | 'reviewProvisionals') => {
   if (tableType === 'setProvisionals') {
@@ -70,29 +89,280 @@ const allFieldsExist = (codeItems: string[]) => {
   return allFieldsPopulated
 }
 
-const ExistingCodesTable = ({ codeSystem }: { codeSystem?: fhir4.CodeSystem }) => {
+
+const ExistingCodesTable = ({ codeSystem, isEditable, codeToEdit, setCodeToEdit }: { codeSystem?: fhir4.CodeSystem }) => {
+  const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
+  const defaultItem = { code: '', definition: '', display: '' }
+  const [updatedCodeItem, setUpdatedCodeItem] = useState(defaultItem)
+  const [codeUpdateLoading, setCodeUpdateLoading] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [matchingValueSets, setMatchingValueSets] = useState([])
+  const { provisionalContext } = useGetProvisionalContext()
+  const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => updatedCodeItem[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
+
+  const changesExist = useMemo(
+    () => {
+      return (Object.keys(updatedCodeItem).find(k => updatedCodeItem?.[k]?.trim() !== originalCodeItemToEdit?.[k]?.trim()))
+    }, [updatedCodeItem, originalCodeItemToEdit])
+
+  const handleSaveAttempt = async (userConfirmedOverride?: boolean) => {
+    setCodeUpdateLoading(true)
+    if (!allFieldsPresent) {
+      toast.error('All fields must be filled out')
+    } else if (!changesExist) {
+      toast.error('Code fields are the same, no changes will be saved')
+    } else {
+      // find provisional valuesets that contain this codesystem
+      // if there are none, just continue as usual
+      // if there are any using this system, check if the original code is in use
+      // if code is being used in provisional valuesets, provide a warning modal to confirm
+      // that the user is ok with those other valuesets being updated
+      const matches = await findProvVsUsingCode(codeSystem?.url!, updatedCodeItem?.code)
+      if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
+
+        // show modal where you'll need to confirm or cancel
+        setModalOpen(true)
+        setMatchingValueSets(matches?.matchingValueSets)
+      } else {
+        const newCodeSystemConcept = codeSystem?.concept?.map(i => {
+          if (i?.code === originalCodeItemToEdit?.code) {
+            return updatedCodeItem
+          } else {
+            return i
+          }
+        })
+        // just go ahead and update if the code was never used anywhere
+        // need to include the old code so we know what was replaced...
+        // const result = await updateProvisionalCs(
+        //   {[codeSystem?.url!]: {
+        //     newCodeSystemConcept,
+        //     parentValueSets: matches?.matchingValueSets || [],
+        //     action: 'replace',
+        //     dataContext: { old: originalCodeItemToEdit, new: updatedCodeItem }
+        //   }},
+        // )
+
+        const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
+
+        const result2 = await updateProvisionalCs(
+          {[codeSystem?.url!]: {
+            id: codeSystem?.id,
+            action: 'replace',
+            codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
+            inValueSets: matchingValueSetIds,
+          }},
+        )
+        if (result2.error) {
+          toast.error(`Provisional Code System could not be updated`)
+        } else {
+          // window.location.reload()
+        }
+      }
+    }
+    setCodeUpdateLoading(false)
+  }
+
+  const handleCancel = () => {
+    setOriginalCodeItemToEdit(null)
+    setUpdatedCodeItem(defaultItem)
+  }
+
   const columns = useMemo(() => {
     if (!codeSystem) return []
     const fields = [
       {
-        name: 'Code',
-        selector: (row: fhir4.CodeSystemConcept) => row.code
+        name: 'Update Code',
+        selector: (row: fhir4.CodeSystemConcept) => row.code,
+        cell: (row: fhir4.CodeSystemConcept) => {
+          if (originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code) {
+            return (
+              <SearchInput
+                label='Code'
+                onChange={(e) => {
+                  setUpdatedCodeItem((item) => {
+                    let copy = { ...item }
+                    copy.code = e?.target?.value || ''
+                    return copy
+                  })
+                }}
+                value={updatedCodeItem?.code}
+                style={{ minWidth: '20rem', flex: 1 }}
+              />
+            )
+          } else {
+            return (
+              <p>{row.code}</p>
+            )
+          }
+        }
       },
       {
         name: 'Display',
-        selector: (row: fhir4.CodeSystemConcept) => row.display || ''
+        selector: (row: fhir4.CodeSystemConcept) => row.display || '',
+        cell: (row: fhir4.CodeSystemConcept) => {
+          if (originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code) {
+            return (
+              <SearchInput
+                label='Update Display'
+                onChange={(e) => {
+                  setUpdatedCodeItem((item) => {
+                    let copy = { ...item }
+                    copy.display = e?.target?.value || ''
+                    return copy
+                  })
+                }}
+                value={updatedCodeItem?.display}
+                style={{ minWidth: '20rem', flex: 1 }}
+              />
+            )
+          } else {
+            return (
+              <p>{row.display}</p>
+            )
+          }
+        }
       },
       {
         name: 'Definition',
         selector: (row: fhir4.CodeSystemConcept) => row.definition || '',
         minWidth: '20rem',
-        cell: (row: fhir4.CodeSystemConcept) => <p>{row.definition}</p>
-      }
+        cell: (row: fhir4.CodeSystemConcept) => {
+          if (originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code) {
+            return (
+              <SearchInput
+                label='Update Definition'
+                onChange={(e) => {
+                  setUpdatedCodeItem((item) => {
+                    let copy = { ...item }
+                    copy.definition = e?.target?.value || ''
+                    return copy
+                  })
+                }}
+                value={updatedCodeItem?.definition}
+                style={{ minWidth: '20rem', flex: 1 }}
+              />
+            )
+          } else {
+            return (
+              <p>{row.definition}</p>
+            )
+          }
+        }
+      },
+      {
+        name: 'Edit',
+        selector: (row: CodeTableData) => row.code!,
+        omit: !isEditable,
+        cell: (row: CodeTableData) => {
+          const isDisabled = Boolean(originalCodeItemToEdit && (row.code !== originalCodeItemToEdit?.code))
+          const currentlyEditing = originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code
+
+          if (currentlyEditing) {
+            return (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <Button
+                  disabled={!allFieldsPresent || !changesExist}
+                  text='Save changes'
+                  onClick={() => handleSaveAttempt()}
+                  loading={codeUpdateLoading}
+                />
+                <Button
+                  text='Cancel'
+                  style={{ backgroundColor: 'gray' }}
+                  onClick={handleCancel}
+                />
+              </div>
+            )
+          } else {
+            return (
+              <IconButton
+                disabled={isDisabled}
+                onClick={() => {
+                  setOriginalCodeItemToEdit(row)
+                  setUpdatedCodeItem({ code: row?.code, display: row?.display, definition: row?.definition })
+                }}
+              >
+                <ModeEditIcon color={isDisabled ? 'disabled' : 'success'} />
+              </IconButton>
+            )
+          }
+        }
+      },
     ]
     return fields
-  }, [codeSystem])
+  }, [codeSystem, originalCodeItemToEdit, updatedCodeItem])
 
-  return <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
+  const inUseVsColumns = useMemo(() => {
+    const fields = [
+      {
+        name: 'Title',
+        selector: (row: fhir4.CodeSystemConcept) => row?.title
+      },
+      {
+        name: 'Status',
+        selector: (row: fhir4.CodeSystemConcept) => row?.status
+      },
+      {
+        name: 'ID',
+        selector: (row: fhir4.CodeSystemConcept) => row?.id
+      },
+      {
+        name: <p>Currently used in program(s)</p>,
+        grow: 2,
+        selector: (row: fhir4.CodeSystemConcept) => row?.id,
+        cell: (row: fhir4.ValueSet) => {
+          if (Array.isArray(provisionalContext)) {
+            const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url!, provisionalContext)
+            if (programIdsWithProvisionals.length) {
+              const results = programIdsWithProvisionals.map(p => {
+                return (
+                    <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                )
+              })
+              return (
+                <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'nowrap', margin: '.8rem 0' }}>
+                  { results }
+                </div>
+              )
+            }
+            return <p>N/A</p>
+          } else {
+            return null
+          }
+        }
+      },
+    ]
+    return fields
+  }, [matchingValueSets, provisionalContext])
+
+  return (
+    <>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Confirm Editing Code
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            {`This code is currently being used in the following provisional Value Set(s):`}
+          </Typography>
+          <DataTable data={matchingValueSets} columns={inUseVsColumns} />
+          <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            By editing this code, you will also edit its definition in the above provisional Value Sets.
+          </Typography>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+            <Button onClick={() => setModalOpen(false)} style={{ backgroundColor: 'darkgray' }} text='Cancel'/>
+            <Button onClick={() => handleSaveAttempt(true)} text='Continue'/>
+          </div>
+        </Box>
+      </Modal>
+      <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
+    </>
+  )
 }
 
 interface ProvisionalEditProps {
@@ -113,9 +383,12 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [definitionToAdd, setDefinitionToAdd] = useState('')
   const [codeItemsToAdd, setCodeItemsToAdd] = useState<fhir4.CodeSystemConcept[]>([])
   const [formSubmitting, setFormSubmitting] = useState(false)
+  const [codeToEdit, setCodeToEdit] = useState(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS(selectedCodeSystemBase?.value)
+
+  const handleUpdateExistingCode = async () => { }
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -131,7 +404,12 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   useEffect(() => {
     clearCurrentCodeItems()
   }, [selectedCodeSystemBase])
-  
+
+  useEffect(() => {
+    setMyDocument(document.body)
+  }, [])
+
+
   const selectOptions = useMemo(() => {
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
@@ -182,7 +460,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <IconButton
             onClick={() => handleDelete(row)}
           >
-            <DeleteForeverSharp color='error' />
+            <ModeEditIcon color='error' />
           </IconButton>
         )
       },
@@ -224,7 +502,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     return (
       <div>
         <PageTitle>{`${can(session, 'edit') ? 'Create or Edit' : 'View'} VSM Provisional Code System`}</PageTitle>
-        <ErrorMessage error={provCsError}/>
+        <ErrorMessage error={provCsError} />
         <p>Select a Code System URL</p>
         <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
           <Select
@@ -245,67 +523,72 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         {provisionalCS?.length ? (
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
-            <ExistingCodesTable codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)} />
-            { can(session, 'edit') && (
+            <ExistingCodesTable
+              codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)}
+              isEditable={can(session, 'edit')}
+            // codeToEdit={codeToEdit}
+            // setCodeToEdit={setCodeToEdit}
+            />
+            {can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
             )}
           </div>
         ) : (
           <NoProvVsWrapper style={{ flexDirection: 'column', flexWrap: 'nowrap', textAlign: 'center', marginBottom: '2rem' }}>
             <p style={{ marginBottom: 0 }}>{`No existing VSM Provisional Code Systems found for ${selectedCodeSystemBase?.label}.`}</p>
-            { can(session, 'edit') && <p>{`Create one by adding code items below.`}</p> }
+            {can(session, 'edit') && <p>{`Create one by adding code items below.`}</p>}
           </NoProvVsWrapper>
         )}
-        { can(session, 'edit') && (
+        {can(session, 'edit') && (
           <>
-          <QuestionnaireRowContainer>
-            <SearchInput
-              label='Code'
-              onChange={(e) => {
-                // handle empty string case
-                setCodeToAdd(e.target.value)
-              }}
-              value={codeToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
+            <QuestionnaireRowContainer>
+              <SearchInput
+                label='Code'
+                onChange={(e) => {
+                  // handle empty string case
+                  setCodeToAdd(e.target.value)
+                }}
+                value={codeToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+              <SearchInput
+                label='Display'
+                onChange={(e) => setDisplayToAdd(e.target.value)}
+                value={displayToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+              <TextArea
+                label='Definition (more detail about this code)'
+                onChange={(e) => setDefinitionToAdd(e.target.value)}
+                value={definitionToAdd}
+                style={{ minWidth: '20rem', flex: 1 }}
+                required={true}
+              />
+            </QuestionnaireRowContainer>
+            <ButtonRowContainer>
+              <Button
+                text='Add to List'
+                onClick={handleAddToList}
+                disabled={!enableAdd || isCsLoading}
+              />
+            </ButtonRowContainer>
+            <p>{`Code List to add: `}</p>
+            <DataTable
+              // @ts-ignore
+              data={codeItemsToAdd}
+              columns={codeColumns}
+              noDataComponent={noDataComponent('setProvisionals')}
             />
-            <SearchInput
-              label='Display'
-              onChange={(e) => setDisplayToAdd(e.target.value)}
-              value={displayToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
-            />
-            <TextArea
-              label='Definition (more detail about this code)'
-              onChange={(e) => setDefinitionToAdd(e.target.value)}
-              value={definitionToAdd}
-              style={{ minWidth: '20rem', flex: 1 }}
-              required={true}
-            />
-          </QuestionnaireRowContainer>
-          <ButtonRowContainer>
-            <Button
-              text='Add to List'
-              onClick={handleAddToList}
-              disabled={!enableAdd || isCsLoading}
-            />
-          </ButtonRowContainer>
-          <p>{`Code List to add: `}</p>
-          <DataTable
-            // @ts-ignore
-            data={codeItemsToAdd}
-            columns={codeColumns}
-            noDataComponent={noDataComponent('setProvisionals')}
-          />
-          <ButtonRowContainer>
-            <Button
-              text='ADD TO SYSTEM'
-              disabled={!Boolean(codeItemsToAdd?.length) || isCsLoading}
-              onClick={(e) => handleUpdateCS()}
-              loading={formSubmitting}
-            />
-          </ButtonRowContainer>
+            <ButtonRowContainer>
+              <Button
+                text='ADD TO SYSTEM'
+                disabled={!Boolean(codeItemsToAdd?.length) || isCsLoading}
+                onClick={(e) => handleUpdateCS()}
+                loading={formSubmitting}
+              />
+            </ButtonRowContainer>
           </>
         )}
       </div>
