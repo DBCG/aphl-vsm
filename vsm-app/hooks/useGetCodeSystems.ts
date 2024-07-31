@@ -1,17 +1,20 @@
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { CodeSystemCapabilityReturn } from '@/pages/api/codesystem'
 
 interface ReturnedData {
   uri: string
   name: string
 }
 
-const useGetCS = (): CodeSystemCapabilityReturn => {
+const useGetCS = (): ReturnedData[] => {
   let endpoint = '/api/codesystem'
-  const {data: codeSystems} = useSWR(endpoint, fetcher)
+  const {data: codeSystems, error} = useSWR(endpoint, fetcher)
+
+  if (error) {
+    console.error(error)
+  }
   
-  return codeSystems as CodeSystemCapabilityReturn
+  return codeSystems as ReturnedData[]
 }
 
 export { useGetCS }

@@ -287,7 +287,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const allConditions = useGetConditions() as ConditionItem[]
 
-  const progValueSetDets: Result = useGetProgramValueSetDetails({
+  const {programValuesets, refreshProgramValueSets } = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
@@ -295,8 +295,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     ...debouncedFilters
   })
 
-  const groupsInProgram = progValueSetDets?.groupsInProgram
-  const totalLeafs = progValueSetDets?.totalLeafs
+  const groupsInProgram = programValuesets?.groupsInProgram
+  const totalLeafs = programValuesets?.totalLeafs
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -351,7 +351,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updateVersions()
       .catch((e) => console.error('error: ', e))
       .finally(() => {
-        progValueSetDets?.refreshProgramValueSets()
+        refreshProgramValueSets()
         setVersionUpdateInFlight(false)
       })
   }, [versionToUpdate])
@@ -708,7 +708,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {
@@ -731,7 +731,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
             />
           </Tooltip>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets(progValueSetDets?.groupsInProgram)} />
+          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets(programValuesets?.groupsInProgram)} />
         </div>
           <Button
             text="Code Search"
@@ -773,13 +773,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           handleDelete={handleBatchDelete}
           handleBulkEdit={() => setShowBulkEditModal(true)}
           formattedConditions={allConditions}
-          groupsInProgram={progValueSetDets?.groupsInProgram!}
+          groupsInProgram={programValuesets?.groupsInProgram!}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
           programId={currentProgram?.id!}
           handleToggleUpdateData={() => {
-            progValueSetDets?.refreshProgramValueSets()
+            refreshProgramValueSets()
             setSelectedRows([])
           }}
         />
@@ -789,7 +789,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           keyField={'keyField'}
-          data={progValueSetDets?.data || []}
+          data={programValuesets?.data || []}
           persistTableHead={true}
           columns={columns}
           theme="aphl"
