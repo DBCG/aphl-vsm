@@ -52,9 +52,12 @@ const findLatestVersionValueSet = (valuesets: ValueSet[]) => {
  */
 const parseCdrResponses = (cdrResponse: Bundle) => {
   return cdrResponse?.entry
+    ?.filter((entry) => entry?.resource?.resourceType === 'Bundle')
     ?.map((cdrBundle: BundleEntry) => {
       const bundle = cdrBundle?.resource as Bundle
-      const valueSets = bundle?.entry?.map(({ resource }) => resource as ValueSet).filter((i) => !!i) || []
+      const valueSets = bundle?.entry
+      ?.filter((nestedEntry) => nestedEntry?.resource?.resourceType === 'ValueSet')
+      ?.map(({ resource }) => resource as ValueSet).filter((i) => !!i) || []
       if (valueSets.length > 1) {
         return findLatestVersionValueSet(valueSets)
       } else if (valueSets.length === 1) {
