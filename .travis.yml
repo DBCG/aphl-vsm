@@ -27,8 +27,10 @@ jobs:
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
         - npm install
-        # Placeholder export to workaround missing url in the build for MextJs SSR
-        - export FHIR_CDR_URL=https://placeholder.com && npm run build ## Test for typescript issues
+        # These export placeholders are to workaround missing url in the build for MextJs SSR
+        - export FHIR_CDR_URL=https://placeholder.com 
+        - export NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
+        - npm run build ## Test for typescript issues
         - npm ci && npm run test-ci
       install: skip
     - stage: mvn-test
