@@ -20,7 +20,7 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then((res) => res.json())
+export const fetcher = (...args) => fetch(...args).then((res) => res.json()).catch((err) => { return { error: err.error || "Unknown error while fetching conditions" } })
 
 const removeNullProperties = (obj: any) => {
   return Object.fromEntries(
