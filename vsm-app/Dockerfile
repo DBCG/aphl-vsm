@@ -1,5 +1,7 @@
 FROM node:20-alpine as Builder
 
+# Placeholder for build, will be replaced by actual runtime env vars
+ENV FHIR_CDR_URL="http://localhost:8082"
 # Disable telemetry
 ENV NEXT_TELEMETRY_DISABLED=1
 # defaults for authoring content from app, may be configurable later

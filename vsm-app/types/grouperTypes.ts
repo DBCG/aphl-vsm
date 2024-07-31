@@ -1,7 +1,8 @@
 import { Condition } from '@/helpers/conditionHelpers';
-import { ToString } from '@/hooks/useGetProgramDetails';
 import { SelectedManifestDataVersion } from './manifestTypes';
 import { approvalFormParams } from '@/components/ApproveForm/types';
+
+type ToString<T> = { [k in keyof T]: string }
 
 interface GrouperMetadata {
   id?: fhir4.ValueSet['id'];
@@ -99,5 +100,6 @@ export type {
   GrouperItem,
   DeleteGrouper,
   ProgramDetails,
-  ProgramDetailsEffect
+  ProgramDetailsEffect,
+  ToString
 };

@@ -17,12 +17,13 @@ import { ErrorMessage } from '../ErrorMessage'
 import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
 import { ProgramCompareModal } from '../modals/ProgramCompareModal'
 import { StatusChip } from '../data-display/Chips'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 
-const ProgramDetails = () => {
+const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const programId = router.query.id as string
-  const [program, setProgram] = useState<fhir4.Library>()
+  const [currentProgram, setProgram] = useState<fhir4.Library>(program)
   const [refreshData, setRefreshData] = useState(false)
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
   const [exportError, setExportError] = useState<null | string>(null)
@@ -32,13 +33,6 @@ const ProgramDetails = () => {
   const handleCloseErrors = () => {
     setExportError(null)
   }
-
-  useEffect(() => {
-    // Set initial program
-    if (is.library(programAndGrouperData?.program)) {
-      setProgram(programAndGrouperData?.program)
-    }
-  }, [programId, programAndGrouperData?.program])
 
   const updateProgram = async ({ program, isExperimental }: {program: fhir4.Library, isExperimental: boolean }) => {
     const endPoint = `/api/programs/${programId}?experimental=${isExperimental}`
@@ -60,7 +54,7 @@ const ProgramDetails = () => {
   }
 
   // early return if no data, must be a library if there's data
-  if (!is.library(program)) {
+  if (!is.library(currentProgram)) {
     return (
       <IndicatorContainer>
         <LoadingIndicator size="large" />
@@ -68,7 +62,7 @@ const ProgramDetails = () => {
     )
   }
 
-  const { id = '', status, experimental } = program
+  const { id = '', status, experimental } = currentProgram
   return (
     <Col>
       {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors}/>}
@@ -105,14 +99,14 @@ const ProgramDetails = () => {
           />
           <ExportPackageDetailsModal
             isOpen={showExportOptionsModal}
-            program={program}
+            program={currentProgram}
             setExportError={setExportError}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
           />
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={program} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
+      <ProgramMetadata program={currentProgram} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>

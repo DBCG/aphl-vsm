@@ -1,5 +1,6 @@
+import { fetcher } from '@/utils'
 import { useState, useEffect } from 'react'
-
+import useSWR from 'swr'
 interface GroupArgs {
   programId: string
   refreshToggle?: Boolean
@@ -12,38 +13,16 @@ interface GroupsResponse {
 }
 
 const useGetGroups = ({ programId, refreshToggle }: GroupArgs): GroupsResponse => {
-  const [groups, setGroups] = useState([])
-  const [groupsError, setGroupsError] = useState<string | null>(null)
-  const [groupsLoading, setGroupsLoading] = useState(false)
+  const endpoint = `/api/programs/${programId}/details/valuesets/groups`
+  const { data, isLoading, error, mutate } = useSWR(!programId ? null : endpoint, fetcher)
 
   useEffect(() => {
-    setGroupsLoading(true)
-    async function getGroups(): Promise<void> {
-      if (!programId) {
-        setGroupsError(`No program with ID ${programId} found`)
-      } else {
-        let endpoint = `/api/programs/${programId}/details/valuesets/groups`
-        try {
-          const response: Response = await fetch(endpoint)
-          const json = await response.json()
-          if (json.error) {
-            console.error(json.error)
-            setGroups([])
-            setGroupsError(`Could not find groups for program with id ${programId}`)
-          } else {
-            setGroups(json)
-          }
-        } catch (e) {
-          setGroups([])
-          setGroupsError('Error attempting to find groups')
-        }
-      }
-      setGroupsLoading(false)
+    if (refreshToggle) {
+      mutate()
     }
-    void getGroups()
-  }, [programId, refreshToggle])
+  }, [refreshToggle, mutate])
 
-  return { groups, groupsError, groupsLoading }
+  return { groups: data, groupsError: error, groupsLoading: isLoading }
 }
 
 export { useGetGroups }

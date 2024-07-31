@@ -52,15 +52,15 @@ const CodeSearch = ({ programId, router }: Props) => {
   // error states
   const [error, setError] = useState<null | string>(null)
 
-  const progValueSetDets = useGetProgramValueSetDetails({
+  const { programValuesets } = useGetProgramValueSetDetails({
     id: programId
-  }) as Result
+  })
 
   const {
     programAndGrouperData, programAndGrouperDataLoading
   } = useGetProgramDetails({ id: programId })
 
-  const groupsInProgram = progValueSetDets?.groupsInProgram
+  const groupsInProgram = programValuesets?.groupsInProgram
 
   const handleClear = () => {
     setCodeToFind(null)

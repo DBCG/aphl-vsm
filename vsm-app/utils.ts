@@ -20,12 +20,10 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then((res) => res.json())
+export const fetcher = (...args) => fetch(...args).then((res) => res.json()).catch((err) => {throw(err.error || 'Unknown Error')})
 
 const removeNullProperties = (obj: any) => {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([key, value]) => value !== null)
-  );
+  return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null))
 }
 
 export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
@@ -47,11 +45,7 @@ const incrementStringValue = (str: string) => {
   }
 }
 
-export const incrementSemver = ({
-  valueToIncrement,
-  incrementType,
-  fallbackValue
-}: IncrementParams) => {
+export const incrementSemver = ({ valueToIncrement, incrementType, fallbackValue }: IncrementParams) => {
   // if not a string to begin with, return fallback default
   if (typeof valueToIncrement !== 'string') return fallbackValue
 
@@ -80,10 +74,7 @@ export const incrementSemver = ({
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')
 
-export const updateResourceVersion = (
-  resource: fhir4.Library | fhir4.ValueSet | fhir4.PlanDefinition,
-  newVersion: string
-) => {
+export const updateResourceVersion = (resource: fhir4.Library | fhir4.ValueSet | fhir4.PlanDefinition, newVersion: string) => {
   const clonedResource = cloneDeep(resource)
   clonedResource.version = newVersion
   return clonedResource

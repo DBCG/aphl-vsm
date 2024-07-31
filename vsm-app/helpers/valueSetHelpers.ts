@@ -5,6 +5,7 @@ import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { get, uniq } from 'lodash'
+import { VSM_META_PROFILE_URLS } from '@/constants'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
@@ -93,6 +94,8 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   }
   return vs
 }
+
+const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
 
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
@@ -377,5 +380,6 @@ export {
   transformForVSAC,
   transformFromVSACToCqf,
   isProvisionalVs,
+  isGrouperValueSet,
   addProfileToValueSet
 }

@@ -1,10 +1,9 @@
 import { useMemo } from 'react'
-import { getSession, GetSessionParams, useSession } from 'next-auth/react'
 import DataTable from 'react-data-table-component'
 import LoadingIndicator from './LoadingIndicator'
-import { ToString } from '@/hooks/useGetProgramDetails'
 import { approvalFormParams } from './ApproveForm/types'
 import { customTableStyles } from './tables/themes'
+import { ToString } from '@/types/grouperTypes'
 
 interface TableData {
   date: string
@@ -99,23 +98,6 @@ const ApprovalDetailList = ({
       />
     </>
   )
-}
-
-export async function getServerSideProps(context: GetSessionParams) {
-  const session = await getSession(context)
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: '/api/auth/signin',
-        permanent: false
-      }
-    }
-  }
-
-  return {
-    props: { session }
-  }
 }
 
 export { ApprovalDetailList }
