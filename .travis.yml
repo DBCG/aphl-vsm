@@ -27,8 +27,8 @@ jobs:
       script:
         - cd $TRAVIS_BUILD_DIR/vsm-app
         - npm install
-        - export FHIR_CDR_URL=https://placeholder.com # Placeholder to workaround missing url in the build for MextJs SSR
-        - npm run build ## Test for typescript issues
+        # Placeholder export to workaround missing url in the build for MextJs SSR
+        - export FHIR_CDR_URL=https://placeholder.com && npm run build ## Test for typescript issues
         - npm ci && npm run test-ci
       install: skip
     - stage: mvn-test

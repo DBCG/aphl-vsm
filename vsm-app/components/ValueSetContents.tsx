@@ -288,7 +288,7 @@ export default function ValueSetContents({
                     id="vs-oid"
                     label={'OID'}
                     readonly={true}
-                    value={getOid(currentValueSet) || getOid(currentValueSet)}
+                    value={getOid(currentValueSet)}
                     placeholder={'No valueset oid was set'}
                   />
                 )}

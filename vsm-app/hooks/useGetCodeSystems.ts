@@ -6,9 +6,9 @@ interface ReturnedData {
   name: string
 }
 
-const useGetCS = (): [] | ReturnedData[] => {
+const useGetCS = (): ReturnedData[] => {
   let endpoint = '/api/codesystem'
-  const {data: codeSystems, mutate} = useSWR(endpoint, fetcher)
+  const {data: codeSystems} = useSWR(endpoint, fetcher)
   
   return codeSystems as ReturnedData[]
 }
