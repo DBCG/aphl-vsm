@@ -1,6 +1,5 @@
 import { fetcher } from '@/utils'
-import { useState, useEffect } from 'react'
-import useSWR from 'swr'
+import useSWR, { KeyedMutator } from 'swr'
 
 interface Group {
   label: string
@@ -37,6 +36,7 @@ export interface DataItem {
 
 export interface Result {
   data?: DataItem[]
+  refreshProgramValueSets: KeyedMutator<any>
   totalLeafs?: number
   groupsInProgram?: fhir4.ValueSet[]
   programStatus?: fhir4.Library['status']
@@ -72,14 +72,8 @@ const useGetProgramValueSetDetails = ({
   valueSetPriorityMap = {},
   conditionsMap = {},
   updatedGrouperValueSets,
-  updatedGrouper,
-  versionToUpdate,
-  toggleUpdateData,
   provisionalOnly
-}: Args): Result | {} => {
-  // const [data, setData] = useState<Result>({})
-  // const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>('idle')
-
+}: Args): Result => {
   let endpoint = `/api/programs/${id}/details/valuesets`
   let queries = []
 
@@ -121,10 +115,10 @@ const useGetProgramValueSetDetails = ({
     }
   })
 
-  const { data, isLoading } = useSWR(id != null ? endpoint : null, fetcher)
+  const { data, mutate, isLoading } = useSWR(id != null ? endpoint : null, fetcher)
 
   if (!data || isLoading) {
-    return {}
+    return {refreshProgramValueSets: mutate} as Result // Workaround typescript issue, needs to be refactored
   }
 
   if (activePriority && activePriority?.length > 0) {
@@ -152,7 +146,7 @@ const useGetProgramValueSetDetails = ({
     data.data = filteredConditionData
   }
 
-  return data
+  return data as Result
 }
 
 export { useGetProgramValueSetDetails }

@@ -150,9 +150,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
-  const [toggleUpdateData, setToggleUpdateData] = useState(false)
-
-  const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
 
@@ -202,10 +199,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   useEffect(() => {
     setMyDocument(document.body)
   }, [])
-
-  useEffect(() => {
-    setSelectedRows([])
-  }, [toggleUpdateData])
 
   const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
     const canonicalUrls: string[] = []
@@ -292,16 +285,16 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
   }
 
+  const allConditions = useGetConditions() as ConditionItem[]
+
   const progValueSetDets: Result = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
-    toggleUpdateData,
     ...debouncedFilters
   })
 
-  const allConditions = useGetConditions() as ConditionItem[]
   const groupsInProgram = progValueSetDets?.groupsInProgram
   const totalLeafs = progValueSetDets?.totalLeafs
 
@@ -358,7 +351,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updateVersions()
       .catch((e) => console.error('error: ', e))
       .finally(() => {
-        handleToggleUpdateData()
+        progValueSetDets?.refreshProgramValueSets()
         setVersionUpdateInFlight(false)
       })
   }, [versionToUpdate])
@@ -785,7 +778,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
           programId={currentProgram?.id!}
-          handleToggleUpdateData={handleToggleUpdateData}
+          handleToggleUpdateData={() => {
+            progValueSetDets?.refreshProgramValueSets()
+            setSelectedRows([])
+          }}
         />
         <ErrorMessage error={error} />
         <DT
@@ -798,7 +794,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           columns={columns}
           theme="aphl"
           pagination
-          clearSelectedRows={toggleUpdateData}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}
