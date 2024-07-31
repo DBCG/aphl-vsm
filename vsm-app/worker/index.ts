@@ -145,7 +145,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
     const cdrResponse = await fhirCdrClient.batch({ body: batchBundle })
 
     const cachedCdrVS = parseCdrResponses(cdrResponse as Bundle) || []
-    const toUpdateCollection = {} as CDRResponseCollection
+    const toUpdateCollection:CDRResponseCollection = {}
     // Gather all the valuesets from their respective authorative sources
     await Promise.all(
       cachedCdrVS.map(async (valueset) => {
