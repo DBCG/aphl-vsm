@@ -6,11 +6,11 @@ interface ReturnedData {
   name: string
 }
 
-const useGetCS = (): ReturnedData[] => {
+const useGetCS = (): CodeSystemCapabilityReturn => {
   let endpoint = '/api/codesystem'
-  const {data: codeSystems} = useSWR(endpoint, fetcher)
+  const {data: codeSystems} = useSWR(endpoint, (...args) => fetcher(...args).catch((err) => { return {error: err.error || "unknown error fetching CodeSystems"}}) as Promise<CodeSystemCapabilityReturn>)
   
-  return codeSystems as ReturnedData[]
+  return codeSystems
 }
 
 export { useGetCS }
