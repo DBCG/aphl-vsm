@@ -248,7 +248,7 @@ const findMatchingVsetUrls = async ({
       // filter out undefined results (maybe better error handling eventually)
       // how to handle these Promise types?
       const expandedItems = expansions
-        ?.filter((promiseItem) => is.promiseFulfilled(promiseItem))
+        ?.filter((promiseItem) => promiseItem.status === 'fulfilled')
         ?.map((res) => res.value)
 
       // only want valuesets that contain the code + (optional) system
