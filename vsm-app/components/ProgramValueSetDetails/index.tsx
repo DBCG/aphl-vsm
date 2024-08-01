@@ -4,13 +4,13 @@ import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
 import { Box, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-import { uniqBy } from 'lodash'
+import { uniq, uniqBy } from 'lodash'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@/components/buttons/Button'
-import { Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource, getVsSteward, isProvisionalVs } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -31,7 +31,12 @@ import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
 import TextLink from '../TextLink'
 
-const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | null>>, jobId: string, setRefreshErrors: any) => {
+const subscribe = async (
+  setJobStatus: React.Dispatch<SetStateAction<number | null>>,
+  jobId: string,
+  setRefreshErrors: any,
+  refreshProgramValueSets: any
+) => {
   const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
     progress: number
   }
@@ -40,12 +45,17 @@ const subscribe = async (setJobStatus: React.Dispatch<SetStateAction<number | nu
     setJobStatus(jobStatus.progress)
     if (jobStatus.progress < 100) {
       await new Promise((resolve) => setTimeout(resolve, 5000))
-      await subscribe(setJobStatus, jobId, setRefreshErrors)
+      await subscribe(setJobStatus, jobId, setRefreshErrors, refreshProgramValueSets)
     } else {
-      toast.success('ValueSet Update finished.')
-      setJobStatus(null) // No Job in progress
       if (jobStatus?.returnvalue?.errors.length > 0) {
-        setRefreshErrors({"ValueSet Update Errors": jobStatus?.returnvalue?.errors})
+        setRefreshErrors({ 'ValueSet Update Errors': jobStatus?.returnvalue?.errors })
+        setJobStatus(null) // No Job in progress
+      } else {
+        const totalNumbOfUpdates = jobStatus?.returnvalue?.totalNumbOfUpdates
+        const toastMessage = totalNumbOfUpdates > 0 ? `Successfully updated ${totalNumbOfUpdates} ValueSets` : 'No updates needed'
+        refreshProgramValueSets()
+        toast.success('ValueSet Update Operation Finished. \n' + toastMessage)
+        setJobStatus(null) // No Job in progress
       }
     }
   } else {
@@ -150,9 +160,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
   const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
-  const [toggleUpdateData, setToggleUpdateData] = useState(false)
-
-  const handleToggleUpdateData = () => setToggleUpdateData(d => !d)
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
 
@@ -168,13 +175,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
-    return grouperLoading
-    || conditionLoading
-    || isDeleting
-    || priorityLoading
-    || versionUpdateInFlight
-}, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
-
+    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight
+  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
 
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
@@ -203,27 +205,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setMyDocument(document.body)
   }, [])
 
-  useEffect(() => {
-    setSelectedRows([])
-  }, [toggleUpdateData])
-
-  const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
-    const canonicalUrls: string[] = []
-    if (groupsInProgram?.length) {
-      for (const grouper of groupsInProgram) {
-        const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter(i => i) || []) as string[]
-        canonicalUrls.push(...urls)
-      }
-    }
-
-    const job = await fetch(`/api/valueset/update`, {
-      method: 'PUT',
-      body: JSON.stringify({ urls: canonicalUrls, programId: currentProgram?.id })
-    }).then((res) => res.json())
-
-    subscribe(setJobInStatusProgress, job?.id, setRefreshErrors)
-  }
-
   const handleChange = ({ selectedRows }: SelectedRows) => {
     // You can set state or dispatch with something like Redux so we can use the retrieved data
     setSelectedRows(selectedRows)
@@ -233,16 +214,16 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setConditionLoading(true)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, { 
+      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body
       }).then((res) => res.json())
-      
+
       const oldConditions = conditionsMap[vsUrl]
-      const conditionAction = oldConditions?.length > conditions?.length ? 'removed' : `added ${conditions?.[conditions.length-1]?.label}`;
+      const conditionAction = oldConditions?.length > conditions?.length ? 'removed' : `added ${conditions?.[conditions.length - 1]?.label}`
       const toastMessage = `Successfully ${conditionAction} condition`
       toast.success(toastMessage)
       setCurrentProgram(updatedLibrary)
@@ -292,18 +273,18 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }
   }
 
-  const progValueSetDets: Result = useGetProgramValueSetDetails({
+  const allConditions = useGetConditions() as ConditionItem[]
+
+  const { programValuesets, refreshProgramValueSets } = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
-    toggleUpdateData,
     ...debouncedFilters
   })
 
-  const allConditions = useGetConditions() as ConditionItem[]
-  const groupsInProgram = progValueSetDets?.groupsInProgram
-  const totalLeafs = progValueSetDets?.totalLeafs
+  const groupsInProgram = programValuesets?.groupsInProgram
+  const totalLeafs = programValuesets?.totalLeafs
 
   const alphabetizedGroups =
     groupsInProgram?.sort((firstItem: fhir4.ValueSet, secondItem: fhir4.ValueSet) => {
@@ -336,7 +317,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       .then((versions) => {
         const versionToAdd = versions.error ? [] : versions
         return [defaultVersion, ...versionToAdd].map((item) => ({ value: item, label: item }))
-      } )
+      })
 
     setVersions({ ...versions, ...{ [vsId]: asyncOptions } })
     setLoadingVersionsForVs(null)
@@ -358,13 +339,29 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     updateVersions()
       .catch((e) => console.error('error: ', e))
       .finally(() => {
-        handleToggleUpdateData()
+        refreshProgramValueSets()
         setVersionUpdateInFlight(false)
       })
   }, [versionToUpdate])
 
   // Can only edit if program is loaded and in draft status
   const isEditable = allowEditing({ session, programStatus: currentProgram.status })
+
+  const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
+    const canonicalUrls: string[] = []
+    if (groupsInProgram?.length) {
+      for (const grouper of groupsInProgram) {
+        const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter((i) => i) || []) as string[]
+        canonicalUrls.push(...urls)
+      }
+    }
+    const job = await fetch(`/api/valueset/update`, {
+      method: 'PUT',
+      body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
+    }).then((res) => res.json())
+    toast.info('ValueSet Update Initiated, Please wait for completion')
+    subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
+  }
 
   const columns = useMemo(
     () => [
@@ -387,11 +384,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '350px',
         wrap: true,
         cell: (row: TableRow) => (
-          <TextLink
-          href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`}
-          linkText={row.title}
-          forceReload={false}
-        />
+          <TextLink href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`} linkText={row.title} forceReload={false} />
         )
       },
       {
@@ -441,7 +434,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
-          const priorityKey = row?.valueSet?.url ?? ""
+          const priorityKey = row?.valueSet?.url ?? ''
           const currentPriority = valueSetPriorityMap[priorityKey] as string
           const currentPriorityValue = currentPriority
             ? priorityLevelOptions.find((i) => i.id === currentPriority)
@@ -467,7 +460,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 value={currentPriorityValue}
                 onChange={(e) => {
                   if (!!e?.value) {
-                    updateValueSetPriority(row?.valueSet, e?.value, row.groups.map((g) => g.id))
+                    updateValueSetPriority(
+                      row?.valueSet,
+                      e?.value,
+                      row.groups.map((g) => g.id)
+                    )
                   }
                 }}
               />
@@ -498,9 +495,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
           return (
             <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
-              { isProvisional ? (
+              {isProvisional ? (
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <IconChip experimental={false} indicatorType='provisional'/>
+                  <IconChip experimental={false} indicatorType="provisional" />
                   <span style={{ margin: 0, verticalAlign: 'middle' }}>Provisional</span>
                 </div>
               ) : (
@@ -529,7 +526,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   options={versions?.[row.valueSet.id!] || [{ label: 'latest', value: 'latest' }]}
                   value={defaultOption}
                 />
-              ) }
+              )}
             </SelectInputContainer>
           )
         }
@@ -636,14 +633,19 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
                 isMulti={true}
-                styles={reactSelectOptionStyle({ minWidth: '200px'})}
+                styles={reactSelectOptionStyle({ minWidth: '200px' })}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
                 isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
                 // TODO should block add if already exists
                 onChange={async (e) => {
                   const conditionInfo = e as Condition[]
-                  conditionInfo && await updateVSConditions(conditionInfo, row.canonical, row.groups.map(i => i.id))
+                  conditionInfo &&
+                    (await updateVSConditions(
+                      conditionInfo,
+                      row.canonical,
+                      row.groups.map((i) => i.id)
+                    ))
                 }}
               />
             </SelectInputContainer>
@@ -715,7 +717,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, progValueSetDets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {
@@ -732,14 +734,18 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } else if (isEditable) {
       return (
         <>
-        <div>
-          <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
-            <InfoIcon
-              sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
+          <div>
+            <Tooltip title={'Retrieves and updates all valuesets with version "latest"'} placement="left" arrow>
+              <InfoIcon
+                sx={{ color: 'var(--theme-400)', width: '20px', position: 'absolute', transform: 'translate(-109%, 64%)', height: '20px' }}
+              />
+            </Tooltip>
+            <Button
+              text="Update Valuesets"
+              style={{ minHeight: '40px', width: '100%' }}
+              onClick={() => handleUpdateValueSets(programValuesets?.groupsInProgram)}
             />
-          </Tooltip>
-          <Button text="Update Valuesets" style={{ minHeight: '40px', width: '100%' }} onClick={() => handleUpdateValueSets(progValueSetDets?.groupsInProgram)} />
-        </div>
+          </div>
           <Button
             text="Code Search"
             style={{ minHeight: '40px', minWidth: '150px' }}
@@ -754,7 +760,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   return (
     <>
       <Col>
-        {refreshErrors && <ErrorMessage style={{ marginBottom: '2em' }} error={refreshErrors} handleClose={handleCloseErrors}/>}
+        {refreshErrors && <ErrorMessage style={{ marginBottom: '2em' }} error={refreshErrors} handleClose={handleCloseErrors} />}
         <Row>
           <FlexRow style={{ width: '80%' }}>
             <PageTitle style={{ marginBottom: '2rem' }}>Program ValueSet Details</PageTitle>
@@ -780,12 +786,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           handleDelete={handleBatchDelete}
           handleBulkEdit={() => setShowBulkEditModal(true)}
           formattedConditions={allConditions}
-          groupsInProgram={progValueSetDets?.groupsInProgram!}
+          groupsInProgram={programValuesets?.groupsInProgram!}
           selectedRows={selectedRows}
           totalRows={totalLeafs || 0}
           isDeleting={isDeleting}
           programId={currentProgram?.id!}
-          handleToggleUpdateData={handleToggleUpdateData}
+          handleToggleUpdateData={() => {
+            refreshProgramValueSets()
+            setSelectedRows([])
+          }}
         />
         <ErrorMessage error={error} />
         <DT
@@ -793,12 +802,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           onSelectedRowsChange={handleChange}
           className="vs-table-detail"
           keyField={'keyField'}
-          data={progValueSetDets?.data || []}
+          data={programValuesets?.data || []}
           persistTableHead={true}
           columns={columns}
           theme="aphl"
           pagination
-          clearSelectedRows={toggleUpdateData}
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
           progressPending={blockChanges}
           progressComponent={<LoadingIndicator />}

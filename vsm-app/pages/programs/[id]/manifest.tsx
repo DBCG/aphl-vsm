@@ -1,17 +1,17 @@
+
 import EditManifestDetails from '@/components/EditManifestDetails'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { useGetProgramById } from '@/hooks/useGetProgramById'
 import { useRouter } from 'next/router'
 import { Row } from '@/styles'
 import { Button } from '@/components/buttons/Button'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
-const ManifestPage = () => {
+const ManifestPage = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
-  const programId = router.query.id as string
-  const program = useGetProgramById({ programId })
 
   if (program?.status === 'active') {
-    router.push(`/programs/${programId}`)
+    router.push(`/programs/${program?.id}`)
     return null
   }
 

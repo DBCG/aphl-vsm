@@ -61,8 +61,9 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
   useEffect(() => {
     if (router) {
       const withoutQueryStrings = router.asPath.split('?')[0].split('/')
-      if (isGrouperView && withoutQueryStrings.indexOf('valuesets') === -1) {
-        withoutQueryStrings[withoutQueryStrings.indexOf('valuesets')] = 'grouper'
+      const grouperIndex = withoutQueryStrings.indexOf('valuesets')
+      if (isGrouperView && grouperIndex > -1) {
+        withoutQueryStrings[grouperIndex] = 'grouper'
       }
 
       setBreadCrumbs(withoutQueryStrings)

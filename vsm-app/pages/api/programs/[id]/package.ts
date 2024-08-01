@@ -40,7 +40,22 @@ const crmiPackage = async (
         // should be Basic Auth creds
         ...fhirCdrClient.customHeaders
       }
-    }).then((r) => (data?.json || useV1 ? r.json() : r.text()) as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>)
+    })
+      .then((r) => {
+        if (r.ok) {
+          return data?.json || useV1 ? r.json() : r.text() as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>
+        } else {
+          throw new Error("Unknown error executing package")
+        }
+      })
+      .catch((err) => {
+        logSimpleError(err)
+        if ("cause" in err) {
+          throw err.cause
+        } else {
+          throw err
+        }
+      })
 
     if (useV1) {
       if (typeof response === 'string') {

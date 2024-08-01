@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isArray, isEqual, isObject, keys, sortBy } from 'lodash'
 import { isValidSimpleSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);
@@ -20,12 +20,10 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then((res) => res.json())
+export const fetcher = (...args) => fetch(...args).then((res) => res.json()).catch((err) => {throw(err.error || 'Unknown Error')})
 
 const removeNullProperties = (obj: any) => {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([key, value]) => value !== null)
-  );
+  return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null))
 }
 
 export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
@@ -46,6 +44,31 @@ const incrementStringValue = (str: string) => {
     return (parsed + 1).toString()
   }
 }
+
+const deepSort = (obj: any): any => {
+  if (isArray(obj)) {
+    return sortBy(obj.map(deepSort), (item: any) => JSON.stringify(item));
+  } else if (isObject(obj)) {
+    return keys(obj)
+      .sort()
+      .reduce((result: { [key: string]: any }, key: string) => {
+        // @ts-ignore
+        result[key] = deepSort(obj[key]); 
+        return result;
+      }, {});
+  }
+  return obj;
+};
+
+
+export const isEqualComparator = (objValue: any, othValue: any) => {
+  if (isArray(objValue) && isArray(othValue)) {
+    // Sort arrays and objects before comparison
+    return isEqual(deepSort(objValue), deepSort(othValue));
+  }
+  // Return undefined to default to the standard isEqual comparison
+};
+
 
 export const incrementSemver = ({
   valueToIncrement,
@@ -80,10 +103,7 @@ export const incrementSemver = ({
 
 export const removeDraftFromVersionString = (version: string) => version.replace('-draft', '')
 
-export const updateResourceVersion = (
-  resource: fhir4.Library | fhir4.ValueSet | fhir4.PlanDefinition,
-  newVersion: string
-) => {
+export const updateResourceVersion = (resource: fhir4.Library | fhir4.ValueSet | fhir4.PlanDefinition, newVersion: string) => {
   const clonedResource = cloneDeep(resource)
   clonedResource.version = newVersion
   return clonedResource
