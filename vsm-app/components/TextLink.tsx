@@ -1,14 +1,15 @@
 import Link from 'next/link'
 import styled from 'styled-components'
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward'
+import { useRouter } from 'next/router'
 
 const LinkContainer = styled.div`
-display: flex;
-color: var(--theme-300);
-align-items: center;
-&:hover {
-  color: var(--theme-500);
-};
+  display: flex;
+  color: var(--theme-300);
+  align-items: center;
+  &:hover {
+    color: var(--theme-500);
+  }
 `
 
 const StyledLink = styled(Link)`
@@ -28,10 +29,11 @@ interface TextLinkProps {
 }
 
 const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = false }: TextLinkProps) => {
+  const router = useRouter()
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (forceReload) {
       e.preventDefault()
-      window.location.href = href
+      router.push(href)
     }
   }
 
