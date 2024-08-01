@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@mui/material'
 import { EndpointResponse } from '../api/endpoint'
 import { PaginationState } from '@/components/Provisional/ProgramsTab'
+import { useRouter } from 'next/router'
 
 const Col = styled.div`
   display: flex;
@@ -33,6 +34,7 @@ const TerminologyEndpoints: NextPage = () => {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<fhir4.Endpoint[]>([])
   const [error, setError] = useState({ error: '' })
+  const router = useRouter()
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -108,7 +110,7 @@ const TerminologyEndpoints: NextPage = () => {
           <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
             <IconButton
               onClick={() => {
-                window.location.href = `/admin-tools/edit-endpoint/${row.id}`
+                router.push(`/admin-tools/edit-endpoint/${row.id}`)
               }}
               buttoncontext={'edit'}
             />
@@ -129,7 +131,7 @@ const TerminologyEndpoints: NextPage = () => {
         )
       }
     ],
-    [pagination.countPerPage, pagination.page]
+    [pagination.countPerPage, pagination.page, router]
   )
   return (
     <Col>
@@ -138,7 +140,7 @@ const TerminologyEndpoints: NextPage = () => {
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <h4>Endpoints</h4>
-        <Button onClick={() => (window.location.href = '/admin-tools/create-endpoint')}>Create Endpoint</Button>
+        <Button onClick={() => router.push('/admin-tools/create-endpoint')}>Create Endpoint</Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT
