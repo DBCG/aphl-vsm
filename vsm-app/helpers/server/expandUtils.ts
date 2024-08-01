@@ -188,12 +188,12 @@ const findMatchingVsetUrls = async ({
       ?.filter((i) => i.resource?.resourceType === 'Bundle')
       ?.map((i) => i.resource as fhir4.Bundle)
       ?.flatMap((i) => i?.entry)
-      ?.map((x) => x?.resource)
-      ?.filter((x) => x?.resourceType === 'ValueSet')
+      ?.filter((x) => x?.resource?.resourceType === 'ValueSet')
+      ?.map((x) => x?.resource as fhir4.ValueSet)
       ?.filter((y) => Boolean(y)) || []
 
     // now, you have the leafs from the CQF server, but we need the proper ID in order to $expand from the terminology server
-    const vsacEntries = leafsFromCQF.map((leafVs: fhir4.ValueSet) => {
+    const vsacEntries = leafsFromCQF.map((leafVs) => {
       // we strip VSAC-specific appended version from URL before saving
       const leafUrl = leafVs.url!
       const leafVersion = groupersByLeaf?.[leafUrl]?.version
