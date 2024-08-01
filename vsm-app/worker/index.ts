@@ -6,12 +6,12 @@ import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { addExtensionToVs, EXTENSIONS, getTerminologySource } from '@/helpers/valueSetHelpers'
-import { deepEqual, sleep } from 'utils'
+import { isEqualComparator, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import logger from '@/helpers/server/logger'
 import { getTerminologySourceEndpoint } from '@/fhirClientOptions'
-import { set } from 'lodash'
+import { isEqualWith, set } from 'lodash'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -84,7 +84,7 @@ const compareValueSets = (cdrVs: ValueSet, authoritativeVs: ValueSet, authSrcUrl
   delete cdrVsClone.id
   delete cdrVsClone.text
   
-  const isDifferent = !deepEqual(cdrVsClone, authoritativeVsClone)
+  const isDifferent = !isEqualWith(cdrVsClone, authoritativeVsClone, isEqualComparator)
 
   return isDifferent
 }
@@ -121,7 +121,8 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
   return upgradeRequired
 }
 
-const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
+// Executes a job batch
+const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpdates: number[]) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
@@ -190,6 +191,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
     const updatesToBeMade = gatherVsToUpdate(toUpdateCollection)
 
     if (updatesToBeMade?.length > 0) {
+      totalUpdates.push(updatesToBeMade.length)
       return fhirCdrClient.batch({
         body: {
           resourceType: 'Bundle',
@@ -209,6 +211,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[]) => {
 valueSetUpdateQueue.process(async function (job, done) {
   const { urls = [], programId } = job.data
   const refreshErrors: string[] = []
+  const totalUpdates: number[] = []; // Store total number of updates made
   const clonedUrls = [...urls]
   if (clonedUrls?.length === 0 || programId == null) {
     logger.error('Urls and ProgramID required for valueset update worker')
@@ -219,7 +222,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   logger.info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors)
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates)
     if (batch) {
       batchedJobs.push(batch)
     }
@@ -270,7 +273,8 @@ valueSetUpdateQueue.process(async function (job, done) {
   }
   job.progress(100)
   logger.info('job finished')
-  done(null, { errors: refreshErrors })
+  const totalNumbOfUpdates = totalUpdates.reduce((a, b) => a + b, 0)
+  done(null, { errors: refreshErrors, totalNumbOfUpdates })
 })
 
 export default valueSetUpdateQueue

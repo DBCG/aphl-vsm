@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isArray, isEqual, isObject, keys, sortBy } from 'lodash'
 import { isValidSimpleSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);
@@ -45,39 +45,29 @@ const incrementStringValue = (str: string) => {
   }
 }
 
-// Deep compare two objects
-// Ignores sort order of keys in arrays
-export const deepEqual = (obj1: any, obj2: any): boolean => {
-  if (obj1 === obj2) return true;
-
-  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
-    return false;
+const deepSort = (obj: any): any => {
+  if (isArray(obj)) {
+    return sortBy(obj.map(deepSort), (item: any) => JSON.stringify(item));
+  } else if (isObject(obj)) {
+    return keys(obj)
+      .sort()
+      .reduce((result: { [key: string]: any }, key: string) => {
+        // @ts-ignore
+        result[key] = deepSort(obj[key]); 
+        return result;
+      }, {});
   }
+  return obj;
+};
 
-  if (Array.isArray(obj1) && Array.isArray(obj2)) {
-    if (obj1.length !== obj2.length) return false;
-    obj1 = obj1.slice().sort();
-    obj2 = obj2.slice().sort();
-    return obj1.every((value: any, index: number) => deepEqual(value, obj2[index]));
+
+export const isEqualComparator = (objValue: any, othValue: any) => {
+  if (isArray(objValue) && isArray(othValue)) {
+    // Sort arrays and objects before comparison
+    return isEqual(deepSort(objValue), deepSort(othValue));
   }
-
-  if (Array.isArray(obj1) !== Array.isArray(obj2)) {
-    return false;
-  }
-
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-
-  if (keys1.length !== keys2.length) return false;
-
-  keys1.sort();
-  keys2.sort();
-
-  return keys1.every((key, index) => {
-    if (key !== keys2[index]) return false;
-    return deepEqual(obj1[key], obj2[key]);
-  });
-}
+  // Return undefined to default to the standard isEqual comparison
+};
 
 
 export const incrementSemver = ({
