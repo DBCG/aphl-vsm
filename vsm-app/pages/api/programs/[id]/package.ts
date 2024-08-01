@@ -43,7 +43,7 @@ const crmiPackage = async (
     })
       .then((r) => {
         if (r.ok) {
-          return data?.json || useV1 ? r.json() : r.text() as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>
+          return (data?.json || useV1 ? r.json() : r.text()) as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>
         } else {
           throw new Error("Unknown error executing package")
         }
