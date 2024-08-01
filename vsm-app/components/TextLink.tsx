@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import styled from 'styled-components'
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward'
-import { useRouter } from 'next/router'
 
 const LinkContainer = styled.div`
   display: flex;
@@ -29,11 +28,10 @@ interface TextLinkProps {
 }
 
 const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = false }: TextLinkProps) => {
-  const router = useRouter()
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (forceReload) {
       e.preventDefault()
-      router.push(href)
+      window.location.href = href
     }
   }
 
