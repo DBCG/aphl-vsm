@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash'
+import { cloneDeep, isArray, isEqual, isObject, keys, sortBy } from 'lodash'
 import { isValidSimpleSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);
@@ -45,7 +45,36 @@ const incrementStringValue = (str: string) => {
   }
 }
 
-export const incrementSemver = ({ valueToIncrement, incrementType, fallbackValue }: IncrementParams) => {
+const deepSort = (obj: any): any => {
+  if (isArray(obj)) {
+    return sortBy(obj.map(deepSort), (item: any) => JSON.stringify(item));
+  } else if (isObject(obj)) {
+    return keys(obj)
+      .sort()
+      .reduce((result: { [key: string]: any }, key: string) => {
+        // @ts-ignore
+        result[key] = deepSort(obj[key]); 
+        return result;
+      }, {});
+  }
+  return obj;
+};
+
+
+export const isEqualComparator = (objValue: any, othValue: any) => {
+  if (isArray(objValue) && isArray(othValue)) {
+    // Sort arrays and objects before comparison
+    return isEqual(deepSort(objValue), deepSort(othValue));
+  }
+  // Return undefined to default to the standard isEqual comparison
+};
+
+
+export const incrementSemver = ({
+  valueToIncrement,
+  incrementType,
+  fallbackValue
+}: IncrementParams) => {
   // if not a string to begin with, return fallback default
   if (typeof valueToIncrement !== 'string') return fallbackValue
 

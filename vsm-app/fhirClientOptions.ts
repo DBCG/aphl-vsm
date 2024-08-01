@@ -8,7 +8,7 @@ if (process.env.NEXT_PUBLIC_SHOW_TEST_TERMINOLOGY_SERVER) {
 }
 
 const getTerminologySourceEndpoint = (terminologyName: string) => {
-  terminologyServerEndpoints?.find((grp) => grp.value.title.toLowerCase() === terminologyName.toLowerCase())?.value?.url
+  return terminologyServerEndpoints?.find((grp) => grp.value.title.toLowerCase() === terminologyName.toLowerCase())?.value?.url
 }
 
 export { terminologyServerEndpoints, getTerminologySourceEndpoint }
