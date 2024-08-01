@@ -195,7 +195,8 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
 
     const allParentVsetIds = provisionalCsUrlsToUpdate.map(url => body[url].inValueSets).flat()
     let parentVSets = []
-    // if any codes are used in provisional leafs, go get them before editing
+    // if any codes are used in provisional leafs, go get them first
+    // they will need to be updated too
     if (allParentVsetIds.length) {
       const getProvisionalLeafsTransactionEntry = allParentVsetIds.map(id => ({
         request: {
@@ -250,12 +251,12 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       allCsToUpdate = getCsResult?.entry?.map((e) => e.resource)?.filter((x) => Boolean(x))
     }
 
-    const updatedResources: (fhir4.ValueSet|fhir4.CodeSystem)[] = []
+    const updatedVsAndCs: (fhir4.ValueSet|fhir4.CodeSystem)[] = []
     // update CS and VS with code changes and push to arr
     allCsToUpdate.forEach((originalCodeSystem: fhir4.CodeSystem) => {
 
       // if CS has already been updated, should be working on top of those updates so they're not erased
-      const existingUpdatedCsIndex = updatedResources.findIndex(
+      const existingUpdatedCsIndex = updatedVsAndCs.findIndex(
         updatedResource => (updatedResource.url === originalCodeSystem.url)
         && updatedResource.resourceType === 'CodeSystem'
       )
@@ -263,22 +264,26 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       const csAlreadyUpdated = existingUpdatedCsIndex > -1
 
       const updateData = body[originalCodeSystem.url!]
-      const csToUpdate = csAlreadyUpdated ? updatedResources[existingUpdatedCsIndex] : originalCodeSystem as fhir4.CodeSystem
+      const csToUpdate = csAlreadyUpdated ? updatedVsAndCs[existingUpdatedCsIndex] : originalCodeSystem as fhir4.CodeSystem
       const updatedCs = updateCsCodeItem({ cs: csToUpdate, action: 'replace', updateData })
 
       if (updatedCs.error) {
         return updatedCs
       } else if (csAlreadyUpdated) {
-        updatedResources[existingUpdatedCsIndex] = updatedCs
+        updatedVsAndCs[existingUpdatedCsIndex] = updatedCs
       } else {
-        updatedResources.push(updatedCs)
+        updatedVsAndCs.push(updatedCs)
       }
 
       if (updateData.inValueSets.length) {
+        const vsIds = updateData.inValueSets
         // if this change needs to be propagated to any valuesets, must update vs contents on code editing
-        parentVSets
+        const vSetsToUpdate = vsIds.map(id => {
+          if ()
+        })
       }
     })
+    console.log('updatedVsAndCs: ', updatedVsAndCs)
     // const [
     //   newCodeSystemConcept,
     //   parentValueSets,
