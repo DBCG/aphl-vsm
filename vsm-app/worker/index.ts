@@ -29,14 +29,10 @@ const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vs
   limiter: {
     max: 1,
     duration: 10000
-  },
-  redis: {
-    tls: {rejectUnauthorized: false},
-    enableTLSForSentinelMode: false
   }
 })
 
-const findLatestVersionValueSet = (valuesets: ValueSet[]) => {
+const findLatestValuesetVersion = (valuesets: ValueSet[]) => {
   let latestVersion = valuesets[0]
   valuesets.forEach((valueSet) => {
     if (dayjs(valueSet.version).isAfter(latestVersion.version)) {
@@ -55,11 +51,13 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
     ?.filter((entry) => entry?.resource?.resourceType === 'Bundle')
     ?.map((cdrBundle: BundleEntry) => {
       const bundle = cdrBundle?.resource as Bundle
-      const valueSets = bundle?.entry
-      ?.filter((nestedEntry) => nestedEntry?.resource?.resourceType === 'ValueSet')
-      ?.map(({ resource }) => resource as ValueSet).filter((i) => !!i) || []
+      const valueSets =
+        bundle?.entry
+          ?.filter((nestedEntry) => nestedEntry?.resource?.resourceType === 'ValueSet')
+          ?.map(({ resource }) => resource as ValueSet)
+          .filter((i) => !!i) || []
       if (valueSets.length > 1) {
-        return findLatestVersionValueSet(valueSets)
+        return findLatestValuesetVersion(valueSets)
       } else if (valueSets.length === 1) {
         return valueSets[0]
       } else {
@@ -83,7 +81,7 @@ const compareValueSets = (cdrVs: ValueSet, authoritativeVs: ValueSet, authSrcUrl
   delete cdrVsClone.meta
   delete cdrVsClone.id
   delete cdrVsClone.text
-  
+
   const isDifferent = !isEqualWith(cdrVsClone, authoritativeVsClone, isEqualComparator)
 
   return isDifferent
@@ -98,7 +96,7 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
     const needsUpdate = compareValueSets(cdrValueSet, authorativeValueSet!, authSrcUrl)
     if (!authorativeValueSet) {
       logger.error(`No authoritative ValueSet found for ${cdrValueSet.id}`)
-      continue;
+      continue
     }
     authorativeValueSet.id = cdrValueSet.id // set the id to the same cdr value set id
     if (!authorativeValueSet?.meta?.profile) {
@@ -146,7 +144,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
     const cdrResponse = await fhirCdrClient.batch({ body: batchBundle })
 
     const cachedCdrVS = parseCdrResponses(cdrResponse as Bundle) || []
-    const toUpdateCollection:CDRResponseCollection = {}
+    const toUpdateCollection: CDRResponseCollection = {}
     // Gather all the valuesets from their respective authorative sources
     await Promise.all(
       cachedCdrVS.map(async (valueset) => {
@@ -211,7 +209,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
 valueSetUpdateQueue.process(async function (job, done) {
   const { urls = [], programId } = job.data
   const refreshErrors: string[] = []
-  const totalUpdates: number[] = []; // Store total number of updates made
+  const totalUpdates: number[] = [] // Store total number of updates made
   const clonedUrls = [...urls]
   if (clonedUrls?.length === 0 || programId == null) {
     logger.error('Urls and ProgramID required for valueset update worker')
