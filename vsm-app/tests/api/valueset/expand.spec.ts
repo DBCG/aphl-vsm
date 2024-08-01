@@ -1,6 +1,7 @@
-import handler from 'pages/api/valueset/expand'
+import handler, { ExpandRequest } from 'pages/api/valueset/expand'
 import { createMocks } from 'node-mocks-http'
 import { vsacFhirClient, fhirCdrClient } from '@/fhirClients'
+import { NextApiResponse } from 'next'
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
@@ -16,14 +17,15 @@ jest.mock('fhirClients')
 
 describe('pages/api/valueset/expand', () => {
   test('should call vsac for $expand for expansion on valuesets', async () => {
-    const { req, res } = createMocks({
+    const body: ExpandRequest["body"] = {
+      expansionParameters: {
+        'http://loinc.org': ['2.69']
+      },
+      valueSetId: 'http://loinc.org/vs/LL269-2'
+    }
+    const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
       method: 'POST',
-      body: {
-        expansionParameters: {
-          'http://loinc.org': ['2.69']
-        },
-        valueSetId: 'http://loinc.org/vs/LL269-2'
-      }
+      body: body
     })
 
     await handler(req, res)
@@ -43,17 +45,18 @@ describe('pages/api/valueset/expand', () => {
   })
 
   test('should search on grouper valuesets', async () => {
-    const { req, res } = createMocks({
-      method: 'POST',
-      body: {
-        codeSystem: 'http://hl7.org/fhir/sid/icd-10-cm',
-        groupersToSearch: ['2366'],
-        codeToFind: 'A48.51',
-        expansionParameters: {
-          'http://terminology.hl7.org/CodeSystem/v3-ActCode': ['9.0.0'],
-          'http://terminology.hl7.org/CodeSystem/v3-AddressUse': ['3.0.0']
-        }
+    const body: ExpandRequest["body"] = {
+      codeSystem: 'http://hl7.org/fhir/sid/icd-10-cm',
+      groupersToSearch: ['2366'],
+      codeToFind: 'A48.51',
+      expansionParameters: {
+        'http://terminology.hl7.org/CodeSystem/v3-ActCode': ['9.0.0'],
+        'http://terminology.hl7.org/CodeSystem/v3-AddressUse': ['3.0.0']
       }
+    }
+    const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
+      method: 'POST',
+      body: body
     })
     fhirCdrClient.batch = jest.fn().mockResolvedValue({
       resourceType: 'Bundle',

@@ -6,30 +6,34 @@ import logger from '@/helpers/server/logger'
 import {
   findMatchingVsetUrls
 } from '@/helpers/server/expandUtils'
-
+export interface ExpandRequest extends NextApiRequest {
+  body: {
+    valueSetId?: string
+    expansionParameters: { [key: string]: string[] }
+    groupersToSearch?: string[]
+    codeToFind?: string
+    systemToFind?: string
+    codeSystem?: string
+  }
+}
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
-const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
+const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
   try {
-    const systems = Object.keys(req.body.expansionParameters)
 
-    const parameter = [] as fhir4.ParametersParameter[]
-    systems.forEach((system) => {
-      const systemVersions: string[] = req.body.expansionParameters[system]
-      const addToParameter = systemVersions.map((version: string) => ({
+    const parameter: fhir4.ParametersParameter[] = Object.entries(req.body.expansionParameters)
+      .flatMap(([system, versions]) => versions.map((version) => ({
         name: 'system-version',
         valueCanonical: `${system}|${version}`
-      }))
-      parameter.push(...addToParameter)
-    })
+      })))
 
-    const parameters = {
+    const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter
-    } as fhir4.Parameters
+    }
 
     let response
-    const groupersToSearch = req?.body?.groupersToSearch as string[] | undefined
+    const groupersToSearch = req?.body?.groupersToSearch
 
     // in this case expanding just one valueset
     if (typeof req.body.valueSetId === 'string') {
@@ -48,18 +52,20 @@ const expandValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
     } else if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind
-      
-      const matchingVsUrlsCodes = await findMatchingVsetUrls({
-        fhirCdrClient,
-        vsacFhirClient,
-        parameters,
-        codeToFind,
-        systemToFind,
-        groupersToSearch
-      })
-
-      res.status(200).send(matchingVsUrlsCodes)
-
+      if (!!codeToFind && !!systemToFind) {
+        const matchingVsUrlsCodes = await findMatchingVsetUrls({
+          fhirCdrClient,
+          vsacFhirClient,
+          parameters,
+          codeToFind,
+          systemToFind,
+          groupersToSearch
+        })
+        res.status(200).send(matchingVsUrlsCodes)
+      } else {
+        console.error('failed here 1.1')
+        return res.status(500).json({ error: 'Missing code or system.' })
+      }
     } else {
       console.error('failed here 1')
       return res.status(500).json({ error: 'Invalid request.' })
