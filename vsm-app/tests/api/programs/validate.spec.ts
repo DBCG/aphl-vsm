@@ -57,10 +57,11 @@ describe('/api/programs/validate', () => {
         pkg: testValidationPackage
       }
     })
-
+    const testBaseURl = 'www.test.com/fhir'
+    fhirCdrClient.baseUrl = testBaseURl
     await handler(req, res)
     expect(global.fetch).toHaveBeenCalledTimes(1)
-    expect(global.fetch).toHaveBeenCalledWith("undefined/$validate", {
+    expect(global.fetch).toHaveBeenCalledWith(testBaseURl + "/$validate", {
       method: 'POST',
       body: JSON.stringify(parameterizedValidationPackage),
       headers: {
