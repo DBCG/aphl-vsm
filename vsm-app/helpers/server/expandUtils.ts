@@ -222,8 +222,9 @@ const findMatchingVsetUrls = async ({
       ?.filter(entry => entry.resource?.resourceType === 'Bundle')
       ?.map(entry => entry.resource as fhir4.Bundle)
       ?.filter((i) => !!i?.entry?.length)
-      ?.map((i) => i?.entry?.[0]?.resource)
-      ?.filter(i => i?.resourceType === 'ValueSet')
+      ?.flatMap((i) => i?.entry)
+      ?.filter(entry => entry?.resource?.resourceType === 'ValueSet')
+      ?.map(entry => entry?.resource as fhir4.ValueSet)
       ?.filter((x) => Boolean(x)) || []
 
     const matchingExpansions = async () => {
