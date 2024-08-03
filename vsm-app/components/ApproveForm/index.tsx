@@ -12,10 +12,10 @@ import { Row, SubtitleRow, LabelStyled, Col, GridContainer } from './styles'
 import { approvalFormParams, artifactAssessmentInfoTypeOptions, artifactAssessmentInfoTypes } from './types'
 
 type ApproveFormProps = {
-  programAndGrouperData: any
+  program: fhir4.Library
 }
 
-export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
+export const ApproveForm = ({ program }: ApproveFormProps) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [approvalFormData, setApprovalFormData] = useState<approvalFormParams>({
@@ -61,8 +61,8 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
 
   useEffect(() => {
     let target: string = ''
-    const url = programAndGrouperData?.program?.url
-    const version = programAndGrouperData?.program?.version
+    const url = program?.url
+    const version = program?.version
     if (!!url) {
       target += url
     }
@@ -79,19 +79,19 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
       artifactAssessmentTarget: target || '',
       artifactAssessmentRelatedArtifact: ''
     })
-  }, [programAndGrouperData?.program])
+  }, [program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     setLoading(true)
     const parameterObj = createParametersObj()
-    const approveEndpoint = `/api/programs/${(programAndGrouperData.program as fhir4.Library).id}/approve`
+    const approveEndpoint = `/api/programs/${program.id}/approve`
     return fetch(approveEndpoint, {
       method: 'POST',
       body: JSON.stringify(parameterObj)
     }).then((res) => {
       if (res.ok) {
         toast.dismiss()
-        router.push(`/programs/${router.query.id}`)
+        router.push(`/programs/${program.id}`)
       } else {
         toast.error('Error approving artifact assessment', {
           position: 'bottom-right',

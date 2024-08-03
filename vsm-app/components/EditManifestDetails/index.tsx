@@ -70,7 +70,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const [availableUpdates, setAvailableUpdates] = useState<ManifestSystemVersionPair[]>([])
   const [availableLeafValueSetCodeSystems, setAvailableLeafValueSetCodeSystems] = useState<ManifestSystemVersionPair[]>([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
-  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>({})
+  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>(getProgramManifestVersions(program) || {})
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const [pageLoading, setPageLoading] = useState(true)
   const {
@@ -79,7 +79,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     error
   } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher, { revalidateOnFocus: false })
 
-  const manifestData = useMemo(() => (program ? getProgramManifestVersions(program) : null), [program])
   // loading states
 
   const retrieveAvailableUpdates = async () => {
@@ -107,13 +106,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     }
     setPageLoading(isLoading)
   }, [isLoading, systemAndVersionData, error])
-
-  useEffect(() => {
-    // Initializes the current selected data
-    if (manifestData && Object.keys(manifestData).length !== 0) {
-      setCurrentSelectedData(manifestData)
-    }
-  }, [manifestData])
 
   useEffect(() => {
     // Pull the available versions for the selected CodeSystem
@@ -383,12 +375,9 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
           <StyledLabel>Current Manifest</StyledLabel>
           {!isUpdating && shouldDisableAddButton && <ErrorMessage error={errorMessage} severity="warning" />}
           <ManifestDetailTable
-            programId={program?.id}
-            className="detail-table"
-            customStyles={customTableStyles('readonly')}
-            data={currentSelectedData}
+            programId={program?.id!}
+            manifestData={currentSelectedData}
             availableUpdates={availableUpdates}
-            loading={manifestData == null}
             updateFn={(version: string, system: string) => {
               const targetedCodeSystemIndex = availableUpdates.findIndex((i) => i.system === system)
               const targetedCodeSystem = availableUpdates[targetedCodeSystemIndex]

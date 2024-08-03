@@ -6,11 +6,10 @@ import { toast } from 'react-toastify'
 import DataTable from 'react-data-table-component'
 import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
-import { DataItem, Result, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
-import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
+import { getProgramManifestVersions, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
-import { customTableStyles } from './tables/themes'
 import TextLink from './TextLink'
 import { ExpandRequest } from '@/pages/api/valueset/expand'
 
@@ -121,7 +120,7 @@ const ValueSetDetailsTables = ({
     setIsLoadingExpansion(true)
     const body: ExpandRequest['body'] = {
       valueSetId: currentValueSet.id,
-      expansionParameters: programAndGrouperInfo.manifestData
+      expansionParameters: getProgramManifestVersions(programAndGrouperInfo.program!)
     }
     try {
       const updatedValueSet = await fetch(`/api/valueset/expand`, {

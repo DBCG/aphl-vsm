@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router'
 import CodeSearch from '@/components/CodeSearch'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
-const CodeSearchPage = () => {
+const CodeSearchPage = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
-  const programId = router.query.id as string
 
-  return <CodeSearch programId={programId} router={router} />
+  return <CodeSearch program={program} router={router} />
 }
 
 export default CodeSearchPage
