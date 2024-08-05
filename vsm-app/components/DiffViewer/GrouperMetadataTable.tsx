@@ -55,7 +55,33 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
     ?.filter(k => k !== 'isNew')
     ?.filter(k => k !== 'hasChanges')
 
-  console.log('grouperTableData: ', grouperTableData)
+  const infoItem = () => {
+    if (grouperTableData?.isDeleted) {
+      return (
+        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='error'>
+          This grouper was deleted
+        </Alert>
+      )
+    } else if (grouperTableData?.isNew) {
+      return (
+        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='success'>
+          This grouper was added
+        </Alert>
+      )
+    } else if (!grouperTableData?.hasChanges) {
+      return (
+        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='info'>
+          This grouper has no changes to its value sets and code systems, but you can still view the contents
+        </Alert> 
+      )
+    } else {
+      return (
+        <Alert style={{ marginTop: '1rem' }} variant='filled' severity='warning'>
+          This grouper contains changes
+        </Alert>  
+      )
+    }
+  }
   return (
     <div
       id={id}
@@ -67,21 +93,7 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
         width: '100%'
       }}
     >
-      {grouperTableData?.isDeleted && (
-      <Alert style={{ marginTop: '1rem'}} variant='filled' severity='error'>
-        This grouper was deleted
-      </Alert>
-      )}
-      {grouperTableData?.isNew && (
-      <Alert style={{ marginTop: '1rem'}} variant='filled' severity='success'>
-        This grouper was added
-      </Alert>
-      )}
-      {!grouperTableData?.hasChanges && (
-      <Alert style={{ marginTop: '1rem'}} variant='filled' severity='info'>
-        This grouper has no changes to its value sets and code systems, but you can still view the contents
-      </Alert>
-      )}
+      {infoItem()}
       <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>
       <Container>
         <table>

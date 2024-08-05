@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import ChangeCircleIcon from '@mui/icons-material/ChangeCircle'
+import WarningIcon from '@mui/icons-material/Warning'
 import { createTableData } from '@/components/DiffViewer/createTables'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
@@ -98,7 +98,7 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
               { i.hasChange === 'updated' && (
                 <Tooltip title='This grouper was updated'>
                   <IconButton>
-                    <ChangeCircleIcon color='secondary' fontSize='small'/>
+                    <WarningIcon color='warning' fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}

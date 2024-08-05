@@ -13,7 +13,7 @@ const RelativeContainer = styled.div`
 
 const PageContainer = styled.div`
   background-color: rgba(255,255,255,0.8);
-  padding-bottom: 2rem;
+  // padding-bottom: 2rem;
   margin-bottom: 2rem;
 `
 
