@@ -120,8 +120,10 @@ const generateGrouperMetadata = (grouperPage) => {
   const grouperMetadata = () => {
     const keys = Object.keys(paths)
     const isDeletedGrouper = Boolean(!newData && oldData)
+    const isNewGrouper = Boolean(newData && !oldData)
     let result = {
-      isDeleted: isDeletedGrouper
+      isDeleted: isDeletedGrouper,
+      isNew: isNewGrouper
     }
     keys.forEach(k => {
       if (k === 'codeSystems') {
@@ -249,11 +251,11 @@ const uniqueCodeSystems = (csArray) => (uniqWith(
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage) => {
   // doing this here because it's not explicitly noted in the changelog
-  const allOldLeafIds = grouperPage.oldData.leafValuesets.map(oldLeaf => oldLeaf.memberOid)
+  const allOldLeafIds = grouperPage?.oldData?.leafValuesets.map(oldLeaf => oldLeaf?.memberOid) || []
   const newLeafIds = grouperPage?.newData?.leafValuesets?.map(newLeaf => newLeaf?.memberOid) || []
 
   const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
-  const deletedValueSets = grouperPage.oldData.leafValuesets.filter(vs => deletedLeafIds.includes(vs.memberOid))
+  const deletedValueSets = grouperPage?.oldData?.leafValuesets?.filter(vs => deletedLeafIds?.includes(vs?.memberOid)) || []
 
   let newData = grouperPage?.newData?.leafValuesets.map(gi => {
     // const deletedItems = grouperPage.oldData.leafValueSets.find(i => i.memberOid === gi.memberOid)
@@ -338,16 +340,18 @@ const generateGrouperPages = (allGrouperPages) => {
     valueSetsTable: generateGrouperValueSetTable(grp),
     codeSystemsTable: generateCodeChangesTable(grp),
     groupIndex: index,
-    isDeleted: Boolean(grp?.oldData && !grp.newData)
+    isDeleted: Boolean(grp?.oldData && !grp.newData),
+    isNew: Boolean(!grp?.oldData && grp.newData)
   }))
 
   return res
 }
 
-const generateId = (ind: number, group, isDeleted: boolean) => {
+const generateId = (ind: number, group, isDeleted: boolean, isNew: boolean) => {
 
   const changeText = () => {
     if (isDeleted) return 'deleted'
+    if (isNew) return 'added'
     if (group?.valueSetsTable?.find(i => i.change && i?.change !== '')) {
       return 'updated'
     } else {
@@ -372,7 +376,7 @@ const generateAnchorLinkData = (grouperPageData) => {
   const groupers = grouperPageData.map(
     (group, ind) => {
       console.log('grouperPageData: ', grouperPageData)
-      return (generateId(ind, group, group.isDeleted))
+      return (generateId(ind, group, group.isDeleted, group.isNew))
     }
   )
   return [...base, ...groupers]

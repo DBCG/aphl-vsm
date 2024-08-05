@@ -27,6 +27,7 @@ interface TableData {
   effectiveStart: DataItem
   releaseDate: DataItem
   isDeleted: boolean
+  isNew: boolean
 }
 
 const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
@@ -49,7 +50,7 @@ const produceStringForUI = ({ itemForDisplay, placeholder='' }: StringForUI): st
 const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: TableData }) => {
   if (!grouperTableData) return null
   console.log('grouper table dta: ', grouperTableData)
-  const rowKeys = Object.keys(grouperTableData)
+  const rowKeys = Object.keys(grouperTableData)?.filter(k => k !== 'isDeleted')
   console.log('groupermetadata id: ', id)
 
   return (
@@ -65,6 +66,11 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
       {grouperTableData?.isDeleted && (
       <Alert style={{ marginTop: '1rem'}} variant="filled" severity="error">
         This grouper was deleted
+      </Alert>
+      )}
+      {grouperTableData?.isNew && (
+      <Alert style={{ marginTop: '1rem'}} variant="filled" severity="success">
+        This grouper was added
       </Alert>
       )}
       <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>

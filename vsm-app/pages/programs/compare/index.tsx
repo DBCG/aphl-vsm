@@ -10,6 +10,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle'
 import { createTableData } from '@/components/DiffViewer/createTables'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -90,14 +91,18 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
         <Ul>
           <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.grouperId}`}>
             <div style={{ display: 'flex' }}>
-              <div>
-                
-              </div>
-              <Li style={{ display: 'block'}}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
+              <Li style={{ display: 'flex', flexGrow: 1 }}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
               { i.hasChange === 'updated' && (
                 <Tooltip title='This grouper was updated'>
                   <IconButton>
                     <ChangeCircleIcon color='info' fontSize='small'/>
+                  </IconButton>
+                </Tooltip>
+              )}
+              { i.hasChange === 'added' && (
+                <Tooltip title='This grouper was added'>
+                  <IconButton>
+                    <AddCircleIcon color='success' fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}
@@ -107,7 +112,6 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
                     <DeleteForeverIcon color='error' fontSize='small'/>
                   </IconButton>
                 </Tooltip>
-
               )}
 
             </div>
