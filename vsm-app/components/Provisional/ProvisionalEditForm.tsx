@@ -383,11 +383,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     clearCurrentCodeItems()
   }, [selectedCodeSystemBase])
 
-  useEffect(() => {
-    setMyDocument(document.body)
-  }, [])
-
-
   const selectOptions = useMemo(() => {
     const mapped = allVsacCS?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
     const defaultOption = mapped?.[0]
