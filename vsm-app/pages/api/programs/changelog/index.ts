@@ -4,13 +4,9 @@ import { fhirCdrClient } from '@/fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 const generateChangelog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  console.log('before: ')
   try {
-    console.log('here')
     const { baseProgramId, targetProgramId } = req.body
   
-    console.log('baseProgramId: ', baseProgramId)
-    console.log('baseProgramId: ', targetProgramId)
     if (!baseProgramId?.trim() || !targetProgramId?.trim()) {
       return res.status(400).send({ error: 'Must have both base and target program IDs for changelog' })
     }
@@ -53,7 +49,6 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse): Pro
       const result = atob(response.data!)
       return res.status(200).send(result)
     } else {
-      console.log('response not ok')
       console.error(response)
       return res.status(400).send({ error: 'error with changelog'})
     }
@@ -62,7 +57,6 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse): Pro
     console.error(e)
     console.error(e.response.data.issue)
     return res.status(400).send({ error: 'error with changelog 2'}) 
-    // console.log('e here: ', e.response.data.issue)
   }
 }
 

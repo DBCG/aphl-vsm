@@ -76,7 +76,6 @@ const Ul = styled.ul`
 `
 
 const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) => {
-  console.log('menudata: ', menuData)
   if (!menuData) return
 
   const grouperItems = menuData.anchorLinkData.map((i, idx) => {
@@ -140,7 +139,6 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
       <ButtonContainer style={{ marginRight: '-30px'}}>
         <IconButton
           onClick={() => {
-            console.log('clicked')
             setMenuOpen((s) => !s)
           }}
           aria-label="menu-open-close"
@@ -192,17 +190,13 @@ const ProgramCompare = () => {
     })
 
     if (!response.ok) {
-      console.log('not ok')
       // handle error
     } else {
-      console.log('response: ', response)
       const json = await response.json()
-      console.log('json: ', json)
       const formattedChangelog = createTableData(json)
       setDiffData(formattedChangelog)
     }
     setIsLoadingDiff(false)
-    console.log('response: ', response)
   }
 
   return (

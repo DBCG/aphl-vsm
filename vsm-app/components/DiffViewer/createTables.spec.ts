@@ -48,7 +48,6 @@ describe('createTableData', () => {
           { change: "insert", oid: "2.16.840.1.113762.1.4.1146.163", code: "81020007", descriptor: "Cholera caused by Vibrio cholerae El Tor (disorder)", codeSystem: "http://snomed.info/sct", codeSystemVersion: undefined }
         ]
     }]
-    console.log('test: ', JSON.stringify(result.grouperPages))
     expect(result.grouperPages).toStrictEqual(expectedGrouperData)
   })
 

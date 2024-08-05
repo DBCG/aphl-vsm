@@ -7,11 +7,7 @@ import { createTableData } from '@/components/DiffViewer/createTables'
 
 
 const DiffPage = ({ changelogData }) => {
-  console.log('changelog data: ', changelogData)
   const formattedChangelog = createTableData(changelogData)
-  console.log('formatted changelog: ', formattedChangelog)
-  console.log('this: ', formattedChangelog.grouperPages[0].metadata)
-  console.log('formattedChangelog.grouperpa', formattedChangelog.grouperPages.length)
   if (!changelogData) {
     return null
   }

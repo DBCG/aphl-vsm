@@ -24,10 +24,6 @@ const CodesTableContainer = styled.div`
 const DiffViewerComponent = ({ changelogData }) => {
   const [currentPage, setCurrentPage] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  console.log('changelog: ', changelogData)
-  console.log('this: ', changelogData.grouperPages[0].metadata)
-  console.log('formattedChangelog.grouperpa', changelogData.grouperPages.length)
-  console.log('menu: ', changelogData.anchorLinkData)
   const pages = changelogData.grouperPages.map((p, idx) => (
     <PageContainer>
       <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>

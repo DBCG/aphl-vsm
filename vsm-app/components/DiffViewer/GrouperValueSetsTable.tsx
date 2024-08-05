@@ -114,9 +114,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
 
   const { valueSetsTable } = grouperTableData
 
-  console.log('vs data here: ', valueSetsTable)
   const filteredValueSetOptions = (activeFilters, showUnchanged) => {
-    console.log('active filters: ', activeFilters)
     let clonedOptions = cloneDeep(valueSetsTable)
     if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
@@ -127,12 +125,10 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     })
 
     mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
-      console.log('clonedOptions: ', clonedOptions)
       // handle non-nested fields first
       if (!filterItem.field.startsWith('condition')) {
         clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field]?.toLowerCase()?.includes(filterItem.searchTerm))
       } else if (filterItem.field.startsWith('codesystemname')) {
-        console.log('cloned options: ', clonedOptions)
         clonedOptions = clonedOptions.filter(opt => {
           const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
             const keys = Object.keys(conditionUpdateItem)
@@ -347,7 +343,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
   }, [])
 
   const handleSetFilterContext = (e) => {
-    console.log('e.target: ', e.target)
     setFilterContext(e.target.value)
   }
 

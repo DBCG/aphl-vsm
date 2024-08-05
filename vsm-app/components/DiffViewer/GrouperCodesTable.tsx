@@ -63,7 +63,6 @@ const GrouperCodesTable = ({ grouperTableData, id }) => {
   const [showUnchanged, setShowUnchanged] = useState(false)
   const { codeSystemsTable } = grouperTableData
 
-  console.log('grouper codes id: ', id)
   const filterContextIndex = useMemo(() => {
     return CodeFilterContextComputable.findIndex((item) => item === filterContext)
   }, [filterContext])

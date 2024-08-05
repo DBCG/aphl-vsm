@@ -48,7 +48,6 @@ const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
 
 const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) => {
   if (!rootLibData) return null
-  console.log('root lib dta: ', rootLibData)
   const rowKeys = Object?.keys(rootLibData)
 
   const items = rowKeys.map(k => {

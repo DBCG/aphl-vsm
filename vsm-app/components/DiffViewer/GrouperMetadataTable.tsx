@@ -49,9 +49,7 @@ const produceStringForUI = ({ itemForDisplay, placeholder='' }: StringForUI): st
 
 const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: TableData }) => {
   if (!grouperTableData) return null
-  console.log('grouper table dta: ', grouperTableData)
   const rowKeys = Object.keys(grouperTableData)?.filter(k => k !== 'isDeleted')
-  console.log('groupermetadata id: ', id)
 
   return (
     <div

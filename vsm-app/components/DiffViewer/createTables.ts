@@ -144,7 +144,6 @@ const generateGrouperMetadata = (grouperPage) => {
 }
 
 const generateMainChangeText = (grouperListItem) => {
-  console.log('grouperListItem: ', grouperListItem)
   const allConditionChangeTypes = uniq(grouperListItem?.conditions
     ?.filter(c => c?.operation)
     ?.map(i => i?.operation?.type)) || []
@@ -179,7 +178,6 @@ const generateCodeSystemUpdates = (csItems) => {
 // could be updates to code, text, system
 // might need to combine multiple "replace" fields
 const generateConditionUpdates = (conditionsList, hideConditionChangeText) => {
-  console.log('conditionsList: ', conditionsList)
   if (!conditionsList) return []
   return conditionsList?.map(li => {
     // if an operation occurred at all, return details
@@ -287,7 +285,6 @@ const generateGrouperValueSetTable = (grouperPage) => {
   })
     newData = [...newData, ...removedItems]
   }
-  console.log('new data: ', newData)
   return newData
 }
 
@@ -375,7 +372,6 @@ const generateAnchorLinkData = (grouperPageData) => {
   }]
   const groupers = grouperPageData.map(
     (group, ind) => {
-      console.log('grouperPageData: ', grouperPageData)
       return (generateId(ind, group, group.isDeleted, group.isNew))
     }
   )
@@ -383,14 +379,12 @@ const generateAnchorLinkData = (grouperPageData) => {
 }
 
 export const createTableData = (diffData) => {
-  console.log('diffData: ', diffData)
   if (!diffData) {
     return null
   }
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
 
-  console.log('diffData.pages: ', diffData.pages)
   const allGrouperPages = diffData.pages.filter(p => p?.newData?.resourceType === 'ValueSet' || p?.oldData?.resourceType === 'ValueSet')
   const grouperPageData = generateGrouperPages(allGrouperPages)
 
