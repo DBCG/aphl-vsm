@@ -2,9 +2,9 @@ import { GrouperCodesTable } from '@/components/DiffViewer/GrouperCodesTable'
 import GrouperMetadataTable from '@/components/DiffViewer/GrouperMetadataTable'
 import { GrouperValueSetsTable } from '@/components/DiffViewer/GrouperValueSetsTable'
 import ProgramMetadataTable from '@/components/DiffViewer/ProgramMetadataTable'
-import { changelog } from '@/components/DiffViewer/changelog_new'
-import { createTableData } from '@/components/DiffViewer/createTables'
-import { useState } from 'react'
+import { AccordionDetails, AccordionSummary } from '@mui/material'
+import { ExpandMore } from '@mui/icons-material'
+import Accordion from '@mui/material/Accordion'
 import styled from 'styled-components'
 
 const RelativeContainer = styled.div`
@@ -22,20 +22,24 @@ const CodesTableContainer = styled.div`
 `
 
 const DiffViewerComponent = ({ changelogData }) => {
-  const [currentPage, setCurrentPage] = useState('')
-  const [menuOpen, setMenuOpen] = useState(false)
+  console.log('changelogData: ', changelogData)
   const pages = changelogData.grouperPages.map((p, idx) => (
     <PageContainer>
-      <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>
-      <GrouperValueSetsTable id={changelogData.anchorLinkData[idx + 1].vsTableId} grouperTableData={p}/>
-      <CodesTableContainer>
-        <GrouperCodesTable id={changelogData.anchorLinkData[idx + 1].codesTableId} grouperTableData={p}/>
-      </CodesTableContainer>
+      <Accordion defaultExpanded={p.hasChanges}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
+            <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>
+          </AccordionSummary>
+        <AccordionDetails>
+        <GrouperValueSetsTable id={changelogData.anchorLinkData[idx + 1].vsTableId} grouperTableData={p}/>
+        <CodesTableContainer>
+          <GrouperCodesTable id={changelogData.anchorLinkData[idx + 1].codesTableId} grouperTableData={p}/>
+        </CodesTableContainer>
+        </AccordionDetails>
+      </Accordion>
     </PageContainer>
   ))
   return (
     <RelativeContainer>
-      {/* <DiffViewerMenu/> */}
       <ProgramMetadataTable id='program-metadata' rootLibData={changelogData.rootLibrary}/>
       {pages}
     </RelativeContainer>

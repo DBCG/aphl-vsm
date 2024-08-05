@@ -385,13 +385,15 @@ const ProgramsTab: NextPage = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
           <Button
             style={{ width: 'fit-content' }}
-            
             onClick={() => {
-              setEnableCompare(true)
-              // router.push('programs/compare')
+              if (selectedRows && selectedRows?.length > 1) {
+                router.push(`programs/compare?old=${selectedRows[0].id}&new=${selectedRows[1].id}`)
+              } else {
+                setEnableCompare(true)
+              }
             }}
           >
-            Select 2 Programs to Compare
+            {selectedRows && selectedRows?.length > 1 ? 'Compare': 'Select 2 Programs to Compare'}
           </Button>
         </div>
       )}

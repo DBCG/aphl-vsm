@@ -3,7 +3,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { Drawer, IconButton, Tooltip } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -12,6 +12,7 @@ import { createTableData } from '@/components/DiffViewer/createTables'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
+import { toast } from 'react-toastify'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -79,24 +80,25 @@ const Ul = styled.ul`
 
 const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) => {
   if (!menuData) return
+  console.log('router: ', router)
 
   const grouperItems = menuData.anchorLinkData.map((i, idx) => {
     if (idx === 0) {
       return (
-        <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.rootLibId}`}>
+        <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.rootLibId}`}>
           <Li style={{ marginTop: '2rem'}}>Root Library Metadata</Li>
         </a>
       )
     } else {
       return (
         <Ul>
-          <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.grouperId}`}>
+          <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.grouperId}`}>
             <div style={{ display: 'flex' }}>
               <Li style={{ display: 'flex', flexGrow: 1 }}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
               { i.hasChange === 'updated' && (
                 <Tooltip title='This grouper was updated'>
                   <IconButton>
-                    <ChangeCircleIcon color='info' fontSize='small'/>
+                    <ChangeCircleIcon color='secondary' fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}
@@ -118,10 +120,21 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
             </div>
           </a>
           <Ul>
-            <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.vsTableId}`}>
+            <a
+              onClick={() => {
+                setMenuOpen(false)
+                return false
+              }}
+              href={`${router.asPath.split('#')[0]}#${i.vsTableId}`}>
               <Li>Value Sets</Li>
             </a>
-            <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.codesTableId}`}>
+            <a
+              onClick={() => {
+                setMenuOpen(false)
+                return false
+              }}
+              href={`${router.asPath.split('#')[0]}#${i.codesTableId}`}
+            >
               <Li>Codes</Li>
             </a>
 
@@ -182,27 +195,29 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
 
 const ProgramCompare = () => {
   const router = useRouter()
-  const { selectedBase, selectedTarget } = router.query
   const [menuOpen, setMenuOpen] = useState(false)
   const [isLoadingDiff, setIsLoadingDiff] = useState(false)
-  const [baseProgram, setBaseProgram] = useState(selectedBase || null)
-  const [targetProgram, setTargetProgram] = useState(selectedTarget || null)
+  const [baseProgram, setBaseProgram] = useState(null)
+  const [targetProgram, setTargetProgram] = useState(null)
   const [diffData, setDiffData] = useState(null)
+  const [baseTouched, setBaseTouched] = useState(false)
+  const [targetTouched, setTargetTouched] = useState(false)
 
   const allPrograms = useGetPrograms([]) || []
 
-
   if (!router) return
 
-  const formattedProgramOptions = allPrograms.map(p => {
+  const formattedProgramOptions = useMemo(() => allPrograms.map(p => {
     return ({
       label: `Title: ${(p.title || p.name)}, ID: ${p.id}`,
       value: p.id
     })
-  })
+  }), [allPrograms])
 
   const handleGenerateDifference = async () => {
     setIsLoadingDiff(true)
+    setBaseTouched(true)
+    setTargetTouched(true)
     // handle error
     if (!baseProgram || !targetProgram) return
     const response = await fetch('/api/programs/changelog', {
@@ -226,6 +241,19 @@ const ProgramCompare = () => {
     setIsLoadingDiff(false)
   }
 
+  useEffect(() => {
+    if (router.query.old && router.query.new && (!baseTouched && !targetTouched)) {
+      setBaseProgram(formattedProgramOptions?.find(p => p.value === router.query.old))
+      setTargetProgram(formattedProgramOptions?.find(p => p.value === router.query.new))
+    }
+  }, [formattedProgramOptions, router])
+
+  useEffect(() => {
+    if (targetProgram && baseProgram && targetProgram?.value! === baseProgram?.value) {
+      toast.error('Please select two different programs to compare')
+    }
+  })
+
   return (
     <RelativeContainer>
       <DiffViewerMenu isOpen={menuOpen} setMenuOpen={setMenuOpen} menuVisible={diffData} menuData={diffData} router={router} />
@@ -233,16 +261,26 @@ const ProgramCompare = () => {
         <ProgramCol>
           <StyledP>Select base program</StyledP>
           <Select
+            isDisabled={isLoadingDiff}
             options={formattedProgramOptions}
-            onChange={(i) => setBaseProgram(i)}
+            onChange={(i) => {
+              setBaseTouched(true)
+              setBaseProgram(i)
+            }}
+            value={baseProgram}
           />
         </ProgramCol>
         <ProgramCol>
           <StyledP>Select target program</StyledP>
           <Select
             // options={formattedProgramOptions}
-            onChange={(i) => setTargetProgram(i)}
+            isDisabled={isLoadingDiff}
+            onChange={(i) => {
+              setTargetTouched(true)
+              setTargetProgram(i)
+            }}
             options={formattedProgramOptions}
+            value={targetProgram}
           />
         </ProgramCol>
       </ProgramContainer>
@@ -252,6 +290,7 @@ const ProgramCompare = () => {
           style={{ marginBottom: '2rem', marginTop: '1rem' }}
           onClick={handleGenerateDifference}
           loading={isLoadingDiff}
+          disabled={(!targetProgram || !baseProgram) || (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value)}
         />
 
       </ButtonContainer>

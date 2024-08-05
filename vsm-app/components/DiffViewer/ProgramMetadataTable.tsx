@@ -1,6 +1,5 @@
 
 import styled from 'styled-components'
-import { MenuDedent } from './FlexibleMenu/images/MenuDedent'
 
 const Container = styled.div`
   display: flex;
@@ -67,11 +66,14 @@ const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) 
     </Tr>
   )})
   return (
-    <div style={{
-      background: 'white',
-      padding: '0px 16px',
-      borderTop: '1px solid rgba(0,0,0,.12)'
-    }}>
+    <div
+      id='program-metadata'
+      style={{
+        background: 'white',
+        padding: '0px 16px',
+        borderTop: '1px solid rgba(0,0,0,.12)'
+      }}
+    >
     <FlexTableTitle>Comparing Programs:</FlexTableTitle>
       <Container>
         <table>

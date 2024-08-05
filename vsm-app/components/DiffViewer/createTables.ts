@@ -106,9 +106,11 @@ export const generatePlanDefinitionData = () => {
 
 // grouper metadata only cares about the newest info
 // RCKMS says they don't really care to compare grouper old/new metadata values
-const generateGrouperMetadata = (grouperPage) => {
+const generateGrouperMetadata = (grouperPage, hasChanges) => {
   const newData = grouperPage.newData
   const oldData = grouperPage.oldData
+
+  console.log('grouperPage: ', grouperPage)
 
   const paths = {
     id: 'id.value',
@@ -123,7 +125,8 @@ const generateGrouperMetadata = (grouperPage) => {
     const isNewGrouper = Boolean(newData && !oldData)
     let result = {
       isDeleted: isDeletedGrouper,
-      isNew: isNewGrouper
+      isNew: isNewGrouper,
+      hasChanges: hasChanges
     }
     keys.forEach(k => {
       if (k === 'codeSystems') {
@@ -332,14 +335,25 @@ const generateCodeChangesTable = (grouperPage) => {
 }
 
 const generateGrouperPages = (allGrouperPages) => {
-  const res = allGrouperPages.map((grp, index: string) => ({
-    metadata: generateGrouperMetadata(grp),
-    valueSetsTable: generateGrouperValueSetTable(grp),
-    codeSystemsTable: generateCodeChangesTable(grp),
-    groupIndex: index,
-    isDeleted: Boolean(grp?.oldData && !grp.newData),
-    isNew: Boolean(!grp?.oldData && grp.newData)
-  }))
+  const res = allGrouperPages.map((grp, index: string) => {
+    const codeChanges = generateCodeChangesTable(grp)
+    const valueSetChanges = generateGrouperValueSetTable(grp)
+  
+    const hasChanges = Boolean(codeChanges?.find(c => c.change !== '') || valueSetChanges?.find(v => v.change !== ''))
+    console.log('codeChanges: ', codeChanges)
+    console.log('valueSet changes: ', valueSetChanges)
+    return (
+      {
+        metadata: generateGrouperMetadata(grp, hasChanges),
+        valueSetsTable: valueSetChanges,
+        codeSystemsTable: codeChanges,
+        groupIndex: index,
+        isDeleted: Boolean(grp?.oldData && !grp.newData),
+        isNew: Boolean(!grp?.oldData && grp.newData),
+        hasChanges
+      }
+    )
+  })
 
   return res
 }

@@ -99,8 +99,7 @@ const GrouperCodesTable = ({ grouperTableData, id }) => {
       backgroundColor: COLORS.remove
     }
   }
-    // need a remove case, but no existing data for that
-  ]
+]
 
     // need to do this manually for deletion
 const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
