@@ -385,9 +385,13 @@ const ProgramsTab: NextPage = () => {
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
           <Button
             style={{ width: 'fit-content' }}
-            onClick={() => router.push('programs/compare')}
+            
+            onClick={() => {
+              setEnableCompare(true)
+              // router.push('programs/compare')
+            }}
           >
-            Select Programs to Compare
+            Select 2 Programs to Compare
           </Button>
         </div>
       )}
@@ -409,6 +413,10 @@ const ProgramsTab: NextPage = () => {
         selectableRows={enableCompare}
         selectableRowsNoSelectAll
         contextActions={contextActions}
+        selectableRowDisabled={(row) => {
+          return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
+          }
+        }
       />
     </Col>
   )
