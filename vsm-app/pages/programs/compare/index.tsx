@@ -9,8 +9,9 @@ import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle'
 import { createTableData } from '@/components/DiffViewer/createTables'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import CloseIcon from '@mui/icons-material/Close'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -158,9 +159,21 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
         </IconButton>
       </ButtonContainer>
       <Drawer variant='temporary' open={isOpen} onClose={handleClose}>
-      <Ul>
-      {grouperItems}
-    </Ul>
+      <IconButton
+          aria-label="close"
+          onClick={handleClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <Ul>
+          {grouperItems}
+        </Ul>
     </Drawer>
     </MenuContainer>
 
