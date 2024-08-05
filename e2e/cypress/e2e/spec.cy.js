@@ -5,12 +5,11 @@ const deleteDownloadsFolder = () => {
   cy.task('deleteFolder', downloadsFolder)
 }
 
+
+// TODO: Needs improvement, this only works if the first program is a draft program
 const clickDraftProgramRow = () => {
-  cy.get('[data-column-id="1"]')
-  .contains("DRAFT")
-  .parents("div")
-  .parents("div")
-  .parents("div")
+  cy.contains("DRAFT")
+  .get('[data-row-link="true"] > a')
   .first()
   .click(200,0, { force: true });
 }
@@ -34,11 +33,11 @@ describe("Smoke Tests", () => {
   context("Draft Library Setup", () => {
     it("clones active library", () => {
       cy.wait(3000)
+      cy.contains("DRAFT").should("not.exist");
       cy.get('[data-button-context="clone-active"]').first().click();
       cy.get('[data-modal="confirm"]').click();
       cy.get('[data-modal="confirm"]').should("not.exist"); // Wait for draft operation to finish
-      cy.get('[data-column-id="1"]').first().scrollIntoView()
-      cy.get('[data-column-id="1"]').contains("DRAFT").should("be.visible");
+      cy.contains("DRAFT").scrollIntoView().should("be.visible");
     });
 
     it("Edit Program Metadata", () => {
@@ -70,7 +69,7 @@ describe("Smoke Tests", () => {
 
       cy.get("#edit-manifest").click();
       cy.get("#code-system-selector").click();
-      cy.get("#react-select-3-listbox").contains("ICD10CM").click();
+      cy.contains("ICD10CM").click();
 
       // Add the manifests
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
@@ -78,10 +77,6 @@ describe("Smoke Tests", () => {
 
       // can only add one manifest of the same codesystem at a time
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should("be.disabled");
-
-      // // Delete one of the manifests
-      // cy.get('[data-delete-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]').click();
-      // cy.get('[data-modal="yes"]').click();
 
       // Check that the one not added is on the available version manifest list
       cy.get('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2020"]').should("exist");
@@ -115,13 +110,11 @@ describe("Smoke Tests", () => {
 
       cy.get("#submit-grouper-creation").click();
       // Do some assertions on Program Detail View Page
-      cy.get('[data-column-id="1"]').contains("excellent title for grouper").should("exist");
-      cy.get('[data-column-id="3"]')
-        .contains("http://ersd.aimsplatform.org/fhir/ValueSet/ExcellentTitleForGrouper")
-        .should("exist");
+      cy.contains("excellent title for grouper").should("exist");
+      cy.contains("http://ersd.aimsplatform.org/fhir/ValueSet/ExcellentTitleForGrouper").should("exist");
 
       // Edit the grouper
-      cy.get('[data-column-id="1"]').last().click({force: true})
+      cy.get('[data-column-id="1"]').last().find('a').click({force: true})
       cy.get('[data-button="edit-metadata"]').click();
       cy.get("#vs-publisher").clear().type("test-publisher");
       cy.get("#vs-author").clear().type("test-author");
@@ -137,11 +130,13 @@ describe("Smoke Tests", () => {
 
       // Navigate back to program view
       cy.get("#breadcrumb-programs").click();
+      cy.wait(3000)
+
       clickDraftProgramRow()
 
       // Now remove newly created grouper
       cy.get('[data-button-context="delete"]').last().click();
-      cy.get('[data-modal="yes"]').click();
+      cy.get('[data-modal="yes"]').click({ force: true });
       cy.get('[data-column-id="1"]').contains("ExcellentTitleForGrouper").should("not.exist");
     });
 
@@ -182,11 +177,12 @@ describe("Smoke Tests", () => {
 
         // navigate back to program view
         cy.get("#breadcrumb-programs").click();
+        cy.wait(3000)
         clickDraftProgramRow()
 
         // Check grouper to see if version exists
         cy.get("@grouper1").then((grouper1) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
+          cy.contains(grouper1).first().click({ force: true });
         });
         cy.wait(3000) // Wait for valueset to load due to async nature of the call above
         cy.get('[data-column-id="3"]').contains(`http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).should("exist");
@@ -196,7 +192,7 @@ describe("Smoke Tests", () => {
 
         // // Check second grouper to see if version exists
         cy.get("@grouper2").then((grouper2) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(200,10, { force: true });
+          cy.contains(grouper2).first().click({ force: true });
         });
         cy.wait(3000)
 
@@ -211,14 +207,14 @@ describe("Smoke Tests", () => {
         // cy.get(`[data-remove-grouper-vs="http://cts.nlm.nih.gov/fhir/ValueSet/${vsId}`).click({ force: true });
         cy.get('[data-action="delete"]').click();
         cy.wait(100)
-        cy.get('[data-modal="yes"]').click();
+        cy.get('[data-modal="yes"]').click({ force: true });
         // extra one just to get it working again
-        cy.get('[data-modal="yes"]').first().click();
+        cy.get('[data-modal="yes"]').first().click({ force: true });
         cy.go("back");
 
         // Check grouper to see valueset has been removed
         cy.get("@grouper1").then((grouper1) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper1).first().click(200,10, { force: true });
+          cy.contains(grouper1).first().click(200,10, { force: true });
           cy.get('#page-title').contains(grouper1).should("exist")
         });
         cy.wait(3000)
@@ -230,7 +226,7 @@ describe("Smoke Tests", () => {
 
         // Check second grouper to see valueset has been removed
         cy.get("@grouper2").then((grouper2) => {
-          cy.get("#grouper-overview-table .rdt_TableBody").contains(grouper2).first().click(200,10, { force: true });
+          cy.contains(grouper2).first().click({ force: true });
           cy.get('#page-title').contains(grouper2).should("exist")
         });
         cy.wait(3000)
@@ -246,7 +242,7 @@ describe("Smoke Tests", () => {
       // Search By Name
       cy.get('[data-column-id="vs-title-search"] input').clear().type("covid");
       cy.get('[data-column-id="vs-title-search"]').contains("COVID_19 (Tests for SARS_CoV_2 by Culture and Identification Method)")
-      cy.get('[data-column-id="vs-title-search"] input').clear().clear()
+      cy.get('[data-column-id="vs-title-search"] input').clear()
 
       // Search By OID
       cy.get('[data-column-id="vs-oid-search"] input').clear().type("2.16.840.1.113762.1.4.1146.481");

@@ -3,8 +3,9 @@ import Link from 'next/link'
 import styled from 'styled-components'
 import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward'
 
-const LinkContainer = styled.div`
+const LinkContainer = styled.button`
 display: flex;
+background: none;
 color: var(--theme-300);
 align-items: center;
 &:hover {
@@ -60,7 +61,7 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
   )
 
   return (
-    <LinkContainer>
+    <LinkContainer data-row-link>
       {wrapWithLink({content})}
     </LinkContainer>
   )
