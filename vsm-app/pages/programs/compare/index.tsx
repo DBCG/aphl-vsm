@@ -140,13 +140,17 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
       menuVisible={menuVisible}
       onClick={(e) => {
         console.log('clicked')
-        setMenuOpen((s) => !s)
+        if(!isOpen) {
+          setMenuOpen((s) => !s)
+        }
       }}
     >
       <ButtonContainer style={{ marginRight: '-30px'}}>
         <IconButton
-          onClick={() => {
+          onClick={(e) => {
+            console.log('also clicked')
             setMenuOpen((s) => !s)
+            e.stopPropagation()
           }}
           aria-label="menu-open-close"
         >
