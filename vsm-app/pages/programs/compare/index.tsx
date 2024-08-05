@@ -1,6 +1,6 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { IconButton, Tooltip } from '@mui/material'
+import { Drawer, IconButton, Tooltip } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
@@ -52,6 +52,7 @@ const MenuContainer = styled.div<{ isOpen: boolean, menuVisible: boolean }>`
   font-size: 80%;
   top: -50px;
   box-shadow: 7.4px 14.9px 14.9px hsl(0deg 0% 0% / 0.27);
+  cursor: pointer;
 `
 
 const Li = styled.li`
@@ -82,7 +83,7 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
     if (idx === 0) {
       return (
         <a onClick={() => setMenuOpen(false)} href={`${router.pathname}#${i.rootLibId}`}>
-          <Li>Root Library Metadata</Li>
+          <Li style={{ marginTop: '2rem'}}>Root Library Metadata</Li>
         </a>
       )
     } else {
@@ -131,10 +132,16 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
   }
 )
 
+  const handleClose = () => setMenuOpen(false)
+
   return (
     <MenuContainer
       isOpen={isOpen}
       menuVisible={menuVisible}
+      onClick={(e) => {
+        console.log('clicked')
+        setMenuOpen((s) => !s)
+      }}
     >
       <ButtonContainer style={{ marginRight: '-30px'}}>
         <IconButton
@@ -146,10 +153,13 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
           <ArrowForwardIcon style={{ transform: isOpen ? 'rotate(180deg)' : 'none'}}/>
         </IconButton>
       </ButtonContainer>
+      <Drawer variant='temporary' open={isOpen} onClose={handleClose}>
       <Ul>
       {grouperItems}
     </Ul>
+    </Drawer>
     </MenuContainer>
+
   )
 }
 
