@@ -7,6 +7,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { BuilderItem, getProvisionals } from '../../valueset/provisional'
 import { cloneDeep } from 'lodash'
 import { updateCsCodeItem } from '@/helpers/codeSystemHelpers'
+import { updateVsCodeItem } from '@/helpers/valueSetHelpers'
 
 interface CodeItem {
   code: string
@@ -177,6 +178,7 @@ interface CodeUpdate {
 
 export interface UpdateData {
   action: 'replace'
+  id: string
   codeUpdates: CodeUpdate[]
   inValueSets: string[]
 }
@@ -217,14 +219,14 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
         body: getVsTransactionBundle
       })
 
-      if (!result?.entry?.length || !result?.entry?.find(r => r?.resource)) {
+      if (!result?.entry?.length || !result?.entry?.find((r: any) => r?.resource)) {
         return res.status(400).json({ error: 'Could not update provisional value sets using these codes'})  
       } else {
-        parentVSets = result?.entry?.map(e => e?.resource)?.filter(x => Boolean(x)) || []
+        parentVSets = result?.entry?.map((e: any) => e?.resource)?.filter((x: any) => Boolean(x)) || []
       }
     }
 
-    let allCsToUpdate
+    let allCsToUpdate: fhir4.CodeSystem[] = []
     // next, get the codesystems and update them based on the data provided
     const getProvisionalCsTransactionEntry = provisionalCsIdsToUpdate.map(id => ({
       request: {
@@ -245,15 +247,15 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       body: getCsTransactionBundle
     })
 
-    if (!getCsResult?.entry?.length || !getCsResult?.entry?.find(r => r?.resource)) {
+    if (!getCsResult?.entry?.length || !getCsResult?.entry?.find((r: any) => r?.resource)) {
       return res.status(400).json({ error: 'Could not find provisional code systems to update'})  
     } else {
-      allCsToUpdate = getCsResult?.entry?.map((e) => e.resource)?.filter((x) => Boolean(x))
+      allCsToUpdate = getCsResult?.entry?.map((e: any) => e.resource)?.filter((x: any) => Boolean(x))
     }
 
     const updatedVsAndCs: (fhir4.ValueSet|fhir4.CodeSystem)[] = []
     // update CS and VS with code changes and push to arr
-    allCsToUpdate.forEach((originalCodeSystem: fhir4.CodeSystem) => {
+    allCsToUpdate.forEach(async (originalCodeSystem: fhir4.CodeSystem) => {
 
       // if CS has already been updated, should be working on top of those updates so they're not erased
       const existingUpdatedCsIndex = updatedVsAndCs.findIndex(
@@ -264,105 +266,62 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       const csAlreadyUpdated = existingUpdatedCsIndex > -1
 
       const updateData = body[originalCodeSystem.url!]
-      const csToUpdate = csAlreadyUpdated ? updatedVsAndCs[existingUpdatedCsIndex] : originalCodeSystem as fhir4.CodeSystem
-      const updatedCs = updateCsCodeItem({ cs: csToUpdate, action: 'replace', updateData })
+      const csToUpdate = csAlreadyUpdated ? updatedVsAndCs[existingUpdatedCsIndex] : originalCodeSystem
+      const updatedCs = updateCsCodeItem({ cs: csToUpdate as fhir4.CodeSystem, action: 'replace', updateData })
 
-      if (updatedCs.error) {
+      if (is.errorItem(updatedCs)) {
         return updatedCs
       } else if (csAlreadyUpdated) {
-        updatedVsAndCs[existingUpdatedCsIndex] = updatedCs
+        updatedVsAndCs[existingUpdatedCsIndex] = updatedCs as fhir4.CodeSystem
       } else {
-        updatedVsAndCs.push(updatedCs)
+        updatedVsAndCs.push(updatedCs as fhir4.CodeSystem)
       }
 
+      // now, update valuesets if necessary
       if (updateData.inValueSets.length) {
-        const vsIds = updateData.inValueSets
-        // if this change needs to be propagated to any valuesets, must update vs contents on code editing
-        const vSetsToUpdate = vsIds.map(id => {
-          if ()
+        const vsToUpdate = parentVSets?.filter((vs: fhir4.ValueSet) => updateData.inValueSets.includes(vs.id as string))
+        
+        // now, update the valueSets
+        const updatedVs = vsToUpdate.map((vs: fhir4.ValueSet) => updateVsCodeItem({ vs, action: 'replace', updateData, csUrl: originalCodeSystem.url! }))
+        
+        const errorExists = updatedVs?.find((item: any) => item?.error)
+        if (errorExists) {
+          return res.status(400).json({ error: 'Could not update provisional value sets' })
+        }
+        // replace existing vs with newly updated versions
+        updatedVs.forEach((vs: fhir4.ValueSet) => {
+          const indexToUpdate = updatedVsAndCs.findIndex((updateItem: fhir4.ValueSet | fhir4.CodeSystem) => updateItem.resourceType === 'ValueSet' && updateItem.id === vs.id)
+          if (indexToUpdate > -1) {
+            updatedVsAndCs[indexToUpdate] = vs
+          } else {
+            updatedVsAndCs.push(vs)
+          }
         })
       }
     })
-    console.log('updatedVsAndCs: ', updatedVsAndCs)
-    // const [
-    //   newCodeSystemConcept,
-    //   parentValueSets,
-    //   action,
-    //   dataContext
-    // ] = Object.values(body)
+    const putBatch = updatedVsAndCs.map(item => ({
+      request: {
+        method: 'PUT',
+        url: `${item.resourceType}/${item.id}`
+      } as fhir4.BundleEntryRequest,
+      resource: item
+    }))
 
-    // const updatedCodeSystems = [] as UpdatedCS[]
+    const updateBundle = {
+      resourceType: 'Bundle',
+      type: 'transaction',
+      entry: putBatch
+    } as fhir4.Bundle & { type: 'transaction' }
 
-    //   const searchParams = {
-    //     version: 'PROVISIONAL',
-    //     url: provisionalCsUrlToUpdate
-    //   }
+    const updateTransaction = await fhirCdrClient.transaction({
+      body: updateBundle
+    })
 
-    //   const existingProvisionalCS = await fhirCdrClient.search({
-    //     resourceType: 'CodeSystem',
-    //     searchParams
-    //   })
-
-    //   const result = existingProvisionalCS?.entry?.map((e: any) => e?.resource) || [] as fhir4.ValueSet[]
-    //   if (result.length) {
-    //     const updated = updateCsCodes({
-    //       codeSystem: result[0],
-    //       codeItems: newCodeSystemConcept,
-    //       action: action === 'replace' ? 'override' : 'add'
-    //     })
-    //     // if provisional cs already exists, update existing
-    //     updatedCodeSystems.push({
-    //       method: 'PUT',
-    //       resource: updated
-    //     })
-
-    //     if (parentValueSets) {
-    //       parentValueSets.forEach((vs) => {
-    //         const clonedProvisional = cloneDeep(vs)
-
-    //       })
-    //     }
-    //   } else {
-        // error here?
-        // const codeSystemFromTermServer = await vsacFhirClient.search({
-        //   resourceType: 'CodeSystem',
-        //   searchParams: {
-        //     status: 'active',
-        //     _sort: 'latest',
-        //     url: systemUrl,
-        //     _count: 1
-        //   }
-        // })
-
-        // const csName = codeSystemFromTermServer?.entry?.[0]?.resource?.name
-        // const newResource = createProvisionalCodeSystem({
-        //   name: csName || 'No name provided',
-        //   systemBaseUrl: systemUrl,
-        //   codeItems: codesBySystemToUpdate[systemUrl]
-        // })
-        // // code system does not exist, create new
-        // updatedCodeSystems.push({
-        //   method: 'POST',
-        //   resource: newResource
-        // })
-      // }
-
-    // const transactionBody = transactionBuilder(updatedCodeSystems)
-
-    // if (is.errorItem(transactionBody)) {
-    //   return res.status(400).json({ error: transactionBody.error})  
-    // }
-    // const updatedCS = await fhirCdrClient.transaction({
-    //   body: transactionBody
-    // })
-
-    // if (is.operationOutcome(updatedCS)) {
-    //   console.error('error creating prov code items')
-    //   return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
-    // } else {
-    //   return res.status(200).json({})
-    // }
-
+    if (updateTransaction?.entry?.length) {
+      return res.status(200).json({ message: 'Successful provisional resource update' })
+    } else {
+      return res.status(400).json({ error: 'Provisional resource update failed' })
+    }
   } catch(e) {
     logger.error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })

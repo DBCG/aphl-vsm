@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Select, { SingleValue } from 'react-select'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
-import { VSMSession, allowEditing, can } from '@/helpers/rolesHelper'
+import { VSMSession, can } from '@/helpers/rolesHelper'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
 import { TextArea } from '@/components/TextArea'
@@ -22,7 +22,6 @@ import { toast } from 'react-toastify'
 import { updateProvisionalCs } from '@/hooks/useUpdateProvisionalCS'
 import { findProvVsUsingCode } from '@/hooks/findProvVsUsingCode'
 import Modal from '@mui/material/Modal'
-import style from 'styled-jsx/style'
 import { findProgramByProvisionalLeaf } from '@/pages/provisional/valueset'
 import ArrowOutward from '@mui/icons-material/ArrowOutward'
 
@@ -90,16 +89,16 @@ const allFieldsExist = (codeItems: string[]) => {
 }
 
 
-const ExistingCodesTable = ({ codeSystem, isEditable, codeToEdit, setCodeToEdit }: { codeSystem?: fhir4.CodeSystem }) => {
+const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
   const [updatedCodeItem, setUpdatedCodeItem] = useState(defaultItem)
   const [codeUpdateLoading, setCodeUpdateLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
-  const [matchingValueSets, setMatchingValueSets] = useState([])
+  const [matchingValueSets, setMatchingValueSets] = useState<fhir4.ValueSet[]>([])
   const { provisionalContext } = useGetProvisionalContext()
   const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => updatedCodeItem[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
-
+  const router = useRouter()
   const changesExist = useMemo(
     () => {
       return (Object.keys(updatedCodeItem).find(k => updatedCodeItem?.[k]?.trim() !== originalCodeItemToEdit?.[k]?.trim()))
@@ -124,27 +123,9 @@ const ExistingCodesTable = ({ codeSystem, isEditable, codeToEdit, setCodeToEdit 
         setModalOpen(true)
         setMatchingValueSets(matches?.matchingValueSets)
       } else {
-        const newCodeSystemConcept = codeSystem?.concept?.map(i => {
-          if (i?.code === originalCodeItemToEdit?.code) {
-            return updatedCodeItem
-          } else {
-            return i
-          }
-        })
-        // just go ahead and update if the code was never used anywhere
-        // need to include the old code so we know what was replaced...
-        // const result = await updateProvisionalCs(
-        //   {[codeSystem?.url!]: {
-        //     newCodeSystemConcept,
-        //     parentValueSets: matches?.matchingValueSets || [],
-        //     action: 'replace',
-        //     dataContext: { old: originalCodeItemToEdit, new: updatedCodeItem }
-        //   }},
-        // )
-
         const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
 
-        const result2 = await updateProvisionalCs(
+        const result = await updateProvisionalCs(
           {[codeSystem?.url!]: {
             id: codeSystem?.id,
             action: 'replace',
@@ -152,10 +133,10 @@ const ExistingCodesTable = ({ codeSystem, isEditable, codeToEdit, setCodeToEdit 
             inValueSets: matchingValueSetIds,
           }},
         )
-        if (result2.error) {
+        if (result.error) {
           toast.error(`Provisional Code System could not be updated`)
         } else {
-          // window.location.reload()
+          router.reload()
         }
       }
     }
@@ -383,12 +364,9 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [definitionToAdd, setDefinitionToAdd] = useState('')
   const [codeItemsToAdd, setCodeItemsToAdd] = useState<fhir4.CodeSystemConcept[]>([])
   const [formSubmitting, setFormSubmitting] = useState(false)
-  const [codeToEdit, setCodeToEdit] = useState(null)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
   const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS(selectedCodeSystemBase?.value)
-
-  const handleUpdateExistingCode = async () => { }
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -483,7 +461,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
 
     const submitBody = { codesBySystemToUpdate }
-
     const result = await fetch('/api/codesystem/provisional', {
       method: 'POST',
       body: JSON.stringify(submitBody)
@@ -526,8 +503,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             <ExistingCodesTable
               codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)}
               isEditable={can(session, 'edit')}
-            // codeToEdit={codeToEdit}
-            // setCodeToEdit={setCodeToEdit}
             />
             {can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>

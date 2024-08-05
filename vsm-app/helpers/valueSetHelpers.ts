@@ -376,13 +376,15 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
     if (action === 'replace') {
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock.include?.findIndex((i) => i.system === csUrl)
-        const indexOfUpdateItem = composeBlock.include[indexOfSystem]?.concept.findIndex((i) => i.code === updateItem.old.code)
+        const indexOfUpdateItem = composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.old.code)
         if (indexOfUpdateItem !== undefined && indexOfUpdateItem > -1) {
           const itemForVsComposeConcept = {
             code: updateItem.new.code,
             display: updateItem.new.display
           }
-          composeBlock.include[indexOfSystem].concept[indexOfUpdateItem] = itemForVsComposeConcept
+          if (composeBlock?.include?.[indexOfSystem]?.concept?.[indexOfUpdateItem]) {
+            composeBlock.include[indexOfSystem].concept[indexOfUpdateItem] = itemForVsComposeConcept
+          }
         } else {
           const errorText = `Failed to replace code in system with url ${csUrl} in Value Set with url ${vs.url} (${vs.title || vs.name})`
           throw new Error(errorText)
@@ -391,8 +393,9 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
     }
     clonedVs.compose = composeBlock
     return clonedVs
-  } catch (e) {
-    return ({ error: e?.message || `Error encountered while replacing code in Value Set with url ${vs.url}` })
+  } catch (e: any) {
+    const message = e?.message || `Error encountered while replacing code in Value Set with url ${vs.url}`
+    return ({ error: message })
   }
 }
 
