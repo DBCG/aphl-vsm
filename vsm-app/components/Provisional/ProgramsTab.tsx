@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Tooltip } from '@mui/material'
 import useSWR from 'swr'
 import styled from 'styled-components'
@@ -87,6 +87,19 @@ const ProgramsTab: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
+    // compare programs
+    const [enableCompare, setEnableCompare] = useState(false)
+    const [selectedRows, setSelectedRows] = useState(null)
+
+  const handleCancelData = () => {
+    setSelectedRows(null)
+    setEnableCompare(false)
+  }
+
+  const handleRowSelected = useCallback((state) => {
+    setSelectedRows(() => state.selectedRows);
+  }, [])
+
   const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
     {
       url: '/api/programs',
@@ -113,6 +126,20 @@ const ProgramsTab: NextPage = () => {
       setPagination({ ...pagination, searchTotal: total })
     }
   }, [total, pagination.searchTotal, setPagination, pagination])
+
+  const contextActions = useMemo(() => {
+    if (!enableCompare || !selectedRows || !selectedRows?.length) {
+      return null
+    }
+
+    return (
+      <div className='test-class' style={{ border: '10px solid red'}}>
+        <p style={{ fontSize: '800%'}}>Testing123</p>
+      </div>
+
+
+    )
+  }, [programs, selectedRows, enableCompare])
 
   useEffect(() => {
     const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
@@ -354,6 +381,16 @@ const ProgramsTab: NextPage = () => {
           setProgramToRelease={setProgramToRelease}
         />
       )}
+      {programs?.length && programs.length > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
+          <Button
+            style={{ width: 'fit-content' }}
+            onClick={() => router.push('programs/compare')}
+          >
+            Select Programs to Compare
+          </Button>
+        </div>
+      )}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
@@ -368,6 +405,10 @@ const ProgramsTab: NextPage = () => {
         fixedHeader
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
+        onSelectedRowsChange={handleRowSelected}
+        selectableRows={enableCompare}
+        selectableRowsNoSelectAll
+        contextActions={contextActions}
       />
     </Col>
   )

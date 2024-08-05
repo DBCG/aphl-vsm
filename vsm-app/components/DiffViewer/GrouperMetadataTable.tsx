@@ -1,4 +1,5 @@
 import { is } from '@/helpers/is'
+import { Alert } from '@mui/material'
 import styled from 'styled-components'
 
 const Container = styled.div`
@@ -25,6 +26,7 @@ interface TableData {
   purpose: DataItem
   effectiveStart: DataItem
   releaseDate: DataItem
+  isDeleted: boolean
 }
 
 const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
@@ -60,6 +62,11 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
         fontSize: '90%'
       }}
     >
+      {grouperTableData?.isDeleted && (
+      <Alert style={{ marginTop: '1rem'}} variant="filled" severity="error">
+        This grouper was deleted
+      </Alert>
+      )}
       <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>
       <Container>
         <table>

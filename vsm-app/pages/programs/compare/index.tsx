@@ -9,7 +9,7 @@ import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle'
 import { createTableData } from '@/components/DiffViewer/createTables'
-import COLORS from '@/components/DiffViewer/GrouperValueSetsTable'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -94,10 +94,17 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
                 
               </div>
               <Li style={{ display: 'block'}}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
-              { i.hasChange && (
-                <Tooltip title="This grouper contains changes">
+              { i.hasChange === 'updated' && (
+                <Tooltip title='This grouper was updated'>
                   <IconButton>
                     <ChangeCircleIcon color='info' fontSize='small'/>
+                  </IconButton>
+                </Tooltip>
+              )}
+              { i.hasChange === 'deleted' && (
+                <Tooltip title='This grouper was deleted'>
+                  <IconButton>
+                    <DeleteForeverIcon color='error' fontSize='small'/>
                   </IconButton>
                 </Tooltip>
 
