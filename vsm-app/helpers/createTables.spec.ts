@@ -330,7 +330,7 @@ describe('createTableData', () => {
         hasChanges: true
       }
     ]
-    // @ts-ignoregst
+    // @ts-ignore
     expect(result.grouperPages).toStrictEqual(expectedGrouperData)
   })
 
