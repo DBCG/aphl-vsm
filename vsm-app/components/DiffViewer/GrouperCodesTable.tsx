@@ -142,7 +142,7 @@ const handleSetFilterContext = (e: React.ChangeEvent<HTMLSelectElement>) => {
         wrap: true
       }
     ]
-    return
+    return fields
   }, [])
 
   return (
