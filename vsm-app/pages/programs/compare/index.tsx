@@ -198,6 +198,11 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }: 
   )
 }
 
+interface InitialProgram {
+  value: string
+  label: string
+}
+
 const ProgramCompare = () => {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState<boolean>(false)
@@ -218,20 +223,23 @@ const ProgramCompare = () => {
     })
   }), [allPrograms])
 
-  const handleGenerateDifference = async () => {
+  const handleGenerateDifference = async (initialBase?: undefined | InitialProgram, initialTarget?: undefined | InitialProgram) => {
     setIsLoadingDiff(true)
     setBaseTouched(true)
     setTargetTouched(true)
-    // handle error
-    if (!baseProgram || !targetProgram) return
+
+    const base = initialBase || baseProgram
+    const target = initialTarget || targetProgram
+
+    if (!base || !target) return
     const response = await fetch('/api/programs/changelog', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        baseProgramId: baseProgram.value,
-        targetProgramId: targetProgram.value
+        baseProgramId: base.value,
+        targetProgramId: target.value
       })
     })
 
@@ -247,12 +255,19 @@ const ProgramCompare = () => {
   }
 
   useEffect(() => {
-    if (router.query.old && router.query.new && (!baseTouched && !targetTouched)) {
-      // @ts-ignore
-      setBaseProgram(formattedProgramOptions?.find(p => p.value === router.query.old))
-      // @ts-ignore
-      setTargetProgram(formattedProgramOptions?.find(p => p.value === router.query.new))
-    }
+    (async () => {
+      if (router.query.old && router.query.new && (!baseTouched && !targetTouched)) {
+        const base = formattedProgramOptions?.find(p => p.value === router.query.old)
+        const target = formattedProgramOptions?.find(p => p.value === router.query.new)
+        if (base && target) {
+          // @ts-ignore
+          setBaseProgram(base)
+          // @ts-ignore
+          setTargetProgram(target)
+          await handleGenerateDifference(base as InitialProgram, target as InitialProgram)
+        }
+      }
+    })()
   }, [formattedProgramOptions, router])
 
   useEffect(() => {
@@ -282,7 +297,6 @@ const ProgramCompare = () => {
         <ProgramCol style={{ minWidth: '300px' }}>
           <StyledP>Select target program</StyledP>
           <Select
-            // options={formattedProgramOptions}
             isDisabled={isLoadingDiff}
             onChange={(i) => {
               setTargetTouched(true)
@@ -297,7 +311,7 @@ const ProgramCompare = () => {
           <ButtonContainer style={{ height: '100%', alignItems: 'flex-end' }}>
             <Button
               text='Generate Difference'
-              onClick={handleGenerateDifference}
+              onClick={async () => await handleGenerateDifference()}
               loading={isLoadingDiff}
               disabled={(!targetProgram || !baseProgram) || (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value)}
             />
