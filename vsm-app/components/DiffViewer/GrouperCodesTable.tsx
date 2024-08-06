@@ -55,17 +55,13 @@ const GrouperCodesTable = ({ grouperTableData, id }: { grouperTableData: Grouper
     if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt?.change)
     if (!activeFilters?.length) return clonedOptions
 
-    console.log('activeFilters: ', activeFilters)
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
       const [field, searchTerm] = filterItem.value.split('|')
       return ({ field, searchTerm: searchTerm.trim() })
     })
 
-    console.log('mappedFilters: ', mappedFilters)
-
     mappedFilters.forEach((filterItem: { field: string, searchTerm: string }) => {
       clonedOptions = clonedOptions.filter(opt => {
-        console.log('opt: ', opt)
         const keys = Object.keys(opt)
         const matchingKeyIndex = keys.map(k => k.toLowerCase()).findIndex(i => i === filterItem.field.toLowerCase())
         return opt[keys[matchingKeyIndex] as keyof CodeSystemTableItem]?.toLowerCase()?.includes(filterItem.searchTerm)

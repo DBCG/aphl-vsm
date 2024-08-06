@@ -136,7 +136,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
   const { valueSetsTable }: { valueSetsTable: Row[]} = grouperTableData
 
   const filteredValueSetOptions = (activeFilters: ValueSetFilterItem[], showUnchanged: boolean): Row[] => {
-    console.log('activeFilters: ', activeFilters)
     let clonedOptions = cloneDeep(valueSetsTable)
     if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
@@ -270,7 +269,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         wrap: true,
         maxWidth: '150px',
         cell: (row: Row) => {
-          console.log('row', row)
           return (
             <TdContainer>
               {
@@ -288,7 +286,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         sortable: true,
         wrap: true,
         cell: (row: Row) => {
-          console.log('row: ', row)
           return (
             <TdContainer>
               {

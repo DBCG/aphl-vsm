@@ -293,7 +293,6 @@ interface FormatCodeItems {
 }
 
 const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
-  console.log('codeItems: ', codeItems)
   return codeItems.map((ci: FlatCodeOld | FlatCodeNew) => ({
     change: defaultChange || ci?.operation?.type || '',
     oid: ci?.memberOid || '',
@@ -375,8 +374,6 @@ const generateId = (ind: number, group: any, isDeleted: boolean, isNew: boolean)
 }
 
 const generateAnchorLinkData = (grouperPageData: GrouperPage[]) => {
-
-  console.log('grouper page data: ', grouperPageData)
   const base = [{
     rootLibId: `program-metadata`,
     // eventually have PlanDefinition here, too
@@ -394,14 +391,12 @@ const createTableData = (diffData: DiffData) => {
     return null
   }
 
-  console.log('diffData: ', diffData)
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
 
   const allGrouperPages = diffData.pages.filter(p => p?.newData?.resourceType === 'ValueSet' || p?.oldData?.resourceType === 'ValueSet')
   const grouperPageData = generateGrouperPages(allGrouperPages as GrouperVsPage[])
 
-  console.log('grper: ', grouperPageData)
   return ({
     rootLibrary: generateRootTableData(oldRootData as LibraryPage, newRootData as LibraryPage),
     grouperPages: grouperPageData,
