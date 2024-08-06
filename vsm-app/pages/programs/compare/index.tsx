@@ -29,12 +29,12 @@ const StyledP = styled.p`
 
 const ProgramContainer = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
 `
 
 const ProgramCol = styled(ProgramContainer)`
   flex-direction: column;
-  min-width: 400px;
 `
 
 const closedLeftPx = 490
@@ -80,13 +80,12 @@ const Ul = styled.ul`
 
 const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) => {
   if (!menuData) return
-  console.log('router: ', router)
 
   const grouperItems = menuData.anchorLinkData.map((i, idx) => {
     if (idx === 0) {
       return (
         <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.rootLibId}`}>
-          <Li style={{ marginTop: '2rem'}}>Root Library Metadata</Li>
+          <Li style={{ marginTop: '2rem', marginBottom: '2rem' }}>Root Library Metadata</Li>
         </a>
       )
     } else {
@@ -137,11 +136,9 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
             >
               <Li>Codes</Li>
             </a>
-
           </Ul>
         </Ul>
       )
-
     }
   }
 )
@@ -150,10 +147,10 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
 
   return (
     <MenuContainer
+      title='Menu'
       isOpen={isOpen}
       menuVisible={menuVisible}
       onClick={(e) => {
-        console.log('clicked')
         if(!isOpen) {
           setMenuOpen((s) => !s)
         }
@@ -162,7 +159,6 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
       <ButtonContainer style={{ marginRight: '-30px'}}>
         <IconButton
           onClick={(e) => {
-            console.log('also clicked')
             setMenuOpen((s) => !s)
             e.stopPropagation()
           }}
@@ -257,8 +253,8 @@ const ProgramCompare = () => {
   return (
     <RelativeContainer>
       <DiffViewerMenu isOpen={menuOpen} setMenuOpen={setMenuOpen} menuVisible={diffData} menuData={diffData} router={router} />
-      <ProgramContainer>
-        <ProgramCol>
+      <ProgramContainer style={{ marginBottom: '1rem' }}>
+        <ProgramCol style={{ minWidth: '300px' }}>
           <StyledP>Select base program</StyledP>
           <Select
             isDisabled={isLoadingDiff}
@@ -270,7 +266,7 @@ const ProgramCompare = () => {
             value={baseProgram}
           />
         </ProgramCol>
-        <ProgramCol>
+        <ProgramCol style={{ minWidth: '300px' }}>
           <StyledP>Select target program</StyledP>
           <Select
             // options={formattedProgramOptions}
@@ -283,17 +279,17 @@ const ProgramCompare = () => {
             value={targetProgram}
           />
         </ProgramCol>
+        <ProgramCol>
+          <ButtonContainer style={{ height: '100%', alignItems: 'flex-end' }}>
+            <Button
+              text='Generate Difference'
+              onClick={handleGenerateDifference}
+              loading={isLoadingDiff}
+              disabled={(!targetProgram || !baseProgram) || (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value)}
+            />
+          </ButtonContainer>
+        </ProgramCol>
       </ProgramContainer>
-      <ButtonContainer>
-        <Button
-          text='Generate Difference'
-          style={{ marginBottom: '2rem', marginTop: '1rem' }}
-          onClick={handleGenerateDifference}
-          loading={isLoadingDiff}
-          disabled={(!targetProgram || !baseProgram) || (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value)}
-        />
-
-      </ButtonContainer>
       {diffData && (
         <DiffViewerComponent
           changelogData={diffData}

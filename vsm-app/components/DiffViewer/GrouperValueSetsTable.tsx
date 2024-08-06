@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
 import DataTable from 'react-data-table-component'
-import { cloneDeep, divide } from 'lodash'
+import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
-import { Checkbox, FormControlLabel, FormGroup, Switch, ToggleButton } from '@mui/material'
+import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'
 import { NoDataTableComponent } from './NoDataTableComponent'
 
 const TdItem = styled.div`
@@ -97,7 +97,7 @@ const generateConditionColor = (conditionItem) => {
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
     <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-      <FormControlLabel control={<Checkbox />} label="Show unchanged Value Sets" />
+      <FormControlLabel control={<Checkbox style={{ color: 'gray' }}/>} label="Show unchanged Value Sets" />
     </FormGroup>
   )
 }
@@ -125,20 +125,29 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     })
 
     mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
-      // handle non-nested fields first
-      if (!filterItem.field.startsWith('condition')) {
+      // non-nested fields first
+      if (!filterItem.field.startsWith('condition') && !filterItem.field.startsWith('codesystem')) {
         clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field]?.toLowerCase()?.includes(filterItem.searchTerm))
-      } else if (filterItem.field.startsWith('codesystemname')) {
+      }
+      if (filterItem.field.startsWith('codesystemname')) {
         clonedOptions = clonedOptions.filter(opt => {
-          const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
-            const keys = Object.keys(conditionUpdateItem)
-            const fieldIndex = keys.findIndex(item => item.toLowerCase() === filterItem.field.toLowerCase())
-            const result = conditionUpdateItem[keys[fieldIndex]]?.toLowerCase()?.includes(filterItem.searchTerm)
-            return result
-          })
-          return hasMatch
+          const result = opt.codeSystems.findIndex(sys => {
+            const name = sys.name.toLowerCase()
+            const searchTerm = filterItem.searchTerm.toLowerCase()
+            return name.includes(searchTerm)
+        }) > -1
+          return result
         })
-      } else {
+      } else if (filterItem.field.startsWith('codesystemoid')) {
+        clonedOptions = clonedOptions.filter(opt => {
+          const result = opt.codeSystems.findIndex(sys => {
+            const oid = sys.oid.toLowerCase()
+            const searchTerm = filterItem.searchTerm.toLowerCase()
+            return oid.includes(searchTerm)
+        }) > -1
+          return result
+        })
+      } else if (filterItem.field.startsWith('condition')) {
         // search within array of condition info for a match
         clonedOptions = clonedOptions.filter(opt => {
           const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
@@ -353,7 +362,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         noDataComponent={<NoDataTableComponent resourceType='valueset'/>}
         style={{ marginBottom: '2em' }}
         customStyles={customStyle}
-        title='Value Sets'
+        title={<p style={{ fontSize: '80%'}}>Value Sets</p>}
         columns={columns}
         data={filteredValueSetOptions(filterItems, showUnchanged)}
         pagination

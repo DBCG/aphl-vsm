@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
-import { cloneDeep, divide } from 'lodash'
-import { FormGroup, FormControlLabel, Switch, Checkbox } from '@mui/material'
+import { cloneDeep } from 'lodash'
+import { FormGroup, FormControlLabel, Checkbox } from '@mui/material'
 import { ValueSetFilterItem } from './GrouperValueSetsTable'
 import { NoDataTableComponent } from './NoDataTableComponent'
 
@@ -52,7 +52,7 @@ const generateConditionColor = (conditionItem) => {
 const ToggleShowNoChange = ({ handleShowUnchanged }) => {
   return (
       <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
-        <FormControlLabel control={<Checkbox />} label="Show unchanged Codes" />
+        <FormControlLabel control={<Checkbox style={{ color: 'gray' }} />} label="Show unchanged Codes" />
       </FormGroup>
   )
 }
@@ -167,7 +167,7 @@ const handleSetFilterContext = (e) => {
       <DataTable
         defaultSortFieldId={1}
         dense
-        title='Codes'
+        title={<p style={{ fontSize: '80%'}}>Codes</p>}
         columns={columns}
         customStyles={customStyle}
         data={filteredCodeOptions(filterItems, showUnchanged)}

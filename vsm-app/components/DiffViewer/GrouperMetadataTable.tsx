@@ -18,6 +18,13 @@ const Container = styled.div`
 const Th = styled.th`
   padding-right: 1.4rem;
   text-transform: capitalize;
+  padding-bottom: .2rem;
+  border-bottom: 1px dashed lightgray;
+`
+
+const Td = styled.td`
+  padding-bottom: .2rem;
+  border-bottom: 1px dashed lightgray;
 `
 
 type DataItem = [string | undefined, string | undefined]
@@ -97,19 +104,19 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
       }}
     >
       {infoItem()}
-      <h4>Grouper Metadata: <i>{`ID ${grouperTableData.id}`}</i></h4>
+      <h4 style={{ fontSize: '120%'}}>Grouper Metadata: <i>{grouperTableData.title || `ID: ${grouperTableData.id}`}</i></h4>
       <Container>
         <table>
           {rowKeys.map(k => (
             <tr>
               <Th key={k}>{formatRowTitle(k)}</Th>
-              <td key={k}>
+              <Td key={k}>
                 {produceStringForUI(
                   { itemForDisplay: grouperTableData[k],
                     placeholder: '[no data]'
                   }
                 )}
-              </td>
+              </Td>
             </tr>
           ))}
         </table>

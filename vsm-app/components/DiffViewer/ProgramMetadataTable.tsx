@@ -17,7 +17,9 @@ const Th = styled.th`
 `
 
 const Td = styled.td`
-  padding-right: .4rem;
+  padding-right: 1rem;
+  padding-bottom: .2rem;
+  border-bottom: 1px dashed lightgray;
 `
 
 const Tr = styled.tr`
@@ -62,6 +64,7 @@ const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) 
     <Tr>
       <Th key={k}>{formatRowTitle(k)}</Th>
       <Td style={styles(0)} key={k+0}>{rootLibData[k][0] || '[no data]'}</Td>
+      <Td style={styles(0)} key={k+0}></Td>
       <Td style={styles(1)} key={k+1}>{rootLibData[k][1] || '[no data]'}</Td>
     </Tr>
   )})
@@ -80,6 +83,7 @@ const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) 
           <VerticalRowTitle>
             <Th></Th>
             <Td>Base Program</Td>
+            <Td>→</Td>
             <Td>Comparison Program</Td>
           </VerticalRowTitle>
           {items}

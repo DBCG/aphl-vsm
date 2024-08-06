@@ -110,8 +110,6 @@ const generateGrouperMetadata = (grouperPage, hasChanges) => {
   const newData = grouperPage.newData
   const oldData = grouperPage.oldData
 
-  console.log('grouperPage: ', grouperPage)
-
   const paths = {
     id: 'id.value',
     title: 'title.value',
@@ -340,8 +338,6 @@ const generateGrouperPages = (allGrouperPages) => {
     const valueSetChanges = generateGrouperValueSetTable(grp)
   
     const hasChanges = Boolean(codeChanges?.find(c => c.change !== '') || valueSetChanges?.find(v => v.change !== ''))
-    console.log('codeChanges: ', codeChanges)
-    console.log('valueSet changes: ', valueSetChanges)
     return (
       {
         metadata: generateGrouperMetadata(grp, hasChanges),

@@ -22,7 +22,6 @@ const CodesTableContainer = styled.div`
 `
 
 const DiffViewerComponent = ({ changelogData }) => {
-  console.log('changelogData: ', changelogData)
   const pages = changelogData.grouperPages.map((p, idx) => (
     <PageContainer>
       <Accordion defaultExpanded={p.hasChanges}>
