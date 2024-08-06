@@ -250,13 +250,13 @@ const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: st
 // need to always include text on conditions items
 const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   // doing this here because it's not explicitly noted in the changelog
-  const allOldLeafIds = grouperPage?.oldData?.leafValuesets.map(oldLeaf => oldLeaf?.memberOid) || []
+  const allOldLeafIds = grouperPage?.oldData?.leafValuesets?.map(oldLeaf => oldLeaf?.memberOid) || []
   const newLeafIds = grouperPage?.newData?.leafValuesets?.map(newLeaf => newLeaf?.memberOid) || []
 
   const deletedLeafIds = allOldLeafIds.filter(id => !newLeafIds.includes(id))
   const deletedValueSets = grouperPage?.oldData?.leafValuesets?.filter(vs => deletedLeafIds?.includes(vs?.memberOid)) || []
 
-  let newData: { change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({ conditionChange: string; conditionName: any; conditionCodeSystemVersion: undefined; conditionCode: any; conditionSystem: any } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[] }[] = grouperPage?.newData?.leafValuesets.map(gi => {
+  let newData: { change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({ conditionChange: string; conditionName: any; conditionCodeSystemVersion: undefined; conditionCode: any; conditionSystem: any } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[] }[] = grouperPage?.newData?.leafValuesets?.map(gi => {
     const newCodeSystems = uniqueCodeSystems(gi?.codeSystems || [])
     return ({
       change: generateMainChangeText(gi),
