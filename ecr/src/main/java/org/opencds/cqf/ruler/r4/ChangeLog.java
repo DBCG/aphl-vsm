@@ -512,35 +512,49 @@ public class ChangeLog {
         var operation = new Operation(type,path,newValue,originalValue);
         if (path.contains("compose")) {
           // if the valuesets changed
-          String urlToCheck = null;
+          List<String> urlsToCheck = List.of();
           // default to the original operation for use with primitive types
-          Operation updatedOperation = operation;
-          if (newValue instanceof IPrimitiveType) {
-            urlToCheck = ((IPrimitiveType<String>) newValue).getValue();
-          } else if (originalValue instanceof IPrimitiveType){
-            urlToCheck = ((IPrimitiveType<String>) originalValue).getValue();
+          List<Operation> updatedOperations = List.of(operation);
+          if (newValue instanceof IPrimitiveType && ((IPrimitiveType<String>) newValue).hasValue()) {
+            urlsToCheck = List.of(((IPrimitiveType<String>) newValue).getValue());
+          } else if (originalValue instanceof IPrimitiveType && ((IPrimitiveType<String>) originalValue).hasValue()){
+            urlsToCheck = List.of(((IPrimitiveType<String>) originalValue).getValue());
           } else if ( newValue instanceof ValueSet.ValueSetComposeComponent
           && ((ValueSet.ValueSetComposeComponent) newValue).getIncludeFirstRep().hasValueSet()) {
-            urlToCheck = ((ValueSet.ValueSetComposeComponent) newValue).getIncludeFirstRep().getValueSet().get(0).getValue();
-            updatedOperation = new Operation(
+            urlsToCheck = ((ValueSet.ValueSetComposeComponent) newValue).getInclude().stream()
+              .filter(include -> include.hasValueSet())
+              .flatMap(include -> include.getValueSet().stream())
+              .filter(canonical -> canonical.hasValue())
+              .map(canonical -> canonical.getValue())
+              .collect(Collectors.toList());
+            updatedOperations = urlsToCheck.stream().map(url -> new Operation(
               type,
               path,
-              urlToCheck, 
-              type.equals("replace") ? originalValue : null);
+              url, 
+              type.equals("replace") ? originalValue : null))
+              .collect(Collectors.toList());
           } else if (originalValue instanceof ValueSet.ValueSetComposeComponent
           && ((ValueSet.ValueSetComposeComponent) originalValue).getIncludeFirstRep().hasValueSet()){
-            urlToCheck = ((ValueSet.ValueSetComposeComponent) originalValue).getIncludeFirstRep().getValueSet().get(0).getValue();
-            updatedOperation = new Operation(
+            urlsToCheck = ((ValueSet.ValueSetComposeComponent) originalValue).getInclude().stream()
+              .filter(include -> include.hasValueSet())
+              .flatMap(include -> include.getValueSet().stream())
+              .filter(canonical -> canonical.hasValue())
+              .map(canonical -> canonical.getValue())
+              .collect(Collectors.toList());
+            updatedOperations = urlsToCheck.stream().map(url -> new Operation(
               type,
-              path,
-              type.equals("replace") ? newValue : null, 
-              urlToCheck);
+              path, 
+              type.equals("replace") ? newValue : null,
+              url))
+              .collect(Collectors.toList());
           }
-          if (urlToCheck != null) {
-            final var urlNotNull = Canonicals.getIdPart(urlToCheck);
-            for (final var leafValueSet: this.leafValuesets) {
-              if (leafValueSet.memberOid.equals(urlNotNull)) {
-                leafValueSet.operation = updatedOperation;
+          if (!urlsToCheck.isEmpty()) {
+            for (var i = 0; i < urlsToCheck.size(); i++) {
+              final var urlNotNull = Canonicals.getIdPart(urlsToCheck.get(i));
+              for (final var leafValueSet: this.leafValuesets) {
+                if (leafValueSet.memberOid.equals(urlNotNull)) {
+                  leafValueSet.operation = updatedOperations.get(i);
+                }
               }
             }
           }

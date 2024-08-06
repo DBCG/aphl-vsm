@@ -8,7 +8,6 @@ interface UseGetProgramDetails {
   id: string
   toggleRefresh?: boolean
 }
-export type ToString<T> = { [k in keyof T]: string }
 
 // gets data necessary to build the program details page
 // this includes:

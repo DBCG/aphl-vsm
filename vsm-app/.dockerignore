@@ -14,6 +14,7 @@
 !.babelrc
 !cache.ts
 !fhirClientOptions.ts
+!constants.ts
 !fhirClients.ts
 !middleware.ts
 !next-env.d.ts

@@ -8,13 +8,7 @@ import { TextArea } from '@/components/TextArea'
 import { toast } from 'react-toastify'
 import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-import {
-  Row,
-  SubtitleRow,
-  LabelStyled,
-  Col,
-  GridContainer
-} from './styles'
+import { Row, SubtitleRow, LabelStyled, Col, GridContainer } from './styles'
 import { approvalFormParams, artifactAssessmentInfoTypeOptions, artifactAssessmentInfoTypes } from './types'
 
 type ApproveFormProps = {
@@ -33,7 +27,7 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
   })
 
   const handleFieldChange = (
-    e: React.ChangeEvent<HTMLInputElement> | SingleValue<{ label: string; value: string }>,
+    e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement> | SingleValue<{ label: string; value: string }>,
     fieldName: keyof approvalFormParams
   ) => {
     if (!e) {
@@ -113,18 +107,19 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
 
   const createParametersObj = () => {
     const parametersObj: fhir4.Parameters = { resourceType: 'Parameters' }
-    parametersObj.parameter = [] as fhir4.ParametersParameter[]
+    parametersObj.parameter = []
 
-    Object.keys(approvalFormData).forEach((name) => {
-      if (name === 'approvalDate') {
-        parametersObj?.parameter?.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
-      } else if (name === 'artifactCommentText' || name === 'artifactCommentType') {
-        parametersObj?.parameter?.push({ name, valueString: approvalFormData[name] })
-      } else {
-        // @ts-ignore
-        parametersObj?.parameter?.push({ name, valueCanonical: approvalFormData[name] })
-      }
-    })
+    Object.keys(approvalFormData)
+      .map((name) => name as keyof approvalFormParams)
+      .forEach((name) => {
+        if (name === 'approvalDate') {
+          parametersObj?.parameter?.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
+        } else if (name === 'artifactCommentText' || name === 'artifactCommentType') {
+          parametersObj?.parameter?.push({ name, valueString: approvalFormData[name] })
+        } else {
+          parametersObj?.parameter?.push({ name, valueCanonical: approvalFormData[name] })
+        }
+      })
 
     return parametersObj
   }
@@ -155,31 +150,34 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
             }}
             onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
             options={artifactAssessmentInfoTypeOptions}
-            instanceId={'commentType'} />
+            instanceId={'commentType'}
+          />
           <TextArea
             id="text"
             label="Text"
             helperMessage="Text description for the program comment"
             value={approvalFormData.artifactCommentText}
-            // @ts-ignore
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
+          />
           <SearchInput
             id="target"
             label="Target"
             value={approvalFormData.artifactCommentTarget}
             helperMessage="Target of the program comment"
-            readonly={true} />
+            readonly={true}
+          />
           <SearchInput
             id="reference"
             label="Reference"
             helperMessage="Reference to the program being commented on"
             value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')} />
+            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
+          />
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-          <Button id="submit-approve" text="Submit" onClick={handleApprove} loading={loading} />
-        </Row>
+        <Button id="submit-approve" text="Submit" onClick={handleApprove} loading={loading} />
+      </Row>
     </>
   )
 }

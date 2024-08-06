@@ -83,9 +83,9 @@ export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fh
     ?.filter((a) => a.type == 'composed-of')
     .map((res) => res.resource)
     .filter(isDefinedString)
-  
+
   if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
-  
+
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
       .filter(is.bundle)
@@ -122,7 +122,7 @@ const getLeafValueSets = async ({
   publisherToFind,
   versionToFind,
   oidToFind,
-  provisionalOnly=false
+  provisionalOnly = false
 }: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
   const leafValueSetCanonicals: string[] = []
   allGrouperVSets.forEach((grouperVs) => {
@@ -135,10 +135,10 @@ const getLeafValueSets = async ({
     })
   })
   if (!leafValueSetCanonicals.length) {
-      return ({
-        leafValueSets: [],
-        leafVersionsByCanonical: {},
-        totalLeafs: 0
+    return ({
+      leafValueSets: [],
+      leafVersionsByCanonical: {},
+      totalLeafs: 0
     })
   }
 
@@ -260,7 +260,7 @@ const isError = (res: any): res is ErrorRes => {
 // ------------------------------------------------------------------------------------------------
 type ExtendedReq = NextApiRequest & {
   query: {
-    id: string
+    id?: string
     findInOid?: string
     findInVsTitle?: string
     findInSteward?: string
@@ -347,7 +347,7 @@ export const getProgramDetailsValuesets = async ({
           vsInRequiredGroup({
             groupsVsBelongsTo: groupInfoByVsCanonical[vs.url!],
             groupIdsToFilterBy: filterGroups
-          }) 
+          })
       )
       .filter((x) => !!x)
     const formattedVsets = formatValuesetData(program, groupInfoByVsCanonical, filteredLeafVSets, leafVersionsByCanonical)

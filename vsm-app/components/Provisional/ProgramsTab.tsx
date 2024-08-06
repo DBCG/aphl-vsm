@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Tooltip } from '@mui/material'
 import useSWR from 'swr'
 import styled from 'styled-components'
@@ -87,6 +87,14 @@ const ProgramsTab: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
+    // compare programs
+    const [enableCompare, setEnableCompare] = useState(false)
+    const [selectedRows, setSelectedRows] = useState<fhir4.Library[]|null>(null)
+
+  const handleRowSelected = useCallback((state: any) => {
+    setSelectedRows(() => state.selectedRows);
+  }, [])
+
   const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
     {
       url: '/api/programs',
@@ -114,6 +122,20 @@ const ProgramsTab: NextPage = () => {
     }
   }, [total, pagination.searchTotal, setPagination, pagination])
 
+  const contextActions = useMemo(() => {
+    if (!enableCompare || !selectedRows || !selectedRows?.length) {
+      return null
+    }
+
+    return (
+      <div className='test-class' style={{ border: '10px solid red'}}>
+        <p style={{ fontSize: '800%'}}>Testing123</p>
+      </div>
+
+
+    )
+  }, [programs, selectedRows, enableCompare])
+
   useEffect(() => {
     const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
     if (programs?.length) {
@@ -135,12 +157,10 @@ const ProgramsTab: NextPage = () => {
     if (cloneLoading) return
     setCloneLoading(true)
     setError({})
-    let libraryData: any = ''
-    libraryData = programs.find((p) => p.id === programId)
-    const json = JSON.stringify({ libraryData, latestProgramVersion })
+    const json = JSON.stringify({ programId, latestProgramVersion })
 
     try {
-      const res = await fetch('/api/template', {
+      const res = await fetch('/api/programs/clone', {
         method: 'POST',
         body: json
       })
@@ -191,13 +211,7 @@ const ProgramsTab: NextPage = () => {
         minWidth: '12rem',
         maxWidth: '15rem',
         wrap: true,
-        cell: (row: fhir4.Library) => (
-          <TextLink
-          href={`/programs/${row.id}`}
-          linkText={row.id}
-          forceReload={false}
-        />
-        )
+        cell: (row: fhir4.Library) => <TextLink href={`/programs/${row.id}`} linkText={row.id} forceReload={false} />
       },
       {
         name: 'Title',
@@ -234,7 +248,7 @@ const ProgramsTab: NextPage = () => {
       {
         name: 'Steward',
         selector: (row: fhir4.Library) => row.publisher || '',
-        sortable: true,
+        sortable: false,
         maxWidth: '15rem',
         minWidth: '10rem',
         wrap: true
@@ -246,24 +260,25 @@ const ProgramsTab: NextPage = () => {
         wrap: true,
         cell: (row: fhir4.Library) => {
           const canClone = allowClone({ session, programStatus: row.status! })
-        const blockedReason = !canClone && generateBlockedReason(row, 'clone') 
-         return (
-          <Tooltip title={blockedReason} arrow>
-            <span>
-              <Button
-                size='small'
-                variant='contained'
-                disabled={row.status !== 'active'}
-                onClick={() => {
-                  handleClickClone(row.id!)
-                }}
-                style={{ height: 'fit-content' }}
-              >Clone</Button>
-
-            </span>
-          </Tooltip>
-        )
-      }
+          const blockedReason = !canClone && generateBlockedReason(row, 'clone')
+          return (
+            <Tooltip title={blockedReason} arrow>
+              <span>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={row.status !== 'active'}
+                  onClick={() => {
+                    handleClickClone(row.id!)
+                  }}
+                  style={{ height: 'fit-content' }}
+                >
+                  Clone
+                </Button>
+              </span>
+            </Tooltip>
+          )
+        }
       },
       {
         name: 'Release',
@@ -271,26 +286,27 @@ const ProgramsTab: NextPage = () => {
         sortable: true,
         wrap: true,
         cell: (row: fhir4.Library) => {
-        const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
-         const blockedReason = !canRelease && generateBlockedReason(row, 'release') 
-         return (
-          <Tooltip title={blockedReason} arrow>
-            <span>
-              <Button
-                size='small'
-                variant='contained'
-                style={{ height: 'fit-content' }}
-                disabled={row.status !== 'draft' || !row.approvalDate}
-                onClick={() => {
-                  setError({})
-                  setProgramToRelease(row)
-                }}
-              >Release</Button>
-
-            </span>
-          </Tooltip>
-        )
-      }
+          const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+          const blockedReason = !canRelease && generateBlockedReason(row, 'release')
+          return (
+            <Tooltip title={blockedReason} arrow>
+              <span>
+                <Button
+                  size="small"
+                  variant="contained"
+                  style={{ height: 'fit-content' }}
+                  disabled={row.status !== 'draft' || !row.approvalDate}
+                  onClick={() => {
+                    setError({})
+                    setProgramToRelease(row)
+                  }}
+                >
+                  Release
+                </Button>
+              </span>
+            </Tooltip>
+          )
+        }
       }
     ],
     [session]
@@ -349,17 +365,32 @@ const ProgramsTab: NextPage = () => {
           handleCancelModal={() => setModalOpen(false)}
         />
       )}
-      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-      </Row>
+      <Row style={{ alignItems: 'center', marginBottom: '1rem' }}></Row>
       {programToRelease && (
         <ReleaseModal
-        isOpen={Boolean(programToRelease)}
-        loading={loading}
-        handleCancelModal={handleCancelReleaseModal}
-        handleModalAction={handleReleaseModalAction}
-        program={programToRelease}
-        setProgramToRelease={setProgramToRelease}
-      />
+          isOpen={Boolean(programToRelease)}
+          loading={loading}
+          handleCancelModal={handleCancelReleaseModal}
+          handleModalAction={handleReleaseModalAction}
+          program={programToRelease}
+          setProgramToRelease={setProgramToRelease}
+        />
+      )}
+      {programs?.length && programs.length > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
+          <Button
+            style={{ width: 'fit-content' }}
+            onClick={() => {
+              if (selectedRows && selectedRows?.length > 1) {
+                router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}`)
+              } else {
+                setEnableCompare(true)
+              }
+            }}
+          >
+            {selectedRows && selectedRows?.length > 1 ? 'Compare': 'Select 2 Programs to Compare'}
+          </Button>
+        </div>
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
@@ -375,6 +406,14 @@ const ProgramsTab: NextPage = () => {
         fixedHeader
         progressPending={!programs?.length}
         progressComponent={<LoadingIndicator />}
+        onSelectedRowsChange={handleRowSelected}
+        selectableRows={enableCompare}
+        selectableRowsNoSelectAll
+        contextActions={contextActions}
+        selectableRowDisabled={(row) => {
+          return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
+          }
+        }
       />
     </Col>
   )

@@ -12,6 +12,7 @@ import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import { customTableStyles } from './tables/themes'
 import TextLink from './TextLink'
+import { ExpandRequest } from '@/pages/api/valueset/expand'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -29,7 +30,7 @@ interface ExpansionTableData {
 interface GrouperTableDetail {
   title: string
   oid: string
-  canonical: string,
+  canonical: string
   version?: string
 }
 
@@ -91,15 +92,15 @@ const ValueSetDetailsTables = ({
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
   const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
-  const [isLoadingDefinition, setIsLoadingDefinition] = useState(true);
+  const [isLoadingDefinition, setIsLoadingDefinition] = useState(true)
 
-  const programData = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
+  const { programValuesets } = useGetProgramValueSetDetails({ id: programAndGrouperInfo?.program?.id as string })
 
   useEffect(() => {
-    if (programData) {
-      setIsLoadingDefinition(false);
+    if (programValuesets) {
+      setIsLoadingDefinition(false)
     }
-  }, [programData]);
+  }, [programValuesets])
 
   const router = useRouter()
 
@@ -110,7 +111,7 @@ const ValueSetDetailsTables = ({
       canonical: i?.canonical,
       version: i?.version
     }))
-}
+  }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -118,16 +119,17 @@ const ValueSetDetailsTables = ({
 
   const expandValueSet = async () => {
     setIsLoadingExpansion(true)
+    const body: ExpandRequest['body'] = {
+      valueSetId: currentValueSet.id,
+      expansionParameters: programAndGrouperInfo.manifestData
+    }
     try {
       const updatedValueSet = await fetch(`/api/valueset/expand`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          valueSetId: currentValueSet.id,
-          expansionParameters: programAndGrouperInfo.manifestData
-        })
+        body: JSON.stringify(body)
       }).then((res) => res.json())
       if (updatedValueSet?.error == null && updatedValueSet?.expansion) {
         // update just the expansion
@@ -151,15 +153,17 @@ const ValueSetDetailsTables = ({
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
     // @ts-ignore-next-line
-    const dataInGroup = programData?.data?.filter((item: any) => {
-      const match = Boolean(item?.groups?.find((groupInfo: any) => {
-        return groupInfo.id === router.query.valuesetId
-    }))
+    const dataInGroup = programValuesets?.data?.filter((item: any) => {
+      const match = Boolean(
+        item?.groups?.find((groupInfo: any) => {
+          return groupInfo.id === router.query.valuesetId
+        })
+      )
 
       return match
-  })
+    })
 
-    definitionData = leafDataForDisplay(dataInGroup as Result)
+    definitionData = leafDataForDisplay(dataInGroup)
     expansionData = expansion?.contains
     definitionColumns = [
       {
@@ -186,10 +190,8 @@ const ValueSetDetailsTables = ({
         selector: (row: GrouperTableDetail) => row?.canonical!,
         sortable: true,
         wrap: true,
-        cell: (row: GrouperTableDetail) => (
-          row?.version ? `${row?.canonical}|${row?.version}` : `${row?.canonical}`
-        ),
-      }      
+        cell: (row: GrouperTableDetail) => (row?.version ? `${row?.canonical}|${row?.version}` : `${row?.canonical}`)
+      }
     ]
 
     expansionColumns = EXPANSION_COLUMNS
@@ -248,15 +250,16 @@ const ValueSetDetailsTables = ({
     if (!textToFind) return defData
 
     if (isGrouperValueSet) {
-      return defData.filter((item: any) => (
-        item?.title?.toLowerCase().includes(filterDefinitionText.toLowerCase())
-        || item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
-      ))
+      return defData.filter(
+        (item: any) =>
+          item?.title?.toLowerCase().includes(filterDefinitionText.toLowerCase()) ||
+          item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
+      )
     } else {
       return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
     }
   }
-  const filteredDefinitionData = filteredDefinitions(definitionData) 
+  const filteredDefinitionData = filteredDefinitions(definitionData)
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
 
@@ -265,7 +268,7 @@ const ValueSetDetailsTables = ({
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleTabChange}>
           <Tab label="Definition" {...a11yProps(0)} />
-          {(!isVsmVset) && <Tab label="Expansion" {...a11yProps(1)} />}
+          {!isVsmVset && <Tab label="Expansion" {...a11yProps(1)} />}
           {value === 1 && isDraftProgram && (
             <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
               <Box sx={{ mt: 1, mr: 1 }}>
@@ -298,7 +301,7 @@ const ValueSetDetailsTables = ({
         />
         <DataTable
           columns={definitionColumns}
-          keyField={isGrouperValueSet ? 'oid': 'code'}
+          keyField={isGrouperValueSet ? 'oid' : 'code'}
           data={filteredDefinitionData as GrouperTableDetail[]}
           pagination
           paginationPerPage={10}

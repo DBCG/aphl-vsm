@@ -13,6 +13,7 @@ import { NextRouter } from 'next/router'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
+import { ExpandRequest } from '@/pages/api/valueset/expand'
 
 interface Props {
   programId: string
@@ -40,8 +41,8 @@ const customStyles = {
 
 const CodeSearch = ({ programId, router }: Props) => {
   // states for code search/$expand
-  const [codeToFind, setCodeToFind] = useState<string | null>(null)
-  const [systemToFind, setSystemToFind] = useState<string | null>(null)
+  const [codeToFind, setCodeToFind] = useState<string | undefined>(undefined)
+  const [systemToFind, setSystemToFind] = useState<string | undefined>(undefined)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
   const [searchProvisionalCodes, setSearchProvisionalCodes] = useState(false)
@@ -52,20 +53,18 @@ const CodeSearch = ({ programId, router }: Props) => {
   // error states
   const [error, setError] = useState<null | string>(null)
 
-  const progValueSetDets = useGetProgramValueSetDetails({
+  const { programValuesets } = useGetProgramValueSetDetails({
     id: programId
-  }) as Result
+  })
 
-  const {
-    programAndGrouperData, programAndGrouperDataLoading
-  } = useGetProgramDetails({ id: programId })
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId })
 
-  const groupsInProgram = progValueSetDets?.groupsInProgram
+  const groupsInProgram = programValuesets?.groupsInProgram
 
   const handleClear = () => {
-    setCodeToFind(null)
+    setCodeToFind(undefined)
     setGroupersToSearch([])
-    setSystemToFind(null)
+    setSystemToFind(undefined)
     setMatchingValueSetUrls(null)
   }
 
@@ -73,23 +72,26 @@ const CodeSearch = ({ programId, router }: Props) => {
     setError(null)
     setLoadingCodeSearch(true)
     try {
-      if(!groupersToSearch?.length) return
-      const grouperIdsToSearch = groupersToSearch?.map(i => i?.id)?.filter(x => Boolean(x))
-  
+      if (!groupersToSearch?.length) return
+      const grouperIdsToSearch = groupersToSearch
+        ?.map((i) => i?.id)
+        ?.filter((x) => !!x)
+        ?.map((x) => x!)
+      const body: ExpandRequest['body'] = {
+        codeSystem: systemToFind,
+        groupersToSearch: grouperIdsToSearch,
+        codeToFind,
+        expansionParameters: programAndGrouperData.manifestData
+      }
       let endpoint = `/api/valueset/expand`
       const matches = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          codeSystem: systemToFind,
-          groupersToSearch: grouperIdsToSearch,
-          codeToFind,
-          expansionParameters: programAndGrouperData.manifestData
-        })
+        body: JSON.stringify(body)
       }).then((res) => res.json())
-      
+
       setMatchingValueSetUrls(matches)
     } catch (e) {
       setError('Error occurred searching for code')
@@ -121,7 +123,7 @@ const CodeSearch = ({ programId, router }: Props) => {
         selector: (row: Row) => row?.matchingCodes?.version!,
         sortable: false,
         maxWidth: '260px',
-        wrap: true,
+        wrap: true
       },
       {
         name: 'Display',
@@ -130,63 +132,49 @@ const CodeSearch = ({ programId, router }: Props) => {
         sortable: false,
         maxWidth: '320px',
         wrap: true
-      },
-
+      }
     ],
     [router, groupsInProgram, matchingValueSetUrls]
   )
 
   return (
     <div>
-      <PageTitle style={{ marginBottom: '2rem' }}>
-        Find Codes in Program {programId}
-      </PageTitle>
+      <PageTitle style={{ marginBottom: '2rem' }}>Find Codes in Program {programId}</PageTitle>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
         {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
         </FormGroup> */}
-        <PageP>
-          Find ValueSets in this program that...
-        </PageP>
+        <PageP>Find ValueSets in this program that...</PageP>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
-            <PageP>
-              Contain this code:
-            </PageP>
+            <PageP>Contain this code:</PageP>
             <SearchInput
-              onChange={
-                (e) => {
-                  setCodeToFind(e.target.value)
-                }
-              }
+              onChange={(e) => {
+                setCodeToFind(e.target.value)
+              }}
               value={codeToFind || ''}
               required
-              errorMessage={ !codeToFind ? 'Required' : ''}
-              label='Code'
+              errorMessage={!codeToFind ? 'Required' : ''}
+              label="Code"
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <PageP>
-              In System (optional):
-            </PageP>
+            <PageP>In System (optional):</PageP>
             <SearchInput
-              onChange={
-                (e) => {
-                  setSystemToFind(e.target.value)
-                }}
-              label='System'
+              onChange={(e) => {
+                setSystemToFind(e.target.value)
+              }}
+              label="System"
               value={systemToFind || ''}
             />
           </Grid>
           <Grid item xs={12} sm={6} md={4}>
-            <PageP>
-              In Grouper(s):
-            </PageP>
+            <PageP>In Grouper(s):</PageP>
             <Select
               required={true}
-              onChange={
-                (e) => { setGroupersToSearch(e) }
-              }
+              onChange={(e) => {
+                setGroupersToSearch(e)
+              }}
               isMulti={true}
               styles={reactSelectOptionStyle()}
               value={groupersToSearch}
@@ -198,30 +186,30 @@ const CodeSearch = ({ programId, router }: Props) => {
             {!groupersToSearch?.length && <FormErrorText>Required</FormErrorText>}
           </Grid>
         </Grid>
-        <Grid container justifyContent='flex-end' spacing={2} xs={12} style={{ marginTop: '24px' }}>
-            <Button text='Search'
-              onClick={() => handleSearchCodes()}
-              style={{ marginRight: '8px' }}
-              disabled={ !codeToFind || !groupersToSearch.length }
-              loading={loadingCodeSearch}
-            />
-            <Button
-              text='Clear'
-              onClick={handleClear}
-            />
-          <Grid container justifyContent='flex-end' xs={12} style={{ marginTop: '12px' }}>
+        <Grid container justifyContent="flex-end" spacing={2} xs={12} style={{ marginTop: '24px' }}>
+          <Button
+            text="Search"
+            onClick={() => handleSearchCodes()}
+            style={{ marginRight: '8px' }}
+            disabled={!codeToFind || !groupersToSearch.length}
+            loading={loadingCodeSearch}
+          />
+          <Button text="Clear" onClick={handleClear} />
+          <Grid container justifyContent="flex-end" xs={12} style={{ marginTop: '12px' }}>
             {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
           </Grid>
         </Grid>
-          { error && (
-            <ErrorMessage error={error} />
-          )}
+        {error && <ErrorMessage error={error} />}
       </FormControl>
       {matchingValueSetUrls && (
         <DT
           customStyles={customStyles}
-          title={loadingCodeSearch ? '' : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`}
-          theme='aphl'
+          title={
+            loadingCodeSearch
+              ? ''
+              : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`
+          }
+          theme="aphl"
           data={matchingValueSetUrls || []}
           progressPending={loadingCodeSearch}
           columns={matchColumns}
@@ -229,7 +217,7 @@ const CodeSearch = ({ programId, router }: Props) => {
           expandableRowExpanded={() => true}
           // @ts-ignore-next-line (I can't figure this one out)
           expandableRowsComponent={Expansion}
-          expandableRowsComponentProps={{ 'groupsInProgram': groupsInProgram }}
+          expandableRowsComponentProps={{ groupsInProgram: groupsInProgram }}
         />
       )}
     </div>
