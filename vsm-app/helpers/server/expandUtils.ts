@@ -71,7 +71,7 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
     ?.map((i) => i?.entry?.[0]?.resource)
     ?.filter(resource => resource?.resourceType === 'ValueSet')
     ?.filter((x) => !!x) || []
-  return result
+  return result as fhir4.ValueSet[]
 }
 
 const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
@@ -248,7 +248,7 @@ const findMatchingVsetUrls = async ({
       // filter out undefined results (maybe better error handling eventually)
       // how to handle these Promise types?
       const expandedItems = expansions
-        ?.filter((promiseItem) => promiseItem.status === 'fulfilled')
+        ?.filter((promiseItem): promiseItem is PromiseFulfilledResult<fhir4.ValueSet> => promiseItem.status === 'fulfilled')
         ?.map((res) => res.value)
 
       // only want valuesets that contain the code + (optional) system
