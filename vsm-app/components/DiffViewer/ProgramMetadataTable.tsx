@@ -58,7 +58,7 @@ const ProgramMetadataTable = ({ rootLibData }: {rootLibData: RootLibrary }) => {
     <Tr key={k}>
       <Th key={k}>{formatRowTitle(k)}</Th>
       <Td style={styles(0)} key={k+0}>{rootLibData?.[k as keyof RootLibrary]?.[0] || '[no data]'}</Td>
-      <Td style={styles(0)} key={k+0}></Td>
+      <Td style={styles(0)} key={k+'b'}></Td>
       <Td style={styles(1)} key={k+1}>{rootLibData?.[k as keyof RootLibrary]?.[1] || '[no data]'}</Td>
     </Tr>
   )})

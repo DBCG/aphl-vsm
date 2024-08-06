@@ -94,10 +94,10 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Grou
       <h4 style={{ fontSize: '120%'}}>Grouper Metadata: <i>{grouperTableData.title || `ID: ${grouperTableData.id}`}</i></h4>
       <Container>
         <table>
-          {rowKeys.map(k => (
-            <tr key={k}>
-              <Th key={k}>{formatRowTitle(k)}</Th>
-              <Td key={k}>
+          {rowKeys.map((k, ind) => (
+            <tr key={k + ind}>
+              <Th>{formatRowTitle(k)}</Th>
+              <Td>
                 {produceStringForUI(
                   { itemForDisplay: grouperTableData[k as keyof GrouperMetadata],
                     placeholder: '[no data]'
