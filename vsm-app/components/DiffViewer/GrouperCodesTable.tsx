@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import DataTable, { TableColumn, TableRow } from 'react-data-table-component'
+import DataTable from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
 import { cloneDeep } from 'lodash'
 import { FormGroup, FormControlLabel, Checkbox } from '@mui/material'
+import { CodeSystemTableItem, GrouperPage, ItemToRemoveVsFilter, ValueSetFilterItem } from './DiffViewerTypes'
 import { NoDataTableComponent } from './NoDataTableComponent'
-import { ActiveFilters, CodeSystemTableItem, GrouperPage, ItemToRemoveVsFilter, ValueSetFilterItem } from './DiffViewerTypes'
 
 const COLORS = {
   add: '#EBEFE9',

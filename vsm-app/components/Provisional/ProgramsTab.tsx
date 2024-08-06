@@ -189,6 +189,20 @@ const ProgramsTab: NextPage = () => {
   const columns = useMemo(
     () => [
       {
+        name: 'Comparison',
+        omit: !selectedRows?.length,
+        cell: (row: fhir4.Library) => {
+          const match = selectedRows?.find(r => r.id == row.id)
+          if (match && selectedRows?.length == 1) {
+            return <p>Base</p>
+          } else if (match && selectedRows?.length == 2 && selectedRows[0].id == row.id) {
+            return <p>Target</p>
+          } else if (match && selectedRows?.length == 2 && selectedRows[1].id == row.id) {
+            return <p>Base</p>
+          }
+        }
+      },
+      {
         name: 'Status',
         selector: (row: fhir4.Library) => row.status,
         sortable: true,
@@ -309,7 +323,7 @@ const ProgramsTab: NextPage = () => {
         }
       }
     ],
-    [session]
+    [session, selectedRows]
   )
 
   const handleCancelReleaseModal = () => {

@@ -107,6 +107,14 @@ interface SelectedRowsInExistingProvCodes {
   selectedCount: number
 }
 
+export const findProgramByProvisionalLeaf = (leafUrlToFind: string, provisionalContext: ProvisionalsByProgram) => {
+  const programIds = provisionalContext
+    ?.filter(i => i.provisionalLeafs?.find(l => l.url === leafUrlToFind))
+    ?.map(p => ({ programId: p.programId, programTitle: p.programTitle }))
+
+  return programIds
+}
+
 const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: ExistingCodesProps) => {
   const [selectedRows, setSelectedRows] = useState<CodeInfo[]>([])
   const [toggledClearRows, setToggledClearRows] = useState(false)
@@ -261,13 +269,7 @@ const ProvisionalVSEdit = () => {
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
 
-  const findProgramByProvisionalLeaf = (leafUrlToFind: string, provisionalContext: ProvisionalsByProgram) => {
-    const programIds = provisionalContext
-      ?.filter(i => i.provisionalLeafs?.find(l => l.url === leafUrlToFind))
-      ?.map(p => ({ programId: p.programId, programTitle: p.programTitle }))
 
-    return programIds
-  }
 
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystemToAdd, action: 'add' | 'remove') => {
     let currentCodesToAdd = cloneDeep(codesBySystemToAdd)
