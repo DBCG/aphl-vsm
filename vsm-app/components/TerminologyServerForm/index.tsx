@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Select, { SelectInstance } from 'react-select'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
@@ -7,7 +7,6 @@ import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { Row, SubtitleRow, LabelStyled, Col, GridContainer } from './styles'
 import { authenticationOptions } from './types'
-import { TestRequest } from '@/pages/api/endpoint/test'
 import { useRouter } from 'next/router'
 import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
@@ -82,19 +81,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   }
   async function validateWithHttpCall(address: string) {
     const invalid = 'Warning: The address provided could not be resolved'
-    const endpoint = `/api/endpoint/test`
-    const body: TestRequest['body'] = { endpoint: address }
-    return fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    })
-      .then((res) => {
-        if (res.ok) {
-          setAddressError('')
-        } else {
-          setAddressError(invalid)
-        }
-      })
+    return fetch(address, { method: 'HEAD', mode: 'no-cors' })
+      .then(() => setAddressError(''))
       .catch(() => setAddressError(invalid))
   }
   function isValidUrl(url: string) {
