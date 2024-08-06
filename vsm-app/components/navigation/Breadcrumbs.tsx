@@ -63,6 +63,8 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
       let routePath = router.asPath
       if (router.pathname.includes('/programs/compare')) {
         routePath = routePath.split('#')[0]
+      } if (router.pathname.includes('/provisional/codesystem')) {
+        routePath = routePath.split('?')[0]
       }
       const crumbs = routePath.split('/')
       const withoutQueryStrings = crumbs?.map((crumb) => crumb?.split('?')?.[0])
