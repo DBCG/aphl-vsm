@@ -12,6 +12,7 @@ import { isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import { customTableStyles } from './tables/themes'
 import TextLink from './TextLink'
+import { ExpandRequest } from '@/pages/api/valueset/expand'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -118,16 +119,17 @@ const ValueSetDetailsTables = ({
 
   const expandValueSet = async () => {
     setIsLoadingExpansion(true)
+    const body: ExpandRequest['body'] = {
+      valueSetId: currentValueSet.id,
+      expansionParameters: programAndGrouperInfo.manifestData
+    }
     try {
       const updatedValueSet = await fetch(`/api/valueset/expand`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          valueSetId: currentValueSet.id,
-          expansionParameters: programAndGrouperInfo.manifestData
-        })
+        body: JSON.stringify(body)
       }).then((res) => res.json())
       if (updatedValueSet?.error == null && updatedValueSet?.expansion) {
         // update just the expansion
