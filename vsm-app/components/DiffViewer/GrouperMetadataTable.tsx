@@ -108,7 +108,7 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
       <Container>
         <table>
           {rowKeys.map(k => (
-            <tr>
+            <tr key={k}>
               <Th key={k}>{formatRowTitle(k)}</Th>
               <Td key={k}>
                 {produceStringForUI(

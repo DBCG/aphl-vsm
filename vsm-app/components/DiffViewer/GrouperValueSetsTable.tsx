@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import DataTable from 'react-data-table-component'
+import DataTable, { TableColumn } from 'react-data-table-component'
 import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'
@@ -74,7 +74,31 @@ export const VsFilterContextComputable = vsFilterContextsHumanReadable.map(i => 
 export type AllFilterContextMenuOptions = typeof vsFilterContextsHumanReadable
 export type ValueSetFilterContext = typeof VsFilterContextComputable[number]
 
-const generateConditionColor = (conditionItem) => {
+interface Row {
+  change: string
+  name: string
+  oid: string
+  priority: string
+  codeSystems: {
+    oid: string
+    name: string
+  }[]
+  conditionUpdates: {
+    conditionName: string
+    conditionCode: string
+    conditionSystem: string
+    conditionChange: string
+  }[]
+}
+
+type RowKey = keyof Row
+
+interface ActiveFilters {
+  value: string
+  label: string 
+}
+
+const generateConditionColor = (conditionItem: { conditionChange?: string }) => {
   if (conditionItem?.conditionChange?.startsWith('Add')) {
     return ({
       backgroundColor: COLORS.add
@@ -94,32 +118,32 @@ const generateConditionColor = (conditionItem) => {
   }
 }
 
-const ToggleShowNoChange = ({ handleShowUnchanged }) => {
+const ToggleShowNoChange = ({ handleShowUnchanged }: { handleShowUnchanged: (checked: boolean) => void}) => {
   return (
-    <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
+    <FormGroup onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleShowUnchanged(Boolean(e?.target?.checked))}>
       <FormControlLabel control={<Checkbox style={{ color: 'gray' }}/>} label="Show unchanged Value Sets" />
     </FormGroup>
   )
 }
 
-const createStyles = (style, conditionItem) => {
+const createStyles = (style: React.CSSProperties, conditionItem: { conditionChange?: string }) => {
   const colorOverride = generateConditionColor(conditionItem)
   return Object.assign(style, colorOverride)
 }
 
-const GrouperValueSetsTable = ({ grouperTableData, id }) => {
+const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any, id: any }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
   const [filterItems, setFilterItems] = useState([])
   const [showUnchanged, setShowUnchanged] = useState(false)
 
-  const { valueSetsTable } = grouperTableData
+  const { valueSetsTable }: { valueSetsTable: Row[]} = grouperTableData
 
-  const filteredValueSetOptions = (activeFilters, showUnchanged) => {
+  const filteredValueSetOptions = (activeFilters: ActiveFilters[], showUnchanged: boolean): Row[] => {
     let clonedOptions = cloneDeep(valueSetsTable)
     if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
 
-    const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
+    const mappedFilters = activeFilters.map((filterItem) => {
       const [field, searchTerm] = filterItem.value.split('|')
       return ({ field, searchTerm: searchTerm.trim() })
     })
@@ -127,7 +151,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
       // non-nested fields first
       if (!filterItem.field.startsWith('condition') && !filterItem.field.startsWith('codesystem')) {
-        clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field]?.toLowerCase()?.includes(filterItem.searchTerm))
+        clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field as RowKey]?.toLowerCase()?.includes(filterItem.searchTerm))
       }
       if (filterItem.field.startsWith('codesystemname')) {
         clonedOptions = clonedOptions.filter(opt => {
@@ -177,7 +201,6 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         backgroundColor: COLORS.remove
       }
     }
-    // need a remove case, but no existing data for that
   ]
 
   // need to do this manually for deletion
@@ -189,12 +212,12 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
     const fields = [
       {
         name: <div>Change</div>,
-        selector: (row: TableData) => row.change!,
+        selector: (row: Row) => row.change!,
         sortable: true,
         wrap: true,
         maxWidth: '150px',
         style: { textTransform: 'capitalize' },
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               <TdItem>{row.change}</TdItem>
@@ -204,11 +227,11 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
       },
       {
         name: <div>Name</div>,
-        selector: (row: TableData) => row.name,
+        selector: (row: Row) => row.name,
         sortable: true,
         wrap: true,
         maxWidth: '150px',
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               <TdItem>{row.name}</TdItem>
@@ -218,10 +241,10 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
       },
       {
         name: <div>OID</div>,
-        selector: (row: TableData) => row.oid!,
+        selector: (row: Row) => row.oid!,
         wrap: true,
         grow: 2,
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               <TdItem>{row.oid}</TdItem>
@@ -231,10 +254,9 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
       },
       {
         name: <div>Priority</div>,
-        selector: (row: TableData) => row.priority!,
+        selector: (row: Row) => row.priority!,
         wrap: true,
-        // grow: 2,
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer style={{ backgroundColor: row.change === 'Updated Priority' ? COLORS.update : 'inherit' }}>
               <TdItem style={{ textTransform: 'capitalize'}}>{row?.priority || 'No priority specified'}</TdItem>
@@ -244,16 +266,16 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
       },
       {
         name: <div>Code System OID(s)</div>,
-        selector: (row: TableData) => row.codeSystem!,
+        selector: (row: Row) => row.oid,
         sortable: true,
         wrap: true,
         maxWidth: '150px',
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
-                row?.codeSystems?.map(i => (
-                  <TdItem style={createStyles({}, i)}>{i?.oid || 'No Data'}</TdItem>
+                row?.codeSystems?.map((i, index) => (
+                  <TdItem key={i.oid || index} style={createStyles({}, i)}>{i?.oid || 'No Data'}</TdItem>
                 ))
               }
             </TdContainer>
@@ -262,15 +284,15 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
       },
       {
         name: <div>Code System Name(s)</div>,
-        selector: (row: TableData) => row.codeSystemOID!,
+        selector: (row: Row) => row.oid,
         sortable: true,
         wrap: true,
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
-                row?.codeSystems?.map(i => (
-                  <TdItem style={createStyles({}, i)}>{i?.name || 'No Data'}</TdItem>
+                row?.codeSystems?.map((i, index) => (
+                  <TdItem key={i.oid || index} style={createStyles({}, i)}>{i?.name || 'No Data'}</TdItem>
                 ))
               }
             </TdContainer>
@@ -281,12 +303,12 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         name: <div>Condition Names</div>,
         sortable: true,
         wrap: true,
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
-                row?.conditionUpdates?.map(i => (
-                  <TdItem style={createStyles({}, i)}>{i?.conditionName || 'No Data'}</TdItem>
+                row?.conditionUpdates?.map((i, index) => (
+                  <TdItem key={i.conditionCode || index} style={createStyles({}, i)}>{i?.conditionName || 'No Data'}</TdItem>
                 ))
               }
             </TdContainer>
@@ -298,13 +320,13 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         sortable: true,
         wrap: true,
         maxWidth: '150px',
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
-                row?.conditionUpdates?.map(i => {
+                row?.conditionUpdates?.map((i, index) => {
                   return (
-                    <TdItem style={createStyles({}, i)}>{i?.conditionCode || 'No Data'}</TdItem>
+                    <TdItem key={i.conditionCode || index} style={createStyles({}, i)}>{i?.conditionCode || 'No Data'}</TdItem>
                   )
                 })
               }
@@ -316,13 +338,12 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         name: <div>Condition Systems</div>,
         sortable: true,
         wrap: true,
-        // maxWidth: '150px',
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
-                row?.conditionUpdates?.map(i => (
-                  <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionSystem || 'No Data'}</TdItem>
+                row?.conditionUpdates?.map((i, index) => (
+                  <TdItem key={i.conditionSystem + i.conditionCode} style={createStyles({ flexGrow: 1, flexShrink: 0 }, i)}>{i?.conditionSystem || 'No Data'}</TdItem>
                 ))
               }
             </TdContainer>
@@ -334,13 +355,13 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         sortable: true,
         wrap: true,
         grow: 2,
-        cell: (row: TableData) => {
+        cell: (row: Row) => {
           return (
             <TdContainer>
               {
                 row?.conditionUpdates?.map(i => {
                   const color = !i?.conditionChange ? 'white' : 'inherit'
-                  return <TdItem style={createStyles({ flexGrow: 1, flexShrink: 0, color }, i)}>{i?.conditionChange || '.'}</TdItem>
+                  return <TdItem key={i.conditionSystem + i.conditionCode + i.conditionChange} style={createStyles({ flexGrow: 1, flexShrink: 0, color }, i)}>{i?.conditionChange || '.'}</TdItem>
                 })
               }
             </TdContainer>
@@ -348,7 +369,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }) => {
         }
       }
     ]
-    return fields
+    return fields as TableColumn<Row>[]
   }, [])
 
   const handleSetFilterContext = (e) => {

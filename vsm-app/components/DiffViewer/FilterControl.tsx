@@ -44,6 +44,7 @@ export const FilterControl = ({
 
   const menuItems = filterMenuOptions.map(opt => (
     <MenuItem
+      key={opt}
       value={opt.replaceAll(' ', '').toLowerCase()}
     >
       {opt}

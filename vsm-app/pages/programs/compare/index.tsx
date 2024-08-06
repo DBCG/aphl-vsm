@@ -8,7 +8,7 @@ import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import WarningIcon from '@mui/icons-material/Warning'
-import { createTableData } from '@/components/DiffViewer/createTables'
+import { createTableData } from '@/helpers/createTables'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
@@ -84,13 +84,13 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
   const grouperItems = menuData.anchorLinkData.map((i, idx) => {
     if (idx === 0) {
       return (
-        <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.rootLibId}`}>
+        <a key={i.rootLibId} onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.rootLibId}`}>
           <Li style={{ marginTop: '2rem', marginBottom: '2rem' }}>Root Library Metadata</Li>
         </a>
       )
     } else {
       return (
-        <Ul>
+        <Ul key={i.grouperId}>
           <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.grouperId}`}>
             <div style={{ display: 'flex' }}>
               <Li style={{ display: 'flex', flexGrow: 1 }}>{`${menuData.grouperPages[idx - 1].metadata.title} Metadata`}</Li>
@@ -200,8 +200,6 @@ const ProgramCompare = () => {
   const [targetTouched, setTargetTouched] = useState(false)
 
   const allPrograms = useGetPrograms([]) || []
-
-  if (!router) return
 
   const formattedProgramOptions = useMemo(() => allPrograms.map(p => {
     return ({

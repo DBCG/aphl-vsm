@@ -22,8 +22,9 @@ const CodesTableContainer = styled.div`
 `
 
 const DiffViewerComponent = ({ changelogData }) => {
+  console.log(changelogData.grouperPages[0])
   const pages = changelogData.grouperPages.map((p, idx) => (
-    <PageContainer>
+    <PageContainer key={p.groupIndex}>
       <Accordion defaultExpanded={p.hasChanges}>
           <AccordionSummary expandIcon={<ExpandMore />}>
             <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>

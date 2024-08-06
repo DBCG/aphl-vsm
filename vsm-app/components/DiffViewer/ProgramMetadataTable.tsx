@@ -34,26 +34,19 @@ export const VerticalRowTitle = styled.tr`
   font-weight: 600;
 `
 
-type DataItem = [string | undefined, string | undefined]
+type TableData = Record<string, (string|undefined)[]>
 
-interface TableData {
-  id: DataItem
-  name: DataItem
-  version: DataItem
-  purpose: DataItem
-  effectiveStart: DataItem
-  releaseDate: DataItem
-}
 
-const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
+const formatRowTitle = (str: string) => str.split(/(?=[A-Z])/).join(' ')
 
-const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) => {
+const ProgramMetadataTable = ({ rootLibData }: {rootLibData: TableData }) => {
+  console.log('root lib data', rootLibData)
   if (!rootLibData) return null
   const rowKeys = Object?.keys(rootLibData)
 
   const items = rowKeys.map(k => {
     const styles = (ind: number) => {
-      if(!rootLibData[k][ind]) {
+      if(!rootLibData?.[k]?.[ind]) {
         return ({
           color: 'lightgray'
         })
@@ -61,11 +54,11 @@ const ProgramMetadataTable = ({ rootLibData }: { grouperTableData: TableData }) 
       return ({})
     }
     return (
-    <Tr>
+    <Tr key={k}>
       <Th key={k}>{formatRowTitle(k)}</Th>
-      <Td style={styles(0)} key={k+0}>{rootLibData[k][0] || '[no data]'}</Td>
+      <Td style={styles(0)} key={k+0}>{rootLibData?.[k]?.[0] || '[no data]'}</Td>
       <Td style={styles(0)} key={k+0}></Td>
-      <Td style={styles(1)} key={k+1}>{rootLibData[k][1] || '[no data]'}</Td>
+      <Td style={styles(1)} key={k+1}>{rootLibData?.[k]?.[1] || '[no data]'}</Td>
     </Tr>
   )})
   return (
