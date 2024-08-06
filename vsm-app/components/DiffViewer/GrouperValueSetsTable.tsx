@@ -4,10 +4,7 @@ import DataTable, { TableColumn } from 'react-data-table-component'
 import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'
-<<<<<<< HEAD
 import { NoDataTableComponent } from './NoDataTableComponent'
-=======
->>>>>>> 27756a70 (ts)
 import { ValueSetFilterItem } from './DiffViewerTypes'
 
 const TdItem = styled.div`

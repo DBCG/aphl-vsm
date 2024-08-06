@@ -4,6 +4,7 @@ import { FilterControl } from './FilterControl'
 import { cloneDeep } from 'lodash'
 import { FormGroup, FormControlLabel, Checkbox } from '@mui/material'
 import { CodeSystemTableItem, GrouperPage, ItemToRemoveVsFilter, ValueSetFilterItem } from './DiffViewerTypes'
+import { NoDataTableComponent } from './NoDataTableComponent'
 
 const COLORS = {
   add: '#EBEFE9',
