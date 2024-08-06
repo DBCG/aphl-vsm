@@ -5,7 +5,6 @@ import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { BuilderItem, getProvisionals } from '../../valueset/provisional'
-import { cloneDeep } from 'lodash'
 import { updateCsCodeItem } from '@/helpers/codeSystemHelpers'
 import { updateVsCodeItem } from '@/helpers/valueSetHelpers'
 
@@ -196,7 +195,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     const provisionalCsIdsToUpdate = provisionalCsUrlsToUpdate.map(url => body[url].id).flat()
 
     const allParentVsetIds = provisionalCsUrlsToUpdate.map(url => body[url].inValueSets).flat()
-    let parentVSets = []
+    let parentVSets: fhir4.ValueSet[] = []
     // if any codes are used in provisional leafs, go get them first
     // they will need to be updated too
     if (allParentVsetIds.length) {
@@ -283,12 +282,13 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
         
         // now, update the valueSets
         const updatedVs = vsToUpdate.map((vs: fhir4.ValueSet) => updateVsCodeItem({ vs, action: 'replace', updateData, csUrl: originalCodeSystem.url! }))
-        
+
         const errorExists = updatedVs?.find((item: any) => item?.error)
         if (errorExists) {
           return res.status(400).json({ error: 'Could not update provisional value sets' })
         }
         // replace existing vs with newly updated versions
+        // @ts-ignore
         updatedVs.forEach((vs: fhir4.ValueSet) => {
           const indexToUpdate = updatedVsAndCs.findIndex((updateItem: fhir4.ValueSet | fhir4.CodeSystem) => updateItem.resourceType === 'ValueSet' && updateItem.id === vs.id)
           if (indexToUpdate > -1) {

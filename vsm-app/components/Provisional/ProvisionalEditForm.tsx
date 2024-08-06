@@ -10,7 +10,7 @@ import { TextArea } from '@/components/TextArea'
 import { SearchInput } from '@/components/SearchInput'
 import { Button } from '@/components/buttons/Button'
 import DataTable from 'react-data-table-component'
-import { Box, Chip, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, MenuList, Typography } from '@mui/material'
+import { Box, Chip, IconButton, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
 import { LoadingMessage } from '../ProgramValueSetDetails/styles'
@@ -97,11 +97,13 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
   const [modalOpen, setModalOpen] = useState(false)
   const [matchingValueSets, setMatchingValueSets] = useState<fhir4.ValueSet[]>([])
   const { provisionalContext } = useGetProvisionalContext()
-  const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => updatedCodeItem[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
+  const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => (updatedCodeItem as { [key: string]: string })[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
   const router = useRouter()
   const changesExist = useMemo(
     () => {
-      return (Object.keys(updatedCodeItem).find(k => updatedCodeItem?.[k]?.trim() !== originalCodeItemToEdit?.[k]?.trim()))
+      return (Object.keys(updatedCodeItem)
+        // @ts-ignore
+        .find(k => updatedCodeItem?.[k]?.trim() !== originalCodeItemToEdit?.[k]?.trim()))
     }, [updatedCodeItem, originalCodeItemToEdit])
 
   const handleSaveAttempt = async (userConfirmedOverride?: boolean) => {
@@ -116,7 +118,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
       // if there are any using this system, check if the original code is in use
       // if code is being used in provisional valuesets, provide a warning modal to confirm
       // that the user is ok with those other valuesets being updated
-      const matches = await findProvVsUsingCode(codeSystem?.url!, updatedCodeItem?.code)
+      const matches = await findProvVsUsingCode(codeSystem?.url!, originalCodeItemToEdit?.code!)
       if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
 
         // show modal where you'll need to confirm or cancel
@@ -127,6 +129,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
 
         const result = await updateProvisionalCs(
           {[codeSystem?.url!]: {
+            // @ts-ignore
             id: codeSystem?.id,
             action: 'replace',
             codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
@@ -277,20 +280,20 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
     const fields = [
       {
         name: 'Title',
-        selector: (row: fhir4.CodeSystemConcept) => row?.title
+        selector: (row: fhir4.ValueSet) => row?.title
       },
       {
         name: 'Status',
-        selector: (row: fhir4.CodeSystemConcept) => row?.status
+        selector: (row: fhir4.ValueSet) => row?.status
       },
       {
         name: 'ID',
-        selector: (row: fhir4.CodeSystemConcept) => row?.id
+        selector: (row: fhir4.ValueSet) => row?.id
       },
       {
         name: <p>Currently used in program(s)</p>,
         grow: 2,
-        selector: (row: fhir4.CodeSystemConcept) => row?.id,
+        selector: (row: fhir4.ValueSet) => row?.id,
         cell: (row: fhir4.ValueSet) => {
           if (Array.isArray(provisionalContext)) {
             const programIdsWithProvisionals = findProgramByProvisionalLeaf(row.url!, provisionalContext)
@@ -331,6 +334,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
           <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
             {`This code is currently being used in the following provisional Value Set(s):`}
           </Typography>
+          {/* @ts-ignore */}
           <DataTable data={matchingValueSets} columns={inUseVsColumns} />
           <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
             By editing this code, you will also edit its definition in the above provisional Value Sets.
@@ -341,6 +345,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
           </div>
         </Box>
       </Modal>
+      {/* @ts-ignore */}
       <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
     </>
   )

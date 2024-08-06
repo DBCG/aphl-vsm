@@ -395,6 +395,7 @@ const createTableData = (diffData: DiffData) => {
   const newRootData = diffData.pages.find(p => p.newData)
 
   const allGrouperPages = diffData.pages.filter(p => p?.newData?.resourceType === 'ValueSet' || p?.oldData?.resourceType === 'ValueSet')
+  // @ts-ignore
   const grouperPageData = generateGrouperPages(allGrouperPages as GrouperVsPage[])
 
   return ({

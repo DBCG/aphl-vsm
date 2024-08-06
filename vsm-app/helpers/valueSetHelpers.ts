@@ -7,7 +7,6 @@ import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTy
 import { get, uniq } from 'lodash'
 import { VSM_META_PROFILE_URLS } from '@/constants'
 import { UpdateData } from '@/pages/api/codesystem/provisional'
-import logger from './server/logger'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
@@ -369,20 +368,22 @@ interface UpdateVsItems {
 }
 
 const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
+  console.log('this called')
   try {
     const clonedVs = cloneDeep(vs)
     let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
   
     if (action === 'replace') {
       updateData.codeUpdates.forEach(updateItem => {
-        const indexOfSystem = composeBlock.include?.findIndex((i) => i.system === csUrl)
-        const indexOfUpdateItem = composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.old.code)
+        const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
+        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1 ? composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.old.code) : undefined
         if (indexOfUpdateItem !== undefined && indexOfUpdateItem > -1) {
           const itemForVsComposeConcept = {
             code: updateItem.new.code,
             display: updateItem.new.display
           }
           if (composeBlock?.include?.[indexOfSystem]?.concept?.[indexOfUpdateItem]) {
+            // @ts-ignore
             composeBlock.include[indexOfSystem].concept[indexOfUpdateItem] = itemForVsComposeConcept
           }
         } else {

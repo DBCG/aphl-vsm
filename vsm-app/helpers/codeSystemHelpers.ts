@@ -27,8 +27,8 @@ const updateCsCodeItem = ({ cs, action, updateData }: UpdateItems) => {
     }
     clonedCs.concept = codeConceptBlock
     return clonedCs
-  } catch (e) {
-    return ({ error: e.message })
+  } catch (e: any) {
+    return ({ error: e?.message || 'Failed to update code item' })
   }
 }
 
