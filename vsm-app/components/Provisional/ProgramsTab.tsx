@@ -387,7 +387,7 @@ const ProgramsTab: NextPage = () => {
             style={{ width: 'fit-content' }}
             onClick={() => {
               if (selectedRows && selectedRows?.length > 1) {
-                router.push(`programs/compare?old=${selectedRows[0].id}&new=${selectedRows[1].id}`)
+                router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}`)
               } else {
                 setEnableCompare(true)
               }

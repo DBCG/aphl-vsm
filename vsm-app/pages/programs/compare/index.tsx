@@ -62,7 +62,7 @@ const Li = styled.li`
   padding-left: 16px;
   &:hover,
   &:focus {
-    color: palevioletred;
+    color: var(--theme-400);
   };
   &:before {
     content: url("/public/images/MenuIndent.svg");
@@ -98,21 +98,21 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
               { i.hasChange === 'updated' && (
                 <Tooltip title='This grouper was updated'>
                   <IconButton>
-                    <WarningIcon color='warning' fontSize='small'/>
+                    <WarningIcon style={{ color: 'var(--caution)' }} fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}
               { i.hasChange === 'added' && (
                 <Tooltip title='This grouper was added'>
                   <IconButton>
-                    <AddCircleIcon color='success' fontSize='small'/>
+                    <AddCircleIcon style={{ color: 'var(--added)' }} fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}
               { i.hasChange === 'deleted' && (
                 <Tooltip title='This grouper was deleted'>
                   <IconButton>
-                    <DeleteForeverIcon color='error' fontSize='small'/>
+                    <DeleteForeverIcon style={{ color: 'var(--removed)' }} fontSize='small'/>
                   </IconButton>
                 </Tooltip>
               )}

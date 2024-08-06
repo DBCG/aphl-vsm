@@ -1,6 +1,9 @@
 import { is } from '@/helpers/is'
 import { Alert } from '@mui/material'
 import styled from 'styled-components'
+import DoNotTouchIcon from '@mui/icons-material/DoNotTouch'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 
 const Container = styled.div`
   display: flex;
@@ -58,25 +61,25 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
   const infoItem = () => {
     if (grouperTableData?.isDeleted) {
       return (
-        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='error'>
+        <Alert icon={<DeleteForeverIcon/>} style={{ marginTop: '1rem', backgroundColor: 'var(--removed)'}} variant='filled' severity='error'>
           This grouper was deleted
         </Alert>
       )
     } else if (grouperTableData?.isNew) {
       return (
-        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='success'>
+        <Alert icon={<AddCircleOutlineIcon/>} style={{ marginTop: '1rem', backgroundColor: 'var(--added)'}} variant='filled' severity='success'>
           This grouper was added
         </Alert>
       )
     } else if (!grouperTableData?.hasChanges) {
       return (
-        <Alert style={{ marginTop: '1rem'}} variant='filled' severity='info'>
+        <Alert icon={<DoNotTouchIcon/>} style={{ marginTop: '1rem', backgroundColor: 'var(--nochange)'}} variant='filled' severity='info'>
           This grouper has no changes to its value sets and code systems, but you can still view the contents
         </Alert> 
       )
     } else {
       return (
-        <Alert style={{ marginTop: '1rem' }} variant='filled' severity='warning'>
+        <Alert style={{ marginTop: '1rem', backgroundColor: 'var(--caution)' }} severity='warning' variant='filled'>
           This grouper contains changes
         </Alert>  
       )
