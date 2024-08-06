@@ -6,7 +6,7 @@ const Container = styled.div`
   padding: 1rem 2rem;
 `
 
-const NoDataTableComponent = ({ resourceType }) => {
+const NoDataTableComponent = ({ resourceType }: { resourceType: 'code' | 'valueset' }) => {
   return (
     <Container>
       <p>{`No ${resourceType === 'code' ? 'Codes' : 'ValueSets'} were changed between selected program versions`}</p>

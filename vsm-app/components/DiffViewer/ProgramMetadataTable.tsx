@@ -1,5 +1,6 @@
 
 import styled from 'styled-components'
+import { RootLibrary } from './DiffViewerTypes'
 
 const Container = styled.div`
   display: flex;
@@ -39,14 +40,14 @@ type TableData = Record<string, (string|undefined)[]>
 
 const formatRowTitle = (str: string) => str.split(/(?=[A-Z])/).join(' ')
 
-const ProgramMetadataTable = ({ rootLibData }: {rootLibData: TableData }) => {
-  console.log('root lib data', rootLibData)
+const ProgramMetadataTable = ({ rootLibData }: {rootLibData: RootLibrary }) => {
   if (!rootLibData) return null
   const rowKeys = Object?.keys(rootLibData)
 
   const items = rowKeys.map(k => {
     const styles = (ind: number) => {
-      if(!rootLibData?.[k]?.[ind]) {
+      // if there is no data for the program comparison, color the cell light gray
+      if(!rootLibData?.[k as keyof RootLibrary]?.[ind]) {
         return ({
           color: 'lightgray'
         })
@@ -56,9 +57,9 @@ const ProgramMetadataTable = ({ rootLibData }: {rootLibData: TableData }) => {
     return (
     <Tr key={k}>
       <Th key={k}>{formatRowTitle(k)}</Th>
-      <Td style={styles(0)} key={k+0}>{rootLibData?.[k]?.[0] || '[no data]'}</Td>
+      <Td style={styles(0)} key={k+0}>{rootLibData?.[k as keyof RootLibrary]?.[0] || '[no data]'}</Td>
       <Td style={styles(0)} key={k+0}></Td>
-      <Td style={styles(1)} key={k+1}>{rootLibData?.[k]?.[1] || '[no data]'}</Td>
+      <Td style={styles(1)} key={k+1}>{rootLibData?.[k as keyof RootLibrary]?.[1] || '[no data]'}</Td>
     </Tr>
   )})
   return (

@@ -3,7 +3,7 @@ import { useGetPrograms } from '@/hooks/useGetPrograms'
 import { Drawer, IconButton, Tooltip } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -13,6 +13,7 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
+import { ChangelogData } from '@/components/DiffViewer/DiffViewerTypes'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -78,17 +79,25 @@ const Ul = styled.ul`
   margin-left: 20px;
 `
 
-const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) => {
+interface MenuProps {
+  menuData: ChangelogData
+  isOpen: boolean
+  setMenuOpen: Dispatch<SetStateAction<boolean>>
+  menuVisible: boolean
+  router: any
+}
+
+const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }: MenuProps) => {
   if (!menuData) return
 
   const grouperItems = menuData.anchorLinkData.map((i, idx) => {
     if (idx === 0) {
       return (
-        <a key={i.rootLibId} onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.rootLibId}`}>
+        <a key='root-lib' onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#program-metadata`}>
           <Li style={{ marginTop: '2rem', marginBottom: '2rem' }}>Root Library Metadata</Li>
         </a>
       )
-    } else {
+    } else if ('grouperId' in i) {
       return (
         <Ul key={i.grouperId}>
           <a onClick={() => setMenuOpen(false)} href={`${router.asPath.split('#')[0]}#${i.grouperId}`}>
@@ -191,14 +200,15 @@ const DiffViewerMenu = ({ menuData, isOpen, setMenuOpen, menuVisible, router }) 
 
 const ProgramCompare = () => {
   const router = useRouter()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState<boolean>(false)
   const [isLoadingDiff, setIsLoadingDiff] = useState(false)
-  const [baseProgram, setBaseProgram] = useState(null)
-  const [targetProgram, setTargetProgram] = useState(null)
-  const [diffData, setDiffData] = useState(null)
+  const [baseProgram, setBaseProgram] = useState<{value: string, label: string} | null>(null)
+  const [targetProgram, setTargetProgram] = useState<{value: string, label: string} | null>(null)
+  const [diffData, setDiffData] = useState<ChangelogData | null>(null)
   const [baseTouched, setBaseTouched] = useState(false)
   const [targetTouched, setTargetTouched] = useState(false)
 
+  // @ts-ignore
   const allPrograms = useGetPrograms([]) || []
 
   const formattedProgramOptions = useMemo(() => allPrograms.map(p => {
@@ -230,6 +240,7 @@ const ProgramCompare = () => {
     } else {
       const json = await response.json()
       const formattedChangelog = createTableData(json)
+      // @ts-ignore
       setDiffData(formattedChangelog)
     }
     setIsLoadingDiff(false)
@@ -237,7 +248,9 @@ const ProgramCompare = () => {
 
   useEffect(() => {
     if (router.query.old && router.query.new && (!baseTouched && !targetTouched)) {
+      // @ts-ignore
       setBaseProgram(formattedProgramOptions?.find(p => p.value === router.query.old))
+      // @ts-ignore
       setTargetProgram(formattedProgramOptions?.find(p => p.value === router.query.new))
     }
   }, [formattedProgramOptions, router])
@@ -250,12 +263,14 @@ const ProgramCompare = () => {
 
   return (
     <RelativeContainer>
-      <DiffViewerMenu isOpen={menuOpen} setMenuOpen={setMenuOpen} menuVisible={diffData} menuData={diffData} router={router} />
+      {/*  @ts-ignore */}
+      <DiffViewerMenu isOpen={menuOpen} setMenuOpen={setMenuOpen} menuVisible={Boolean(diffData)} menuData={diffData} router={router} />
       <ProgramContainer style={{ marginBottom: '1rem' }}>
         <ProgramCol style={{ minWidth: '300px' }}>
           <StyledP>Select base program</StyledP>
           <Select
             isDisabled={isLoadingDiff}
+            // @ts-ignore
             options={formattedProgramOptions}
             onChange={(i) => {
               setBaseTouched(true)
@@ -273,6 +288,7 @@ const ProgramCompare = () => {
               setTargetTouched(true)
               setTargetProgram(i)
             }}
+            // @ts-ignore
             options={formattedProgramOptions}
             value={targetProgram}
           />

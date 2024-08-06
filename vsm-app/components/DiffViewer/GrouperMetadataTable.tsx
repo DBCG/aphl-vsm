@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import DoNotTouchIcon from '@mui/icons-material/DoNotTouch'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
+import { GrouperMetadata } from './DiffViewerTypes'
 
 const Container = styled.div`
   display: flex;
@@ -27,21 +28,7 @@ const Td = styled.td`
   border-bottom: 1px dashed lightgray;
 `
 
-type DataItem = [string | undefined, string | undefined]
-
-interface TableData {
-  id: DataItem
-  name: DataItem
-  version: DataItem
-  purpose: DataItem
-  effectiveStart: DataItem
-  releaseDate: DataItem
-  isDeleted: boolean
-  isNew: boolean
-  hasChanges: boolean
-}
-
-const formatRowTitle = (str) => str.split(/(?=[A-Z])/).join(' ')
+const formatRowTitle = (str: string) => str.split(/(?=[A-Z])/).join(' ')
 
 interface StringForUI {
   itemForDisplay: any
@@ -58,7 +45,7 @@ const produceStringForUI = ({ itemForDisplay, placeholder='' }: StringForUI): st
     return placeholder
 }
 
-const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: TableData }) => {
+const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: GrouperMetadata, id: string }) => {
   if (!grouperTableData) return null
   const rowKeys = Object.keys(grouperTableData)
     ?.filter(k => k !== 'isDeleted')
@@ -112,7 +99,7 @@ const GrouperMetadataTable = ({ grouperTableData, id }: { grouperTableData: Tabl
               <Th key={k}>{formatRowTitle(k)}</Th>
               <Td key={k}>
                 {produceStringForUI(
-                  { itemForDisplay: grouperTableData[k],
+                  { itemForDisplay: grouperTableData[k as keyof GrouperMetadata],
                     placeholder: '[no data]'
                   }
                 )}

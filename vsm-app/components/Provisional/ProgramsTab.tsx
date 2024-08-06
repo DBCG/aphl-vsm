@@ -89,14 +89,9 @@ const ProgramsTab: NextPage = () => {
 
     // compare programs
     const [enableCompare, setEnableCompare] = useState(false)
-    const [selectedRows, setSelectedRows] = useState(null)
+    const [selectedRows, setSelectedRows] = useState<fhir4.Library[]|null>(null)
 
-  const handleCancelData = () => {
-    setSelectedRows(null)
-    setEnableCompare(false)
-  }
-
-  const handleRowSelected = useCallback((state) => {
+  const handleRowSelected = useCallback((state: any) => {
     setSelectedRows(() => state.selectedRows);
   }, [])
 

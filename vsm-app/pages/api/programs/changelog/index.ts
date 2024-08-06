@@ -55,7 +55,6 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   } catch (e) {
     console.error(e)
-    console.error(e.response.data.issue)
     return res.status(400).send({ error: 'error with changelog 2'}) 
   }
 }

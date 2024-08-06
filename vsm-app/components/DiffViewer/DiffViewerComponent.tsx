@@ -6,6 +6,7 @@ import { AccordionDetails, AccordionSummary } from '@mui/material'
 import { ExpandMore } from '@mui/icons-material'
 import Accordion from '@mui/material/Accordion'
 import styled from 'styled-components'
+import { ChangelogData, AnchorLinkGrouperItem } from './DiffViewerTypes'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -13,7 +14,6 @@ const RelativeContainer = styled.div`
 
 const PageContainer = styled.div`
   background-color: rgba(255,255,255,0.8);
-  // padding-bottom: 2rem;
   margin-bottom: 2rem;
 `
 
@@ -21,18 +21,17 @@ const CodesTableContainer = styled.div`
   margin: 2rem 0;
 `
 
-const DiffViewerComponent = ({ changelogData }) => {
-  console.log(changelogData.grouperPages[0])
+const DiffViewerComponent = ({ changelogData }: { changelogData: ChangelogData }) => {
   const pages = changelogData.grouperPages.map((p, idx) => (
     <PageContainer key={p.groupIndex}>
       <Accordion defaultExpanded={p.hasChanges}>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <GrouperMetadataTable id={changelogData.anchorLinkData[idx + 1].grouperId} grouperTableData={p.metadata}/>
+            <GrouperMetadataTable id={(changelogData.anchorLinkData[idx + 1] as AnchorLinkGrouperItem).grouperId} grouperTableData={p.metadata}/>
           </AccordionSummary>
         <AccordionDetails>
-        <GrouperValueSetsTable id={changelogData.anchorLinkData[idx + 1].vsTableId} grouperTableData={p}/>
+        <GrouperValueSetsTable id={(changelogData.anchorLinkData[idx + 1] as AnchorLinkGrouperItem).vsTableId} grouperTableData={p}/>
         <CodesTableContainer>
-          <GrouperCodesTable id={changelogData.anchorLinkData[idx + 1].codesTableId} grouperTableData={p}/>
+          <GrouperCodesTable id={(changelogData.anchorLinkData[idx + 1] as AnchorLinkGrouperItem).codesTableId} grouperTableData={p}/>
         </CodesTableContainer>
         </AccordionDetails>
       </Accordion>
@@ -40,7 +39,7 @@ const DiffViewerComponent = ({ changelogData }) => {
   ))
   return (
     <RelativeContainer>
-      <ProgramMetadataTable id='program-metadata' rootLibData={changelogData.rootLibrary}/>
+      <ProgramMetadataTable rootLibData={changelogData.rootLibrary}/>
       {pages}
     </RelativeContainer>
   )

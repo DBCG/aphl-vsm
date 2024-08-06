@@ -1,7 +1,8 @@
 import { FormControl, InputLabel, MenuItem, Paper, Select } from '@mui/material'
 import Creatable from 'react-select/creatable'
-import { AllFilterContextMenuOptions, ValueSetFilterContext, ValueSetFilterItem, VsFilterContextComputable } from './GrouperValueSetsTable'
-import { CodeFilterContextComputable } from './GrouperCodesTable'
+import { AllFilterContextMenuOptionsVsets, ValueSetFilterContext, VsFilterContextComputable } from './GrouperValueSetsTable'
+import { AllFilterContextMenuOptionsCodes, CodeFilterContextComputable } from './GrouperCodesTable'
+import { ValueSetFilterItem } from './DiffViewerTypes'
 import { uniqBy } from 'lodash'
 
 const style = {
@@ -19,10 +20,10 @@ interface FilterControlProps {
   filterContext: ValueSetFilterContext
   filteredItems: ValueSetFilterItem[]
   setFilteredItems: (current: any) => void
-  removeValueSetFilteredItems: (current: any) => void
+  removeValueSetFilteredItems: (allFilterItems: any, itemsToRemove: any) => void
   handleSetFilterContext: (current: any) => void
-  filterContextHumanReadable: string[]
-  filterMenuOptions: AllFilterContextMenuOptions
+  filterContextHumanReadable: readonly string[]
+  filterMenuOptions: AllFilterContextMenuOptionsCodes | AllFilterContextMenuOptionsVsets
 }
 
 export const FilterControl = ({
@@ -33,7 +34,6 @@ export const FilterControl = ({
   removeValueSetFilteredItems,
   handleSetFilterContext,
   filterMenuOptions,
-  // filterContextHumanReadable
 }: FilterControlProps) => {
 
   const currentFilterContextIndex = controlType === 'valueset'

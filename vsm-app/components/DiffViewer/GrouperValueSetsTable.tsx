@@ -5,30 +5,25 @@ import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'
 import { NoDataTableComponent } from './NoDataTableComponent'
+import { ValueSetFilterItem } from './DiffViewerTypes'
 
 const TdItem = styled.div`
-  display: flex;
-  flex-grow: 1;
-  padding-left: 6px !important;
+  display: flex
+  flex-grow: 1
+  padding-left: 6px !important
 `
 
 const TdContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  flex-grow: 1;
+  display: flex
+  flex-direction: column
+  align-self: stretch
+  flex-grow: 1
 `
 
 export const COLORS = {
   add: '#EBEFE9',
   remove: '#FAE6E5',
   update: '#FDF4DD'
-}
-
-export interface ValueSetFilterItem {
-  key: string
-  label: string
-  value: string
 }
 
 interface SimplifiedFilterItem {
@@ -38,22 +33,22 @@ interface SimplifiedFilterItem {
 
 const StyledTable = styled(DataTable)`
   .rdt_TableCol {
-    padding-left: 6px !important;
-    padding-right: 0 !important;
-  };
+    padding-left: 6px !important
+    padding-right: 0 !important
+  }
   .rdt_TableCol:first-of-type {
-    padding-left: 16px !important;
-  };
+    padding-left: 16px !important
+  }
   .rdt_TableCell {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  };
+    padding-left: 0 !important
+    padding-right: 0 !important
+  }
   .rdt_TableCell:first-of-type {
-    padding-left: 10px !important;
-  };
+    padding-left: 10px !important
+  }
   .rdt_TableHeader {
-    padding-left: 4px !important;
-  };
+    padding-left: 4px !important
+  }
 `
 
 export const vsFilterContextsHumanReadable = [
@@ -71,34 +66,33 @@ const customStyle = {
 
 export const VsFilterContextComputable = vsFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
 
-export type AllFilterContextMenuOptions = typeof vsFilterContextsHumanReadable
+export type AllFilterContextMenuOptionsVsets = typeof vsFilterContextsHumanReadable
 export type ValueSetFilterContext = typeof VsFilterContextComputable[number]
+
+interface ConditionUpdate {
+  conditionName: string
+  conditionCode: string
+  conditionSystem: string
+  conditionChange: string
+}
+
+interface CodeSystemItem {
+  oid: string
+  name: string
+}
 
 interface Row {
   change: string
   name: string
   oid: string
   priority: string
-  codeSystems: {
-    oid: string
-    name: string
-  }[]
-  conditionUpdates: {
-    conditionName: string
-    conditionCode: string
-    conditionSystem: string
-    conditionChange: string
-  }[]
+  codeSystems: CodeSystemItem[]
+  conditionUpdates: ConditionUpdate[]
 }
 
 type RowKey = keyof Row
 
-interface ActiveFilters {
-  value: string
-  label: string 
-}
-
-const generateConditionColor = (conditionItem: { conditionChange?: string }) => {
+const generateConditionColor = (conditionItem: ConditionUpdate) => {
   if (conditionItem?.conditionChange?.startsWith('Add')) {
     return ({
       backgroundColor: COLORS.add
@@ -126,19 +120,23 @@ const ToggleShowNoChange = ({ handleShowUnchanged }: { handleShowUnchanged: (che
   )
 }
 
-const createStyles = (style: React.CSSProperties, conditionItem: { conditionChange?: string }) => {
-  const colorOverride = generateConditionColor(conditionItem)
+const createStyles = (style: React.CSSProperties, conditionItem: ConditionUpdate | CodeSystemItem) => {
+  let colorOverride = {}
+  if (conditionItem.hasOwnProperty('conditionChange')) {
+    colorOverride = generateConditionColor(conditionItem as ConditionUpdate)
+  }
   return Object.assign(style, colorOverride)
 }
 
 const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any, id: any }) => {
   const [filterContext, setFilterContext] = useState<ValueSetFilterContext>('name')
-  const [filterItems, setFilterItems] = useState([])
+  const [filterItems, setFilterItems] = useState<ValueSetFilterItem[]>([])
   const [showUnchanged, setShowUnchanged] = useState(false)
 
   const { valueSetsTable }: { valueSetsTable: Row[]} = grouperTableData
 
-  const filteredValueSetOptions = (activeFilters: ActiveFilters[], showUnchanged: boolean): Row[] => {
+  const filteredValueSetOptions = (activeFilters: ValueSetFilterItem[], showUnchanged: boolean): Row[] => {
+    console.log('activeFilters: ', activeFilters)
     let clonedOptions = cloneDeep(valueSetsTable)
     if (!showUnchanged) clonedOptions = clonedOptions?.filter(opt => opt?.change?.trim() !== '') || []
     if (!activeFilters?.length) return clonedOptions
@@ -151,7 +149,8 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
     mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
       // non-nested fields first
       if (!filterItem.field.startsWith('condition') && !filterItem.field.startsWith('codesystem')) {
-        clonedOptions = clonedOptions.filter(opt => opt?.[filterItem.field as RowKey]?.toLowerCase()?.includes(filterItem.searchTerm))
+        clonedOptions = clonedOptions
+          .filter(opt => (opt?.[filterItem.field as RowKey] as string)?.toLowerCase()?.includes(filterItem.searchTerm))
       }
       if (filterItem.field.startsWith('codesystemname')) {
         clonedOptions = clonedOptions.filter(opt => {
@@ -174,8 +173,8 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
       } else if (filterItem.field.startsWith('condition')) {
         // search within array of condition info for a match
         clonedOptions = clonedOptions.filter(opt => {
-          const hasMatch = opt?.conditionUpdates?.find(conditionUpdateItem => {
-            const keys = Object.keys(conditionUpdateItem)
+          const hasMatch = opt?.conditionUpdates?.find((conditionUpdateItem: ConditionUpdate) => {
+            const keys = Object.keys(conditionUpdateItem) as (keyof ConditionUpdate)[]
             const fieldIndex = keys.findIndex(item => item.toLowerCase() === filterItem.field.toLowerCase())
             const result = conditionUpdateItem[keys[fieldIndex]]?.toLowerCase()?.includes(filterItem.searchTerm)
             return result
@@ -190,13 +189,13 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
 
   const conditionalRowStyles = [
     {
-      when: (row) => row?.change?.toLowerCase() === 'added vs',
+      when: (row: Row) => row?.change?.toLowerCase() === 'added vs',
       style: {
         backgroundColor: COLORS.add
       }
     },
     {
-      when: (row) => row?.change?.toLowerCase() === 'removed vs',
+      when: (row: Row) => row?.change?.toLowerCase() === 'removed vs',
       style: {
         backgroundColor: COLORS.remove
       }
@@ -204,7 +203,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
   ]
 
   // need to do this manually for deletion
-  const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
+  const removeValueSetFilterItems = (allFilterItems: ValueSetFilterItem[], itemsToRemove: SimplifiedFilterItem[]) => {
     setFilterItems(() => [...allFilterItems])
   }
 
@@ -271,6 +270,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         wrap: true,
         maxWidth: '150px',
         cell: (row: Row) => {
+          console.log('row', row)
           return (
             <TdContainer>
               {
@@ -288,6 +288,7 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         sortable: true,
         wrap: true,
         cell: (row: Row) => {
+          console.log('row: ', row)
           return (
             <TdContainer>
               {
@@ -369,15 +370,16 @@ const GrouperValueSetsTable = ({ grouperTableData, id }: { grouperTableData: any
         }
       }
     ]
-    return fields as TableColumn<Row>[]
+    return fields
   }, [])
 
-  const handleSetFilterContext = (e) => {
+  const handleSetFilterContext = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     setFilterContext(e.target.value)
   }
 
   return (
     <div id={id}>
+      {/* @ts-ignore */}
       <StyledTable
         defaultSortFieldId={1}
         noDataComponent={<NoDataTableComponent resourceType='valueset'/>}

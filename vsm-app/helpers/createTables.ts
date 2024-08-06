@@ -1,3 +1,4 @@
+import { DiffData, FlatCodeNew, FlatCodeOld, GrouperPage, GrouperVsPage, LibraryPage } from '@/components/DiffViewer/DiffViewerTypes'
 import { get, uniq, uniqWith } from 'lodash'
 
 const rootLibDataPaths: Record<string, { old: string[], new: string[] }> = {
@@ -63,14 +64,7 @@ const rootLibDataPaths: Record<string, { old: string[], new: string[] }> = {
   }
 }
 
-interface Data {
-  oldData: Record<string, any>
-  newData: Record<string, any>
-  resourceType: string
-  url: string
-}
-
-const getValue = (path: string, oldData: Data, newData: Data) => {
+const getValue = (path: string, oldData: LibraryPage, newData: LibraryPage) => {
   if (path.startsWith('oldData')) {
     const p = path.split('oldData.')[1]
     return get(oldData.oldData, p)
@@ -94,7 +88,7 @@ interface Result extends IObjectKeys {
   codeSystems: any;
 }
 
-const generateRootTableData = (oldData: Data, newData: Data) => {
+const generateRootTableData = (oldData: LibraryPage, newData: LibraryPage) => {
 
   const result: Result = {
     id: ['', ''],
@@ -124,7 +118,7 @@ const generateRootTableData = (oldData: Data, newData: Data) => {
 
 // grouper metadata only cares about the newest info
 // RCKMS says they don't really care to compare grouper old/new metadata values
-const generateGrouperMetadata = (grouperPage: any, hasChanges: boolean) => {
+const generateGrouperMetadata = (grouperPage: GrouperVsPage, hasChanges: boolean) => {
   const newData = grouperPage.newData
   const oldData = grouperPage.oldData
 
@@ -133,27 +127,29 @@ const generateGrouperMetadata = (grouperPage: any, hasChanges: boolean) => {
     title: 'title.value',
     version: 'version.value',
     codeSystems: 'codes'
-  }
+  } as const
 
   const grouperMetadata = () => {
     const keys = Object.keys(paths)
     const isDeletedGrouper = Boolean(!newData && oldData)
     const isNewGrouper = Boolean(newData && !oldData)
-    let result = {
+    const result = {
       isDeleted: isDeletedGrouper,
       isNew: isNewGrouper,
-      hasChanges: hasChanges
+      hasChanges: hasChanges,
+      codeSystems: [] as string[]
     }
+
     keys.forEach(k => {
       if (k === 'codeSystems') {
         // deleted groupers only have oldData
-
-        const codesToCheck = isDeletedGrouper ? oldData.codes : newData.codes
+        const codesToCheck = (isDeletedGrouper ? oldData?.codes : newData?.codes) as (FlatCodeOld | FlatCodeNew)[]
         const uniqueSystems = Array.from(new Set(codesToCheck
-          .filter(c => c?.operation !== 'delete')
-          .map(i => i.system)))
-        result[k] = uniqueSystems
+          ?.filter((c: any) => c?.operation?.type !== 'delete')
+          ?.map(i => i.system) ?? []))
+        result[k] = uniqueSystems as string[]
       } else {
+        // @ts-ignore
         result[k] = get(isDeletedGrouper ? oldData : newData, paths[k])
       }
     })
@@ -164,15 +160,15 @@ const generateGrouperMetadata = (grouperPage: any, hasChanges: boolean) => {
 
 const generateMainChangeText = (grouperListItem: any) => {
   const allConditionChangeTypes = uniq(grouperListItem?.conditions
-    ?.filter(c => c?.operation)
-    ?.map(i => i?.operation?.type)) || []
+    ?.filter((c: { operation: any }) => c?.operation)
+    ?.map((i: { operation: { type: any } }) => i?.operation?.type)) || [] as string[]
 
   // incomplete possibilities
   if (grouperListItem?.operation?.type === 'insert') {
     return 'Added VS'
   } else if (grouperListItem?.operation?.type === 'delete') {
     return 'Removed VS'
-  } else if (allConditionChangeTypes.find(c => c === 'replace')) {
+  } else if (allConditionChangeTypes.find((c: any) => c === 'replace')) {
     return 'Update Conditions'
   } else if (allConditionChangeTypes.length == 1) {
     return `${allConditionChangeTypes[0]} Conditions`
@@ -252,21 +248,7 @@ const uniqueCodeSystems = (csArray: { name: string, oid: string }[]): { name: st
 // need code system for valueset
 // need status for code system (e.g. published?)
 // need to always include text on conditions items
-const generateGrouperValueSetTable = (grouperPage: {
-    oldData: { leafValuesets: { map: (arg0: (oldLeaf: any) => any) => never[]; filter: (arg0: (vs: any) => any) => never[] } }; newData: {
-      leafValuesets: {
-        map: (arg0: {
-          (newLeaf: any): any; (gi: any): {
-            change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({
-              conditionChange: string; conditionName: any // is the text field, not name...
-              conditionCodeSystemVersion: undefined // same here
-              conditionCode: any; conditionSystem: any
-            } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[]
-          }
-        }) => { change: string; codeSystems: { name: string; oid: string }[]; name: any; oid: any; priority: any; conditionUpdates: ({ conditionChange: string; conditionName: any; conditionCodeSystemVersion: undefined; conditionCode: any; conditionSystem: any } | { conditionChange: undefined; conditionName: undefined; conditionCodeSystemVersion: undefined; conditionSystem: any; conditionCode: any } | undefined)[] }[]
-      }
-    }
-  }) => {
+const generateGrouperValueSetTable = (grouperPage: GrouperVsPage) => {
   // doing this here because it's not explicitly noted in the changelog
   const allOldLeafIds = grouperPage?.oldData?.leafValuesets.map(oldLeaf => oldLeaf?.memberOid) || []
   const newLeafIds = grouperPage?.newData?.leafValuesets?.map(newLeaf => newLeaf?.memberOid) || []
@@ -288,8 +270,8 @@ const generateGrouperValueSetTable = (grouperPage: {
 
   // if any deleted valuesets, add them to the set
   // deleted valuesets are currently not part of the operations array
-  if (deletedValueSets?.length) {
-    const removedItems = deletedValueSets.map(vsItem => {
+  if (deletedValueSets?.length > 0) {
+    const removedItems = deletedValueSets.map((vsItem: any) => {
       const oldCodeSystems = uniqueCodeSystems(vsItem?.codeSystems || [])
       return ({
         change: 'Removed VS',
@@ -311,7 +293,8 @@ interface FormatCodeItems {
 }
 
 const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
-  return codeItems.map(ci => ({
+  console.log('codeItems: ', codeItems)
+  return codeItems.map((ci: FlatCodeOld | FlatCodeNew) => ({
     change: defaultChange || ci?.operation?.type || '',
     oid: ci?.memberOid || '',
     code: ci?.code || '',
@@ -322,37 +305,14 @@ const formatCodeData = ({ codeItems, defaultChange }: FormatCodeItems) => {
   }))
 }
 
-interface CodeItem {
-  operation?: {
-    type: string;
-  };
-  memberOid?: string;
-  code?: string;
-  display?: string;
-  system?: string;
-  version?: string;
-  codeSystemOid?: string;
-}
+const generateCodeChangesTable = (grouperPage: GrouperVsPage) => {
+  const newCodes = grouperPage?.newData?.codes || []
+  const oldCodes = grouperPage?.oldData?.codes || []
+  let codeChangeData = formatCodeData({ codeItems: newCodes });
 
-interface GrouperPage {
-  newData?: {
-    codes?: CodeItem[];
-    resourceType?: string;
-  };
-  oldData?: {
-    codes?: CodeItem[];
-    resourceType?: string;
-  };
-}
-
-const generateCodeChangesTable = (grouperPage: GrouperPage): CodeItem[] => {
-  const newCodes: CodeItem[] = grouperPage?.newData?.codes || []
-  const oldCodes: CodeItem[] = grouperPage?.oldData?.codes || []
-  let codeChangeData: CodeItem[] = formatCodeData({ codeItems: newCodes });
-
-  const deletedCodes: CodeItem[] = oldCodes?.filter((oldCodeItem: CodeItem) => {
+  const deletedCodes = oldCodes?.filter((oldCodeItem) => {
     const hasMatchInNewCodes: boolean = Boolean(
-      newCodes?.find((newCodeItem: CodeItem) => {
+      newCodes?.find((newCodeItem) => {
         return (
           newCodeItem?.code === oldCodeItem?.code &&
           newCodeItem?.system === oldCodeItem?.system &&
@@ -365,19 +325,19 @@ const generateCodeChangesTable = (grouperPage: GrouperPage): CodeItem[] => {
 
   // deletions are not tracked by create-changelog, so do manually:
   if (deletedCodes.length) {
-    const formattedDeletions: CodeItem[] = formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
+    const formattedDeletions = formatCodeData({ codeItems: deletedCodes, defaultChange: 'Deleted' })
     codeChangeData = [...codeChangeData, ...formattedDeletions]
   }
 
   return codeChangeData
 }
 
-const generateGrouperPages = (allGrouperPages: GrouperPage[]) => {
+const generateGrouperPages = (allGrouperPages: GrouperVsPage[]) => {
   const res = allGrouperPages.map((grp, index: number) => {
     const codeChanges = generateCodeChangesTable(grp)
     const valueSetChanges = generateGrouperValueSetTable(grp)
   
-    const hasChanges = Boolean(codeChanges?.find(c => c.change !== '') || valueSetChanges?.find(v => v.change !== ''))
+    const hasChanges = Boolean(codeChanges?.find((c: { change: string }) => c.change !== '') || valueSetChanges?.find(v => v.change !== ''))
     return (
       {
         metadata: generateGrouperMetadata(grp, hasChanges),
@@ -399,7 +359,7 @@ const generateId = (ind: number, group: any, isDeleted: boolean, isNew: boolean)
   const changeText = () => {
     if (isDeleted) return 'deleted'
     if (isNew) return 'added'
-    if (group?.valueSetsTable?.find(i => i.change && i?.change !== '')) {
+    if (group?.valueSetsTable?.find((i: { change: string }) => i.change && i?.change !== '')) {
       return 'updated'
     } else {
       return null
@@ -414,8 +374,9 @@ const generateId = (ind: number, group: any, isDeleted: boolean, isNew: boolean)
   })
 }
 
-const generateAnchorLinkData = (grouperPageData) => {
+const generateAnchorLinkData = (grouperPageData: GrouperPage[]) => {
 
+  console.log('grouper page data: ', grouperPageData)
   const base = [{
     rootLibId: `program-metadata`,
     // eventually have PlanDefinition here, too
@@ -428,19 +389,23 @@ const generateAnchorLinkData = (grouperPageData) => {
   return [...base, ...groupers]
 }
 
-const createTableData = (diffData: any) => {
+const createTableData = (diffData: DiffData) => {
   if (!diffData) {
     return null
   }
+
+  console.log('diffData: ', diffData)
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
 
   const allGrouperPages = diffData.pages.filter(p => p?.newData?.resourceType === 'ValueSet' || p?.oldData?.resourceType === 'ValueSet')
-  const grouperPageData = generateGrouperPages(allGrouperPages)
+  const grouperPageData = generateGrouperPages(allGrouperPages as GrouperVsPage[])
 
+  console.log('grper: ', grouperPageData)
   return ({
-    rootLibrary: generateRootTableData(oldRootData, newRootData),
+    rootLibrary: generateRootTableData(oldRootData as LibraryPage, newRootData as LibraryPage),
     grouperPages: grouperPageData,
+    // @ts-ignore
     anchorLinkData: generateAnchorLinkData(grouperPageData)
   })
 }

@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import DataTable from 'react-data-table-component'
+import DataTable, { TableColumn, TableRow } from 'react-data-table-component'
 import { FilterControl } from './FilterControl'
 import { cloneDeep } from 'lodash'
 import { FormGroup, FormControlLabel, Checkbox } from '@mui/material'
-import { ValueSetFilterItem } from './GrouperValueSetsTable'
 import { NoDataTableComponent } from './NoDataTableComponent'
+import { ActiveFilters, CodeSystemTableItem, GrouperPage, ItemToRemoveVsFilter, ValueSetFilterItem } from './DiffViewerTypes'
 
 const COLORS = {
   add: '#EBEFE9',
@@ -25,40 +25,23 @@ export const codeFilterContextsHumanReadable = [
   'Code System Version', 'Code System OID'
 ] as const
 
+export type AllFilterContextMenuOptionsCodes = typeof codeFilterContextsHumanReadable
+
 export const CodeFilterContextComputable = codeFilterContextsHumanReadable.map(i => i.replaceAll(' ', '').toLowerCase())
 
 export type CodeFilterContext = typeof CodeFilterContextComputable[number]
 
-const generateConditionColor = (conditionItem) => {
-  if (conditionItem?.operation?.startsWith('Add')) {
-    return ({
-      backgroundColor: COLORS.add
-    })
-  }
-  else if (conditionItem?.operation?.startsWith('Replace')) {
-    return ({
-      backgroundColor: COLORS.update
-    })
-  }
-  else if (conditionItem?.operation?.startsWith('Remove')) {
-    return ({
-      backgroundColor: COLORS.remove
-    })
-  } else {
-    return ({})
-  }
-}
 
-const ToggleShowNoChange = ({ handleShowUnchanged }) => {
+const ToggleShowNoChange = ({ handleShowUnchanged }: { handleShowUnchanged: (show: boolean) => void }) => {
   return (
-      <FormGroup onChange={(e) => handleShowUnchanged(e?.target?.checked)}>
+      <FormGroup onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleShowUnchanged(Boolean(e?.target?.checked))}>
         <FormControlLabel control={<Checkbox style={{ color: 'gray' }} />} label="Show unchanged Codes" />
       </FormGroup>
   )
 }
 
-const GrouperCodesTable = ({ grouperTableData, id }) => {
-  const [filterItems, setFilterItems] = useState([])
+const GrouperCodesTable = ({ grouperTableData, id }: { grouperTableData: GrouperPage, id: string }) => {
+  const [filterItems, setFilterItems] = useState<ValueSetFilterItem[]>([])
   const [filterContext, setFilterContext] = useState<CodeFilterContext>('oid')
   const [showUnchanged, setShowUnchanged] = useState(false)
   const { codeSystemsTable } = grouperTableData
@@ -67,21 +50,25 @@ const GrouperCodesTable = ({ grouperTableData, id }) => {
     return CodeFilterContextComputable.findIndex((item) => item === filterContext)
   }, [filterContext])
 
-  const filteredCodeOptions = (activeFilters, showUnchanged) => {
+  const filteredCodeOptions = (activeFilters: ValueSetFilterItem[], showUnchanged: boolean) => {
     let clonedOptions = cloneDeep(codeSystemsTable)
     if (!showUnchanged) clonedOptions = clonedOptions.filter(opt => opt?.change)
     if (!activeFilters?.length) return clonedOptions
 
+    console.log('activeFilters: ', activeFilters)
     const mappedFilters = activeFilters.map((filterItem: ValueSetFilterItem) => {
       const [field, searchTerm] = filterItem.value.split('|')
       return ({ field, searchTerm: searchTerm.trim() })
     })
 
-    mappedFilters.forEach((filterItem: SimplifiedFilterItem) => {
+    console.log('mappedFilters: ', mappedFilters)
+
+    mappedFilters.forEach((filterItem: { field: string, searchTerm: string }) => {
       clonedOptions = clonedOptions.filter(opt => {
+        console.log('opt: ', opt)
         const keys = Object.keys(opt)
         const matchingKeyIndex = keys.map(k => k.toLowerCase()).findIndex(i => i === filterItem.field.toLowerCase())
-        return opt[keys[matchingKeyIndex]]?.toLowerCase()?.includes(filterItem.searchTerm)
+        return opt[keys[matchingKeyIndex] as keyof CodeSystemTableItem]?.toLowerCase()?.includes(filterItem.searchTerm)
       })
     })
 
@@ -89,24 +76,24 @@ const GrouperCodesTable = ({ grouperTableData, id }) => {
   }
 
   const conditionalRowStyles = [
-    { when: (row) => row?.change?.toLowerCase() === 'insert',
+    { when: (row: CodeSystemTableItem) => row?.change?.toLowerCase() === 'insert',
       style: {
         backgroundColor: COLORS.add
       }
     },
-    { when: (row) => row?.change?.toLowerCase() === 'deleted',
+    { when: (row: CodeSystemTableItem) => row?.change?.toLowerCase() === 'deleted',
     style: {
       backgroundColor: COLORS.remove
     }
   }
 ]
 
-    // need to do this manually for deletion
-const removeValueSetFilterItems = (allFilterItems, itemsToRemove) => {
+// need to do this manually for deletion
+const removeValueSetFilterItems = (allFilterItems: ValueSetFilterItem[]) => {
   setFilterItems(() => [...allFilterItems]) 
 }
 
-const handleSetFilterContext = (e) => {
+const handleSetFilterContext = (e: React.ChangeEvent<HTMLSelectElement>) => {
   setFilterContext(e.target.value)
 }
 
@@ -114,7 +101,7 @@ const handleSetFilterContext = (e) => {
     const fields = [
       {
         name: <div>Change</div>,
-        selector: (row: TableData) => row.change!,
+        selector: (row: CodeSystemTableItem) => row.change!,
         sortable: true,
         wrap: true,
         maxWidth: '100px',
@@ -122,7 +109,7 @@ const handleSetFilterContext = (e) => {
       },
       {
         name: <div>Value Set OID</div>,
-        selector: (row: TableData) => row.oid,
+        selector: (row: CodeSystemTableItem) => row.oid,
         sortable: true,
         wrap: true,
         grow: 1.5
@@ -131,35 +118,35 @@ const handleSetFilterContext = (e) => {
         name: <div>Code Descriptor</div>,
         sortable: true,
         wrap: true,
-        selector: (row: TableData) => row.descriptor!,
+        selector: (row: CodeSystemTableItem) => row.descriptor!,
         grow: 3
       },
       {
         name: <div>Code</div>,
-        selector: (row: TableData) => row.code!,
+        selector: (row: CodeSystemTableItem) => row.code!,
         wrap: true,
         sortable: true
       },
       {
         name: <div>Code System</div>,
-        selector: (row: TableData) => row.codeSystem!,
+        selector: (row: CodeSystemTableItem) => row.codeSystem!,
         wrap: true,
         sortable: true
       },
       {
         name: <div>Code System Version</div>,
-        selector: (row: TableData) => row.codeSystemVersion!,
+        selector: (row: CodeSystemTableItem) => row.codeSystemVersion!,
         sortable: true,
         wrap: true,
       },
       {
         name: <div>Code System OID</div>,
-        selector: (row: TableData) => row.codeSystemOID!,
+        selector: (row: CodeSystemTableItem) => row.codeSystemOID!,
         sortable: true,
         wrap: true
       }
     ]
-    return fields
+    return
   }, [])
 
   return (
@@ -168,6 +155,7 @@ const handleSetFilterContext = (e) => {
         defaultSortFieldId={1}
         dense
         title={<p style={{ fontSize: '80%'}}>Codes</p>}
+        // @ts-ignore
         columns={columns}
         customStyles={customStyle}
         data={filteredCodeOptions(filterItems, showUnchanged)}
@@ -187,6 +175,7 @@ const handleSetFilterContext = (e) => {
               removeValueSetFilteredItems={removeValueSetFilterItems}
               filterMenuOptions={codeFilterContextsHumanReadable}
               handleSetFilterContext={handleSetFilterContext}
+              // @ts-ignore
               filterContextHumanReadable={codeFilterContextsHumanReadable?.[filterContextIndex]}
             />
             <ToggleShowNoChange handleShowUnchanged={setShowUnchanged} />
