@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { Button } from './buttons/Button'
 import { createContext, useState, useContext, ReactNode } from 'react'
@@ -8,6 +8,7 @@ import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -45,7 +46,7 @@ export const NavContext = createContext({
 } as NavContextType)
 
 interface Props {
-  children: ReactNode;
+  children: ReactNode
 }
 
 // create context provider
@@ -61,7 +62,7 @@ export const NavContextProvider: React.FC<Props> = ({ children }) => {
 const NavBar = () => {
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
-
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   return (
     <BarWrapper>
       <Bar>
@@ -78,6 +79,15 @@ const NavBar = () => {
               router.push('/api/auth/logout')
             }}
           />
+          {session?.user?.roles?.[0] === 'admin' && (
+            <Button
+              text="Admin Tools"
+              id="admin"
+              onClick={() => {
+                router.push('/admin-tools')
+              }}
+            />
+          )}
         </Box>
       </Bar>
     </BarWrapper>
