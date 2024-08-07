@@ -38,10 +38,6 @@ const updateProvisionalCs = async (fields: Fields) => {
           error = 'Failed to update provisional codes'
         }
 
-        // if these codes that were edited are used in valuesets, need to update the value sets
-        // if (matchingValueSets && !error) {
-
-        // }
       }
     
     await updateProvisionalCodesystemsAndVSParents()

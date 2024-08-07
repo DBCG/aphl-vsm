@@ -24,6 +24,7 @@ import { findProvVsUsingCode } from '@/hooks/findProvVsUsingCode'
 import Modal from '@mui/material/Modal'
 import { findProgramByProvisionalLeaf } from '@/pages/provisional/valueset'
 import ArrowOutward from '@mui/icons-material/ArrowOutward'
+import { url } from 'inspector'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -91,10 +92,12 @@ const allFieldsExist = (codeItems: string[]) => {
 
 const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<CodeTableData | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
   const [updatedCodeItem, setUpdatedCodeItem] = useState(defaultItem)
   const [codeUpdateLoading, setCodeUpdateLoading] = useState(false)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [matchingValueSets, setMatchingValueSets] = useState<fhir4.ValueSet[]>([])
   const { provisionalContext } = useGetProvisionalContext()
   const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => (updatedCodeItem as { [key: string]: string })[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
@@ -122,7 +125,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
       if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
 
         // show modal where you'll need to confirm or cancel
-        setModalOpen(true)
+        setDeleteModalOpen(true)
         setMatchingValueSets(matches?.matchingValueSets)
       } else {
         const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
@@ -133,6 +136,41 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
             id: codeSystem?.id,
             action: 'replace',
             codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
+            inValueSets: matchingValueSetIds,
+          }},
+        )
+        if (result.error) {
+          console.log('result: ', result)
+          toast.error(`Provisional Code System could not be updated`)
+        } else {
+          router.reload()
+        }
+      }
+    }
+    setCodeUpdateLoading(false)
+  }
+
+  const handleDeleteAttempt = async (userConfirmedOverride: boolean, itemToDelete: CodeTableData) => {
+    setCodeUpdateLoading(true)
+    if (!itemToDelete) {
+      toast.error('Must select a code to delete')
+    } else {
+      const matches = await findProvVsUsingCode(codeSystem?.url!, itemToDelete?.code!)
+      if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
+
+        setItemToDelete(itemToDelete)
+        // show modal where you'll need to confirm or cancel
+        setDeleteModalOpen(true)
+        setMatchingValueSets(matches?.matchingValueSets)
+      } else {
+        const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
+
+        const result = await updateProvisionalCs(
+          {[codeSystem?.url!]: {
+            // @ts-ignore
+            id: codeSystem?.id,
+            action: 'delete',
+            codeUpdates: itemToDelete,
             inValueSets: matchingValueSetIds,
           }},
         )
@@ -154,6 +192,29 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
   const columns = useMemo(() => {
     if (!codeSystem) return []
     const fields = [
+      {
+        name: 'Delete',
+        omit: !isEditable,
+        maxWidth: '100px',
+        selector: (row: CodeTableData) => row.code!,
+        cell: (row: CodeTableData) => {
+          if (isEditable) {
+            console.log('row: ', row)
+            return (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <Button
+                  // disabled={!allFieldsPresent || !changesExist}
+                  text='Delete'
+                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url })}
+                  loading={codeUpdateLoading}
+                />
+              </div>
+            )
+          } else {
+            return null
+          }
+        }
+      },
       {
         name: 'Update Code',
         selector: (row: fhir4.CodeSystemConcept) => row.code,
@@ -247,7 +308,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
                 <Button
                   disabled={!allFieldsPresent || !changesExist}
                   text='Save changes'
-                  onClick={() => handleSaveAttempt()}
+                  onClick={() => handleSaveAttempt(false)}
                   loading={codeUpdateLoading}
                 />
                 <Button
@@ -322,8 +383,8 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
   return (
     <>
       <Modal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={updateModalOpen}
+        onClose={() => setUpdateModalOpen(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -340,8 +401,42 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
             By editing this code, you will also edit its definition in the above provisional Value Sets.
           </Typography>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <Button onClick={() => setModalOpen(false)} style={{ backgroundColor: 'darkgray' }} text='Cancel'/>
+            <Button onClick={() => setUpdateModalOpen(false)} style={{ backgroundColor: 'darkgray' }} text='Cancel'/>
             <Button onClick={() => handleSaveAttempt(true)} text='Continue'/>
+          </div>
+        </Box>
+      </Modal>
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        aria-labelledby="delete-modal-modal-title"
+        aria-describedby="delete-modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="delete-modal-modal-title" variant="h6" component="h2">
+            Confirm Editing Code
+          </Typography>
+          <Typography id="delete-modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            {`This code is currently being used in the following provisional Value Set(s):`}
+          </Typography>
+          {/* @ts-ignore */}
+          <DataTable data={matchingValueSets} columns={inUseVsColumns} />
+          <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            By deleting this code, you will also delete its definition in the above provisional Value Sets.
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            If this is the only code in a Code System, the provisional Code System will also be deleted.
+          </Typography>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setDeleteModalOpen(false)
+                setItemToDelete(null)
+              }}
+            style={{ backgroundColor: 'darkgray' }}
+            text='Cancel'
+            />
+            <Button onClick={() => handleDeleteAttempt(true, itemToDelete as CodeTableData)} text='Continue'/>
           </div>
         </Box>
       </Modal>

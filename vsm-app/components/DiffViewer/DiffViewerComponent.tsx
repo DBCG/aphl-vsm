@@ -25,8 +25,12 @@ const DiffViewerComponent = ({ changelogData }: { changelogData: ChangelogData }
   const pages = changelogData.grouperPages.map((p, idx) => {
     return (
     <PageContainer key={p.metadata.id}>
-      <Accordion defaultExpanded={Boolean(p?.hasChanges)}>
-          <AccordionSummary expandIcon={<ExpandMore />}>
+      <Accordion 
+        disableGutters
+        defaultExpanded={Boolean(p?.hasChanges)}>
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+          >
             <GrouperMetadataTable id={(changelogData.anchorLinkData[idx + 1] as AnchorLinkGrouperItem).grouperId} grouperTableData={p.metadata}/>
           </AccordionSummary>
         <AccordionDetails>

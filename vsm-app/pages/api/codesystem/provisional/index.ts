@@ -182,6 +182,13 @@ export interface UpdateData {
   inValueSets: string[]
 }
 
+export interface DeleteData {
+  action: 'delete'
+  id: string
+  codeUpdates: CodeUpdate
+  inValueSets: string[]
+}
+
 type UpdatePayload = Record<string, UpdateData>
 
 interface ProvisionalUpdateReq extends NextApiRequest {
@@ -191,6 +198,7 @@ interface ProvisionalUpdateReq extends NextApiRequest {
 const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateReq, res: NextApiResponse) => {
   try {
     const body = req.body
+    console.log('body: ', body)
     const provisionalCsUrlsToUpdate = Object.keys(body)
     const provisionalCsIdsToUpdate = provisionalCsUrlsToUpdate.map(url => body[url].id).flat()
 
@@ -255,7 +263,9 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     const updatedVsAndCs: (fhir4.ValueSet|fhir4.CodeSystem)[] = []
     // update CS and VS with code changes and push to arr
     allCsToUpdate.forEach(async (originalCodeSystem: fhir4.CodeSystem) => {
-
+      if (body[originalCodeSystem.url as string].action === 'replace') {
+        
+      }
       // if CS has already been updated, should be working on top of those updates so they're not erased
       const existingUpdatedCsIndex = updatedVsAndCs.findIndex(
         updatedResource => (updatedResource.url === originalCodeSystem.url)
@@ -329,7 +339,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
 }
 
 export default handler({
-    GET: { action: getProvisionalCodeSystems, access: ['admin', 'editor', 'reviewer'] },
-    POST: { action: updateProvisionalCodeSystems, access: ['admin', 'editor'] },
-    PUT: { action: updateProvisionalCodeSystemAndParentVsets, access: ['admin', 'editor'] },
-  })
+  GET: { action: getProvisionalCodeSystems, access: ['admin', 'editor', 'reviewer'] },
+  POST: { action: updateProvisionalCodeSystems, access: ['admin', 'editor'] },
+  PUT: { action: updateProvisionalCodeSystemAndParentVsets, access: ['admin', 'editor'] },
+})
