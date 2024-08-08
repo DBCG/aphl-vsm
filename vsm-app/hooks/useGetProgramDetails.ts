@@ -65,18 +65,18 @@ const useGetProgramDetails = ({ id, toggleRefresh }: UseGetProgramDetails): Prog
                 return {
                   approvalDate: assessment?.extension?.find((ext) => ext.url.includes('crmi-artifactAssessmentDate'))?.valueDateTime
                     ? new Date(assessment?.extension?.find((ext) => ext.url.includes('crmi-artifactAssessmentDate'))?.valueDateTime || '')
-                        .toISOString()
-                        .slice(0, 10)
+                      .toISOString()
+                      .slice(0, 10)
                     : '-',
-                  artifactCommentType: content?.find((ext) => ext.url.includes('informationType'))?.valueCode,
-                  artifactCommentText: content?.find((ext) => ext.url.includes('summary'))?.valueMarkdown,
-                  artifactCommentTarget: content?.find(
+                  artifactAssessmentType: content?.find((ext) => ext.url.includes('informationType'))?.valueCode,
+                  artifactAssessmentSummary: content?.find((ext) => ext.url.includes('summary'))?.valueMarkdown,
+                  artifactAssessmentTarget: content?.find(
                     (ext) => ext.url.includes('relatedArtifact') && ext.valueRelatedArtifact?.type === 'derived-from'
                   )?.valueRelatedArtifact?.resource,
-                  artifactCommentReference: content?.find(
+                  artifactAssessmentRelatedArtifact: content?.find(
                     (ext) => ext.url.includes('relatedArtifact') && ext.valueRelatedArtifact?.type === 'citation'
                   )?.valueRelatedArtifact?.resource,
-                  artifactCommentUser: content?.find((ext) => ext.url.includes('author'))?.valueReference?.reference
+                  artifactAssessmentAuthor: content?.find((ext) => ext.url.includes('author'))?.valueReference?.reference
                 }
               })
             }
