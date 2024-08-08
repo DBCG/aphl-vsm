@@ -31,6 +31,10 @@ export const provisionalVsBase = {
       valueContactDetail: {
         name: 'CSTE Steward'
       }
+    },
+    {
+      url: "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+      valueUri: process.env.FHIR_CDR_URL
     }
   ],
   useContext: [

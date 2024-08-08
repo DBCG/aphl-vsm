@@ -16,10 +16,12 @@ import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
 import { VSMSession, can } from '@/helpers/rolesHelper'
 import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
-import { Chip } from '@mui/material'
+import { Box, Chip, Modal, Typography } from '@mui/material'
 import { ArrowOutward } from '@mui/icons-material'
 import { ProvisionalsByProgram } from '@/pages/api/programs/provisional'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { modalStyle } from '@/styles'
+import { toast } from 'react-toastify'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -237,13 +239,15 @@ const ProvisionalVSEdit = () => {
   const { provisionalVS, isVsLoading, provVsError } = useGetProvisionalVS()
   const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS()
   const [showVsForm, setShowVsForm] = useState(false)
-  const [selectedVS, setSelectedVS] = useState<null | fhir4.ValueSet>(null)
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<SingleValue<{ value: string; label: string; }> | undefined>(undefined)
   // staging table
   const [selectedStagingRows, setSelectedStagingRows] = useState<FlattenedCodeWithSystem[]>([])
   const [clearStagedCodes, setClearStagedCodes] = useState(false)
   // NOTE! provisional value sets are not associated with conditions at this point
+
+  // deleting
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
@@ -263,7 +267,6 @@ const ProvisionalVSEdit = () => {
   const [codesBySystemToAdd, setCodesBySystemToAdd] = useState<CodesBySystemToAdd>({})
 
   // loading + error state
-  const [error, setError] = useState<null | string>(null)
   const [loading, setLoading] = useState(false)
 
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
@@ -319,7 +322,7 @@ const ProvisionalVSEdit = () => {
         wrap: true,
         maxWidth: '40rem',
         cell: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map(ci => ci.system) || []
+          const systems = row?.compose?.include?.map(ci => ci.system) || ['[This Value Set is empty]']
           return (
             <div>
               {systems.map(s => <p key={s}>{s}</p>)}
@@ -443,6 +446,36 @@ const ProvisionalVSEdit = () => {
     setSelectedStagingRows(r.selectedRows)
   }
 
+  const handleDeleteProvisionalVs = async (userConfirmedDelete=false) => {
+    setLoading(true)
+    const provVsUrl = provisionalVS?.find((vs: any) => vs.id === provisionalVsIdForUpdate)?.url
+    const programIdsToRemoveProvisionalVs = provisionalContext?.filter((programItem: any) => {
+      return programItem?.provisionalLeafs?.find((leaf: any) => {
+        return leaf?.id === provisionalVsIdForUpdate
+      })
+    })?.map((p: any) => p?.programId) || []
+
+    if (!userConfirmedDelete && programIdsToRemoveProvisionalVs.length) {
+      setDeleteModalOpen(true)
+      return
+    }
+    const result = await fetch('/api/valueset/provisional', {
+      method: 'DELETE',
+      body: JSON.stringify({ id: provisionalVsIdForUpdate, url: provVsUrl, programIdsToUpdate: programIdsToRemoveProvisionalVs })
+    })
+
+    const json = await result.json()
+    if (result.ok) {
+      toast.success('Provisional value set deleted')
+      router.reload()
+    } else {
+      toast.error('Failed to delete provisional value set')
+      setLoading(false)
+      console.error('error')
+      console.error(json)
+    }
+  }
+
   const stagingContextActions = useMemo(() => {
     return (
       <div>
@@ -458,6 +491,19 @@ const ProvisionalVSEdit = () => {
       </div>
     )
   }, [selectedStagingRows])
+
+  const DeleteContextActions = useMemo(() => {
+    return (
+      <div>
+        <Button
+          text={`Delete Selected Value Set`}
+          onClick={async () => await handleDeleteProvisionalVs()}
+          style={{ backgroundColor: 'var(--removed)' }}
+          disabled={loading}
+        />
+      </div>
+    )
+  }, [provisionalVsIdForUpdate, provisionalContext])
 
   const handleClickAddCode = () => {
     const clonedCodesBySystem = cloneDeep(codesBySystemToAdd)
@@ -520,12 +566,41 @@ const ProvisionalVSEdit = () => {
           />
         </div>
       )}
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        aria-labelledby="delete-modal-modal-title"
+        aria-describedby="delete-modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="delete-modal-modal-title" variant="h6" component="h2">
+            Confirm: Delete Provisional Value Set
+          </Typography>
+          <Typography id="delete-modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            {`This Value Set is currently being used in programs within the VSM.`}
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
+            By deleting this Value Set, you will also delete references to it from all programs and groupers.
+          </Typography>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+            <Button
+              onClick={() => {
+                setDeleteModalOpen(false)
+              }}
+            style={{ backgroundColor: 'darkgray' }}
+            text='Cancel'
+            />
+            <Button onClick={async () => await handleDeleteProvisionalVs(true)} text='Continue'/>
+          </div>
+        </Box>
+      </Modal>
       <ErrorMessage error={provVsError}/>
       <ErrorMessage error={provContextError}/>
       <DataTable
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         pagination={true}
         expandableRows={true}
+        contextActions={DeleteContextActions}
         expandableRowsComponent={CodeDetailsExpanded}
         selectableRows={can(session, 'edit')}
         selectableRowsSingle={true}

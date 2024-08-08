@@ -10,12 +10,18 @@ interface CodeUpdate {
 }
 
 interface UpdateData {
-  action: 'replace',
+  action: 'replace-code',
   codeUpdates: CodeUpdate[],
   inValueSets: string[]
 }
 
-type Fields = Record<string, UpdateData>
+interface DeleteData {
+  action: 'replace-code',
+  codeUpdates: CodeItem[],
+  inValueSets: string[]
+}
+
+type Fields = Record<string, UpdateData | DeleteData>
 
 const updateProvisionalCs = async (fields: Fields) => {
   let error: null | string = null
@@ -30,6 +36,7 @@ const updateProvisionalCs = async (fields: Fields) => {
             body: JSON.stringify(fields)
           })
           if (!response.ok) {
+            const json = await response.json()
             error = 'Code update failed'
           } else {
             message = 'Code update successful'
@@ -38,10 +45,6 @@ const updateProvisionalCs = async (fields: Fields) => {
           error = 'Failed to update provisional codes'
         }
 
-        // if these codes that were edited are used in valuesets, need to update the value sets
-        // if (matchingValueSets && !error) {
-
-        // }
       }
     
     await updateProvisionalCodesystemsAndVSParents()

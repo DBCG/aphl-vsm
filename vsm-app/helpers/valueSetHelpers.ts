@@ -6,7 +6,7 @@ import { TerminologyResult } from '@/types/valuesets'
 import { ManifestDataMap, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { get, uniq } from 'lodash'
 import { VSM_META_PROFILE_URLS } from '@/constants'
-import { UpdateData } from '@/pages/api/codesystem/provisional'
+import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
@@ -101,8 +101,19 @@ const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VS
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
-    const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
-
+    let val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
+    if (!val) {
+      // bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
+      if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost')) {
+        val = {
+          label: 'VSM',
+          value: {
+            title: 'VSM',
+            url: terminologyExt?.valueUri
+      }
+    }}
+    errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
+    }
     return {
       value: val?.label || "",
       hasExtension: true
@@ -362,18 +373,24 @@ const addProfileToValueSet = (valueset: fhir4.ValueSet) => {
 
 interface UpdateVsItems {
   vs: fhir4.ValueSet
-  action: 'replace'
+  action: 'replace-code'
   updateData: UpdateData
   csUrl: string
 }
 
-const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
-  console.log('this called')
+interface DeleteVsItems {
+  vs: fhir4.ValueSet
+  action: 'delete-code'
+  updateData: DeleteData
+  csUrl: string
+}
+
+const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | DeleteVsItems) => {
   try {
     const clonedVs = cloneDeep(vs)
     let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
   
-    if (action === 'replace') {
+    if (action === 'replace-code') {
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
         const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1 ? composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.old.code) : undefined
@@ -389,6 +406,26 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems) => {
         } else {
           const errorText = `Failed to replace code in system with url ${csUrl} in Value Set with url ${vs.url} (${vs.title || vs.name})`
           throw new Error(errorText)
+        }
+      })
+    } else if (action === 'delete-code') {
+      updateData.codeUpdates.forEach(updateItem => {
+        const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
+        const lengthOfConcept = composeBlock?.include?.[indexOfSystem]?.concept?.length
+        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1 
+          ? composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.code)
+          : undefined
+
+        if (indexOfUpdateItem !== undefined && indexOfUpdateItem > -1) {
+          if (lengthOfConcept === 1) {
+            // delete system block if this was the last code in it
+            delete composeBlock.include[indexOfSystem]
+          } else {
+            composeBlock.include[indexOfSystem].concept = composeBlock.include[indexOfSystem].concept!.filter((i) => i.code !== updateItem.code)
+          }
+          // don't error out if no match was found, just log. Since they're trying to delete, fine if it doesn't exist already
+        } else {
+          console.error(`No match found to delete code ${updateItem.code} in system ${csUrl} in Value Set with url ${vs.url} (${vs.title || vs.name})`)
         }
       })
     }

@@ -390,7 +390,7 @@ const ProgramsTab: NextPage = () => {
           setProgramToRelease={setProgramToRelease}
         />
       )}
-      {programs?.length && programs.length > 1 && (
+      {programs?.length > 1 && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
           <Button
             style={{ width: 'fit-content' }}
@@ -402,7 +402,7 @@ const ProgramsTab: NextPage = () => {
               }
             }}
           >
-            {selectedRows && selectedRows?.length > 1 ? 'Compare': 'Select 2 Programs to Compare'}
+            {(selectedRows && selectedRows?.length > 1) ? 'Compare': 'Select 2 Programs to Compare'}
           </Button>
         </div>
       )}
