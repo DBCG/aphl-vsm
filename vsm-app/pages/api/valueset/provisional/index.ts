@@ -288,7 +288,9 @@ const getProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) => {
       ...(codeSystemUrl && { 'reference': codeSystemUrl }),
       ...(containsCode && { 'code': containsCode }),
     }
+    console.log('req.query from getProvisionalVs', req.query)
     const results = await getProvisionals({ resourceType: 'ValueSet', params })
+    console.log('results', results)
     if (results.error) {
       return res.status(400).send(results)
     }

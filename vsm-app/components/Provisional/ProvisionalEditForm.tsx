@@ -134,7 +134,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
           {[codeSystem?.url!]: {
             // @ts-ignore
             id: codeSystem?.id,
-            action: 'replace',
+            action: 'replace-code',
             codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
             inValueSets: matchingValueSetIds,
           }},

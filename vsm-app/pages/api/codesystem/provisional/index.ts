@@ -176,23 +176,99 @@ interface CodeUpdate {
 }
 
 export interface UpdateData {
-  action: 'replace'
+  action: 'replace-code'
   id: string
   codeUpdates: CodeUpdate[]
   inValueSets: string[]
 }
 
 export interface DeleteData {
-  action: 'delete'
+  action: 'delete-code'
   id: string
-  codeUpdates: CodeUpdate
+  codeUpdates: CodeItem[]
   inValueSets: string[]
 }
 
-type UpdatePayload = Record<string, UpdateData>
+interface ExistingOrNewVs {
+  status: 'exists' | 'new'
+  vs: fhir4.ValueSet
+}
+
+// avoid typescript issues with one or other payload type: https://stackoverflow.com/a/66605669
+type Only<T, U> = { [P in keyof T]: P extends keyof U ? never : T[P]; };
+
+type Either<T, U> = Only<T, U> | Only<U, T>;
+
+type PayloadData = Either<UpdateData, DeleteData>
+
+// type UpdatePayload = Record<string, PayloadData>
+
+type UpdatePayload = UpdateData | DeleteData
 
 interface ProvisionalUpdateReq extends NextApiRequest {
   body: UpdatePayload
+}
+
+const getAllParentVSets = async (ids: string[]): Promise<fhir4.ValueSet[]> => {
+  const getProvisionalLeafsTransactionEntry = ids.map(id => ({
+    request: {
+      method: 'GET',
+      url: `ValueSet/${id}`
+    }
+  })) as fhir4.BundleEntry[]
+
+  const getVsTransactionBundle = {
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: getProvisionalLeafsTransactionEntry
+  } as fhir4.Bundle & {
+    type: 'transaction'
+  }
+
+  const result = await fhirCdrClient.transaction({
+    body: getVsTransactionBundle
+  })
+
+  if (!result?.entry?.length || !result?.entry?.find((r: any) => r?.resource)) {
+    return []
+  } else {
+    return result?.entry?.map((e: any) => e?.resource)?.filter((x: any) => Boolean(x)) || []
+  }
+}
+
+const getProvisionalCsById = async (ids: string[]): Promise<fhir4.CodeSystem[]> => {
+  const getProvisionalCsTransactionEntry = ids.map(id => ({
+    request: {
+      method: 'GET',
+      url: `CodeSystem/${id}`,
+      version: 'PROVISIONAL'
+    }
+  })) as fhir4.BundleEntry[]
+
+  const getCsTransactionBundle = {
+    resourceType: 'Bundle',
+    type: 'transaction',
+    entry: getProvisionalCsTransactionEntry
+  } as fhir4.Bundle & {
+    type: 'transaction'
+  }
+
+  const result = await fhirCdrClient.transaction({
+    body: getCsTransactionBundle
+  })
+
+  if (!result?.entry?.length || !result?.entry?.find((r: any) => r?.resource)) {
+    return []
+  } else {
+    return result?.entry?.map((e: any) => e?.resource)?.filter((x: any) => Boolean(x)) || []
+  }
+}
+
+interface UpdatedResources {
+  [key: string]: {
+    resource: fhir4.CodeSystem | fhir4.ValueSet
+    action: 'update-cs' | 'delete-cs' | 'update-vs'
+  }
 }
 
 const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateReq, res: NextApiResponse) => {
@@ -207,91 +283,100 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     // if any codes are used in provisional leafs, go get them first
     // they will need to be updated too
     if (allParentVsetIds.length) {
-      const getProvisionalLeafsTransactionEntry = allParentVsetIds.map(id => ({
-        request: {
-          method: 'GET',
-          url: `ValueSet/${id}`
-        }
-      })) as fhir4.BundleEntry[]
-
-      const getVsTransactionBundle = {
-        resourceType: 'Bundle',
-        type: 'transaction',
-        entry: getProvisionalLeafsTransactionEntry
-      } as fhir4.Bundle & {
-        type: 'transaction'
-      }
-
-      const result = await fhirCdrClient.transaction({
-        body: getVsTransactionBundle
-      })
-
-      if (!result?.entry?.length || !result?.entry?.find((r: any) => r?.resource)) {
+      const result = await getAllParentVSets(allParentVsetIds)
+      if (!result?.length) {
         return res.status(400).json({ error: 'Could not update provisional value sets using these codes'})  
       } else {
-        parentVSets = result?.entry?.map((e: any) => e?.resource)?.filter((x: any) => Boolean(x)) || []
+        parentVSets = result
       }
     }
 
-    let allCsToUpdate: fhir4.CodeSystem[] = []
-    // next, get the codesystems and update them based on the data provided
-    const getProvisionalCsTransactionEntry = provisionalCsIdsToUpdate.map(id => ({
-      request: {
-        method: 'GET',
-        url: `CodeSystem/${id}`,
-        version: 'PROVISIONAL'
-      }
-    })) as fhir4.BundleEntry[]
+    let allCsToUpdate: fhir4.CodeSystem[] = await getProvisionalCsById(provisionalCsIdsToUpdate)
 
-    const getCsTransactionBundle = {
-      resourceType: 'Bundle',
-      type: 'transaction',
-      entry: getProvisionalCsTransactionEntry
-    } as fhir4.Bundle & {
-      type: 'transaction'
-    } 
-    const getCsResult = await fhirCdrClient.transaction({
-      body: getCsTransactionBundle
-    })
-
-    if (!getCsResult?.entry?.length || !getCsResult?.entry?.find((r: any) => r?.resource)) {
+    if (!allCsToUpdate?.length) {
       return res.status(400).json({ error: 'Could not find provisional code systems to update'})  
-    } else {
-      allCsToUpdate = getCsResult?.entry?.map((e: any) => e.resource)?.filter((x: any) => Boolean(x))
     }
 
-    const updatedVsAndCs: (fhir4.ValueSet|fhir4.CodeSystem)[] = []
-    // update CS and VS with code changes and push to arr
+    // organize resources by url, indicate what final transaction should do via action
+    const updatedVsAndCs: UpdatedResources = {}
+    // update CS and VS with code changes
     allCsToUpdate.forEach(async (originalCodeSystem: fhir4.CodeSystem) => {
-      if (body[originalCodeSystem.url as string].action === 'replace') {
-        
-      }
-      // if CS has already been updated, should be working on top of those updates so they're not erased
-      const existingUpdatedCsIndex = updatedVsAndCs.findIndex(
-        updatedResource => (updatedResource.url === originalCodeSystem.url)
-        && updatedResource.resourceType === 'CodeSystem'
-      )
-
-      const csAlreadyUpdated = existingUpdatedCsIndex > -1
-
+      const currentAction = body[originalCodeSystem.url as string].action
+      const existingCs = updatedVsAndCs?.[originalCodeSystem.url!]?.resource
       const updateData = body[originalCodeSystem.url!]
-      const csToUpdate = csAlreadyUpdated ? updatedVsAndCs[existingUpdatedCsIndex] : originalCodeSystem
-      const updatedCs = updateCsCodeItem({ cs: csToUpdate as fhir4.CodeSystem, action: 'replace', updateData })
+      const csToUpdate = existingCs || originalCodeSystem
+
+      const updatedCs: fhir4.CodeSystem | { error: string } = updateCsCodeItem({
+        cs: csToUpdate as fhir4.CodeSystem,
+        action: currentAction,
+        updateData
+      })
+      // early return if error with updating codesystem
+      if ('error' in updatedCs) {
+        return res.status(400).json({ error: updatedCs?.error || 'Could not update provisional code system' })  
+      }
+
+      // update parent value sets
+      const updatedVsets = parentVSets.map((vs: fhir4.ValueSet) => {
+        return updateVsCodeItem({ vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! })
+      })
+
+      const updatedVs = updateData.inValueSets.map((vsId: string) => {
+        const existingEditedVs = Object.values(updatedVsAndCs)
+          .find((item: any) => item.resource.resourceType === 'ValueSet' && item.resource.id === vsId)?.resource
+
+        const originalVs = parentVSets?.find((vs: fhir4.ValueSet) => vs.id === vsId)
+        const vsToUpdate = existingEditedVs || originalVs
+          return ({
+            status: existingEditedVs ? 'exists' : 'new',
+            vs: updateVsCodeItem({
+              vs: vsToUpdate as fhir4.ValueSet,
+              action: currentAction,
+              updateData,
+              csUrl: originalCodeSystem.url!
+            })
+          })
+      }) as ExistingOrNewVs[]
+    
+
+
 
       if (is.errorItem(updatedCs)) {
         return updatedCs
-      } else if (csAlreadyUpdated) {
-        updatedVsAndCs[existingUpdatedCsIndex] = updatedCs as fhir4.CodeSystem
       } else {
-        updatedVsAndCs.push(updatedCs as fhir4.CodeSystem)
+        // Check if cs has any codes left. If none, delete CS
+        if (!updatedCs?.concept?.length) {
+          updatedVsAndCs[originalCodeSystem.url as string] = { resource: updatedCs as fhir4.CodeSystem, action: 'delete-cs' }
+        } else {
+          updatedVsAndCs[originalCodeSystem.url as string] = { resource: updatedCs as fhir4.CodeSystem, action: 'update-cs' }
+        }
       }
 
       // now, update valuesets if necessary
-      if (updateData.inValueSets.length) {
-        const vsToUpdate = parentVSets?.filter((vs: fhir4.ValueSet) => updateData.inValueSets.includes(vs.id as string))
-        
+      if (updateData?.inValueSets?.length) {
+        // vsToUpdate may have already been updated, or in original state
+        // if updated, we want to use the updated version
+        const vsToUpdate = updateData.inValueSets.map((vsId: string) => {
+          const existingEditedVs = Object.values(updatedVsAndCs)
+            .find((item: any) => item.resource.resourceType === 'ValueSet' && item.resource.id === vsId)?.resource
+
+          const originalVs = parentVSets?.find((vs: fhir4.ValueSet) => vs.id === vsId)
+            return ({
+              status: existingEditedVs ? 'exists' : 'new',
+              vs: existingEditedVs || originalVs
+            })
+        }) as ExistingOrNewVs[]
+ 
         // now, update the valueSets
-        const updatedVs = vsToUpdate.map((vs: fhir4.ValueSet) => updateVsCodeItem({ vs, action: 'replace', updateData, csUrl: originalCodeSystem.url! }))
+        // surprisingly, RCKMS wants us to keep valuesets even if they have no codes, so won't delete
+        vsToUpdate.forEach((vsItemToUpdate: ExistingOrNewVs) => {
+          
+          return {
+            resource: updateVsCodeItem({ vs: vsItemToUpdate.vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! }),
+            status: vsItemToUpdate.status
+          }
+        })
+        updateVsCodeItem({ vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! })
 
         const errorExists = updatedVs?.find((item: any) => item?.error)
         if (errorExists) {

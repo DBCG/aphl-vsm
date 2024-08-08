@@ -10,7 +10,7 @@ interface CodeUpdate {
 }
 
 interface UpdateData {
-  action: 'replace',
+  action: 'replace-code',
   codeUpdates: CodeUpdate[],
   inValueSets: string[]
 }
