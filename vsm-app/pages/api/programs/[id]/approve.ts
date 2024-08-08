@@ -18,7 +18,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   }
 
   const approvalUser = {
-    name: 'artifactCommentUser',
+    name: 'artifactAssessmentAuthor',
     valueReference: {
       reference: userEmail
     }
