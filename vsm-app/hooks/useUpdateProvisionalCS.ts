@@ -15,7 +15,13 @@ interface UpdateData {
   inValueSets: string[]
 }
 
-type Fields = Record<string, UpdateData>
+interface DeleteData {
+  action: 'replace-code',
+  codeUpdates: CodeItem[],
+  inValueSets: string[]
+}
+
+type Fields = Record<string, UpdateData | DeleteData>
 
 const updateProvisionalCs = async (fields: Fields) => {
   let error: null | string = null
@@ -30,6 +36,7 @@ const updateProvisionalCs = async (fields: Fields) => {
             body: JSON.stringify(fields)
           })
           if (!response.ok) {
+            const json = await response.json()
             error = 'Code update failed'
           } else {
             message = 'Code update successful'

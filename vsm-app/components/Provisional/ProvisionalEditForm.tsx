@@ -92,7 +92,7 @@ const allFieldsExist = (codeItems: string[]) => {
 
 const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
-  const [itemToDelete, setItemToDelete] = useState<CodeTableData | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<{code: string, url: string} | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
   const [updatedCodeItem, setUpdatedCodeItem] = useState(defaultItem)
   const [codeUpdateLoading, setCodeUpdateLoading] = useState(false)
@@ -125,7 +125,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
       if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
 
         // show modal where you'll need to confirm or cancel
-        setDeleteModalOpen(true)
+        setUpdateModalOpen(true)
         setMatchingValueSets(matches?.matchingValueSets)
       } else {
         const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
@@ -140,7 +140,6 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
           }},
         )
         if (result.error) {
-          console.log('result: ', result)
           toast.error(`Provisional Code System could not be updated`)
         } else {
           router.reload()
@@ -150,7 +149,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
     setCodeUpdateLoading(false)
   }
 
-  const handleDeleteAttempt = async (userConfirmedOverride: boolean, itemToDelete: CodeTableData) => {
+  const handleDeleteAttempt = async (userConfirmedOverride: boolean, itemToDelete: { code: string, url: string } | null) => {
     setCodeUpdateLoading(true)
     if (!itemToDelete) {
       toast.error('Must select a code to delete')
@@ -163,14 +162,15 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
         setDeleteModalOpen(true)
         setMatchingValueSets(matches?.matchingValueSets)
       } else {
-        const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
+        const matchingValueSetIds = matches?.matchingValueSets
+          ?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
 
         const result = await updateProvisionalCs(
           {[codeSystem?.url!]: {
             // @ts-ignore
             id: codeSystem?.id,
-            action: 'delete',
-            codeUpdates: itemToDelete,
+            action: 'delete-code',
+            codeUpdates: [itemToDelete],
             inValueSets: matchingValueSetIds,
           }},
         )
@@ -199,14 +199,14 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
         selector: (row: CodeTableData) => row.code!,
         cell: (row: CodeTableData) => {
           if (isEditable) {
-            console.log('row: ', row)
             return (
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <Button
                   // disabled={!allFieldsPresent || !changesExist}
                   text='Delete'
-                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url })}
+                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
                   loading={codeUpdateLoading}
+                  style={{ backgroundColor: 'var(--accent)' }}
                 />
               </div>
             )
@@ -436,7 +436,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
             style={{ backgroundColor: 'darkgray' }}
             text='Cancel'
             />
-            <Button onClick={() => handleDeleteAttempt(true, itemToDelete as CodeTableData)} text='Continue'/>
+            <Button onClick={() => handleDeleteAttempt(true, itemToDelete)} text='Continue'/>
           </div>
         </Box>
       </Modal>

@@ -48,7 +48,7 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
     } else if (method === 'GET') {
       url = `${resourceType}/${resourceId}`
     } else {
-      return ({ error: `Method '${method}' not supported`})
+      return ({ error: `Method '${method}' not supported` })
     }
 
     let requestBody = {
@@ -67,7 +67,7 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
     entry: transactionEntry
   })
 
-} 
+}
 
 const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -149,7 +149,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     const transactionBody = transactionBuilder(updatedCodeSystems)
 
     if (is.errorItem(transactionBody)) {
-      return res.status(400).json({ error: transactionBody.error})  
+      return res.status(400).json({ error: transactionBody.error })
     }
     const updatedCS = await fhirCdrClient.transaction({
       body: transactionBody
@@ -157,12 +157,12 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
 
     if (is.operationOutcome(updatedCS)) {
       console.error('error creating prov code items')
-      return res.status(400).json({ error: 'Failed to create/update provisional code system items'}) 
+      return res.status(400).json({ error: 'Failed to create/update provisional code system items' })
     } else {
       return res.status(200).json({})
     }
 
-  } catch(e) {
+  } catch (e) {
     logger.error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
@@ -274,10 +274,10 @@ interface UpdatedResources {
 const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateReq, res: NextApiResponse) => {
   try {
     const body = req.body
-    console.log('body: ', body)
     const provisionalCsUrlsToUpdate = Object.keys(body)
+    // @ts-ignore
     const provisionalCsIdsToUpdate = provisionalCsUrlsToUpdate.map(url => body[url].id).flat()
-
+    // @ts-ignore
     const allParentVsetIds = provisionalCsUrlsToUpdate.map(url => body[url].inValueSets).flat()
     let parentVSets: fhir4.ValueSet[] = []
     // if any codes are used in provisional leafs, go get them first
@@ -285,7 +285,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     if (allParentVsetIds.length) {
       const result = await getAllParentVSets(allParentVsetIds)
       if (!result?.length) {
-        return res.status(400).json({ error: 'Could not update provisional value sets using these codes'})  
+        return res.status(400).json({ error: 'Could not update provisional value sets using these codes' })
       } else {
         parentVSets = result
       }
@@ -294,15 +294,17 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     let allCsToUpdate: fhir4.CodeSystem[] = await getProvisionalCsById(provisionalCsIdsToUpdate)
 
     if (!allCsToUpdate?.length) {
-      return res.status(400).json({ error: 'Could not find provisional code systems to update'})  
+      return res.status(400).json({ error: 'Could not find provisional code systems to update' })
     }
 
     // organize resources by url, indicate what final transaction should do via action
     const updatedVsAndCs: UpdatedResources = {}
     // update CS and VS with code changes
     allCsToUpdate.forEach(async (originalCodeSystem: fhir4.CodeSystem) => {
-      const currentAction = body[originalCodeSystem.url as string].action
+      // @ts-ignore
+      const currentAction = body[originalCodeSystem.url!].action
       const existingCs = updatedVsAndCs?.[originalCodeSystem.url!]?.resource
+      // @ts-ignore
       const updateData = body[originalCodeSystem.url!]
       const csToUpdate = existingCs || originalCodeSystem
 
@@ -313,33 +315,8 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       })
       // early return if error with updating codesystem
       if ('error' in updatedCs) {
-        return res.status(400).json({ error: updatedCs?.error || 'Could not update provisional code system' })  
+        return res.status(400).json({ error: updatedCs?.error || 'Could not update provisional code system' })
       }
-
-      // update parent value sets
-      const updatedVsets = parentVSets.map((vs: fhir4.ValueSet) => {
-        return updateVsCodeItem({ vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! })
-      })
-
-      const updatedVs = updateData.inValueSets.map((vsId: string) => {
-        const existingEditedVs = Object.values(updatedVsAndCs)
-          .find((item: any) => item.resource.resourceType === 'ValueSet' && item.resource.id === vsId)?.resource
-
-        const originalVs = parentVSets?.find((vs: fhir4.ValueSet) => vs.id === vsId)
-        const vsToUpdate = existingEditedVs || originalVs
-          return ({
-            status: existingEditedVs ? 'exists' : 'new',
-            vs: updateVsCodeItem({
-              vs: vsToUpdate as fhir4.ValueSet,
-              action: currentAction,
-              updateData,
-              csUrl: originalCodeSystem.url!
-            })
-          })
-      }) as ExistingOrNewVs[]
-    
-
-
 
       if (is.errorItem(updatedCs)) {
         return updatedCs
@@ -348,6 +325,10 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
         if (!updatedCs?.concept?.length) {
           updatedVsAndCs[originalCodeSystem.url as string] = { resource: updatedCs as fhir4.CodeSystem, action: 'delete-cs' }
         } else {
+          // if codesystem is already being deleted, skip any update attempts coming in with the batch
+          if (updatedVsAndCs[originalCodeSystem.url as string]?.action === 'delete-cs') {
+            return
+          }
           updatedVsAndCs[originalCodeSystem.url as string] = { resource: updatedCs as fhir4.CodeSystem, action: 'update-cs' }
         }
       }
@@ -361,51 +342,55 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
             .find((item: any) => item.resource.resourceType === 'ValueSet' && item.resource.id === vsId)?.resource
 
           const originalVs = parentVSets?.find((vs: fhir4.ValueSet) => vs.id === vsId)
-            return ({
-              status: existingEditedVs ? 'exists' : 'new',
-              vs: existingEditedVs || originalVs
-            })
+          return ({
+            status: existingEditedVs ? 'exists' : 'new',
+            vs: existingEditedVs || originalVs
+          })
         }) as ExistingOrNewVs[]
- 
+
         // now, update the valueSets
         // surprisingly, RCKMS wants us to keep valuesets even if they have no codes, so won't delete
         vsToUpdate.forEach((vsItemToUpdate: ExistingOrNewVs) => {
-          
-          return {
+          const item = ({
             resource: updateVsCodeItem({ vs: vsItemToUpdate.vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! }),
             status: vsItemToUpdate.status
-          }
-        })
-        updateVsCodeItem({ vs, action: currentAction, updateData, csUrl: originalCodeSystem.url! })
+          })
 
-        const errorExists = updatedVs?.find((item: any) => item?.error)
-        if (errorExists) {
-          return res.status(400).json({ error: 'Could not update provisional value sets' })
-        }
-        // replace existing vs with newly updated versions
-        // @ts-ignore
-        updatedVs.forEach((vs: fhir4.ValueSet) => {
-          const indexToUpdate = updatedVsAndCs.findIndex((updateItem: fhir4.ValueSet | fhir4.CodeSystem) => updateItem.resourceType === 'ValueSet' && updateItem.id === vs.id)
-          if (indexToUpdate > -1) {
-            updatedVsAndCs[indexToUpdate] = vs
+          if (is.errorItem(item.resource)) {
+            return res.status(400).json({ error: 'Could not update provisional value sets' })
           } else {
-            updatedVsAndCs.push(vs)
+            // @ts-ignore
+            updatedVsAndCs[item.resource.id] = { resource: item.resource as fhir4.ValueSet, action: 'update-vs' }
           }
         })
       }
     })
-    const putBatch = updatedVsAndCs.map(item => ({
-      request: {
-        method: 'PUT',
-        url: `${item.resourceType}/${item.id}`
-      } as fhir4.BundleEntryRequest,
-      resource: item
-    }))
+
+    const resources = Object.values(updatedVsAndCs)
+    const batch = resources.map(item => {
+      const { resourceType, id } = item.resource
+      if (item.action === 'delete-cs') {
+        return ({
+          request: {
+            method: 'DELETE',
+            url: `${resourceType}/${id}`
+          } as fhir4.BundleEntryRequest
+        })
+      } else {
+        return ({
+          request: {
+            method: 'PUT',
+            url: `${resourceType}/${id}`
+          } as fhir4.BundleEntryRequest,
+          resource: item.resource
+        })
+      }
+    })
 
     const updateBundle = {
       resourceType: 'Bundle',
       type: 'transaction',
-      entry: putBatch
+      entry: batch
     } as fhir4.Bundle & { type: 'transaction' }
 
     const updateTransaction = await fhirCdrClient.transaction({
@@ -417,7 +402,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
     } else {
       return res.status(400).json({ error: 'Provisional resource update failed' })
     }
-  } catch(e) {
+  } catch (e) {
     logger.error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }

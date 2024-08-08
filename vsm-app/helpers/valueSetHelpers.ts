@@ -101,8 +101,19 @@ const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VS
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
-    const val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
-
+    let val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
+    if (!val) {
+      // bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
+      if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost')) {
+        val = {
+          label: 'VSM',
+          value: {
+            title: 'VSM',
+            url: terminologyExt?.valueUri
+      }
+    }}
+    errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
+    }
     return {
       value: val?.label || "",
       hasExtension: true
@@ -375,7 +386,6 @@ interface DeleteVsItems {
 }
 
 const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | DeleteVsItems) => {
-  console.log('this called')
   try {
     const clonedVs = cloneDeep(vs)
     let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
