@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
+import { MutableRefObject } from 'react'
 
 interface InputProps {
   minWidth?: number
@@ -8,22 +9,21 @@ interface InputProps {
 }
 
 const Input = styled(TextField)`
-& .MuiFilledInput-input {
-  background: white !important;
-}
+  & .MuiFilledInput-input {
+    background: white !important;
+  }
 
-& .Mui-readOnly {
-  background: transparent !important;
-}
+  & .Mui-readOnly {
+    background: transparent !important;
+  }
 
-& .Mui-readOnly::before {
-  display: none !important;
-}
+  & .Mui-readOnly::before {
+    display: none !important;
+  }
 
-& .Mui-readOnly::after {
-  display: none !important;
-}
-
+  & .Mui-readOnly::after {
+    display: none !important;
+  }
 ` as typeof TextField
 
 const Container = styled.div`
@@ -35,6 +35,7 @@ interface Props {
   placeholder?: string
   defaultValue?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
+  onBlur?: React.FocusEventHandler<HTMLInputElement>
   label: string
   id?: string
   value?: string
@@ -47,11 +48,13 @@ interface Props {
   errorMessage?: string | null
   helperMessage?: string | null
   style?: React.CSSProperties
+  inputRef?: MutableRefObject<any>
 }
 
 const SearchInput = ({
   placeholder,
   onChange,
+  onBlur,
   label,
   value,
   defaultValue,
@@ -61,7 +64,8 @@ const SearchInput = ({
   required = false,
   errorMessage = null,
   helperMessage = null,
-  style
+  style,
+  inputRef
 }: Props) => {
   return (
     <Container>
@@ -83,11 +87,13 @@ const SearchInput = ({
           error={!!errorMessage}
           placeholder={placeholder}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
           required={required}
           value={value}
           helperText={errorMessage}
           style={style}
+          inputRef={inputRef}
         />
       </>
     </Container>

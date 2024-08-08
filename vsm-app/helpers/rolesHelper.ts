@@ -10,11 +10,11 @@ const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, 
 
 type RolesType = 'admin' | 'editor' | 'reviewer'
 
-const permissions = {
+const permissions: { [key in RolesType]: string[] } = {
   admin: adminPermissions,
   editor: editorPermissions,
   reviewer: reviewerPermissions
-} as { [key in RolesType as string]: string[] }
+}
 
 export type VSMSession = Session & {
   idToken: string | undefined | null
@@ -29,7 +29,11 @@ export const can = (session: VSMSession, requestedPermission: string) => {
   }
   // TODO: when users have more than one role we should look into modifying this
   const role = session.user?.roles[0]
-  return permissions?.[role]?.includes(requestedPermission.toLowerCase())
+  if (role === 'admin' || role === 'editor' || role === 'reviewer') {
+    return permissions?.[role]?.includes(requestedPermission.toLowerCase())
+  } else {
+    throw new Error("Invalid role: " + role)
+  }
 }
 
 interface AllowToEdit {

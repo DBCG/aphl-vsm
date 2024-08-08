@@ -4,7 +4,7 @@ import fetchMock from 'jest-fetch-mock'
 import v2ExportResponse from '@/test_fixtures/ersd-export-v2.json'
 import v1ExportResponse from '@/test_fixtures/ersd-export-v1.json'
 import { cloneDeep } from 'lodash'
-import { NextApiResponse } from 'next'
+import { NextApiRequest, NextApiResponse } from 'next'
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({

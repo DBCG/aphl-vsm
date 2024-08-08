@@ -9,7 +9,6 @@ import { useRouter } from 'next/router'
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
   const router = useRouter()
-
   useEffect(() => {
     if (router?.query?.resourceType === 'provisional') {
       setValue('2')
@@ -32,7 +31,7 @@ const Programs: NextPage = () => {
         <ProgramsTab />
       </TabPanel>
       <TabPanel value="2">
-        <ProvisionalResourcesTab/>
+        <ProvisionalResourcesTab />
       </TabPanel>
     </TabContext>
   )
