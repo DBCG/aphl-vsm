@@ -80,8 +80,14 @@ export interface HapiHttpErrorRes {
 // currently returns only breaking errors
 // when opOutcome is a string it's xml + needs to be parsed
 export const formatErrors = (
-  opOutcome: fhir4.OperationOutcome | string | HapiHttpErrorRes | fhir4.Bundle
+  opOutcome: fhir4.OperationOutcome | string | HapiHttpErrorRes | fhir4.Bundle,
+  defaultError?: string
 ): IssueItem[] => {
+  const defaultErrorObj: IssueItem = {
+    severity: 'error',
+    code: "-",
+    diagnostics: defaultError || ""
+  }
   if (typeof opOutcome === 'string') {
     if (opOutcome.startsWith('<OperationOutcome')) {
       const jsObj = parser.parse(opOutcome)
@@ -97,11 +103,11 @@ export const formatErrors = (
     const result = [simplifyHapiHttpError(opOutcome)]
     return result
   } else if (is.operationOutcome(opOutcome)) {
-    return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || []
+    return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || [defaultErrorObj]
   } else if (opOutcome?.resourceType === 'Bundle') {
     return opOutcome.entry
       ?.filter(entry => entry?.resource?.resourceType === "OperationOutcome")
-      ?.flatMap(entry => formatErrors(entry.resource as fhir4.OperationOutcome)) || []
+      ?.flatMap(entry => formatErrors(entry.resource as fhir4.OperationOutcome), defaultError) || [defaultErrorObj]
   }
-  return []
+  return [defaultErrorObj]
 }

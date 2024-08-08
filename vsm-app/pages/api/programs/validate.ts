@@ -57,7 +57,7 @@ const validatePackage = async (
       }
     }))) as fhir4.OperationOutcome | string
 
-    const nonBreakingErrors = formatErrors(validateResponse)
+    const nonBreakingErrors = formatErrors(validateResponse, "Unknown error performing validation")
 
     // validation failure does not break the workflow in the app
     return res.status(200).send({

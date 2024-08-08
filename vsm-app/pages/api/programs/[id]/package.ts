@@ -82,7 +82,7 @@ const crmiPackage = async (
     }
     if ((typeof response !== "string" && response.resourceType === 'OperationOutcome')
       || (typeof response === "string" && response.startsWith("<OperationOutcome"))) {
-      const errors = formatErrors(response)
+      const errors = formatErrors(response, "Error while performing $package")
       return res.status(500).send({ error: errors.map(e => e.diagnostics!).join(", ") })
     }
     res.send(sanitizeExport(response))
