@@ -308,6 +308,7 @@ const ProgramsTab: NextPage = () => {
               <span>
                 <Button
                   size="small"
+                  data-button-context={`release-${row.status}`}
                   variant="contained"
                   style={{ height: 'fit-content' }}
                   disabled={row.status !== 'draft' || !row.approvalDate}

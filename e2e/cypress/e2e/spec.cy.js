@@ -298,16 +298,17 @@ describe("Smoke Tests", () => {
       cy.get(`#cell-5-comment_${moment().utc().format("YYYY-MM-DD")}_0`).contains('johndoe@test.com')
       // Navigate back to program view
       cy.get('#breadcrumb-programs').click();
-      cy.get('[data-button-context="mustApproveRelease-draft"]').first().click();
+      cy.get('[data-button-context="release-draft"]').first().click();
       cy.get('#releaseLabel').clear().type("1.1.0");
       cy.get('#releaseDescription').clear().type("description");
       cy.get('#datePicker input').clear().type(moment().add(10, 'days').format("YYYY-MM-DD"));
       cy.get('[data-modal="next"]').click();
       cy.get('[data-modal="confirm"]').click();
 
-      // cy.wait(60000); // If you are running this test right after drafting then you will need to await draft to finish background work.
-      cy.get('[data-column-id="1"]').contains("DRAFT").should("not.exist")
-      cy.get('[data-button-context="mustApproveRelease-active"]').first().should("exist")
+      cy.wait(10000); // If you are running this test right after drafting then you will need to await draft to finish background work.
+      cy.contains("DRAFT").should("not.exist")
+      cy.get('[data-button-context="release-draft"]').should('not.exist')
+      cy.get('[data-button-context="release-active"]').first().should("exist")
     });
 
     it("Downloads a JSON bundle using the Export button", () => {
