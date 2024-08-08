@@ -8,13 +8,13 @@ interface ParsedIssueItem {
   severity: { '@_value': string }
   code: { '@_value': string }
   diagnostics: { '@_value': string }
-  location?: { '@_value': string[] }
+  location?: { '@_value': string } | { '@_value': string }[]
 }
 
 interface IssueItem {
   severity: string
   code: string
-  diagnostics: string
+  diagnostics?: string
   location?: string[]
 }
 
@@ -30,8 +30,10 @@ const simplifyIssueItem = (item: ParsedIssueItem): IssueItem => {
     diagnostics: item.diagnostics['@_value'],
   }) as IssueItem
 
-  if (item.location) {
-    res.location = item.location['@_value'] 
+  if (item.location && Array.isArray(item.location)) {
+    res.location = item.location.map(l => l["@_value"])
+  } else if (item.location) {
+    res.location = [item.location['@_value']]
   }
 
   return res
@@ -78,24 +80,34 @@ export interface HapiHttpErrorRes {
 // currently returns only breaking errors
 // when opOutcome is a string it's xml + needs to be parsed
 export const formatErrors = (
-  opOutcome: fhir4.OperationOutcome | 'string' | HapiHttpErrorRes | any
-): IssueItem[] | fhir4.OperationOutcomeIssue[] => {
+  opOutcome: fhir4.OperationOutcome | string | HapiHttpErrorRes | fhir4.Bundle,
+  defaultError?: string
+): IssueItem[] => {
+  const defaultErrorObj: IssueItem = {
+    severity: 'error',
+    code: "-",
+    diagnostics: defaultError || ""
+  }
   if (typeof opOutcome === 'string') {
     if (opOutcome.startsWith('<OperationOutcome')) {
       const jsObj = parser.parse(opOutcome)
       if (conformsToIssueFormat(jsObj) === true) {
         return normalizeIssueFormat(jsObj.OperationOutcome.issue)
       } else {
-        logSimpleError('Input not properly formatted') 
+        logSimpleError('Input not properly formatted')
       }
     } else {
-      logSimpleError('Input not an OperationOutcome')
+      logSimpleError('Expected XML OperationOutcome, received unknown string')
     }
   } else if (is.hapiErrorHttpRes(opOutcome)) {
     const result = [simplifyHapiHttpError(opOutcome)]
     return result
   } else if (is.operationOutcome(opOutcome)) {
-    return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || []
+    return opOutcome.issue.filter(iss => iss?.severity === 'fatal' || iss?.severity === 'error') || [defaultErrorObj]
+  } else if (opOutcome?.resourceType === 'Bundle') {
+    return opOutcome.entry
+      ?.filter(entry => entry?.resource?.resourceType === "OperationOutcome")
+      ?.flatMap(entry => formatErrors(entry.resource as fhir4.OperationOutcome), defaultError) || [defaultErrorObj]
   }
-  return []
+  return [defaultErrorObj]
 }
