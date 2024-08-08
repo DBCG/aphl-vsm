@@ -7,7 +7,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 
 // this sets approvalDate and date and optionally
-// creates an artifactCommentExtension
+// creates an artifactAssessmentAuthor Extension
 const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>): Promise<void> => {
   const parameters = req.body || {}
   const session = await getServerSession(req, res, AuthOptions)
@@ -18,7 +18,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   }
 
   const approvalUser = {
-    name: 'artifactCommentUser',
+    name: 'artifactAssessmentAuthor',
     valueReference: {
       reference: userEmail
     }

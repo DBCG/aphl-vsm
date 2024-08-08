@@ -2,11 +2,11 @@ import { Options } from 'react-select'
 
 export interface approvalFormParams {
   approvalDate: Date
-  artifactCommentType: keyof typeof artifactAssessmentInfoTypes
-  artifactCommentText: string
-  artifactCommentTarget: string
-  artifactCommentReference: string
-  artifactCommentUser?: string
+  artifactAssessmentType: keyof typeof artifactAssessmentInfoTypes
+  artifactAssessmentSummary: string
+  artifactAssessmentTarget: string
+  artifactAssessmentRelatedArtifact: string
+  artifactAssessmentAuthor?: string
 }
 
 export const artifactAssessmentInfoTypes = {

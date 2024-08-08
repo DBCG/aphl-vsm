@@ -36,7 +36,7 @@ describe('/api/programs/[id]/approve', () => {
       method: 'POST',
       input: {
         resourceType: 'Parameters',
-        parameter: [{ name: 'artifactCommentUser', valueReference: { reference: 'superman@gotham.com' } }]
+        parameter: [{ name: 'artifactAssessmentAuthor', valueReference: { reference: 'superman@gotham.com' } }]
       }
     })
   })

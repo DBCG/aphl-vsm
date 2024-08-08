@@ -20,10 +20,10 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
   const [loading, setLoading] = useState(false)
   const [approvalFormData, setApprovalFormData] = useState<approvalFormParams>({
     approvalDate: new Date(),
-    artifactCommentType: 'comment',
-    artifactCommentText: '',
-    artifactCommentTarget: '',
-    artifactCommentReference: ''
+    artifactAssessmentType: 'comment',
+    artifactAssessmentSummary: '',
+    artifactAssessmentTarget: '',
+    artifactAssessmentRelatedArtifact: ''
   })
 
   const handleFieldChange = (
@@ -74,10 +74,10 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
     }
     setApprovalFormData({
       approvalDate: new Date(),
-      artifactCommentType: 'comment',
-      artifactCommentText: '',
-      artifactCommentTarget: target || '',
-      artifactCommentReference: ''
+      artifactAssessmentType: 'comment',
+      artifactAssessmentSummary: '',
+      artifactAssessmentTarget: target || '',
+      artifactAssessmentRelatedArtifact: ''
     })
   }, [programAndGrouperData?.program])
 
@@ -114,7 +114,7 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
       .forEach((name) => {
         if (name === 'approvalDate') {
           parametersObj?.parameter?.push({ name, valueDate: approvalFormData.approvalDate.toISOString() })
-        } else if (name === 'artifactCommentText' || name === 'artifactCommentType') {
+        } else if (name === 'artifactAssessmentSummary' || name === 'artifactAssessmentType') {
           parametersObj?.parameter?.push({ name, valueString: approvalFormData[name] })
         } else {
           parametersObj?.parameter?.push({ name, valueCanonical: approvalFormData[name] })
@@ -145,10 +145,10 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
               })
             }}
             value={{
-              value: approvalFormData.artifactCommentType,
-              label: artifactAssessmentInfoTypes[approvalFormData.artifactCommentType]
+              value: approvalFormData.artifactAssessmentType,
+              label: artifactAssessmentInfoTypes[approvalFormData.artifactAssessmentType]
             }}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentType')}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentType')}
             options={artifactAssessmentInfoTypeOptions}
             instanceId={'commentType'}
           />
@@ -156,13 +156,13 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
             id="text"
             label="Text"
             helperMessage="Text description for the program comment"
-            value={approvalFormData.artifactCommentText}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentText')}
+            value={approvalFormData.artifactAssessmentSummary}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentSummary')}
           />
           <SearchInput
             id="target"
             label="Target"
-            value={approvalFormData.artifactCommentTarget}
+            value={approvalFormData.artifactAssessmentTarget}
             helperMessage="Target of the program comment"
             readonly={true}
           />
@@ -170,8 +170,8 @@ export const ApproveForm = ({ programAndGrouperData }: ApproveFormProps) => {
             id="reference"
             label="Reference"
             helperMessage="Reference to the program being commented on"
-            value={approvalFormData.artifactCommentReference}
-            onChange={(e) => handleFieldChange(e, 'artifactCommentReference')}
+            value={approvalFormData.artifactAssessmentRelatedArtifact}
+            onChange={(e) => handleFieldChange(e, 'artifactAssessmentRelatedArtifact')}
           />
         </Col>
       </GridContainer>
