@@ -247,7 +247,6 @@ const ProvisionalVSEdit = () => {
   // NOTE! provisional value sets are not associated with conditions at this point
 
   // deleting
-  const [userConfirmedDelete, setUserConfirmedDelete] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)

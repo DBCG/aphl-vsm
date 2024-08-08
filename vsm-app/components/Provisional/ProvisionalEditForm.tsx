@@ -193,29 +193,6 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
     if (!codeSystem) return []
     const fields = [
       {
-        name: 'Delete',
-        omit: !isEditable,
-        maxWidth: '100px',
-        selector: (row: CodeTableData) => row.code!,
-        cell: (row: CodeTableData) => {
-          if (isEditable) {
-            return (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Button
-                  // disabled={!allFieldsPresent || !changesExist}
-                  text='Delete'
-                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
-                  loading={codeUpdateLoading}
-                  style={{ backgroundColor: 'var(--accent)' }}
-                />
-              </div>
-            )
-          } else {
-            return null
-          }
-        }
-      },
-      {
         name: 'Update Code',
         selector: (row: fhir4.CodeSystemConcept) => row.code,
         cell: (row: fhir4.CodeSystemConcept) => {
@@ -304,7 +281,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
 
           if (currentlyEditing) {
             return (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', maxWidth: '300px' }}>
                 <Button
                   disabled={!allFieldsPresent || !changesExist}
                   text='Save changes'
@@ -330,6 +307,29 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
                 <ModeEditIcon color={isDisabled ? 'disabled' : 'success'} />
               </IconButton>
             )
+          }
+        }
+      },
+      {
+        name: 'Delete',
+        omit: !isEditable,
+        maxWidth: '100px',
+        selector: (row: CodeTableData) => row.code!,
+        cell: (row: CodeTableData) => {
+          if (isEditable) {
+            return (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <Button
+                  // disabled={!allFieldsPresent || !changesExist}
+                  text='Delete'
+                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
+                  loading={codeUpdateLoading}
+                  style={{ backgroundColor: 'var(--accent)' }}
+                />
+              </div>
+            )
+          } else {
+            return null
           }
         }
       },
