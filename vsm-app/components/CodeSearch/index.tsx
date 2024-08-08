@@ -91,8 +91,8 @@ const CodeSearch = ({ programId, router }: Props) => {
         },
         body: JSON.stringify(body)
       }).then((res) => res.json())
-
-      setMatchingValueSetUrls(matches)
+      const matchesData = Array.isArray(matches) ? matches : []
+      setMatchingValueSetUrls(matchesData)
     } catch (e) {
       setError('Error occurred searching for code')
     }
