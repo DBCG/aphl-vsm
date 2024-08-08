@@ -1,7 +1,6 @@
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
 import { ProgramApiResponse } from '@/pages/api/programs'
 import { ProgramDetailsEffect, ProgramDetails } from '@/types/grouperTypes'
-import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import useSwr from 'swr'
 import { fetcher } from '@/utils'
 
@@ -41,7 +40,7 @@ const useGetProgramDetails = (id: string): ProgramDetailsEffect => {
     result.program = programs[0]
   }
   if (assessments?.length) {
-    result.artifactAssessments = assessments.map((assessment) => {
+    result.artifactAssessments = assessments.map((assessment: fhir4.Basic) => {
       const content = assessment?.extension?.find((ext) => ext.url.includes('crmi-artifactAssessmentContent'))?.extension
       return {
         approvalDate: assessment?.extension?.find((ext) => ext.url.includes('crmi-artifactAssessmentDate'))?.valueDateTime
