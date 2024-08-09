@@ -41,11 +41,15 @@ const crmiPackage = async (
         ...fhirCdrClient.customHeaders
       }
     })
-      .then((r) => {
-        if (r.ok) {
-          return (data?.json || useV1 ? r.json() : r.text()) as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>
+      .then(async (r) => {
+        if (data?.json) {
+          try {
+            return await r.json() as fhir4.Bundle | fhir4.OperationOutcome
+          } catch (e) {
+            return await r.text()
+          }
         } else {
-          throw new Error("Unknown error executing package")
+          return await r.text()
         }
       })
       .catch((err) => {
@@ -139,7 +143,24 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
       // should be Basic Auth creds
       ...fhirCdrClient.customHeaders
     }
-  }).then((r) => (format === 'json' ? r.json() : r.text()) as Promise<fhir4.Bundle | fhir4.OperationOutcome | string>)
+  }).then(async (r) => {
+    if (format === 'json') {
+      try {
+        return await r.json() as fhir4.Bundle | fhir4.OperationOutcome
+      } catch (e) {
+        return await r.text()
+      }
+    } else {
+      return await r.text()
+    }
+  }).catch((err) => {
+    logSimpleError(err)
+    if ("cause" in err) {
+      throw err.cause
+    } else {
+      throw err
+    }
+  })
 }
 export function addTerminologyEndpointToParameters(parameters: fhir4.Parameters, address?: string): fhir4.Parameters {
   const updatedParameters = structuredClone(parameters)
