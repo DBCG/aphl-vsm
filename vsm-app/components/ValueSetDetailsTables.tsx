@@ -31,6 +31,7 @@ interface GrouperTableDetail {
   oid: string
   canonical: string
   version?: string
+  valueSetPinnedVersion?: string | undefined
 }
 
 interface ValueSetDetailsTablesProps {
@@ -104,12 +105,14 @@ const ValueSetDetailsTables = ({
   const router = useRouter()
 
   const leafDataForDisplay = (pData: any) => {
-    return pData?.map((i: DataItem) => ({
+    return pData?.map((i: DataItem) => {
+     return ({
       title: i?.valueSet?.title,
       oid: i?.canonical?.split('/ValueSet/')?.[1],
       canonical: i?.canonical,
-      version: i?.version
-    }))
+      version: i?.version,
+      valueSetPinnedVersion: i?.valueSetPinnedVersion
+    })})
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -189,7 +192,7 @@ const ValueSetDetailsTables = ({
         selector: (row: GrouperTableDetail) => row?.canonical!,
         sortable: true,
         wrap: true,
-        cell: (row: GrouperTableDetail) => (row?.version ? `${row?.canonical}|${row?.version}` : `${row?.canonical}`)
+        cell: (row: GrouperTableDetail) => (row?.valueSetPinnedVersion ? `${row?.canonical}|${row?.valueSetPinnedVersion}` : `${row?.canonical}`)
       }
     ]
 
