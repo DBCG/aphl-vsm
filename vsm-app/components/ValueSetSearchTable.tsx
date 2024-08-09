@@ -910,6 +910,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <SelectInputContainer>
                     <Select
                       instanceId={`${tableContext}-searchByVS`}
+                      menuPortalTarget={myDocument}
                       isMulti={false}
                       styles={reactSelectOptionStyle()}
                       options={searchTypes}
