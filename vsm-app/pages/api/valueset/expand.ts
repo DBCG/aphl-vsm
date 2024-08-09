@@ -4,6 +4,7 @@ import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
+import { extractOidFromUrl } from '@/utils'
 export interface ExpandRequest extends NextApiRequest {
   body: {
     valueSetId?: string
@@ -17,46 +18,50 @@ export interface ExpandRequest extends NextApiRequest {
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
 const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
+  if (!req?.body?.valueSetId) {
+    return res.status(400).json({ error: 'Missing valuesetId.' })
+  }
+
   try {
+    const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.body?.valueSetId as string })) as fhir4.ValueSet
+    const parameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'valueSetVersion',
+          valueString: valueSet.version
+        }
+      ]
+    }
     const valueCanonicalString = Object.entries(req.body.expansionParameters).flatMap(([system, versions]) =>
       versions.map((version) => `${system}|${version}`)
     )
 
-    const parameters: fhir4.Parameters | null =
-      valueCanonicalString.length > 0
-        ? {
-            resourceType: 'Parameters',
-            parameter: [
-              {
-                name: 'system-version',
-                valueCanonical: valueCanonicalString.join(',')
-              }
-            ]
-          }
-        : null
-
+    if (valueCanonicalString.length > 0) {
+      // @ts-ignore
+      parameters.parameter.push({
+        name: 'system-version',
+        valueCanonical: valueCanonicalString.join(',')
+      })
+    }
     let response
     const groupersToSearch = req?.body?.groupersToSearch
 
-    const fetchOptions = parameters
-      ? {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...vsacFhirClient.customHeaders
-          },
-          body: JSON.stringify(parameters)
-        }
-      : {
-          method: 'GET',
-          headers: {
-            ...vsacFhirClient.customHeaders
-          }
-        }
+    const fetchOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...vsacFhirClient.customHeaders
+      },
+      body: JSON.stringify(parameters)
+    }
 
     // in this case expanding just one valueset
     if (typeof req.body.valueSetId === 'string') {
-      response = await fetch(vsacFhirClient.baseUrl + '/ValueSet/' + req.body.valueSetId + '/$expand', fetchOptions).then((i) => i.json())
+      const oid = extractOidFromUrl(valueSet.url!)
+      const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
+      response = await fetch(url, fetchOptions).then((i) => i.json())
+      logger.info(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
     } else if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind

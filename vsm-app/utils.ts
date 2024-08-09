@@ -69,6 +69,10 @@ export const isEqualComparator = (objValue: any, othValue: any) => {
   // Return undefined to default to the standard isEqual comparison
 };
 
+export const extractOidFromUrl = (url: string) => {
+  return url.split('/').pop()
+}
+
 
 export const incrementSemver = ({
   valueToIncrement,
