@@ -42,7 +42,7 @@ const crmiPackage = async (
       }
     })
       .then(async (r) => {
-        if (data?.json) {
+        if (currentFormat === 'json') {
           try {
             return await r.json() as fhir4.Bundle | fhir4.OperationOutcome
           } catch (e) {
