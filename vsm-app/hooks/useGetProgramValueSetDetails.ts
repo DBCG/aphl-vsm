@@ -1,4 +1,5 @@
 import { fetcher } from '@/utils'
+import { cloneDeep } from 'lodash'
 import useSWR from 'swr'
 
 interface Group {
@@ -115,25 +116,29 @@ const useGetProgramValueSetDetails = ({
   })
 
   const { data, mutate, isLoading } = useSWR(id != null ? endpoint : null, fetcher)
-
-  if (!data || isLoading) {
-    return {programValuesets: data, refreshProgramValueSets: mutate}
+  const resultData = {
+    data: data?.data,
+    totalLeafs: data?.totalLeafs,
+    groupsInProgram: data?.groupsInProgram,
+    programStatus: data
+  } as Result
+  if (!resultData || isLoading) {
+    return { programValuesets: resultData, refreshProgramValueSets: mutate }
   }
-
   if (activePriority && activePriority?.length > 0) {
-    const filteredData = data?.data?.filter((vs: DataItem) => {
+    const filteredData = resultData?.data?.filter((vs: DataItem) => {
       if (!vs.valueSet.url) {
         return false
       }
       const currentPriority = valueSetPriorityMap[vs.valueSet.url]
       return activePriority?.includes('routine') && currentPriority !== 'emergent' ? true : activePriority?.includes(currentPriority)
     })
-    data.data = filteredData
+    resultData.data = filteredData
   }
 
   if (activeConditions && activeConditions?.length > 0) {
     const activeConditionsMap = activeConditions.map((i) => i.value.system + '|' + i.value.code)
-    const filteredConditionData = data?.data?.filter((vs: DataItem) => {
+    const filteredConditionData = resultData?.data?.filter((vs: DataItem) => {
       if (!vs.valueSet.url) {
         return false
       }
@@ -142,10 +147,10 @@ const useGetProgramValueSetDetails = ({
       return currentConditions?.filter((value) => activeConditionsMap.includes(value)).length > 0
     })
 
-    data.data = filteredConditionData
+    resultData.data = filteredConditionData
   }
 
-  return { programValuesets: data, refreshProgramValueSets: mutate }
+  return { programValuesets: resultData, refreshProgramValueSets: mutate }
 }
 
 export { useGetProgramValueSetDetails }
