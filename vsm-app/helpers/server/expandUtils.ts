@@ -234,8 +234,7 @@ const findMatchingVsetUrls = async ({
             name: '$expand',
             id: leaf.id,
             resourceType: 'ValueSet',
-            method: 'POST',
-            input: JSON.stringify(parameters),
+            method: 'GET',
             options: {
               headers: {
                 'content-type': 'application/json'

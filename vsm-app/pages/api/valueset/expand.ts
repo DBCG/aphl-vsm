@@ -50,9 +50,9 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
         }
       })
     } else if (typeof groupersToSearch !== 'undefined') {
-      const systemToFind = req?.body?.codeSystem
+      const systemToFind = req?.body?.codeSystem || null
       const codeToFind = req?.body?.codeToFind
-      if (!!codeToFind && !!systemToFind) {
+      if (!!codeToFind) {
         const matchingVsUrlsCodes = await findMatchingVsetUrls({
           fhirCdrClient,
           vsacFhirClient,

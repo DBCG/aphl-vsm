@@ -138,11 +138,12 @@ const CodeSearch = ({ program, router }: Props) => {
       <PageTitle style={{ marginBottom: '2rem' }}>
         Find Codes in Program {program.id}
       </PageTitle>
+      <PageP>This search expands leaf value sets and finds codes within them.</PageP>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
         {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
         </FormGroup> */}
-        <PageP>Find ValueSets in this program that...</PageP>
+        <PageP style={{ marginBottom: '1rem' }}>Find ValueSets in this program that...</PageP>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <PageP>Contain this code:</PageP>
