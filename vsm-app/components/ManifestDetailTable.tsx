@@ -2,7 +2,6 @@ import { useState } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import InfoIcon from '@mui/icons-material/Info'
 import { IconButton } from './buttons/IconButton'
-import LoadingIndicator from './LoadingIndicator'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/manifestTypes'
@@ -22,16 +21,26 @@ const prepData = (data: SelectedManifestDataVersion) => {
 
 const NoDataComponent = () => {
   return (
-  <div style={{ display: 'flex', width: '100%', padding: '1.2rem', backgroundColor: 'white', justifyContent: 'center' }}>
-    <Typography style={{ textAlign: 'center' }}>No manifest data found</Typography>
-  </div>
+    <div style={{ display: 'flex', width: '100%', padding: '1.2rem', backgroundColor: 'white', justifyContent: 'center' }}>
+      <Typography style={{ textAlign: 'center' }}>No manifest data found</Typography>
+    </div>
   )
 }
 
-const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, programId, availableUpdates }: any) => {
-  const preppedData = prepData(manifestData)
+type ManifestDetailTableProps = {
+  deleteFn?: Function
+  updateFn?: Function
+  manifestData: SelectedManifestDataVersion
+  programId: string
+  availableUpdates?: ManifestSystemVersionPair[]
+}
+
+const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates }: ManifestDetailTableProps) => {
   const [targetedCsToUpdate, setTargetedCsToUpdate] = useState<ManifestSystemVersionPair | null>(null)
-  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher, { revalidateOnFocus: false })
+  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher, {
+    revalidateOnFocus: false
+  })
+  const preppedData = prepData(manifestData)
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)
   const noUpdatesAvailable = !Boolean(availableUpdates?.length)
@@ -54,7 +63,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       name: 'Version',
       selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
-      wrap: true,
+      wrap: true
       // cell: (row: ManifestSystemVersionPair) => {
       //   const isLatest = !Boolean(availableUpdates?.find(
       //     (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
@@ -77,6 +86,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
           <IconButton
             data-delete-manifest={`${row.system}|${row.version}`}
             deletedItemDescription={`system "${row.system}" version ${row.version}`}
+            // @ts-ignore - will be omitted from being displayed if not defined
             onClick={() => deleteFn(row)}
             buttoncontext="delete"
             style={{ backgroundColor: 'darkRed' }}
@@ -97,8 +107,9 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
       sortable: false,
       center: true,
       cell: (row: ManifestSystemVersionPair) => {
-        const matchingCodeSystem = availableUpdates.find(
-          (cs: ManifestSystemVersionPair) => cs.system === row.system && cs.version !== row.version && !cs?.version?.toLowerCase().includes('provisional')
+        const matchingCodeSystem = availableUpdates?.find(
+          (cs: ManifestSystemVersionPair) =>
+            cs.system === row.system && cs.version !== row.version && !cs?.version?.toLowerCase().includes('provisional')
         )
         if (matchingCodeSystem) {
           return (
@@ -106,7 +117,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
               <IconButton
                 data-update-manifest={`${row.system}|${row.version}`}
                 onClick={() => setTargetedCsToUpdate(matchingCodeSystem)}
-                buttoncontext='update'
+                buttoncontext="update"
               />
               <Tooltip
                 title={`Update to version: ${matchingCodeSystem.version}`}
@@ -130,39 +141,39 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
   ]
 
   return (
-    <>
-      <Modal
-        open={targetedCsToUpdate != null}
-        onClose={() => setTargetedCsToUpdate(null)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={modalStyle}>
-          <Typography variant="h6" component="h2">
-            Confirm Update
-          </Typography>
-          <Typography sx={{ mt: 2, display: 'block' }} variant="body1">
-            Do you want to upgrade to the latest version of <b>{getNameByUri(targetedCsToUpdate?.system!, allSystemNamesByUri)}</b> to version:{' '}
-            <b>{targetedCsToUpdate?.version}</b>?
-          </Typography>
-          <Box sx={{ display: 'flex', mt: 3, flexDirection: 'row-reverse' }}>
-            <MuiButton
-              sx={{ ml: 2 }}
-              onClick={() => {
-                updateFn(targetedCsToUpdate?.version, targetedCsToUpdate?.system)
-                setTargetedCsToUpdate(null)
-              }}
-            >
-              Update
-            </MuiButton>
-            <MuiButton onClick={() => setTargetedCsToUpdate(null)}>Cancel</MuiButton>
+    <Box>
+      {updateFn && (
+        <Modal
+          open={targetedCsToUpdate != null}
+          onClose={() => setTargetedCsToUpdate(null)}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={modalStyle}>
+            <Typography variant="h6" component="h2">
+              Confirm Update
+            </Typography>
+            <Typography sx={{ mt: 2, display: 'block' }} variant="body1">
+              Do you want to upgrade to the latest version of <b>{getNameByUri(targetedCsToUpdate?.system!, allSystemNamesByUri)}</b> to
+              version: <b>{targetedCsToUpdate?.version}</b>?
+            </Typography>
+            <Box sx={{ display: 'flex', mt: 3, flexDirection: 'row-reverse' }}>
+              <MuiButton
+                sx={{ ml: 2 }}
+                onClick={() => {
+                  updateFn(targetedCsToUpdate?.version, targetedCsToUpdate?.system)
+                  setTargetedCsToUpdate(null)
+                }}
+              >
+                Update
+              </MuiButton>
+              <MuiButton onClick={() => setTargetedCsToUpdate(null)}>Cancel</MuiButton>
+            </Box>
           </Box>
-        </Box>
-      </Modal>
+        </Modal>
+      )}
       <DataTable
-        noDataComponent={<NoDataComponent/>}
-        progressComponent={<LoadingIndicator />}
-        progressPending={loading}
+        noDataComponent={<NoDataComponent />}
         columns={columns}
         customStyles={customTableStyles('readonly')}
         data={preppedData}
@@ -170,7 +181,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, data: manifestData, loading, 
         paginationPerPage={10}
         theme="aphl"
       />
-    </>
+    </Box>
   )
 }
 

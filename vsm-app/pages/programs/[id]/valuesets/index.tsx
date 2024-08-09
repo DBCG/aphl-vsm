@@ -1,14 +1,12 @@
 import { useRouter } from 'next/router'
 import ProgramValueSetDetails from '@/components/ProgramValueSetDetails'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
-import LoadingIndicator from '@/components/LoadingIndicator'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from '@/utils/getLibraryServerSideProp'
 
-const ProgramIDValuesetsPage = () => {
+const ProgramIDValuesetsPage = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
-  const programId = router.query.id as string
-  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId })
-  if (programAndGrouperDataLoading || programAndGrouperData?.program == null) { return <LoadingIndicator /> }
-  return <ProgramValueSetDetails program={programAndGrouperData?.program} router={router} />
+
+  return <ProgramValueSetDetails program={program} router={router} />
 }
 
 export default ProgramIDValuesetsPage

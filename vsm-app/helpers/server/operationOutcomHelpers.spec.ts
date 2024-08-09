@@ -76,17 +76,22 @@ describe('formatErrors()', () => {
     ])
   })
 
-  it('returns [] (aka no errors) if entry is unknown format', () => {
+  it('returns default error object if entry is unknown format', () => {
+    const defaultErrorObj = [{
+      severity: 'error',
+      code: "-",
+      diagnostics: ""
+    }]
     const err1 = formatErrors(undefined)
     const err2 = formatErrors({})
     const err3 = formatErrors({ error: 'yikes' })
     const err4 = formatErrors('<Bundle></Bundle>')
     const err5 = formatErrors([])
 
-    expect(err1).toStrictEqual([])
-    expect(err2).toStrictEqual([])
-    expect(err3).toStrictEqual([])
-    expect(err4).toStrictEqual([])
-    expect(err5).toStrictEqual([])
+    expect(err1).toStrictEqual(defaultErrorObj)
+    expect(err2).toStrictEqual(defaultErrorObj)
+    expect(err3).toStrictEqual(defaultErrorObj)
+    expect(err4).toStrictEqual(defaultErrorObj)
+    expect(err5).toStrictEqual(defaultErrorObj)
   })
 })

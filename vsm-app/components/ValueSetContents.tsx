@@ -277,7 +277,7 @@ export default function ValueSetContents({
                   id="vs-title"
                   label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
-                  value={grouperTitle || defaultGrouperTitle}
+                  value={grouperTitle}
                   placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} title set`}
                   onChange={(e) => setGrouperTitle(e.target.value)}
                 />
@@ -298,7 +298,7 @@ export default function ValueSetContents({
                   id="vs-publisher"
                   label="Publisher"
                   readonly={!isEditing}
-                  value={grouperPublisher || defaultGrouperPublisher}
+                  value={grouperPublisher}
                   placeholder={'No valueset publisher set'}
                   onChange={(e) => setGrouperPublisher(e.target.value)}
                 />
@@ -308,7 +308,7 @@ export default function ValueSetContents({
                   id="vs-author"
                   label="Author"
                   readonly={!isEditing}
-                  value={grouperAuthor || defaultGrouperAuthor}
+                  value={grouperAuthor}
                   placeholder={'No valueset author set'}
                   onChange={(e) => setGrouperAuthor(e.target.value)}
                 />
@@ -318,7 +318,7 @@ export default function ValueSetContents({
                   id="vs-purpose"
                   label="Purpose"
                   readonly={!isEditing}
-                  value={grouperPurpose || defaultGrouperPurpose}
+                  value={grouperPurpose}
                   placeholder={'No valueset purpose set'}
                   onChange={(e) => setGrouperPurpose(e.target.value)}
                 />
@@ -328,7 +328,7 @@ export default function ValueSetContents({
                   id="vs-description"
                   label="Description"
                   readonly={!isEditing}
-                  value={grouperDescription || defaultGrouperDescription}
+                  value={grouperDescription}
                   placeholder={'No valueset description set'}
                   onChange={(e) => setGrouperDescription(e.target.value)}
                 />

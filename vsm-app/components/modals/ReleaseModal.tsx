@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
@@ -12,8 +12,7 @@ import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 import ManifestDetailTable from '../ManifestDetailTable'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { getIdFromSystem, searchAvailableUpdates, updateManifest } from '@/components/EditManifestDetails/manifestHelpers'
-import { ManifestSystemVersionPair, SelectedManifestDataVersion, SystemSelection } from '@/types/manifestTypes'
-import { customTableStyles } from '../tables/themes'
+import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import ManifestDescription from '../EditManifestDetails/ManifestDescription'
 
 export interface ReleasePayload {
@@ -234,12 +233,9 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
           <Typography>Manifest versions may be added to specify specific code system versions in this program.</Typography>
           <ManifestDescription context="release-modal" />
           <ManifestDetailTable
-            programId={program?.id}
-            className="detail-table"
-            customStyles={customTableStyles('readonly')}
-            data={currentSelectedData}
+            programId={program?.id!}
+            manifestData={currentSelectedData}
             availableUpdates={availableUpdates}
-            loading={currentSelectedData == null}
             updateFn={(version: string, system: string) => {
               const targetedVsIndex = availableUpdates.findIndex((i: ManifestSystemVersionPair) => i.system === system)
               const targetedVs = availableUpdates[targetedVsIndex] as ManifestSystemVersionPair
