@@ -90,7 +90,7 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
     }
   })
   items.unshift(
-    <Link key={'homepage'} href={'/'} passHref>
+    <Link key={'homepage'} href={'/programs'} passHref>
       <HomepageItem id={`breadcrumb-homepage`} alpha={1}>{`Home`}</HomepageItem>
     </Link>
   )
