@@ -31,8 +31,8 @@ const crmiPackage = async (
   const userDesiredFormat = data?.json ? 'json' : 'xml'
   const useV1 = !data?.useV2
   try {
-    let format = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${format}`, {
+    let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
+    let response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${currentFormat}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
       headers: {
@@ -71,7 +71,7 @@ const crmiPackage = async (
       try {
         response = await convertV2toV1(
           response,
-          format = userDesiredFormat, // reset to actual format for v1
+          currentFormat = userDesiredFormat, // reset to actual format for v1
           planDefinition,
           targetVersion
         )
@@ -96,6 +96,7 @@ const crmiPackage = async (
     return res.status(500).json({ error: diagnostics || error?.error || error.toString() || 'Unspecified error' })
   }
 }
+
 async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefinition?: fhir4.PlanDefinition, targetVersion?: string) {
   if (!v2.entry) {
     throw 'Empty bundle returned from server'
