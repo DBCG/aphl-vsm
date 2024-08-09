@@ -32,6 +32,7 @@ export interface DataItem {
   publisher: string
   version: string
   valueSet: fhir4.ValueSet
+  valueSetPinnedVersion: string | undefined
   programStatus: fhir4.Library['status']
 }
 
