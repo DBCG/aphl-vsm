@@ -22,7 +22,7 @@ const buildSearchUrl = ({ leafUrl, leafVersion }: BuildUrlParams) => (
 interface FindMatches {
   vs: fhir4.ValueSet
   codeToFind: string
-  systemToFind: string | null
+  systemToFind?: string
 }
 
 interface MatchResult {
@@ -135,9 +135,9 @@ const findMatchingExpansions = async (
 interface FindMatchingVsetUrlsParams {
   fhirCdrClient: FhirKitClient
   vsacFhirClient: FhirKitClient
-  parameters: fhir4.Parameters
+  parametersFetchOptions: RequestInit
   codeToFind: string
-  systemToFind: string | null
+  systemToFind?: string
   groupersToSearch: string[]
 }
 
@@ -145,7 +145,7 @@ interface FindMatchingVsetUrlsParams {
 const findMatchingVsetUrls = async ({
   fhirCdrClient,
   vsacFhirClient,
-  parameters,
+  parametersFetchOptions,
   codeToFind,
   systemToFind,
   groupersToSearch
@@ -230,18 +230,7 @@ const findMatchingVsetUrls = async ({
     const matchingExpansions = async () => {
       const expansions = await Promise.allSettled(
         allVsacLeafs.map((leaf: fhir4.ValueSet) => (
-          vsacFhirClient.operation({
-            name: '$expand',
-            id: leaf.id,
-            resourceType: 'ValueSet',
-            method: 'POST',
-            input: JSON.stringify(parameters),
-            options: {
-              headers: {
-                'content-type': 'application/json'
-              }
-            }
-          }) as Promise<fhir4.ValueSet>
+          fetch(`${vsacFhirClient.baseUrl}/ValueSet/${leaf.id}/$expand`, parametersFetchOptions).then(i => i.json())
         ))
       )
 
