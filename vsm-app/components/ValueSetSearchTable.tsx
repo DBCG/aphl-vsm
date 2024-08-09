@@ -894,6 +894,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                     <Select
                       instanceId={`${tableContext}-termServer`}
                       isMulti={false}
+                      menuPortalTarget={myDocument}
                       styles={reactSelectOptionStyle()}
                       options={terminologyServerEndpoints}
                       value={selectedTerminologyServer}
