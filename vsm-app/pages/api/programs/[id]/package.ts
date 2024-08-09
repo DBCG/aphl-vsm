@@ -28,10 +28,10 @@ const crmiPackage = async (
     throw new Error("Missing parameters for Export")
   }
   const parameters = addTerminologyEndpointToParameters(data?.parameters)
-  const json = data?.json ? 'json' : 'xml'
+  const userDesiredFormat = data?.json ? 'json' : 'xml'
   const useV1 = !data?.useV2
   try {
-    let format = useV1 ? 'json' : json // force json for v1 so we can pass it back to the server to convert to v2
+    let format = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
     let response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${format}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
@@ -71,7 +71,7 @@ const crmiPackage = async (
       try {
         response = await convertV2toV1(
           response,
-          format = json, // reset to actual format for v1
+          format = userDesiredFormat, // reset to actual format for v1
           planDefinition,
           targetVersion
         )
