@@ -11,6 +11,7 @@ import { Button } from '@mui/material'
 import { EndpointResponse } from '../api/endpoint'
 import { PaginationState } from '@/components/Provisional/ProgramsTab'
 import { useRouter } from 'next/router'
+import { getAuthenticationTypeString } from '@/components/TerminologyServerForm'
 
 const Col = styled.div`
   display: flex;
@@ -86,6 +87,13 @@ const TerminologyEndpoints: NextPage = () => {
         selector: (row: fhir4.Endpoint) => row.address,
         sortable: false,
         minWidth: '10rem',
+        wrap: true
+      },
+      {
+        name: 'Authentication',
+        selector: (row: fhir4.Endpoint) => getAuthenticationTypeString(row.extension || []) || '',
+        sortable: false,
+        maxWidth: '8rem',
         wrap: true
       },
       {

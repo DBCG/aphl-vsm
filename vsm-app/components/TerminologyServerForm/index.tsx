@@ -13,7 +13,8 @@ import { debounce } from 'lodash'
 import { FhirResource } from 'fhir/r4'
 import { ErrorMessage } from '../ErrorMessage'
 export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
-
+export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
+  extensions.find((ext) => ext.url === authenticationTypeUrl)?.valueString
 export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
