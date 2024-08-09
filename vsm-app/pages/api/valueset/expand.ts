@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-
 import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
+import { findMatchingVsetUrls, getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
 import { extractOidFromUrl } from '@/utils'
 export interface ExpandRequest extends NextApiRequest {
   body: {
@@ -18,20 +17,10 @@ export interface ExpandRequest extends NextApiRequest {
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
 const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
-  if (!req?.body?.valueSetId) {
-    return res.status(400).json({ error: 'Missing valuesetId.' })
-  }
-
   try {
-    const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.body?.valueSetId as string })) as fhir4.ValueSet
     const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'valueSetVersion',
-          valueString: valueSet.version
-        }
-      ]
+      parameter: []
     }
     const valueCanonicalString = Object.entries(req.body.expansionParameters).flatMap(([system, versions]) =>
       versions.map((version) => `${system}|${version}`)
@@ -44,24 +33,20 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
         valueCanonical: valueCanonicalString.join(',')
       })
     }
+
     let response
     const groupersToSearch = req?.body?.groupersToSearch
 
-    const fetchOptions = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...vsacFhirClient.customHeaders
-      },
-      body: JSON.stringify(parameters)
-    }
-
     // in this case expanding just one valueset
     if (typeof req.body.valueSetId === 'string') {
+      const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.body?.valueSetId as string })) as fhir4.ValueSet
+
+      setParameterVsVersion(parameters, valueSet)
       const oid = extractOidFromUrl(valueSet.url!)
       const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
-      response = await fetch(url, fetchOptions).then((i) => i.json())
-      logger.info(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
+      const fetchOptions = getExpandFetchOptions(parameters)
+      response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
+      logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
     } else if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind
@@ -69,7 +54,7 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
         const matchingVsUrlsCodes = await findMatchingVsetUrls({
           fhirCdrClient,
           vsacFhirClient,
-          parametersFetchOptions: fetchOptions,
+          parameters,
           codeToFind,
           systemToFind,
           groupersToSearch

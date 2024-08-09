@@ -2,6 +2,8 @@ import FhirKitClient from 'fhir-kit-client'
 import { cloneDeep } from 'lodash'
 import { is } from '../is'
 import logger from './logger'
+import { vsacFhirClient } from 'fhirClients'
+import { extractOidFromUrl } from '@/utils'
 
 interface GrouperIdsByUrlItem {
   version?: string
@@ -135,17 +137,27 @@ const findMatchingExpansions = async (
 interface FindMatchingVsetUrlsParams {
   fhirCdrClient: FhirKitClient
   vsacFhirClient: FhirKitClient
-  parametersFetchOptions: RequestInit
+  parameters: fhir4.Parameters
   codeToFind: string
   systemToFind?: string
   groupersToSearch: string[]
+}
+
+// Set and ensure only one instance of the parameter valueSetVersion
+const setParameterVsVersion = (parameters: fhir4.Parameters, valueSet: fhir4.ValueSet) => {
+  const clearedParameter = parameters.parameter?.filter(i => i.name !== 'valueSetVersion') || []
+  clearedParameter.push({
+    name: 'valueSetVersion',
+    valueString: valueSet.version
+  })
+  parameters.parameter = clearedParameter
 }
 
 // only get leafs from groupers indicated
 const findMatchingVsetUrls = async ({
   fhirCdrClient,
   vsacFhirClient,
-  parametersFetchOptions,
+  parameters,
   codeToFind,
   systemToFind,
   groupersToSearch
@@ -229,10 +241,15 @@ const findMatchingVsetUrls = async ({
 
     const matchingExpansions = async () => {
       const expansions = await Promise.allSettled(
-        allVsacLeafs.map((leaf: fhir4.ValueSet) => (
-          fetch(`${vsacFhirClient.baseUrl}/ValueSet/${leaf.id}/$expand`, parametersFetchOptions).then(i => i.json())
-        ))
-      )
+        allVsacLeafs.map((leaf: fhir4.ValueSet) => {
+          setParameterVsVersion(parameters, leaf)
+          const parametersFetchOptions = getExpandFetchOptions(parameters)
+          const oid = extractOidFromUrl(leaf.url!)
+          const url = `${vsacFhirClient.baseUrl}/ValueSet/${oid}/$expand`
+          logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(parametersFetchOptions)}`)
+          return fetch(url, parametersFetchOptions).then(i => i.json())
+        }
+      ))
 
       // filter out undefined results (maybe better error handling eventually)
       // how to handle these Promise types?
@@ -287,10 +304,32 @@ const findMatchingVsetUrls = async ({
   return matchingValueSetUrlsAndCodes
 }
 
+const getExpandFetchOptions = (parameters: fhir4.Parameters) => {
+  if (parameters?.parameter?.length) {
+    return {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...vsacFhirClient.customHeaders
+      },
+      body: JSON.stringify(parameters)
+    }
+  } else {
+    return {
+      method: 'GET',
+      headers: {
+        ...vsacFhirClient.customHeaders
+      }
+    }
+  }
+}
+
 export {
   buildSearchUrl,
   findMatches,
   getSpecifiedGroupers,
   arrangeGroupersByLeafRef,
-  findMatchingVsetUrls
+  getExpandFetchOptions,
+  findMatchingVsetUrls,
+  setParameterVsVersion
 }
