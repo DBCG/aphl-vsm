@@ -9,12 +9,13 @@ import { NavContext } from '@/components/NavBar'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { isGrouperValueSet } from '@/helpers/valueSetHelpers'
+import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
-const ValueSetPageView = () => {
+const ValueSetPageView = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
-  const programId = router.query.id as string
   const valueSetId = router.query.valuesetId as string
-  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId })
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails(program.id!)
   const { isGrouperView, changeGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const enableEditing = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
@@ -35,7 +36,7 @@ const ValueSetPageView = () => {
   return (
     <ValueSetContents
       setToggleUpdateData={(handleToggleUpdateData)}
-      programId={programId}
+      programId={program.id!}
       programAndGrouperInfo={programAndGrouperData}
       isGrouperValueSet={isGrouperView}
       valueSet={currentValueSet}

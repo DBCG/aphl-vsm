@@ -95,7 +95,6 @@ const getProvisionalValueSetDataByProgram = async () => {
       for await (const grouperVs of groupers) {
         const leafValueSetCanonicals = getLeafUrlsFromGrouper(grouperVs).filter(x => is.string(x)) as string[]
         const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })
-  
         // only add to the structure if the program has provisional leafs
         if (provisionalLeafs && provisionalLeafs.length) {
           const newLeafs = provisionalLeafs.map(l => ({
@@ -103,7 +102,7 @@ const getProvisionalValueSetDataByProgram = async () => {
             title: l.title,
             url: l.url
           }))
-  
+
           const existingProgramIndex = provisionalLeafsByProgram.findIndex(p => p.programId === programLib.id)
           // if program already exists, merge the information
           if (existingProgramIndex > -1) {

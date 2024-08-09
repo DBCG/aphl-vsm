@@ -894,6 +894,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                     <Select
                       instanceId={`${tableContext}-termServer`}
                       isMulti={false}
+                      menuPortalTarget={myDocument}
                       styles={reactSelectOptionStyle()}
                       options={terminologyServerEndpoints}
                       value={selectedTerminologyServer}
@@ -910,6 +911,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                   <SelectInputContainer>
                     <Select
                       instanceId={`${tableContext}-searchByVS`}
+                      menuPortalTarget={myDocument}
                       isMulti={false}
                       styles={reactSelectOptionStyle()}
                       options={searchTypes}

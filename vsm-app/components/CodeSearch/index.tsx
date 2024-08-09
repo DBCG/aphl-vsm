@@ -7,16 +7,15 @@ import Select from 'react-select'
 import { PageP, FormErrorText, PageTitle } from '@/components/Typography'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
-import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
-import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { ExpandRequest } from '@/pages/api/valueset/expand'
+import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 
 interface Props {
-  programId: string
+  program: fhir4.Library
   router: NextRouter
 }
 
@@ -39,14 +38,13 @@ const customStyles = {
   }
 }
 
-const CodeSearch = ({ programId, router }: Props) => {
+const CodeSearch = ({ program, router }: Props) => {
   // states for code search/$expand
   const [codeToFind, setCodeToFind] = useState<string | undefined>(undefined)
   const [systemToFind, setSystemToFind] = useState<string | undefined>(undefined)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
-  const [searchProvisionalCodes, setSearchProvisionalCodes] = useState(false)
-
+  
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
 
@@ -54,10 +52,8 @@ const CodeSearch = ({ programId, router }: Props) => {
   const [error, setError] = useState<null | string>(null)
 
   const { programValuesets } = useGetProgramValueSetDetails({
-    id: programId
+    id: program.id!
   })
-
-  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId })
 
   const groupsInProgram = programValuesets?.groupsInProgram
 
@@ -81,7 +77,7 @@ const CodeSearch = ({ programId, router }: Props) => {
         codeSystem: systemToFind,
         groupersToSearch: grouperIdsToSearch,
         codeToFind,
-        expansionParameters: programAndGrouperData.manifestData
+        expansionParameters: getProgramManifestVersions(program)
       }
       let endpoint = `/api/valueset/expand`
       const matches = await fetch(endpoint, {
@@ -91,8 +87,8 @@ const CodeSearch = ({ programId, router }: Props) => {
         },
         body: JSON.stringify(body)
       }).then((res) => res.json())
-
-      setMatchingValueSetUrls(matches)
+      const matchesData = Array.isArray(matches) ? matches : []
+      setMatchingValueSetUrls(matchesData)
     } catch (e) {
       setError('Error occurred searching for code')
     }
@@ -139,7 +135,9 @@ const CodeSearch = ({ programId, router }: Props) => {
 
   return (
     <div>
-      <PageTitle style={{ marginBottom: '2rem' }}>Find Codes in Program {programId}</PageTitle>
+      <PageTitle style={{ marginBottom: '2rem' }}>
+        Find Codes in Program {program.id}
+      </PageTitle>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
         {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>

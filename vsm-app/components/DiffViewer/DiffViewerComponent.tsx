@@ -22,10 +22,15 @@ const CodesTableContainer = styled.div`
 `
 
 const DiffViewerComponent = ({ changelogData }: { changelogData: ChangelogData }) => {
-  const pages = changelogData.grouperPages.map((p, idx) => (
-    <PageContainer key={p.groupIndex}>
-      <Accordion defaultExpanded={p.hasChanges}>
-          <AccordionSummary expandIcon={<ExpandMore />}>
+  const pages = changelogData.grouperPages.map((p, idx) => {
+    return (
+    <PageContainer key={p.metadata.id}>
+      <Accordion 
+        disableGutters
+        defaultExpanded={Boolean(p?.hasChanges)}>
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+          >
             <GrouperMetadataTable id={(changelogData.anchorLinkData[idx + 1] as AnchorLinkGrouperItem).grouperId} grouperTableData={p.metadata}/>
           </AccordionSummary>
         <AccordionDetails>
@@ -36,7 +41,7 @@ const DiffViewerComponent = ({ changelogData }: { changelogData: ChangelogData }
         </AccordionDetails>
       </Accordion>
     </PageContainer>
-  ))
+  )})
   return (
     <RelativeContainer>
       <ProgramMetadataTable rootLibData={changelogData.rootLibrary}/>

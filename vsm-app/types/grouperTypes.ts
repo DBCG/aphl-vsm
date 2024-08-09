@@ -80,7 +80,6 @@ interface ProgramDetails {
   program: fhir4.Library | null;
   grouperData: GrouperItem[];
   grouperLibrary: fhir4.Library | null;
-  manifestData: SelectedManifestDataVersion;
   artifactAssessments: ToString<Partial<approvalFormParams>>[];
 }
 

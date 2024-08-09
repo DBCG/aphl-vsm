@@ -4,7 +4,7 @@ import { fetcher } from '@/utils'
 const useGetProvisionalContext = () => {
   const endpoint = '/api/programs/provisional'
 
-  const { data, error, isLoading } = useSWR(endpoint, fetcher)
+  const { data, error, isLoading } = useSWR(endpoint, fetcher, { revalidateOnFocus: true })
 
   return {
     provisionalContext: data,

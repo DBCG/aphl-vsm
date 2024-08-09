@@ -7,9 +7,11 @@ import {
   updateGrouperWithMetadata,
   urlWithoutVersion,
   idWithoutVersion,
-  addProfileToValueSet
+  addProfileToValueSet,
+  updateVsCodeItem
 } from "./valueSetHelpers";
-import { set, get, uniq } from 'lodash'
+import { uniq } from 'lodash'
+import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
 
 const VSM_LEAF_PROFILE_URLS = {
   CONDITION: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset',
@@ -266,7 +268,180 @@ describe('valueSetHelpers', () => {
       expect(profiles).toEqual(uniqueProfiles);
     })
   })
+
+  describe('updateVsCodeItem', () => {
+    it('should update code items when they exist', () => {
+      const testVs = cloneDeep(testVsCodesVs)
+
+      const updates1 = {
+        action: 'replace-code',
+        codeUpdates: [
+          {
+            old: {code: 'test-code-2', display: 'test-display-2', definition: 'test-definition-2'},
+            new: {code: 'test-code-1', display: 'test-display-1', definition: 'test-definition-1'}
+          }
+        ],
+        inValueSets: ['test-5']
+      } as UpdateData
+
+      const result = updateVsCodeItem({
+        vs: testVs,
+        action: 'replace-code',
+        updateData: updates1,
+        csUrl: 'test.com'
+      })
+
+      const expectedResult1 = {
+        id: 'test-5',
+        resourceType: 'ValueSet',
+        url: 'test-vs-url.com',
+        name: 'testname',
+        compose: {
+          include: [
+            {
+              system: 'test.com',
+              concept: [
+                { code: 'test-code', display: 'test-display' },
+                { code: 'test-code-1', display: 'test-display-1' }
+              ]
+            }
+          ]
+        }
+      }
+      expect(result).toEqual(expectedResult1)
+    })
+
+    it ('should return error object if the code was not found in the valueset', () => {
+      const testVs = cloneDeep(testVsCodesVs)
+      const updates2 = {
+        action: 'replace-code',
+        codeUpdates: [
+          {
+            old: {code: 'test-code-nonexist', display: 'test-display-nonexist', definition: 'test-definition-nonexist'},
+            new: {code: 'test-code-1', display: 'test-display-1', definition: 'test-definition-1'}
+          }
+        ],
+        inValueSets: ['test-5']
+      } as UpdateData
+
+      const result = updateVsCodeItem({
+        vs: testVs,
+        action: 'replace-code',
+        updateData: updates2,
+        csUrl: 'test.com'
+      })
+
+      const expectedResult = { error: `Failed to replace code in system with url test.com in Value Set with url test-vs-url.com (testname)`}
+
+      expect(result).toEqual(expectedResult)
+    })
+
+    it('should delete one code items when they exist and leave the others', () => {
+      const testVs = cloneDeep(testVsCodesVs)
+
+      const updates1 = {
+        action: 'delete-code',
+        codeUpdates: [
+            {code: 'test-code', display: 'test-display', definition: 'test-definition'}
+        ],
+        inValueSets: ['test-5']
+      } as DeleteData
+
+      const result = updateVsCodeItem({
+        vs: testVs,
+        action: 'delete-code',
+        updateData: updates1,
+        csUrl: 'test.com'
+      })
+
+      const expectedResult1 = {
+        id: 'test-5',
+        resourceType: 'ValueSet',
+        url: 'test-vs-url.com',
+        name: 'testname',
+        compose: {
+          include: [
+            {
+              system: 'test.com',
+              concept: [
+                { code: 'test-code-2', display: 'test-display-2' }
+              ]
+            }
+          ]
+        }
+      }
+      expect(result).toEqual(expectedResult1)
+    })
+  })
+  it('should delete all code items when they exist, along with the compose.include item if no more codes', () => {
+    const testVs = cloneDeep(testVsCodesVs)
+
+    const updates1 = {
+      action: 'delete-code',
+      codeUpdates: [
+          {code: 'test-code', display: 'test-display', definition: 'test-definition'},
+          {code: 'test-code-2', display: 'test-display-2', definition: 'test-definition-2'}
+      ],
+      inValueSets: ['test-5']
+    } as DeleteData
+
+    const result = updateVsCodeItem({
+      vs: testVs,
+      action: 'delete-code',
+      updateData: updates1,
+      csUrl: 'test.com'
+    })
+
+    const expectedResult1 = {
+      id: 'test-5',
+      resourceType: 'ValueSet',
+      url: 'test-vs-url.com',
+      name: 'testname',
+      compose: {
+        include: []
+      }
+    }
+    expect(result).toEqual(expectedResult1)
+  })
+  it('should return the valueset unaltered if the code does not match', () => {
+    const testVs = cloneDeep(testVsCodesVs)
+
+    const updates1 = {
+      action: 'delete-code',
+      codeUpdates: [
+          { code: 'test-code-nomatch', display: 'test-display', definition: 'test-definition' },
+      ],
+      inValueSets: ['test-5']
+    } as DeleteData
+
+    const result = updateVsCodeItem({
+      vs: testVs,
+      action: 'delete-code',
+      updateData: updates1,
+      csUrl: 'test.com'
+    })
+
+    expect(result).toEqual(testVsCodesVs)
+  })
 })
+
+const testVsCodesVs = {
+  id: 'test-5',
+  resourceType: 'ValueSet',
+  url: 'test-vs-url.com',
+  name: 'testname',
+  compose: {
+    include: [
+      {
+        system: 'test.com',
+        concept: [
+          { code: 'test-code', display: 'test-display' },
+          { code: 'test-code-2', display: 'test-display-2' }
+        ]
+      }
+    ]
+  }
+} as fhir4.ValueSet
 
 const testValueSet1 = {
   id: 'test',

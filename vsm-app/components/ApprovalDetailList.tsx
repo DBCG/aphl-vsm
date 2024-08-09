@@ -83,13 +83,13 @@ const ApprovalDetailList = ({
         data={
           assessments?.map((dataObj, i) => {
             return {
-              id: `${dataObj.artifactCommentType}_${dataObj.approvalDate}_${i}`,
+              id: `${dataObj.artifactAssessmentType}_${dataObj.approvalDate}_${i}`,
               date: dataObj.approvalDate || '-',
-              user: dataObj.artifactCommentUser || '-',
-              type: dataObj.artifactCommentType || '',
-              text: dataObj.artifactCommentText || '-',
-              reference: dataObj.artifactCommentReference || '-',
-              version: dataObj.artifactCommentTarget?.split('|')?.pop() || '-'
+              user: dataObj.artifactAssessmentAuthor || '-',
+              type: dataObj.artifactAssessmentType || '',
+              text: dataObj.artifactAssessmentSummary || '-',
+              reference: dataObj.artifactAssessmentRelatedArtifact || '-',
+              version: dataObj.artifactAssessmentTarget?.split('|')?.pop() || '-'
             }
           }) || []
         }

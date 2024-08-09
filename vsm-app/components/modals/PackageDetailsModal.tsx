@@ -22,7 +22,8 @@ import InfoIcon from '@mui/icons-material/Info'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { toast } from 'react-toastify'
 import styled from 'styled-components'
-import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
+import type { ExpectedPackageBody, PackageResponse } from '@/pages/api/programs/[id]/package'
+import { ValidateBody, ValidateErrorResponse } from '@/pages/api/programs/validate'
 
 interface ModalInfo {
   isOpen: boolean
@@ -42,39 +43,33 @@ interface PackageParams extends BodyFormatter {
   programId: string
 }
 
-const packageProgram = async ({
-  isJson,
-  isV2,
-  targetVersion,
-  fileUploadContent,
-  programId
-}: PackageParams) => {
-  try {
-    const bodyForPackage = formatBody({
-      isJson,
-      isV2,
-      targetVersion,
-      fileUploadContent
-    })
+const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId }: PackageParams) => {
+  const bodyForPackage = formatBody({
+    isJson,
+    isV2,
+    targetVersion,
+    fileUploadContent
+  })
 
-    return await fetch(`/api/programs/${programId}/package`, {
-      method: 'POST',
-      body: JSON.stringify(bodyForPackage)
-    }).then((res) => {
-      return isJson || !res.ok ? res.json() : res.text()
+  return await fetch(`/api/programs/${programId}/package`, {
+    method: 'POST',
+    body: JSON.stringify(bodyForPackage)
+  })
+    .then((res): Promise<PackageResponse> => {
+      if (!res.ok || isJson) {
+        return res.json()
+      } else {
+        return res.text()
+      }
     })
-  } catch (e) {
-    return({ error: ['Unknown error occured while packaging this program to export.'] })
-  }
+    .catch((err) => {
+      console.error(err)
+      return { error: 'Unknown error occured while packaging this program to export.' }
+    })
 }
 
-const formatBody = ({
-  isJson,
-  isV2,
-  targetVersion,
-  fileUploadContent
-}: BodyFormatter): ExpectedPackageBody => {
-  const body = {
+const formatBody = ({ isJson, isV2, targetVersion, fileUploadContent }: BodyFormatter): ExpectedPackageBody['body'] => {
+  const body: ExpectedPackageBody['body'] = {
     data: {
       parameters: {
         resourceType: 'Parameters'
@@ -82,7 +77,7 @@ const formatBody = ({
       json: isJson,
       useV2: isV2
     }
-  } as ExpectedPackageBody
+  }
 
   if (!isV2 && fileUploadContent) {
     body.planDefinition = fileUploadContent.content
@@ -91,16 +86,16 @@ const formatBody = ({
   return body
 }
 
-const validatePackage = async (pkgBundle: fhir4.Bundle) => {
+const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
   try {
-    const body = { pkg: pkgBundle }
+    const body: ValidateBody['body'] = { pkg: pkgBundle }
     return await fetch(`/api/programs/validate`, {
       method: 'POST',
       body: JSON.stringify(body)
-    }).then((res) => res.json())
+    }).then((res) => res.json() as Promise<ValidateErrorResponse>)
   } catch (e) {
     console.error('validate error: ', e)
-    return({ error: 'Unknown error occured while validating this program.' })
+    return { error: 'Unknown error occured while validating this program.' }
   }
 }
 
@@ -142,7 +137,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     const spaceAndUnderscoreRx = /[\s_]/gi
     // first, remove special characters that are not - or _
     // next, replace all _ with -
-    const cleanedFileName = ((program?.title || program?.id || 'program').replaceAll(specialCharRx, '')).replaceAll(spaceAndUnderscoreRx, '-')
+    const cleanedFileName = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
     const fileExtension = type.includes('json') ? 'json' : 'xml'
     link.download = `${cleanedFileName}-bundle.${fileExtension}`
     document.body.appendChild(link)
@@ -184,10 +179,10 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     setDownloadLoading(true)
 
     const errorByTopic = {
-      'Package Errors': [] as string[] | string,
-      'Server Errors': [] as string[] | string,
-      'Download Errors': [] as string[] | string,
-      'Validation Errors': [] as string[] | string
+      'Package Errors': [] as string[],
+      'Server Errors': [] as string[],
+      'Download Errors': [] as string[],
+      'Validation Errors': [] as string[]
     }
 
     const packageResponse = await packageProgram({
@@ -199,27 +194,23 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     })
 
     // early return if package fails will jump
-    if (packageResponse.error) {
-      errorByTopic['Package Errors'] = packageResponse.error
+    if (typeof packageResponse !== 'string' && 'error' in packageResponse) {
+      errorByTopic['Package Errors'].push(packageResponse.error)
       setExportError(errorByTopic)
       handleExitExportModal()
       return
     }
 
-    const packageToValidate = fileType === 'json' ? packageResponse : await packageProgram({
-      isJson: true,
-      isV2: versionRadioValue === 'v2',
-      targetVersion,
-      fileUploadContent,
-      programId: program.id!
-    })
-
-    const validationResult = await validatePackage(packageToValidate)
+    const validationResult = await validatePackage(packageResponse)
 
     // document validation errors
     if (validationResult?.error?.length) {
       const validationErrorStrings = validationResult.error
-      errorByTopic['Validation Errors'] = validationErrorStrings
+      if (typeof validationErrorStrings === 'string') {
+        errorByTopic['Validation Errors'].push(validationErrorStrings)
+      } else {
+        errorByTopic['Validation Errors'].push(...validationErrorStrings)
+      }
     }
 
     try {
@@ -228,15 +219,15 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
         downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json')
       } else {
-        errorByTopic['Download Errors'] = `Could not download file in ${ fileType.toUpperCase() } format`
+        errorByTopic['Download Errors'].push(`Could not download file in ${fileType.toUpperCase()} format`)
       }
 
-      const errorsExist = Boolean(Object.values(errorByTopic).filter(e => (Boolean(e?.length)))?.length > 0)
+      const errorsExist = Boolean(Object.values(errorByTopic).filter((e) => Boolean(e?.length))?.length > 0)
       if (errorsExist) {
         setExportError(errorByTopic)
       }
     } catch (error) {
-      errorByTopic['Download Errors'] = 'File download failed'
+      errorByTopic['Download Errors'].push('File download failed')
       setExportError(errorByTopic)
     }
     handleExitExportModal()
@@ -343,12 +334,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <LoadingButton
-            loading={downloadLoading}
-            disabled={downloadLoading}
-            data-modal={'Download'}
-            onClick={handleClickExport}
-          >
+          <LoadingButton loading={downloadLoading} disabled={downloadLoading} data-modal={'Download'} onClick={handleClickExport}>
             Download
           </LoadingButton>
         </DialogActions>

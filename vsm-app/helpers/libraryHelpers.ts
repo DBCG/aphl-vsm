@@ -396,6 +396,15 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
   return ({ grouper: clonedGrouper, errors })
 }
 
+const deleteValueSetReferencesFromLibrary = (library: fhir4.Library, canonicalsToRemove: string[]) => {
+  // remove valueset from depends-on via canonical
+  let clonedLib = cloneDeep(library)
+  
+  const updatedRelatedArtifacts = clonedLib.relatedArtifact?.filter(ra => !canonicalsToRemove.includes(ra.resource!))
+  clonedLib.relatedArtifact = updatedRelatedArtifacts
+  return clonedLib
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
@@ -412,5 +421,6 @@ export {
   setEffectivePeriodStart,
   validStartDate,
   addVSConditions,
-  updateGrouperLeafs
+  updateGrouperLeafs,
+  deleteValueSetReferencesFromLibrary
 }

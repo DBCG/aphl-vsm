@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import handler, { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
+import handler, { ExpectedPackageBody, PackageResponse } from '@/pages/api/programs/[id]/package'
 import fetchMock from 'jest-fetch-mock'
 import v2ExportResponse from '@/test_fixtures/ersd-export-v2.json'
 import v1ExportResponse from '@/test_fixtures/ersd-export-v1.json'
@@ -27,7 +27,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v2 bundle for download', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       data: {
         json: true,
         useV2: true,
@@ -36,7 +36,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>>({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -52,7 +52,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       data: {
         json: true,
@@ -62,7 +62,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>>({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -79,7 +79,7 @@ describe('/api/programs/[id]/package', () => {
     expect(fetchMock.mock.calls[1][0]).toContain('/fhir/$ersd-v2-to-v1-transform?_format=json')
     expect(fetchMock.mock.calls.length).toEqual(2)
 
-    const inputPayload = JSON.parse(fetchMock.mock.calls[1][1].body)
+    const inputPayload = JSON.parse(fetchMock?.mock?.calls?.[1]?.[1]?.body as string)
     expect(inputPayload.parameter[1].name).toEqual('targetVersion')
     expect(inputPayload.parameter[1].valueString).toEqual('4.0.0')
 
@@ -88,7 +88,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 bundle for download with provided planDefintion', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       planDefinition: {
         resourceType: 'PlanDefinition',
@@ -104,7 +104,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>>({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -118,7 +118,7 @@ describe('/api/programs/[id]/package', () => {
 
     await handler(req, res)
 
-    const inputPayload = JSON.parse(fetchMock.mock.calls[1][1].body)
+    const inputPayload = JSON.parse(fetchMock?.mock?.calls?.[1]?.[1]?.body as string)
     const replacedPlanDef = inputPayload.parameter[0].resource.entry.find((e: any) => e.resource.resourceType === 'PlanDefinition')
 
     expect(replacedPlanDef.resource.id).toEqual('superspecial')
@@ -126,7 +126,7 @@ describe('/api/programs/[id]/package', () => {
   })
 
   test('POST /api/programs/[id]/package, packages collection v1 error for missing planDefinition from v2 and not provided', async () => {
-    const body: ExpectedPackageBody = {
+    const body: ExpectedPackageBody["body"] = {
       targetVersion: '4.0.0',
       data: {
         json: true,
@@ -136,7 +136,7 @@ describe('/api/programs/[id]/package', () => {
         }
       }
     }
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse<fhir4.Bundle | string | { error: string | string[] }>>({
+    const { req, res } = createMocks<ExpectedPackageBody, NextApiResponse<PackageResponse>>({
       method: 'POST',
       body: body,
       query: {
@@ -146,7 +146,7 @@ describe('/api/programs/[id]/package', () => {
 
     const v2ExportResponseMissingPlanDef = cloneDeep(v2ExportResponse)
     v2ExportResponseMissingPlanDef.entry = v2ExportResponseMissingPlanDef.entry.filter(
-      (e: any) => e.resource.resourceType !== 'PlanDefinition'
+      (e) => e.resource.resourceType !== 'PlanDefinition'
     )
 
     // v2 export response
@@ -154,8 +154,8 @@ describe('/api/programs/[id]/package', () => {
 
     await handler(req, res)
     expect(res._getStatusCode()).toBe(400)
-    expect(res._getData()).toBe(
-      '{"error":"No PlanDefinition resource found in v2 package response nor was uploaded as part of the request"}'
+    expect(res._getData()).toEqual(
+      { error: "No PlanDefinition resource found in v2 package response nor was uploaded as part of the request" }
     )
   })
 })

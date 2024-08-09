@@ -113,7 +113,7 @@ const is = {
     return typeof value === 'string'
   },
   stringArray: (value: any): value is string[] => {
-    return Array.isArray(value) && value.every(i => typeof i === 'string')
+    return Array.isArray(value) && value.every((i: any) => typeof i === 'string')
   },
   substance: (resource: fhir4.Substance | any): resource is fhir4.Substance => {
     return resource?.resourceType === 'Substance'

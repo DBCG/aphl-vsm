@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import styled from 'styled-components'
-import DataTable, { TableColumn } from 'react-data-table-component'
+import DataTable from 'react-data-table-component'
 import { cloneDeep } from 'lodash'
 import { FilterControl } from './FilterControl'
 import { Checkbox, FormControlLabel, FormGroup } from '@mui/material'

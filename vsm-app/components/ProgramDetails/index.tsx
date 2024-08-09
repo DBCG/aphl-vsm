@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/router'
 import { Button } from '@/components/buttons/Button'
 import { PageTitle } from '@/components/Typography'
 import { useGetProgramDetails } from '@/hooks/useGetProgramDetails'
 import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
-import { is } from '@/helpers/is'
 import { useSession } from 'next-auth/react'
-import LoadingIndicator from '@/components/LoadingIndicator'
 import ProgramMetadata from '@/components/ProgramMetadata'
 import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { Row, Col, MetadataTitle, ManifestContainer, IndicatorContainer } from './styles'
@@ -18,14 +16,13 @@ import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
 import { ProgramCompareModal } from '../modals/ProgramCompareModal'
 import { StatusChip } from '../data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 
 const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const programId = router.query.id as string
   const [currentProgram, setProgram] = useState<fhir4.Library>(program)
-  const [refreshData, setRefreshData] = useState(false)
-  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails({ id: programId, toggleRefresh: refreshData })
+  const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails(currentProgram?.id!)
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
   const [showProgramCompareModal, setShowCompareProgramModal] = useState(false)
@@ -34,8 +31,8 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
     setExportError(null)
   }
 
-  const updateProgram = async ({ program, isExperimental }: {program: fhir4.Library, isExperimental: boolean }) => {
-    const endPoint = `/api/programs/${programId}?experimental=${isExperimental}`
+  const updateProgram = async ({ program, isExperimental }: { program: fhir4.Library; isExperimental: boolean }) => {
+    const endPoint = `/api/programs/${currentProgram?.id}?experimental=${isExperimental}`
     const response = await fetch(endPoint, {
       method: 'PUT',
       headers: {
@@ -53,23 +50,15 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
     }
   }
 
-  // early return if no data, must be a library if there's data
-  if (!is.library(currentProgram)) {
-    return (
-      <IndicatorContainer>
-        <LoadingIndicator size="large" />
-      </IndicatorContainer>
-    )
-  }
-
   const { id = '', status, experimental } = currentProgram
+  const manifestData = getProgramManifestVersions(currentProgram)
   return (
     <Col>
-      {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors}/>}
+      {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }}label={status} experimental={Boolean(experimental)} />
+          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={status} experimental={Boolean(experimental)} />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button
@@ -92,11 +81,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
               setShowCompareProgramModal(true)
             }}
           />
-          <ProgramCompareModal
-            isOpen={showProgramCompareModal}
-            programId={id}
-            closeModal={() => setShowCompareProgramModal(false)}
-          />
+          <ProgramCompareModal isOpen={showProgramCompareModal} programId={id} closeModal={() => setShowCompareProgramModal(false)} />
           <ExportPackageDetailsModal
             isOpen={showExportOptionsModal}
             program={currentProgram}
@@ -114,11 +99,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
-        <ManifestDetailTable
-          programId={programId}
-          data={programAndGrouperData?.manifestData}
-          loading={programAndGrouperData?.manifestData == null}
-        />
+        <ManifestDetailTable programId={currentProgram?.id!} manifestData={manifestData} />
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>

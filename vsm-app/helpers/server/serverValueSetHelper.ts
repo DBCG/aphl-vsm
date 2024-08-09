@@ -137,6 +137,8 @@ export const fetchLeafValueSets = async ({
       }
       if (version) {
         searchParameters._version = version
+      } if (provisionalOnly) {
+        searchParameters._tag = 'vsm-provisional' 
       }
       return fhirCdrClient.search({
         resourceType: 'ValueSet',
@@ -151,7 +153,7 @@ export const fetchLeafValueSets = async ({
     valueSets = result
       ?.map((e) => {
         if (e.entry) {
-          if (e.entry.length > 1) {
+          if (e?.entry?.length > 1) {
             // Find latest valueset version to return
             const latestEntry = e.entry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
               const curDate = new Date((cur.resource as fhir4.ValueSet)?.version || 0)
@@ -159,11 +161,13 @@ export const fetchLeafValueSets = async ({
               return dayjs(curDate).isAfter(accDate) ? cur : acc
             }, e.entry[0])
             return [latestEntry.resource]
+          } else if (e?.entry?.length === 1) {
+            return [e.entry[0].resource]
+          } else {
+            return
           }
-          
-          return e.entry?.[0]?.resource
         }
-      })
+      })?.filter(x => !!x) // filter out undefined
       ?.flat()
       ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
 

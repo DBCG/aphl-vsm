@@ -1,6 +1,5 @@
 
 import EditManifestDetails from '@/components/EditManifestDetails'
-import LoadingIndicator from '@/components/LoadingIndicator'
 import { useRouter } from 'next/router'
 import { Row } from '@/styles'
 import { Button } from '@/components/buttons/Button'
@@ -15,9 +14,6 @@ const ManifestPage = ({ program }: LibraryServerSideProps) => {
     return null
   }
 
-  if (program == null) {
-    return <LoadingIndicator />
-  }
 
   return (
     <>
