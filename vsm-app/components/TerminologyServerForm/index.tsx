@@ -29,12 +29,6 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     toast.dismiss()
     e.preventDefault()
     setLoading(true)
-    if (!address?.current?.value.trim()) {
-      setAddressError('Error: Address cannot be empty')
-    }
-    if (!name?.current?.value.trim()) {
-      setNameError('Error: Name cannot be empty')
-    }
     if (!name?.current?.value.trim() || !address?.current?.value.trim()) {
       setLoading(false)
       return
@@ -91,7 +85,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     try {
       new URL(url)
     } catch (_) {
-      setAddressError('Error: The address provided is malformed')
+      setAddressError('Warning: The address provided is malformed')
       return false
     }
     setAddressError('')
@@ -135,6 +129,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             onChange={(e) => {
               if (e.target.value.trim()) {
                 setNameError('')
+              } else {
+                setNameError('Error: Name cannot be empty')
               }
             }}
             disabled={loading}
@@ -147,8 +143,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             errorMessage={addressError}
             onChange={(v) => {
               const address = v.target.value
-              if (!address) {
-                setAddressError('')
+              if (!address.trim()) {
+                setAddressError('Error: Address cannot be empty')
                 return
               }
               if (debouncedValidUrl(address)) {
@@ -157,6 +153,10 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             }}
             onBlur={(v) => {
               const address = v.target.value
+              if (!address.trim()) {
+                setAddressError('Error: Address cannot be empty')
+                return
+              }
               if (isValidUrl(address)) {
                 validateWithHttpCall(address)
               }
