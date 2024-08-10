@@ -31,19 +31,34 @@ describe('pages/api/valueset/expand', () => {
       expansionParameters: {
         'http://loinc.org': ['2.69']
       },
-      valueSetId: 'http://loinc.org/vs/LL269-2'
+      valueSetId: '4224'
     }
     const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
       method: 'POST',
       body: body
     })
-
+    fhirCdrClient.read = jest.fn().mockResolvedValue({
+      resourceType: 'ValueSet',
+      id: '4224',
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.32.33.44.22.55',
+      version: '07012018',
+      name: 'LL269-2',
+      title: 'LL269-2',
+      status: 'active'
+    })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/http://loinc.org/vs/LL269-2/$expand')
+    console.log(fetchMock.mock.calls[0][0])
+    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
 
     expect(fetchMock.mock.calls[0][1].body).toBe(
-      JSON.stringify({ resourceType: 'Parameters', parameter: [{ name: 'system-version', valueCanonical: 'http://loinc.org|2.69' }] })
+      JSON.stringify({
+        resourceType: 'Parameters',
+        parameter: [
+          { name: 'system-version', valueCanonical: 'http://loinc.org|2.69' },
+          { name: 'valueSetVersion', valueString: '07012018' }
+        ]
+      })
     )
   })
 
