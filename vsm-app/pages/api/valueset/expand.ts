@@ -61,20 +61,17 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
         })
         res.status(200).send(matchingVsUrlsCodes)
       } else {
-        console.error('failed here 1.1')
+        logger.error('Missing code for search')
         return res.status(500).json({ error: 'Missing code or system.' })
       }
     } else {
-      console.error('failed here 1')
-      return res.status(500).json({ error: 'Invalid request.' })
+      logger.error('Invalid request.')
+      return res.status(400).json({ error: 'Invalid request.' })
     }
 
     res.status(200).send(response)
   } catch (e: any) {
-    console.error('failed here')
-    console.error('e: ', e)
-    console.log(e.response.data)
-    logger.error('error in expandValueSets:  ', JSON.stringify(e, null, 2))
+    logger.error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }
