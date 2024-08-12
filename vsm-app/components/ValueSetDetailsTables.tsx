@@ -11,7 +11,8 @@ import { useRouter } from 'next/router'
 import { getProgramManifestVersions, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
-import { ExpandRequest } from '@/pages/api/valueset/expand'
+import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
+import { extractOidFromUrl } from '@/utils'
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -32,6 +33,7 @@ interface GrouperTableDetail {
   canonical: string
   version?: string
   valueSetPinnedVersion?: string | undefined
+  valuesetId: string
 }
 
 interface ValueSetDetailsTablesProps {
@@ -108,11 +110,13 @@ const ValueSetDetailsTables = ({
     return pData?.map((i: DataItem) => {
      return ({
       title: i?.valueSet?.title,
-      oid: i?.canonical?.split('/ValueSet/')?.[1],
+      oid: extractOidFromUrl(i?.valueSet?.url!),
       canonical: i?.canonical,
       version: i?.version,
+      valuesetId: i?.valueSet?.id,
       valueSetPinnedVersion: i?.valueSetPinnedVersion
     })})
+
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -126,7 +130,7 @@ const ValueSetDetailsTables = ({
       expansionParameters: getProgramManifestVersions(programAndGrouperInfo.program!)
     }
     try {
-      const updatedValueSet = await fetch(`/api/valueset/expand`, {
+      const updatedValueSet = await fetch(`/api/valueset/${currentValueSet.id}/expand`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -175,7 +179,7 @@ const ValueSetDetailsTables = ({
         wrap: true,
         cell: (row: GrouperTableDetail) => (
           <TextLink
-            href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.oid}`}
+            href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.valuesetId}`}
             linkText={row.title}
             forceReload={true}
           />

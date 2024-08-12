@@ -136,7 +136,7 @@ export const fetchLeafValueSets = async ({
         ...searchParams
       }
       if (version) {
-        searchParameters._version = version
+        searchParameters.version = version
       } if (provisionalOnly) {
         searchParameters._tag = 'vsm-provisional' 
       }

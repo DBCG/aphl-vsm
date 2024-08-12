@@ -1,0 +1,69 @@
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
+import handler from '@/helpers/server/handler'
+import logger from '@/helpers/server/logger'
+import { getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
+import { extractOidFromUrl } from '@/utils'
+
+export interface ExpandRequest extends NextApiRequest {
+  body: {
+    valueSetId?: string
+    expansionParameters: { [key: string]: string[] }
+  }
+}
+
+// perhaps simplify the requests by using the data that's in the FE for the table?
+const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
+  const { valueSetId, expansionParameters } = req.body
+  if (valueSetId == null) {
+    logger.error('Invalid request, missing ValueSet ID.')
+    return res.status(400).json({ error: 'Invalid request, missing ValueSet ID.' })
+  }
+  try {
+    const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: valueSetId as string })) as fhir4.ValueSet
+
+    // We will only add system-version for relevant code systems
+    const codeSystemList = valueSet?.compose?.include?.map((i) => i.system).filter((i) => i)
+
+    const parameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+    const valueCanonicalString = [] as string[]
+
+    Object.entries(expansionParameters).forEach(([system, versions]) => {
+      if (codeSystemList?.includes(system)) {
+        valueCanonicalString.push(...versions.map((version) => `${system}|${version}`))
+      }
+    })
+
+    if (valueCanonicalString.length > 0) {
+      // @ts-ignore
+      parameters.parameter.push({
+        name: 'system-version',
+        valueCanonical: valueCanonicalString.join(',')
+      })
+    }
+    console.log(codeSystemList)
+    // in this case expanding just one valueset
+
+    setParameterVsVersion(parameters, valueSet)
+    const oid = extractOidFromUrl(valueSet.url!)
+    const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
+    const fetchOptions = getExpandFetchOptions(parameters)
+    const response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
+    logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
+
+    res.status(200).send(response)
+  } catch (e: any) {
+    logger.error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
+    res.status(404).json({ error: 'No results for expansion parameters.' })
+  }
+}
+
+export default handler({
+  POST: {
+    action: expandValueSets,
+    access: ['admin', 'editor']
+  }
+})

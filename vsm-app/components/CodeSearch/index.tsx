@@ -11,7 +11,7 @@ import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
 import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
-import { ExpandRequest } from '@/pages/api/valueset/expand'
+import { ExpandRequest } from '@/pages/api/valueset/codesearch'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 
 interface Props {
@@ -79,8 +79,8 @@ const CodeSearch = ({ program, router }: Props) => {
         codeToFind,
         expansionParameters: getProgramManifestVersions(program)
       }
-      let endpoint = `/api/valueset/expand`
-      const matches = await fetch(endpoint, {
+
+      const matches = await fetch('/api/valueset/codesearch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
