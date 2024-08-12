@@ -19,6 +19,12 @@ const VSM_LEAF_PROFILE_URLS = {
   HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
 }
 
+const vsmAuthoritativeSourceExtension: fhir4.Extension =
+{
+  url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
+  valueString: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL
+}
+
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
   return Boolean(vs?.compose?.include?.find(ci => ci?.version === 'PROVISIONAL'))
 }
@@ -110,9 +116,10 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
           value: {
             title: 'VSM',
             url: terminologyExt?.valueUri
+          }
+        }
       }
-    }}
-    errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
+      errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
     }
     return {
       value: val?.label || "",
@@ -235,7 +242,7 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
 
 const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.ValueSet) => {
   const baseGrouper = template || grouperValueSetBase
-  const templateVS = cloneDeep(baseGrouper) as fhir4.ValueSet
+  const templateVS: fhir4.ValueSet = cloneDeep(baseGrouper)
 
   const { author, ...rest } = metadata
 
@@ -249,7 +256,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
       valueContactDetail: {
         name: author
       }
-    }
+    }, vsmAuthoritativeSourceExtension
   ]
 
   return vs
@@ -288,6 +295,11 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
       newVs.extension.push(authorExtension)
     } else {
       newVs.extension[existingIndex] = authorExtension
+    }
+
+    const existingAuthoritativeSourceExt = newVs.extension.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+    if (!existingAuthoritativeSourceExt) {
+      newVs.extension.push(vsmAuthoritativeSourceExtension)
     }
   }
 
@@ -389,7 +401,7 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | Del
   try {
     const clonedVs = cloneDeep(vs)
     let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
-  
+
     if (action === 'replace-code') {
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
@@ -412,7 +424,7 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | Del
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
         const lengthOfConcept = composeBlock?.include?.[indexOfSystem]?.concept?.length
-        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1 
+        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1
           ? composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.code)
           : undefined
 

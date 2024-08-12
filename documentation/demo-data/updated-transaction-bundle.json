@@ -2277,6 +2277,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
@@ -2733,6 +2737,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/lotc",
@@ -2999,6 +3007,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc",
@@ -3845,6 +3857,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc",
@@ -4171,6 +4187,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/ostc",
@@ -4717,6 +4737,10 @@
             "valueContactDetail": {
               "name": "CSTE Steward"
             }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc",
@@ -4882,6 +4906,10 @@
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
             "valueUri": "https://cts.nlm.nih.gov/fhir"
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506",

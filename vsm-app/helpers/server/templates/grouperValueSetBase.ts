@@ -1,4 +1,4 @@
-const grouperValueSetBase = {
+const grouperValueSetBase: fhir4.ValueSet = {
   resourceType: "ValueSet",
   meta: {
     profile: [
