@@ -2,11 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-import { findMatchingVsetUrls, getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
-import { extractOidFromUrl } from '@/utils'
+import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
+
 export interface ExpandRequest extends NextApiRequest {
   body: {
-    valueSetId?: string
     expansionParameters: { [key: string]: string[] }
     groupersToSearch?: string[]
     codeToFind?: string
@@ -16,7 +15,7 @@ export interface ExpandRequest extends NextApiRequest {
 }
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
-const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
+const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiResponse) => {
   try {
     const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
@@ -34,20 +33,9 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
       })
     }
 
-    let response
     const groupersToSearch = req?.body?.groupersToSearch
 
-    // in this case expanding just one valueset
-    if (typeof req.body.valueSetId === 'string') {
-      const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.body?.valueSetId as string })) as fhir4.ValueSet
-
-      setParameterVsVersion(parameters, valueSet)
-      const oid = extractOidFromUrl(valueSet.url!)
-      const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
-      const fetchOptions = getExpandFetchOptions(parameters)
-      response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
-      logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
-    } else if (typeof groupersToSearch !== 'undefined') {
+   if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind
       if (codeToFind) {
@@ -68,8 +56,6 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
       logger.error('Invalid request.')
       return res.status(400).json({ error: 'Invalid request.' })
     }
-
-    res.status(200).send(response)
   } catch (e: any) {
     logger.error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
@@ -78,7 +64,7 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
 
 export default handler({
   POST: {
-    action: expandValueSets,
+    action: expandValueSetsCodeSearch,
     access: ['admin', 'editor']
   }
 })

@@ -11,7 +11,7 @@ import { useRouter } from 'next/router'
 import { getProgramManifestVersions, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
-import { ExpandRequest } from '@/pages/api/valueset/expand'
+import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
 import { extractOidFromUrl } from '@/utils'
 
 interface TabPanelProps {
@@ -130,7 +130,7 @@ const ValueSetDetailsTables = ({
       expansionParameters: getProgramManifestVersions(programAndGrouperInfo.program!)
     }
     try {
-      const updatedValueSet = await fetch(`/api/valueset/expand`, {
+      const updatedValueSet = await fetch(`/api/valueset/${currentValueSet.id}/expand`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
