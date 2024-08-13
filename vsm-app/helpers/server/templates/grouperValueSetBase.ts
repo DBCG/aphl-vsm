@@ -15,22 +15,6 @@ const grouperValueSetBase: fhir4.ValueSet = {
   },
   status: "draft",
   experimental: true,
-  relatedArtifact: {
-    extension: [
-      {
-        url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-        valueCodeableConcept: {
-          coding: [
-            {
-              system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-              code: "routine"
-            }
-          ],
-          text: "Routine"
-        }
-      }
-    ]
-  },
   useContext: [
     {
       code: {
