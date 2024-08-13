@@ -383,9 +383,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         sortable: false,
         maxWidth: '350px',
         wrap: true,
-        cell: (row: TableRow) => (
-          <TextLink href={`/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`} linkText={row.title} forceReload={false} />
-        )
+        cell: (row: TableRow) => {
+          let href = `/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`
+          if (row.valueSetPinnedVersion) {
+            href += '?pinnedVersion=true'
+          }
+          return (
+          <TextLink href={href} linkText={row.title} forceReload={false} />
+        )}
       },
       {
         name: (
