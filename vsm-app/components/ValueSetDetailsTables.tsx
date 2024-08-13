@@ -130,7 +130,11 @@ const ValueSetDetailsTables = ({
       expansionParameters: getProgramManifestVersions(programAndGrouperInfo.program!)
     }
     try {
-      const updatedValueSet = await fetch(`/api/valueset/${currentValueSet.id}/expand`, {
+      let endpoint = `/api/valueset/${currentValueSet.id}/expand`
+      if (router.query.pinnedVersion) {
+        body.pinnedVersion = true
+      }
+      const updatedValueSet = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -177,13 +181,18 @@ const ValueSetDetailsTables = ({
         selector: (row: GrouperTableDetail) => row?.title!,
         sortable: true,
         wrap: true,
-        cell: (row: GrouperTableDetail) => (
-          <TextLink
-            href={`/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.valuesetId}`}
-            linkText={row.title}
-            forceReload={true}
-          />
-        )
+        cell: (row: GrouperTableDetail) => {
+          let href = `/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.valuesetId}`
+          if (!row.valueSetPinnedVersion) {
+            href += '?pinnedVersion=true'
+          }
+          return (
+            <TextLink
+              href={href}
+              linkText={row.title}
+              forceReload={true}
+            />
+        )}
       },
       {
         name: 'OID',
