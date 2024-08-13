@@ -233,7 +233,7 @@ interface ConditionItem {
   version: string
 }
 
-interface FormattedGroup {
+export interface FormattedGroup {
   id: string
   label: string
   url: string
@@ -348,7 +348,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   }
 
   const handleAddValueSets = async () => {
-    const body = {
+    const body: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
       selectedTerminologyServer: 'vsm',
       selectedValueSets: uniqBy(selectedRows, 'id'),
       selectedConditions,

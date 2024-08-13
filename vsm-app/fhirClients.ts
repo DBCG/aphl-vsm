@@ -19,7 +19,7 @@ const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH
 
 const fhirCdrClient = new FhirKitClient({
   baseUrl: FHIR_CDR_URL,
-  ...(FHIR_CDR_BASIC_AUTH_USERNAME && FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}`} })
+  ...(FHIR_CDR_BASIC_AUTH_USERNAME && FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` } })
 })
 
 const vsacFhirClient = new FhirKitClient({
@@ -72,7 +72,7 @@ class PrivateTerminologyClient {
     return this.clientName
   }
 
-  setClient(newClient: 'vsac' | 'ontoserverR4') {
+  setClient(newClient: 'vsac' | 'ontoserverR4' | "vsm") {
     // defaults to VSAC
     let client = new FhirKitClient({
       baseUrl: NEXT_PUBLIC_VSAC_BASE_URL,
