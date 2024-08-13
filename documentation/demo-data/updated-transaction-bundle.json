@@ -2280,7 +2280,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/dxtc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
@@ -2740,7 +2740,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/lotc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/lotc",
@@ -3010,7 +3010,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/lrtc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc",
@@ -3860,7 +3860,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/mrtc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc",
@@ -4190,7 +4190,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/ostc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/ostc",
@@ -4740,7 +4740,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://www.test.com/fhir"
+            "valueUri": "https://www.test.com/fhir/ValueSet/sdtc"
           }
         ],
         "url": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc",
