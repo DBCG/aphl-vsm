@@ -1464,6 +1464,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		leafValueSets.forEach(valueSet -> assertNotNull(valueSet.getExpansion()));
 	}
 
+	// re enabling all these once we use the updated package implmentation which naive expands without the terminology server
+	@Disabled
 	@Test
 	void package_test_condition_missing() {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");
