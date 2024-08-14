@@ -337,7 +337,7 @@ const ValueSetDetailsTables = ({
       <TabPanel value={value} index={1}>
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', flexDirection: 'column' }}>
           <div style={{ minWidth: '18rem' }}>
-            <StyledParagraph>Expansions are dynamically generated based on your program's manifest.</StyledParagraph>
+            <StyledParagraph>Expansions are dynamically generated based on your program&apos;s manifest.</StyledParagraph>
             <StyledParagraph style={{ marginBottom: '1rem' }}>In the manifest, authors specify which code system versions should be used to create the expansion.</StyledParagraph>
             <StyledParagraph>The latest expansion data is not persisted in the VSM.</StyledParagraph>
             <StyledParagraph>To see the latest expansion, regenerate using the button at top right.</StyledParagraph>
