@@ -72,7 +72,7 @@ class PrivateTerminologyClient {
     return this.clientName
   }
 
-  setClient(newClient: 'vsac' | 'ontoserverR4' | "vsm") {
+  setClient(newClient: 'vsac' | 'ontoserverR4' | 'vsm') {
     // defaults to VSAC
     let client = new FhirKitClient({
       baseUrl: NEXT_PUBLIC_VSAC_BASE_URL,
