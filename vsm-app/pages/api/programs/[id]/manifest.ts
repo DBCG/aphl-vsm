@@ -6,7 +6,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
-import { getProgramDetailsValuesets } from './details/valuesets'
+import { getVSConditions } from '@/helpers/libraryHelpers'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -61,20 +61,16 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
   }
 }
 
-const collectLeafValueSetCodeSystems = async (programId: string) => {
-  const leafVs = await getProgramDetailsValuesets({id: programId})
-
-  // @ts-ignore
-  let codeSystemsList = leafVs?.payload?.data?.map((i) => {
-      const vs = i?.valueSet?.useContext?.find(
-        (j: fhir4.UsageContext) => !j?.valueCodeableConcept?.coding?.[0]?.system?.includes('http://hl7.org/fhir/us/ecr')
-      )
-      return vs?.valueCodeableConcept?.coding?.[0]
+const collectCodeSystemsFromProgram = async (programId: string) => {
+  const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId })
+  const conditionsMap = getVSConditions(program as fhir4.Library)
+  let codeSystemsList = Object.values(conditionsMap)
+    .flat()
+    .map((i) => {
+      const [system, code] = i.id.split('|')
+      return { system, code }
     })
-    .filter((i: any) => i)
-
-  codeSystemsList = uniqBy(codeSystemsList, 'system') // make unique list
-
+  codeSystemsList = uniqBy(codeSystemsList, 'system')
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
   logger.info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
@@ -116,7 +112,7 @@ const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, 
       const programId = req.query.id as string
 
       // Check all leaf ValueSets and collect their CodeSystem's
-      const list = await collectLeafValueSetCodeSystems(programId)
+      const list = await collectCodeSystemsFromProgram(programId)
       return res.status(200).json(list)
     } else {
       terminologyClient.setClient('vsac')
