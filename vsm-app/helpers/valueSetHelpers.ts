@@ -296,18 +296,22 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
     } else {
       newVs.extension[existingIndex] = authorExtension
     }
-
-    const existingAuthoritativeSourceExt = newVs.extension.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
-    if (!existingAuthoritativeSourceExt) {
-      newVs.extension.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${newVs.id}` })
+    if (!newVs.id) {
+      throw "ValueSet: '" + newVs.url + "' is missing ID"
     }
+    updateAuthSource(newVs.extension, newVs.id)
   }
 
   // add all fields that are simple obj.assign
   // if ...rest doesn't contain anything, it defaults to {}
   return Object.assign(newVs, rest)
 }
-
+function updateAuthSource(extensions: fhir4.Extension[], id: string) {
+  const existingAuthoritativeSourceExt = extensions.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+  if (!existingAuthoritativeSourceExt) {
+    extensions.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${id}` })
+  }
+}
 const urlWithoutVersion = (url: string) => url?.split?.('-')?.[0]
 
 // VSAC appends versions to valueset ids and urls with hyphen
@@ -473,5 +477,6 @@ export {
   isProvisionalVs,
   isGrouperValueSet,
   addProfileToValueSet,
-  updateVsCodeItem
+  updateVsCodeItem,
+  updateAuthSource
 }
