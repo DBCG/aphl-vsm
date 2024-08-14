@@ -13,6 +13,13 @@ import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
 import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
 import { extractOidFromUrl } from '@/utils'
+import styled from 'styled-components'
+
+const StyledParagraph = styled.p`
+  margin-bottom: .4rem;
+  margin-top: 0rem;
+  font-size: 90%;
+`
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -284,15 +291,17 @@ const ValueSetDetailsTables = ({
         <Tabs value={value} onChange={handleTabChange}>
           <Tab label="Definition" {...a11yProps(0)} />
           {!isVsmVset && <Tab label="Expansion" {...a11yProps(1)} />}
-          {value === 1 && isDraftProgram && (
+          {value === 1 && (
             <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
-              <Box sx={{ mt: 1, mr: 1 }}>
-                <Tooltip title="Subject to change, program is in draft state" placement="top" arrow>
-                  <WarningAmberIcon sx={{ color: '#FFA204' }} />
-                </Tooltip>
-              </Box>
+              {isDraftProgram && (
+                <Box sx={{ mt: 1, mr: 1 }}>
+                  <Tooltip title="Expansion is subject to change, program is in draft state" placement="top" arrow>
+                    <WarningAmberIcon sx={{ color: '#FFA204' }} />
+                  </Tooltip>
+                </Box>
+              )}
               <LoadingButton loading={isLoadingExpansion} onClick={() => expandValueSet()}>
-                Expand
+                Generate Expansion
               </LoadingButton>
             </Box>
           )}
@@ -326,21 +335,30 @@ const ValueSetDetailsTables = ({
         />
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <TextField
-          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-          InputProps={{
-            endAdornment: (
-              <IconButton onClick={() => setFilterExpansionText('')}>
-                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-              </IconButton>
-            )
-          }}
-          value={filterExpansionText}
-          onChange={(e) => setFilterExpansionText(e.target.value)}
-          id="filter-expansion-table"
-          label="Filter Expansion Codes"
-          variant="outlined"
-        />
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', flexDirection: 'column' }}>
+          <div style={{ minWidth: '18rem' }}>
+            <StyledParagraph>Expansions are dynamically generated based on your program&apos;s manifest.</StyledParagraph>
+            <StyledParagraph style={{ marginBottom: '1rem' }}>In the manifest, authors specify which code system versions should be used to create the expansion.</StyledParagraph>
+            <StyledParagraph>The latest expansion data is not persisted in the VSM.</StyledParagraph>
+            <StyledParagraph>To see the latest expansion, regenerate using the button at top right.</StyledParagraph>
+          </div>
+          <TextField
+            sx={{ backgroundColor: 'white', mb: 2, width: '240px', minWidth: '240px', alignSelf: 'end', justifySelf: 'flex-end' }}
+            InputProps={{
+              endAdornment: (
+                <IconButton onClick={() => setFilterExpansionText('')}>
+                  <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+                </IconButton>
+              )
+            }}
+            value={filterExpansionText}
+            onChange={(e) => setFilterExpansionText(e.target.value)}
+            id="filter-expansion-table"
+            label="Filter Expansion Codes"
+            variant="outlined"
+          />
+
+        </div>
         <DataTable
           columns={expansionColumns}
           keyField={'code'}
