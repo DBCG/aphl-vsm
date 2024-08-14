@@ -6,22 +6,23 @@ import { TextArea } from '@/components/TextArea'
 import styled from 'styled-components'
 import { useGetProvisionalCS } from '@/hooks/useGetProvisionalCS'
 import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
+import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
-import { uniqBy } from 'lodash'
+import { set, uniqBy } from 'lodash'
 import { cloneDeep } from 'lodash'
 import { useRouter } from 'next/router'
 import { SearchInput } from '@/components/SearchInput'
 import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
 import { VSMSession, can } from '@/helpers/rolesHelper'
-import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
-import { Box, Chip, Modal, Typography } from '@mui/material'
-import { ArrowOutward } from '@mui/icons-material'
+import { Box, Chip, IconButton, Modal, Typography } from '@mui/material'
+import { ArrowOutward, DeleteForever } from '@mui/icons-material'
 import { ProvisionalsByProgram } from '@/pages/api/programs/provisional'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { modalStyle } from '@/styles'
 import { toast } from 'react-toastify'
+import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
 
 interface CodeDetailsProp {
   data: fhir4.ValueSet
@@ -42,7 +43,7 @@ interface CodeInfo {
 
 type CodeSystemExtended = fhir4.CodeSystem & {
   concept: CodeInfo[]
-} 
+}
 
 type CodesBySystemToAdd = Record<string, CodeInfo[]>
 
@@ -224,7 +225,6 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
   return (
     // @ts-ignore
     <DataTable
-      pagination
       customStyles={customExpandStyles}
       // @ts-ignore-next-line
       data={codesBySystem || []}
@@ -236,8 +236,9 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
 
 const ProvisionalVSEdit = () => {
   // get existing prov valuesets + codesystems
-  const { provisionalVS, isVsLoading, provVsError } = useGetProvisionalVS()
-  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS()
+  const { provisionalVS, isVsLoading, provVsError, mutateProvVs } = useGetProvisionalVS()
+  const { provisionalCS, isCsLoading, provCsError, mutateProvCs } = useGetProvisionalCS()
+  const { provisionalContext, isContextLoading, provContextError, mutateProvContext } = useGetProvisionalContext()
   const [showVsForm, setShowVsForm] = useState(false)
   const [provisionalVsIdForUpdate, setProvisionalVsIdForUpdate] = useState<string | undefined>(undefined)
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<SingleValue<{ value: string; label: string; }> | undefined>(undefined)
@@ -252,7 +253,6 @@ const ProvisionalVSEdit = () => {
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
   const allVsacCS = useGetCS()
-  const { provisionalContext, isContextLoading, provContextError } = useGetProvisionalContext()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   // valueset details
   const [title, setTitle] = useState('')
@@ -268,11 +268,16 @@ const ProvisionalVSEdit = () => {
 
   // loading + error state
   const [loading, setLoading] = useState(false)
+  const [titleError, setTitleError] = useState<IsValidFormatResponse | null>(null)
+  const [authorError, setAuthorError] = useState<IsValidFormatResponse | null>(null)
+  const [stewardError, setStewardError] = useState<IsValidFormatResponse | null>(null)
+  // code errors
+  const [codeError, setCodeError] = useState<IsValidFormatResponse | null>(null)
+  const [displayError, setDisplayError] = useState<IsValidFormatResponse | null>(null)
+  const [definitionError, setDefinitionError] = useState<IsValidFormatResponse | null>(null)
 
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
-
-
 
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystemToAdd, action: 'add' | 'remove') => {
     let currentCodesToAdd = cloneDeep(codesBySystemToAdd)
@@ -308,6 +313,26 @@ const ProvisionalVSEdit = () => {
   const existingProvisionalVsColumns = useMemo(() => {
     const fields = [
       {
+        name: 'Delete',
+        selector: (row: fhir4.ValueSet) => row.title!,
+        maxWidth: '10rem',
+        omit: !provisionalVsIdForUpdate,
+        cell: (row: fhir4.ValueSet) => {
+          if (row.id === provisionalVsIdForUpdate) {
+            return (
+              <IconButton
+                onClick={async () => await handleDeleteProvisionalVs()}
+              >
+                <DeleteForever color='error' />
+              </IconButton>
+
+            )
+          } else {
+            return null
+          }
+        }
+      },
+      {
         name: 'Title',
         selector: (row: fhir4.ValueSet) => row.title!,
         maxWidth: '10rem',
@@ -338,12 +363,12 @@ const ProvisionalVSEdit = () => {
             if (programIdsWithProvisionals.length) {
               const results = programIdsWithProvisionals.map(p => {
                 return (
-                    <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                  <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true} />
                 )
               })
               return (
                 <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', margin: '.8rem 0' }}>
-                  { results }
+                  {results}
                 </div>
               )
             }
@@ -356,7 +381,7 @@ const ProvisionalVSEdit = () => {
     ]
 
     return fields
-  }, [provisionalVS, provisionalContext])
+  }, [provisionalVS, provisionalContext, provisionalVsIdForUpdate])
 
   const stagedCodeColumns = useMemo(() => {
     const fields = [
@@ -446,16 +471,17 @@ const ProvisionalVSEdit = () => {
     setSelectedStagingRows(r.selectedRows)
   }
 
-  const handleDeleteProvisionalVs = async (userConfirmedDelete=false) => {
+  const programIdsToRemoveProvisionalVs = useMemo(() => provisionalContext?.filter((programItem: any) => {
+    return programItem?.provisionalLeafs?.find((leaf: any) => {
+      return leaf?.id === provisionalVsIdForUpdate
+    })
+  })?.map((p: any) => p?.programId) || [], [provisionalVsIdForUpdate, provisionalContext])
+
+  const handleDeleteProvisionalVs = async (userConfirmedDelete = false) => {
     setLoading(true)
     const provVsUrl = provisionalVS?.find((vs: any) => vs.id === provisionalVsIdForUpdate)?.url
-    const programIdsToRemoveProvisionalVs = provisionalContext?.filter((programItem: any) => {
-      return programItem?.provisionalLeafs?.find((leaf: any) => {
-        return leaf?.id === provisionalVsIdForUpdate
-      })
-    })?.map((p: any) => p?.programId) || []
 
-    if (!userConfirmedDelete && programIdsToRemoveProvisionalVs.length) {
+    if (!userConfirmedDelete) {
       setDeleteModalOpen(true)
       return
     }
@@ -467,13 +493,15 @@ const ProvisionalVSEdit = () => {
     const json = await result.json()
     if (result.ok) {
       toast.success('Provisional value set deleted')
-      router.reload()
+      updateServerFetchedData()
+      setDeleteModalOpen(false)
     } else {
       toast.error('Failed to delete provisional value set')
       setLoading(false)
       console.error('error')
       console.error(json)
     }
+    setLoading(false)
   }
 
   const stagingContextActions = useMemo(() => {
@@ -487,23 +515,19 @@ const ProvisionalVSEdit = () => {
         <Button
           text={`Delete from Staging`}
           onClick={handleDeleteCodeFromStaging}
+          style={{ backgroundColor: 'var(--accent)' }}
         />
       </div>
     )
   }, [selectedStagingRows])
 
-  const DeleteContextActions = useMemo(() => {
-    return (
-      <div>
-        <Button
-          text={`Delete Selected Value Set`}
-          onClick={async () => await handleDeleteProvisionalVs()}
-          style={{ backgroundColor: 'var(--removed)' }}
-          disabled={loading}
-        />
-      </div>
-    )
-  }, [provisionalVsIdForUpdate, provisionalContext])
+  const valueSetMetadataErrorExists = useMemo(() => {
+    return (titleError?.isValid === false || authorError?.isValid === false || stewardError?.isValid === false)
+  }, [titleError, authorError, stewardError])
+
+  const codeErrorExists = useMemo(() => {
+    return (codeError?.isValid === false || displayError?.isValid === false || definitionError?.isValid === false)
+  }, [codeError, displayError, definitionError])
 
   const handleClickAddCode = () => {
     const clonedCodesBySystem = cloneDeep(codesBySystemToAdd)
@@ -521,8 +545,31 @@ const ProvisionalVSEdit = () => {
         ], 'code')
         clonedCodesBySystem[currentSystem] = updatedCodes
       }
+      clearCodeData()
       return clonedCodesBySystem
     })
+  }
+
+  const clearCodeData = () => {
+    setCodeToAdd('')
+    setDefinitionToAdd('')
+    setDisplayToAdd('')
+  }
+
+  const clearAllFields = () => {
+    setTitle('')
+    setAuthor('')
+    setSteward('')
+    setCodesBySystemToAdd({})
+    setProvisionalVsIdForUpdate(undefined)
+    clearCodeData()
+    setShowVsForm(false)
+  }
+
+  const updateServerFetchedData = () => {
+    mutateProvContext()
+    mutateProvCs()
+    mutateProvVs()
   }
 
   const handleProvisionalVsUpdate = async () => {
@@ -544,13 +591,14 @@ const ProvisionalVSEdit = () => {
       body: JSON.stringify(submitBody)
     })
 
-    const json = await result.json()
     if (result.ok) {
-      router.push(`/programs?resourceType=provisional`)
+      toast.success(`Provisional value set ${provisionalVsIdForUpdate ? 'updated' : 'created'}`)
+      updateServerFetchedData()
+      setLoading(false)
+      clearAllFields()
     } else {
       setLoading(false)
-      console.error('error')
-      console.error(json)
+      toast.error(`Failed to ${provisionalVsIdForUpdate ? 'update' : 'create'} provisional value set`)
     }
   }
 
@@ -577,30 +625,34 @@ const ProvisionalVSEdit = () => {
             Confirm: Delete Provisional Value Set
           </Typography>
           <Typography id="delete-modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
-            {`This Value Set is currently being used in programs within the VSM.`}
+            {`This Value Set is ${programIdsToRemoveProvisionalVs.length ? '' : 'not '}currently being used in programs within the VSM.`}
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2, display: 'inline-block', mb: 1 }}>
-            By deleting this Value Set, you will also delete references to it from all programs and groupers.
+            {`${programIdsToRemoveProvisionalVs.length
+              ? 'By deleting this Value Set, you will also delete references to it from all programs and groupers.'
+              : 'You will not be able to recover this Value Set once it is deleted.'}`
+            }
+
           </Typography>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
             <Button
               onClick={() => {
+                setLoading(false)
                 setDeleteModalOpen(false)
               }}
-            style={{ backgroundColor: 'darkgray' }}
-            text='Cancel'
+              style={{ backgroundColor: 'darkgray' }}
+              text='Cancel'
             />
-            <Button onClick={async () => await handleDeleteProvisionalVs(true)} text='Continue'/>
+            <Button onClick={async () => await handleDeleteProvisionalVs(true)} text='Continue' />
           </div>
         </Box>
       </Modal>
-      <ErrorMessage error={provVsError}/>
-      <ErrorMessage error={provContextError}/>
+      <ErrorMessage error={provVsError} />
+      <ErrorMessage error={provContextError} />
       <DataTable
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         pagination={true}
         expandableRows={true}
-        contextActions={DeleteContextActions}
         expandableRowsComponent={CodeDetailsExpanded}
         selectableRows={can(session, 'edit')}
         selectableRowsSingle={true}
@@ -628,8 +680,11 @@ const ProvisionalVSEdit = () => {
               style={{ minWidth: '20rem' }}
               value={title}
               onChange={(e) => {
+                const titleErrorResult = isValidString(e.target.value)
+                setTitleError(titleErrorResult)
                 setTitle(e.target.value)
               }}
+              errorMessage={titleError?.message}
             />
             <TextArea
               label='Author'
@@ -637,8 +692,11 @@ const ProvisionalVSEdit = () => {
               style={{ minWidth: '20rem' }}
               value={author}
               onChange={(e) => {
+                const authorErrorResult = isValidString(e.target.value)
+                setAuthorError(authorErrorResult)
                 setAuthor(e.target.value)
               }}
+              errorMessage={authorError?.message}
             />
             <TextArea
               label='Steward'
@@ -646,11 +704,14 @@ const ProvisionalVSEdit = () => {
               style={{ minWidth: '20rem' }}
               value={steward}
               onChange={(e) => {
+                const stewardErrorResult = isValidString(e.target.value)
+                setStewardError(stewardErrorResult)
                 setSteward(e.target.value)
               }}
+              errorMessage={stewardError?.message}
             />
           </QuestionnaireRowContainer>
-          {allEntriesExist([title, author, steward]) && (
+          {allEntriesExist([title, author, steward]) && !valueSetMetadataErrorExists && (
             <div>
               <p>Select a Code System URL to create new or edit existing VSM Provisional Code System</p>
               <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
@@ -666,7 +727,7 @@ const ProvisionalVSEdit = () => {
                   }}
                 />
               </QuestionnaireRowContainer>
-              <ErrorMessage error={provCsError}/>
+              <ErrorMessage error={provCsError} />
               {existingProvisionalCs?.provisionalCS?.length ? (
                 <div>
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
@@ -689,24 +750,40 @@ const ProvisionalVSEdit = () => {
                   <QuestionnaireRowContainer>
                     <SearchInput
                       label='Code'
+                      required={true}
                       onChange={(e) => {
+                        const codeErrorResult = isValidCode(e.target.value)
+                        setCodeError(codeErrorResult)
                         // handle empty string case
                         setCodeToAdd(e.target.value)
                       }}
                       value={codeToAdd}
                       style={{ minWidth: '20rem' }}
+                      errorMessage={codeError?.message}
                     />
                     <SearchInput
                       label='Display'
-                      onChange={(e) => setDisplayToAdd(e.target.value)}
+                      required={true}
+                      onChange={(e) => {
+                        const displayErrorResult = isValidString(e.target.value)
+                        setDisplayError(displayErrorResult)
+                        setDisplayToAdd(e.target.value)
+                      }}
                       value={displayToAdd}
                       style={{ minWidth: '20rem' }}
+                      errorMessage={displayError?.message}
                     />
                     <TextArea
                       label='Definition (more detail about this code)'
-                      onChange={(e) => setDefinitionToAdd(e.target.value)}
+                      required={true}
+                      onChange={(e) => {
+                        const definitionErrorResult = isValidString(e.target.value)
+                        setDefinitionError(definitionErrorResult)
+                        setDefinitionToAdd(e.target.value)
+                      }}
                       value={definitionToAdd}
                       style={{ minWidth: '20rem' }}
+                      errorMessage={definitionError?.message}
                     />
                   </QuestionnaireRowContainer>
                   {
@@ -715,6 +792,7 @@ const ProvisionalVSEdit = () => {
                         <Button
                           text={`+ Add Code to ${selectedCodeSystemBase.label}`}
                           onClick={handleClickAddCode}
+                          disabled={codeErrorExists}
                         />
                       </div>
                     )
@@ -745,7 +823,7 @@ const ProvisionalVSEdit = () => {
             allEntriesExist([title, author, steward]) && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem' }}>
                 <Button
-                  text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set: "${title}"`}
+                  text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set`}
                   onClick={handleProvisionalVsUpdate}
                   disabled={!flattenCodesBySystem.length}
                   loading={loading}
