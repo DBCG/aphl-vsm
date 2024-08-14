@@ -22,7 +22,7 @@ const VSM_LEAF_PROFILE_URLS = {
 const vsmAuthoritativeSourceExtension: fhir4.Extension =
 {
   url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
-  valueString: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL
+  valueUri: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
@@ -299,7 +299,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 
     const existingAuthoritativeSourceExt = newVs.extension.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
     if (!existingAuthoritativeSourceExt) {
-      newVs.extension.push(vsmAuthoritativeSourceExtension)
+      newVs.extension.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${newVs.id}` })
     }
   }
 
