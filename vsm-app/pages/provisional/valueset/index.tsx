@@ -316,7 +316,7 @@ const ProvisionalVSEdit = () => {
         name: 'Delete',
         selector: (row: fhir4.ValueSet) => row.title!,
         maxWidth: '10rem',
-        omit: !provisionalVsIdForUpdate,
+        omit: !provisionalVsIdForUpdate || !can(session, 'edit'),
         cell: (row: fhir4.ValueSet) => {
           if (row.id === provisionalVsIdForUpdate) {
             return (
@@ -651,10 +651,9 @@ const ProvisionalVSEdit = () => {
       <ErrorMessage error={provContextError} />
       <DataTable
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
-        pagination={true}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
-        selectableRows={can(session, 'edit')}
+        selectableRows={true}
         selectableRowsSingle={true}
         data={provisionalVS || []}
         selectableRowSelected={defaultSelectedRows}
@@ -669,7 +668,7 @@ const ProvisionalVSEdit = () => {
         }}
         noDataComponent={<NoDataComponent />}
       />
-      {showVsForm && (
+      {showVsForm && can(session, 'edit') && (
         <div style={{ marginTop: '2rem' }}>
           <h4>{provisionalVsIdForUpdate ? 'Update ' : 'Create New '}Provisional Value Set</h4>
           <p>Provisional VS Metadata (required):</p>
@@ -677,6 +676,7 @@ const ProvisionalVSEdit = () => {
             <TextArea
               label='Title'
               required={true}
+              readonly={!can(session, 'edit')}
               style={{ minWidth: '20rem' }}
               value={title}
               onChange={(e) => {
@@ -688,6 +688,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Author'
+              readonly={!can(session, 'edit')}
               required={true}
               style={{ minWidth: '20rem' }}
               value={author}
@@ -700,6 +701,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Steward'
+              readonly={!can(session, 'edit')}
               required={true}
               style={{ minWidth: '20rem' }}
               value={steward}

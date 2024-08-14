@@ -26,6 +26,7 @@ import { findProgramByProvisionalLeaf } from '@/pages/provisional/valueset'
 import ArrowOutward from '@mui/icons-material/ArrowOutward'
 import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
 import { DeleteForever } from '@mui/icons-material'
+import { KeyedMutator } from 'swr'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -91,7 +92,7 @@ const allFieldsExist = (codeItems: string[]) => {
 }
 
 
-const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean }) => {
+const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean, mutate: KeyedMutator<any> }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
   const [itemToDelete, setItemToDelete] = useState<{code: string, url: string} | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
@@ -204,7 +205,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
     if (!codeSystem) return []
     const fields = [
       {
-        name: 'Update Code',
+        name: 'Code',
         selector: (row: fhir4.CodeSystemConcept) => row.code,
         cell: (row: fhir4.CodeSystemConcept) => {
           if (originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code) {
@@ -284,6 +285,8 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
       },
       {
         name: 'Edit',
+        center: true,
+        maxWidth: '100px',
         selector: (row: CodeTableData) => row.code!,
         omit: !isEditable,
         cell: (row: CodeTableData) => {
@@ -324,19 +327,20 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
       {
         name: 'Delete',
         omit: !isEditable,
+        center: true,
         maxWidth: '100px',
         selector: (row: CodeTableData) => row.code!,
         cell: (row: CodeTableData) => {
           if (isEditable) {
             return (
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Button
-                  // disabled={!allFieldsPresent || !changesExist}
-                  text='Delete'
-                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
-                  loading={codeUpdateLoading}
-                  style={{ backgroundColor: 'var(--accent)' }}
-                />
+                <IconButton>
+                  <DeleteForever
+                    style={{ color: 'var(--accent)' }}
+                    color='error'
+                    onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })} 
+                  />
+                </IconButton>
               </div>
             )
           } else {
