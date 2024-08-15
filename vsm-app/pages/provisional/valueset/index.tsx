@@ -254,6 +254,10 @@ const ProvisionalVSEdit = () => {
   const existingProvisionalCs = useGetProvisionalCS(selectedCodeSystemBase?.value)
   const allVsacCS = useGetCS()
   const { data: session } = useSession() as unknown as { data: VSMSession }
+  // default valueset details to tell if changed
+  const [defaultTitle, setDefaultTitle] = useState('')
+  const [defaultAuthor, setDefaultAuthor] = useState('')
+  const [defaultSteward, setDefaultSteward] = useState('')
   // valueset details
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -275,6 +279,10 @@ const ProvisionalVSEdit = () => {
   const [codeError, setCodeError] = useState<IsValidFormatResponse | null>(null)
   const [displayError, setDisplayError] = useState<IsValidFormatResponse | null>(null)
   const [definitionError, setDefinitionError] = useState<IsValidFormatResponse | null>(null)
+
+  const changesExistForExistingVs = useMemo(() => {
+    return Boolean(title?.trim() !== defaultTitle?.trim() || author.trim() !== defaultAuthor.trim() || steward.trim() !== defaultSteward.trim() || Object.keys(codesBySystemToAdd).length)
+  }, [codesBySystemToAdd, title, author, steward])
 
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
   const router = useRouter()
@@ -305,6 +313,9 @@ const ProvisionalVSEdit = () => {
     const defaultTitle = matchingVs?.title || ''
     const defaultAuthor = matchingVs?.extension?.find((ext: fhir4.Extension | undefined) => ext?.url?.endsWith('/valueset-author'))?.valueContactDetail?.name || ''
     const defaultSteward = matchingVs?.extension?.find((ext: fhir4.Extension | undefined) => ext?.url?.endsWith('/valueset-steward'))?.valueContactDetail?.name || ''
+    setDefaultTitle(defaultTitle)
+    setDefaultAuthor(defaultAuthor)
+    setDefaultSteward(defaultSteward)
     setTitle(defaultTitle)
     setAuthor(defaultAuthor)
     setSteward(defaultSteward)
@@ -827,7 +838,7 @@ const ProvisionalVSEdit = () => {
                 <Button
                   text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set`}
                   onClick={handleProvisionalVsUpdate}
-                  disabled={!flattenCodesBySystem.length}
+                  disabled={provisionalVsIdForUpdate ? !changesExistForExistingVs : !flattenCodesBySystem.length}
                   loading={loading}
                 />
               </div>
