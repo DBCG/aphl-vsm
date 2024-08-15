@@ -310,7 +310,7 @@ const ProgramsTab: NextPage = () => {
                   size="small"
                   data-button-context={`release-${row.status}`}
                   variant="contained"
-                  style={{ height: 'fit-content' }}
+                  style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
                   disabled={row.status !== 'draft' || !row.approvalDate}
                   onClick={() => {
                     setError({})
