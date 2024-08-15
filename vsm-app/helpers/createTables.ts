@@ -51,16 +51,6 @@ const rootLibDataPaths: Record<string, { old: string[], new: string[] }> = {
       'newData.effectiveStart.value',
       'oldData.effectiveStart.operation.newValue'
     ]
-  },
-  releaseDate: {
-    old: [
-      'oldData.releaseDate.value',
-      'newData.releaseDate.operation.oldValue'
-    ],
-    new: [
-      'newData.releaseDate.value',
-      'oldData.releaseDate.operation.newValue'
-    ]
   }
 }
 
@@ -84,25 +74,19 @@ interface Result extends IObjectKeys {
   version: [string, string];
   purpose: [string, string];
   effectiveStart: [string, string];
-  releaseDate: [string, string];
-  codeSystems: any;
 }
 
 const generateRootTableData = (oldData: LibraryPage, newData: LibraryPage) => {
-
   const result: Result = {
     id: ['', ''],
     name: ['', ''],
     version: ['', ''],
     purpose: ['', ''],
     effectiveStart: ['', ''],
-    releaseDate: ['', ''],
-    codeSystems: null
   }
 
   const colTitles = Object.keys(rootLibDataPaths)
   colTitles.forEach((title) => {
-
     const oldVal = rootLibDataPaths[title].old
       .map(path => getValue(path, oldData, newData))
       .filter(x => x)[0]

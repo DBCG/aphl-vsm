@@ -35,8 +35,6 @@ export const VerticalRowTitle = styled.tr`
   font-weight: 600;
 `
 
-type TableData = Record<string, (string|undefined)[]>
-
 
 const formatRowTitle = (str: string) => str.split(/(?=[A-Z])/).join(' ')
 
