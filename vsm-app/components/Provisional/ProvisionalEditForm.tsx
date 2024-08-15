@@ -149,6 +149,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
           mutate()
           setCodeUpdateLoading(false)
           handleCancel()
+          setUpdateModalOpen(false)
         }
       }
     }
