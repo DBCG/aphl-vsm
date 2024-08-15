@@ -11,8 +11,6 @@ describe('createTableData', () => {
       version: [ '2022-10-19', '1.0.0.0-draft' ],
       purpose: [ 'SpecificationLibrary', undefined ],
       effectiveStart: [ undefined, undefined ],
-      releaseDate: [ undefined, undefined ],
-      codeSystems: null
     }
 
     // @ts-ignore
