@@ -23,28 +23,27 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
   try {
     const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: valueSetId as string })) as fhir4.ValueSet
 
-    // We will only add system-version for relevant code systems
-    const codeSystemList = valueSet?.compose?.include?.map((i) => i.system).filter((i) => i)
-
     const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
       parameter: []
     }
-    const valueCanonicalString = [] as string[]
 
-    Object.entries(expansionParameters).forEach(([system, versions]) => {
-      if (codeSystemList?.includes(system)) {
-        valueCanonicalString.push(...versions.map((version) => `${system}|${version}`))
-      }
-    })
+    // TODO: There is currently a bug on VSAC preventing us from using multiple system-version parameters
+    // const valueCanonicalString = [] as string[]
 
-    if (valueCanonicalString.length > 0) {
-      // @ts-ignore
-      parameters.parameter.push({
-        name: 'system-version',
-        valueCanonical: valueCanonicalString.join(',')
-      })
-    }
+    // Object.entries(expansionParameters).forEach(([system, versions]) => {
+    //   valueCanonicalString.push(...versions.map((version) => `${system}|${version}`))
+    // })
+
+    // if (valueCanonicalString.length > 0) {
+    //   // @ts-ignore
+    // valueCanonicalString.forEach((version) => {
+    //   parameters.parameter.push({
+    //     name: 'system-version',
+    //     valueCanonical: version
+    //   })
+    // }
+    // }
 
     if (pinnedVersion) {
       setParameterVsVersion(parameters, valueSet)
