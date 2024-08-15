@@ -92,9 +92,6 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
-    if (!Object.keys(codesBySystemToAdd)?.length || !title) {
-      return res.status(400).json({ error: 'Invalid input. Endpoint requires the codes, title, and grouper IDs of the ValueSet being created.' })
-    }
 
     let codeSystemToEdit
     const systemUrls = Object.keys(codesBySystemToAdd)
