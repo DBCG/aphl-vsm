@@ -5,10 +5,11 @@ import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, u
 import { terminologyClient } from 'fhirClients'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
-import { LeafsToAdd } from '@/components/ValueSetSearchTable'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
+import { Condition } from '@/helpers/conditionHelpers'
+import { FormattedGroup } from '@/components/ValueSetSearchTable'
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
@@ -20,9 +21,17 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
     res.status(400).json({ error: 'Loading ValueSets failed' })
   }
 }
-
-const updateValueSet = async (req: NextApiRequest, res: NextApiResponse<number | { error: string }>) => {
-  const body = await req.body
+export interface UpdateValueSetBody extends NextApiRequest {
+  body: {
+    selectedTerminologyServer: "vsac" | "ontoserverR4" | "vsm"
+    selectedValueSets: fhir4.ValueSet[]
+    selectedConditions: Condition[]
+    selectedGroupers: FormattedGroup[]
+    selectedPriority: "emergent" | "routine"
+  }
+}
+const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>) => {
+  const body = req.body
 
   if (body?.selectedConditions?.length > 0 && !req.query.programId) {
     return res.status(400).json({ error: 'missing program Id required for conditions' })

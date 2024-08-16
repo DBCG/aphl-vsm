@@ -9,7 +9,8 @@ import {
   idWithoutVersion,
   urlWithoutVersion,
   addProfileToValueSet,
-  EXTENSIONS
+  EXTENSIONS,
+  updateAuthSource
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
@@ -42,7 +43,7 @@ const syncUnversionedRef = (newRefsToAdd: string[], existingLeafRefsInGroupers: 
       newRefsToAddSet.delete(url)
     }
   }
-  
+
   return Array.from(newRefsToAddSet)
 }
 
@@ -294,9 +295,9 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
         .map((x) => x!) || []
     const existingVsToUpdate = Array.isArray(matchesInServer)
       ? matchesInServer
-          ?.map((m) => m.url)
-          ?.filter((x) => !!x)
-          .map((x) => x!)
+        ?.map((m) => m.url)
+        ?.filter((x) => !!x)
+        ?.map((x) => x!)
       : []
     // if a versioned leaf reference exists in another grouper, we need to ensure that we are adding that versioned url
     // we should only have 1 version of a leaf valueset in a program at any given time
@@ -505,8 +506,17 @@ const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][]
     resourceType: 'ValueSet',
     body: grouperWithLeafRefs
   })
-
-  return result
+  if (result.resourceType === 'ValueSet') {
+    updateAuthSource(result.extension, result.id)
+    const resultWithCorrectAuthoritativeSource = await fhirCdrClient.update({
+      resourceType: 'ValueSet',
+      id: result.id,
+      body: result
+    })
+    return resultWithCorrectAuthoritativeSource
+  } else {
+    return result
+  }
 }
 
 const updateProgramLibraryWithGrouperRef = async (

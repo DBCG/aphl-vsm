@@ -28,8 +28,10 @@ import org.opencds.cqf.fhir.utility.BundleHelper;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.EndpointAdapter;
 import org.opencds.cqf.fhir.utility.adapter.IDependencyInfo;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
@@ -336,9 +338,7 @@ public class KnowledgeArtifactProcessor {
 			return;
 		} else {
 			var ts = new TerminologyServerClient(theContext);
-			var username = Optional.ofNullable(terminologyEndpoint).map(te -> te.getExtensionByUrl("vsacUsername")).map(e -> e.getValue()).map(v -> v.toString());
-			var password = Optional.ofNullable(terminologyEndpoint).map(te -> te.getExtensionByUrl("apiKey")).map(e -> e.getValue()).map(v -> v.toString());
-			var address = Optional.ofNullable(terminologyEndpoint).map(te -> te.getAddress());
+			var endpointAdapter = Optional.ofNullable(terminologyEndpoint).map(e -> AdapterFactory.forFhirContext(theContext).createEndpoint(e));
 			if (isGrouper(vset)) {
 				var exp = new ValueSet.ValueSetExpansionComponent();
 				for (final var leaf : vset.getCompose().getInclude()) {
@@ -347,7 +347,7 @@ public class KnowledgeArtifactProcessor {
 						try {
 							ValueSet expanded;
 							if (terminologyEndpoint != null) {
-								expanded = vsacExpandOrFallbackToNaive(canonical, ts, address.get(), username.get(), password.get(), repository, dao);
+								expanded = vsacExpandOrFallbackToNaive(canonical, ts, endpointAdapter.get(), repository, dao);
 							} else {
 								expanded = naiveExpand(null, dao, canonical.getValue(), repository);
 							}
@@ -362,7 +362,7 @@ public class KnowledgeArtifactProcessor {
 				try {
 					ValueSet exp;
 					if (terminologyEndpoint != null) {
-						exp = vsacExpandOrFallbackToNaive(vset, ts, address.get(), username.get(), password.get(), repository, dao);
+						exp = vsacExpandOrFallbackToNaive(vset, ts, endpointAdapter.get(), repository, dao);
 					} else {
 						exp = naiveExpand(vset, dao, null, repository);
 					}
@@ -373,12 +373,14 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 	}
-	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
+	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
 		try {
-			var urlAndVersionParams = new Parameters();
-			urlAndVersionParams.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
-			urlAndVersionParams.addParameter("valueSetVersion", Canonicals.getVersion(canonical));
-			return ts.expand(new ValueSet(), address, urlAndVersionParams, username, password);
+			var factory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+			var parametersAdapter = factory.createParameters(new Parameters());
+			// var urlAndVersionParams = new Parameters();
+			parametersAdapter.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
+			parametersAdapter.addParameter("valueSetVersion", new StringType(Canonicals.getVersion(canonical)));
+			return (ValueSet)ts.expand((ValueSetAdapter)factory.createKnowledgeArtifactAdapter(new ValueSet()), endpoint, parametersAdapter );
 		} catch (ResourceNotFoundException e) {
 			return naiveExpand(null, dao, canonical.getValue(), repository);
 		}
@@ -390,8 +392,8 @@ public class KnowledgeArtifactProcessor {
 		}
 		return canonicalString;
 	}
-	public static ValueSet vsacExpandOrFallbackToNaive(ValueSet valueSet, TerminologyServerClient ts, String address, String username, String password, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
-		return vsacExpandOrFallbackToNaive(new CanonicalType(extractCanonicalFromValueSet(valueSet)), ts, address, username, password, repository, dao);
+	public static ValueSet vsacExpandOrFallbackToNaive(ValueSet valueSet, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
+		return vsacExpandOrFallbackToNaive(new CanonicalType(extractCanonicalFromValueSet(valueSet)), ts, endpoint, repository, dao);
 	}
 	private static boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
 		Optional<Date> lastExpanded = Optional.ofNullable(valueSet.getExpansion()).map(e -> e.getTimestamp());

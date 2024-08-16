@@ -38,10 +38,10 @@ import org.hl7.fhir.r4.model.*;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactApproveVisitor;
-import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactDraftVisitor;
-import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactPackageVisitor;
-import org.opencds.cqf.fhir.utility.visitor.KnowledgeArtifactReleaseVisitor;
+import org.opencds.cqf.fhir.utility.visitor.ApproveVisitor;
+import org.opencds.cqf.fhir.utility.visitor.DraftVisitor;
+import org.opencds.cqf.fhir.utility.visitor.PackageVisitor;
+import org.opencds.cqf.fhir.utility.visitor.ReleaseVisitor;
 import org.opencds.cqf.ruler.IBaseSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -149,7 +149,7 @@ public class CaseReportingOperationProvider {
 			params.addParameter("artifactAssessmentAuthor", artifactAssessmentAuthor);
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new KnowledgeArtifactApproveVisitor();
+		var visitor = new ApproveVisitor();
 		return ((Bundle) adapter.accept(visitor, repository, params));
 	}
 
@@ -172,7 +172,7 @@ public class CaseReportingOperationProvider {
 		}
 		var params = new Parameters().addParameter("version", new StringType(version));
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new KnowledgeArtifactDraftVisitor();
+		var visitor = new DraftVisitor();
 		return ((Bundle) adapter.accept(visitor, repository, params));
 	}
 
@@ -220,7 +220,7 @@ public class CaseReportingOperationProvider {
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
-			var visitor = new KnowledgeArtifactReleaseVisitor();
+			var visitor = new ReleaseVisitor();
 			adapter.getRelatedArtifact()
 				.forEach(ra -> {
 					KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
@@ -294,7 +294,7 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new KnowledgeArtifactPackageVisitor();
+		var visitor = new PackageVisitor(fhirContext);
 		var retval = (Bundle) adapter.accept(visitor, repository, params);
 		retval.getEntry().stream()
 			.map(e -> (MetadataResource) e.getResource())

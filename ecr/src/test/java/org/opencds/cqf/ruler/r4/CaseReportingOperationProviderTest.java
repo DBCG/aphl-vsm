@@ -304,7 +304,13 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
 			"http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab",
 			"http://hl7.org/fhir/us/ecr/StructureDefinition/eicr-document-bundle",
-			"http://hl7.org/fhir/StructureDefinition/ServiceRequest"
+			"http://hl7.org/fhir/StructureDefinition/ServiceRequest",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset-library",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset-library",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
 		);
 		var ersdTestArtifactComponents = Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/release-us-ecr-specification|" + existingVersion,
@@ -1464,6 +1470,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		leafValueSets.forEach(valueSet -> assertNotNull(valueSet.getExpansion()));
 	}
 
+	// re enabling all these once we use the updated package implmentation which naive expands without the terminology server
+	@Disabled
 	@Test
 	void package_test_condition_missing() {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");

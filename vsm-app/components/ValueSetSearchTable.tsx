@@ -27,6 +27,7 @@ import { getVsSteward } from '@/helpers/valueSetHelpers'
 import { priorityLevelOptions } from './ProgramValueSetDetails'
 import DataTable from 'react-data-table-component'
 import { customTableStyles } from './tables/themes'
+import { UpdateValueSetBody } from '@/pages/api/valueset'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -57,14 +58,11 @@ interface QueryStringItems {
   terminologyServer: string
 }
 
-const NoDataContainer = ({ router }: {router: NextRouter }) => {
+const NoDataContainer = ({ router }: { router: NextRouter }) => {
   return (
     <NoData>
       <p>No Provisional ValueSets Found</p>
-      <Button
-        text='Create VSM Provisional Resources'
-        onClick={() => router.push('/programs?resourceType=provisional')}
-      />
+      <Button text="Create VSM Provisional Resources" onClick={() => router.push('/programs?resourceType=provisional')} />
     </NoData>
   )
 }
@@ -233,7 +231,7 @@ interface ConditionItem {
   version: string
 }
 
-interface FormattedGroup {
+export interface FormattedGroup {
   id: string
   label: string
   url: string
@@ -272,7 +270,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     setSelectedGroupers(() => [])
     setSelectedRows(() => [])
     setSelectedPriority(() => undefined)
-    setToggleKey(k => k + 1)
+    setToggleKey((k) => k + 1)
   }
 
   const handleSearchProvisionalVS = async () => {
@@ -280,7 +278,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     clearItems()
 
     const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
-    const results = await (fetch(urlToSearch))
+    const results = await fetch(urlToSearch)
 
     if (results.ok) {
       const json = await results.json()
@@ -323,17 +321,19 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
       {
         name: 'Contains Provisional Code System(s)',
         selector: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map(ci => ci.system || '[system missing]') || []
+          const systems = row?.compose?.include?.map((ci) => ci.system || '[system missing]') || []
           return systems.join(',')
         },
         sortable: true,
         wrap: true,
         maxWidth: '40rem',
         cell: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map(ci => ci.system) || []
+          const systems = row?.compose?.include?.map((ci) => ci.system) || []
           return (
             <div>
-              {systems.map(s => <p key={s}>{s}</p>)}
+              {systems.map((s) => (
+                <p key={s}>{s}</p>
+              ))}
             </div>
           )
         }
@@ -348,7 +348,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   }
 
   const handleAddValueSets = async () => {
-    const body = {
+    const body: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
       selectedTerminologyServer: 'vsm',
       selectedValueSets: uniqBy(selectedRows, 'id'),
       selectedConditions,
@@ -368,7 +368,6 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     }
   }
   const contextActions = useMemo(() => {
-
     const options = buildConditionOptions(allConditions, selectedConditions)
 
     return (
@@ -379,7 +378,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
               controlShouldRenderValue
               key={`provisional-groups-${toggleKey}`}
               required={true}
-              placeholder='Add to Groupers [required]*'
+              placeholder="Add to Groupers [required]*"
               instanceId={`provisional-groups-${toggleKey}`}
               isMulti={true}
               menuPortalTarget={document}
@@ -395,7 +394,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
           <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
             <Select
               key={`provisional-conditions-${toggleKey}`}
-              placeholder='Add to Conditions'
+              placeholder="Add to Conditions"
               instanceId={'provisional-conditions'}
               isMulti={true}
               styles={reactSelectOptionStyle()}
@@ -409,27 +408,27 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
             />
           </SelectInputContainer>
           <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white', height: 'fit-content' }}>
-          <Select
-            placeholder='Add priority'
-            instanceId='vsm-provisional-priority'
-            isMulti={false}
-            styles={reactSelectOptionStyle()}
-            // @ts-ignore
-            options={priorityLevelOptions}
-            menuPortalTarget={document}
-            value={selectedPriority}
-            onChange={(e) => {
-              // create new array since e is readonly
-              setSelectedPriority(e!)
-            }}
-          />
+            <Select
+              placeholder="Add priority"
+              instanceId="vsm-provisional-priority"
+              isMulti={false}
+              styles={reactSelectOptionStyle()}
+              // @ts-ignore
+              options={priorityLevelOptions}
+              menuPortalTarget={document}
+              value={selectedPriority}
+              onChange={(e) => {
+                // create new array since e is readonly
+                setSelectedPriority(e!)
+              }}
+            />
           </SelectInputContainer>
           <Button
             style={{ alignSelf: 'center', marginBottom: 0 }}
             key="delete"
-            type='submit'
+            type="submit"
             onClick={handleAddValueSets}
-            text='Add'
+            text="Add"
             disabled={!Boolean(selectedGroupers.length)}
           />
         </form>
@@ -440,57 +439,54 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   return (
     <div>
       <Row>
-        {
-          Boolean(initialSearchResults?.length) && (
-            <StyledForm>
-              <DropdownContainer>
-                <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
-                  Search By ValueSet
-                </StyledLabel>
-                <SelectInputContainer>
-                  <Select
-                    instanceId='provisional-searchByVS'
-                    isMulti={false}
-                    menuPortalTarget={document}
-                    styles={reactSelectOptionStyle()}
-                    options={searchTypes.filter(t => t.value !== 'oid')}
-                    value={currentSearchField}
-                    onChange={(e) => {
-                      return setCurrentSearchField(e!)
-                    }}
-                  />
-                </SelectInputContainer>
-              </DropdownContainer>
-              <TextAreaSubmitContainer>
-                <TextArea
-                  style={{ width: '100%' }}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  id="vs-search"
-                  label="Search Text"
-                  hasIcon={true}
-                />
-                <IconButton
-                  style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
-                  id={'submit-search-valueset-button'}
-                  disabled={!searchTerm || searchTerm.trim().length < 0}
-                  buttoncontext="search"
-                  type="submit"
-                  onClick={async (e) => {
-                    e?.preventDefault()
-                    handleSearchProvisionalVS()
+        {Boolean(initialSearchResults?.length) && (
+          <StyledForm>
+            <DropdownContainer>
+              <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
+                Search By ValueSet
+              </StyledLabel>
+              <SelectInputContainer>
+                <Select
+                  instanceId="provisional-searchByVS"
+                  isMulti={false}
+                  menuPortalTarget={document}
+                  styles={reactSelectOptionStyle()}
+                  options={searchTypes.filter((t) => t.value !== 'oid')}
+                  value={currentSearchField}
+                  onChange={(e) => {
+                    return setCurrentSearchField(e!)
                   }}
                 />
-              </TextAreaSubmitContainer>
-            </StyledForm>
-
-          )
-        }
+              </SelectInputContainer>
+            </DropdownContainer>
+            <TextAreaSubmitContainer>
+              <TextArea
+                style={{ width: '100%' }}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                id="vs-search"
+                label="Search Text"
+                hasIcon={true}
+              />
+              <IconButton
+                style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
+                id={'submit-search-valueset-button'}
+                disabled={!searchTerm || searchTerm.trim().length < 0}
+                buttoncontext="search"
+                type="submit"
+                onClick={async (e) => {
+                  e?.preventDefault()
+                  handleSearchProvisionalVS()
+                }}
+              />
+            </TextAreaSubmitContainer>
+          </StyledForm>
+        )}
       </Row>
       {contextActions}
       <DataTable
-        title='VSM Provisional Value Sets'
+        title="VSM Provisional Value Sets"
         theme="aphl"
-        noDataComponent={<NoDataContainer router={router}/>}
+        noDataComponent={<NoDataContainer router={router} />}
         selectableRows={true}
         onSelectedRowsChange={handleSelectedVSets}
         customStyles={customTableStyles('readonly')}
@@ -552,7 +548,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const allConditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
 
-  useEffect(() => { setMyDocument(document?.body) }, [])
+  useEffect(() => {
+    setMyDocument(document?.body)
+  }, [])
 
   const formattedGroups = useMemo(() => {
     if (!groups) return []
@@ -572,12 +570,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   // take the response from the server and parse the important data
 
   const filterExists = useMemo(
-    () =>
-      findInTitle?.length ||
-      findInStatus?.length ||
-      findInVersion?.length ||
-      findInOid?.length ||
-      findInLastUpdated?.length,
+    () => findInTitle?.length || findInStatus?.length || findInVersion?.length || findInOid?.length || findInLastUpdated?.length,
     [findInLastUpdated?.length, findInTitle?.length, findInOid?.length, findInStatus?.length, findInVersion?.length]
   )
   const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
@@ -588,7 +581,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const submitVSetSearch = async ({
     searchContext = 'search',
     pageNumber,
-    newResultsPerPage,
+    newResultsPerPage
   }: {
     searchContext?: 'filter' | 'search'
     pageNumber?: number
@@ -631,7 +624,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
     let queryStringItems = {
       searchType: searchType?.value,
-      count: (newResultsPerPage || resultsPerPage),
+      count: newResultsPerPage || resultsPerPage,
       sortBy: sortParams?.column,
       sortDirection: sortParams?.direction,
       offset: offset,
@@ -840,11 +833,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       </ErrorText>
     )
   } else if (searchTerm.length < 3 && searchTerm.length > 0) {
-    errorMessageComponent = (
-      <ErrorText>
-        Minimum 3 characters required
-      </ErrorText>
-    )
+    errorMessageComponent = <ErrorText>Minimum 3 characters required</ErrorText>
   }
 
   const handleSearchToggleChange = (e: TableContextOptions) => {
@@ -876,11 +865,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         )}
       </Row>
       {searchTableContext === 'vsm-provisional' ? (
-        <VsmProvisionalSearchForm
-          allConditions={allConditions}
-          document={myDocument}
-          formattedGroups={formattedGroups}
-        />
+        <VsmProvisionalSearchForm allConditions={allConditions} document={myDocument} formattedGroups={formattedGroups} />
       ) : (
         <div>
           <TitleRow>

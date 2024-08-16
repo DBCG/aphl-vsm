@@ -19,6 +19,12 @@ const VSM_LEAF_PROFILE_URLS = {
   HOSTED: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-hostedvalueset'
 }
 
+const vsmAuthoritativeSourceExtension: fhir4.Extension =
+{
+  url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
+  valueUri: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL
+}
+
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
   return Boolean(vs?.compose?.include?.find(ci => ci?.version === 'PROVISIONAL'))
 }
@@ -101,7 +107,7 @@ const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VS
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
-    let val = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url === terminologyExt?.valueUri)
+    let val = terminologyServerEndpoints?.find((endpoint) => !!endpoint?.value?.url && terminologyExt?.valueUri?.startsWith(endpoint.value.url))
     if (!val) {
       // bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
       if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost')) {
@@ -110,9 +116,10 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
           value: {
             title: 'VSM',
             url: terminologyExt?.valueUri
+          }
+        }
       }
-    }}
-    errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
+      errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
     }
     return {
       value: val?.label || "",
@@ -235,7 +242,7 @@ const updateLeafVsVersion = (vs: fhir4.ValueSet, canonicalToUpdate: string, vers
 
 const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.ValueSet) => {
   const baseGrouper = template || grouperValueSetBase
-  const templateVS = cloneDeep(baseGrouper) as fhir4.ValueSet
+  const templateVS: fhir4.ValueSet = cloneDeep(baseGrouper)
 
   const { author, ...rest } = metadata
 
@@ -289,13 +296,22 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
     } else {
       newVs.extension[existingIndex] = authorExtension
     }
+    if (!newVs.id) {
+      throw "ValueSet: '" + newVs.url + "' is missing ID"
+    }
+    updateAuthSource(newVs.extension, newVs.id)
   }
 
   // add all fields that are simple obj.assign
   // if ...rest doesn't contain anything, it defaults to {}
   return Object.assign(newVs, rest)
 }
-
+function updateAuthSource(extensions: fhir4.Extension[], id: string) {
+  const existingAuthoritativeSourceExt = extensions.find((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+  if (!existingAuthoritativeSourceExt) {
+    extensions.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${id}` })
+  }
+}
 const urlWithoutVersion = (url: string) => url?.split?.('-')?.[0]
 
 // VSAC appends versions to valueset ids and urls with hyphen
@@ -389,7 +405,7 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | Del
   try {
     const clonedVs = cloneDeep(vs)
     let composeBlock: fhir4.ValueSetCompose = clonedVs.compose!
-  
+
     if (action === 'replace-code') {
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
@@ -412,7 +428,7 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | Del
       updateData.codeUpdates.forEach(updateItem => {
         const indexOfSystem = composeBlock?.include?.findIndex((i) => i.system === csUrl)
         const lengthOfConcept = composeBlock?.include?.[indexOfSystem]?.concept?.length
-        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1 
+        const indexOfUpdateItem = indexOfSystem !== undefined && indexOfSystem > -1
           ? composeBlock?.include?.[indexOfSystem]?.concept?.findIndex((i) => i.code === updateItem.code)
           : undefined
 
@@ -461,5 +477,6 @@ export {
   isProvisionalVs,
   isGrouperValueSet,
   addProfileToValueSet,
-  updateVsCodeItem
+  updateVsCodeItem,
+  updateAuthSource
 }
