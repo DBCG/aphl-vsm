@@ -24,7 +24,9 @@ import { findProvVsUsingCode } from '@/hooks/findProvVsUsingCode'
 import Modal from '@mui/material/Modal'
 import { findProgramByProvisionalLeaf } from '@/pages/provisional/valueset'
 import ArrowOutward from '@mui/icons-material/ArrowOutward'
-import { url } from 'inspector'
+import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
+import { DeleteForever } from '@mui/icons-material'
+import { KeyedMutator } from 'swr'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -90,7 +92,7 @@ const allFieldsExist = (codeItems: string[]) => {
 }
 
 
-const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean }) => {
+const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean, mutate: KeyedMutator<any> }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
   const [itemToDelete, setItemToDelete] = useState<{code: string, url: string} | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
@@ -141,8 +143,13 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
         )
         if (result.error) {
           toast.error(`Provisional Code System could not be updated`)
+          setCodeUpdateLoading(false)
         } else {
-          router.reload()
+          toast.success(`Provisional Code System updated`) 
+          mutate()
+          setCodeUpdateLoading(false)
+          handleCancel()
+          setUpdateModalOpen(false)
         }
       }
     }
@@ -153,6 +160,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
     setCodeUpdateLoading(true)
     if (!itemToDelete) {
       toast.error('Must select a code to delete')
+      setCodeUpdateLoading(false)
     } else {
       const matches = await findProvVsUsingCode(codeSystem?.url!, itemToDelete?.code!)
       if (matches?.matchingValueSets?.length && !userConfirmedOverride) {
@@ -176,8 +184,13 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
         )
         if (result.error) {
           toast.error(`Provisional Code System could not be updated`)
+          setCodeUpdateLoading(false)
+          setItemToDelete(null)
         } else {
-          router.reload()
+          mutate()
+          setCodeUpdateLoading(false)
+          toast.success(`Provisional Code '${itemToDelete?.code}' deleted`)
+          setItemToDelete(null)
         }
       }
     }
@@ -193,7 +206,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
     if (!codeSystem) return []
     const fields = [
       {
-        name: 'Update Code',
+        name: 'Code',
         selector: (row: fhir4.CodeSystemConcept) => row.code,
         cell: (row: fhir4.CodeSystemConcept) => {
           if (originalCodeItemToEdit && row.code === originalCodeItemToEdit?.code) {
@@ -273,6 +286,8 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
       },
       {
         name: 'Edit',
+        center: true,
+        maxWidth: '100px',
         selector: (row: CodeTableData) => row.code!,
         omit: !isEditable,
         cell: (row: CodeTableData) => {
@@ -313,19 +328,20 @@ const ExistingCodesTable = ({ codeSystem, isEditable }: { codeSystem?: fhir4.Cod
       {
         name: 'Delete',
         omit: !isEditable,
+        center: true,
         maxWidth: '100px',
         selector: (row: CodeTableData) => row.code!,
         cell: (row: CodeTableData) => {
           if (isEditable) {
             return (
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <Button
-                  // disabled={!allFieldsPresent || !changesExist}
-                  text='Delete'
-                  onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
-                  loading={codeUpdateLoading}
-                  style={{ backgroundColor: 'var(--accent)' }}
-                />
+                <IconButton>
+                  <DeleteForever
+                    style={{ color: 'var(--accent)' }}
+                    color='error'
+                    onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })} 
+                  />
+                </IconButton>
               </div>
             )
           } else {
@@ -467,7 +483,12 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const { provisionalCS, isCsLoading, provCsError } = useGetProvisionalCS(selectedCodeSystemBase?.value)
+  // error states
+  const [codeError, setCodeError] = useState<null | IsValidFormatResponse>(null)
+  const [displayError, setDisplayError] = useState<null | IsValidFormatResponse>(null)
+  const [definitionError, setDefinitionError] = useState<null | IsValidFormatResponse>(null)
+
+  const { provisionalCS, isCsLoading, provCsError, mutateProvCs } = useGetProvisionalCS(selectedCodeSystemBase?.value)
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -509,6 +530,10 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     return shouldEnable
   }, [codeToAdd, displayToAdd, definitionToAdd])
 
+  const codeFormatErrorExists = useMemo(() => {
+    return codeError?.isValid === false || displayError?.isValid === false || definitionError?.isValid === false
+  }, [codeError, displayError, definitionError])
+
   const codeColumns = useMemo(() => {
     const fields = [
       {
@@ -538,14 +563,14 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <IconButton
             onClick={() => handleDelete(row)}
           >
-            <ModeEditIcon color='error' />
+            <DeleteForever color='error' />
           </IconButton>
         )
       },
     ]
 
     return fields
-  }, [codeItemsToAdd, handleDelete])
+  }, [codeItemsToAdd, handleDelete, provisionalCS])
 
   const handleAddToList = () => {
     setCodeItemsToAdd(prev => [
@@ -567,7 +592,11 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     })
 
     if (result.ok) {
-      router.push('/programs?resourceType=provisional')
+      toast.success('Provisional Code System updated successfully')
+      setFormSubmitting(false)
+      setCodeItemsToAdd([])
+      mutateProvCs()
+      // router.push('/programs?resourceType=provisional')
     } else {
       setFormSubmitting(false)
     }
@@ -604,6 +633,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             <ExistingCodesTable
               codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)}
               isEditable={can(session, 'edit')}
+              mutate={mutateProvCs}
             />
             {can(session, 'edit') && (
               <p style={{ marginBottom: '1rem' }}>You may add more provisional codes to your code system below:</p>
@@ -621,33 +651,46 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
               <SearchInput
                 label='Code'
                 onChange={(e) => {
+                  const codeErrorResult = isValidCode(e?.target?.value)
+                  setCodeError(codeErrorResult)
                   // handle empty string case
                   setCodeToAdd(e.target.value)
                 }}
                 value={codeToAdd}
                 style={{ minWidth: '20rem', flex: 1 }}
                 required={true}
+                errorMessage={codeError?.isValid ? null : codeError?.message}
               />
               <SearchInput
                 label='Display'
-                onChange={(e) => setDisplayToAdd(e.target.value)}
+                onChange={(e) => {
+                  const displayErrorResult = isValidString(e?.target?.value)
+                  setDisplayError(displayErrorResult)
+                  setDisplayToAdd(e.target.value)
+                }}
                 value={displayToAdd}
                 style={{ minWidth: '20rem', flex: 1 }}
                 required={true}
+                errorMessage={displayError?.isValid ? null : displayError?.message}
               />
               <TextArea
                 label='Definition (more detail about this code)'
-                onChange={(e) => setDefinitionToAdd(e.target.value)}
+                onChange={(e) => {
+                  const definitionErrorResult = isValidString(e?.target?.value)
+                  setDefinitionError(definitionErrorResult)
+                  setDefinitionToAdd(e.target.value)
+                }}
                 value={definitionToAdd}
                 style={{ minWidth: '20rem', flex: 1 }}
                 required={true}
+                errorMessage={definitionError?.isValid ? null : definitionError?.message}
               />
             </QuestionnaireRowContainer>
             <ButtonRowContainer>
               <Button
                 text='Add to List'
                 onClick={handleAddToList}
-                disabled={!enableAdd || isCsLoading}
+                disabled={!enableAdd || isCsLoading || codeFormatErrorExists}
               />
             </ButtonRowContainer>
             <p>{`Code List to add: `}</p>

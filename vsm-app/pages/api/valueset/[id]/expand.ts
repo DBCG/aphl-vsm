@@ -9,12 +9,13 @@ export interface ExpandRequest extends NextApiRequest {
   body: {
     valueSetId?: string
     expansionParameters: { [key: string]: string[] }
+    pinnedVersion?: boolean
   }
 }
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
 const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
-  const { valueSetId, expansionParameters } = req.body
+  const { valueSetId, expansionParameters, pinnedVersion } = req.body
   if (valueSetId == null) {
     logger.error('Invalid request, missing ValueSet ID.')
     return res.status(400).json({ error: 'Invalid request, missing ValueSet ID.' })
@@ -44,10 +45,10 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
         valueCanonical: valueCanonicalString.join(',')
       })
     }
-    console.log(codeSystemList)
-    // in this case expanding just one valueset
 
-    setParameterVsVersion(parameters, valueSet)
+    if (pinnedVersion) {
+      setParameterVsVersion(parameters, valueSet)
+    }
     const oid = extractOidFromUrl(valueSet.url!)
     const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
     const fetchOptions = getExpandFetchOptions(parameters)

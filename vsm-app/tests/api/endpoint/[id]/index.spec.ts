@@ -44,7 +44,6 @@ describe('/api/endpoint/[id]', () => {
 
     fhirCdrClient.delete = jest.fn().mockResolvedValueOnce({ resourceType: 'OperationOutcome' })
     await handler(req, res)
-    // console.log(res.status)
     expect(fhirCdrClient.delete).toHaveBeenCalledTimes(1)
     expect(fhirCdrClient.delete).toHaveBeenCalledWith({
       resourceType: 'Endpoint',

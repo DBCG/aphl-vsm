@@ -307,7 +307,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
   return Object.assign(newVs, rest)
 }
 function updateAuthSource(extensions: fhir4.Extension[], id: string) {
-  const existingAuthoritativeSourceExt = extensions.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+  const existingAuthoritativeSourceExt = extensions.find((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (!existingAuthoritativeSourceExt) {
     extensions.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${id}` })
   }

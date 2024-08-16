@@ -315,6 +315,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://loinc.org",
 			"http://hl7.org/fhir/sid/icd-10-cm",
 			"http://snomed.info/sct"
+
 		);
 		var ersdTestArtifactComponents = Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/release-us-ecr-specification|" + existingVersion,

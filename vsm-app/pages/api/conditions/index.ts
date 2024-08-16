@@ -24,6 +24,8 @@ const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<Condit
       const formatted = formatConditionsComposeInclude(conditions)
       return res.status(200).send(formatted)
     } else {
+      logger.error('Could not retrieve conditions data')
+      logger.debug('data from fhirCdrClient.search: ', JSON.stringify(data))
       return res.status(400).send({ error: 'Could not retrieve conditions data'}) 
     }
   } catch (e: any) {

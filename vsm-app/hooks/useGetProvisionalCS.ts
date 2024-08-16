@@ -1,4 +1,4 @@
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import { fetcher } from '@/utils'
 
 const useGetProvisionalCS = (systemUrl?: string | undefined) => {
@@ -6,12 +6,13 @@ const useGetProvisionalCS = (systemUrl?: string | undefined) => {
   if (systemUrl) {
     endpoint = endpoint + `?systemUrl=${systemUrl}`
   }
-  const { data, error, isLoading } = useSWR(endpoint, fetcher)
+  const { data, error, isLoading, mutate } = useSWR(endpoint, fetcher)
 
   return {
     provisionalCS: data,
     isCsLoading: isLoading,
-    provCsError: error
+    provCsError: error,
+    mutateProvCs: mutate
   }
 }
 

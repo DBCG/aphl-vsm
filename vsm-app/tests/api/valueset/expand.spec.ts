@@ -31,7 +31,8 @@ describe('pages/api/valueset/[id]/expand', () => {
       expansionParameters: {
         'http://loinc.org': ['2.69']
       },
-      valueSetId: '4224'
+      valueSetId: '4224',
+      pinnedVersion: true
     }
     const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
       method: 'POST',
@@ -55,8 +56,8 @@ describe('pages/api/valueset/[id]/expand', () => {
     })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    console.log(fetchMock.mock.calls[0][0])
     expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
 
     expect(fetchMock.mock.calls[0][1].body).toBe(
       JSON.stringify({
@@ -74,7 +75,8 @@ describe('pages/api/valueset/[id]/expand', () => {
       expansionParameters: {
         'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20240301']
       },
-      valueSetId: '4224'
+      valueSetId: '4224',
+      pinnedVersion: true
     }
     const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
       method: 'POST',
@@ -98,8 +100,8 @@ describe('pages/api/valueset/[id]/expand', () => {
     })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    console.log(fetchMock.mock.calls[0][0])
     expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
 
     expect(fetchMock.mock.calls[0][1].body).toBe(
       JSON.stringify({
@@ -109,6 +111,40 @@ describe('pages/api/valueset/[id]/expand', () => {
         ]
       })
     )
+  })
+
+  test('should not include valueSetVersion for unpinned valueset', async () => {
+    const body: ExpandRequest['body'] = {
+      expansionParameters: {
+        'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20240301']
+      },
+      valueSetId: '4224',
+    }
+    const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
+      method: 'POST',
+      body: body
+    })
+    fhirCdrClient.read = jest.fn().mockResolvedValue({
+      resourceType: 'ValueSet',
+      id: '4224',
+      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.32.33.44.22.55',
+      version: '07012018',
+      name: 'LL269-2',
+      title: 'LL269-2',
+      status: 'active',
+      compose: {
+        include: [
+          {
+            system: 'http://loinc.org'
+          }
+        ]
+      }
+    })
+    await handler(req, res)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
+    expect(fetchMock.mock.calls[0][1]?.method).toBe('GET')
+    expect(fetchMock.mock.calls[0][1].body).toBeUndefined()
   })
 
 
