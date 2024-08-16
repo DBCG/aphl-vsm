@@ -6,11 +6,11 @@ describe('createTableData', () => {
     // @ts-ignore
     const result = createTableData(changelog)
     const expectedRootLib = {
-      id: [ undefined, '7' ],
-      name: [ undefined, undefined ],
+      id: [ '', '7' ],
+      name: [ '', '' ],
       version: [ '2022-10-19', '1.0.0.0-draft' ],
-      purpose: [ 'SpecificationLibrary', undefined ],
-      effectiveStart: [ undefined, undefined ],
+      purpose: [ 'SpecificationLibrary', '' ],
+      effectiveStart: [ '', '' ],
     }
 
     // @ts-ignore
