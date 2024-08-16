@@ -63,7 +63,6 @@ describe('pages/api/valueset/[id]/expand', () => {
       JSON.stringify({
         resourceType: 'Parameters',
         parameter: [
-          { name: 'system-version', valueCanonical: 'http://loinc.org|2.69' },
           { name: 'valueSetVersion', valueString: '07012018' }
         ]
       })
