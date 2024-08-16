@@ -661,6 +661,7 @@ const ProvisionalVSEdit = () => {
       <ErrorMessage error={provVsError} />
       <ErrorMessage error={provContextError} />
       <DataTable
+        pagination={true}
         title={`${!can(session, 'edit') ? 'View' : 'Select to Edit'} Existing Provisional Value Sets`}
         expandableRows={true}
         expandableRowsComponent={CodeDetailsExpanded}
