@@ -310,7 +310,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-plandefinition",
 			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-plandefinition",
 			"http://hl7.org/fhir/us/ecr/StructureDefinition/ersd-valueset",
-			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset"
+			"http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-triggering-valueset",
+			"http://www.nlm.nih.gov/research/umls/rxnorm",
+			"http://loinc.org",
+			"http://hl7.org/fhir/sid/icd-10-cm",
+			"http://snomed.info/sct"
+
 		);
 		var ersdTestArtifactComponents = Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/release-us-ecr-specification|" + existingVersion,

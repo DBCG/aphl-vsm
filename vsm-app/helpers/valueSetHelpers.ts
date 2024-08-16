@@ -256,7 +256,7 @@ const createGrouperWithMetadata = (metadata: GrouperMetadata, template?: fhir4.V
       valueContactDetail: {
         name: author
       }
-    }
+    }, vsmAuthoritativeSourceExtension
   ]
 
   return vs
