@@ -1,5 +1,6 @@
 import { DiffData, FlatCodeNew, FlatCodeOld, GrouperPage, GrouperVsPage, LibraryPage } from '@/components/DiffViewer/DiffViewerTypes'
 import { get, uniq, uniqWith } from 'lodash'
+import { formatDateForTable } from './formatDates'
 
 const rootLibDataPaths: Record<string, { old: string[], new: string[] }> = {
   id: {
@@ -87,13 +88,18 @@ const generateRootTableData = (oldData: LibraryPage, newData: LibraryPage) => {
 
   const colTitles = Object.keys(rootLibDataPaths)
   colTitles.forEach((title) => {
-    const oldVal = rootLibDataPaths[title].old
+    let oldVal = rootLibDataPaths[title].old
       .map(path => getValue(path, oldData, newData))
-      .filter(x => x)[0]
+      .filter(x => x)[0] || ''
 
-    const newVal = rootLibDataPaths[title].new
+    let newVal = rootLibDataPaths[title].new
       .map(path => getValue(path, oldData, newData))
-      .filter(x => x)[0]
+      .filter(x => x)[0] || ''
+
+    if (title === 'effectiveStart') {
+      oldVal = oldVal?.length ? formatDateForTable(oldVal, 'm/d/yyyy') : ''
+      newVal = newVal?.length ? formatDateForTable(oldVal, 'm/d/yyyy') : ''
+    }
 
     result[title] = [oldVal, newVal]
   })
