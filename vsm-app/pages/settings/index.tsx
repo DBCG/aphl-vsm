@@ -21,8 +21,7 @@ const SettingsPage = () => {
     error
   } = useSWR(
     `/api/tscredentials`,
-    fetcher,
-    { revalidateOnFocus: true }
+    fetcher
   )
 
   const clearAllCredentialsToAdd = () => {
@@ -85,6 +84,10 @@ const SettingsPage = () => {
       console.error(e)
       setSearchedCredentialsError(e)
     }
+  }
+
+  if (isLoading) {
+    return <p>Loading...</p>
   }
 
 

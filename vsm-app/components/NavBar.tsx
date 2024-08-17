@@ -7,8 +7,8 @@ import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
-import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
-import { Logout, MoreVert, Settings, House } from '@mui/icons-material'
+import { Divider, IconButton, ListItemIcon, Button, Menu, MenuItem, Tooltip } from '@mui/material'
+import { Logout, MoreVert, AdminPanelSettings, Settings, House } from '@mui/icons-material'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -42,7 +42,7 @@ interface NavContextType {
 // create toggle context
 export const NavContext = createContext({
   isGrouperView: false,
-  changeGrouperView: () => { }
+  changeGrouperView: () => {}
 } as NavContextType)
 
 interface Props {
@@ -83,22 +83,14 @@ const NavBar = () => {
             <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
           </Tooltip>
           <Button
-            text="Sign Out"
             id="logout"
             onClick={() => {
               signOut({ redirect: false })
               router.push('/api/auth/logout')
             }}
-          />
-          {session?.user?.roles?.[0] === 'admin' && (
-            <Button
-              text="Admin Tools"
-              id="admin"
-              onClick={() => {
-                router.push('/admin-tools')
-              }}
-            />
-          )}
+          >
+            Sign Out
+          </Button>
           <IconButton
             aria-label="more"
             id="long-button"
@@ -121,8 +113,24 @@ const NavBar = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        { router.pathname !== '/settings' && (
+        {router.pathname !== '/settings' && (
           <>
+            {session?.user?.roles?.[0] === 'admin' && (
+              <>
+                <MenuItem
+                  id="admin"
+                  onClick={() => {
+                    router.push('/admin')
+                  }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettings />
+                  </ListItemIcon>
+                  Admin Panel
+                </MenuItem>
+                <Divider />
+              </>
+            )}
             <MenuItem onClick={() => router.push('/settings')}>
               <ListItemIcon>
                 <Settings />
@@ -153,10 +161,6 @@ const NavBar = () => {
             <Logout fontSize="small" />
           </ListItemIcon>
           Sign Out
-        </MenuItem>
-        <Divider />
-        <MenuItem disabled={true}>
-          {`App Version v-${packageInfo.version}`}
         </MenuItem>
       </Menu>
     </BarWrapper>
