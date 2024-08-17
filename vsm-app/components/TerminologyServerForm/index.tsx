@@ -68,7 +68,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       }).then((res) => res.json() as Promise<fhir4.Endpoint | FhirResource>)
       if (response?.resourceType === 'Endpoint') {
         if (!router.query.id) {
-          router.push(`/admin-tools/edit-endpoint/${response.id!}`)
+          router.push(`/admin/edit-endpoint/${response.id!}`)
         }
         setEndpointToUpdate(response)
         setLoading(false)
@@ -195,9 +195,9 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
         />
         <Button
           style={{ marginLeft: '15px' }}
-          id="back-to-admin-tools"
+          id="back-to-admin"
           text="Back to Admin Tools"
-          onClick={() => router.push('/admin-tools')}
+          onClick={() => router.push('/admin')}
           disabled={loading}
         />
       </Row>

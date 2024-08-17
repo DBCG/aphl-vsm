@@ -110,7 +110,7 @@ const TerminologyEndpoints: NextPage = () => {
           <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
             <IconButton
               onClick={() => {
-                router.push(`/admin-tools/edit-endpoint/${row.id}`)
+                router.push(`/admin/edit-endpoint/${row.id}`)
               }}
               buttoncontext={'edit'}
             />
@@ -140,7 +140,7 @@ const TerminologyEndpoints: NextPage = () => {
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <h4>Endpoints</h4>
-        <Button onClick={() => router.push('/admin-tools/create-endpoint')}>Create Endpoint</Button>
+        <Button onClick={() => router.push('/admin/create-endpoint')}>Create Endpoint</Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT

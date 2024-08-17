@@ -16,8 +16,8 @@ const nextConfig = {
         destination: '/programs',
         permanent: true
       },{
-        source: '/admin-tools/edit-endpoint',
-        destination: '/admin-tools',
+        source: '/admin/edit-endpoint',
+        destination: '/admin',
         permanent: true
       }
     ]
