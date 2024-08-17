@@ -110,13 +110,13 @@ function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache =
           pauseOnHover
           transition={Slide}
         />
-        <SWRConfig value={{ revalidateOnFocus: false }}>
-          <Scaffold>
-            <ThemeProvider theme={theme}>
+        <Scaffold>
+          <ThemeProvider theme={theme}>
+            <SWRConfig value={{ revalidateOnFocus: false }}>
               <Component {...pageProps} />
-            </ThemeProvider>
-          </Scaffold>
-        </SWRConfig>
+            </SWRConfig>
+          </ThemeProvider>
+        </Scaffold>
       </NavContextProvider>
       </CacheProvider>
     </SessionProvider>

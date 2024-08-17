@@ -8,7 +8,9 @@ import Box from '@mui/material/Box'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { Divider, IconButton, Button, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
-import { Logout, MoreVert, Settings, House } from '@mui/icons-material'
+import { Logout, MoreVert, AdminPanelSettings, Settings, House } from '@mui/icons-material'
+
+
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -42,7 +44,7 @@ interface NavContextType {
 // create toggle context
 export const NavContext = createContext({
   isGrouperView: false,
-  changeGrouperView: () => { }
+  changeGrouperView: () => {}
 } as NavContextType)
 
 interface Props {
@@ -91,17 +93,6 @@ const NavBar = () => {
           >
             Sign Out
           </Button>
-          {session?.user?.roles?.[0] === 'admin' && (
-            <Button
-              id="admin"
-              onClick={() => {
-                router.push('/admin-tools')
-              }}
-            >
-              Admin Tools
-            </Button>
-
-          )}
           <IconButton
             aria-label="more"
             id="long-button"
@@ -124,8 +115,24 @@ const NavBar = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        { router.pathname !== '/settings' && (
+        {router.pathname !== '/settings' && (
           <>
+            {session?.user?.roles?.[0] === 'admin' && (
+              <>
+                <MenuItem
+                  id="admin"
+                  onClick={() => {
+                    router.push('/admin')
+                  }}
+                >
+                  <ListItemIcon>
+                    <AdminPanelSettings />
+                  </ListItemIcon>
+                  Admin Panel
+                </MenuItem>
+                <Divider />
+              </>
+            )}
             <MenuItem onClick={() => router.push('/settings')}>
               <ListItemIcon>
                 <Settings />
@@ -156,10 +163,6 @@ const NavBar = () => {
             <Logout fontSize="small" />
           </ListItemIcon>
           Sign Out
-        </MenuItem>
-        <Divider />
-        <MenuItem disabled={true}>
-          {`App Version v-${packageInfo.version}`}
         </MenuItem>
       </Menu>
     </BarWrapper>
