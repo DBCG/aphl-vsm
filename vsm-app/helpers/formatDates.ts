@@ -1,5 +1,4 @@
 import { format } from 'date-fns'
-import { is } from './is'
 
 interface FormatResourceDate {
   resource: fhir4.ValueSet | fhir4.CodeSystem
