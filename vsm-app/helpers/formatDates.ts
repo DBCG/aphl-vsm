@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { is } from './is'
 
 interface FormatResourceDate {
   resource: fhir4.ValueSet | fhir4.CodeSystem
@@ -18,20 +19,36 @@ const formatResourceDate = ({ resource, dateType }: FormatResourceDate) => {
 }
 
 const formatDateForTable = (date: string | any, format: string): string => {
-  if (typeof date !== 'string' || !date?.trim()?.length) {
+  if (!!(typeof date !== 'string' && typeof date !== 'number')) {
     return ''
-  }
+  } else if (typeof date === 'string') {
+    if (!date?.trim()?.length) {
+      return ''
+    }
 
-  try {
-    if (format?.toLowerCase() === 'm/d/yyyy') {
+    try {
+      if (format?.toLowerCase() === 'm/d/yyyy') {
+        const dateItem = new Date(date)
+        const formattedDate = new Intl.DateTimeFormat('en-US').format(dateItem)
+        return formattedDate
+      }
+      return date
+    } catch (e) {
+      console.log('error formatting date: ', e)
+      return ''
+    }
+
+  } else if (typeof date === 'number') {
+    try {
       const dateItem = new Date(date)
       const formattedDate = new Intl.DateTimeFormat('en-US').format(dateItem)
       return formattedDate
+    } catch (e) {
+      console.log('error formatting date: ', e)
+      return ''
     }
-    return date
-  } catch (e) {
-    return ''
   }
+  return ''
 }
 
 export { formatResourceDate, formatDateForTable }

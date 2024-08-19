@@ -95,10 +95,10 @@ const generateRootTableData = (oldData: LibraryPage, newData: LibraryPage) => {
     let newVal = rootLibDataPaths[title].new
       .map(path => getValue(path, oldData, newData))
       .filter(x => x)[0] || ''
-
+      
     if (title === 'effectiveStart') {
-      oldVal = oldVal?.length ? formatDateForTable(oldVal, 'm/d/yyyy') : ''
-      newVal = newVal?.length ? formatDateForTable(oldVal, 'm/d/yyyy') : ''
+      oldVal = oldVal ? formatDateForTable(oldVal, 'm/d/yyyy') : ''
+      newVal = newVal ? formatDateForTable(newVal, 'm/d/yyyy') : ''
     }
 
     result[title] = [oldVal, newVal]
@@ -380,6 +380,8 @@ const createTableData = (diffData: DiffData) => {
   if (!diffData) {
     return null
   }
+
+  console.log('diffData: ', diffData)
 
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
