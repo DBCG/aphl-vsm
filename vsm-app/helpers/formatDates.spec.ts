@@ -7,6 +7,11 @@ describe('formatDates', () => {
       expect(formatDateForTable(testDate, 'm/d/yyyy')).toBe('8/8/2023')
     })
 
+    it('creates the correct date structure in number format', () => {
+      const testDate = 1724716800000
+      expect(formatDateForTable(testDate, 'm/d/yyyy')).toBe('8/26/2024')
+    })
+
     it('returns empty string if input is not a string', () => {
       const notDate = null
       expect(formatDateForTable(notDate, 'm/d/yyyy')).toBe('')
