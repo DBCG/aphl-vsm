@@ -63,19 +63,19 @@ describe('pages/api/valueset/[id]/expand', () => {
       JSON.stringify({
         resourceType: 'Parameters',
         parameter: [
+          { name: 'system-version', valueCanonical: 'http://loinc.org|2.69' },
           { name: 'valueSetVersion', valueString: '07012018' }
         ]
       })
     )
   })
 
-  test('should not include system-version for codesystem not present in valueset', async () => {
+  test('should not include valueSetVersion for unpinned valueset', async () => {
     const body: ExpandRequest['body'] = {
       expansionParameters: {
         'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20240301']
       },
-      valueSetId: '4224',
-      pinnedVersion: true
+      valueSetId: '4224'
     }
     const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
       method: 'POST',
@@ -101,51 +101,15 @@ describe('pages/api/valueset/[id]/expand', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
     expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
-
     expect(fetchMock.mock.calls[0][1].body).toBe(
       JSON.stringify({
         resourceType: 'Parameters',
         parameter: [
-          { name: 'valueSetVersion', valueString: '07012018' }
+          { name: 'system-version', valueCanonical: 'http://snomed.info/sct|http://snomed.info/sct/731000124108/version/20240301' }
         ]
       })
     )
   })
-
-  test('should not include valueSetVersion for unpinned valueset', async () => {
-    const body: ExpandRequest['body'] = {
-      expansionParameters: {
-        'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20240301']
-      },
-      valueSetId: '4224',
-    }
-    const { req, res } = createMocks<ExpandRequest, NextApiResponse>({
-      method: 'POST',
-      body: body
-    })
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
-      resourceType: 'ValueSet',
-      id: '4224',
-      url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.32.33.44.22.55',
-      version: '07012018',
-      name: 'LL269-2',
-      title: 'LL269-2',
-      status: 'active',
-      compose: {
-        include: [
-          {
-            system: 'http://loinc.org'
-          }
-        ]
-      }
-    })
-    await handler(req, res)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
-    expect(fetchMock.mock.calls[0][1]?.method).toBe('GET')
-    expect(fetchMock.mock.calls[0][1].body).toBeUndefined()
-  })
-
 
   // TODO: Needs to be moved to new api endpoint /api/valueset/codesearch
   // test('should search on grouper valuesets', async () => {

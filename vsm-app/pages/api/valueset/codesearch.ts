@@ -21,22 +21,23 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
       resourceType: 'Parameters',
       parameter: []
     }
-    // TODO: There is currently a bug on VSAC preventing us from using multiple system-version parameters
-    // const valueCanonicalString = Object.entries(req.body.expansionParameters).flatMap(([system, versions]) =>
-    //   versions.map((version) => `${system}|${version}`)
-    // )
+    const valueCanonicalString = Object.entries(req.body.expansionParameters).flatMap(([system, versions]) =>
+      versions.map((version) => `${system}|${version}`)
+    )
 
-    // if (valueCanonicalString.length > 0) {
-    //   // @ts-ignore
-    //   parameters.parameter.push({
-    //     name: 'system-version',
-    //     valueCanonical: valueCanonicalString.join(',')
-    //   })
-    // }
+    if (valueCanonicalString.length > 0) {
+      valueCanonicalString.forEach((version) => {
+        // @ts-ignore
+        parameters.parameter.push({
+          name: 'system-version',
+          valueCanonical: version
+        })
+      })
+    }
 
     const groupersToSearch = req?.body?.groupersToSearch
 
-   if (typeof groupersToSearch !== 'undefined') {
+    if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind
       if (codeToFind) {

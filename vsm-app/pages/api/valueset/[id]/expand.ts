@@ -28,22 +28,21 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
       parameter: []
     }
 
-    // TODO: There is currently a bug on VSAC preventing us from using multiple system-version parameters
-    // const valueCanonicalString = [] as string[]
+    const valueCanonicalString = [] as string[]
 
-    // Object.entries(expansionParameters).forEach(([system, versions]) => {
-    //   valueCanonicalString.push(...versions.map((version) => `${system}|${version}`))
-    // })
+    Object.entries(expansionParameters).forEach(([system, versions]) => {
+      valueCanonicalString.push(...versions.map((version) => `${system}|${version}`))
+    })
 
-    // if (valueCanonicalString.length > 0) {
-    //   // @ts-ignore
-    // valueCanonicalString.forEach((version) => {
-    //   parameters.parameter.push({
-    //     name: 'system-version',
-    //     valueCanonical: version
-    //   })
-    // }
-    // }
+    if (valueCanonicalString.length > 0) {
+      valueCanonicalString.forEach((version) => {
+        // @ts-ignore
+        parameters.parameter.push({
+          name: 'system-version',
+          valueCanonical: version
+        })
+      })
+    }
 
     if (pinnedVersion) {
       setParameterVsVersion(parameters, valueSet)
