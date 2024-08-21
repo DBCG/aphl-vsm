@@ -12,28 +12,23 @@ import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
 import { FhirResource } from 'fhir/r4'
 import { ErrorMessage } from '../ErrorMessage'
+import { toast } from 'react-toastify'
 export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
-
+export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
+  extensions.find((ext) => ext.url === authenticationTypeUrl)?.valueString
 export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [addressError, setAddressError] = useState('')
   const [nameError, setNameError] = useState('')
-  const [globalError, setGlobalError] = useState('')
   const [endpointToUpdate, setEndpointToUpdate] = useState<fhir4.Endpoint>()
   const name = useRef<HTMLInputElement>(null)
   const address = useRef<HTMLInputElement>(null)
   const authenticationType = useRef<SelectInstance<{ value: string; label: string } | null>>(null)
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    setGlobalError('')
+    toast.dismiss()
     e.preventDefault()
     setLoading(true)
-    if (!address?.current?.value.trim()) {
-      setAddressError('Error: Address cannot be empty')
-    }
-    if (!address?.current?.value.trim()) {
-      setNameError('Error: Name cannot be empty')
-    }
     if (!name?.current?.value.trim() || !address?.current?.value.trim()) {
       setLoading(false)
       return
@@ -67,6 +62,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
         body: JSON.stringify(body)
       }).then((res) => res.json() as Promise<fhir4.Endpoint | FhirResource>)
       if (response?.resourceType === 'Endpoint') {
+        toast.success(`Successfully ${!!endpointToUpdate ? 'updated' : 'created'} Endpoint`)
         if (!router.query.id) {
           router.push(`/admin-tools/edit-endpoint/${response.id!}`)
         }
@@ -75,7 +71,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       }
     } catch (err: any) {
       setLoading(false)
-      setGlobalError(err?.error || 'Error updating endpoint')
+      toast.error(err?.error || typeof err === 'string' ? err : 'Error updating endpoint')
       console.error(err)
     }
   }
@@ -89,7 +85,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     try {
       new URL(url)
     } catch (_) {
-      setAddressError('Error: The address provided is malformed')
+      setAddressError('Warning: The address provided is malformed')
       return false
     }
     setAddressError('')
@@ -121,7 +117,6 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     <>
       <GridContainer>
         <Col>
-          <ErrorMessage error={globalError} />
           <SubtitleRow>
             <StyledSpan>{endpoint ? 'Edit' : 'Add'} Endpoint</StyledSpan>
           </SubtitleRow>
@@ -134,6 +129,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             onChange={(e) => {
               if (e.target.value.trim()) {
                 setNameError('')
+              } else {
+                setNameError('Error: Name cannot be empty')
               }
             }}
             disabled={loading}
@@ -146,8 +143,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             errorMessage={addressError}
             onChange={(v) => {
               const address = v.target.value
-              if (!address) {
-                setAddressError('')
+              if (!address.trim()) {
+                setAddressError('Error: Address cannot be empty')
                 return
               }
               if (debouncedValidUrl(address)) {
@@ -156,6 +153,10 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
             }}
             onBlur={(v) => {
               const address = v.target.value
+              if (!address.trim()) {
+                setAddressError('Error: Address cannot be empty')
+                return
+              }
               if (isValidUrl(address)) {
                 validateWithHttpCall(address)
               }
