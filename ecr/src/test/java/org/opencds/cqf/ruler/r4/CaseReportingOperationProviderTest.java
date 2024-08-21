@@ -942,7 +942,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		));
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_fail_non_matching_capability() {
 		loadTransaction("ersd-active-transaction-capabilities-bundle.json");
@@ -975,9 +974,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		allParams.addParameter("capability", "computable");
 		allParams.addParameter("capability", "publishable");
 		allParams.addParameter("capability", "executable");
-		allParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle packaged = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -990,7 +986,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertNotNull(packaged);
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_apply_check_force_canonicalVersions() {
 		loadTransaction("ersd-active-transaction-no-versions.json");
@@ -998,9 +993,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/PlanDefinition/us-ecr-specification|" + versionToUpdateTo));
 		params.addParameter("artifactVersion", new CanonicalType("http://to-add-missing-version/ValueSet/dxtc|" + versionToUpdateTo));
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle updatedCanonicalVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1018,9 +1010,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 		params = new Parameters();
 		params.addParameter("checkArtifactVersion", new CanonicalType("http://to-check-version/Library/SpecificationLibrary|1.3.1"));
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		String correctCheckVersion = "2022-10-19";
 		PreconditionFailedException checkCanonicalThrewError = null;
@@ -1037,9 +1026,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertNotNull(checkCanonicalThrewError);
 		params = new Parameters();
 		params.addParameter("checkArtifactVersion", new CanonicalType("http://to-check-version/Library/SpecificationLibrary|" + correctCheckVersion));
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle noErrorCheckCanonicalPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1056,9 +1042,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		String versionToForceTo = "1.1.9";
 		params = new Parameters();
 		params.addParameter("forceArtifactVersion", new CanonicalType("http://to-force-version/Library/rctc|" + versionToForceTo));
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle forcedVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1075,7 +1058,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_respect_count_offset() {
 		loadTransaction("ersd-small-active-bundle.json");
@@ -1128,9 +1110,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(offset4Bundle.hasTotal() == false);
 		Parameters offsetMaxParams = new Parameters();
 		offsetMaxParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
-		offsetMaxParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle offsetMaxBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1142,9 +1121,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters offsetMaxRandomCountParams = new Parameters();
 		offsetMaxRandomCountParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
 		offsetMaxRandomCountParams.addParameter("count", new IntegerType(ThreadLocalRandom.current().nextInt(3, 20)));
-		offsetMaxRandomCountParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle offsetMaxRandomCountBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1155,7 +1131,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(offsetMaxRandomCountBundle.getEntry().size() == 0);
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_different_bundle_types() {
 		loadTransaction("ersd-small-active-bundle.json");
@@ -1171,9 +1146,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(countZeroBundle.getType() == Bundle.BundleType.SEARCHSET);
 		Parameters countSevenParams = new Parameters();
 		countSevenParams.addParameter("count", new IntegerType(7));
-		countSevenParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1184,9 +1156,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(countSevenBundle.getType() == Bundle.BundleType.TRANSACTION);
 		Parameters countFourParams = new Parameters();
 		countFourParams.addParameter("count", new IntegerType(4));
-		countFourParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle countFourBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1200,9 +1169,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertFalse(countFourBundle.hasTotal());
 		Parameters offsetOneParams = new Parameters();
 		offsetOneParams.addParameter("offset", new IntegerType(1));
-		offsetOneParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle offsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1218,9 +1184,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters countOneOffsetOneParams = new Parameters();
 		countOneOffsetOneParams.addParameter("count", new IntegerType(1));
 		countOneOffsetOneParams.addParameter("offset", new IntegerType(1));
-		countOneOffsetOneParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 
 		Bundle countOneOffsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1234,14 +1197,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertFalse(countOneOffsetOneBundle.hasTotal());
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_conditionally_create() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
-		emptyParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1256,14 +1215,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_be_aware_of_valueset_priority_extension() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
-		emptyParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1286,7 +1241,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1297,14 +1252,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(((CodeableConcept) priority2.get().getValue()).getCoding().get(0).getSystem().equals(TransformProperties.usPHUsageContext));
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_be_aware_of_useContext_extension() {
 		loadTransaction("ersd-small-active-bundle.json");
 		Parameters emptyParams = new Parameters();
-		emptyParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
@@ -1325,11 +1276,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getSystem().equals("http://snomed.info/sct"));
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_should_respect_include() {
 		loadTransaction("ersd-small-active-bundle.json");
-		Map<String, List<String>> includeOptions = new HashMap<String,List<String>>();
+		var includeOptions = new HashMap<String,List<String>>();
 		includeOptions.put("artifact",Arrays.asList("http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary"));
 		includeOptions.put("canonical",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1337,7 +1287,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1347,7 +1297,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
@@ -1357,9 +1307,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		for (Map.Entry<String, List<String>> includedTypeURLs : includeOptions.entrySet()) {
 			Parameters params = new Parameters();
 			params.addParameter("include", includedTypeURLs.getKey());
-			params.addParameter()
-					.setName("terminologyEndpoint")
-					.setResource(endpointCredentials);
 
 			Bundle packaged = getClient().operation()
 				.onInstance(specificationLibReference)
@@ -1383,32 +1330,23 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		}
 	}
 
-	@Disabled
 	@Test
 	void packageOperation_big_bundle() {
 		Bundle loadedBundle = (Bundle) loadTransaction("ersd-active-transaction-bundle-example.json");
 		Parameters params = new Parameters();
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(packagedBundle.getEntry().size() == loadedBundle.getEntry().size());
+		assertEquals(loadedBundle.getEntry().size(), packagedBundle.getEntry().size());
 	}
 
-	@Disabled
 	@Test
-		// We need to disable this as it requires VSAC credentials to expand Value Sets
 	void packageOperation_expansion() {
 		loadTransaction("small-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
-		emptyParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
 			.named("$package")
@@ -1450,14 +1388,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(maybeException.getMessage().contains("HTTP 422 : Terminology Server expansion failed for"));
 }
 
-@Disabled
 @Test
 	void packageOperation_naive_expansion() {
 		loadTransaction("small-naive-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
-		emptyParams.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
 			.named("$package")
@@ -1475,8 +1409,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		leafValueSets.forEach(valueSet -> assertNotNull(valueSet.getExpansion()));
 	}
 
-	// re enabling all these once we use the updated package implmentation which naive expands without the terminology server
-	@Disabled
 	@Test
 	void package_test_condition_missing() {
 		loadTransaction("ersd-small-approved-draft-missing-condition.json");
@@ -1569,21 +1501,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(missingPlanDefinitionSliceErrorExists);
 	}
 
-	@Disabled
 	@Test
 	void validatePackageOutput() {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
 		Parameters params = new Parameters();
-		params.addParameter()
-				.setName("terminologyEndpoint")
-				.setResource(endpointCredentials);
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(packagedBundle.getEntry().size() == 37);
+		assertEquals(37,packagedBundle.getEntry().size());
 		Parameters packagedBundleParams = new Parameters();
 		packagedBundleParams.addParameter().setName("resource").setResource( packagedBundle);
 		packagedBundleParams.addParameter()
@@ -1597,7 +1525,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		List<OperationOutcome.OperationOutcomeIssueComponent> errors = packagedBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		assertTrue(errors.size() == 10);
+		assertEquals(10, errors.size());
 		// expect errors for Variable extension which bubble up and invalidate the PlanDefinition slice
 		assertTrue(errors.get(0).getDiagnostics().contains("slicePlanDefinition"));
 		assertTrue(errors.get(1).getDiagnostics().contains("'depends-on' but must be 'composed-of'"));
