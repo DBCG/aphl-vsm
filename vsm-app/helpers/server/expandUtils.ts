@@ -5,9 +5,6 @@ import logger from './logger'
 import { vsacFhirClient } from 'fhirClients'
 import { extractOidFromUrl } from '@/utils'
 
-interface ReturnStructure { 
-
-}
 interface GrouperIdsByUrlItem {
   version?: string
   grouperIds?: Set<string>

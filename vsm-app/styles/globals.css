@@ -397,6 +397,7 @@ body {
   --neutral-100: rgba(179, 172, 166, 1);
   --theme-color-transparent: rgba(0, 128, 141, 0.05);
   --white: #fff;
+  --light-callout: rgba(255, 238, 204, 0.5);
   --caution: #c57001;
   --nochange: #0085a3;
   --added: #307706;

@@ -13,6 +13,7 @@ import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { ExpandRequest } from '@/pages/api/valueset/codesearch'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { getVSConditions } from '@/helpers/libraryHelpers'
 
 interface Props {
   program: fhir4.Library
@@ -55,9 +56,14 @@ const CodeSearch = ({ program, router }: Props) => {
   const [systemToFind, setSystemToFind] = useState<string | undefined>(undefined)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
-  
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
+
+  const conditionsData = useMemo(() => {
+    return getVSConditions(program)
+  }, [[program]])
+
+  console.log('conditionsData: ', conditionsData)
 
   // error states
   const [error, setError] = useState<null | string>(null)
@@ -106,6 +112,7 @@ const CodeSearch = ({ program, router }: Props) => {
       console.log('matches: ', matches)
       const matchesData = convertToArrayForTable(matches)
       console.log('matchesData: ', matchesData)
+      console.log('program value sets: ', programValuesets)
       // console.log('typeof matchesData', Array.isArray(matchesData[0].matchingCodes))
       setMatchingValueSetUrls(matchesData)
     } catch (e) {
@@ -234,7 +241,7 @@ const CodeSearch = ({ program, router }: Props) => {
           expandableRowExpanded={() => true}
           // @ts-ignore-next-line (I can't figure this one out)
           expandableRowsComponent={Expansion}
-          expandableRowsComponentProps={{ groupsInProgram: groupsInProgram }}
+          expandableRowsComponentProps={{ groupsInProgram: groupsInProgram, conditionsData }}
         />
       )}
     </div>

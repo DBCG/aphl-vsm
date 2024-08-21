@@ -411,6 +411,7 @@ export {
   setReleaseDescription,
   getVSPriority,
   setVSPriority,
+  getConditionText,
   getVSConditions,
   setVSConditions,
   missingFields,
