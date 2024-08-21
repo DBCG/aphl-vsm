@@ -5,6 +5,9 @@ import logger from './logger'
 import { vsacFhirClient } from 'fhirClients'
 import { extractOidFromUrl } from '@/utils'
 
+interface ReturnStructure { 
+
+}
 interface GrouperIdsByUrlItem {
   version?: string
   grouperIds?: Set<string>
@@ -162,6 +165,8 @@ const findMatchingVsetUrls = async ({
   groupersToSearch
 }: FindMatchingVsetUrlsParams) => {
 
+  let returnData = {}
+
   const matchingLeafs = async (groupersByLeaf: GrouperIdsByUrl) => {
     if (Object.keys(groupersByLeaf).length <= 0) return []
 
@@ -252,17 +257,17 @@ const findMatchingVsetUrls = async ({
 
       // filter out undefined results (maybe better error handling eventually)
       // how to handle these Promise types?
-      const expandedItems = expansions
+      const expandedItemsFromVSAC = expansions
         ?.filter((promiseItem): promiseItem is PromiseFulfilledResult<fhir4.ValueSet> => promiseItem.status === 'fulfilled')
         ?.map((res) => res.value)
 
       // only want valuesets that contain the code + (optional) system
-      const matches = expandedItems?.filter((vs: fhir4.ValueSet) => {
+      const matches = expandedItemsFromVSAC?.filter((vs: fhir4.ValueSet) => {
         return findMatches({ vs, codeToFind, systemToFind }).isMatch
       })
 
       // return the urls of valuesets that contain the code
-      return matches?.map(i => {
+      matches?.forEach(i => {
         const vsUrl = i?.url?.split('-')?.[0]
         if (!vsUrl) {
           throw "Missing vsURL for: " + i.id
@@ -276,19 +281,37 @@ const findMatchingVsetUrls = async ({
             ctx.code.code === 'focus'
           ))
           ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text) || []
+        
+        const matchingCodeItem = findMatches({ vs: i, codeToFind, systemToFind }).codeMatches
+        console.log('matchingCodeItem', matchingCodeItem)
+        const versionKey = `${codeToFind}||${matchingCodeItem!.version}`
 
-        return ({
-          leafDisplay: i?.title || i?.name,
-          groupersBelongsTo: grouperInfo,
-          url: vsUrl,
-          matchingCodes: findMatches({ vs: i, codeToFind, systemToFind }).codeMatches,
-          conditionInfo: conditionInfoFromCQF
+        if (returnData[versionKey]) {
+          returnData[versionKey].leafData.push({
+            leafDisplay: i?.title || i?.name,
+            groupersBelongsTo: grouperInfo,
+            url: vsUrl,
+            conditionInfo: conditionInfoFromCQF,
+          })
+        } else {
+          returnData[versionKey] = ({
+            leafData: [{
+              leafDisplay: i?.title || i?.name,
+              groupersBelongsTo: grouperInfo,
+              url: vsUrl,
+              conditionInfo: conditionInfoFromCQF,
+            }],
+            codeData: matchingCodeItem
+
+          })
+          }
         })
-      })
+      return returnData
     }
 
     try {
       const matchingVSets = await matchingExpansions()
+      console.log('matchingVSets', matchingVSets)
       return matchingVSets
     } catch (e) {
       logger.error(e)

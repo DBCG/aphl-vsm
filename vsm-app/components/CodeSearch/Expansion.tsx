@@ -15,6 +15,7 @@ interface Props extends ExpanderComponentProps<Row> {
 }
 
 const Expansion = (props: Props) => {
+  console.log('props: ', props)
   const { data, groupsInProgram } = props
 
   if(!data) return (<></>)
@@ -71,7 +72,7 @@ const Expansion = (props: Props) => {
       <p>Match found in these Valuesets</p>
       <DT
         columns={columns}
-        data={[data]}
+        data={data.leafData}
       />
     </div>
   )

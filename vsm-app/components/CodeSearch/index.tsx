@@ -27,6 +27,9 @@ interface MatchingCodes {
 }
 
 interface Row {
+  groupersBelongsTo: string[]
+  conditionInfo: [] // todo
+  leafDisplay: string
   matchingCodes: MatchingCodes
 }
 
@@ -36,6 +39,14 @@ const customStyles = {
       padding: '8px 12px'
     }
   }
+}
+
+const convertToArrayForTable = (matchesData) => {
+  const allKeys = Object.keys(matchesData)
+  return allKeys.map(key => ({
+    codeData: matchesData[key].codeData,
+    leafData: matchesData[key].leafData
+  }))
 }
 
 const CodeSearch = ({ program, router }: Props) => {
@@ -73,6 +84,7 @@ const CodeSearch = ({ program, router }: Props) => {
         ?.map((i) => i?.id)
         ?.filter((x) => !!x)
         ?.map((x) => x!)
+
       const body: ExpandRequest['body'] = {
         codeSystem: systemToFind,
         groupersToSearch: grouperIdsToSearch,
@@ -87,7 +99,14 @@ const CodeSearch = ({ program, router }: Props) => {
         },
         body: JSON.stringify(body)
       }).then((res) => res.json())
-      const matchesData = Array.isArray(matches) ? matches : []
+
+      if (matches.error) {
+        // handle error & return
+      }
+      console.log('matches: ', matches)
+      const matchesData = convertToArrayForTable(matches)
+      console.log('matchesData: ', matchesData)
+      // console.log('typeof matchesData', Array.isArray(matchesData[0].matchingCodes))
       setMatchingValueSetUrls(matchesData)
     } catch (e) {
       setError('Error occurred searching for code')
@@ -100,7 +119,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'System',
         id: 'vs-code-system',
-        selector: (row: Row) => row.matchingCodes.system!,
+        selector: (row: Row) => row.codeData.system!,
         sortable: false,
         maxWidth: '180px',
         wrap: true
@@ -108,7 +127,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Code',
         id: 'vs-code',
-        selector: (row: Row) => row.matchingCodes.code!,
+        selector: (row: Row) => row.codeData.code!,
         sortable: false,
         maxWidth: '160px',
         wrap: true
@@ -116,7 +135,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Code System Version',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.version!,
+        selector: (row: Row) => row?.codeData?.version!,
         sortable: false,
         maxWidth: '260px',
         wrap: true
@@ -124,7 +143,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Display',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.display!,
+        selector: (row: Row) => row?.codeData?.display!,
         sortable: false,
         maxWidth: '320px',
         wrap: true
