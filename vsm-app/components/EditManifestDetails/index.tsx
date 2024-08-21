@@ -215,8 +215,11 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                 selector: (row: ManifestSystemVersionPair) => row.version,
                 sortable: true,
                 // Some code systems have urls for their versions with the date at the end
-                // @ts-ignore
-                sortFunction: (a: string, b: string) => a.split('/')?.pop()?.localeCompare(b.split('/').pop()),
+                sortFunction: (a: fhir4.Coding, b: fhir4.Coding) => {
+                  const versionA = a?.version?.split('/').pop() || ''
+                  const versionB = b?.version?.split('/').pop() || ''
+                  return versionA.localeCompare(versionB)
+                },
                 wrap: true
               },
               {
@@ -234,7 +237,6 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                     />
                   )
                 },
-                maxWidth: '100px',
                 sortable: true,
                 wrap: true
               }
