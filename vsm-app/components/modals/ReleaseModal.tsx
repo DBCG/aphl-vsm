@@ -2,7 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography } from '@mui/material'
+import { Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography, CircularProgress } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { getReleaseDescription, getReleaseLabel, validStartDate } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
@@ -60,7 +60,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
   const [versionToCheck, setVersionToCheck] = useState<string | undefined>(program?.version?.split('-draft')?.[0])
   const [activeStep, setActiveStep] = useState(0)
   const [stepsCompleted, setStepsCompleted] = useState([false, false])
-  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>({})
+  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>(getProgramManifestVersions(program))
   const [isUpdating, setIsUpdating] = useState(false)
   const [availableUpdates, setAvailableUpdates] = useState([])
   const { data: matches = [] } = useSWR(
@@ -152,17 +152,18 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
 
   useEffect(() => {
     // Initializes the current selected data
-    const manifestData = getProgramManifestVersions(program)
-    setCurrentSelectedData(manifestData)
-    searchAvailableUpdates({
-      programId: program?.id as string,
-      currentSelectedData: manifestData,
-      systemAndVersionData,
-      setAvailableUpdates,
-      setIsUpdating,
-      disableNotifications: true
-    })
-  }, [])
+    if (Object.keys(systemAndVersionData).length) {
+      setIsUpdating(true)
+      searchAvailableUpdates({
+        programId: program?.id as string,
+        currentSelectedData,
+        systemAndVersionData,
+        setAvailableUpdates,
+        setIsUpdating,
+        disableNotifications: true
+      })
+    }
+  }, [systemAndVersionData, currentSelectedData, program?.id])
 
   if (!isOpen || !program) return null
 
@@ -228,6 +229,14 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
       content: (
         <div>
           <Typography>Manifest versions may be added to specify specific code system versions in this program.</Typography>
+          {isUpdating && (
+            <Box sx={{display: 'flex'}}>
+              <Typography variant="body1" sx={{ m: '1rem' }}>
+                Checking for latest available Manifest versions
+              </Typography>
+              <CircularProgress />
+            </Box>)
+          }
           <ManifestDescription context="release-modal" />
           <ManifestDetailTable
             programId={program?.id!}
