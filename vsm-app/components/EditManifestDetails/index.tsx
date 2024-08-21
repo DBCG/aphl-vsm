@@ -216,8 +216,8 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
                 sortable: true,
                 // Some code systems have urls for their versions with the date at the end
                 sortFunction: (a: fhir4.Coding, b: fhir4.Coding) => {
-                  const versionA = a?.version?.split('/').pop() || ''
-                  const versionB = b?.version?.split('/').pop() || ''
+                  const versionA = a?.version?.split('/')?.pop() || ''
+                  const versionB = b?.version?.split('/')?.pop() || ''
                   return versionA.localeCompare(versionB)
                 },
                 wrap: true
