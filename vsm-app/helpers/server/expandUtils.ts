@@ -79,9 +79,8 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
 const arrangeGroupersByLeafRef = (groupers: fhir4.ValueSet[]) => {
   const grouperIdsByLeafRef: GrouperIdsByUrl = {}
   for (const grouper of groupers) {
-    // exclude groupers that don't have anything in compose.include (bad data?)
-    if (!grouper?.compose?.include?.length) return {}
-    const vsRefs = grouper?.compose?.include?.map(i => i?.valueSet?.[0])?.filter(x => Boolean(x)).map(x => x!)
+
+    const vsRefs = grouper?.compose?.include?.map(i => i?.valueSet?.[0])?.filter(x => Boolean(x)).map(x => x!) || []
 
     vsRefs.forEach((ref: string, ind) => {
       const [url, version] = ref.split('|')
