@@ -21,7 +21,7 @@ interface BuildUrlParams {
 }
 
 const buildSearchUrl = ({ leafUrl, leafVersion }: BuildUrlParams) => (
-  `/ValueSet?url=${leafUrl}&_sort=version` + (leafVersion ? `&version=${leafVersion}` : '')
+  `/ValueSet?url=${leafUrl}&_sort=-version&_count=1` + (leafVersion ? `&version=${leafVersion}` : '')
 )
 
 interface FindMatches {
@@ -215,6 +215,7 @@ const findMatchingVsetUrls = async ({
       const leafVersion = groupersByLeaf?.[leafUrl]?.version
       const searchUrl = buildSearchUrl({ leafUrl: leafVs.url!, leafVersion })
 
+      console.log('search url: ', searchUrl)
       return {
         request: {
           method: 'GET' as fhir4.BundleEntryRequest["method"],
