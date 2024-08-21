@@ -37,9 +37,7 @@ type ManifestDetailTableProps = {
 
 const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates }: ManifestDetailTableProps) => {
   const [targetedCsToUpdate, setTargetedCsToUpdate] = useState<ManifestSystemVersionPair | null>(null)
-  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher, {
-    revalidateOnFocus: false
-  })
+  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher)
   const preppedData = prepData(manifestData)
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)

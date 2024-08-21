@@ -15,6 +15,7 @@ import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
+import { SWRConfig } from 'swr'
 
 const theme = createTheme({
   components: {
@@ -81,11 +82,13 @@ function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache =
           pauseOnHover
           transition={Slide}
         />
-        <Scaffold>
-          <ThemeProvider theme={theme}>
-            <Component {...pageProps} />
-          </ThemeProvider>
-        </Scaffold>
+        <SWRConfig value={{ revalidateOnFocus: false }}>
+          <Scaffold>
+            <ThemeProvider theme={theme}>
+              <Component {...pageProps} />
+            </ThemeProvider>
+          </Scaffold>
+        </SWRConfig>
       </NavContextProvider>
       </CacheProvider>
     </SessionProvider>
