@@ -6,7 +6,7 @@ import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
-import { getVSConditions } from '@/helpers/libraryHelpers'
+import { getProgramDetailsValuesets } from './details/valuesets'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -61,15 +61,15 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
   }
 }
 
-const collectCodeSystemsFromProgram = async (programId: string) => {
-  const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId })
-  const conditionsMap = getVSConditions(program as fhir4.Library)
-  let codeSystemsList = Object.values(conditionsMap)
-    .flat()
-    .map((i) => {
-      const [system, code] = i.id.split('|')
-      return { system, code }
-    })
+const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
+  const leafVs = await getProgramDetailsValuesets({ id: programId })
+  let codeSystemsList: fhir4.Coding[] = []
+  // @ts-ignore
+  leafVs?.payload?.data?.forEach((i) => {
+    const codeSystems = i?.valueSet?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({system: i.system, code: i.concept?.[0]?.code}))
+    codeSystemsList.push(...codeSystems)
+  })
+
   codeSystemsList = uniqBy(codeSystemsList, 'system')
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
@@ -112,7 +112,7 @@ const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, 
       const programId = req.query.id as string
 
       // Check all leaf ValueSets and collect their CodeSystem's
-      const list = await collectCodeSystemsFromProgram(programId)
+      const list = await collectCodeSystemsFromLeafValuesets(programId)
       return res.status(200).json(list)
     } else {
       terminologyClient.setClient('vsac')

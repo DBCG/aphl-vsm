@@ -207,10 +207,8 @@ const getProgramManifestVersions = (library: fhir4.Library) => {
   const parameterResource = library?.contained?.find((resource) => resource.id === 'expansion-parameters-ecr') as fhir4.Parameters
   const systemVersion = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersion?.forEach((i) => {
-    if (!i?.valueString) {
-      return
-    }
-    const [system, version] = decodeURI(i.valueString).split('|') || []
+    const parameterSysVer = i.valueString || i.valueUri || ''
+    const [system, version] = decodeURI(parameterSysVer).split('|') || []
     if (parameterMap[system]) {
       parameterMap[system].push(version)
     } else {

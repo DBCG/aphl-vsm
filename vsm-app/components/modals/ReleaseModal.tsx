@@ -255,7 +255,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
 
   return (
     <Dialog open={isOpen} maxWidth={'md'} fullWidth>
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle>{title} - {program.id}</DialogTitle>
       <DialogContent>
         <div style={{ display: 'flex', alignContent: 'flex-start' }}>
           <Stepper orientation="vertical" activeStep={activeStep}>
