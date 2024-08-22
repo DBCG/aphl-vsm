@@ -26,6 +26,7 @@ import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.opencds.cqf.fhir.api.Repository;
 import org.opencds.cqf.fhir.utility.BundleHelper;
 import org.opencds.cqf.fhir.utility.Canonicals;
+import org.opencds.cqf.fhir.utility.ExpandHelper;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.adapter.EndpointAdapter;
@@ -33,8 +34,6 @@ import org.opencds.cqf.fhir.utility.adapter.IDependencyInfo;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
 import org.springframework.beans.factory.annotation.Configurable;
-
-import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -337,40 +336,15 @@ public class KnowledgeArtifactProcessor {
 			// ValueSet was not changed since last expansion, don't need to update
 			return;
 		} else {
+			var factory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 			var ts = new TerminologyServerClient(theContext);
-			var endpointAdapter = Optional.ofNullable(terminologyEndpoint).map(e -> AdapterFactory.forFhirContext(theContext).createEndpoint(e));
-			if (isGrouper(vset)) {
-				var exp = new ValueSet.ValueSetExpansionComponent();
-				for (final var leaf : vset.getCompose().getInclude()) {
-					if (leaf.hasValueSet()) {
-						var canonical = leaf.getValueSet().get(0);
-						try {
-							ValueSet expanded;
-							if (terminologyEndpoint != null) {
-								expanded = vsacExpandOrFallbackToNaive(canonical, ts, endpointAdapter.get(), repository, dao);
-							} else {
-								expanded = naiveExpand(null, dao, canonical.getValue(), repository);
-							}
-							exp.getContains().addAll(expanded.getExpansion().getContains());
-						} catch (ResourceNotFoundException e) {
-							// TODO: add exception to OperationOutcome and append to bundle
-						}
-					}
-				}
-				vset.setExpansion(exp);
-			} else {
-				try {
-					ValueSet exp;
-					if (terminologyEndpoint != null) {
-						exp = vsacExpandOrFallbackToNaive(vset, ts, endpointAdapter.get(), repository, dao);
-					} else {
-						exp = naiveExpand(vset, dao, null, repository);
-					}
-					vset.setExpansion(exp.getExpansion().copy());	
-				} catch (ResourceNotFoundException e) {
-					// TODO: add exception to OperationOutcome and append to bundle
-				}
-			}
+			var expandHelper = new ExpandHelper(theContext, ts);
+			var endpointAdapter = Optional.ofNullable(terminologyEndpoint).map(e -> factory.createEndpoint(e));
+			var valueSetAdapter = (ValueSetAdapter)factory.createKnowledgeArtifactAdapter(vset);
+			var parametersAdapter = factory.createParameters(new Parameters());
+			parametersAdapter.addParameter("url", new StringType(vset.getUrl()));
+			parametersAdapter.addParameter("valueSetVersion", new StringType(vset.getVersion()));
+			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), repository);
 		}
 	}
 	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
