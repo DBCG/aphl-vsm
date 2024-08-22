@@ -39,7 +39,12 @@ const customStyles = {
     style: {
       padding: '8px 12px'
     }
-  }
+  },
+  headCells: {
+		style: {
+			paddingLeft: '28px'
+		},
+	},
 }
 
 const convertToArrayForTable = (matchesData) => {
