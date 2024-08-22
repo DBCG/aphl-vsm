@@ -10,6 +10,21 @@ interface GrouperIdsByUrlItem {
   grouperIds?: Set<string>
 }
 
+interface CodeData {
+  system: string
+  code: string
+  version: string | undefined
+  display: string | undefined
+}
+
+interface LeafData {
+  groupersBelongsTo: string[]
+  leafDisplay: string
+  url: string
+}
+
+type MatchesFromServer = Record<string, { leafData: LeafData[], codeData: CodeData }>
+
 type GrouperIdsByUrl = Record<string, GrouperIdsByUrlItem>
 
 interface BuildUrlParams {
@@ -162,7 +177,7 @@ const findMatchingVsetUrls = async ({
   groupersToSearch
 }: FindMatchingVsetUrlsParams) => {
 
-  let returnData = {}
+  let returnData: MatchesFromServer = {}
 
   const matchingLeafs = async (groupersByLeaf: GrouperIdsByUrl) => {
     if (Object.keys(groupersByLeaf).length <= 0) return []
@@ -212,7 +227,6 @@ const findMatchingVsetUrls = async ({
       const leafVersion = groupersByLeaf?.[leafUrl]?.version
       const searchUrl = buildSearchUrl({ leafUrl: leafVs.url!, leafVersion })
 
-      console.log('search url: ', searchUrl)
       return {
         request: {
           method: 'GET' as fhir4.BundleEntryRequest["method"],
@@ -271,36 +285,25 @@ const findMatchingVsetUrls = async ({
           throw "Missing vsURL for: " + i.id
         }
         const grouperInfo = Array.from(groupersByLeaf?.[vsUrl]?.grouperIds || [])
-        const conditionInfoFromCQF = leafsFromCQF
-          ?.find((vs: fhir4.ValueSet) => vs.url === vsUrl)
-          ?.useContext
-          ?.filter((ctx: fhir4.UsageContext) => (
-            ctx.code.system?.endsWith('usage-context-type') &&
-            ctx.code.code === 'focus'
-          ))
-          ?.map((item: fhir4.UsageContext) => item.valueCodeableConcept?.text) || []
         
-        const matchingCodeItem = findMatches({ vs: i, codeToFind, systemToFind }).codeMatches
-        console.log('matchingCodeItem', matchingCodeItem)
+        const matchingCodeItem = findMatches({ vs: i, codeToFind, systemToFind })?.codeMatches || {}
         const versionKey = `${codeToFind}||${matchingCodeItem!.version}`
 
         if (returnData[versionKey]) {
           returnData[versionKey].leafData.push({
-            leafDisplay: i?.title || i?.name,
+            leafDisplay: i?.title || i?.name as string,
             groupersBelongsTo: grouperInfo,
             url: vsUrl,
-            conditionInfo: conditionInfoFromCQF,
           })
         } else {
           returnData[versionKey] = ({
             leafData: [{
-              leafDisplay: i?.title || i?.name,
+              leafDisplay: i?.title || i?.name as string,
               groupersBelongsTo: grouperInfo,
               url: vsUrl,
-              conditionInfo: conditionInfoFromCQF,
             }],
+            // @ts-ignore
             codeData: matchingCodeItem
-
           })
           }
         })
@@ -309,7 +312,6 @@ const findMatchingVsetUrls = async ({
 
     try {
       const matchingVSets = await matchingExpansions()
-      console.log('matchingVSets', matchingVSets)
       return matchingVSets
     } catch (e) {
       logger.error(e)

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
@@ -9,11 +9,11 @@ import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
-import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { ExpandRequest } from '@/pages/api/valueset/codesearch'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { getVSConditions } from '@/helpers/libraryHelpers'
+import { toast } from 'react-toastify'
 
 interface Props {
   program: fhir4.Library
@@ -27,11 +27,15 @@ interface MatchingCodes {
   display: string | undefined
 }
 
+type MatchesFromServer = Record<string, MatchingCodes> | {}
+
 interface Row {
-  groupersBelongsTo: string[]
-  conditionInfo: [] // todo
-  leafDisplay: string
-  matchingCodes: MatchingCodes
+  codeData: MatchingCodes
+  leafData: {
+    groupersBelongsTo: string[]
+    leafDisplay: string
+    url: string
+  }
 }
 
 const customStyles = {
@@ -47,10 +51,12 @@ const customStyles = {
 	},
 }
 
-const convertToArrayForTable = (matchesData) => {
-  const allKeys = Object.keys(matchesData)
-  return allKeys.map(key => ({
+const convertToArrayForTable = (matchesData: MatchesFromServer) => {
+  const allKeys = Object?.keys?.(matchesData) || []
+  return allKeys?.map(key => ({
+    // @ts-ignore
     codeData: matchesData[key].codeData,
+    // @ts-ignore
     leafData: matchesData[key].leafData
   }))
 }
@@ -64,18 +70,23 @@ const CodeSearch = ({ program, router }: Props) => {
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
 
-  const conditionsData = useMemo(() => {
-    return getVSConditions(program)
-  }, [[program]])
-
-  console.log('conditionsData: ', conditionsData)
-
   // error states
   const [error, setError] = useState<null | string>(null)
 
   const { programValuesets } = useGetProgramValueSetDetails({
     id: program.id!
   })
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
+    }
+  }, [error])
+
+  const conditionsData = useMemo(() => {
+    return getVSConditions(program)
+  }, [[program]])
+
 
   const groupsInProgram = programValuesets?.groupsInProgram
 
@@ -114,12 +125,10 @@ const CodeSearch = ({ program, router }: Props) => {
       if (matches.error) {
         // handle error & return
       }
-      console.log('matches: ', matches)
       const matchesData = convertToArrayForTable(matches)
-      console.log('matchesData: ', matchesData)
-      console.log('program value sets: ', programValuesets)
-      // console.log('typeof matchesData', Array.isArray(matchesData[0].matchingCodes))
       setMatchingValueSetUrls(matchesData)
+      setError(null)
+
     } catch (e) {
       setError('Error occurred searching for code')
     }
@@ -155,7 +164,9 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Display',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.codeData?.display!,
+        selector: (row: Row) => {
+         return  row?.codeData?.display!
+        },
         sortable: false,
         maxWidth: '320px',
         wrap: true
@@ -228,7 +239,6 @@ const CodeSearch = ({ program, router }: Props) => {
             {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
           </Grid>
         </Grid>
-        {error && <ErrorMessage error={error} />}
       </FormControl>
       {matchingValueSetUrls && (
         <DT
