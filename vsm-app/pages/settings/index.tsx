@@ -15,14 +15,17 @@ const SettingsPage = () => {
   const [searchedCredentials, setSearchedCredentials] = useState(null)
   const [searchedCredentialsError, setSearchedCredentialsError] = useState(null)
 
-  const {
-    data: currentCredentials,
-    isLoading,
-    error
-  } = useSWR(
-    `/api/tscredentials`,
-    fetcher
-  )
+  const { data: currentCredentials, isLoading: credsLoading } = useSWR('/api/tscredentials', fetcher)
+  const { data: currentEndpoints = [], isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
+
+  const endpointMap = currentEndpoints?.endpoints?.map((endpoint: fhir4.Endpoint) => {
+    return {
+      id: endpoint.id,
+      name: endpoint.name,
+      status: endpoint.status,
+      address: endpoint.address
+    }
+  })
 
   const clearAllCredentialsToAdd = () => {
     setServerIdToAdd(null)
@@ -32,10 +35,8 @@ const SettingsPage = () => {
   }
 
   const credentialsMissing = useMemo(() => {
-    const failingTests = [serverIdToAdd, userToAdd, pwToAdd].filter(item => {
-      return (
-        typeof item !== 'string' || item?.trim() === ''
-      )
+    const failingTests = [serverIdToAdd, userToAdd, pwToAdd].filter((item) => {
+      return typeof item !== 'string' || item?.trim() === ''
     })
     return Boolean(failingTests.length)
   }, [serverIdToAdd, userToAdd, pwToAdd])
@@ -86,50 +87,58 @@ const SettingsPage = () => {
     }
   }
 
-  if (isLoading) {
+  if (credsLoading || endpointsLoading) {
     return <p>Loading...</p>
   }
-
 
   return (
     <div>
       <p>
-        <b>
-          Results from GET /api/tscredentials (no id provided):
-        </b>
+        <b>Results from GET /api/tscredentials (no id provided):</b>
       </p>
-      {currentCredentials?.map(c => (
-        <div style={{ marginBottom: '2rem', backgroundColor: 'white', padding: '1rem 2rem' }}>
-          <p>{`Terminology server ID: ${c?.terminologyServerId || 'No term server'}`}</p>
-          <p>{`Username: ${c?.username || 'No username'}`}</p>
-          <p>{`Password: ${c?.password || 'No password'}`}</p>
-        </div>
-      ))}
+      {endpointMap.map((e) => {
+        return (
+          <div key={e?.id} style={{ marginBottom: '2rem', backgroundColor: 'white', padding: '1rem 2rem' }}>
+            <p>{`Name: ${e?.name || 'No name'}`}</p>
+            <p>{`Endpoint ID: ${e?.id || 'No ID'}`}</p>
+            <p>{`Status: ${e?.status || 'No status'}`}</p>
+            <p>{`Address: ${e?.address || 'No address'}`}</p>
+          </div>
+        )
+      })}
+      {currentCredentials &&
+        currentCredentials.map((c) => (
+          <div style={{ marginBottom: '2rem', backgroundColor: 'white', padding: '1rem 2rem' }}>
+            <p>{`Terminology server ID: ${c?.terminologyServerId || 'No term server'}`}</p>
+            <p>{`Username: ${c?.username || 'No username'}`}</p>
+            <p>{`Password: ${c?.password || 'No password'}`}</p>
+          </div>
+        ))}
       <p>
-        <b>
-          Results from GET /api/tscredentials/[ts-server-id]:
-        </b>
+        <b>Results from GET /api/tscredentials/[ts-server-id]:</b>
       </p>
       <ErrorMessage error={searchedCredentialsError} />
-        <TextField
-          id="search-term-server-id"
-          label="Server ID"
-          variant="standard"
-          style={{ marginRight: '1rem' }}
-          onChange={(e) => {
-            console.log(e)
-            setServerIdToFind(e?.target?.value || null)
-          }}
-        />
+      <TextField
+        id="search-term-server-id"
+        label="Server ID"
+        variant="standard"
+        style={{ marginRight: '1rem' }}
+        onChange={(e) => {
+          console.log(e)
+          setServerIdToFind(e?.target?.value || null)
+        }}
+      />
       <Box>
-        <Button disabled={!serverIdToFind || !serverIdToFind?.length} onClick={findCredentialsByServerId} style={{ margin: '1rem 0 2rem 0' }}>
+        <Button
+          disabled={!serverIdToFind || !serverIdToFind?.length}
+          onClick={findCredentialsByServerId}
+          style={{ margin: '1rem 0 2rem 0' }}
+        >
           Find by server ID
         </Button>
       </Box>
       <p>
-        <b>
-          POST new to /api/tscredentials:
-        </b>
+        <b>POST new to /api/tscredentials:</b>
       </p>
       <ErrorMessage error={newCredentialError} />
       <Box gap={4} style={{ marginTop: '1rem' }}>

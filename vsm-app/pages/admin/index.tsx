@@ -144,10 +144,10 @@ const TerminologyEndpoints: NextPage = () => {
   return (
     <Col>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-        <PageTitle>Administrator Tools</PageTitle>
+        <PageTitle>Administrator Panel</PageTitle>
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-        <h4>Endpoints</h4>
+        <h4>Terminology Endpoints</h4>
         <Button onClick={() => router.push('/admin/create-endpoint')}>Create Endpoint</Button>
       </Row>
       <ErrorMessage error={error?.error || null} />

@@ -1,5 +1,6 @@
 import { cloneDeep, isArray, isEqual, isObject, keys, sortBy } from 'lodash'
 import { isValidSimpleSemver } from './helpers/server/semverHelpers'
+import { P } from 'pino'
 
 // Usage: await sleep(1000);
 export const sleep = (millis: number) => {
@@ -20,7 +21,18 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then((res) => res.json()).catch((err) => {throw(err.error || 'Unknown Error')})
+export const fetcher = (...args) => fetch(...args).then(async (res) => {
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.')
+    // Attach extra info to the error object.
+    // @ts-ignore
+    error.info = await res.json()
+    // @ts-ignore
+    error.status = res.status
+    throw error
+  } 
+  return res.json()
+})
 
 const removeNullProperties = (obj: any) => {
   return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null))
