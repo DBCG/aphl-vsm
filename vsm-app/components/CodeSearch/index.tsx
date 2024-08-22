@@ -231,7 +231,7 @@ const CodeSearch = ({ program, router }: Props) => {
           title={
             loadingCodeSearch
               ? ''
-              : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`
+              : `${matchingValueSetUrls.length} matching code${matchingValueSetUrls.length !== 1 ? 's' : ''} found in program:`
           }
           theme="aphl"
           data={matchingValueSetUrls || []}
