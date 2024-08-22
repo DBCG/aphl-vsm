@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
@@ -9,10 +9,11 @@ import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import Expansion from './Expansion'
 import { NextRouter } from 'next/router'
-import { ErrorMessage } from '../ErrorMessage'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { ExpandRequest } from '@/pages/api/valueset/codesearch'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { getVSConditions } from '@/helpers/libraryHelpers'
+import { toast } from 'react-toastify'
 
 interface Props {
   program: fhir4.Library
@@ -26,8 +27,15 @@ interface MatchingCodes {
   display: string | undefined
 }
 
+type MatchesFromServer = Record<string, MatchingCodes> | {}
+
 interface Row {
-  matchingCodes: MatchingCodes
+  codeData: MatchingCodes
+  leafData: {
+    groupersBelongsTo: string[]
+    leafDisplay: string
+    url: string
+  }
 }
 
 const customStyles = {
@@ -35,7 +43,22 @@ const customStyles = {
     style: {
       padding: '8px 12px'
     }
-  }
+  },
+  headCells: {
+		style: {
+			paddingLeft: '28px'
+		},
+	},
+}
+
+const convertToArrayForTable = (matchesData: MatchesFromServer) => {
+  const allKeys = Object?.keys?.(matchesData) || []
+  return allKeys?.map(key => ({
+    // @ts-ignore
+    codeData: matchesData[key].codeData,
+    // @ts-ignore
+    leafData: matchesData[key].leafData
+  }))
 }
 
 const CodeSearch = ({ program, router }: Props) => {
@@ -44,7 +67,6 @@ const CodeSearch = ({ program, router }: Props) => {
   const [systemToFind, setSystemToFind] = useState<string | undefined>(undefined)
   const [groupersToSearch, setGroupersToSearch] = useState<readonly fhir4.ValueSet[] | []>([])
   const [matchingValueSetUrls, setMatchingValueSetUrls] = useState<Row[] | null>(null)
-  
   // loading states
   const [loadingCodeSearch, setLoadingCodeSearch] = useState(false)
 
@@ -54,6 +76,17 @@ const CodeSearch = ({ program, router }: Props) => {
   const { programValuesets } = useGetProgramValueSetDetails({
     id: program.id!
   })
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
+    }
+  }, [error])
+
+  const conditionsData = useMemo(() => {
+    return getVSConditions(program)
+  }, [[program]])
+
 
   const groupsInProgram = programValuesets?.groupsInProgram
 
@@ -73,6 +106,7 @@ const CodeSearch = ({ program, router }: Props) => {
         ?.map((i) => i?.id)
         ?.filter((x) => !!x)
         ?.map((x) => x!)
+
       const body: ExpandRequest['body'] = {
         codeSystem: systemToFind,
         groupersToSearch: grouperIdsToSearch,
@@ -87,8 +121,14 @@ const CodeSearch = ({ program, router }: Props) => {
         },
         body: JSON.stringify(body)
       }).then((res) => res.json())
-      const matchesData = Array.isArray(matches) ? matches : []
+
+      if (matches.error) {
+        // handle error & return
+      }
+      const matchesData = convertToArrayForTable(matches)
       setMatchingValueSetUrls(matchesData)
+      setError(null)
+
     } catch (e) {
       setError('Error occurred searching for code')
     }
@@ -100,7 +140,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'System',
         id: 'vs-code-system',
-        selector: (row: Row) => row.matchingCodes.system!,
+        selector: (row: Row) => row.codeData.system!,
         sortable: false,
         maxWidth: '180px',
         wrap: true
@@ -108,7 +148,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Code',
         id: 'vs-code',
-        selector: (row: Row) => row.matchingCodes.code!,
+        selector: (row: Row) => row.codeData.code!,
         sortable: false,
         maxWidth: '160px',
         wrap: true
@@ -116,7 +156,7 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Code System Version',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.version!,
+        selector: (row: Row) => row?.codeData?.version!,
         sortable: false,
         maxWidth: '260px',
         wrap: true
@@ -124,7 +164,9 @@ const CodeSearch = ({ program, router }: Props) => {
       {
         name: 'Display',
         id: 'vs-code-system-version',
-        selector: (row: Row) => row?.matchingCodes?.display!,
+        selector: (row: Row) => {
+         return  row?.codeData?.display!
+        },
         sortable: false,
         maxWidth: '320px',
         wrap: true
@@ -197,7 +239,6 @@ const CodeSearch = ({ program, router }: Props) => {
             {(!groupersToSearch?.length || !codeToFind) && <FormErrorText>Code and grouper(s) required to search</FormErrorText>}
           </Grid>
         </Grid>
-        {error && <ErrorMessage error={error} />}
       </FormControl>
       {matchingValueSetUrls && (
         <DT
@@ -205,7 +246,7 @@ const CodeSearch = ({ program, router }: Props) => {
           title={
             loadingCodeSearch
               ? ''
-              : `${matchingValueSetUrls.length} match${matchingValueSetUrls.length !== 1 ? 'es' : ''} found in program:`
+              : `${matchingValueSetUrls.length} matching code${matchingValueSetUrls.length !== 1 ? 's' : ''} found in program:`
           }
           theme="aphl"
           data={matchingValueSetUrls || []}
@@ -215,7 +256,7 @@ const CodeSearch = ({ program, router }: Props) => {
           expandableRowExpanded={() => true}
           // @ts-ignore-next-line (I can't figure this one out)
           expandableRowsComponent={Expansion}
-          expandableRowsComponentProps={{ groupsInProgram: groupsInProgram }}
+          expandableRowsComponentProps={{ groupsInProgram: groupsInProgram, conditionsData }}
         />
       )}
     </div>

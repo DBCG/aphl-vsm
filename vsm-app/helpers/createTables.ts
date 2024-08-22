@@ -381,8 +381,6 @@ const createTableData = (diffData: DiffData) => {
     return null
   }
 
-  console.log('diffData: ', diffData)
-
   const oldRootData = diffData.pages.find(p => p.oldData)
   const newRootData = diffData.pages.find(p => p.newData)
 
