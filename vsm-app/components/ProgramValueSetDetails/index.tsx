@@ -2,7 +2,7 @@ import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
-import { Box, Tooltip } from '@mui/material'
+import { Box, LinearProgress, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { uniq, uniqBy } from 'lodash'
 import { toast } from 'react-toastify'
@@ -47,6 +47,7 @@ const subscribe = async (
       await new Promise((resolve) => setTimeout(resolve, 5000))
       await subscribe(setJobStatus, jobId, setRefreshErrors, refreshProgramValueSets)
     } else {
+      toast.dismiss()
       if (jobStatus?.returnvalue?.errors.length > 0) {
         setRefreshErrors({ 'ValueSet Update Errors': jobStatus?.returnvalue?.errors })
         setJobStatus(null) // No Job in progress
@@ -348,6 +349,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const isEditable = allowEditing({ session, programStatus: currentProgram.status })
 
   const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
+    toast.info(
+      <div style={{ paddingLeft: '10px' }}>
+        <p>Attempting to update all Value Sets with version &lsquo;latest&rsquo; by fetching newest available data from terminology servers.</p>
+        <p>This is a long running operation.</p>
+        <p>Please wait for completion.</p>
+        <LinearProgress color="secondary" />
+      </div>, {
+      autoClose: false
+    })
     const canonicalUrls: string[] = []
     if (groupsInProgram?.length) {
       for (const grouper of groupsInProgram) {
@@ -359,7 +369,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       method: 'PUT',
       body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
     }).then((res) => res.json())
-    toast.info('ValueSet Update Initiated, Please wait for completion')
+
+    toast.dismiss()
     subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
   }
 
