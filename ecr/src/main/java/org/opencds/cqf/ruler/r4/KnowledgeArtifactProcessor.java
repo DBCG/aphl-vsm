@@ -342,7 +342,7 @@ public class KnowledgeArtifactProcessor {
 			var endpointAdapter = Optional.ofNullable(terminologyEndpoint).map(e -> factory.createEndpoint(e));
 			var valueSetAdapter = (ValueSetAdapter)factory.createKnowledgeArtifactAdapter(vset);
 			var parametersAdapter = factory.createParameters(new Parameters());
-			parametersAdapter.addParameter("url", new StringType(vset.getUrl()));
+			parametersAdapter.addParameter("url", new UrlType(vset.getUrl()));
 			parametersAdapter.addParameter("valueSetVersion", new StringType(vset.getVersion()));
 			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), repository);
 		}
