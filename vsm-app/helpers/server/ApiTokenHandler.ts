@@ -114,6 +114,7 @@ class APITokenHandler {
     // If the user does not have an IV, generate one and store it in Keycloak
     const userAttributes = await this.retrieveStoredAttributes(userId)
     if (userAttributes?.attributes?.iv?.[0] == null) {
+      logger.debug('IV Not found, Generating IV for user: ' + userId)
       const userIV = crypto.randomBytes(16).toString('hex')
       await this.storeCredsKeyCloak(userId, 'iv', userIV)
       return userIV
@@ -122,6 +123,7 @@ class APITokenHandler {
   }
 
   private async retrieveStoredAttributes(userId: string) {
+    logger.debug('Retrieving stored attributes for userId: ' + userId)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')

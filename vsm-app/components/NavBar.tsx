@@ -82,15 +82,6 @@ const NavBar = () => {
           <Tooltip title={`App Version v-${packageInfo.version}`}>
             <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
           </Tooltip>
-          <Button
-            id="logout"
-            onClick={() => {
-              signOut({ redirect: false })
-              router.push('/api/auth/logout')
-            }}
-          >
-            Sign Out
-          </Button>
           <IconButton
             aria-label="more"
             id="long-button"
@@ -113,45 +104,31 @@ const NavBar = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        {router.pathname !== '/settings' && (
+        {session?.user?.roles?.[0] === 'admin' && (
           <>
-            {session?.user?.roles?.[0] === 'admin' && (
-              <>
-                <MenuItem
-                  id="admin"
-                  onClick={() => {
-                    router.push('/admin')
-                  }}
-                >
-                  <ListItemIcon>
-                    <AdminPanelSettings />
-                  </ListItemIcon>
-                  Admin Panel
-                </MenuItem>
-                <Divider />
-              </>
-            )}
-            <MenuItem onClick={() => router.push('/settings')}>
+            <MenuItem
+              id="admin"
+              onClick={() => {
+                router.push('/admin')
+              }}
+            >
               <ListItemIcon>
-                <Settings />
+                <AdminPanelSettings />
               </ListItemIcon>
-              Settings
+              Admin Panel
             </MenuItem>
             <Divider />
           </>
         )}
-        {router.pathname !== '/programs' && (
-          <>
-            <MenuItem onClick={() => router.push('/programs')}>
-              <ListItemIcon>
-                <House />
-              </ListItemIcon>
-              Programs
-            </MenuItem>
-            <Divider />
-          </>
-        )}
+        <MenuItem onClick={() => router.push('/settings')}>
+          <ListItemIcon>
+            <Settings />
+          </ListItemIcon>
+          Settings
+        </MenuItem>
+        <Divider />
         <MenuItem
+          id="logout"
           onClick={() => {
             signOut({ redirect: false })
             router.push('/api/auth/logout')

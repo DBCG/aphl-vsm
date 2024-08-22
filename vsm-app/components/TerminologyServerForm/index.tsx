@@ -115,6 +115,13 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   }, [endpointToUpdate])
   return (
     <>
+      <Button
+        style={{ marginBottom: '15px' }}
+        id="back-to-admin"
+        text="Back to Admin Tools"
+        onClick={() => router.push('/admin')}
+        disabled={loading}
+      />
       <GridContainer>
         <Col>
           <SubtitleRow>
@@ -192,14 +199,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
           text="Submit"
           onClick={handleSubmit}
           loading={loading}
-          disabled={loading}
-        />
-        <Button
-          style={{ marginLeft: '15px' }}
-          id="back-to-admin"
-          text="Back to Admin Tools"
-          onClick={() => router.push('/admin')}
-          disabled={loading}
+          disabled={loading || !!addressError}
         />
       </Row>
     </>
