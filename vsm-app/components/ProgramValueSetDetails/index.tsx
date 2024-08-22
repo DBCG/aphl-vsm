@@ -348,6 +348,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const isEditable = allowEditing({ session, programStatus: currentProgram.status })
 
   const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
+    toast.info(
+      <div style={{ paddingLeft: '10px' }}>
+        <p>Attempting to update all Value Sets with version 'latest' by fetching newest available data from terminology servers.</p>
+        <p>This is a long running operation.</p>
+        <p>Please wait for completion.</p>
+      </div>, {
+      autoClose: false
+    })
     const canonicalUrls: string[] = []
     if (groupsInProgram?.length) {
       for (const grouper of groupsInProgram) {
