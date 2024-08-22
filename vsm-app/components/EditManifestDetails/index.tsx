@@ -77,7 +77,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     data: systemAndVersionData = [],
     isLoading,
     error
-  } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher, { revalidateOnFocus: false })
+  } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher)
 
   // loading states
 
