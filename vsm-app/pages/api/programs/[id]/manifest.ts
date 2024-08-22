@@ -70,7 +70,7 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
     codeSystemsList.push(...codeSystems)
   })
 
-  codeSystemsList = uniqBy(codeSystemsList, 'system')
+  codeSystemsList = uniqBy(codeSystemsList, 'system').filter((i) => i)
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
   logger.info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
