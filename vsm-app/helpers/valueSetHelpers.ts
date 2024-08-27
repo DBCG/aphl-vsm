@@ -22,7 +22,7 @@ const VSM_LEAF_PROFILE_URLS = {
 const vsmAuthoritativeSourceExtension: fhir4.Extension =
 {
   url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
-  valueUri: process.env.FHIR_CDR_URL
+  valueUri: process.env.NEXT_PUBLIC_FHIR_CDR_URL
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
@@ -306,7 +306,7 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
 }
 function updateAuthSource(extensions: fhir4.Extension[], id: string) {
   const existingAuthoritativeSourceExt = extensions.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
-  const extensionToAdd = { ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${id}` }
+  const extensionToAdd = { ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri?.split('/ValueSet/')[0] + `/ValueSet/${id}` }
   if (existingAuthoritativeSourceExt === -1) {
     extensions.push(extensionToAdd)
   } else {
