@@ -10,14 +10,13 @@ import { isEqualComparator, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import logger from '@/helpers/server/logger'
-import { getTerminologySourceEndpoint } from '@/fhirClientOptions'
 import { isEqualWith, set } from 'lodash'
 
 type CDRResponseCollection = {
   [url: string]: {
     cdrValueSet: ValueSet
     authorativeValueSet?: ValueSet
-    terminologySource: string
+    authoritativeFullUrl: string
   }
 }
 
@@ -91,8 +90,9 @@ const compareValueSets = (cdrVs: ValueSet, authoritativeVs: ValueSet, authSrcUrl
 const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
   const upgradeRequired = [] as BundleEntry[]
   for (const url in toUpdateCollection) {
-    const { cdrValueSet, authorativeValueSet, terminologySource } = toUpdateCollection[url]
-    const authSrcUrl = getTerminologySourceEndpoint(terminologySource) as unknown as string
+    const { cdrValueSet, authorativeValueSet, authoritativeFullUrl } = toUpdateCollection[url]
+    // the full url of the resource is necessary to get it from the source server
+    const authSrcUrl = authoritativeFullUrl
     const needsUpdate = compareValueSets(cdrValueSet, authorativeValueSet!, authSrcUrl)
     if (!authorativeValueSet) {
       logger.error(`No authoritative ValueSet found for ${cdrValueSet.id}`)
@@ -178,10 +178,11 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         }
 
         const authorativeValueSet = vsComparatorResponses.entry?.[0].resource as ValueSet
+        const authoritativeFullUrl = vsComparatorResponses.entry?.[0].fullUrl as string // necessary for auth source
         toUpdateCollection[valueset.url!] = {
           cdrValueSet: valueset,
           authorativeValueSet,
-          terminologySource: value
+          authoritativeFullUrl
         }
       })
     )

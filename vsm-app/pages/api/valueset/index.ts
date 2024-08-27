@@ -3,13 +3,17 @@ import { set } from 'lodash'
 import { fhirCdrClient } from 'fhirClients'
 import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
-import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
+
+interface BundleEntryItem {
+  fullUrl: string,
+  resource: fhir4.ValueSet
+}
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
@@ -85,9 +89,9 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             if (allAvailableMatches?.entry) {
               // sorting here because we cannot use _sort on VSAC server -- not supported
               const orderedMatchingVSets = allAvailableMatches.entry
-                // .map((e: fhir4.BundleEntry) => e.resource)
-                .sort((a: fhir4.BundleEntrySearch, b: fhir4.BundleEntrySearch) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
-              const matchingId = orderedMatchingVSets[0].resource.id
+                .sort((a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
+              
+                const matchingId = orderedMatchingVSets[0].resource.id
               const matchingFullUrl = orderedMatchingVSets[0].fullUrl
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
