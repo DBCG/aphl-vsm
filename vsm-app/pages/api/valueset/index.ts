@@ -85,17 +85,17 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             if (allAvailableMatches?.entry) {
               // sorting here because we cannot use _sort on VSAC server -- not supported
               const orderedMatchingVSets = allAvailableMatches.entry
-                .map((e: fhir4.BundleEntry) => e.resource)
-                .sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => b.version?.localeCompare(a.version || '') || '')
+                // .map((e: fhir4.BundleEntry) => e.resource)
+                .sort((a: fhir4.BundleEntrySearch, b: fhir4.BundleEntrySearch) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
+              const matchingId = orderedMatchingVSets[0].resource.id
+              const matchingFullUrl = orderedMatchingVSets[0].fullUrl
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
-                id: orderedMatchingVSets[0].id
+                id: matchingId
               })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
-                const authSrcUrl = terminologyServerEndpoints?.find(
-                  (grp) => grp.value.title.toLowerCase() === body.selectedTerminologyServer.toLowerCase()
-                )?.value?.url
+                const authSrcUrl = matchingFullUrl
 
                 if (authSrcUrl) {
                   // add authoritativeSource extension
