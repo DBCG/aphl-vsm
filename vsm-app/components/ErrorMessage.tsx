@@ -1,6 +1,7 @@
 import styled from 'styled-components'
 import { Alert } from '@mui/material'
 import { cloneDeep } from 'lodash'
+import { Fragment } from 'react'
 
 interface ErrorState {
   message: string
@@ -94,11 +95,11 @@ const ErrorContent = ({ error, severity }: Error) => {
       }
     })
 
-    const res = Object.keys(itemsForDisplay).map(title => (
-        <>
+    const res = Object.keys(itemsForDisplay).map((title, ind) => (
+        <Fragment key={ind}>
           <p style={{ marginTop: 0 }}>{title}</p>
           {itemsForDisplay[title]}
-        </>
+        </Fragment>
     ))
     return <>{res}</>
   }
