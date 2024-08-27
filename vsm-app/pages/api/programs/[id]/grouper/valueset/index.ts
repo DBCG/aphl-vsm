@@ -502,12 +502,18 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
 const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][], grouperMetadata: GrouperMetadata) => {
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
+  // create the original grouper valueset
   const result = await fhirCdrClient.create({
     resourceType: 'ValueSet',
     body: grouperWithLeafRefs
   })
+
   if (result.resourceType === 'ValueSet') {
-    updateAuthSource(result.extension, result.id)
+    // the authoritative source can't be updated until the grouper exists in the server
+    // because you need to know the actual location with ID
+    const updatedXt = updateAuthSource(result.extension || [], result.id)
+    result.extension = updatedXt
+
     const resultWithCorrectAuthoritativeSource = await fhirCdrClient.update({
       resourceType: 'ValueSet',
       id: result.id,
