@@ -12,7 +12,7 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:$TRAVIS_COMMIT --push .
 # Deploy to Docker Hub
 docker login --username ${DOCKER_USERNAME} --password-stdin <<< $DOCKER_PASSWORD
-docker buildx build --platform linux/arm64/v8,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
+docker buildx build --platform linux/arm64,linux/amd64 -t alphora/cqf-ruler:cqf-ruler-vsm-ecr --push .
 
 GIT_TAG=$(git tag -l --contains HEAD 2>&1)
 if [[ -n "$GIT_TAG" ]]; then
