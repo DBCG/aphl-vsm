@@ -36,12 +36,11 @@ class APITokenHandler {
   /**
    * Retrieves basic auth creds for a given url
    */
-  public async getBasicAuthCreds(userId: string, inputUrl: string) {
+  public async getBasicAuthCreds(userId: string, serverId: string) {
     await this.renewKeyCloakToken()
     const user = await this.retrieveStoredAttributes(userId)
-    const url = inputUrl.toLowerCase()
-    if (url in user.attributes) {
-      const encryptedCreds = user.attributes[url][0]
+    if (serverId in user.attributes) {
+      const encryptedCreds = user.attributes[serverId][0]
       const userIV = await this.getUserIV(user)
       const decryptedCreds = this.decryptData(encryptedCreds, userIV)
       const base64Data = JSON.parse(decryptedCreds).value
@@ -49,7 +48,7 @@ class APITokenHandler {
         throw new Error('No basic auth creds found for this url')
       }
       const [username, password] = atob(base64Data).split(':')
-      return { url, username, password }
+      return { serverId, username, password }
     } else {
       throw new Error('No basic auth creds found for this url')
     }
@@ -57,32 +56,30 @@ class APITokenHandler {
 
   public async getBasicAuthCredsForAllUrls(userId: string) {
     await this.renewKeyCloakToken()
-    const user = await this.retrieveStoredAttributes(userId)
-    const attributes = cloneDeep(user.attributes)
-    const userIV = attributes.iv[0]
-    delete attributes.iv
-    const urls = Object.keys(attributes)
-    const creds = urls.map((terminologyServerId) => {
-      const encryptedCreds = attributes[terminologyServerId][0]
+    const userAttributes = await this.retrieveStoredAttributes(userId)
+    const userIV = await this.getUserIV(userAttributes)
+    delete userAttributes.attributes.iv
+    const serverIds = Object.keys(userAttributes?.attributes || {})
+    const creds = serverIds.map((terminologyServerId) => {
+      const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
       const decryptedCreds = this.decryptData(encryptedCreds, userIV)
       const base64Data = JSON.parse(decryptedCreds).value
       const [username, password] = atob(base64Data).split(':')
       return { terminologyServerId, username, password }
-    })
+    }) || []
 
-    return creds    
+    return creds
   }
 
   /**
    * Stores basic auth creds for a given url
    */
-  public async storeBasicAuthCreds(userId: string, inputUrl: string, username: string, password: string) {
-    const url = inputUrl.toLowerCase()
+  public async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string) {
     await this.renewKeyCloakToken()
     const basicAuthCred = btoa(`${username}:${password}`)
     const userIV = await this.getUserIV(userId)
     const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }), userIV)
-    await this.storeCredsKeyCloak(userId, url, encryptedCreds)
+    await this.storeCredsKeyCloak(userId, serverId, encryptedCreds)
   }
 
   private encryptData(data: string, userIV: string) {
@@ -99,31 +96,33 @@ class APITokenHandler {
     return decrypted
   }
 
+  /**
+   *
+   * @param user accepts either a user attribute keycloak object for a userId string
+   * @returns IV string used for decrypting user data
+   */
   private async getUserIV(user: string | KeyCloakUser) {
-    let userId = ''
-    // Keycloak user object
     if (typeof user !== 'string') {
-      if (user.attributes.iv[0] == null) {
-        userId = user.id
+      // Keycloak user object, allow re-use of the attributes without having to fetch them again
+      if (user?.attributes?.iv?.[0] == null) {
+        const userId = user.id
+        // If the user does not have an IV, generate one and store it in Keycloak
+        logger.info('IV Not found, Generating IV for user: ' + userId)
+        const userIV = crypto.randomBytes(16).toString('hex')
+        await this.storeCredsKeyCloak(user, 'iv', userIV)
+        return userIV
       } else {
         return user.attributes.iv[0]
       }
     } else {
-      userId = user
+      const userId = user
+      const userAttributes = await this.retrieveStoredAttributes(userId)
+      return userAttributes.attributes.iv[0]
     }
-    // If the user does not have an IV, generate one and store it in Keycloak
-    const userAttributes = await this.retrieveStoredAttributes(userId)
-    if (userAttributes?.attributes?.iv?.[0] == null) {
-      logger.debug('IV Not found, Generating IV for user: ' + userId)
-      const userIV = crypto.randomBytes(16).toString('hex')
-      await this.storeCredsKeyCloak(userId, 'iv', userIV)
-      return userIV
-    }
-    return userAttributes.attributes.iv[0]
   }
 
-  private async retrieveStoredAttributes(userId: string) {
-    logger.debug('Retrieving stored attributes for userId: ' + userId)
+  private async retrieveStoredAttributes(userId: string | KeyCloakUser) {
+    logger.info('Retrieving stored attributes for userId: ' + userId)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
@@ -152,14 +151,25 @@ class APITokenHandler {
     this._cacheJWTExpiry = undefined
   }
 
-  private async storeCredsKeyCloak(userId: string, key: string, value: string) {
+  private async storeCredsKeyCloak(user: string | KeyCloakUser, key: string, value: string) {
+    let userId = ''
+    let attributes = null
+
+    if (typeof user !== 'string') {
+      // Keycloak user object, allow re-use of the attributes without having to fetch them again
+      userId = user.id
+      attributes = cloneDeep(user.attributes)
+    } else {
+      userId = user
+    }
+
     logger.info(`Setting creds '${key}' in Keycloak for user: ${userId}`)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
     headers.set('Authorization', `Bearer ${this._cacheJWT}`)
 
-    const currentUserAttributes = await this.retrieveStoredAttributes(userId)
+    const currentUserAttributes = attributes == null ? await this.retrieveStoredAttributes(userId) : attributes
 
     const payload = JSON.stringify({
       ...currentUserAttributes,
@@ -176,12 +186,12 @@ class APITokenHandler {
         headers
       })
       if (response.status === 204) {
-        logger.info('Successfully store credentials in keycloak')
+        logger.info(`Successfully store key: '${key}' in keycloak`)
         return response
       } else {
-        logger.error(`Failed to store credentials in Keycloak: ${response.statusText}`)
-        throw new Error(`Failed to store credentials in Keycloak: ${response.statusText}`)
-      }
+        logger.error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
+        throw new Error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
+      }``
     } catch (error) {
       logger.error(`Error setting API key in Keycloak: ${error}`)
       this.resetState()

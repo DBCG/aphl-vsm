@@ -4,11 +4,13 @@ type TerminologyServerCredentials = {
     password: string
 }
 
-type TerminologyServerCredentialsRequest = {
-    userId: string,
+type TerminologyServerCredentialsResponse = {
+    userId?: string,
+    name: string,
     terminologyServerId: string,
+    url?: string,
     username: string,
     password: string
 }
 
-export type {TerminologyServerCredentials, TerminologyServerCredentialsRequest}
+export type {TerminologyServerCredentials, TerminologyServerCredentialsResponse}
