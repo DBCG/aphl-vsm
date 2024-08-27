@@ -1,31 +1,87 @@
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { fetcher } from '@/utils'
-import { Box, Button, TextField } from '@mui/material'
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
+import LoadingIndicator from '@/components/LoadingIndicator'
+import { Row } from '@/styles'
+
+const CredentialsSnippet = ({ shouldDisplay, username, password }: { shouldDisplay: boolean; username: string; password: string }) => {
+  return (
+    <Box>
+      {shouldDisplay ? (
+        <>
+          <Typography>{`Username: ${username}`}</Typography>
+          <Typography sx={{ ml: 1 }}>{`Password: ${password}`}</Typography>
+        </>
+      ) : (
+        <>
+          <Typography>{'Username: ●●●●●●●●●●●●●●●●●'}</Typography>
+          <Typography sx={{ ml: 1 }}>{'Password: ●●●●●●●●●●●●●●●●●'}</Typography>
+        </>
+      )}
+    </Box>
+  )
+}
+
+const AddEndpointForm = ({ availableEndpoints, closeForm }: any) => {
+  const [selectedEndpoint, setSelectedEndpoint] = useState(null)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+
+  return (
+    <Box sx={{ m: '1rem 0 0.5rem 0', borderRadius: '1rem', backgroundColor: 'white', p: '1rem' }}>
+      <FormControl sx={{m: '1rem'}}>
+        <InputLabel sx={{ backgroundColor: 'white' }} id="available-endpoints-label">
+          Available Endpoints
+        </InputLabel>
+        <Select
+          labelId="available-endpoints-label"
+          onChange={(e) => {
+            console.log(e)
+          }}
+        >
+          {availableEndpoints.map((e: any) => (
+            <MenuItem key={e.id} value={e.id}>
+              {e.name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Box sx={{mt: '2rem', mb: '2rem'}}>
+          <TextField
+            value={username}
+            onChange={(e) => setUsername(e.target.value.trim())}
+            id="add-endpoint-name"
+            label="Username"
+            style={{ marginRight: '1rem' }}
+          />
+          <TextField id="add-endpoint-password" label="Password" type="password" style={{ marginRight: '1rem' }} />
+        </Box>
+        <Box>
+          <Button onClick={() => closeForm()}>
+            {' '}
+            Cancel{' '}
+          </Button>
+          <Button sx={{ml: '1rem'}} disabled={!username.length}>Add Endpoint</Button>
+        </Box>
+      </FormControl>
+    </Box>
+  )
+}
 
 const SettingsPage = () => {
   // new credentials to add
   const [serverIdToAdd, setServerIdToAdd] = useState(null)
   const [userToAdd, setUserToAdd] = useState(null)
   const [pwToAdd, setPwToAdd] = useState(null)
+  const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [newCredentialError, setNewCredentialError] = useState(null)
-  // find term server by id
-  const [serverIdToFind, setServerIdToFind] = useState(null)
-  const [searchedCredentials, setSearchedCredentials] = useState(null)
-  const [searchedCredentialsError, setSearchedCredentialsError] = useState(null)
-
-  const { data: currentCredentials, isLoading: credsLoading } = useSWR('/api/tscredentials', fetcher)
-  const { data: currentEndpoints = [], isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
-
-  const endpointMap = currentEndpoints?.endpoints?.map((endpoint: fhir4.Endpoint) => {
-    return {
-      id: endpoint.id,
-      name: endpoint.name,
-      status: endpoint.status,
-      address: endpoint.address
-    }
-  })
+  const { data: currentCredentials = null, isLoading: credsLoading } = useSWR('/api/tscredentials', fetcher)
+  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
+  const [isAdding, setIsAdding] = useState(false)
+  if (currentCredentials == null && currentEndpoints == null) {
+    return <LoadingIndicator />
+  }
 
   const clearAllCredentialsToAdd = () => {
     setServerIdToAdd(null)
@@ -33,13 +89,6 @@ const SettingsPage = () => {
     setPwToAdd(null)
     setNewCredentialError(null)
   }
-
-  const credentialsMissing = useMemo(() => {
-    const failingTests = [serverIdToAdd, userToAdd, pwToAdd].filter((item) => {
-      return typeof item !== 'string' || item?.trim() === ''
-    })
-    return Boolean(failingTests.length)
-  }, [serverIdToAdd, userToAdd, pwToAdd])
 
   const submitNewCredential = async () => {
     try {
@@ -65,78 +114,66 @@ const SettingsPage = () => {
     }
   }
 
-  const findCredentialsByServerId = async () => {
-    try {
-      const result = await fetch(`/api/tscredentials/${serverIdToFind}`, {
-        method: 'GET'
-      })
+  // TOOD: add types
+  const availableEndpoints = [] as any
+  const credentials = [] as any
 
-      const json = await result.json()
-      if (result.ok) {
-        console.log('result is ok')
-        setSearchedCredentials(json)
-      } else {
-        console.error('error encountered')
-        console.log('json: ', json)
-        setSearchedCredentialsError(json)
-      }
-      console.log('result: ', result)
-    } catch (e) {
-      console.error(e)
-      setSearchedCredentialsError(e)
+  currentEndpoints?.endpoints?.forEach((endpoint: fhir4.Endpoint) => {
+    const foundCred = currentCredentials.find((cred) => cred.terminologyServerId === endpoint.id)
+    const baseEndpoint = {
+      id: endpoint.id,
+      name: endpoint.name,
+      address: endpoint.address
     }
-  }
-
-  if (credsLoading || endpointsLoading) {
-    return <p>Loading...</p>
-  }
+    if (foundCred) {
+      credentials.push({
+        ...baseEndpoint,
+        username: foundCred.username,
+        password: foundCred.password
+      })
+    } else {
+      availableEndpoints.push(baseEndpoint)
+    }
+  })
 
   return (
-    <div>
-      <p>
-        <b>Results from GET /api/tscredentials (no id provided):</b>
-      </p>
-      {endpointMap.map((e) => {
-        return (
-          <div key={e?.id} style={{ marginBottom: '2rem', backgroundColor: 'white', padding: '1rem 2rem' }}>
-            <p>{`Name: ${e?.name || 'No name'}`}</p>
-            <p>{`Endpoint ID: ${e?.id || 'No ID'}`}</p>
-            <p>{`Status: ${e?.status || 'No status'}`}</p>
-            <p>{`Address: ${e?.address || 'No address'}`}</p>
-          </div>
-        )
-      })}
-      {currentCredentials &&
-        currentCredentials.map((c) => (
-          <div style={{ marginBottom: '2rem', backgroundColor: 'white', padding: '1rem 2rem' }}>
-            <p>{`Terminology server ID: ${c?.terminologyServerId || 'No term server'}`}</p>
-            <p>{`Username: ${c?.username || 'No username'}`}</p>
-            <p>{`Password: ${c?.password || 'No password'}`}</p>
-          </div>
-        ))}
-      <p>
-        <b>Results from GET /api/tscredentials/[ts-server-id]:</b>
-      </p>
-      <ErrorMessage error={searchedCredentialsError} />
-      <TextField
-        id="search-term-server-id"
-        label="Server ID"
-        variant="standard"
-        style={{ marginRight: '1rem' }}
-        onChange={(e) => {
-          console.log(e)
-          setServerIdToFind(e?.target?.value || null)
-        }}
-      />
-      <Box>
-        <Button
-          disabled={!serverIdToFind || !serverIdToFind?.length}
-          onClick={findCredentialsByServerId}
-          style={{ margin: '1rem 0 2rem 0' }}
-        >
-          Find by server ID
-        </Button>
-      </Box>
+    <Box>
+      <Row>
+        <Typography variant="h5">Endpoint Credential Management</Typography>
+        {<Button onClick={() => setIsAdding(true)}>Add Credentials</Button>}
+      </Row>
+      {isAdding && <AddEndpointForm availableEndpoints={availableEndpoints} closeForm={() => setIsAdding(false)} />}
+      {credentials.length > 0 &&
+        credentials.map((e) => {
+          if (e?.username && e?.password) {
+            return (
+              <Box key={e?.id} sx={{ m: '1rem 0 0.5rem 0', borderRadius: '1rem', backgroundColor: 'white', p: '1rem' }}>
+                <Stack>
+                  <Typography>{`Name: ${e?.name || 'No name'}`}</Typography>
+                  <Typography>{`URL: ${e?.address || 'No Url'}`}</Typography>
+
+                  <Box>
+                    <CredentialsSnippet shouldDisplay={showCredentialSet.has(e.id)} username={e.username} password={e.password} />
+                    <Button
+                      onClick={() => {
+                        if (showCredentialSet.has(e.id)) {
+                          showCredentialSet.delete(e.id)
+                        } else {
+                          showCredentialSet.add(e.id)
+                        }
+                        setShowCredentialSet(new Set(showCredentialSet))
+                      }}
+                    >
+                      {showCredentialSet.has(e.id) ? 'Hide' : 'Show'} credentials
+                    </Button>
+                  </Box>
+                </Stack>
+              </Box>
+            )
+          }
+          return null
+        })}
+
       <p>
         <b>POST new to /api/tscredentials:</b>
       </p>
@@ -173,11 +210,11 @@ const SettingsPage = () => {
         />
       </Box>
       <Box>
-        <Button disabled={credentialsMissing} onClick={submitNewCredential} style={{ marginTop: '1rem' }}>
+        <Button onClick={submitNewCredential} style={{ marginTop: '1rem' }}>
           Add to credentials
         </Button>
       </Box>
-    </div>
+    </Box>
   )
 }
 

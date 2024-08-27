@@ -107,7 +107,7 @@ const NavBar = () => {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         {session?.user?.roles?.[0] === 'admin' && (
-          <>
+          <Box>
             <MenuItem
               id="admin"
               onClick={() => {
@@ -120,7 +120,7 @@ const NavBar = () => {
               Admin Panel
             </MenuItem>
             <Divider />
-          </>
+          </Box>
         )}
         <MenuItem onClick={() => router.push('/settings')}>
           <ListItemIcon>
