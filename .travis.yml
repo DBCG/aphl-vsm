@@ -56,6 +56,6 @@ jobs:
         # - git add .
         # - git commit -m "update version number [ci skip]"
         # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
-        - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG} .
+        - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/ecr-sandbox-app:${TAG}-vsm .
         - cd ../
         - ./bin/deploy.sh
