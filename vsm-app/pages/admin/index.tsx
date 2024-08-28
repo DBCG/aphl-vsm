@@ -43,6 +43,7 @@ const TerminologyEndpoints: NextPage = () => {
     searchTotal: 0
   })
   const fetchEndpoints = async (offset: number, count: number) => {
+    console.log('test build')
     const url = `/api/endpoint?_offset=${offset}&_count=${count}`
     return fetch(url)
       .then((res) => res.json())
