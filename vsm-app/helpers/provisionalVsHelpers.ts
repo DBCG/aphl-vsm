@@ -127,7 +127,7 @@ export const updateVsMetadata = ({
       // this field has to exist to POST the resource, but will be updated in the API to point to the actual ID
       // which only exists after the resource is generated
       if (!clonedVs.url) {
-        clonedVs.url = `${process.env.FHIR_CDR_URL}/ValueSet/${name}`
+        clonedVs.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${name}`
       }
 
       const authSourceExists = clonedVs.extension?.find(ext => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)

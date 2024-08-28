@@ -34,7 +34,7 @@ export const provisionalVsBase = {
     },
     {
       url: "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-      valueUri: process.env.FHIR_CDR_URL
+      valueUri: process.env.NEXT_PUBLIC_FHIR_CDR_URL
     }
   ],
   useContext: [

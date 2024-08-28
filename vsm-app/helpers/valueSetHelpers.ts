@@ -22,7 +22,7 @@ const VSM_LEAF_PROFILE_URLS = {
 const vsmAuthoritativeSourceExtension: fhir4.Extension =
 {
   url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
-  valueUri: process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL
+  valueUri: process.env.NEXT_PUBLIC_FHIR_CDR_URL
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
@@ -305,11 +305,16 @@ const updateGrouperWithMetadata = ({ vsToUpdate, metadata }: GrouperUpdateMetada
   return Object.assign(newVs, rest)
 }
 function updateAuthSource(extensions: fhir4.Extension[], id: string) {
-  const existingAuthoritativeSourceExt = extensions.find((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
-  if (!existingAuthoritativeSourceExt) {
-    extensions.push({ ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri + `/ValueSet/${id}` })
+  const existingAuthoritativeSourceExt = extensions.findIndex((ext) => ext?.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+  const extensionToAdd = { ...vsmAuthoritativeSourceExtension, valueUri: vsmAuthoritativeSourceExtension.valueUri?.split('/ValueSet/')[0] + `/ValueSet/${id}` }
+  if (existingAuthoritativeSourceExt === -1) {
+    extensions.push(extensionToAdd)
+  } else {
+    extensions[existingAuthoritativeSourceExt] = extensionToAdd
   }
+  return extensions
 }
+
 const urlWithoutVersion = (url: string) => url?.split?.('-')?.[0]
 
 // VSAC appends versions to valueset ids and urls with hyphen

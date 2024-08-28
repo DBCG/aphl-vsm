@@ -185,7 +185,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       }) as fhir4.ValueSet
 
       // update url here
-      leaf.url = `${process.env.FHIR_CDR_URL}/ValueSet/${leaf.id}`
+      leaf.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${leaf.id}`
       // update authoritative source here
       provisionalLeaf = addExtensionToVs(leaf, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, leaf.url)
       // PUT to update leaf
