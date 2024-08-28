@@ -53,7 +53,7 @@ if [[ -n "$GIT_TAG" ]]; then
   export AWS_ACCESS_KEY_ID=${PROD_AWS_ACCESS_KEY_ID}
   export AWS_SECRET_ACCESS_KEY=${PROD_AWS_SECRET_ACCESS_KEY}
   aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
-  docker push ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}
+  docker push ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/sandbox-vsm-app:${TAG}-vsm
   echo "VSM Image Pushed Succesfully"
 fi
 
