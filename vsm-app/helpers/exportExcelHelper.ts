@@ -327,7 +327,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
         ['Value Set Name', grouperVs.title],
-        ['OID', grouperVs?.identifier?.[0]?.value],
+        ['OID', grouperVs?.identifier?.[0]?.value?.replace('urn:oid:', '')],
         ['Type', 'Grouping'],
         ['Definition Version', grouperVs.status],
         ['Steward', getVsSteward(grouperVs)],
