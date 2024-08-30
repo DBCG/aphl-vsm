@@ -10,7 +10,7 @@ import {
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { addExtensionToVs, EXTENSIONS, removeValueSetFromGrouper } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, EXTENSIONS, removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getGrouperLibrary, getGrouperValuesets } from '../../programs/[id]/details/valuesets'
@@ -187,7 +187,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       // update url here
       leaf.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/ValueSet/${leaf.id}`
       // update authoritative source here
-      provisionalLeaf = addExtensionToVs(leaf, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, leaf.url)
+      provisionalLeaf.extension = updateAuthSource(leaf.extension || [], leaf.id!)
       // PUT to update leaf
       resourcesToSaveLast.push({ method: 'PUT', resource: leaf })
     }
