@@ -47,7 +47,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     searchType: 'oid' | 'title' | 'url'
     count: string
     offset?: string
-    terminologyServer: string
+    terminologyServer: 'vsac' | string
   } = req.query
   const responseInfo: SearchResponse = {
     valueSets: [],
@@ -59,7 +59,11 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   try {
     // set the terminology client to be VSAC or other
-    terminologyClient.setClient(terminologyServer)
+    if (terminologyServer === 'vsac') {
+      terminologyClient.setClient('vsac')
+    } else {
+      
+    }
     const activeTerminologyClient = terminologyClient.getClient()
     let searchParams: SearchParams
     switch (searchType) {

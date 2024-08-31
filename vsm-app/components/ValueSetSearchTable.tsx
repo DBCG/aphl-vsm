@@ -13,7 +13,6 @@ import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { IconButton } from '@/components/buttons/IconButton'
-import { dedupeArray } from '@/helpers/dedupeArray'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
@@ -606,7 +605,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         ?.trim()
         ?.split(',')
         ?.map((term) => term?.trim())
-      const dedupedOids = dedupeArray(trimmedWords)
+      const dedupedOids = Array.from(new Set(trimmedWords)) // dedupe the OIDs
       // if more than 100 OIDs, exit with error
       if (dedupedOids?.length > paginationMaximum) {
         const message = `OID search maximum is ${paginationMaximum} at a time.`
