@@ -32,7 +32,7 @@ class KeyCloakClientImpl implements KeyCloakClient {
         const basicAuthCredsPromise = this.tokenHandler.getBasicAuthCreds(userId, serverId)
         const basicAuthCreds = await basicAuthCredsPromise
         const creds:TerminologyServerCredentials = {
-            terminologyServerId: basicAuthCreds.url,
+            terminologyServerId: basicAuthCreds.serverId,
             username: basicAuthCreds.username,
             password: basicAuthCreds.password
           }

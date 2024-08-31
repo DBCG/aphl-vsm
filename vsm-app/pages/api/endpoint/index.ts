@@ -2,6 +2,10 @@ import { fhirCdrClient } from '@/fhirClients'
 import { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { FhirResource } from 'fhir-kit-client'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { VSMSession } from '@/helpers/rolesHelper'
+import { getServerSession } from 'next-auth'
+import { AuthOptions } from '../auth/[...nextauth]'
 export interface EndpointRequest extends NextApiRequest {
   body: {
     endpoint: fhir4.Endpoint
@@ -46,9 +50,17 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
       identifier: 'terminologyEndpoint'
     }
   })) as fhir4.Bundle
-  res
-    .status(200)
-    .send({ endpoints: endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || [], total: endpointBundle?.total || 0 })
+
+  let endpoints = endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || []
+  if (req.query.user_set) {
+    // This option will filter and return only those endpoints that the user has set credentials for
+    const session = <VSMSession>await getServerSession(req, res, AuthOptions)
+    const creds = await tsCredentialService.getAllCredentials(session.user.id)
+    const endpointIds = new Set(creds.map((cred) => cred.terminologyServerId))
+    endpoints = endpoints.filter((ep) => endpointIds.has(ep.id!))
+  }
+
+  res.status(200).send({ endpoints, total: endpoints?.length || 0 })
 }
 export default handler({
   POST: {

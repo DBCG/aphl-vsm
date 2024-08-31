@@ -5,6 +5,9 @@ import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Row } from '@/styles'
+import { toast } from 'react-toastify'
+import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal'
+import { IconButton } from '@/components/buttons/IconButton'
 
 const CredentialsSnippet = ({ shouldDisplay, username, password }: { shouldDisplay: boolean; username: string; password: string }) => {
   return (
@@ -24,21 +27,49 @@ const CredentialsSnippet = ({ shouldDisplay, username, password }: { shouldDispl
   )
 }
 
-const AddEndpointForm = ({ availableEndpoints, closeForm }: any) => {
-  const [selectedEndpoint, setSelectedEndpoint] = useState(null)
+const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
+  const [selectedEndpoint, setSelectedEndpoint] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
+  const submitNewCredentials = async (serverId: string, username: string, password: string) => {
+    try {
+      const result = await fetch(`/api/settings/terminology-source`, {
+        method: 'POST',
+        body: JSON.stringify({
+          terminologyServerId: serverId,
+          username,
+          password
+        })
+      })
+
+      if (result.ok) {
+        // clearAllCredentialsToAdd()
+        toast.error('Error adding credentials')
+        console.log('result is ok')
+      } else {
+        const json = await result.json()
+        // setNewCredentialError(json)
+      }
+
+      console.log('result: ', result)
+      toast.success('Credentials added successfully')
+      closeForm()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <Box sx={{ m: '1rem 0 0.5rem 0', borderRadius: '1rem', backgroundColor: 'white', p: '1rem' }}>
-      <FormControl sx={{m: '1rem'}}>
+      <FormControl sx={{ m: '1rem' }}>
         <InputLabel sx={{ backgroundColor: 'white' }} id="available-endpoints-label">
           Available Endpoints
         </InputLabel>
         <Select
           labelId="available-endpoints-label"
           onChange={(e) => {
-            console.log(e)
+            setSelectedEndpoint(e.target.value)
           }}
         >
           {availableEndpoints.map((e: any) => (
@@ -47,22 +78,37 @@ const AddEndpointForm = ({ availableEndpoints, closeForm }: any) => {
             </MenuItem>
           ))}
         </Select>
-        <Box sx={{mt: '2rem', mb: '2rem'}}>
+        {selectedEndpoint.length > 0 && (
+          <Box>
+            <Typography sx={{ mr: '0.5rem', fontWeight: 'bold' }}>Selected Endpoint Url:</Typography>
+            <Typography>{availableEndpoints.find((i) => i.id === selectedEndpoint)?.address}</Typography>
+          </Box>
+        )}
+        <Box sx={{ mt: '2rem', mb: '2rem' }}>
           <TextField
             value={username}
             onChange={(e) => setUsername(e.target.value.trim())}
             id="add-endpoint-name"
             label="Username"
-            style={{ marginRight: '1rem' }}
+            style={{ marginRight: '1rem', width: '48%' }}
           />
-          <TextField id="add-endpoint-password" label="Password" type="password" style={{ marginRight: '1rem' }} />
+          <TextField
+            id="add-endpoint-password"
+            onChange={(e) => setPassword(e.target.value)}
+            label="Password"
+            type="password"
+            style={{ width: '48%' }}
+          />
         </Box>
         <Box>
-          <Button onClick={() => closeForm()}>
-            {' '}
-            Cancel{' '}
+          <Button onClick={() => closeForm()}> Cancel </Button>
+          <Button
+            onClick={() => submitNewCredentials(selectedEndpoint, username, password)}
+            sx={{ ml: '1rem' }}
+            disabled={!username.length || !password.length || !selectedEndpoint.length}
+          >
+            Add Endpoint
           </Button>
-          <Button sx={{ml: '1rem'}} disabled={!username.length}>Add Endpoint</Button>
         </Box>
       </FormControl>
     </Box>
@@ -70,48 +116,14 @@ const AddEndpointForm = ({ availableEndpoints, closeForm }: any) => {
 }
 
 const SettingsPage = () => {
-  // new credentials to add
-  const [serverIdToAdd, setServerIdToAdd] = useState(null)
-  const [userToAdd, setUserToAdd] = useState(null)
-  const [pwToAdd, setPwToAdd] = useState(null)
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
-  const [newCredentialError, setNewCredentialError] = useState(null)
-  const { data: currentCredentials = null, isLoading: credsLoading } = useSWR('/api/tscredentials', fetcher)
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
   const [isAdding, setIsAdding] = useState(false)
-  if (currentCredentials == null && currentEndpoints == null) {
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
+  const { data: currentCredentials = null, isLoading: credsLoading } = useSWR('/api/settings/terminology-source', fetcher)
+  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
+
+  if (credsLoading || endpointsLoading) {
     return <LoadingIndicator />
-  }
-
-  const clearAllCredentialsToAdd = () => {
-    setServerIdToAdd(null)
-    setUserToAdd(null)
-    setPwToAdd(null)
-    setNewCredentialError(null)
-  }
-
-  const submitNewCredential = async () => {
-    try {
-      const result = await fetch(`/api/tscredentials`, {
-        method: 'POST',
-        body: JSON.stringify({
-          terminologyServerId: serverIdToAdd,
-          username: userToAdd,
-          password: pwToAdd
-        })
-      })
-
-      if (result.ok) {
-        clearAllCredentialsToAdd()
-        console.log('result is ok')
-      } else {
-        const json = await result.json()
-        setNewCredentialError(json)
-      }
-      console.log('result: ', result)
-    } catch (e) {
-      console.error(e)
-    }
   }
 
   // TOOD: add types
@@ -119,7 +131,7 @@ const SettingsPage = () => {
   const credentials = [] as any
 
   currentEndpoints?.endpoints?.forEach((endpoint: fhir4.Endpoint) => {
-    const foundCred = currentCredentials.find((cred) => cred.terminologyServerId === endpoint.id)
+    const foundCred = currentCredentials?.find((cred) => cred.terminologyServerId === endpoint.id)
     const baseEndpoint = {
       id: endpoint.id,
       name: endpoint.name,
@@ -136,22 +148,55 @@ const SettingsPage = () => {
     }
   })
 
+  const deleteCredential = async (id: string) => {
+    try {
+      const result = await fetch(`/api/settings/terminology-source/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (result.ok) {
+        toast.success('Credential deleted successfully')
+      } else {
+        const json = await result.json()
+        toast.error(json.message)
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error('Error deleting credential')
+    }
+  }
+
   return (
     <Box>
       <Row>
-        <Typography variant="h5">Endpoint Credential Management</Typography>
+        <Typography variant="h4">Endpoint Credential Management</Typography>
         {<Button onClick={() => setIsAdding(true)}>Add Credentials</Button>}
       </Row>
+      {!isAdding && !currentCredentials?.length && (
+        <Typography variant={'h5'} sx={{ mt: '3rem' }}>
+          No credentials found, Click &quot;Add Credentials&quot; to get started
+        </Typography>
+      )}
       {isAdding && <AddEndpointForm availableEndpoints={availableEndpoints} closeForm={() => setIsAdding(false)} />}
       {credentials.length > 0 &&
         credentials.map((e) => {
           if (e?.username && e?.password) {
             return (
-              <Box key={e?.id} sx={{ m: '1rem 0 0.5rem 0', borderRadius: '1rem', backgroundColor: 'white', p: '1rem' }}>
+              <Box
+                key={e?.id}
+                sx={{
+                  m: '1rem 0 0.5rem 0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderRadius: '1rem',
+                  backgroundColor: 'white',
+                  width: '80%',
+                  p: '1rem'
+                }}
+              >
                 <Stack>
                   <Typography>{`Name: ${e?.name || 'No name'}`}</Typography>
                   <Typography>{`URL: ${e?.address || 'No Url'}`}</Typography>
-
                   <Box>
                     <CredentialsSnippet shouldDisplay={showCredentialSet.has(e.id)} username={e.username} password={e.password} />
                     <Button
@@ -168,52 +213,18 @@ const SettingsPage = () => {
                     </Button>
                   </Box>
                 </Stack>
+                {/* <IconButton
+                  buttoncontext="delete"
+                  deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
+                  onClick={() => {
+                    deleteCredential(e.id)
+                  }}
+                /> */}
               </Box>
             )
           }
           return null
         })}
-
-      <p>
-        <b>POST new to /api/tscredentials:</b>
-      </p>
-      <ErrorMessage error={newCredentialError} />
-      <Box gap={4} style={{ marginTop: '1rem' }}>
-        <TextField
-          id="add-term-server-id"
-          label="Terminology Server ID"
-          variant="standard"
-          style={{ marginRight: '1rem' }}
-          onChange={(e) => {
-            console.log(e)
-            setServerIdToAdd(e?.target?.value || null)
-          }}
-        />
-        <TextField
-          id="add-term-server-user"
-          label="Username"
-          variant="standard"
-          style={{ marginRight: '1rem' }}
-          onChange={(e) => {
-            console.log(e)
-            setUserToAdd(e?.target?.value || null)
-          }}
-        />
-        <TextField
-          id="add-term-server-pw"
-          label="Password"
-          variant="standard"
-          onChange={(e) => {
-            console.log(e)
-            setPwToAdd(e?.target?.value || null)
-          }}
-        />
-      </Box>
-      <Box>
-        <Button onClick={submitNewCredential} style={{ marginTop: '1rem' }}>
-          Add to credentials
-        </Button>
-      </Box>
     </Box>
   )
 }

@@ -78,6 +78,10 @@ const getCredentials = async (req: NextApiRequest, res: NextApiResponse<GetCrede
   }
 }
 
+const deleteCredential = async (req: NextApiRequest, res: NextApiResponse<{}>) => {
+  // TODO: TO BE IMPLEMENTED
+}
+
 export default handler({
   GET: {
     action: getCredentials
@@ -87,5 +91,8 @@ export default handler({
   },
   PUT: {
     action: updateCredentials
+  },
+  DELETE: {
+    action: deleteCredential
   }
 })

@@ -72,6 +72,14 @@ class PrivateTerminologyClient {
     return this.clientName
   }
 
+  setCustomClient({baseUrl, clientName, basicAuthHeader}) {
+    this.client = new FhirKitClient({
+      baseUrl,
+      customHeaders: { Authorization: `Basic ${basicAuthHeader}` }
+    })
+    this.clientName = clientName
+  }
+
   setClient(newClient: 'vsac' | 'ontoserverR4' | 'vsm') {
     // defaults to VSAC
     let client = new FhirKitClient({

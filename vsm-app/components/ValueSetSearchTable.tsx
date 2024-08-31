@@ -19,15 +19,15 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
-import { shallowEqual } from 'utils'
+import { shallowEqual, fetcher } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import { uniqBy } from 'lodash'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
-import { getVsSteward } from '@/helpers/valueSetHelpers'
 import { priorityLevelOptions } from './ProgramValueSetDetails'
 import DataTable from 'react-data-table-component'
 import { customTableStyles } from './tables/themes'
 import { UpdateValueSetBody } from '@/pages/api/valueset'
+import useSWR from 'swr'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -548,6 +548,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const allConditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
 
+  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
+
   useEffect(() => {
     setMyDocument(document?.body)
   }, [])
@@ -628,7 +630,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       sortBy: sortParams?.column,
       sortDirection: sortParams?.direction,
       offset: offset,
-      terminologyServer: selectedTerminologyServer?.value?.title
+      terminologyServer: selectedTerminologyServer?.value?.id
     }
 
     let queryString = ''
@@ -772,7 +774,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     }
 
     const leafsToAdd = {
-      selectedTerminologyServer: selectedTerminologyServer.value.title,
+      selectedTerminologyServer: selectedTerminologyServer.value.id,
       selectedValueSets: uniqBy(selectedValueSets, 'id'),
       selectedConditions,
       selectedPriority: selectedPriority.value || 'routine',
@@ -820,6 +822,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       toast.error(fetchError.message)
     }
   }, [fetchError?.message, fetchError?.errorType])
+
   // search page requires the target grouper to be selected, 'add-grouper' context does not
   const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length
 
@@ -839,6 +842,11 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const handleSearchToggleChange = (e: TableContextOptions) => {
     setSearchTableContext(e)
   }
+
+  const terminologySources = [
+    ...terminologyServerEndpoints,
+    ...(currentEndpoints?.endpoints?.map((i: any) => ({ label: i?.name, value: { id: i?.id, url: i?.address } })) || [])
+  ]
 
   return (
     <Col>
@@ -881,7 +889,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                       isMulti={false}
                       menuPortalTarget={myDocument}
                       styles={reactSelectOptionStyle()}
-                      options={terminologyServerEndpoints}
+                      options={terminologySources}
                       value={selectedTerminologyServer}
                       onChange={(e) => {
                         return setSelectedTerminologyServer(e!)
