@@ -11,7 +11,7 @@ docker buildx create --use
 # Deploy to AWS
 aws sts get-caller-identity
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com
-docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:$TRAVIS_COMMIT --push .
+docker buildx build --platform linux/arm64/v8,linux/amd64 -t $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:${TAG} --push .
 
 if [[ -n "$GIT_TAG" ]]; then
   echo "Begin CQF Ruler image Push to Ruvos ECR"
