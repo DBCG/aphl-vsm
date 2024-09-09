@@ -188,6 +188,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
           setItemToDelete(null)
         } else {
           mutate()
+          setOriginalCodeItemToEdit(null)
           setCodeUpdateLoading(false)
           toast.success(`Provisional Code '${itemToDelete?.code}' deleted`)
           setItemToDelete(null)
