@@ -111,7 +111,7 @@ public class KnowledgeArtifactProcessor {
 					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
-				throw new UnprocessableEntityException("Missing condition on ValueSet : " + valueSet.getUrl());
+				throw new UnprocessableEntityException("Missing condition on leaf ValueSet : " + valueSet.getUrl());
 			}
 		}
 	}
@@ -344,7 +344,7 @@ public class KnowledgeArtifactProcessor {
 			var parametersAdapter = factory.createParameters(new Parameters());
 			parametersAdapter.addParameter("url", new UrlType(vset.getUrl()));
 			parametersAdapter.addParameter("valueSetVersion", new StringType(vset.getVersion()));
-			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), repository);
+			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), repository, new Date());
 		}
 	}
 	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
