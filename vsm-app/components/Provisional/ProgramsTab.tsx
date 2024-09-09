@@ -2,10 +2,11 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Tooltip } from '@mui/material'
+import { Button, Checkbox, FormControlLabel, FormGroup, Tooltip } from '@mui/material'
+import CallMadeIcon from '@mui/icons-material/CallMade'
 import useSWR from 'swr'
 import styled from 'styled-components'
-import { debounce } from 'lodash'
+import { debounce, set } from 'lodash'
 import DT from 'react-data-table-component'
 import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -18,6 +19,12 @@ import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
 import { ProgramApiResponse } from '@/pages/api/programs'
+
+const checkboxStyles = {
+  root: {
+    color: 'inherit'
+  }
+};
 
 const Col = styled.div`
   display: flex;
@@ -74,7 +81,14 @@ const ProgramsTab: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
+  const [showDiffViewer, setShowDiffViewer] = useState(true)
+  const [downloadSpreadsheet, setDownloadSpreadsheet] = useState(true)
 
+  // clear rows
+  const [toggledClearRows, setToggledClearRows] = useState(false)
+
+  const handleShowDiffViewer = (show: boolean) => setShowDiffViewer(show)
+  const handleDownloadSpreadsheet = (shouldDownload: boolean) => setDownloadSpreadsheet(shouldDownload)
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -87,9 +101,9 @@ const ProgramsTab: NextPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [progIdToClone, setProgIdToClone] = useState('')
 
-    // compare programs
-    const [enableCompare, setEnableCompare] = useState(false)
-    const [selectedRows, setSelectedRows] = useState<fhir4.Library[]|null>(null)
+  // compare programs
+  const [enableCompare, setEnableCompare] = useState(false)
+  const [selectedRows, setSelectedRows] = useState<fhir4.Library[] | null>(null)
 
   const handleRowSelected = useCallback((state: any) => {
     setSelectedRows(() => state.selectedRows);
@@ -128,8 +142,8 @@ const ProgramsTab: NextPage = () => {
     }
 
     return (
-      <div className='test-class' style={{ border: '10px solid red'}}>
-        <p style={{ fontSize: '800%'}}>Testing123</p>
+      <div className='test-class' style={{ border: '10px solid red' }}>
+        <p style={{ fontSize: '800%' }}>Testing123</p>
       </div>
 
 
@@ -393,24 +407,81 @@ const ProgramsTab: NextPage = () => {
         />
       )}
       {programs?.length > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1em' }}>
-          <Button
-            style={{ width: 'fit-content' }}
-            onClick={() => {
-              if (selectedRows && selectedRows?.length > 1) {
-                router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}`)
-              } else {
-                setEnableCompare(true)
-              }
-            }}
-          >
-            {(selectedRows && selectedRows?.length > 1) ? 'Compare': 'Select 2 Programs to Compare'}
-          </Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1em' }}>
+          {
+            enableCompare ? (
+              <div>
+                <i>Compare options:</i>
+                <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleShowDiffViewer(Boolean(e?.target?.checked))}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={showDiffViewer}
+                        style={checkboxStyles}
+                      />
+                    }
+                    label="View Differences in VSM"
+                  />
+                </FormGroup>
+                <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSpreadsheet(Boolean(e?.target?.checked))}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={downloadSpreadsheet}
+                        style={checkboxStyles}
+                      />
+                    }
+                    label="Download Changelog Spreadsheet"
+                  />
+                </FormGroup>
+              </div>
+
+            ) : null
+          }
+          <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
+            <Button
+              style={{
+                width: 'fit-content',
+                height: 'fit-content',
+                color: enableCompare && selectedRows?.length !== 2 ? 'var(--theme-400)' : 'white',
+                backgroundColor: enableCompare && selectedRows?.length !== 2 ? 'transparent' : 'var(--theme-400)',
+                transition: 'background-color 200ms linear'
+              }}
+              endIcon={enableCompare && selectedRows?.length == 2 ? <CallMadeIcon /> : null}
+              variant='text'
+              disabled={enableCompare && selectedRows?.length !== 2}
+              onClick={() => {
+                if (selectedRows && selectedRows?.length > 1) {
+                  router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=${showDiffViewer}&downloadSpreadsheet=${downloadSpreadsheet}`)
+                } else {
+                  setEnableCompare(true)
+                }
+              }}
+            >
+              {(selectedRows && selectedRows?.length > 1) ? 'Compare' : 'Select 2 Programs to Compare'}
+            </Button>
+            { enableCompare ? (
+              <Button
+                style={{ width: 'fit-content', height: 'fit-content', backgroundColor: 'gray' }}
+                onClick={() => {
+                  setSelectedRows(null)
+                  setToggledClearRows((prev) => !prev)
+                  setDownloadSpreadsheet(true)
+                  setShowDiffViewer(true)
+                  setEnableCompare(false)
+                }}
+              >
+                Cancel
+              </Button>
+            ): null}
+          </div>
+          
         </div>
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
+        clearSelectedRows={toggledClearRows}
         columns={columns}
         theme="aphl"
         pagination
@@ -428,8 +499,7 @@ const ProgramsTab: NextPage = () => {
         contextActions={contextActions}
         selectableRowDisabled={(row) => {
           return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
-          }
-        }
+        }}
       />
     </Col>
   )
