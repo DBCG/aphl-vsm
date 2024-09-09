@@ -22,7 +22,7 @@ const VSM_LEAF_PROFILE_URLS = {
 const vsmAuthoritativeSourceExtension: fhir4.Extension =
 {
   url: EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
-  valueUri: process.env.NEXT_PUBLIC_FHIR_CDR_URL
+  valueUri: process.env.EXTERNAL_FHIR_CDR_URL
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {

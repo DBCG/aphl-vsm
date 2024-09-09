@@ -35,7 +35,7 @@ spec:
           name: cqf-ruler-vsm
           env:
             - name: hapi.fhir.server_address
-              value: http://localhost:8080/fhir
+              value: {{.Values.protocol}}://{{ .Values.cqf_ruler.app_url}}/fhir
             - name: hapi.fhir.allow_multiple_delete
               value: "true"
             - name: hapi.fhir.fhir_version

@@ -1,6 +1,7 @@
 tag: ""
 namespace: "vsm"
 cqf_ruler:
+  app_url: "ae3f96bad10b44139a2f52ac1ee6812c-1245930300.us-east-1.elb.amazonaws.com"
   db_url: "jdbc:postgresql://vsm-cqf-ruler-db.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
 vsm_app:
   app_url: "a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com"
