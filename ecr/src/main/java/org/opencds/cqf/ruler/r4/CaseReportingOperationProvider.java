@@ -38,10 +38,7 @@ import org.hl7.fhir.r4.model.*;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.visitor.ApproveVisitor;
-import org.opencds.cqf.fhir.utility.visitor.DraftVisitor;
-import org.opencds.cqf.fhir.utility.visitor.PackageVisitor;
-import org.opencds.cqf.fhir.utility.visitor.ReleaseVisitor;
+import org.opencds.cqf.fhir.utility.visitor.*;
 import org.opencds.cqf.ruler.IBaseSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -438,6 +435,39 @@ public class CaseReportingOperationProvider {
 		}
 
 		return bin;
+	}
+
+	/**
+	 * Sets the status of an existing artifact to Active if it has status Draft.
+	 *
+	 * @param requestDetails     the {@link RequestDetails RequestDetails}
+	 * @param theId              the {@link IdType IdType}, always an argument for instance level operations
+	 * @return A transaction bundle result of the updated resources
+	 */
+	@Operation(name = "$withdraw", idempotent = true, global = true, type = MetadataResource.class)
+	@Description(shortDefinition = "$withdraw", value = "Withdraw an existing draft artifact")
+	public Bundle withdrawOperation(
+			RequestDetails requestDetails,
+			@IdParam IdType theId)
+			throws FHIRException {
+		var repository = repositoryFactory.create(requestDetails);
+		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
+		if (resource == null) {
+			throw new ResourceNotFoundException(theId);
+		}
+		var params = new Parameters();
+		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
+		try {
+			var visitor = new WithdrawVisitor();
+			adapter.getRelatedArtifact()
+					.forEach(ra -> {
+						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
+					});
+			var retval = (Bundle) adapter.accept(visitor, repository, params);
+			return retval;
+		} catch (Exception e) {
+			throw new UnprocessableEntityException(e.getMessage());
+		}
 	}
 
 	private ObjectMapper createSerializer() {
