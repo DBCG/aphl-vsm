@@ -287,7 +287,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
       {
         name: 'Edit',
         center: true,
-        maxWidth: '100px',
+        maxWidth: '120px',
         selector: (row: CodeTableData) => row.code!,
         omit: !isEditable,
         cell: (row: CodeTableData) => {
@@ -296,8 +296,9 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
 
           if (currentlyEditing) {
             return (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', maxWidth: '300px' }}>
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', maxWidth: '300px', justifyContent: 'center' }}>
                 <Button
+                  style={{ whiteSpace: 'nowrap' }}
                   disabled={!allFieldsPresent || !changesExist}
                   text='Save changes'
                   onClick={() => handleSaveAttempt(false)}
@@ -305,7 +306,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
                 />
                 <Button
                   text='Cancel'
-                  style={{ backgroundColor: 'gray' }}
+                  style={{ backgroundColor: 'gray', whiteSpace: 'nowrap' }}
                   onClick={handleCancel}
                 />
               </div>
