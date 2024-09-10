@@ -56,9 +56,9 @@ class APITokenHandler {
 
   public async getBasicAuthCredsForAllUrls(userId: string) {
     await this.renewKeyCloakToken()
-    const userAttributes = await this.retrieveStoredAttributes(userId)
-    const userIV = await this.getUserIV(userAttributes)
-    delete userAttributes.attributes.iv
+    const userAttributes: KeyCloakUser = await this.retrieveStoredAttributes(userId)
+    const userIV: string = await this.getUserIV(userAttributes)
+    delete userAttributes?.attributes?.iv
     const serverIds = Object.keys(userAttributes?.attributes || {})
     const creds = serverIds.map((terminologyServerId) => {
       const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
