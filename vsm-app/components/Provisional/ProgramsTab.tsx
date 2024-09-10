@@ -410,8 +410,8 @@ const ProgramsTab: NextPage = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1em' }}>
           {
             enableCompare ? (
-              <div>
-                <i>Compare options:</i>
+              <div style={{ backgroundColor: 'white', padding: '.8rem .6rem'}}>
+                <i>Comparison options:</i>
                 <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleShowDiffViewer(Boolean(e?.target?.checked))}>
                   <FormControlLabel
                     control={

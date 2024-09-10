@@ -1,6 +1,6 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { Drawer, IconButton, Tooltip } from '@mui/material'
+import { CircularProgress, Drawer, IconButton, Tooltip } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { useRouter } from 'next/router'
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
@@ -31,7 +31,27 @@ const StyledP = styled.p`
 const ProgramContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  // gap: 1rem;
+`
+
+const NoteContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  width: 100%;
+  background-color: white;
+  transition: height .3s;
+`
+
+const NoteParagraph = styled.i`
+  margin-block-start: .2rem;
+  margin-block-end: .2rem;
+`
+
+const NoteStatus = styled.p`
+  font-weight: bold;
+  // margin-block-start: .2rem;
+  // margin-block-end: .6rem;
 `
 
 const ProgramCol = styled(ProgramContainer)`
@@ -203,6 +223,12 @@ interface InitialProgram {
   label: string
 }
 
+interface HandleGenerateDifferenceProps {
+  base?: undefined | InitialProgram,
+  target?: undefined | InitialProgram,
+  generateDiff: boolean 
+}
+
 const ProgramCompare = () => {
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState<boolean>(false)
@@ -212,6 +238,12 @@ const ProgramCompare = () => {
   const [diffData, setDiffData] = useState<ChangelogData | null>(null)
   const [baseTouched, setBaseTouched] = useState(false)
   const [targetTouched, setTargetTouched] = useState(false)
+
+  // is it just diff viewer, or also download
+  const [downloadSelected, setDownloadSelected] = useState(false)
+  const [viewDiff, setViewDiff] = useState(false)
+  const [downloadLoading, setDownloadLoading] = useState(false)
+
 
   // @ts-ignore
   const allPrograms = useGetPrograms([]) || []
@@ -223,7 +255,17 @@ const ProgramCompare = () => {
     })
   }), [allPrograms])
 
-  const handleGenerateDifference = async (initialBase?: undefined | InitialProgram, initialTarget?: undefined | InitialProgram) => {
+  const handleGenerateDifference = async ({
+    base: initialBase=undefined,
+    target: initialTarget=undefined,
+    generateDiff
+  }: HandleGenerateDifferenceProps) => {
+
+    console.log('generateDiff called with:')
+    console.log('generateDiff', generateDiff)
+    console.log('initialTarget ', initialTarget)
+    console.log('initialBase ', initialBase)
+    if (!generateDiff) return
     setIsLoadingDiff(true)
     setBaseTouched(true)
     setTargetTouched(true)
@@ -254,17 +296,80 @@ const ProgramCompare = () => {
     setIsLoadingDiff(false)
   }
 
+  const handleDownload = async (base: string, target: string, download: boolean) => {
+    if (!download) return
+    if (!base || !target) {
+      toast.error('Missing value for base or target program')
+      return
+    }
+    setDownloadLoading(true)
+    try {
+      const res = await fetch(`/api/programs/${base}/compare?targetId=${target}`, {
+        method: 'POST'
+      })
+
+      console.log('res', res)
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `compare-${base}-${target}.xlsx`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        setDownloadLoading(false)
+        toast.success(`File ${a.download} downloaded successfully`, { position: 'bottom-right' })
+      } else {
+        toast.error('Failed to download file')
+        setDownloadLoading(false)
+      }
+    } catch (error) {
+      console.log('error', error)
+      toast.error('Failed to download comparison file')
+      setDownloadLoading(false)
+    }
+  }
+
+  const allowFirstLoad = () => {
+    if (
+      router.query.old && router.query.new &&
+      (!baseTouched && !targetTouched) &&
+      (!isLoadingDiff && !downloadLoading) &&
+      formattedProgramOptions?.length
+    ) {
+      return true
+    }
+    return false
+  }
+
+  // this runs on page load
   useEffect(() => {
     (async () => {
-      if (router.query.old && router.query.new && (!baseTouched && !targetTouched)) {
+      console.log('this called')
+      console.log('router.query', router.query)
+      if (allowFirstLoad()) {
+        console.log('loading')
         const base = formattedProgramOptions?.find(p => p.value === router.query.old)
         const target = formattedProgramOptions?.find(p => p.value === router.query.new)
-        if (base && target) {
+        const download = router.query.downloadSpreadsheet === 'true'
+        const seeDiff = router.query.showDiffViewer === 'true'
+        console.log('seeDiff', seeDiff)
+        console.log('base here', base)
+        console.log('target here', target)
+        if (base?.value && target?.value) {
           // @ts-ignore
           setBaseProgram(base)
           // @ts-ignore
           setTargetProgram(target)
-          await handleGenerateDifference(base as InitialProgram, target as InitialProgram)
+          setDownloadSelected(download)
+          setViewDiff(seeDiff)
+
+          // run both async functions in parallel
+          await Promise.all([
+            handleGenerateDifference({ base, target, generateDiff: seeDiff }),
+            handleDownload(base.value, target.value, download)
+          ])
         }
       }
     })()
@@ -276,15 +381,55 @@ const ProgramCompare = () => {
     }
   })
 
+  const submitDisabled = useMemo(() => {
+    return Boolean(
+      (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value) ||
+      isLoadingDiff || downloadLoading
+    )
+  }, [targetProgram, baseProgram, isLoadingDiff, downloadLoading])
+
+  const optionsDisabled = useMemo(() => {
+    return Boolean(
+      isLoadingDiff || downloadLoading
+    )
+  }, [targetProgram, baseProgram, isLoadingDiff, downloadLoading])
+
+  const diffStatusText = useMemo(() => {
+    const messageParts = []
+    if (isLoadingDiff) {
+      messageParts.push('Loading Difference Viewer')
+    }
+    if (downloadLoading) {
+      messageParts.push('Downloading Spreadsheet')
+    }
+
+    if (messageParts.length) {
+      return `Status: ${messageParts.join(' and ')}`
+    } else {
+      return null
+    }
+  }, [isLoadingDiff, downloadLoading])
+
   return (
     <RelativeContainer>
       {/*  @ts-ignore */}
       <DiffViewerMenu isOpen={menuOpen} setMenuOpen={setMenuOpen} menuVisible={Boolean(diffData)} menuData={diffData} router={router} />
       <ProgramContainer style={{ marginBottom: '1rem' }}>
-        <ProgramCol style={{ minWidth: '300px' }}>
+        <NoteContainer>
+          { diffStatusText ? (
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '.4rem' }}>
+            <CircularProgress style={{ marginRight: '.6rem'}} size='1rem'/>
+            <NoteStatus>
+              {diffStatusText}
+            </NoteStatus>
+          </div>
+          ) : null }
+          <NoteParagraph>Generating differences may take a few minutes to process the data.</NoteParagraph>
+          <NoteParagraph>Please wait until the action is complete before navigating away from this page.</NoteParagraph>
+          <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
           <StyledP>Select base program</StyledP>
           <Select
-            isDisabled={isLoadingDiff}
+            isDisabled={optionsDisabled}
             // @ts-ignore
             options={formattedProgramOptions}
             onChange={(i) => {
@@ -294,10 +439,10 @@ const ProgramCompare = () => {
             value={baseProgram}
           />
         </ProgramCol>
-        <ProgramCol style={{ minWidth: '300px' }}>
+        <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
           <StyledP>Select target program</StyledP>
           <Select
-            isDisabled={isLoadingDiff}
+            isDisabled={optionsDisabled}
             onChange={(i) => {
               setTargetTouched(true)
               setTargetProgram(i)
@@ -308,15 +453,20 @@ const ProgramCompare = () => {
           />
         </ProgramCol>
         <ProgramCol>
-          <ButtonContainer style={{ height: '100%', alignItems: 'flex-end' }}>
+          <ButtonContainer style={{ height: '100%', alignItems: 'flex-end', margin: '1rem 0' }}>
             <Button
               text='Generate Difference'
-              onClick={async () => await handleGenerateDifference()}
-              loading={isLoadingDiff}
-              disabled={(!targetProgram || !baseProgram) || (targetProgram && baseProgram && targetProgram?.value === baseProgram?.value)}
+              onClick={async () => {
+                console.log('onclick called')
+                await handleGenerateDifference({ generateDiff: true })
+              }}
+              loading={isLoadingDiff || downloadLoading}
+              disabled={submitDisabled}
             />
           </ButtonContainer>
         </ProgramCol>
+        </NoteContainer>
+
       </ProgramContainer>
       {diffData && (
         <DiffViewerComponent
