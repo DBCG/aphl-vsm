@@ -60,13 +60,14 @@ class APITokenHandler {
     const userIV: string = await this.getUserIV(userAttributes)
     delete userAttributes?.attributes?.iv
     const serverIds = Object.keys(userAttributes?.attributes || {})
-    const creds = serverIds.map((terminologyServerId) => {
-      const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
-      const decryptedCreds = this.decryptData(encryptedCreds, userIV)
-      const base64Data = JSON.parse(decryptedCreds).value
-      const [username, password] = atob(base64Data).split(':')
-      return { terminologyServerId, username, password }
-    }) || []
+    const creds =
+      serverIds.map((terminologyServerId) => {
+        const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
+        const decryptedCreds = this.decryptData(encryptedCreds, userIV)
+        const base64Data = JSON.parse(decryptedCreds).value
+        const [username, password] = atob(base64Data).split(':')
+        return { terminologyServerId, username, password }
+      }) || []
 
     return creds
   }
@@ -80,6 +81,17 @@ class APITokenHandler {
     const userIV = await this.getUserIV(userId)
     const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }), userIV)
     await this.storeCredsKeyCloak(userId, serverId, encryptedCreds)
+  }
+
+  /**
+   * Deletes basic auth creds for a given serverId
+   * @param userId
+   * @param serverId
+   */
+  public async deleteBasicAuthCreds(userId: string, serverId: string) {
+    await this.renewKeyCloakToken()
+    await this.deleteCredsKeyCloak(userId, serverId)
+    return
   }
 
   private encryptData(data: string, userIV: string) {
@@ -151,6 +163,40 @@ class APITokenHandler {
     this._cacheJWTExpiry = undefined
   }
 
+  private async deleteCredsKeyCloak(userId: string, serverId: string) {
+    logger.info(`Deleting creds for serverId: ${serverId} for user: ${userId}`)
+    const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/json')
+    headers.set('Authorization', `Bearer ${this._cacheJWT}`)
+
+    const currentUserAttributes = await this.retrieveStoredAttributes(userId)
+    delete currentUserAttributes?.attributes?.[serverId]
+
+    const payload = JSON.stringify({
+      ...currentUserAttributes
+    })
+
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: payload,
+        headers
+      })
+      if (response.status === 204) {
+        logger.info(`Successfully deleted creds for serverId: ${serverId}`)
+        return response
+      } else {
+        logger.error(`Failed to delete creds for serverId: ${serverId} in Keycloak: ${response.statusText}`)
+        throw new Error(`Failed to delete creds for serverId: ${serverId} in Keycloak: ${response.statusText}`)
+      }
+    } catch (error) {
+      logger.error(`Error deleting creds in Keycloak: ${error}`)
+      this.resetState()
+      throw error
+    }
+  }
+
   private async storeCredsKeyCloak(user: string | KeyCloakUser, key: string, value: string) {
     let userId = ''
     let attributes = null
@@ -191,7 +237,8 @@ class APITokenHandler {
       } else {
         logger.error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
         throw new Error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
-      }``
+      }
+      ;``
     } catch (error) {
       logger.error(`Error setting API key in Keycloak: ${error}`)
       this.resetState()

@@ -7,6 +7,7 @@ interface TsCredentialService {
     getAllCredentials(userId: string): Promise<TerminologyServerCredentials[]>
     getCredentials(userId: string, terminologyServerId: string): Promise<TerminologyServerCredentials>
     updateCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials>
+    deleteCredential(userId: string, terminologyServerId: string): Promise<void>
 }
 
 class TsCredentialServiceImpl implements TsCredentialService {
@@ -54,6 +55,10 @@ class TsCredentialServiceImpl implements TsCredentialService {
 
     public async getAllCredentials(userId: string): Promise<TerminologyServerCredentials[]> {
         return this.keyCloakClient.getAllUserCredentials(userId)
+    }
+
+    public async deleteCredential(userId: string, terminologyServerId: string): Promise<void> {
+        return this.keyCloakClient.deleteUserCredential(userId, terminologyServerId)
     }
 
     public async updateCredentials(userId: string, terminologyServerId: string, username: string, password: string): Promise<TerminologyServerCredentials> {

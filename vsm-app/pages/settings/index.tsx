@@ -1,30 +1,63 @@
-import { ErrorMessage } from '@/components/ErrorMessage'
 import { fetcher } from '@/utils'
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import useSWR from 'swr'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Row } from '@/styles'
 import { toast } from 'react-toastify'
-import { DeleteConfirmationModal } from '@/components/modals/DeleteConfirmationModal'
 import { IconButton } from '@/components/buttons/IconButton'
+import { PageTitle } from '@/components/Typography'
+import { update } from 'lodash'
 
-const CredentialsSnippet = ({ shouldDisplay, username, password }: { shouldDisplay: boolean; username: string; password: string }) => {
-  return (
-    <Box>
-      {shouldDisplay ? (
-        <>
-          <Typography>{`Username: ${username}`}</Typography>
-          <Typography sx={{ ml: 1 }}>{`Password: ${password}`}</Typography>
-        </>
-      ) : (
-        <>
-          <Typography>{'Username: ●●●●●●●●●●●●●●●●●'}</Typography>
-          <Typography sx={{ ml: 1 }}>{'Password: ●●●●●●●●●●●●●●●●●'}</Typography>
-        </>
-      )}
-    </Box>
-  )
+type CredentialsSnippetProps = {
+  shouldDisplay: boolean
+  isEditing: boolean
+  username: string
+  password: string
+  cancelEdit: () => void
+  onUpdate: (username: string, password: string) => void
+}
+
+const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, username, password }: CredentialsSnippetProps) => {
+  const [newUsername, setNewUsername] = useState(username)
+  const [newPassword, setNewPassword] = useState(password)
+
+  if (isEditing) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <TextField onChange={(e) => setNewUsername(e.target.value)} value={username} label="Username" />
+        <TextField onChange={(e) => setNewPassword(e.target.value)} sx={{ ml: 1 }} value={password} label="Password" />
+        <Box sx={{ mt: 1 }}>
+          <Button onClick={cancelEdit}>Cancel</Button>
+          <Button
+            onClick={() => {
+              onUpdate(newUsername, newPassword)
+              cancelEdit()
+            }}
+            sx={{ ml: 1 }}
+          >
+            Save
+          </Button>
+        </Box>
+      </Box>
+    )
+  } else {
+    return (
+      <Box>
+        {shouldDisplay ? (
+          <>
+            <Typography>{`Username: ${username}`}</Typography>
+            <Typography sx={{ ml: 1 }}>{`Password: ${password}`}</Typography>
+          </>
+        ) : (
+          <>
+            <Typography>{'Username: ●●●●●●●●●●●●●●●●●'}</Typography>
+            <Typography sx={{ ml: 1 }}>{'Password: ●●●●●●●●●●●●●●●●●'}</Typography>
+          </>
+        )}
+      </Box>
+    )
+  }
 }
 
 const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
@@ -43,16 +76,12 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
         })
       })
 
-      if (result.ok) {
-        // clearAllCredentialsToAdd()
+      if (!result.ok) {
         toast.error('Error adding credentials')
-        console.log('result is ok')
-      } else {
-        const json = await result.json()
-        // setNewCredentialError(json)
+        console.error(result.body)
+        return
       }
 
-      console.log('result: ', result)
       toast.success('Credentials added successfully')
       closeForm()
     } catch (e) {
@@ -117,16 +146,25 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
 
 const SettingsPage = () => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
+  const [showEditSet, setShowEditSet] = useState(new Set())
+
   const [isAdding, setIsAdding] = useState(false)
-  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false)
-  const { data: currentCredentials = null, isLoading: credsLoading } = useSWR('/api/settings/terminology-source', fetcher)
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint', fetcher)
+  const {
+    data: currentCredentials = null,
+    isLoading: credsLoading,
+    mutate: reloadCurrentCredentials
+  } = useSWR('/api/settings/terminology-source', fetcher)
+  const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
   if (credsLoading || endpointsLoading) {
     return <LoadingIndicator />
   }
 
-  // TOOD: add types
+  const refetchData = () => {
+    reloadCurrentCredentials()
+    reloadCurrentEndpoints()
+  }
+
   const availableEndpoints = [] as any
   const credentials = [] as any
 
@@ -148,16 +186,44 @@ const SettingsPage = () => {
     }
   })
 
+  const updateCredential = async (id: string, username: string, password: string) => {
+    try {
+      const result = await fetch(`/api/settings/terminology-source`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          terminologyServerId: id,
+          username,
+          password
+        })
+      })
+
+      if (result.ok) {
+        toast.success('Credential updated successfully')
+      } else {
+        const json = await result.json()
+        console.error(json)
+        toast.error(json.message)
+      }
+    } catch (e) {
+      console.error(e)
+      toast.error('Error updating credential')
+    }
+  }
+
   const deleteCredential = async (id: string) => {
     try {
-      const result = await fetch(`/api/settings/terminology-source/${id}`, {
-        method: 'DELETE'
+      const result = await fetch(`/api/settings/terminology-source`, {
+        method: 'DELETE',
+        body: JSON.stringify({
+          serverId: id
+        })
       })
 
       if (result.ok) {
         toast.success('Credential deleted successfully')
       } else {
         const json = await result.json()
+        console.error(json)
         toast.error(json.message)
       }
     } catch (e) {
@@ -169,15 +235,26 @@ const SettingsPage = () => {
   return (
     <Box>
       <Row>
-        <Typography variant="h4">Endpoint Credential Management</Typography>
+        <PageTitle>Settings</PageTitle>
         {<Button onClick={() => setIsAdding(true)}>Add Credentials</Button>}
       </Row>
+      <Typography sx={{ mt: 2 }} variant="h5">
+        Endpoint Credential Management
+      </Typography>
       {!isAdding && !currentCredentials?.length && (
         <Typography variant={'h5'} sx={{ mt: '3rem' }}>
           No credentials found, Click &quot;Add Credentials&quot; to get started
         </Typography>
       )}
-      {isAdding && <AddEndpointForm availableEndpoints={availableEndpoints} closeForm={() => setIsAdding(false)} />}
+      {isAdding && (
+        <AddEndpointForm
+          availableEndpoints={availableEndpoints}
+          closeForm={() => {
+            refetchData()
+            setIsAdding(false)
+          }}
+        />
+      )}
       {credentials.length > 0 &&
         credentials.map((e) => {
           if (e?.username && e?.password) {
@@ -198,8 +275,19 @@ const SettingsPage = () => {
                   <Typography>{`Name: ${e?.name || 'No name'}`}</Typography>
                   <Typography>{`URL: ${e?.address || 'No Url'}`}</Typography>
                   <Box>
-                    <CredentialsSnippet shouldDisplay={showCredentialSet.has(e.id)} username={e.username} password={e.password} />
+                    <CredentialsSnippet
+                      isEditing={showEditSet.has(e.id)}
+                      onUpdate={(newUsername, newPassword) => updateCredential(e.id, newUsername, newPassword)}
+                      cancelEdit={() => {
+                        showEditSet.delete(e.id)
+                        setShowEditSet(new Set(showEditSet))
+                      }}
+                      shouldDisplay={showCredentialSet.has(e.id)}
+                      username={e.username}
+                      password={e.password}
+                    />
                     <Button
+                      sx={{ visibility: showEditSet.has(e.id) ? 'hidden' : 'visible' }}
                       onClick={() => {
                         if (showCredentialSet.has(e.id)) {
                           showCredentialSet.delete(e.id)
@@ -213,13 +301,23 @@ const SettingsPage = () => {
                     </Button>
                   </Box>
                 </Stack>
-                {/* <IconButton
-                  buttoncontext="delete"
-                  deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
-                  onClick={() => {
-                    deleteCredential(e.id)
-                  }}
-                /> */}
+                <Box sx={{ display: 'flex' }}>
+                  <IconButton
+                    buttoncontext="edit"
+                    onClick={() => {
+                      showEditSet.add(e.id)
+                      setShowEditSet(new Set(showEditSet))
+                    }}
+                  />
+                  <IconButton
+                    buttoncontext="delete"
+                    deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
+                    onClick={async () => {
+                      await deleteCredential(e.id)
+                      refetchData()
+                    }}
+                  />
+                </Box>
               </Box>
             )
           }

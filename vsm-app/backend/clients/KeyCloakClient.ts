@@ -5,6 +5,7 @@ interface KeyCloakClient {
     getAllUserCredentials(userId: string): Promise<TerminologyServerCredentials[]>
     getUserCredentials(userId: string, serverId: string): Promise<TerminologyServerCredentials>
     storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string): Promise<void>
+    deleteUserCredential(userId: string, serverId: string): Promise<void>
 }
 
 class KeyCloakClientImpl implements KeyCloakClient {
@@ -38,6 +39,10 @@ class KeyCloakClientImpl implements KeyCloakClient {
           }
           
         return creds
+    }
+
+    async deleteUserCredential(userId: string, serverId: string): Promise<void> {
+        return this.tokenHandler.deleteBasicAuthCreds(userId, serverId)
     }
 
     async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string): Promise<void> {
