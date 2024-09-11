@@ -466,14 +466,8 @@ public class CaseReportingOperationProvider {
 					.forEach(ra -> {
 						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
 					});
-			var retval = (Bundle) adapter.accept(visitor, repository, params);
 
-			for(Bundle.BundleEntryComponent rv : retval.getEntry()) {
-				log.info(rv.getId() + " - " + rv.getFullUrl());
-				System.out.println(rv.getId() + " - " + rv.getFullUrl());
-			}
-
-			return repository.transaction(retval);
+			return (Bundle) adapter.accept(visitor, repository, params);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
