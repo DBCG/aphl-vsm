@@ -40,6 +40,8 @@ import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.visitor.*;
 import org.opencds.cqf.ruler.IBaseSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
@@ -52,6 +54,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CaseReportingOperationProvider {
+	private static final Logger log = LoggerFactory.getLogger(CaseReportingOperationProvider.class);
 	@Autowired
 	private IRepositoryFactory repositoryFactory;
 
@@ -438,11 +441,11 @@ public class CaseReportingOperationProvider {
 	}
 
 	/**
-	 * Sets the status of an existing artifact to Active if it has status Draft.
+	 * Withdraws an existing artifact if it has status Draft.
 	 *
 	 * @param requestDetails     the {@link RequestDetails RequestDetails}
 	 * @param theId              the {@link IdType IdType}, always an argument for instance level operations
-	 * @return A transaction bundle result of the updated resources
+	 * @return A transaction bundle result of the withdrawn resources
 	 */
 	@Operation(name = "$withdraw", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$withdraw", value = "Withdraw an existing draft artifact")
@@ -464,7 +467,13 @@ public class CaseReportingOperationProvider {
 						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
 					});
 			var retval = (Bundle) adapter.accept(visitor, repository, params);
-			return retval;
+
+			for(Bundle.BundleEntryComponent rv : retval.getEntry()) {
+				log.info(rv.getId() + " - " + rv.getFullUrl());
+				System.out.println(rv.getId() + " - " + rv.getFullUrl());
+			}
+
+			return repository.transaction(retval);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
