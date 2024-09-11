@@ -138,7 +138,7 @@ export const fetchLeafValueSets = async ({
       if (version) {
         searchParameters.version = version
       } if (provisionalOnly) {
-        searchParameters._tag = 'vsm-provisional' 
+        searchParameters._tag = 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
       }
       return fhirCdrClient.search({
         resourceType: 'ValueSet',
