@@ -12,9 +12,8 @@ import { AuthOptions } from '../auth/[...nextauth]'
 export type SaveCredentialsApiResponse = TerminologyServerCredentials | { error: string }
 export type GetCredentialsApiResponse = TerminologyServerCredentials[] | { error: string }
 
-const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
+const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>, session: VSMSession) => {
   try {
-    const session = <VSMSession>await getServerSession(req, res, AuthOptions)
     const credReq = handleSaveCredentialsRequest(req)
     const creds = await tsCredentialService.saveCredentials(
       session.user.id,
@@ -29,11 +28,11 @@ const saveCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCre
   }
 }
 
-const updateCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>) => {
+const updateCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveCredentialsApiResponse | {}>, session: VSMSession) => {
   try {
     const credReq = handleSaveCredentialsRequest(req)
     const creds = await tsCredentialService.updateCredentials(
-      credReq.userId,
+      session.user.id,
       credReq.terminologyServerId,
       credReq.username,
       credReq.password
@@ -48,7 +47,6 @@ const updateCredentials = async (req: NextApiRequest, res: NextApiResponse<SaveC
 function handleSaveCredentialsRequest(req: NextApiRequest) {
   try {
     return {
-      userId: req.body.userId as string,
       terminologyServerId: req.body.terminologyServerId,
       username: req.body.username,
       password: req.body.password
@@ -56,12 +54,7 @@ function handleSaveCredentialsRequest(req: NextApiRequest) {
   } catch (e) {
     logSimpleError(req)
     logSimpleError(e)
-    return {
-      userId: 'errorUserId',
-      terminologyServerId: 'errorTsServerId',
-      username: 'errorUSername',
-      password: 'errorPass'
-    }
+    throw new Error('Invalid request')
   }
 }
 
@@ -88,7 +81,6 @@ const deleteCredential = async (req: NextApiRequest, res: NextApiResponse<{}>) =
     logSimpleError(e)
     return res.status(400).send('Deleting credentials failed')
   }
-  
 }
 
 export default handler({

@@ -7,7 +7,7 @@ import { Row } from '@/styles'
 import { toast } from 'react-toastify'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
-import { update } from 'lodash'
+import { set } from 'lodash'
 
 type CredentialsSnippetProps = {
   shouldDisplay: boolean
@@ -25,14 +25,18 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
   if (isEditing) {
     return (
       <Box sx={{ mt: 2 }}>
-        <TextField onChange={(e) => setNewUsername(e.target.value)} value={username} label="Username" />
-        <TextField onChange={(e) => setNewPassword(e.target.value)} sx={{ ml: 1 }} value={password} label="Password" />
+        <TextField onChange={(e) => setNewUsername(e.target.value)} value={newUsername} label="Username" />
+        <TextField onChange={(e) => setNewPassword(e.target.value)} sx={{ ml: 1 }} value={newPassword} label="Password" />
         <Box sx={{ mt: 1 }}>
           <Button onClick={cancelEdit}>Cancel</Button>
           <Button
-            onClick={() => {
-              onUpdate(newUsername, newPassword)
-              cancelEdit()
+            onClick={async () => {
+              try {
+                await onUpdate(newUsername, newPassword)
+                cancelEdit()
+              } catch(e) {
+                // Catch here to prevent the cancelEdit from being called
+              }
             }}
             sx={{ ml: 1 }}
           >
@@ -199,15 +203,17 @@ const SettingsPage = () => {
 
       if (result.ok) {
         toast.success('Credential updated successfully')
+        return
       } else {
         const json = await result.json()
         console.error(json)
-        toast.error(json.message)
+        toast.error('Error updating credential')
       }
     } catch (e) {
       console.error(e)
       toast.error('Error updating credential')
     }
+    throw new Error('Error updating credential')
   }
 
   const deleteCredential = async (id: string) => {

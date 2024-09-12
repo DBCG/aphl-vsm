@@ -114,7 +114,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
         val = {
           label: 'VSM',
           value: {
-            title: 'VSM',
+            id: 'VSM',
             url: terminologyExt?.valueUri
           }
         }
