@@ -351,7 +351,6 @@ public class KnowledgeArtifactProcessor {
 		try {
 			var factory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 			var parametersAdapter = factory.createParameters(new Parameters());
-			// var urlAndVersionParams = new Parameters();
 			parametersAdapter.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
 			parametersAdapter.addParameter("valueSetVersion", new StringType(Canonicals.getVersion(canonical)));
 			return (ValueSet)ts.expand((ValueSetAdapter)factory.createKnowledgeArtifactAdapter(new ValueSet()), endpoint, parametersAdapter );

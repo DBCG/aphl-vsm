@@ -300,7 +300,7 @@ public class CaseReportingOperationProvider {
 			.map(e -> (MetadataResource) e.getResource())
 			.filter(r -> {
 				var id1 = r.getResourceType().toString() + "/" + r.getIdPart();
-				var id2 = theId.getValue();
+				var id2 = r.getResourceType().toString() + "/" + theId.getIdPart();
 				return id1.equals(id2);
 			})
 			.findFirst()
@@ -428,6 +428,7 @@ public class CaseReportingOperationProvider {
 				}
 			}
 		};
+		// TODO: update this to find the manifest using the profile, not the resourceType
 		// 3) Create a diff with that cache and the 2 manifests to compare
 		var repository = repositoryFactory.create(requestDetails);
 		var dao = (IFhirResourceDaoValueSet<ValueSet>) daoRegistry.getResourceDao(ValueSet.class);
