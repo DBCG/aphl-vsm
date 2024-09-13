@@ -670,7 +670,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     } else if (response && !response?.ok) {
       const valueSetResponse = await response.json()
       setValueSets([])
-      setFetchError(valueSetResponse)
+      setFetchError(valueSetResponse.error)
     } else {
       setValueSets([])
       setFetchError({
@@ -820,7 +820,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     if (fetchError?.message && fetchError?.errorType !== 'failed-oids') {
       toast.error(fetchError.message)
     }
-  }, [fetchError?.message, fetchError?.errorType])
+  }, [fetchError])
 
   // search page requires the target grouper to be selected, 'add-grouper' context does not
   const buttonDisabled = tableContext === 'search-page' ? !selectedValueSets.length || !selectedGroupers.length : !selectedValueSets.length

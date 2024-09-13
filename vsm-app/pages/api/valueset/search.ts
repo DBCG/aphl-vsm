@@ -5,7 +5,8 @@ import { SearchParams } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
-
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { fhirClient } from '@/backend/clients/FhirClient'
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
   message: string
@@ -34,7 +35,7 @@ const offsetRegexOntoserver = /&_getpagesoffset=\d+/
 const getOffsetFromUrl = (str?: string) =>
   str?.match(offsetRegexStandard)?.[0]?.split('_offset=')?.[1] || str?.match(offsetRegexOntoserver)?.[0]?.split('_getpagesoffset=')?.[1]
 
-const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
+const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   // @ts-ignore-next-line
   const {
     search,
@@ -62,7 +63,27 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
     if (terminologyServer === 'vsac') {
       terminologyClient.setClient('vsac')
     } else {
-      
+      const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
+      const endpointResource = await fhirClient.getTerminologyServer(terminologyServer)
+      const baseUrl = new URL(endpointResource?.address)
+      if (endpointResource?.address == null) {
+        throw new Error('Terminology server address is not set')
+      } else if (!baseUrl.toString().endsWith('/fhir')) {
+        baseUrl.pathname = '/fhir'
+      }
+      console.log(authCredentials)
+      try {
+        terminologyClient.setCustomClient({
+          clientName: endpointResource.name as string,
+          baseUrl: baseUrl.toString(),
+          basicAuthHeader: `Basic ${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
+        })
+      } catch (e) {
+        // IMPORTANT: If something goes wrong with setting the auth header we should protect the user's data
+        // from being logged, hence this catch block        
+        logger.error(`Something went wrong with setting the custom client for ${terminologyServer} and user ${session.user.id}`) 
+        return res.status(500).json({ 'server-error': 'ValueSet search failed.' })
+      }
     }
     const activeTerminologyClient = terminologyClient.getClient()
     let searchParams: SearchParams
@@ -228,8 +249,11 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse) => {
         break
     }
 
+    if (responseInfo.error) {
+      return res.status(400).json(responseInfo)
+    }
+
     res.status(200).send(responseInfo)
-    return
   } catch (e) {
     logger.error('error:  ', e)
     res.status(400).json({ 'server-error': 'ValueSet search failed.' })

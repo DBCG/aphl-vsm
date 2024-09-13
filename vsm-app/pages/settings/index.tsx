@@ -7,7 +7,6 @@ import { Row } from '@/styles'
 import { toast } from 'react-toastify'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
-import { set } from 'lodash'
 
 type CredentialsSnippetProps = {
   shouldDisplay: boolean
@@ -26,7 +25,7 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
     return (
       <Box sx={{ mt: 2 }}>
         <TextField onChange={(e) => setNewUsername(e.target.value)} value={newUsername} label="Username" />
-        <TextField onChange={(e) => setNewPassword(e.target.value)} sx={{ ml: 1 }} value={newPassword} label="Password" />
+        <TextField type="password" onChange={(e) => setNewPassword(e.target.value)} sx={{ ml: 1 }} value={newPassword} label="Password" />
         <Box sx={{ mt: 1 }}>
           <Button onClick={cancelEdit}>Cancel</Button>
           <Button
@@ -316,6 +315,7 @@ const SettingsPage = () => {
                     }}
                   />
                   <IconButton
+                    style={{ marginLeft: '1rem' }}
                     buttoncontext="delete"
                     deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
                     onClick={async () => {
