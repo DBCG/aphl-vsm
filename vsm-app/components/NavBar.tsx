@@ -7,8 +7,8 @@ import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
-import { Divider, IconButton, Button, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
-import { Logout, MoreVert, AdminPanelSettings, Settings, House } from '@mui/icons-material'
+import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
+import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
 
 
 
@@ -76,6 +76,8 @@ const NavBar = () => {
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
+  const enableTerminologySource = process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'true'
+
   return (
     <BarWrapper>
       <Bar>
@@ -106,7 +108,7 @@ const NavBar = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        {session?.user?.roles?.[0] === 'admin' && (
+        {enableTerminologySource && session?.user?.roles?.[0] === 'admin' && (
           <Box>
             <MenuItem
               id="admin"
@@ -122,13 +124,17 @@ const NavBar = () => {
             <Divider />
           </Box>
         )}
-        <MenuItem onClick={() => router.push('/settings')}>
-          <ListItemIcon>
-            <Settings />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
-        <Divider />
+        {enableTerminologySource && (
+          <Box>
+            <MenuItem onClick={() => router.push('/settings')}>
+              <ListItemIcon>
+                <Settings />
+              </ListItemIcon>
+              Settings
+            </MenuItem>
+            <Divider />
+          </Box>
+        )}
         <MenuItem
           id="logout"
           onClick={() => {

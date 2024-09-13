@@ -7,6 +7,7 @@ import { Row } from '@/styles'
 import { toast } from 'react-toastify'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
+import { useRouter } from 'next/router'
 
 type CredentialsSnippetProps = {
   shouldDisplay: boolean
@@ -33,7 +34,7 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
               try {
                 await onUpdate(newUsername, newPassword)
                 cancelEdit()
-              } catch(e) {
+              } catch (e) {
                 // Catch here to prevent the cancelEdit from being called
               }
             }}
@@ -148,6 +149,7 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
 }
 
 const SettingsPage = () => {
+  const router = useRouter()
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
 
@@ -159,6 +161,10 @@ const SettingsPage = () => {
   } = useSWR('/api/settings/terminology-source', fetcher)
   const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
+  if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT !== 'true') {
+    router.push('/')
+    return null
+  }
   if (credsLoading || endpointsLoading) {
     return <LoadingIndicator />
   }
