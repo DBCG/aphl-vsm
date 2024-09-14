@@ -1,6 +1,6 @@
 import { fetcher } from '@/utils'
-import { Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material'
-import { useState } from 'react'
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Stack, TextField, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Row } from '@/styles'
@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import { useRouter } from 'next/router'
+import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 
 type CredentialsSnippetProps = {
   shouldDisplay: boolean
@@ -17,6 +18,8 @@ type CredentialsSnippetProps = {
   cancelEdit: () => void
   onUpdate: (username: string, password: string) => void
 }
+
+type EndpointDetails = { id: string; name: string; address: string }
 
 const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, username, password }: CredentialsSnippetProps) => {
   const [newUsername, setNewUsername] = useState(username)
@@ -101,7 +104,7 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
         </InputLabel>
         <Select
           labelId="available-endpoints-label"
-          onChange={(e) => {
+          onChange={(e: SelectChangeEvent) => {
             setSelectedEndpoint(e.target.value)
           }}
         >
@@ -114,7 +117,7 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
         {selectedEndpoint.length > 0 && (
           <Box>
             <Typography sx={{ mr: '0.5rem', fontWeight: 'bold' }}>Selected Endpoint Url:</Typography>
-            <Typography>{availableEndpoints.find((i) => i.id === selectedEndpoint)?.address}</Typography>
+            <Typography>{availableEndpoints.find((i: fhir4.Endpoint) => i?.id === selectedEndpoint)?.address}</Typography>
           </Box>
         )}
         <Box sx={{ mt: '2rem', mb: '2rem' }}>
@@ -154,17 +157,25 @@ const SettingsPage = () => {
   const [showEditSet, setShowEditSet] = useState(new Set())
 
   const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT !== 'true') {
+      router.push('/')
+    }
+  }, [router])
+  
   const {
     data: currentCredentials = null,
     isLoading: credsLoading,
     mutate: reloadCurrentCredentials
-  } = useSWR('/api/settings/terminology-source', fetcher)
+  } = useSWR('/api/settings/terminology-source', fetcher) as {
+    data: TerminologyServerCredentials[]
+    isLoading: boolean
+    mutate: () => void
+  }
   const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
-  if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT !== 'true') {
-    router.push('/')
-    return null
-  }
+
   if (credsLoading || endpointsLoading) {
     return <LoadingIndicator />
   }
@@ -174,8 +185,8 @@ const SettingsPage = () => {
     reloadCurrentEndpoints()
   }
 
-  const availableEndpoints = [] as any
-  const credentials = [] as any
+  const availableEndpoints = [] as EndpointDetails[]
+  const credentials = [] as ({ username: string; password: string; } & EndpointDetails)[]
 
   currentEndpoints?.endpoints?.forEach((endpoint: fhir4.Endpoint) => {
     const foundCred = currentCredentials?.find((cred) => cred.terminologyServerId === endpoint.id)
@@ -183,7 +194,7 @@ const SettingsPage = () => {
       id: endpoint.id,
       name: endpoint.name,
       address: endpoint.address
-    }
+    } as EndpointDetails
     if (foundCred) {
       credentials.push({
         ...baseEndpoint,
@@ -288,7 +299,7 @@ const SettingsPage = () => {
                   <Box>
                     <CredentialsSnippet
                       isEditing={showEditSet.has(e.id)}
-                      onUpdate={(newUsername, newPassword) => updateCredential(e.id, newUsername, newPassword)}
+                      onUpdate={(newUsername, newPassword) => updateCredential(e.id!, newUsername, newPassword)}
                       cancelEdit={() => {
                         showEditSet.delete(e.id)
                         setShowEditSet(new Set(showEditSet))
@@ -325,7 +336,7 @@ const SettingsPage = () => {
                     buttoncontext="delete"
                     deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
                     onClick={async () => {
-                      await deleteCredential(e.id)
+                      await deleteCredential(e.id!)
                       refetchData()
                     }}
                   />

@@ -7,6 +7,7 @@ import handler from '@/helpers/server/handler'
 import logger from '@/helpers/server/logger'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { fhirClient } from '@/backend/clients/FhirClient'
+import { VSMSession } from '@/helpers/rolesHelper'
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
   message: string
