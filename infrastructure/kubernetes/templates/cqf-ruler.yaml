@@ -47,7 +47,7 @@ spec:
             - name: spring.datasource.driverClassName
               value: org.postgresql.Driver
             - name: spring.datasource.username
-              value: dbadmin
+              value: smile_cr
             - name: hapi.fhir.security.enabled
               value: "true"
             - name: hapi.fhir.reuse_cached_search_results_millis
