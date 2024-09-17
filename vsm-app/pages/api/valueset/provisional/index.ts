@@ -259,9 +259,8 @@ export const getProvisionals = async ({ resourceType, params = {} }: GetProvPara
   try {
 
     const searchParams = Object.assign({
-      _tag: 'vsm-provisional'
+      _tag: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
     }, params) as SearchParams
-
 
     const provisionalBundle = await fhirCdrClient.search({
       resourceType,

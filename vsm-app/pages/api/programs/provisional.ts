@@ -37,7 +37,7 @@ const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsC
   const provisionalVS = await fhirCdrClient.search({
     resourceType: 'ValueSet',
     searchParams: {
-      _tag: 'vsm-provisional'
+      _tag: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
     }
   })
 
