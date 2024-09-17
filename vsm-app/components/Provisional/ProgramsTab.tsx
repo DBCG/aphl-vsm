@@ -20,7 +20,7 @@ import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
 import { ProgramApiResponse } from '@/pages/api/programs'
 
-const checkboxStyles = {
+export const checkboxStyles = {
   root: {
     color: 'inherit'
   }
@@ -88,7 +88,6 @@ const ProgramsTab: NextPage = () => {
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
   const handleShowDiffViewer = (show: boolean) => setShowDiffViewer(show)
-  const handleDownloadSpreadsheet = (shouldDownload: boolean) => setDownloadSpreadsheet(shouldDownload)
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -135,20 +134,6 @@ const ProgramsTab: NextPage = () => {
       setPagination({ ...pagination, searchTotal: total })
     }
   }, [total, pagination.searchTotal, setPagination, pagination])
-
-  const contextActions = useMemo(() => {
-    if (!enableCompare || !selectedRows || !selectedRows?.length) {
-      return null
-    }
-
-    return (
-      <div className='test-class' style={{ border: '10px solid red' }}>
-        <p style={{ fontSize: '800%' }}>Testing123</p>
-      </div>
-
-
-    )
-  }, [programs, selectedRows, enableCompare])
 
   useEffect(() => {
     const programList = programs?.map((p) => p.version).filter((p) => !!p) as string[]
@@ -407,7 +392,7 @@ const ProgramsTab: NextPage = () => {
         />
       )}
       {programs?.length > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1em' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1em', backgroundColor: enableCompare ? 'white' : 'transparent', padding: '.8rem .6rem', width: 'fit-content', alignSelf: 'flex-end' }}>
           {
             enableCompare ? (
               <div style={{ backgroundColor: 'white', padding: '.8rem .6rem'}}>
@@ -417,6 +402,7 @@ const ProgramsTab: NextPage = () => {
                     control={
                       <Checkbox
                         checked={showDiffViewer}
+                        // @ts-ignore
                         style={checkboxStyles}
                       />
                     }
@@ -428,6 +414,7 @@ const ProgramsTab: NextPage = () => {
                     control={
                       <Checkbox
                         checked={downloadSpreadsheet}
+                        // @ts-ignore
                         style={checkboxStyles}
                       />
                     }
@@ -496,7 +483,6 @@ const ProgramsTab: NextPage = () => {
         onSelectedRowsChange={handleRowSelected}
         selectableRows={enableCompare}
         selectableRowsNoSelectAll
-        contextActions={contextActions}
         selectableRowDisabled={(row) => {
           return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
         }}
