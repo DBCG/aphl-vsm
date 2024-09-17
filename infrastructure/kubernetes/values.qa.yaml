@@ -2,7 +2,7 @@ tag: ""
 namespace: "vsm-qa"
 cqf_ruler:
   app_url: "a88ebe212beb245098a829c6616a4850-1704460045.us-east-1.elb.amazonaws.com"
-  db_url: "jdbc:postgresql://vsm-cqf-ruler-db-qa.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
+  db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
 vsm_app:
   app_url: "ae378410d0b4c4ee8aef5f79d054044f-252449837.us-east-1.elb.amazonaws.com"
   redis_host_url: "redis-cache.5hhpo0.ng.0001.use1.cache.amazonaws.com"
