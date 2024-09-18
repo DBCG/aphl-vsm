@@ -326,7 +326,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
       groupingValueSetSheet.getColumn('A').width = 30
       groupingValueSetSheet.getColumn('B').width = 60
       const vsInfo = [
-        ['Value Set Name', grouperVs.title],
+        ['Value Set Name', page.title],
         ['OID', grouperVs?.identifier?.[0]?.value?.replace('urn:oid:', '')],
         ['Type', 'Grouping'],
         ['Definition Version', grouperVs.status],
@@ -335,7 +335,8 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         ['Publisher', grouperVs.publisher],
         ['Purpose', grouperVs.purpose],
         ['Description', grouperVs.description],
-        ['Version', grouperVs.version]
+        ['Version', grouperVs.version],
+        ['Priority', page.oldData?.priority?.value || page.newData?.priority?.value]
       ]
       groupingValueSetSheet.addRows(vsInfo)
       // Bold the headers

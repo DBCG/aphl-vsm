@@ -35,12 +35,17 @@ public class ChangeLog {
     Map<String, Map<String,ValueSetChild.Leaf>> leafMetadataMap = new HashMap<String, Map<String,ValueSetChild.Leaf>>();
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theSourceResource, cache);
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theTargetResource, cache);
-    var oldData = theSourceResource == null ? null : new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap);
-    var newData = theTargetResource == null ? null : new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap);
+    var oldData = theSourceResource == null ? null : new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap, getPriority(theSourceResource).orElse(null));
+    var newData = theTargetResource == null ? null : new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap, getPriority(theTargetResource).orElse(null));
     var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
+  }
+  private Optional<String> getPriority(ValueSet valueSet) {
+    return valueSet.getUseContext().stream()
+    .filter(uc -> uc.getCode().getSystem().equals(TransformProperties.usPHUsageContextType) && uc.getCode().getCode().equals("priority")).findAny()
+    .map(uc -> uc.getValueCodeableConcept().getCodingFirstRep().getCode());
   }
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
     if (valueSet != null) {
@@ -357,6 +362,8 @@ public class ChangeLog {
     public List<Code> codes = new ArrayList<>();
     public List<Leaf> leafValuesets = new ArrayList<>();
     public List<Operation> operations = new ArrayList<>();
+    public ValueAndOperation priority = new ValueAndOperation();
+
     public static class Code {
       public String id;
       public String system;
@@ -472,7 +479,7 @@ public class ChangeLog {
         return copy;
       }
     }
-    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap) {
+    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap, String priority) {
       super(title, id, version, name, url, "ValueSet");
       if (contains != null) {
         contains.forEach(contained -> {
@@ -503,6 +510,9 @@ public class ChangeLog {
               leafValuesets.add(leaf.copy());
             }
           });
+      }
+      if (priority != null) {
+        this.priority.value = priority;
       }
     }
     @Override
@@ -579,6 +589,21 @@ public class ChangeLog {
               }
               updateCodeOperation(c.getCode(), updatedOperation);
             });
+          }
+        } else if (path.contains("useContext")) {
+          String priorityToCheck = null;
+          if (newValue instanceof UsageContext 
+          && ((UsageContext) newValue).getCode().getSystem().equals(TransformProperties.usPHUsageContextType)
+          && ((UsageContext) newValue).getCode().getCode().equals("priority")
+          ) {
+            priorityToCheck = ((UsageContext) newValue).getValueCodeableConcept().getCodingFirstRep().getCode();
+          } else if (originalValue instanceof UsageContext
+          && ((UsageContext) originalValue).getCode().getSystem().equals(TransformProperties.usPHUsageContextType)
+          && ((UsageContext) originalValue).getCode().getCode().equals("priority")) {
+            priorityToCheck = ((UsageContext) originalValue).getValueCodeableConcept().getCodingFirstRep().getCode();
+          }
+          if (priorityToCheck != null) {
+            this.priority.operation = operation;
           }
         } else {
           this.operations.add(operation);
