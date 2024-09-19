@@ -1,20 +1,22 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { Checkbox, CircularProgress, Drawer, FormControlLabel, FormGroup, IconButton, Tooltip } from '@mui/material'
-import { Button } from '@/components/buttons/Button'
+import { Button, CircularProgress, Drawer, IconButton, Tooltip } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton'
 import { useRouter } from 'next/router'
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select from 'react-select'
 import styled from 'styled-components'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import WarningIcon from '@mui/icons-material/Warning'
+import DownloadIcon from '@mui/icons-material/Download'
+import DifferenceIcon from '@mui/icons-material/Difference'
 import { createTableData } from '@/helpers/createTables'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import CloseIcon from '@mui/icons-material/Close'
 import { toast } from 'react-toastify'
 import { ChangelogData } from '@/components/DiffViewer/DiffViewerTypes'
-import { checkboxStyles } from '@/components/Provisional/ProgramsTab'
+import { sleep } from '@/utils'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -303,7 +305,7 @@ const ProgramCompare = () => {
     }
   }
 
-  const handleGenerateDifference = async () => {
+  const handleGenerateDifference = async (downloadOnly?: boolean, diffOnly?: boolean) => {
 
     if (!baseProgram || !targetProgram) {
       toast.error('Please select a base and target program')
@@ -315,6 +317,9 @@ const ProgramCompare = () => {
     let rawDifferenceData
 
     if (existingData) {
+      if (diffOnly || downloadOnly) {
+        await sleep(1000)
+      }
       // just use existing data if it's there
       rawDifferenceData = existingData
     } else {
@@ -325,15 +330,22 @@ const ProgramCompare = () => {
       }
     }
 
-    if (downloadSelected) {
+    const downloadItem = () => {
+      if (downloadOnly) return true
+      if (diffOnly) return false
+      return downloadSelected
+    }
+
+
+    if (downloadItem()) {
       await handleDownload(baseProgram.value, targetProgram.value, downloadSelected, rawDifferenceData)
     }
 
-    if (viewDiff) {
-      const formattedChangelog = createTableData(rawDifferenceData)
-      // @ts-ignore
-      setDiffViewerFormattedData(formattedChangelog)
-    }
+    const formattedChangelog = createTableData(rawDifferenceData)
+    // @ts-ignore
+    setDiffViewerFormattedData(formattedChangelog)
+    setDownloadLoading(false)
+    setIsLoadingDiff(false)
   }
 
   const handleDownload = async (base: string, target: string, download: boolean, rawData: any) => {
@@ -497,83 +509,72 @@ const ProgramCompare = () => {
             </NoteStatus>
           </div>
           ) : null }
-          <NoteParagraph>Generating differences may take a few minutes to process the data.</NoteParagraph>
-          <NoteParagraph>Please wait until the action is complete before navigating away from this page.</NoteParagraph>
-          <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
-          <StyledP>Select base program</StyledP>
-          <Select
-            isDisabled={optionsDisabled}
-            // @ts-ignore
-            options={formattedProgramOptions}
-            onChange={(i) => {
-              setBaseTouched(true)
-              setBaseProgram(i)
-            }}
-            value={baseProgram}
-          />
-        </ProgramCol>
-        <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
-          <StyledP>Select target program</StyledP>
-          <Select
-            isDisabled={optionsDisabled}
-            onChange={(i) => {
-              setTargetTouched(true)
-              setTargetProgram(i)
-            }}
-            // @ts-ignore
-            options={formattedProgramOptions}
-            value={targetProgram}
-          />
-        </ProgramCol>
+          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', width: 'fit-content'}}>
+              <NoteParagraph>Generating differences may take a few minutes to process the data.</NoteParagraph>
+              <NoteParagraph>Please wait until the action is complete before navigating away from this page.</NoteParagraph>
+              <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
+              <StyledP>Select base program</StyledP>
+              <Select
+                isDisabled={optionsDisabled}
+                // @ts-ignore
+                options={formattedProgramOptions}
+                onChange={(i) => {
+                  setBaseTouched(true)
+                  setBaseProgram(i)
+                }}
+                value={baseProgram}
+              />
+            </ProgramCol>
+            <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
+              <StyledP>Select target program</StyledP>
+              <Select
+                isDisabled={optionsDisabled}
+                onChange={(i) => {
+                  setTargetTouched(true)
+                  setTargetProgram(i)
+                }}
+                // @ts-ignore
+                options={formattedProgramOptions}
+                value={targetProgram}
+              />
+            </ProgramCol>
+            </div>
+            <div style={{ display: 'flex' , flexDirection: 'column', width: 'fit-content' }}>
+              <ButtonContainer style={{ alignItems: 'flex-end' }}>
+                <LoadingButton
+                  variant='text'
+                  onClick={async () => {
+                    setDownloadLoading(true)
+                    await handleGenerateDifference(true, false)
+                  }}
+                  loading={downloadLoading}
+                  disabled={submitDisabled}
+                  loadingPosition='start'
+                  startIcon={<DownloadIcon />}
+                >
+                  Download Spreadsheet
+                </LoadingButton>
+              </ButtonContainer>
+            </div>
+          </div>
         <ProgramCol style={{ maxWidth: 'fit-content', width: '100%', alignSelf: 'flex-end' }} >
           <div style={{ backgroundColor: 'white', padding: '.8rem .6rem' }}>
-            <i>Options:</i>
-            <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setViewDiff(Boolean(e?.target?.checked))}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={viewDiff}
-                    // @ts-ignore
-                    style={checkboxStyles}
-                    disabled={disableCheckboxes}
-                    onClick={(e) => {
-                      // @ts-ignore
-                      if (!e?.target?.checked && !downloadSelected) {
-                      toast.error('Please select at least one option to view differences')
-                    }}}
-                  />
-                }
-                label="View Differences in VSM"
-              />
-            </FormGroup>
-            <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSelected(Boolean(e?.target?.checked))}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={downloadSelected}
-                    // @ts-ignore
-                    style={checkboxStyles}
-                    disabled={disableCheckboxes}
-                    onClick={(e) => {
-                      // @ts-ignore
-                      if (!e?.target?.checked && !viewDiff) {
-                      toast.error('Please select at least one option to view differences')
-                    }}}
-                  />
-                }
-                label="Download Changelog Spreadsheet"
-              />
-            </FormGroup>
           <ButtonContainer style={{  alignItems: 'flex-end', margin: '1rem 0' }}>
-            <Button
-              text='Generate Difference'
+            <LoadingButton
               onClick={async () => {
                 setDiffViewerFormattedData(null)
-                await handleGenerateDifference()
+                setIsLoadingDiff(true)
+                await handleGenerateDifference(false, true)
               }}
-              loading={isLoadingDiff || downloadLoading}
+              loading={isLoadingDiff}
+              loadingPosition='start'
               disabled={submitDisabled}
-            />
+              startIcon={<DifferenceIcon />}
+              variant='contained'
+            >
+              Generate Differences
+            </LoadingButton>
           </ButtonContainer>
           </div>
         </ProgramCol>

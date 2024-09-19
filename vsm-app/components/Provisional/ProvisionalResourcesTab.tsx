@@ -160,7 +160,9 @@ const ProvisionalResourcesTab = () => {
             <ProvisionalCodeSystemsTable isLoading={Boolean(isCsLoading)} provisionalCS={provisionalCS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
+                <Button variant='contained' style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>
+                  + Create New
+                </Button>
               </div>
             )}
           </div>
@@ -171,7 +173,9 @@ const ProvisionalResourcesTab = () => {
             <ProvisionalValueSetsTable isLoading={Boolean(isVsLoading)} csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>
+                <Button variant='contained' style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>
+                  + Create New
+                </Button>
               </div>
             )}
           </div>
