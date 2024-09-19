@@ -522,6 +522,7 @@ const ProgramCompare = () => {
                 onChange={(i) => {
                   setBaseTouched(true)
                   setBaseProgram(i)
+                  setDiffViewerFormattedData(null)
                 }}
                 value={baseProgram}
               />
@@ -533,6 +534,7 @@ const ProgramCompare = () => {
                 onChange={(i) => {
                   setTargetTouched(true)
                   setTargetProgram(i)
+                  setDiffViewerFormattedData(null)
                 }}
                 // @ts-ignore
                 options={formattedProgramOptions}
