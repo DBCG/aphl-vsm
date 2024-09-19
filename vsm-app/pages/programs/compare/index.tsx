@@ -511,7 +511,7 @@ const ProgramCompare = () => {
           ) : null }
           <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column', width: 'fit-content'}}>
-              <NoteParagraph>Generating differences may take a few minutes to process the data.</NoteParagraph>
+              <NoteParagraph>It may take a few minutes to process the data.</NoteParagraph>
               <NoteParagraph>Please wait until the action is complete before navigating away from this page.</NoteParagraph>
               <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
               <StyledP>Select base program</StyledP>
