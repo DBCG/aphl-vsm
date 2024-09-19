@@ -240,7 +240,7 @@ const ProgramsTab: NextPage = () => {
         maxWidth: '8rem'
       },
       {
-        name: 'Last Updated',
+        name: <p>Last Updated</p>,
         selector: (row: fhir4.Library) => {
           const formattedDate = formatDateForTable(row?.meta?.lastUpdated, 'm/d/yyyy')
           return formattedDate
@@ -265,7 +265,8 @@ const ProgramsTab: NextPage = () => {
         wrap: true
       },
       {
-        name: <p>Create New</p>,
+        name: <p style={{ textAlign: 'center' }}>Create New</p>,
+        center: true,
         omit: !can(session, 'clone'),
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
@@ -295,6 +296,7 @@ const ProgramsTab: NextPage = () => {
       },
       {
         name: 'Release',
+        center: true,
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         wrap: true,
