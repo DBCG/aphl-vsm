@@ -53,12 +53,14 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
       {
         name: 'Action',
+        center: true,
         selector: (row: fhir4.CodeSystem) => row.id || 'No ID',
         cell: (row: fhir4.CodeSystem) => {
           return (
           <Box>
             {/* maybe pass thru row id as prop to default the edit? */}
             <Button
+              variant='contained'
               onClick={() => router.push(`/provisional/codesystem?csSelected=${row.url}`)}
             >
               { canEdit ? 'Edit' : 'View' }
@@ -105,12 +107,14 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
       },
       {
         name: 'Action',
+        center: true,
         selector: (row: fhir4.ValueSet) => row.id,
         cell: (row: fhir4.ValueSet) => {
           return (
           <Box>
             {/* maybe pass thru row id as prop to default the edit? */}
             <Button
+              variant='contained'
               onClick={() => router.push(`/provisional/valueset?vsSelected=${row.id}`)}
             >
               { canEdit ? 'Edit' : 'View' }
