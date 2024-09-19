@@ -81,13 +81,11 @@ const ProgramsTab: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
-  const [showDiffViewer, setShowDiffViewer] = useState(true)
   const [downloadSpreadsheet, setDownloadSpreadsheet] = useState(true)
 
   // clear rows
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
-  const handleShowDiffViewer = (show: boolean) => setShowDiffViewer(show)
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -268,6 +266,7 @@ const ProgramsTab: NextPage = () => {
       },
       {
         name: <p>Create New</p>,
+        omit: !can(session, 'clone'),
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         wrap: true,
@@ -299,6 +298,7 @@ const ProgramsTab: NextPage = () => {
         selector: (row: fhir4.Library) => row.id || '',
         sortable: true,
         wrap: true,
+        omit: !can(session, 'release'),
         cell: (row: fhir4.Library) => {
           const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
           const blockedReason = !canRelease && generateBlockedReason(row, 'release')
@@ -397,18 +397,6 @@ const ProgramsTab: NextPage = () => {
             enableCompare ? (
               <div style={{ backgroundColor: 'white', padding: '.8rem .6rem'}}>
                 <i>Comparison options:</i>
-                <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleShowDiffViewer(Boolean(e?.target?.checked))}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={showDiffViewer}
-                        // @ts-ignore
-                        style={checkboxStyles}
-                      />
-                    }
-                    label="View Differences in VSM"
-                  />
-                </FormGroup>
                 <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSpreadsheet(Boolean(e?.target?.checked))}>
                   <FormControlLabel
                     control={
@@ -439,7 +427,7 @@ const ProgramsTab: NextPage = () => {
               disabled={enableCompare && selectedRows?.length !== 2}
               onClick={() => {
                 if (selectedRows && selectedRows?.length > 1) {
-                  router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=${showDiffViewer}&downloadSpreadsheet=${downloadSpreadsheet}`)
+                  router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=true&downloadSpreadsheet=${downloadSpreadsheet}`)
                 } else {
                   setEnableCompare(true)
                 }
@@ -449,12 +437,11 @@ const ProgramsTab: NextPage = () => {
             </Button>
             { enableCompare ? (
               <Button
-                style={{ width: 'fit-content', height: 'fit-content', backgroundColor: 'gray' }}
+                style={{ width: 'fit-content', height: 'fit-content', backgroundColor: 'gray', color: 'white' }}
                 onClick={() => {
                   setSelectedRows(null)
                   setToggledClearRows((prev) => !prev)
                   setDownloadSpreadsheet(true)
-                  setShowDiffViewer(true)
                   setEnableCompare(false)
                 }}
               >
