@@ -287,6 +287,8 @@ const ProgramCompare = () => {
     })
     
     if (!response.ok) {
+      setDownloadLoading(false)
+      setIsLoadingDiff(false)
       return { error: 'Failed to generate difference data' }
     } else {
       const json = await response.json()
