@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Checkbox, FormControlLabel, Grid } from '@mui/material'
-import { Button } from '@/components/buttons/Button'
+import { Checkbox, FormControlLabel, Grid, Button } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import DateInput from '@/components/DateInput'
@@ -199,7 +199,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
         <Grid item xs={12}>
           {editable && !enableEditing && !formTouched ? (
             <ButtonContainer>
-              <Button text={'Edit Metadata'} id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} />
+              <Button variant='contained' id={'edit-metadata'} type="button" onClick={() => setEnableEditing(true)} >Edit Metadata</Button>
             </ButtonContainer>
           ) : (
             <></>
@@ -208,7 +208,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             <ButtonContainer style={{ alignItems: 'flex-end' }}>
               <Button
                 style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
-                text={'Cancel'}
+                variant='contained'
                 type="button"
                 onClick={(e) => {
                   e.preventDefault()
@@ -217,16 +217,13 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   setEditedProgram(program)
                   setEnableEditing(false)
                 }}
-              />
-              <Button
+                >Cancel</Button>
+              <LoadingButton
+                variant='contained'
                 disabled={!formTouched || Boolean(errorFields.length)}
                 id={'edit-metadata-save'}
-                style={{
-                  ...buttonStyles,
-                  backgroundColor: 'var(--theme-300)'
-                }}
                 loading={isSaving}
-                text={'Save Changes'}
+                loadingPosition="start"
                 type="submit"
                 onClick={async (e) => {
                   setIsSaving(true)
@@ -236,7 +233,9 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                   setFormTouched(false)
                   setIsSaving(false)
                 }}
-              />
+              >
+                Save Changes
+              </LoadingButton>
             </ButtonContainer>
           ) : (
             <></>

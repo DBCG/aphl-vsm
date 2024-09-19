@@ -44,6 +44,7 @@ const Button = ({ text, style, loading, disabled, onClick = () => {}, ...props }
       {...props}
       style={style}
       disabled={disabled}
+      variant='contained'
       onClick={(e) => {
         if (!disabled) {
           onClick(e)

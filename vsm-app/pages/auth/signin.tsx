@@ -14,15 +14,20 @@ export default function SignIn({ providers }: InferGetServerSidePropsType<typeof
         alignItems: 'center',
         top: '50%',
         left: '50%',
-        transform: 'translate(-50%, -50%)'
+        transform: 'translate(-50%, -50%)',
+        padding: '4rem 6rem',
+        background: 'rgba(255, 255, 255, 0.35)',
+        borderRadius: '16px',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        backdropFilter: 'blur(5px)',
       }}
     >
-      <Typography sx={{ color: 'var(--theme-100)' }} variant="h2">
+      <Typography sx={{ color: 'var(--theme-500)' }} variant="h2">
         ValueSet Manager
       </Typography>
       {Object.values(providers).map((provider: any) => (
         <div key={provider?.name || 'provider-name'}>
-          <Button id="signin" sx={{ mt: 8, width: '150px', border: '1px solid white' }} onClick={() => signIn(provider.id)}>
+          <Button variant='contained' size='large' id="signin" sx={{ mt: 8, width: '150px' }} onClick={() => signIn(provider.id)}>
             Sign in
           </Button>
         </div>

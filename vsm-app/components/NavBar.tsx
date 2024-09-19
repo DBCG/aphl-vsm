@@ -2,11 +2,10 @@ import styled from 'styled-components'
 import { useRouter } from 'next/router'
 import { signOut, useSession } from 'next-auth/react'
 import { BreadCrumbs } from './navigation/Breadcrumbs'
-import { Button } from './buttons/Button'
 import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
-import { Tooltip } from '@mui/material'
+import { Tooltip, Button } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
 
@@ -72,21 +71,24 @@ const NavBar = () => {
             <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
           </Tooltip>
           <Button
-            text="Sign Out"
             id="logout"
             onClick={() => {
               signOut({ redirect: false })
               router.push('/api/auth/logout')
             }}
-          />
+          >
+            Sign Out
+          </Button>
           {session?.user?.roles?.[0] === 'admin' && (
             <Button
-              text="Admin Tools"
               id="admin"
               onClick={() => {
                 router.push('/admin-tools')
               }}
-            />
+            >
+              Admin Tools
+            </Button>
+
           )}
         </Box>
       </Bar>

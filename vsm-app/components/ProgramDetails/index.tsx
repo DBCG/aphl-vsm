@@ -13,7 +13,6 @@ import { StyledSpan } from '@/styles'
 import { ApprovalDetailList } from '../ApprovalDetailList'
 import { ErrorMessage } from '../ErrorMessage'
 import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
-import { ProgramCompareModal } from '../modals/ProgramCompareModal'
 import { StatusChip } from '../data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
@@ -25,7 +24,6 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails(currentProgram?.id!)
   const [exportError, setExportError] = useState<null | string>(null)
   const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
-  const [showProgramCompareModal, setShowCompareProgramModal] = useState(false)
 
   const handleCloseErrors = () => {
     setExportError(null)
@@ -74,14 +72,6 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
               setShowExportOptionsModal(true)
             }}
           />
-          <Button
-            text={'Compare'}
-            style={{ marginTop: '15px' }}
-            onClick={() => {
-              setShowCompareProgramModal(true)
-            }}
-          />
-          <ProgramCompareModal isOpen={showProgramCompareModal} programId={id} closeModal={() => setShowCompareProgramModal(false)} />
           <ExportPackageDetailsModal
             isOpen={showExportOptionsModal}
             program={currentProgram}

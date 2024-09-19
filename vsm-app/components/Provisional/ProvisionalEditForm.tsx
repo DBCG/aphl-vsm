@@ -690,6 +690,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             </QuestionnaireRowContainer>
             <ButtonRowContainer>
               <Button
+                variant='contained'
                 text='Add to List'
                 onClick={handleAddToList}
                 disabled={!enableAdd || isCsLoading || codeFormatErrorExists}
@@ -704,6 +705,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             />
             <ButtonRowContainer>
               <Button
+                variant='contained'
                 text='ADD TO SYSTEM'
                 disabled={!Boolean(codeItemsToAdd?.length) || isCsLoading}
                 onClick={(e) => handleUpdateCS()}

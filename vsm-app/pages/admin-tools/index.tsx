@@ -148,7 +148,9 @@ const TerminologyEndpoints: NextPage = () => {
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <h4>Endpoints</h4>
-        <Button onClick={() => router.push('/admin-tools/create-endpoint')}>Create Endpoint</Button>
+        <Button variant='contained' onClick={() => router.push('/admin-tools/create-endpoint')}>
+          Create Endpoint
+        </Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT

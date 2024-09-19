@@ -5,7 +5,6 @@ import logger from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
 import { getGrouperLibrary } from './details/valuesets'
 import {
-  changeLogDiffOperation,
   generateReadMeSheet,
   generatePlanDefSheet,
   generateRCTCSheet,
@@ -13,14 +12,14 @@ import {
 } from '@/helpers/exportExcelHelper'
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+
+  const changeJson = req.body
+
   logger.info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
-  if (req.query.id === req.query.targetId) {
-    return res.status(400).json({ error: 'Source and Target IDs cannot be the same' })
-  } else if (!req.query.id || !req.query.targetId) {
-    return res.status(400).json({ error: 'Source and Target IDs are required' })
+  if (!changeJson) {
+    return res.status(400).json({ error: 'Need changelog data to continue' })
   }
 
-  const changeJson = JSON.parse(await changeLogDiffOperation(req.query.id as string, req.query.targetId as string))
   const workbook = new ExcelJS.Workbook()
   workbook.creator = 'APHL VSM'
   workbook.lastModifiedBy = 'APHL VSM'
@@ -31,6 +30,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     resourceType: 'Library',
     id: req.query.targetId as string
   })) as fhir4.Library
+
   const sourceLibrary = (await fhirCdrClient.read({
     resourceType: 'Library',
     id: req.query.id as string

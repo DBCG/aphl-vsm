@@ -19,6 +19,7 @@ const StyledButton = styled(Icb).attrs<IButtonProps>(({ buttoncontext }) => ({
   height: 36px;
   width: 36px;
   border-radius: 50%;
+  color: white;
   background-color: ${(props) => (props.disabled ? 'lightgray !important' : 'var(--theme-300)')};
   cursor: ${(props) => (props.disabled ? 'not-allowed !important' : 'pointer')};
   box-shadow: none;

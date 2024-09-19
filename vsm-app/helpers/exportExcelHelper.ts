@@ -131,7 +131,7 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
       }
     }
   })) as fhir4.Binary
-  return atob(changeJson.data!)
+  return (changeJson!)
 }
 
 const extractConditions = (rootLibraryChangeDiff: any) => {
