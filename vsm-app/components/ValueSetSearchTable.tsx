@@ -930,7 +930,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                     onClick={(e) => {
                       e?.preventDefault()
                       clearPage()
-                      submitVSetSearch({ searchContext: 'search' })
+                      return submitVSetSearch({ searchContext: 'search' })
                     }}
                   />
                 </TextAreaSubmitContainer>

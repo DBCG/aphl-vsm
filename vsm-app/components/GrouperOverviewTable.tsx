@@ -10,6 +10,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import TextLink from './TextLink'
+import { DeleteGrouperRequest } from '@/pages/api/programs/[id]/grouper/library'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -47,17 +48,22 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         return
       }
       setDeleting(true)
-      let endpoint = `/api/programs/${programId}/grouper/library`
+      const endpoint = `/api/programs/${programId}/grouper/library`
       let updated
       try {
-        const body = JSON.stringify({
-          libraryId: grouperLibId,
+       if (!(grouperVsCanonicalToRemove && grouperVsIdToRemove)) {
+        throw new Error(`missing Grouper info: ${!grouperVsIdToRemove ? "missing ID" : ""}${!grouperVsCanonicalToRemove ? " missing Canonical" : ""}`)
+       }
+        const deleteBody:DeleteGrouperRequest["body"] = {
+          grouperLibraryId: grouperLibId,
+          manifestLibraryId: programId,
           editingInfo: {
             action: 'remove',
             vsCanonical: grouperVsCanonicalToRemove,
             vsId: grouperVsIdToRemove
           }
-        })
+        }
+        const body = JSON.stringify(deleteBody)
 
         updated = await fetch(endpoint, {
           method: 'PUT',
@@ -102,6 +108,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   useEffect(() => {
     if (deleting) {
       setDeleting(false)
+      setToggleRefresh(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups])
@@ -148,13 +155,12 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
           return (
             <ButtonContainer>
               <IconButton
-                onClick={async () => {
-                  await deleteGrouper({
+                onClick={async () => deleteGrouper({
                     grouperLibId,
                     grouperVsCanonicalToRemove: row?.url,
                     grouperVsIdToRemove: row?.id
                   })
-                }}
+                }
                 buttoncontext="delete"
                 style={{ backgroundColor: 'darkRed', margin: '0 auto' }}
               />

@@ -4,6 +4,7 @@ import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBase;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
@@ -149,6 +150,13 @@ public class ChangeLog {
     var newData = theTargetResource == null ? null : new PlanDefinitionChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl());
     var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<PlanDefinitionChild>(url, oldData, newData);
+    this.pages.add(page);
+    return page;
+  }
+  public Page<OtherChild> addPage(IBaseResource theSourceResource, IBaseResource theTargetResource) throws UnprocessableEntityException {
+    var oldData = theSourceResource == null ? null : new OtherChild(null, theSourceResource.getIdElement().getIdPart(), null, null, null, theSourceResource.fhirType());
+    var newData = theTargetResource == null ? null : new OtherChild(null, theTargetResource.getIdElement().getIdPart(), null, null, null, theTargetResource.fhirType());
+    var page = new Page<OtherChild>(null, oldData, newData);
     this.pages.add(page);
     return page;
   }
@@ -629,6 +637,11 @@ public class ChangeLog {
   public static class PlanDefinitionChild extends PageBase {
     PlanDefinitionChild(String title, String id, String version, String name, String url) {
       super(title, id, version, name, url, "PlanDefinition");
+    }
+  }
+  public static class OtherChild extends PageBase {
+    OtherChild(String title, String id, String version, String name, String url, String fhirType) {
+      super(title, id, version, name, url, fhirType);
     }
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
