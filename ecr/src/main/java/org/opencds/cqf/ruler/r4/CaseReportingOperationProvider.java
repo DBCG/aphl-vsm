@@ -491,7 +491,7 @@ public class CaseReportingOperationProvider {
 					case "PlanDefinition":
 						return changelog.addPage((PlanDefinition) sourceResource, (PlanDefinition) targetResource);
 					default:
-						return changelog.addPage(sourceResource,targetResource);
+						return changelog.addPage(sourceResource,targetResource, url);
 				}
 			});
 			for (var change : changes) {

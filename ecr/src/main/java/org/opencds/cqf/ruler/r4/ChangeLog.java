@@ -153,18 +153,15 @@ public class ChangeLog {
     this.pages.add(page);
     return page;
   }
-  public Page<OtherChild> addPage(IBaseResource theSourceResource, IBaseResource theTargetResource) throws UnprocessableEntityException {
-    var oldData = theSourceResource == null ? null : new OtherChild(null, theSourceResource.getIdElement().getIdPart(), null, null, null, theSourceResource.fhirType());
-    var newData = theTargetResource == null ? null : new OtherChild(null, theTargetResource.getIdElement().getIdPart(), null, null, null, theTargetResource.fhirType());
-    var page = new Page<OtherChild>(null, oldData, newData);
+  public Page<OtherChild> addPage(IBaseResource theSourceResource, IBaseResource theTargetResource, String url) throws UnprocessableEntityException {
+    var oldData = theSourceResource == null ? null : new OtherChild(null, theSourceResource.getIdElement().getIdPart(), null, null, url, theSourceResource.fhirType());
+    var newData = theTargetResource == null ? null : new OtherChild(null, theTargetResource.getIdElement().getIdPart(), null, null, url, theTargetResource.fhirType());
+    var page = new Page<OtherChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
   }
-  public boolean hasPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny().isPresent();
-  }
   public Optional<Page<? extends PageBase>> getPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny();
+    return this.pages.stream().filter(p -> p.url != null && p.url.equals(url)).findAny();
   }
   public void handleRelatedArtifacts() {
     var manifest = this.getPage(this.manifestUrl);
