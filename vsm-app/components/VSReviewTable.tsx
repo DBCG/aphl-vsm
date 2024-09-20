@@ -116,7 +116,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions, handl
             <IconButton
               deletedItemDescription={`valueset with id ${row.selectedValueSet.id} and version ${row.selectedValueSet.version}`}
               type="button"
-              onClick={() => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
+              onClick={async () => deleteVS(row?.selectedValueSet?.id!, row?.selectedValueSet?.version!)}
               buttoncontext="delete"
               style={{ backgroundColor: 'darkRed', margin: '0 auto', alignSelf: 'center' }}
             />
