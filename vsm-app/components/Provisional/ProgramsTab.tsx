@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button, Checkbox, FormControlLabel, FormGroup, Tooltip } from '@mui/material'
 import CallMadeIcon from '@mui/icons-material/CallMade'
+import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown'
 import useSWR from 'swr'
 import styled from 'styled-components'
 import { debounce, set } from 'lodash'
@@ -12,7 +13,7 @@ import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ReleaseModal, ReleasePayload } from '@/components/modals/ReleaseModal'
-import { allowClone, allowRelease, can, VSMSession } from '@/helpers/rolesHelper'
+import { allowClone, allowRelease, allowWithdraw, can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { formatDateForTable } from '@/helpers/formatDates'
@@ -61,7 +62,7 @@ export interface PaginationState {
   searchTotal: number | null
 }
 
-const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release') => {
+const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release' | 'withdraw') => {
   if (actionType === 'clone' && program.status !== 'active') {
     return 'Only Active programs may be cloned'
   } else if (actionType === 'release') {
@@ -70,8 +71,89 @@ const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 're
     } else if (!program.approvalDate) {
       return 'You must approve the program before releasing'
     }
+  } else if (actionType === 'withdraw' && program.status !== 'draft') {
+    return 'Only Draft programs may be withdrawn'
   }
   return 'Action blocked'
+}
+
+interface ExpandableRowProps {
+  data: fhir4.Library
+  session: VSMSession
+  handleClickClone: (programId: string) => void
+  setProgramToRelease: (program: fhir4.Library | null) => void
+  handleClickWithdraw: (programId: string | undefined) => void
+  setError: (error: Error) => void
+}
+
+const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgramToRelease, handleClickWithdraw, setError }: ExpandableRowProps) => {
+  const canClone = allowClone({ session, programStatus: row.status! })
+  const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
+
+  const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+  const releaseBlockedReason = !canRelease && generateBlockedReason(row, 'release')
+
+  const canWithdraw = allowWithdraw({ session, programStatus: row.status! })
+  const withdrawBlockedReason = !canWithdraw && generateBlockedReason(row, 'withdraw')
+
+  return (
+    <div style={{ padding: '1rem', marginLeft: '48px' }}>
+      <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
+        <p style={{ display: 'inline-block', marginRight: '.4rem', fontSize: '90%' }}>Actions for program {row.id}:</p>
+        <Tooltip title={cloneBlockedReason} arrow>
+          {/* these spans are necessary to get the tooltips to show up consistently */}
+          <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <Button
+              size="small"
+              data-button-context="clone-active"
+              variant="contained"
+              disabled={row.status !== 'active'}
+              onClick={() => {
+                handleClickClone(row.id!)
+              }}
+              style={{ height: 'fit-content' }}
+            >
+              Clone
+            </Button>
+          </span>
+        </Tooltip>
+        <Tooltip title={releaseBlockedReason} arrow>
+          <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <Button
+              size="small"
+              data-button-context={`release-${row.status}`}
+              variant="contained"
+              style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
+              disabled={row.status !== 'draft' || !row.approvalDate}
+              onClick={() => {
+                setError({})
+                setProgramToRelease(row)
+              }}
+            >
+              Release
+            </Button>
+          </span>
+        </Tooltip>
+        <Tooltip title={withdrawBlockedReason} arrow>
+          <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <Button
+              size="small"
+              data-button-context={`release-${row.status}`}
+              variant="contained"
+              style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
+              disabled={row.status !== 'draft'}
+              onClick={() => {
+                setError({})
+                handleClickWithdraw(row?.id)
+              }}
+            >
+              Withdraw
+            </Button>
+          </span>
+        </Tooltip>
+      </div>
+    </div>
+  )
 }
 
 const ProgramsTab: NextPage = () => {
@@ -86,12 +168,26 @@ const ProgramsTab: NextPage = () => {
   // clear rows
   const [toggledClearRows, setToggledClearRows] = useState(false)
 
+  // withdraw state
+  const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
+  const [progIdToWithdraw, setProgIdToWithdraw] = useState('')
+
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     countPerPage: 10,
     searchTotal: null
   })
+
+  const handleWithdrawDraft = async ({ id }: { id: string }) => {
+    setWithdrawLoading(true)
+    // mock withdraw until the operation exists
+    setTimeout(() => {
+      setWithdrawLoading(false)
+      setWithdrawModalOpen(false)
+    }, 1000)
+  }
 
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
@@ -150,6 +246,12 @@ const ProgramsTab: NextPage = () => {
     setModalOpen(true)
   }
 
+  const handleClickWithdraw = (programId: string | undefined) => {
+    if (!programId) return
+    setProgIdToWithdraw(programId)
+    setWithdrawModalOpen(true)
+  }
+
   const cloneProgram = async (programId: string) => {
     if (cloneLoading) return
     setCloneLoading(true)
@@ -182,6 +284,7 @@ const ProgramsTab: NextPage = () => {
   }
 
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
+  const debouncedWithdrawProgram = debounce((programId) => handleWithdrawDraft(programId), 2000, { leading: true, trailing: false })
 
   const columns = useMemo(
     () => [
@@ -263,67 +366,6 @@ const ProgramsTab: NextPage = () => {
         maxWidth: '15rem',
         minWidth: '10rem',
         wrap: true
-      },
-      {
-        name: <p style={{ textAlign: 'center' }}>Create New</p>,
-        center: true,
-        omit: !can(session, 'clone'),
-        selector: (row: fhir4.Library) => row.id || '',
-        sortable: true,
-        wrap: true,
-        cell: (row: fhir4.Library) => {
-          const canClone = allowClone({ session, programStatus: row.status! })
-          const blockedReason = !canClone && generateBlockedReason(row, 'clone')
-          return (
-            <Tooltip title={blockedReason} arrow>
-              <span>
-                <Button
-                  size="small"
-                  data-button-context="clone-active"
-                  variant="contained"
-                  disabled={row.status !== 'active'}
-                  onClick={() => {
-                    handleClickClone(row.id!)
-                  }}
-                  style={{ height: 'fit-content' }}
-                >
-                  Clone
-                </Button>
-              </span>
-            </Tooltip>
-          )
-        }
-      },
-      {
-        name: 'Release',
-        center: true,
-        selector: (row: fhir4.Library) => row.id || '',
-        sortable: true,
-        wrap: true,
-        omit: !can(session, 'release'),
-        cell: (row: fhir4.Library) => {
-          const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
-          const blockedReason = !canRelease && generateBlockedReason(row, 'release')
-          return (
-            <Tooltip title={blockedReason} arrow>
-              <span>
-                <Button
-                  size="small"
-                  data-button-context={`release-${row.status}`}
-                  variant="contained"
-                  style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
-                  disabled={row.status !== 'draft' || !row.approvalDate}
-                  onClick={() => {
-                    setError({})
-                    setProgramToRelease(row)
-                  }}
-                >
-                  Release
-                </Button>
-              </span>
-            </Tooltip>
-          )
-        }
       }
     ],
     [session, selectedRows]
@@ -331,6 +373,11 @@ const ProgramsTab: NextPage = () => {
 
   const handleCancelReleaseModal = () => {
     setProgramToRelease(null)
+  }
+  
+  const handleCancelWithdrawModal = () => {
+    setProgIdToWithdraw('')
+    setWithdrawModalOpen(false)
   }
 
   // release payload?
@@ -382,6 +429,20 @@ const ProgramsTab: NextPage = () => {
           handleCancelModal={() => setModalOpen(false)}
         />
       )}
+      {withdrawModalOpen && (
+        <LoadingModal
+          actionType="withdraw"
+          isOpen={withdrawModalOpen}
+          handleModalAction={async () => {
+            // throttle this action based on if it is already ongoing
+            if (withdrawLoading) return
+            debouncedWithdrawProgram(progIdToClone)
+          }}
+          program={null}
+          loading={withdrawLoading}
+          handleCancelModal={() => handleCancelWithdrawModal()}
+        />
+      )}
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}></Row>
       {programToRelease && (
         <ReleaseModal
@@ -393,67 +454,74 @@ const ProgramsTab: NextPage = () => {
           setProgramToRelease={setProgramToRelease}
         />
       )}
-      {programs?.length > 1 && (
-        <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1em', backgroundColor: enableCompare ? 'white' : 'transparent', padding: '.8rem .6rem', width: 'fit-content', alignSelf: 'flex-end' }}>
-          {
-            enableCompare ? (
-              <div style={{ backgroundColor: 'white', padding: '.8rem .6rem'}}>
-                <i>Comparison options:</i>
-                <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSpreadsheet(Boolean(e?.target?.checked))}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={downloadSpreadsheet}
-                        // @ts-ignore
-                        style={checkboxStyles}
-                      />
-                    }
-                    label="Download Changelog Spreadsheet"
-                  />
-                </FormGroup>
-              </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        {can(session, 'clone') ? (
+          <div style={{ color: 'var(--theme-500)', alignSelf: 'flex-end', backgroundColor: 'white', padding: '1rem 1.2rem', borderRadius: '8px', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+            <ArrowCircleDownIcon />
+            Expand a row to view Program Actions
+          </div>
+        ) : <></>}
+        {programs?.length > 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', backgroundColor: enableCompare ? 'white' : 'transparent', padding: '.8rem .6rem', width: 'fit-content', alignSelf: 'flex-end' }}>
+            {
+              enableCompare ? (
+                <div style={{ backgroundColor: 'white', padding: '.8rem .6rem' }}>
+                  <i>Comparison options:</i>
+                  <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSpreadsheet(Boolean(e?.target?.checked))}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={downloadSpreadsheet}
+                          // @ts-ignore
+                          style={checkboxStyles}
+                        />
+                      }
+                      label="Download Changelog Spreadsheet"
+                    />
+                  </FormGroup>
+                </div>
 
-            ) : null
-          }
-          <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
-            <Button
-              style={{
-                width: 'fit-content',
-                height: 'fit-content',
-                color: enableCompare && selectedRows?.length !== 2 ? 'var(--theme-400)' : 'white',
-                backgroundColor: enableCompare && selectedRows?.length !== 2 ? 'transparent' : 'var(--theme-400)',
-                transition: 'background-color 200ms linear'
-              }}
-              endIcon={enableCompare && selectedRows?.length == 2 ? <CallMadeIcon /> : null}
-              variant='text'
-              disabled={enableCompare && selectedRows?.length !== 2}
-              onClick={() => {
-                if (selectedRows && selectedRows?.length > 1) {
-                  router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=true&downloadSpreadsheet=${downloadSpreadsheet}`)
-                } else {
-                  setEnableCompare(true)
-                }
-              }}
-            >
-              {(selectedRows && selectedRows?.length > 1) ? 'Compare' : 'Select 2 Programs to Compare'}
-            </Button>
-            { enableCompare ? (
+              ) : null
+            }
+            <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
               <Button
-                style={{ width: 'fit-content', height: 'fit-content', backgroundColor: 'gray', color: 'white' }}
+                style={{
+                  width: 'fit-content',
+                  height: 'fit-content',
+                  color: enableCompare && selectedRows?.length !== 2 ? 'var(--theme-400)' : 'white',
+                  backgroundColor: enableCompare && selectedRows?.length !== 2 ? 'transparent' : 'var(--theme-400)',
+                  transition: 'background-color 200ms linear'
+                }}
+                endIcon={enableCompare && selectedRows?.length == 2 ? <CallMadeIcon /> : null}
+                variant='text'
+                disabled={enableCompare && selectedRows?.length !== 2}
                 onClick={() => {
-                  setSelectedRows(null)
-                  setToggledClearRows((prev) => !prev)
-                  setDownloadSpreadsheet(true)
-                  setEnableCompare(false)
+                  if (selectedRows && selectedRows?.length > 1) {
+                    router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=true&downloadSpreadsheet=${downloadSpreadsheet}`)
+                  } else {
+                    setEnableCompare(true)
+                  }
                 }}
               >
-                Cancel
+                {(selectedRows && selectedRows?.length > 1) ? 'Compare' : 'Select 2 Programs to Compare'}
               </Button>
-            ): null}
+              {enableCompare ? (
+                <Button
+                  style={{ width: 'fit-content', height: 'fit-content', backgroundColor: 'gray', color: 'white' }}
+                  onClick={() => {
+                    setSelectedRows(null)
+                    setToggledClearRows((prev) => !prev)
+                    setDownloadSpreadsheet(true)
+                    setEnableCompare(false)
+                  }}
+                >
+                  Cancel
+                </Button>
+              ) : null}
+            </div>
           </div>
-          
-        </div>
-      )}
+        )}
+      </div>
       <ErrorMessage error={error?.error || null} />
       <DT
         data={programs}
@@ -475,6 +543,10 @@ const ProgramsTab: NextPage = () => {
         selectableRowDisabled={(row) => {
           return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
         }}
+        expandableRows={can(session, 'clone')}
+        // @ts-ignore
+        expandableRowsComponent={ExpandableRowComponent}
+        expandableRowsComponentProps={{ session, handleClickClone, setProgramToRelease, handleClickWithdraw, setError }}
       />
     </Col>
   )
