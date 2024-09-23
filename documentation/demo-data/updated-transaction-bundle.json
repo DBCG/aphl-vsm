@@ -4905,7 +4905,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506",
@@ -5008,7 +5008,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1505",
@@ -5183,7 +5183,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1508",
@@ -5349,7 +5349,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1507",
@@ -5614,7 +5614,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
@@ -5906,7 +5906,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480",
@@ -6045,7 +6045,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481",
@@ -6238,7 +6238,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.761",
@@ -6341,7 +6341,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1223",
@@ -6444,7 +6444,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.762",
@@ -6565,7 +6565,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1182",
@@ -6785,7 +6785,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1181",
@@ -7113,7 +7113,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1184",
@@ -7936,7 +7936,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1601",
@@ -8111,7 +8111,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1600",
@@ -8394,7 +8394,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1603",
@@ -8497,7 +8497,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1602",
@@ -8600,7 +8600,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082",
@@ -8703,7 +8703,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.528",
@@ -8914,7 +8914,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.408",
@@ -9209,7 +9209,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.409",
@@ -9564,7 +9564,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1469",
@@ -9775,7 +9775,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1468",
@@ -9887,7 +9887,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1439",
@@ -9990,7 +9990,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1436",
@@ -10084,7 +10084,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1435",
@@ -10178,7 +10178,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1446",
@@ -10272,7 +10272,7 @@
           },
           {
             "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
-            "valueUri": "https://cts.nlm.nih.gov/fhir"
+            "valueUri": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438"
           }
         ],
         "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1438",
