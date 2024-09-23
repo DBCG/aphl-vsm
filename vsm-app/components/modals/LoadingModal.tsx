@@ -17,7 +17,7 @@ import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone'
+  actionType: 'release' | 'publish' | 'clone' | 'withdraw'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -64,6 +64,18 @@ const modalText = {
     modalLoadingText: (
       <LoadingText>
         Cloning may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  withdraw: {
+    title: 'Withdraw Program',
+    text: 'Withdrawing this draft program will delete it from VSM permanently.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Withdrawing may take up to a minute.
         <br />
         Please keep this window open until it completes.
       </LoadingText>
