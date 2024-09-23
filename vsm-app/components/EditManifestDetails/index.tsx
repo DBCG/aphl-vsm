@@ -302,7 +302,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         )}
         <Button
           style={{ marginLeft: '10px' }}
-          text="Search ValueSets"
+          text="Scan ValueSets"
           disabled={isUpdating}
           loading={isUpdating}
           onClick={() => {
