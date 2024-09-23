@@ -6,6 +6,7 @@ import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { artifactIsOwned } from '@/helpers/ownedHelpers'
+import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
 interface EditingInfo {
   action: 'remove' | 'add'
@@ -22,99 +23,90 @@ export interface DeleteGrouperRequest extends NextApiRequest {
 }
 
 const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiResponse) => {
-  try {
-    const body = req.body
+  const body = req.body
 
-    const { grouperLibraryId: libraryId, editingInfo, manifestLibraryId }: DeleteGrouperRequest["body"] = body
+  const { grouperLibraryId: libraryId, editingInfo, manifestLibraryId }: DeleteGrouperRequest["body"] = body
 
-    const [grouperLib, manifestLib, grouperVs] = await
-      Promise.all([
-        fhirCdrClient.read({
-          resourceType: 'Library',
-          id: libraryId
-        }) as Promise<fhir4.Library>,
-        fhirCdrClient.read({
-          resourceType: 'Library',
-          id: manifestLibraryId
-        }) as Promise<fhir4.Library>,
-        fhirCdrClient.read({
-          resourceType: 'ValueSet',
-          id: editingInfo.vsId
-        }) as Promise<fhir4.ValueSet>])
-
-    if (is.library(grouperLib) && editingInfo.action === 'remove') {
-      const updatedGrouperLib = editComposeInclude({
-        grouperLib,
-        relatedArtifact: {
-          url: editingInfo.vsCanonical
-        },
-        action: 'remove'
-      })
-      const otherGroupers = await groupersFromGrouperLib(updatedGrouperLib)
-
-      // also need to remove all the depends-on references for the grouper and children
-      // this is only an interim solution until we can get the update to $package to use $data-requirements, at which point we can use that to more easily keep the manifest updated while editing it
-      manifestLib.relatedArtifact = manifestLib.relatedArtifact?.filter(ra => {
-        if (
-          ra.resource
-          // remove if it points at the grouper valueset
-          && splitCanonical(ra.resource)[0] !== editingInfo.vsCanonical
-          // or if it has a reference to a leaf which is not in any other grouper
-          && (!grouperVs.compose?.include?.find(include => splitCanonical(include?.valueSet?.[0] || "")[0] === splitCanonical(ra.resource || "")[0]) || otherGroupers.find(grouper => grouper?.compose?.include?.find(include => splitCanonical(include?.valueSet?.[0] || "")[0] === splitCanonical(ra.resource || "")[0])))
-        ) {
-          return true
-        } else {
-          return false
-        }
-      })
-      // update the grouper library to delete the reference
-      // to the grouper valueset
-      const [updatedGrouperLibResponse, deletedGrouperVsResponse, updatedManifestLibResponse] = await Promise.all([fhirCdrClient.update({
+  const [grouperLib, manifestLib, grouperVs] = await
+    Promise.all([
+      fhirCdrClient.read({
         resourceType: 'Library',
-        id: updatedGrouperLib.id,
-        body: updatedGrouperLib
-      }),
-      // delete the actual grouper valueset
-      // as these only exist in the context of the program
-      fhirCdrClient.delete({
+        id: libraryId
+      }) as Promise<fhir4.Library>,
+      fhirCdrClient.read({
+        resourceType: 'Library',
+        id: manifestLibraryId
+      }) as Promise<fhir4.Library>,
+      fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: editingInfo.vsId
-      }),
-      // update the manifest library
-      fhirCdrClient.update({
-        resourceType: 'Library',
-        id: manifestLib.id,
-        body: manifestLib
-      })])
+      }) as Promise<fhir4.ValueSet>])
 
-      if (is.library(updatedGrouperLibResponse)) {
-        // if deletion of the actual ValueSet failed, doesn't matter from FE perspective
-        // because the connection is severed at the Library level, but still warn
-        // as this will create orphaned ValueSets in the data
-        if (!deletedGrouperVsResponse?.ok) {
-          logger.error(`Failed to delete ValueSet ${editingInfo.vsId}`)
-        }
-        // this might be a problem?
-        if (!is.library(updatedManifestLibResponse)) {
-          logger.error(`Error updating manifest library ${manifestLib.id}`)
-        }
-        return res.status(200).send(updatedGrouperLibResponse)
+  if (is.library(grouperLib) && editingInfo.action === 'remove') {
+    const updatedGrouperLib = editComposeInclude({
+      grouperLib,
+      relatedArtifact: {
+        url: editingInfo.vsCanonical
+      },
+      action: 'remove'
+    })
+    const otherGroupers = await groupersFromGrouperLib(updatedGrouperLib)
+
+    // also need to remove all the depends-on references for the grouper and children
+    // this is only an interim solution until we can get the update to $package to use $data-requirements, at which point we can use that to more easily keep the manifest updated while editing it
+    manifestLib.relatedArtifact = manifestLib.relatedArtifact?.filter(ra => {
+      if (
+        ra.resource
+        // remove if it points at the grouper valueset
+        && splitCanonical(ra.resource)[0] !== editingInfo.vsCanonical
+        // or if it has a reference to a leaf which is not in any other grouper
+        && (!grouperVs.compose?.include?.find(include => splitCanonical(include?.valueSet?.[0] || "")[0] === splitCanonical(ra.resource || "")[0]) || otherGroupers.find(grouper => grouper?.compose?.include?.find(include => splitCanonical(include?.valueSet?.[0] || "")[0] === splitCanonical(ra.resource || "")[0])))
+      ) {
+        return true
       } else {
-        logger.error(`Failed to update grouper lib ${grouperLib.name}`)
-        return res.status(400).send({ error: 'Update failed' })
+        return false
       }
-    }
-  } catch (e) {
-    logger.error('error: ', e)
-    res.status(400).send({ error: 'error' })
+    })
+    // update the grouper library to delete the reference
+    // to the grouper valueset
+    await fhirCdrClient.transaction({
+      body: {
+        type: "transaction",
+        resourceType: "Bundle",
+        entry: [
+          {
+            resource: updatedGrouperLib,
+            request: {
+              method: "PUT",
+              url: "Library/" + updatedGrouperLib.id
+            }
+          },
+          {
+            request: {
+              method: "DELETE",
+              url: "ValueSet/" + editingInfo.vsId
+            }
+          }, {
+            resource: manifestLib,
+            request: {
+              method: "PUT",
+              url: "Library/" + manifestLibraryId
+            }
+          }
+        ]
+      }
+    }) as fhir4.Bundle
+
+    return res.status(200).send(updatedGrouperLib)
   }
 }
 
 async function groupersFromGrouperLib(grouperLib: fhir4.Library) {
   return (await Promise.all(grouperLib.relatedArtifact
-    ?.filter(ra => artifactIsOwned(ra))
-    ?.map(ra => {
-      const urlAndMaybeVersion = splitCanonical(ra.resource || "")
+    ?.filter(ra => artifactIsOwned(ra) && ra.resource)
+    ?.map(ra => ra.resource!)
+    ?.map(url => {
+      const urlAndMaybeVersion = splitCanonical(url)
       const searchParams: Record<string, string> = {
         url: urlAndMaybeVersion[0],
       }
