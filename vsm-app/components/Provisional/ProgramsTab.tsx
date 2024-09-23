@@ -454,7 +454,7 @@ const ProgramsTab: NextPage = () => {
           setProgramToRelease={setProgramToRelease}
         />
       )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
         {can(session, 'clone') ? (
           <div style={{ color: 'var(--theme-500)', alignSelf: 'flex-end', backgroundColor: 'white', padding: '1rem 1.2rem', borderRadius: '8px', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
             <ArrowCircleDownIcon />
