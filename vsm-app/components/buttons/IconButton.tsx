@@ -36,7 +36,7 @@ const ImageContainer = styled.div`
 
 interface IButtonProps extends IconButtonProps {
   buttoncontext?: string | undefined
-  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
+  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => Promise<unknown>
   disabled?: boolean
   color?: 'default' | 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | undefined
   deletedItemDescription?: string
@@ -61,11 +61,11 @@ type Key = keyof typeof btnTitleText
 const IconButton = ({ type, buttoncontext, onClick, style, disabled = false, deletedItemDescription, ...props }: IButtonProps) => {
   const [modalOpen, setModalOpen] = useState(false)
 
-  const handleClickIconButton = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+  const handleClickIconButton = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (buttoncontext === 'delete') {
       setModalOpen(true)
     } else {
-      onClick(e)
+      return onClick(e)
     }
   }
 
@@ -105,13 +105,12 @@ const IconButton = ({ type, buttoncontext, onClick, style, disabled = false, del
         title={btnTitleText[buttoncontext as Key]}
         disabled={disabled}
         type={type}
-        // @ts-ignore
         buttoncontext={buttoncontext}
         data-button-context={buttoncontext}
         style={style}
-        onClick={(e) => {
-          !disabled && e ? handleClickIconButton(e) : null
-        }}
+        onClick={(e) => (
+          !disabled && e ? handleClickIconButton(e) : Promise.resolve(null)
+        )}
         {...props}
       >
         <ImageContainer>{image}</ImageContainer>

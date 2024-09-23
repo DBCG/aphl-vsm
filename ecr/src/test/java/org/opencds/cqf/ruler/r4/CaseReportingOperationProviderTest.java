@@ -1766,7 +1766,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
-			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
+			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
+			"http://snomed.info/sct"
 		);
 		Exception expectNoException = null;
 		try {

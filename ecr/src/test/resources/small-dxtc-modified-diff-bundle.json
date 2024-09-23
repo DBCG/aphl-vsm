@@ -156,6 +156,10 @@
 					{
 						"type": "depends-on",
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0-draft"
+					},
+					{
+							"type": "depends-on",
+							"resource": "http://snomed.info/sct"
 					}
 				]
 			},
@@ -608,6 +612,45 @@
 				"method": "POST",
 				"url": "ValueSet",
 				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/fake.oid.to.trigger.naive.expansion&version=1.0.1"
+			}
+		},
+		{
+			"fullUrl": "http://snomed.info/sct|PROVISIONAL",
+			"resource": {
+				"resourceType": "CodeSystem",
+				"meta": {
+						"versionId": "1",
+						"lastUpdated": "2024-08-30T00:37:41.218+00:00",
+						"source": "#X2EAyHiQ0qeWPiLd",
+						"tag": [
+								{
+										"system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
+										"code": "vsm-authored"
+								},
+								{
+										"system": "http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes",
+										"code": "vsm-provisional"
+								}
+						]
+				},
+				"url": "http://snomed.info/sct",
+				"version": "PROVISIONAL",
+				"name": "SNOMEDCT",
+				"status": "draft",
+				"experimental": true,
+				"content": "complete",
+				"concept": [
+						{
+								"code": "e12e21",
+								"display": "e12e21e2",
+								"definition": "12e12e12e21"
+						}
+				]
+		},
+			"request": {
+				"method": "POST",
+				"url": "CodeSystem",
+				"ifNoneExist": "url=http://snomed.info/sct"
 			}
 		}
 	]

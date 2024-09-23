@@ -4,6 +4,7 @@ import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBase;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
@@ -152,11 +153,15 @@ public class ChangeLog {
     this.pages.add(page);
     return page;
   }
-  public boolean hasPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny().isPresent();
+  public Page<OtherChild> addPage(IBaseResource theSourceResource, IBaseResource theTargetResource, String url) throws UnprocessableEntityException {
+    var oldData = theSourceResource == null ? null : new OtherChild(null, theSourceResource.getIdElement().getIdPart(), null, null, url, theSourceResource.fhirType());
+    var newData = theTargetResource == null ? null : new OtherChild(null, theTargetResource.getIdElement().getIdPart(), null, null, url, theTargetResource.fhirType());
+    var page = new Page<OtherChild>(url, oldData, newData);
+    this.pages.add(page);
+    return page;
   }
   public Optional<Page<? extends PageBase>> getPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny();
+    return this.pages.stream().filter(p -> p.url != null && p.url.equals(url)).findAny();
   }
   public void handleRelatedArtifacts() {
     var manifest = this.getPage(this.manifestUrl);
@@ -629,6 +634,11 @@ public class ChangeLog {
   public static class PlanDefinitionChild extends PageBase {
     PlanDefinitionChild(String title, String id, String version, String name, String url) {
       super(title, id, version, name, url, "PlanDefinition");
+    }
+  }
+  public static class OtherChild extends PageBase {
+    OtherChild(String title, String id, String version, String name, String url, String fhirType) {
+      super(title, id, version, name, url, fhirType);
     }
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
