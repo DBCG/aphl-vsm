@@ -332,6 +332,22 @@ const ProgramsTab: NextPage = () => {
   const handleCancelReleaseModal = () => {
     setProgramToRelease(null)
   }
+  
+  useEffect(() => {
+    const test = async () => {
+      const result = await fetch(`/api/updateToFullVSACAuthSourceUrl`, {
+        method: 'PUT',
+        body: JSON.stringify([
+          // 'meow'
+          'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.480',
+          // 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
+        ])
+      })
+      console.log('result', result)
+    }
+
+    test()
+  }, [])
 
   // release payload?
   const handleReleaseModalAction = async (payload: ReleasePayload) => {
