@@ -1,4 +1,4 @@
-// Script to search FHIR CDR Server for missing or malformed authoratative sources
+// Script to search FHIR CDR Server for missing or malformed authoritative sources
 
 const FhirKitClient = require('fhir-kit-client')
 
@@ -19,7 +19,7 @@ const run = async () => {
   })
   const allVs = vsBundle.entry.map((entry) => entry.resource)
   console.log(`Found ${allVs.length} ValueSets`)
-  await syncAuthoratativeSources(allVs)
+  await syncAuthoritativeSources(allVs)
 
   if (allVs?.link?.next) {
     console.log('TBD')
@@ -33,17 +33,15 @@ const isConditionValueSet = (vs) => vs.id === 'rckms-condition-codes'
 
 const isVsmAuthored = (vs) => vs?.meta?.tag?.find((tag) => tag.code === 'vsm-authored')
 
-//vs?.meta?.profile?.includes('http://aphl.org/fhir/vsm/StructureDefinition/vsm-conditionvalueset') ||
-
 // Conditions to check for:
-const syncAuthoratativeSources = async (allVs) => {
+const syncAuthoritativeSources = async (allVs) => {
   const toUpdateVs = allVs
     .map((vs) => {
       try {
-        const exists = vs?.extension?.find((ext) => ext.url === 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource')
         if (isGrouperValueSet(vs) || isConditionValueSet(vs) || isVsmAuthored(vs)) {
           return
         }
+        const exists = vs?.extension?.find((ext) => ext.url === 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource')
 
         if (!exists) {
           console.log(`ValueSet ${vs.id} is missing authoritative source`)
