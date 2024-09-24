@@ -6,7 +6,7 @@ interface ModalInfo {
   isOpen: boolean
   itemToDelete?: string
   toggleModalOpen: () => void
-  handleConfirmDelete: () => void
+  handleConfirmDelete: () => Promise<unknown>
 }
 
 const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete, itemToDelete }: ModalInfo) => {

@@ -300,7 +300,7 @@ public class CaseReportingOperationProvider {
 			.map(e -> (MetadataResource) e.getResource())
 			.filter(r -> {
 				var id1 = r.getResourceType().toString() + "/" + r.getIdPart();
-				var id2 = theId.getValue();
+				var id2 = r.getResourceType().toString() + "/" + theId.getIdPart();
 				return id1.equals(id2);
 			})
 			.findFirst()
@@ -403,31 +403,46 @@ public class CaseReportingOperationProvider {
 																				 @OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint)
 	{
 		// TODO: check the requestDetails for MIME type and return accordingly
-		// 1) Create Diff Parameters Object as input
+		// 1) Use package to get a pair of bundles
+		var sourceBundle = packageOperation(requestDetails, new IdType(source), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint);
+		var targetBundle = packageOperation(requestDetails, new IdType(target), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint);
+		// 2) Fill the cache with the bundle contents
 		var cache = new KnowledgeArtifactProcessor.diffCache();
+		Optional<Library> theSourceResource = Optional.empty();
+		Optional<Library> theTargetResource = Optional.empty();
+		for (final var entry:sourceBundle.getEntry()) {
+			if (entry.hasResource() && entry.getResource() instanceof MetadataResource){
+				var resource = (MetadataResource)entry.getResource();
+				cache.addSource(resource.getUrl()+"|"+resource.getVersion(), resource);
+				if (resource.getIdPart().equals(new IdType(source).getIdPart())) {
+					theSourceResource = Optional.of((Library)resource);
+				}
+			}
+		};
+		for (final var entry: targetBundle.getEntry()) {
+			if (entry.hasResource() && entry.getResource() instanceof MetadataResource){
+				var resource = (MetadataResource)entry.getResource();
+				cache.addTarget(resource.getUrl()+"|"+resource.getVersion(), resource);
+				if (resource.getIdPart().equals(new IdType(target).getIdPart())) {
+					theTargetResource = Optional.of((Library)resource);
+				}
+			}
+		};
+		// TODO: update this to find the manifest using the profile, not the resourceType
+		// 3) Create a diff with that cache and the 2 manifests to compare
 		var repository = repositoryFactory.create(requestDetails);
 		var dao = (IFhirResourceDaoValueSet<ValueSet>) daoRegistry.getResourceDao(ValueSet.class);
-		var sourceId = new IdType(source);
-		var theSourceResource = (MetadataResource) SearchHelper.readRepository(repository, sourceId);
-		if (theSourceResource == null || !(theSourceResource instanceof Library)) {
-			throw new UnprocessableEntityException("Source resource must exist and be a Library.");
-		}
-		var targetId = new IdType(target);
-		var theTargetResource = (MetadataResource) SearchHelper.readRepository(repository, targetId);
-		if (theTargetResource == null || !(theTargetResource instanceof Library)) {
-			throw new UnprocessableEntityException("Target resource must exist and be a Libary.");
-		}
-		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
-		var diffParameters = KnowledgeArtifactProcessor.artifactDiff(theSourceResource, theTargetResource, fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
+		// 4) Use that diff to create a changelog
+		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource.get());
+		var diffParameters = KnowledgeArtifactProcessor.artifactDiff(theSourceResource.get(), theTargetResource.get(), fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
-		var changelog = new ChangeLog(manifestUrl);
-		// 2) Recursively process the Parameters into a flat ChangeLog
+		var changelog = new ChangeLog(manifestUrl);		// 2) Recursively process the Parameters into a flat ChangeLog
 		processChanges(diffParameters.getParameter(), changelog, cache, manifestUrl);
 
-		// 3) Handle the Conditions and Priorities which are in RelatedArtifact changes
+		// 5) Handle the Conditions and Priorities which are in RelatedArtifact changes
 		changelog.handleRelatedArtifacts();
 
-		// 4) Generate the output JSON
+		// 6) Generate the output JSON
 		var bin = new Binary();
 		var mapper = createSerializer();
 		try {
@@ -509,7 +524,7 @@ public class CaseReportingOperationProvider {
 					case "PlanDefinition":
 						return changelog.addPage((PlanDefinition) sourceResource, (PlanDefinition) targetResource);
 					default:
-						throw new UnprocessableEntityException("Unknown resource type: " + resourceType);
+						return changelog.addPage(sourceResource,targetResource, url);
 				}
 			});
 			for (var change : changes) {

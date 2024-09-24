@@ -114,7 +114,7 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
             <div style={{ position: 'relative' }}>
               <IconButton
                 data-update-manifest={`${row.system}|${row.version}`}
-                onClick={() => setTargetedCsToUpdate(matchingCodeSystem)}
+                onClick={async () => setTargetedCsToUpdate(matchingCodeSystem)}
                 buttoncontext="update"
               />
               <Tooltip

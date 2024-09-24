@@ -53,12 +53,14 @@ const ProvisionalCodeSystemsTable = ({ provisionalCS=[], canEdit, isLoading }: P
       },
       {
         name: 'Action',
+        center: true,
         selector: (row: fhir4.CodeSystem) => row.id || 'No ID',
         cell: (row: fhir4.CodeSystem) => {
           return (
           <Box>
             {/* maybe pass thru row id as prop to default the edit? */}
             <Button
+              variant='contained'
               onClick={() => router.push(`/provisional/codesystem?csSelected=${row.url}`)}
             >
               { canEdit ? 'Edit' : 'View' }
@@ -105,12 +107,14 @@ const ProvisionalValueSetsTable = ({ provisionalVS, csExists, canEdit, isLoading
       },
       {
         name: 'Action',
+        center: true,
         selector: (row: fhir4.ValueSet) => row.id,
         cell: (row: fhir4.ValueSet) => {
           return (
           <Box>
             {/* maybe pass thru row id as prop to default the edit? */}
             <Button
+              variant='contained'
               onClick={() => router.push(`/provisional/valueset?vsSelected=${row.id}`)}
             >
               { canEdit ? 'Edit' : 'View' }
@@ -160,7 +164,9 @@ const ProvisionalResourcesTab = () => {
             <ProvisionalCodeSystemsTable isLoading={Boolean(isCsLoading)} provisionalCS={provisionalCS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>+ Create New</Button>
+                <Button variant='contained' style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/codesystem`)}>
+                  + Create New
+                </Button>
               </div>
             )}
           </div>
@@ -171,7 +177,9 @@ const ProvisionalResourcesTab = () => {
             <ProvisionalValueSetsTable isLoading={Boolean(isVsLoading)} csExists={Boolean(provisionalCS?.length)} provisionalVS={provisionalVS} canEdit={canEdit}/>
             { canEdit && (
               <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                <Button style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>+ Create New</Button>
+                <Button variant='contained' style={{ margin: '1rem auto' }} onClick={() => router.push(`/provisional/valueset`)}>
+                  + Create New
+                </Button>
               </div>
             )}
           </div>

@@ -117,16 +117,14 @@ const TerminologyEndpoints: NextPage = () => {
         cell: (row: fhir4.Endpoint) => (
           <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
             <IconButton
-              onClick={() => {
-                router.push(`/admin-tools/edit-endpoint/${row.id}`)
-              }}
+              onClick={() => router.push(`/admin-tools/edit-endpoint/${row.id}`)}
               buttoncontext={'edit'}
             />
             <IconButton
               onClick={() => {
                 const url = `/api/endpoint/${row.id}`
                 setLoading(true)
-                fetch(url, { method: 'DELETE' })
+                return fetch(url, { method: 'DELETE' })
                   .catch((error) => setError({ error: error.error || error.toString() }))
                   .finally(() => {
                     setLoading(false)
@@ -148,7 +146,9 @@ const TerminologyEndpoints: NextPage = () => {
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <h4>Endpoints</h4>
-        <Button onClick={() => router.push('/admin-tools/create-endpoint')}>Create Endpoint</Button>
+        <Button variant='contained' onClick={() => router.push('/admin-tools/create-endpoint')}>
+          Create Endpoint
+        </Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT

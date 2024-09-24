@@ -24,11 +24,39 @@ const theme = createTheme({
       styleOverrides: {
         // Name of the slot
         root: {
-          background: 'var(--theme-300)',
-          color: 'var(--white)',
-          '&:hover': {
-            background: 'var(--hover-background)'
-          }
+          variants: [
+            {
+              props: { variant: "text" },
+              style: {
+                borderRadius: 0,
+                borderBottom: "2px solid transparent",
+                "&:hover": {
+                  borderBottom: "2px solid white",
+                  borderBottomColor: "inherit"
+                },
+              }
+            },
+            {
+              props: { variant: "outlined" },
+              style: {
+                border: "none",
+                backgroundColor: "var(--accent)",
+                "&:hover": {
+                  backgroundColor: "var(--theme-400)",
+                },
+              }
+            },
+            {
+              props: { variant: "contained" },
+              style: {
+                background: 'var(--theme-300)',
+                color: 'var(--white)',
+                '&:hover': {
+                  background: 'var(--hover-background)'
+                },
+              }
+            }
+          ],
         }
       }
     },

@@ -291,7 +291,7 @@ const AddGrouper = ({ program }: LibraryServerSideProps) => {
           }}
           loading={loading}
           text="SUBMIT"
-          disabled={submitDisabled}
+          disabled={submitDisabled || loading}
           onClick={async () => await addGrouper()}
         />
       </Row>

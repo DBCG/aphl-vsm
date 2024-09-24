@@ -1766,7 +1766,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
-			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc"
+			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
+			"http://snomed.info/sct"
 		);
 		Exception expectNoException = null;
 		try {
@@ -1953,6 +1954,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			for (final var page : pages) {
 				if (Canonicals.getResourceType(page.get("url").asText()).equals("ValueSet")) {
 					assertTrue(page.get("oldData").get("leafValuesets").isArray());
+					assertTrue(page.get("oldData").get("priority").get("value").asText().equals("routine"));
 					for (final var leaf: page.get("oldData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
 						var memberOid = leaf.get("memberOid").asText();
@@ -1968,6 +1970,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 						}
 					}
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
+					assertTrue(page.get("newData").get("priority").get("value").asText().equals("routine"));
 					for (final var leaf: page.get("newData").get("leafValuesets")) {
 						assertTrue(leaf.get("conditions").isArray());
 						var memberOid = leaf.get("memberOid").asText();

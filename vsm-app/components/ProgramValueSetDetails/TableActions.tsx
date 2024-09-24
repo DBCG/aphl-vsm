@@ -225,7 +225,7 @@ export const TableActions = ({
             <IconButton
               buttoncontext="edit"
               loading={isDeleting}
-              onClick={() => setIsEditing(true)}
+              onClick={async () => setIsEditing(true)}
               data-action="edit"
               disabled={isEditing}
             />

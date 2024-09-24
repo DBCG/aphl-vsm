@@ -4,6 +4,7 @@ import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import org.opencds.cqf.ruler.TransformProperties;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBase;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
@@ -35,12 +36,17 @@ public class ChangeLog {
     Map<String, Map<String,ValueSetChild.Leaf>> leafMetadataMap = new HashMap<String, Map<String,ValueSetChild.Leaf>>();
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theSourceResource, cache);
     updateCodeMapAndLeafMetadataMap(codeMap, leafMetadataMap, theTargetResource, cache);
-    var oldData = theSourceResource == null ? null : new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap);
-    var newData = theTargetResource == null ? null : new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap);
+    var oldData = theSourceResource == null ? null : new ValueSetChild(theSourceResource.getTitle(), theSourceResource.getIdPart(), theSourceResource.getVersion(), theSourceResource.getName(), theSourceResource.getUrl(), theSourceResource.getCompose().getInclude(), theSourceResource.getExpansion().getContains(), codeMap, leafMetadataMap, getPriority(theSourceResource).orElse(null));
+    var newData = theTargetResource == null ? null : new ValueSetChild(theTargetResource.getTitle(), theTargetResource.getIdPart(), theTargetResource.getVersion(), theTargetResource.getName(), theTargetResource.getUrl(), theTargetResource.getCompose().getInclude(), theTargetResource.getExpansion().getContains(), codeMap, leafMetadataMap, getPriority(theTargetResource).orElse(null));
     var url = theSourceResource == null ? theTargetResource.getUrl() : theSourceResource.getUrl();
     var page = new Page<ValueSetChild>(url, oldData, newData);
     this.pages.add(page);
     return page;
+  }
+  private Optional<String> getPriority(ValueSet valueSet) {
+    return valueSet.getUseContext().stream()
+    .filter(uc -> uc.getCode().getSystem().equals(TransformProperties.usPHUsageContextType) && uc.getCode().getCode().equals("priority")).findAny()
+    .map(uc -> uc.getValueCodeableConcept().getCodingFirstRep().getCode());
   }
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
     if (valueSet != null) {
@@ -147,11 +153,15 @@ public class ChangeLog {
     this.pages.add(page);
     return page;
   }
-  public boolean hasPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny().isPresent();
+  public Page<OtherChild> addPage(IBaseResource theSourceResource, IBaseResource theTargetResource, String url) throws UnprocessableEntityException {
+    var oldData = theSourceResource == null ? null : new OtherChild(null, theSourceResource.getIdElement().getIdPart(), null, null, url, theSourceResource.fhirType());
+    var newData = theTargetResource == null ? null : new OtherChild(null, theTargetResource.getIdElement().getIdPart(), null, null, url, theTargetResource.fhirType());
+    var page = new Page<OtherChild>(url, oldData, newData);
+    this.pages.add(page);
+    return page;
   }
   public Optional<Page<? extends PageBase>> getPage(String url) {
-    return this.pages.stream().filter(p -> p.url.equals(url)).findAny();
+    return this.pages.stream().filter(p -> p.url != null && p.url.equals(url)).findAny();
   }
   public void handleRelatedArtifacts() {
     var manifest = this.getPage(this.manifestUrl);
@@ -357,6 +367,8 @@ public class ChangeLog {
     public List<Code> codes = new ArrayList<>();
     public List<Leaf> leafValuesets = new ArrayList<>();
     public List<Operation> operations = new ArrayList<>();
+    public ValueAndOperation priority = new ValueAndOperation();
+
     public static class Code {
       public String id;
       public String system;
@@ -472,7 +484,7 @@ public class ChangeLog {
         return copy;
       }
     }
-    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap) {
+    ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap, String priority) {
       super(title, id, version, name, url, "ValueSet");
       if (contains != null) {
         contains.forEach(contained -> {
@@ -503,6 +515,9 @@ public class ChangeLog {
               leafValuesets.add(leaf.copy());
             }
           });
+      }
+      if (priority != null) {
+        this.priority.value = priority;
       }
     }
     @Override
@@ -580,6 +595,21 @@ public class ChangeLog {
               updateCodeOperation(c.getCode(), updatedOperation);
             });
           }
+        } else if (path.contains("useContext")) {
+          String priorityToCheck = null;
+          if (newValue instanceof UsageContext 
+          && ((UsageContext) newValue).getCode().getSystem().equals(TransformProperties.usPHUsageContextType)
+          && ((UsageContext) newValue).getCode().getCode().equals("priority")
+          ) {
+            priorityToCheck = ((UsageContext) newValue).getValueCodeableConcept().getCodingFirstRep().getCode();
+          } else if (originalValue instanceof UsageContext
+          && ((UsageContext) originalValue).getCode().getSystem().equals(TransformProperties.usPHUsageContextType)
+          && ((UsageContext) originalValue).getCode().getCode().equals("priority")) {
+            priorityToCheck = ((UsageContext) originalValue).getValueCodeableConcept().getCodingFirstRep().getCode();
+          }
+          if (priorityToCheck != null) {
+            this.priority.operation = operation;
+          }
         } else {
           this.operations.add(operation);
         }
@@ -604,6 +634,11 @@ public class ChangeLog {
   public static class PlanDefinitionChild extends PageBase {
     PlanDefinitionChild(String title, String id, String version, String name, String url) {
       super(title, id, version, name, url, "PlanDefinition");
+    }
+  }
+  public static class OtherChild extends PageBase {
+    OtherChild(String title, String id, String version, String name, String url, String fhirType) {
+      super(title, id, version, name, url, fhirType);
     }
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
