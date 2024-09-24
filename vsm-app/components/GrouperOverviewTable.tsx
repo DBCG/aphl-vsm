@@ -23,10 +23,10 @@ const ButtonContainer = styled.div`
 
 interface GrouperTable {
   grouperLibId: fhir4.Library['id']
-  programStatus: fhir4.Library['status'] | undefined
+  program: fhir4.Library | null
 }
 
-const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => {
+const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
   const router = useRouter()
   const programId = router.query.id as string
   const [error, setError] = useState<null | Error>(null)
@@ -35,6 +35,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
   const [toggleRefresh, setToggleRefresh] = useState(false)
 
   const { groups, groupsError, groupsLoading } = useGetGroups({ programId, refreshToggle: toggleRefresh })
+  const planDef = program?.relatedArtifact?.find(ra => ra.resource?.includes("PlanDefinition"))?.resource
 
   // can only delete grouper if has editing permissions
   // deleting the grouper removes it from the grouper library
@@ -54,9 +55,13 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
        if (!(grouperVsCanonicalToRemove && grouperVsIdToRemove)) {
         throw new Error(`missing Grouper info: ${!grouperVsIdToRemove ? "missing ID" : ""}${!grouperVsCanonicalToRemove ? " missing Canonical" : ""}`)
        }
+       if (!planDef) {
+        throw new Error(`Can't find PlanDefinition in program: ${programId}`)
+       }
         const deleteBody:DeleteGrouperRequest["body"] = {
           grouperLibraryId: grouperLibId,
           manifestLibraryId: programId,
+          planDefinitionUrl: planDef,
           editingInfo: {
             action: 'remove',
             vsCanonical: grouperVsCanonicalToRemove,
@@ -81,12 +86,12 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
       } else {
         setError({
           type: 'delete_failed',
-          message: 'Failed to delete grouper Value Set'
+          message: 'Failed to delete grouper Value Set: ' + (await updated?.json() as {error?:string})?.error
         })
         setDeleting(false)
       }
     },
-    [programId]
+    [programId,planDef]
   )
 
   useEffect(() => {
@@ -150,7 +155,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
         name: 'Remove Group',
         maxWidth: '150px',
         center: true,
-        omit: !(can(session, 'edit') && programStatus === 'draft'),
+        omit: !(can(session, 'edit') && program?.status === 'draft'),
         cell: (row: fhir4.ValueSet) => {
           return (
             <ButtonContainer>
@@ -171,7 +176,7 @@ const GrouperOverviewTable = ({ grouperLibId, programStatus }: GrouperTable) => 
     ]
 
     return fields
-  }, [deleteGrouper, grouperLibId, programStatus, session, programId])
+  }, [deleteGrouper, grouperLibId, program?.status, session, programId])
 
   return (
     <>
