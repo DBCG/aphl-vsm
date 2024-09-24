@@ -105,7 +105,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
       </Row>
       <GrouperOverviewTable
         grouperLibId={programAndGrouperData?.grouperLibrary?.id}
-        programStatus={programAndGrouperData?.program?.status}
+        program={programAndGrouperData?.program}
       />
       <Row style={{ alignItems: 'center', marginBottom: '12px', marginTop: '32px' }}>
         <Col style={{ width: 'auto' }}>

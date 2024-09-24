@@ -16,6 +16,7 @@ export interface DeleteGrouperRequest extends NextApiRequest {
   body: {
     grouperLibraryId: string
     manifestLibraryId: string
+    planDefinitionUrl?: string
     editingInfo: EditingInfo
   }
 }
@@ -23,9 +24,15 @@ export interface DeleteGrouperRequest extends NextApiRequest {
 const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiResponse) => {
   const body = req.body
 
-  const { grouperLibraryId: libraryId, editingInfo, manifestLibraryId }: DeleteGrouperRequest["body"] = body
-
-  const [grouperLib, manifestLib, grouperVs] = await
+  const { grouperLibraryId: libraryId, editingInfo, manifestLibraryId, planDefinitionUrl }: DeleteGrouperRequest["body"] = body
+  const urlParameters: fhir4.Parameters = {
+    resourceType: "Parameters",
+    parameter: [{
+      name: "url",
+      valueUri: planDefinitionUrl
+    }]
+  }
+  const [grouperLib, manifestLib, grouperVs, planDefinitionDataRequirements] = await
     Promise.all([
       fhirCdrClient.read({
         resourceType: 'Library',
@@ -38,7 +45,19 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
       fhirCdrClient.read({
         resourceType: 'ValueSet',
         id: editingInfo.vsId
-      }) as Promise<fhir4.ValueSet>])
+      }) as Promise<fhir4.ValueSet>,
+      fhirCdrClient.operation({
+        name: "$data-requirements",
+        method: "POST",
+        input: JSON.stringify(urlParameters)
+      }) as Promise<fhir4.Library>,])
+
+  const isGrouperPlanDefinitionDependency = planDefinitionDataRequirements.relatedArtifact?.some(ra => ra.resource && splitCanonical(ra.resource)[0] === editingInfo.vsCanonical)
+  if (isGrouperPlanDefinitionDependency) {
+    const error = "Grouper is dependency of: " + planDefinitionUrl
+    logger.error(error)
+    return res.status(400).send({ error })
+  }
 
   if (editingInfo.action === 'remove') {
     const updatedGrouperLib = editComposeInclude({
