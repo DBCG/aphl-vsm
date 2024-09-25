@@ -65,7 +65,7 @@ export interface PaginationState {
 
 const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release' | 'withdraw') => {
   if (actionType === 'clone' && program.status !== 'active') {
-    return 'Only Active programs may be cloned'
+    return 'Only Active (released) programs may be cloned'
   } else if (actionType === 'release') {
     if (program.status !== 'draft') {
       return 'Only Draft programs may be released'
@@ -90,19 +90,22 @@ interface ExpandableRowProps {
 const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgramToRelease, handleClickWithdraw, setError }: ExpandableRowProps) => {
   const canClone = allowClone({ session, programStatus: row.status! })
   const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
+  const defaultCloneDescription = 'Cloning an active program will create a draft copy that you can edit'
 
   const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
   const releaseBlockedReason = !canRelease && generateBlockedReason(row, 'release')
+  const defaultReleaseDescription = 'Releasing a program will mark it as active, and it will no longer be editable in VSM'
 
   const canWithdraw = allowWithdraw({ session, programStatus: row.status! })
   const withdrawBlockedReason = !canWithdraw && generateBlockedReason(row, 'withdraw')
+  const defaultWithdrawDescription = 'Withdrawing a draft program will delete it from VSM permanently'
 
   return (
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
       <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
         <p style={{ display: 'inline-block', marginRight: '.4rem', fontSize: '90%' }}>Actions for Program {row.id}:</p>
         { can(session, 'clone') && (
-          <Tooltip title={cloneBlockedReason} arrow>
+          <Tooltip title={cloneBlockedReason || defaultCloneDescription} arrow>
             {/* these spans are necessary to get the tooltips to show up consistently */}
             <span style={{ height:'fit-content', alignSelf: 'center' }}>
               <Button
@@ -121,7 +124,7 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
           </Tooltip>
         )}
         { can(session, 'release') && (
-          <Tooltip title={releaseBlockedReason} arrow>
+          <Tooltip title={releaseBlockedReason || defaultReleaseDescription} arrow>
             <span style={{ height:'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
@@ -140,7 +143,7 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
           </Tooltip>
         )}
         { can(session, 'withdraw') && (
-          <Tooltip title={withdrawBlockedReason} arrow>
+          <Tooltip title={withdrawBlockedReason || defaultWithdrawDescription} arrow>
             <span style={{ height:'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
