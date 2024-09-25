@@ -100,7 +100,7 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
   return (
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
       <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
-        <p style={{ display: 'inline-block', marginRight: '.4rem', fontSize: '90%' }}>Actions for program {row.id}:</p>
+        <p style={{ display: 'inline-block', marginRight: '.4rem', fontSize: '90%' }}>Actions for Program {row.id}:</p>
         <Tooltip title={cloneBlockedReason} arrow>
           {/* these spans are necessary to get the tooltips to show up consistently */}
           <span style={{ height:'fit-content', alignSelf: 'center' }}>
