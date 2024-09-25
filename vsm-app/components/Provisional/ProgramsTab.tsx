@@ -180,6 +180,10 @@ const ProgramsTab: NextPage = () => {
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
   const [progIdToWithdraw, setProgIdToWithdraw] = useState('')
 
+  // expandable rows
+  const [expandableRowsClosed, setExpandableRowsClosed] = useState(null)
+  const [refreshkey, setRefreshKey] = useState(0)
+
   // Table Pagination
   const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
@@ -218,6 +222,7 @@ const ProgramsTab: NextPage = () => {
       mutate()
     }
     handleEndWithdrawAction()
+    closeRows()
   }
 
   // clone template
@@ -312,6 +317,7 @@ const ProgramsTab: NextPage = () => {
       mutate()
       setModalOpen(false)
       setCloneLoading(false)
+      closeRows()
     }
   }
 
@@ -436,14 +442,19 @@ const ProgramsTab: NextPage = () => {
         error: `Error occurred while releasing program: ${payload.programId}. ${errorText}`
       })
     } else {
-      router.reload()
+      mutate()
     }
-
+    
     setLoading(false)
     setProgramToRelease(null)
+    closeRows()
   }
 
   if (!data) return <LoadingIndicator />
+
+  const closeRows = () => {
+    setRefreshKey((prev) => prev + 1)
+  }
 
   return (
     <Col>
@@ -556,6 +567,7 @@ const ProgramsTab: NextPage = () => {
       </div>
       <ErrorMessage error={error?.error || null} />
       <DT
+        key={refreshkey}
         data={programs}
         clearSelectedRows={toggledClearRows}
         columns={columns}
