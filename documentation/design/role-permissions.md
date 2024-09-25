@@ -1,11 +1,11 @@
 # Permission Matrix for Application
 
-| Permission                   | Editor | Reviewer | Admin |
-|------------------------------|--------|----------|-------|
-| Review valuesets             |    X   |     X    |   X   |
-| Approve valuesets            |        |          |   X   |
-| Create Drafts                |    X   |          |   X   |
-| Edit in Draft state          |    X   |          |   X   |
-| Release Operation            |        |          |   X   |
-| Retire Operation             |        |          |   X   |
-| Withdraw Operation           |    X   |          |   X   |
+| Permission                   | Reviewer | Editor | Admin |
+|------------------------------|----------|--------|-------|
+| View Program data            |    X     |    X   |   X   |
+| Approve Programs             |    X     |    X   |   X   |
+| Create Drafts (Clone)        |          |    X   |   X   |
+| Edit in Draft state          |          |    X   |   X   |
+| Withdraw Operation           |          |    X   |   X   |
+| Release Operation            |          |        |   X   |
+| Retire Operation             |          |        |   X   |
