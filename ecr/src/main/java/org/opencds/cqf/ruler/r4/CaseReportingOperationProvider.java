@@ -38,13 +38,11 @@ import org.hl7.fhir.r4.model.*;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
+import org.opencds.cqf.fhir.utility.visitor.*;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
-import org.opencds.cqf.fhir.utility.visitor.ApproveVisitor;
-import org.opencds.cqf.fhir.utility.visitor.DraftVisitor;
-import org.opencds.cqf.fhir.utility.visitor.PackageVisitor;
-import org.opencds.cqf.fhir.utility.visitor.ReleaseVisitor;
-import org.opencds.cqf.fhir.utility.visitor.VisitorHelper;
 import org.opencds.cqf.ruler.IBaseSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
@@ -58,6 +56,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CaseReportingOperationProvider {
+	private static final Logger log = LoggerFactory.getLogger(CaseReportingOperationProvider.class);
 	@Autowired
 	private IRepositoryFactory repositoryFactory;
 
@@ -538,6 +537,39 @@ public class CaseReportingOperationProvider {
 		}
 
 		return bin;
+	}
+
+	/**
+	 * Withdraws an existing artifact if it has status Draft.
+	 *
+	 * @param requestDetails     the {@link RequestDetails RequestDetails}
+	 * @param theId              the {@link IdType IdType}, always an argument for instance level operations
+	 * @return A transaction bundle result of the withdrawn resources
+	 */
+	@Operation(name = "$withdraw", idempotent = true, global = true, type = MetadataResource.class)
+	@Description(shortDefinition = "$withdraw", value = "Withdraw an existing draft artifact")
+	public Bundle withdrawOperation(
+			RequestDetails requestDetails,
+			@IdParam IdType theId)
+			throws FHIRException {
+		var repository = repositoryFactory.create(requestDetails);
+		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
+		if (resource == null) {
+			throw new ResourceNotFoundException(theId);
+		}
+		var params = new Parameters();
+		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
+		try {
+			var visitor = new WithdrawVisitor();
+			adapter.getRelatedArtifact()
+					.forEach(ra -> {
+						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
+					});
+
+			return (Bundle) adapter.accept(visitor, repository, params);
+		} catch (Exception e) {
+			throw new UnprocessableEntityException(e.getMessage());
+		}
 	}
 
 	private ObjectMapper createSerializer() {
