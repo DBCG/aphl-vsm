@@ -54,7 +54,7 @@ export interface StatusProps {
 }
 
 interface Error {
-  error?: string
+  error?: string | string[]
 }
 
 export interface PaginationState {
@@ -218,7 +218,7 @@ const ProgramsTab: NextPage = () => {
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: `Error occurred while withdrawing program: ${id}. ${res.error}`
+        error: [`Error occurred while withdrawing program: ${id}.`,  `${res.error}`]
       })
     } else {
       toast.success(`Program ${id} withdrawn and deleted from VSM.`)
@@ -442,7 +442,7 @@ const ProgramsTab: NextPage = () => {
         errorText = 'Please try again.'
       }
       setError({
-        error: `Error occurred while releasing program: ${payload.programId}. ${errorText}`
+        error: [`Error occurred while releasing program: ${payload.programId}.`,  `${errorText}`]
       })
     } else {
       mutate()
@@ -568,7 +568,7 @@ const ProgramsTab: NextPage = () => {
           </div>
         )}
       </div>
-      <ErrorMessage error={error?.error || null} />
+      <ErrorMessage error={error?.error || null} handleClose={() => setError({})} />
       <DT
         key={refreshkey}
         data={programs}
