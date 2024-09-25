@@ -81,3 +81,50 @@ By default this will point to the local instance of the CQF server running at `h
 `./keycloak/configure` prompt for populating keycloak idp
 
 To stop everything and wipe docker env `./bin/docker-cleanup.sh` 
+
+## Using a Development Build of clinical-reasoning
+
+### `clinical-reasoning` Steps
+
+Use `./mvnw clean install` to generate and cache a local version of your `clinical-reasoning` build
+
+### `cqf-ruler` Steps
+
+- Ensure that the pom.xml file has the right `clinical-reasoning` version variable:
+```
+		<clinical-reasoning.version>3.12.0-SNAPSHOT</clinical-reasoning.version>
+```
+or similar matching the version in your `clinical-reasoning` pom.xml file.
+-  Use `./mvnw clean install` to generate and cache a local version of your `cqf-ruler` build containing the `clinical-reasoning` dependency
+-  Use `docker build -t cqf-ruler-docker-image-tag-whatever .` to generate a docker image of `cqf-ruler` which you can use in the next part
+
+### `aphl-vsm` Steps
+
+- Make sure your `ecr/pom.xml` file has the correct versions of `clinical-reasoning`
+```
+<dependency>
+			<groupId>org.opencds.cqf.fhir</groupId>
+			<artifactId>cqf-fhir-cr</artifactId>
+			<version>3.12.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opencds.cqf.fhir</groupId>
+			<artifactId>cqf-fhir-utility</artifactId>
+			<version>3.12.0-SNAPSHOT</version>
+		</dependency>
+```
+- Update your `docker-compose` file as follows:
+```
+cqf-ruler-vsm:
+  image: something-different-to-what-it-was-before
+  build:
+   context: ./ecr
+```
+- Uodate the first line of `ecr/Dockerfile` as follows:
+```
+FROM cqf-ruler-docker-image-tag-whatever
+```
+where the base image is the cqf-ruler image you generated in the previous section.
+- Then go to `ecr` and run `mvn clean install`
+- In the base directory run `docker compose build` to copy your plugin files into the cqf-ruler image
+- run `docker compose up` to start up your dev instance which will use the development build of `clinical-reasoning`
