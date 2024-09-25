@@ -178,7 +178,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         }
 
         const authorativeValueSet = vsComparatorResponses.entry?.[0].resource as ValueSet
-        const authoritativeFullUrl = vsComparatorResponses.entry?.[0].fullUrl as string // necessary for auth source
+        const authoritativeFullUrl = authorativeValueSet.url?.replace('http://', 'https://') as string // necessary for auth source
         toUpdateCollection[valueset.url!] = {
           cdrValueSet: valueset,
           authorativeValueSet,

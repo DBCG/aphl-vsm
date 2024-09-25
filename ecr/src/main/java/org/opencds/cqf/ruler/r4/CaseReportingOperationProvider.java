@@ -39,6 +39,7 @@ import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.visitor.*;
+import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
 import org.opencds.cqf.ruler.IBaseSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,7 @@ import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -231,7 +233,89 @@ public class CaseReportingOperationProvider {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
 	}
-
+  
+	// this implmentation is temporary until we integrate the full version from clinical-reasoning
+	@Operation(name = "$data-requirements", idempotent = true, global = true)
+	@Description(shortDefinition = "$data-requirements", value = "Assembles a Library with a list of all dependencies of an artifact")
+	public Library dataRequirementsOperation(
+		RequestDetails requestDetails,
+		@OperationParam(name = "url") UriType url,
+		@OperationParam(name = "identifier") IPrimitiveType<String> identifier,
+		@OperationParam(name = "expression") List<String> expression,
+		@OperationParam(name = "parameters") Parameters parameters,
+		@OperationParam(name = "artifactVersion") List<UriType> artifactVersion,
+		@OperationParam(name = "checkArtifactVersion") List<UriType> checkArtifactVersion,
+		@OperationParam(name = "forceArtifactVersion") List<UriType> forceArtifactVersion,
+		@OperationParam(name = "include") List<String> include,
+		@OperationParam(name = "manifest") CanonicalType manifest,
+		@OperationParam(name = "artifactEndpointConfiguration") Parameters.ParametersParameterComponent artifactEndpointConfiguration,
+		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
+	) throws FHIRException {
+		var unsupportedParamsList = Arrays.asList(identifier,expression,parameters,artifactVersion,checkArtifactVersion,forceArtifactVersion,include,manifest,artifactEndpointConfiguration,terminologyEndpoint);
+		unsupportedParamsList.forEach(param -> {
+			if (param != null) {
+				throw new NotImplementedOperationException("This operation has not implemented support for any parameters except 'url' at this time");
+			}
+		});
+		if (url == null) {
+			throw new UnprocessableEntityException("'url' cannot be null");
+		}
+		var repository = repositoryFactory.create(requestDetails);
+		var hopefullyKnowledgeArtifact = VisitorHelper.tryGetLatestVersion(url.getValue(), repository);
+		if (hopefullyKnowledgeArtifact.isEmpty()) {
+			throw new ResourceNotFoundException(url.getValue());
+		}
+		return minimalDataRequirements(hopefullyKnowledgeArtifact.get());
+	}
+	
+	@Operation(name = "$data-requirements", idempotent = true, global = true)
+	@Description(shortDefinition = "$data-requirements", value = "Assembles a Library with a list of all dependencies of an artifact")
+	public Library dataRequirementsOperation(
+		RequestDetails requestDetails,
+		@IdParam IdType theId,
+		@OperationParam(name = "url") UriType url,
+		@OperationParam(name = "identifier") IPrimitiveType<String> identifier,
+		@OperationParam(name = "expression") List<String> expression,
+		@OperationParam(name = "parameters") Parameters parameters,
+		@OperationParam(name = "artifactVersion") List<UriType> artifactVersion,
+		@OperationParam(name = "checkArtifactVersion") List<UriType> checkArtifactVersion,
+		@OperationParam(name = "forceArtifactVersion") List<UriType> forceArtifactVersion,
+		@OperationParam(name = "include") List<String> include,
+		@OperationParam(name = "manifest") CanonicalType manifest,
+		@OperationParam(name = "artifactEndpointConfiguration") Parameters.ParametersParameterComponent artifactEndpointConfiguration,
+		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
+	) throws FHIRException {
+		var unsupportedParamsList = Arrays.asList(url,identifier,expression,parameters,artifactVersion,checkArtifactVersion,forceArtifactVersion,include,manifest,artifactEndpointConfiguration,terminologyEndpoint);
+		unsupportedParamsList.forEach(param -> {
+			if (param != null) {
+				throw new NotImplementedOperationException("This operation has not implemented support for any parameters at this time");
+			}
+		});
+		var repository = repositoryFactory.create(requestDetails);
+		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
+		if (resource == null) {
+			throw new ResourceNotFoundException(url.getValue());
+		}
+		return minimalDataRequirements(adapterFactory.createKnowledgeArtifactAdapter(resource));
+	}
+	private Library minimalDataRequirements(KnowledgeArtifactAdapter adapter) {
+		Library returnLibrary = new Library();
+		returnLibrary.setStatus(Enumerations.PublicationStatus.ACTIVE);
+		CodeableConcept libraryType = new CodeableConcept();
+		Coding typeCoding = new Coding().setCode("module-definition");
+		typeCoding.setSystem("http://terminology.hl7.org/CodeSystem/library-type");
+		libraryType.addCoding(typeCoding);
+		returnLibrary.setName("EffectiveDataRequirements");
+		returnLibrary.setType(libraryType);
+		returnLibrary.getRelatedArtifact().addAll(adapter.getDependencies().stream().map(dep -> (RelatedArtifact)KnowledgeArtifactAdapter.newRelatedArtifact(
+			FhirVersionEnum.R4,
+			"depends-on",
+			dep.getReference(),
+			null
+		)).collect(Collectors.toList()));
+		return returnLibrary;
+	}
+	
 	@Operation(name = "$package", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$package", value = "Package an artifact and components / dependencies")
 	public Bundle packageOperation(

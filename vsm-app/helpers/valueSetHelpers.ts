@@ -118,8 +118,9 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
             url: terminologyExt?.valueUri
           }
         }
+      } else {
+        errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
       }
-      errors.push(`Value Set ${valueSet.id} has no matching Authoritative Source`)
     }
     return {
       value: val?.label || "",
