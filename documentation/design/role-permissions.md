@@ -8,3 +8,4 @@
 | Edit in Draft state          |    X   |          |   X   |
 | Release Operation            |        |          |   X   |
 | Retire Operation             |        |          |   X   |
+| Withdraw Operation           |    X   |          |   X   |
