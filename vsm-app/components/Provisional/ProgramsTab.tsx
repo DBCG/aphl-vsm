@@ -20,6 +20,7 @@ import { formatDateForTable } from '@/helpers/formatDates'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
 import { ProgramApiResponse } from '@/pages/api/programs'
+import { toast } from 'react-toastify'
 
 export const checkboxStyles = {
   root: {
@@ -180,13 +181,37 @@ const ProgramsTab: NextPage = () => {
     searchTotal: null
   })
 
+  const handleEndWithdrawAction = () => {
+    setProgIdToWithdraw('')
+    setWithdrawLoading(false)
+    setWithdrawModalOpen(false)
+  }
+
   const handleWithdrawDraft = async ({ id }: { id: string }) => {
     setWithdrawLoading(true)
+
+    // withdraw will fail unless you pass it an empty parameters object
+    const withdrawParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(withdrawParameters)
+
+
     // mock withdraw until the operation exists
-    setTimeout(() => {
-      setWithdrawLoading(false)
-      setWithdrawModalOpen(false)
-    }, 1000)
+    const result = await fetch(`/api/programs/${id}/withdraw`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: `Error occurred while withdrawing program: ${id}. ${res.error}`
+      })
+    } else {
+      toast.success(`Program ${id} withdrawn and deleted from VSM.`)
+      mutate()
+    }
+    handleEndWithdrawAction()
   }
 
   // clone template
@@ -221,6 +246,7 @@ const ProgramsTab: NextPage = () => {
       }),
     { revalidateOnFocus: false }
   )
+
   const { programs, total } = data
 
   useEffect(() => {
@@ -284,7 +310,7 @@ const ProgramsTab: NextPage = () => {
   }
 
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
-  const debouncedWithdrawProgram = debounce((programId) => handleWithdrawDraft(programId), 2000, { leading: true, trailing: false })
+  const debouncedWithdrawProgram = debounce((programId) => handleWithdrawDraft({ id: programId }), 2000, { leading: true, trailing: false })
 
   const columns = useMemo(
     () => [
@@ -436,7 +462,7 @@ const ProgramsTab: NextPage = () => {
           handleModalAction={async () => {
             // throttle this action based on if it is already ongoing
             if (withdrawLoading) return
-            debouncedWithdrawProgram(progIdToClone)
+            debouncedWithdrawProgram(progIdToWithdraw)
           }}
           program={null}
           loading={withdrawLoading}

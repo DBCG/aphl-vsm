@@ -4,14 +4,15 @@ import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 const withdraw = async (req: NextApiRequest, res: NextApiResponse<{ message: string } | { error: string }>): Promise<void> => {
-
+  const body = req.body
   try {
-    const response = (await fhirCdrClient.operation({
+    await fhirCdrClient.operation({
       name: '$withdraw',
       resourceType: 'Library',
       id: req.query.id as string,
       method: 'POST',
-    })) as fhir4.Library
+      input: body
+    })
 
     res.status(200).send({ message: `Program with id ${req.query.id} withdrawn` })
   } catch (error: any) {
