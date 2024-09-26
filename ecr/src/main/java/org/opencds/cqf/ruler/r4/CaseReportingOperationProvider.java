@@ -577,7 +577,7 @@ public class CaseReportingOperationProvider {
 	 *
 	 * @param requestDetails     the {@link RequestDetails RequestDetails}
 	 * @param theId              the {@link IdType IdType}, always an argument for instance level operations
-	 * @return A transaction bundle result of the withdrawn resources
+	 * @return A transaction bundle result of the retire resources
 	 */
 	@Operation(name = "$retire", idempotent = true, global = true, type = MetadataResource.class)
 	@Description(shortDefinition = "$retire", value = "Retire an existing draft artifact")
