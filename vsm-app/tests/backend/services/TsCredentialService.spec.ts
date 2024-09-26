@@ -17,11 +17,12 @@ class FhirClientTest implements FhirClient {
       }
 
       async getTerminologyServer(id: string): Promise<fhir4.Endpoint> {
-        if (id = "non-exist") {
+        if (id === "non-exist") {
           return undefined
         } else {
         const endpoint:fhir4.Endpoint = {
           resourceType: "Endpoint",
+          id: "someId",
           address: id,
           connectionType: { code: "" },
           payloadType: [],
@@ -52,6 +53,10 @@ class KeyCloakClientTest implements KeyCloakClient {
     }
 
     async storeBasicAuthCreds(userId: String, inputUrl: String, username: String, password: String): Promise<void> {
+        return
+    }
+
+    async deleteUserCredential(userId: string, serverId: string): Promise<void> {
         return
     }
 }
