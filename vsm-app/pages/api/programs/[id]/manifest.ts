@@ -3,10 +3,11 @@ import { terminologyClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
-import { getProgramManifestVersions, setExpansionParameters } from '@/helpers/valueSetHelpers'
+import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { getProgramDetailsValuesets } from './details/valuesets'
+import { addTerminologyEndpointToParameters } from './package'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -62,11 +63,32 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 }
 
 const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
-  const leafVs = await getProgramDetailsValuesets({ id: programId })
+  const parameters = addTerminologyEndpointToParameters({ resourceType: 'Parameters' } as fhir4.Parameters)
+
+  const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${programId}/$package`, {
+    body: JSON.stringify(parameters),
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/fhir+json',
+      // should be Basic Auth creds
+      ...fhirCdrClient.customHeaders
+    }
+  }).then((i) => i.json()).catch((err) => {
+    logger.error('Something went wrong with $package operation for program Id:' + programId)
+    logger.error(err)
+    throw new Error('Something went wrong while packaging')
+  })
+  const allLeafVs = response?.entry
+    ?.map((i: fhir4.BundleEntry) => i.resource)
+    ?.filter((i: fhir4.ValueSet) => i.resourceType === 'ValueSet' && !isGrouperValueSet(i))
+
   let codeSystemsList: fhir4.Coding[] = []
-  // @ts-ignore
-  leafVs?.payload?.data?.forEach((i) => {
-    const codeSystems = i?.valueSet?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({system: i.system, code: i.concept?.[0]?.code}))
+
+  allLeafVs?.forEach((i: fhir4.ValueSet) => {
+    const codeSystems = i?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({
+      system: i.system,
+      code: i.concept?.[0]?.code
+    })) || [] as fhir4.Coding[]
     codeSystemsList.push(...codeSystems)
   })
 
