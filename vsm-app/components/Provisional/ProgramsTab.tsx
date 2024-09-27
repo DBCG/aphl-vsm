@@ -518,8 +518,7 @@ const ProgramsTab: NextPage = () => {
                       control={
                         <Checkbox
                           checked={downloadSpreadsheet}
-                          // @ts-ignore
-                          style={checkboxStyles}
+                          sx={checkboxStyles}
                         />
                       }
                       label="Download Changelog Spreadsheet"
