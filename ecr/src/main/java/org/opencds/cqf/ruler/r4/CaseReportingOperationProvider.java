@@ -561,10 +561,6 @@ public class CaseReportingOperationProvider {
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
 			var visitor = new WithdrawVisitor();
-			adapter.getRelatedArtifact()
-					.forEach(ra -> {
-						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
-					});
 
 			return (Bundle) adapter.accept(visitor, repository, params);
 		} catch (Exception e) {
@@ -594,10 +590,6 @@ public class CaseReportingOperationProvider {
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
 			var visitor = new RetireVisitor();
-			adapter.getRelatedArtifact()
-					.forEach(ra -> {
-						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
-					});
 
 			return (Bundle) adapter.accept(visitor, repository, params);
 		} catch (Exception e) {
