@@ -63,7 +63,6 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 }
 
 const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
-  const leafVs = await getProgramDetailsValuesets({ id: programId })
   const parameters = addTerminologyEndpointToParameters({ resourceType: 'Parameters' } as fhir4.Parameters)
 
   const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${programId}/$package`, {
@@ -79,9 +78,9 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
     logger.error(err)
     throw new Error('Something went wrong while packaging')
   })
-  const allLeafVs = response.entry
-    .map((i: fhir4.BundleEntry) => i.resource)
-    .filter((i: fhir4.ValueSet) => i.resourceType === 'ValueSet' && !isGrouperValueSet(i))
+  const allLeafVs = response?.entry
+    ?.map((i: fhir4.BundleEntry) => i.resource)
+    ?.filter((i: fhir4.ValueSet) => i.resourceType === 'ValueSet' && !isGrouperValueSet(i))
 
   let codeSystemsList: fhir4.Coding[] = []
 
@@ -89,7 +88,7 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
     const codeSystems = i?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({
       system: i.system,
       code: i.concept?.[0]?.code
-    })) as fhir4.Coding[]
+    })) || [] as fhir4.Coding[]
     codeSystemsList.push(...codeSystems)
   })
 
