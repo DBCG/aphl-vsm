@@ -53,6 +53,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class CaseReportingOperationProvider {
@@ -488,8 +492,22 @@ public class CaseReportingOperationProvider {
 	{
 		// TODO: check the requestDetails for MIME type and return accordingly
 		// 1) Use package to get a pair of bundles
-		var sourceBundle = packageOperation(requestDetails, new IdType(source), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint);
-		var targetBundle = packageOperation(requestDetails, new IdType(target), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint);
+		ExecutorService service = Executors.newCachedThreadPool();
+		List<Future<Bundle>> packages;
+		Bundle sourceBundle;
+		Bundle targetBundle;
+		try {
+		packages = service.invokeAll(Arrays.asList(
+			() -> packageOperation(requestDetails, new IdType(source), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint), 
+			() -> packageOperation(requestDetails, new IdType(target), null, null, null, null, null, null, null, null, null, null, terminologyEndpoint)));
+			sourceBundle = packages.get(0).get();
+			targetBundle = packages.get(1).get();
+			service.shutdownNow();
+		} catch (InterruptedException | ExecutionException e) {
+			service.shutdownNow();
+			throw new UnprocessableEntityException(e.getMessage());
+		}
+		
 		// 2) Fill the cache with the bundle contents
 		var cache = new KnowledgeArtifactProcessor.diffCache();
 		Optional<Library> theSourceResource = Optional.empty();
