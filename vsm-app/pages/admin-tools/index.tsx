@@ -1,5 +1,5 @@
 import type { NextPage } from 'next'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import styled from 'styled-components'
 import DT, { TableColumn } from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'

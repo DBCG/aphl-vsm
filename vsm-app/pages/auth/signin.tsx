@@ -22,8 +22,8 @@ export default function SignIn({ providers }: InferGetServerSidePropsType<typeof
         backdropFilter: 'blur(5px)',
       }}
     >
-      <Typography sx={{ color: 'var(--theme-500)' }} variant="h2">
-        ValueSet Manager
+      <Typography sx={{ color: 'var(--theme-500)', textAlign: 'center', fontWeight: '400' }} variant="h2">
+        Valueset Manager
       </Typography>
       {Object.values(providers).map((provider: any) => (
         <div key={provider?.name || 'provider-name'}>

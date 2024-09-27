@@ -3,7 +3,7 @@ import { can, allowEditing } from './rolesHelper'
 describe('rolesHelper', () => {
   describe('can', () => {
     it('admin role has the expected permissions', () => {
-      const allowedPermissions = ['clone', 'approve', 'edit', 'release']
+      const allowedPermissions = ['clone', 'approve', 'edit', 'release', 'withdraw']
       const session = {
         user: {
           roles: ['admin']
@@ -15,7 +15,7 @@ describe('rolesHelper', () => {
     })
 
     it('editor role has the expected permissions', () => {
-      const allowedPermissions = ['clone', 'approve', 'edit']
+      const allowedPermissions = ['clone', 'approve', 'edit', 'withdraw']
       const session = {
         user: {
           roles: ['editor']

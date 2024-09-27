@@ -45,6 +45,6 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
 export default handler({
   POST: {
     action: approve,
-    access: ['admin']
+    access: ['admin', 'editor', 'reviewer']
   }
 })
