@@ -355,7 +355,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
         Object.entries(data).forEach(([key, change]) => {
           // @ts-ignore todo: fix this
           change?.forEach((rowValue) => {
-            const { conditions, memberOid, name, codeSystems, status } = rowValue
+            const { conditions, memberOid, name, codeSystems, status, priority } = rowValue
             const vsCodeSystemName = codeSystems?.[0]?.name || ''
             const vsCodeSystemOid = codeSystems?.[0]?.oid || ''
             conditions?.forEach((condition: any) => {
@@ -364,6 +364,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
               groupingListRows.push([
                 name,
                 memberOid,
+                priority?.value,
                 vsCodeSystemName,
                 vsCodeSystemOid,
                 status,
@@ -394,6 +395,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
           columns: [
             { name: 'Name' },
             { name: 'OID' },
+            { name: 'Priority' },
             { name: 'Code System' },
             { name: 'Code System OID' },
             { name: 'Status' },
