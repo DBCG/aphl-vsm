@@ -561,10 +561,35 @@ public class CaseReportingOperationProvider {
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
 			var visitor = new WithdrawVisitor();
-			adapter.getRelatedArtifact()
-					.forEach(ra -> {
-						KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
-					});
+
+			return (Bundle) adapter.accept(visitor, repository, params);
+		} catch (Exception e) {
+			throw new UnprocessableEntityException(e.getMessage());
+		}
+	}
+
+	/**
+	 * Retires an existing artifact if it has status Draft.
+	 *
+	 * @param requestDetails     the {@link RequestDetails RequestDetails}
+	 * @param theId              the {@link IdType IdType}, always an argument for instance level operations
+	 * @return A transaction bundle result of the retire resources
+	 */
+	@Operation(name = "$retire", idempotent = true, global = true, type = MetadataResource.class)
+	@Description(shortDefinition = "$retire", value = "Retire an existing draft artifact")
+	public Bundle retireOperation(
+			RequestDetails requestDetails,
+			@IdParam IdType theId)
+			throws FHIRException {
+		var repository = repositoryFactory.create(requestDetails);
+		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
+		if (resource == null) {
+			throw new ResourceNotFoundException(theId);
+		}
+		var params = new Parameters();
+		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
+		try {
+			var visitor = new RetireVisitor();
 
 			return (Bundle) adapter.accept(visitor, repository, params);
 		} catch (Exception e) {
