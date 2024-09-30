@@ -29,7 +29,6 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   } catch (e: any) {
     console.error(e?.response?.data?.issue)
-    console.error(e)
     return res.status(400).send({ error: 'Error generating ChangeLog data' })
   }
 }
