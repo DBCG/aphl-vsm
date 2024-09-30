@@ -275,35 +275,40 @@ const ProgramCompare = () => {
       return
     }
 
-    const response = await fetch('/api/programs/changelog', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        baseProgramId: base.value,
-        targetProgramId: target.value
+    try {
+      const response = await fetch('/api/programs/changelog', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          baseProgramId: base.value,
+          targetProgramId: target.value
+        })
       })
-    })
-    
-    if (!response.ok) {
-      setDownloadLoading(false)
-      setIsLoadingDiff(false)
-      return { error: 'Failed to generate difference data' }
-    } else {
-      const json = await response.json()
-
-      const diffItemToAdd = {
-        [base.value]: {
-          [target.value]: json
+      
+      if (!response.ok) {
+        setDownloadLoading(false)
+        setIsLoadingDiff(false)
+        return { error: 'Failed to generate difference data' }
+      } else {
+        const json = await response.json()
+  
+        const diffItemToAdd = {
+          [base.value]: {
+            [target.value]: json
+          }
         }
+  
+        const existingDiffData = rawDiffData || {}
+  
+        const updatedDiffData = Object.assign({}, existingDiffData, diffItemToAdd)
+        setRawDiffData(updatedDiffData)
+        return json
       }
 
-      const existingDiffData = rawDiffData || {}
-
-      const updatedDiffData = Object.assign({}, existingDiffData, diffItemToAdd)
-      setRawDiffData(updatedDiffData)
-      return json
+    } catch (e) {
+      return { error: `Failed to generate difference data between base (ID: ${base.value}) and target (ID: ${target.value})` }
     }
   }
 
