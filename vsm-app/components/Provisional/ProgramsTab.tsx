@@ -309,7 +309,6 @@ const ProgramsTab: NextPage = () => {
         if ('error' in json) {
           setError({ error: json.error })
         } else {
-          console.error(json)
           throw new Error(JSON.stringify(json))
         }
       }
