@@ -76,7 +76,7 @@ echo "realm_management_client_id $realm_management_client_id"
 echo "{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }"
 curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d "[{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }]" $base_url/admin/realms/$realm/users/$service_account_user_id/role-mappings/clients/$realm_management_client_id
 
-echo -e 'Finished updating Server Auth Settings and '
+echo -e 'Finished updating Server Auth Settings'
 echo -e '\n________________________________\n'
 
 
