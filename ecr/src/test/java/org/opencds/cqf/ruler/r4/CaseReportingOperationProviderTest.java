@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Skip;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
@@ -1429,7 +1428,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(noConditionExtension.getMessage().contains("Missing condition"));
 	}
 
-	@Skip
+	@Disabled
 	@Test
 	void validateOperation() {
 		var ersdExampleSpecBundle = (Bundle) loadResource("ersd-bundle-example-cr.json");
@@ -1487,7 +1486,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(noResourceException.getMessage().contains("resource must be provided"));
 	}
 
-	@Skip
+	@Disabled
 	@Test
 	void validateOperationUnqualifiedRelatedArtifact() {
 		Bundle ersdExampleSpecBundleUnqualifiedPlanDefinition = (Bundle) loadResource("ersd-library-validation-failure-unqualified-plandefinition-bundle.json");
@@ -1504,7 +1503,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(missingPlanDefinitionSliceErrorExists);
 	}
 
-	@Skip
+	@Disabled
 	@Test
 	void validatePackageOutput() {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
