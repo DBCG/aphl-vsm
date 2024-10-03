@@ -1428,7 +1428,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(noConditionExtension.getMessage().contains("Missing condition"));
 	}
 
-	@Disabled
 	@Test
 	void validateOperation() {
 		var ersdExampleSpecBundle = (Bundle) loadResource("ersd-bundle-example-cr.json");
@@ -1456,7 +1455,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		var supplementalBundleErrors = supplementalBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		assertTrue(supplementalBundleErrors.size() == 0);
+		assertEquals(0, supplementalBundleErrors.size());
 
 		var validationErrorLibrary = (Library) loadResource("ersd-active-library-us-ph-validation-failure-example.json");
 		var validationFailedParams = new Parameters();
@@ -1468,7 +1467,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		var invalidLibraryErrors = failedValidationOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		assertTrue(invalidLibraryErrors.size() == 5);
+		assertEquals(5, invalidLibraryErrors.size());
 
 		var noResourceParams = new Parameters();
 		UnprocessableEntityException noResourceException = null;
@@ -1486,7 +1485,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(noResourceException.getMessage().contains("resource must be provided"));
 	}
 
-	@Disabled
 	@Test
 	void validateOperationUnqualifiedRelatedArtifact() {
 		Bundle ersdExampleSpecBundleUnqualifiedPlanDefinition = (Bundle) loadResource("ersd-library-validation-failure-unqualified-plandefinition-bundle.json");
@@ -1499,11 +1497,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		boolean missingPlanDefinitionSliceErrorExists = failedValidationUnqualifiedPlanDefinitionOutcome.getIssue().stream()
-			.anyMatch((issue) -> issue.getDiagnostics().contains("Library.relatedArtifact:slicePlanDefinition: minimum required = 1, but only found 0 (from http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library|2.1.0)"));
+			.anyMatch((issue) -> issue.getDiagnostics().contains("'Library.relatedArtifact:slicePlanDefinition': a matching slice is required, but not found (from http://hl7.org/fhir/us/ecr/StructureDefinition/us-ph-specification-library|2.1.0)"));
 		assertTrue(missingPlanDefinitionSliceErrorExists);
 	}
 
-	@Disabled
 	@Test
 	void validatePackageOutput() {
 		loadTransaction("ersd-active-transaction-bundle-example.json");
@@ -1528,19 +1525,13 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(OperationOutcome.class)
 			.execute();
 		List<OperationOutcome.OperationOutcomeIssueComponent> errors = packagedBundleOutcome.getIssue().stream().filter((issue) -> issue.getSeverity() == OperationOutcome.IssueSeverity.ERROR || issue.getSeverity() == OperationOutcome.IssueSeverity.FATAL).collect(Collectors.toList());
-		assertEquals(10, errors.size());
+		assertEquals(4, errors.size());
 		// expect errors for Variable extension which bubble up and invalidate the PlanDefinition slice
 		assertTrue(errors.get(0).getDiagnostics().contains("slicePlanDefinition"));
 		assertTrue(errors.get(1).getDiagnostics().contains("'depends-on' but must be 'composed-of'"));
 		assertTrue(errors.get(2).getDiagnostics().contains("variable"));
+		assertTrue(errors.get(3).getDiagnostics().contains("variable"));
 
-		// grouper-type use context code is technically non-conformant
-		assertTrue(errors.get(4).getDiagnostics().contains("grouper-type"));
-		assertTrue(errors.get(5).getDiagnostics().contains("grouper-type"));
-		assertTrue(errors.get(6).getDiagnostics().contains("grouper-type"));
-		assertTrue(errors.get(7).getDiagnostics().contains("grouper-type"));
-		assertTrue(errors.get(8).getDiagnostics().contains("grouper-type"));
-		assertTrue(errors.get(9).getDiagnostics().contains("grouper-type"));
 	}
 
 	@Test
