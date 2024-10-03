@@ -68,6 +68,9 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         headers: {
           'Cache-control': 'no-cache, no-store, must-revalidate'
         }
+      },
+      searchParams: {
+        artifact: req.query['id'] as string
       }
     }) as fhir4.Bundle
 
