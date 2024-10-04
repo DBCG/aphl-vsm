@@ -5,7 +5,7 @@
 import Queue from 'bull'
 import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
-import { addExtensionToVs, EXTENSIONS, getTerminologySource } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, EXTENSIONS, getTerminologySource, isVsmAuthored } from '@/helpers/valueSetHelpers'
 import { isEqualComparator, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
@@ -148,6 +148,10 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
     // Gather all the valuesets from their respective authorative sources
     await Promise.all(
       cachedCdrVS.map(async (valueset) => {
+        if (isVsmAuthored(valueset)) {
+          logger.info(`Skipping VSM authored ValueSet ${valueset.id}`)
+          return
+        }
         let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
         const { value } = getTerminologySource(valueset, refreshErrors) //fetch the terminology server
 
@@ -184,7 +188,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
           authorativeValueSet,
           authoritativeFullUrl
         }
-      })
+      }).filter(i => i)
     )
 
     const updatesToBeMade = gatherVsToUpdate(toUpdateCollection)

@@ -11,7 +11,7 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
       * Looks like there is an array of ValueSets in /pages/programs/[id]/valuesets/index.tsx
         Use progValueSetDets.data to know which ValueSets to update
   */
-  logger.info('Begin Syncing ValueSets')
+  logger.info('Begin ValueSets Update Job')
   try {
     const { urls = [], programId } = req.body
     if (programId == null) {
