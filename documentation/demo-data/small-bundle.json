@@ -3614,6 +3614,8 @@
                 "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
             ]
         },
+        "experimental":"false",
+        "description":"COVID19",
         "extension": [
             {
                 "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
@@ -3627,7 +3629,7 @@
             },
             {
                 "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
-                "valueDate": "2023-12-15"
+                "valueDateTime": "2023-12-15"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
@@ -3683,6 +3685,8 @@
       "resource": {
         "resourceType": "ValueSet",
         "id": "2.16.840.1.113762.1.4.1078.748",
+        "experimental":"false",
+        "description":"COVID19",
         "meta": {
             "versionId": "12",
             "lastUpdated": "2023-12-21T17:43:03.000-05:00",
@@ -3705,7 +3709,7 @@
             },
             {
                 "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
-                "valueDate": "2023-12-15"
+                "valueDateTime": "2023-12-15"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
@@ -3768,6 +3772,8 @@
       "resource": {
         "resourceType": "ValueSet",
         "id": "2.16.840.1.113762.1.4.1078.749",
+        "experimental":"false",
+        "description":"COVID19",
         "meta": {
             "versionId": "18",
             "lastUpdated": "2023-12-21T17:43:03.000-05:00",
@@ -3790,7 +3796,7 @@
             },
             {
                 "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
-                "valueDate": "2023-12-15"
+                "valueDateTime": "2023-12-15"
             },
             {
               "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
