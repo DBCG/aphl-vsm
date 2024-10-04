@@ -35,6 +35,8 @@ import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +44,6 @@ import java.util.stream.Stream;
 
 @Configurable
 public class KnowledgeArtifactProcessor {
-
 	public static final String releaseLabelUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel";
 	public static final String releaseDescriptionUrl = "http://hl7.org/fhir/StructureDefinition/artifact-releaseDescription";
 	public static final String valueSetPriorityCode = "priority";
@@ -115,6 +116,15 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 	}
+	private static Map<String, ValueSet> populateUrlValueSetMap(List<BundleEntryComponent> bundleEntries) {
+		Map<String, ValueSet> urlValueSetMap = new HashMap<String,ValueSet>();
+		// populate urlValueSetMap
+		bundleEntries.stream()
+			.filter(e -> e.getResource().getResourceType().equals(ResourceType.ValueSet))
+			.map(e -> (ValueSet)e.getResource())
+			.forEach(vs -> urlValueSetMap.put(vs.getUrl(),vs));
+		return urlValueSetMap;
+	}
 	/**
 	 * ValueSets can be part of multiple artifacts at the same time. Certain properties are tracked/managed in the manifest to avoid conflicts with other artifacts. This function sets those properties on the ValueSets themselves at export / $package time
 	 * @param manifest the resource containing all RelatedArtifact references
@@ -122,20 +132,34 @@ public class KnowledgeArtifactProcessor {
 	 */
 	public static void handleValueSetReferenceExtensions(MetadataResource manifest, List<BundleEntryComponent> bundleEntries, Repository hapiFhirRepository) throws UnprocessableEntityException, IllegalArgumentException {
 		var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(manifest);
+		var urlValueSetMap = populateUrlValueSetMap(bundleEntries);
 		var relatedArtifactsWithPreservedExtension = getRelatedArtifactsWithPreservedExtensions(adapter.getDependencies());
-		bundleEntries.stream()
-			.forEach(entry -> {
-				if (entry.getResource().getResourceType().equals(ResourceType.ValueSet)) {
-					var valueSet = (ValueSet) entry.getResource();
+		for (final var valueSet : urlValueSetMap.values()) {
 					// remove any existing Priority and Conditions
 					var usageContexts = removeExistingReferenceExtensionData(valueSet.getUseContext());
 					valueSet.setUseContext(usageContexts);
-					var maybeVSRelatedArtifact = relatedArtifactsWithPreservedExtension.stream().filter(ra -> Canonicals.getUrl(ra.getReference()).equals(valueSet.getUrl())).findFirst();
-					checkIfValueSetNeedsCondition(valueSet, maybeVSRelatedArtifact.orElse(null), hapiFhirRepository);
-					// If leaf valueset
-					if (!valueSet.hasCompose()
-					 || (valueSet.hasCompose() && valueSet.getCompose().getIncludeFirstRep().getValueSet().size() == 0)) {
-						// If Condition extension is present
+					Optional<IDependencyInfo> maybeVSRelatedArtifact = Optional.empty();
+					if (!isGrouper(valueSet)) {
+						// for leaf valuesets we want to be as forgiving as possible
+						// since the reference might be to a transitive dependency
+						for (final var ra: relatedArtifactsWithPreservedExtension) {
+							var url = Canonicals.getUrl(ra.getReference());
+							if (urlValueSetMap.containsKey(url) && !isGrouper(urlValueSetMap.get(url))) {
+								// necessary to only check in non-grouper descendants because Groupers
+								// are frequently parents but the relatedArtifacts won't have Conditions on them
+								if (url.equals(valueSet.getUrl()) || checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSet.getUrl(), urlValueSetMap, url)){
+									try {
+										// take the first relatedArtifact which HAS a valid VSM Condition
+										checkIfValueSetNeedsCondition(valueSet, ra, hapiFhirRepository);
+										maybeVSRelatedArtifact = Optional.of(ra);
+										break;
+									} catch (UnprocessableEntityException e) {
+										// do nothing
+									}
+								}
+							}
+						}
+						checkIfValueSetNeedsCondition(valueSet, maybeVSRelatedArtifact.orElse(null), hapiFhirRepository);
 						maybeVSRelatedArtifact
 							.map(ra -> ra.getExtension())
 							.ifPresent(
@@ -145,6 +169,9 @@ public class KnowledgeArtifactProcessor {
 										.filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition))
 										.forEach(ext -> tryAddCondition(usageContexts, (CodeableConcept) ext.getValue()));
 								});		
+					} else {
+						maybeVSRelatedArtifact = relatedArtifactsWithPreservedExtension.stream()
+							.filter(ra -> Canonicals.getUrl(ra.getReference()).equals(valueSet.getUrl())).findFirst();
 					}
 					// update Priority
 					var priority = getOrCreateUsageContext(usageContexts, TransformProperties.usPHUsageContextType, valueSetPriorityCode);
@@ -158,9 +185,26 @@ public class KnowledgeArtifactProcessor {
 								var routine = new CodeableConcept(new Coding(TransformProperties.usPHUsageContext, "routine", null)).setText("Routine");
 								priority.setValue(routine);
 						});
-				}
-			});
+				};
 	}
+
+	private static boolean checkIfValueSetReferencedInANonGrouperVSetDescendant(String valueSetUrlToFind, Map<String, ValueSet> valueSetMap, String nextValueSetToCheck) {
+		var vSet = valueSetMap.get(nextValueSetToCheck);
+		return vSet
+			.getCompose().getInclude().stream()
+			.anyMatch(include -> include.getValueSet().stream().anyMatch(includedCanonical -> {
+				// if the ValueSet being checked is NOT a grouper and has the reference in the `compose.include` then return true
+				// because Groupers have references to many ValueSets but do not have Condition extensions so it would return a misleading error later on
+				if (!isGrouper(vSet) && Canonicals.getUrl(includedCanonical.getValue()).equals(valueSetUrlToFind)) {
+					return true;
+				} else if (checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSetUrlToFind, valueSetMap, Canonicals.getUrl(includedCanonical.getValue()))) {
+					return true;
+				} else {
+					return false;
+				}
+			}));
+	}
+
 	/**
 	 * Removes any existing UsageContexts corresponding the the VSM specific extensions
 	 * @param usageContexts the list of usage contexts to modify
