@@ -119,7 +119,6 @@ public class KnowledgeArtifactProcessor {
 	}
 	private static Map<String, ValueSet> populateUrlValueSetMap(List<BundleEntryComponent> bundleEntries) {
 		Map<String, ValueSet> urlValueSetMap = new HashMap<String,ValueSet>();
-		// populate urlValueSetMap
 		bundleEntries.stream()
 			.filter(e -> e.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(e -> (ValueSet)e.getResource())
@@ -151,7 +150,6 @@ public class KnowledgeArtifactProcessor {
 						// First check direct references
 						if (relatedArtifactMap.containsKey(valueSet.getUrl())
 						&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(valueSet.getUrl()), hapiFhirRepository)) {
-							// take the first relatedArtifact which HAS a valid VSM Condition
 							valueSetNeedsCondition = false;
 							maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(valueSet.getUrl()));
 						}
@@ -162,6 +160,7 @@ public class KnowledgeArtifactProcessor {
 								// necessary to only check in non-grouper descendants because Groupers
 								// are frequently parents but the relatedArtifacts won't have Conditions on them
 								&& checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSet.getUrl(), urlValueSetMap, maybeHasTransitiveReference)
+								// take the first relatedArtifact which HAS a valid VSM Condition
 								&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(maybeHasTransitiveReference), hapiFhirRepository)) {
 									valueSetNeedsCondition = false;
 									maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(maybeHasTransitiveReference));
