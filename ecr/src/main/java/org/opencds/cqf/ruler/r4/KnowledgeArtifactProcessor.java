@@ -93,7 +93,7 @@ public class KnowledgeArtifactProcessor {
 			}
 		}
 	}
-	public static void checkIfValueSetNeedsCondition(MetadataResource resource, IDependencyInfo relatedArtifact, Repository hapiFhirRepository) throws UnprocessableEntityException {
+	public static boolean checkIfValueSetNeedsCondition(MetadataResource resource, IDependencyInfo relatedArtifact, Repository hapiFhirRepository) throws UnprocessableEntityException {
 		if (resource == null 
 		&& relatedArtifact != null 
 		&& relatedArtifact.getReference() != null 
@@ -112,9 +112,10 @@ public class KnowledgeArtifactProcessor {
 					return list.stream().map(e->(Extension)e).filter(ext -> ext.getUrl().equalsIgnoreCase(TransformProperties.vsmCondition)).findFirst().orElse(null);
 				});
 			if (isLeaf && !maybeConditionExtension.isPresent()) {
-				throw new UnprocessableEntityException("Missing condition on leaf ValueSet : " + valueSet.getUrl());
+				return true;
 			}
 		}
+		return false;
 	}
 	private static Map<String, ValueSet> populateUrlValueSetMap(List<BundleEntryComponent> bundleEntries) {
 		Map<String, ValueSet> urlValueSetMap = new HashMap<String,ValueSet>();
@@ -134,32 +135,43 @@ public class KnowledgeArtifactProcessor {
 		var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(manifest);
 		var urlValueSetMap = populateUrlValueSetMap(bundleEntries);
 		var relatedArtifactsWithPreservedExtension = getRelatedArtifactsWithPreservedExtensions(adapter.getDependencies());
+		var relatedArtifactMap = new HashMap<String,IDependencyInfo>();
+		relatedArtifactsWithPreservedExtension.forEach(ra -> {
+			relatedArtifactMap.put(Canonicals.getUrl(ra.getReference()),ra);
+		});
 		for (final var valueSet : urlValueSetMap.values()) {
 					// remove any existing Priority and Conditions
 					var usageContexts = removeExistingReferenceExtensionData(valueSet.getUseContext());
 					valueSet.setUseContext(usageContexts);
 					Optional<IDependencyInfo> maybeVSRelatedArtifact = Optional.empty();
 					if (!isGrouper(valueSet)) {
+						boolean valueSetNeedsCondition = true;
 						// for leaf valuesets we want to be as forgiving as possible
 						// since the reference might be to a transitive dependency
-						for (final var ra: relatedArtifactsWithPreservedExtension) {
-							var url = Canonicals.getUrl(ra.getReference());
-							if (urlValueSetMap.containsKey(url) && !isGrouper(urlValueSetMap.get(url))) {
+						// First check direct references
+						if (relatedArtifactMap.containsKey(valueSet.getUrl())
+						&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(valueSet.getUrl()), hapiFhirRepository)) {
+							// take the first relatedArtifact which HAS a valid VSM Condition
+							valueSetNeedsCondition = false;
+							maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(valueSet.getUrl()));
+						}
+						// Then check transitive references
+						if(valueSetNeedsCondition) {
+							for (final var maybeHasTransitiveReference: urlValueSetMap.keySet()) {
+								if (!isGrouper(urlValueSetMap.get(maybeHasTransitiveReference))
 								// necessary to only check in non-grouper descendants because Groupers
 								// are frequently parents but the relatedArtifacts won't have Conditions on them
-								if (url.equals(valueSet.getUrl()) || checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSet.getUrl(), urlValueSetMap, url)){
-									try {
-										// take the first relatedArtifact which HAS a valid VSM Condition
-										checkIfValueSetNeedsCondition(valueSet, ra, hapiFhirRepository);
-										maybeVSRelatedArtifact = Optional.of(ra);
-										break;
-									} catch (UnprocessableEntityException e) {
-										// do nothing
-									}
+								&& checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSet.getUrl(), urlValueSetMap, maybeHasTransitiveReference)
+								&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(maybeHasTransitiveReference), hapiFhirRepository)) {
+									valueSetNeedsCondition = false;
+									maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(maybeHasTransitiveReference));
+									break;
 								}
 							}
 						}
-						checkIfValueSetNeedsCondition(valueSet, maybeVSRelatedArtifact.orElse(null), hapiFhirRepository);
+						if (valueSetNeedsCondition) {
+							throw new UnprocessableEntityException("Missing condition on leaf ValueSet : " + valueSet.getUrl());
+						}
 						maybeVSRelatedArtifact
 							.map(ra -> ra.getExtension())
 							.ifPresent(
@@ -170,8 +182,7 @@ public class KnowledgeArtifactProcessor {
 										.forEach(ext -> tryAddCondition(usageContexts, (CodeableConcept) ext.getValue()));
 								});		
 					} else {
-						maybeVSRelatedArtifact = relatedArtifactsWithPreservedExtension.stream()
-							.filter(ra -> Canonicals.getUrl(ra.getReference()).equals(valueSet.getUrl())).findFirst();
+						maybeVSRelatedArtifact = Optional.ofNullable(relatedArtifactMap.get(valueSet.getUrl()));
 					}
 					// update Priority
 					var priority = getOrCreateUsageContext(usageContexts, TransformProperties.usPHUsageContextType, valueSetPriorityCode);

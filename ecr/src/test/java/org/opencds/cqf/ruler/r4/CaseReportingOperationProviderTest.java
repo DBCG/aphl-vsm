@@ -1241,7 +1241,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Optional<ValueSet> shouldBeUpdatedToRoutine = packagedBundle.getEntry().stream()
 			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(entry -> (ValueSet) entry.getResource())
-			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20210526"))
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090") && vs.getVersion().equals("20180310"))
 			.findFirst();
 		assertTrue(shouldBeUpdatedToRoutine.isPresent());
 		Optional<UsageContext> priority2 = shouldBeUpdatedToRoutine.get().getUseContext().stream()
@@ -1274,6 +1274,20 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertTrue(focus.isPresent());
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getCode().equals("49649001"));
 		assertTrue(((CodeableConcept) focus.get().getValue()).getCoding().get(0).getSystem().equals("http://snomed.info/sct"));
+		// the relatedArtifact for http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749 shouldn't have a condition extension
+		// so it should get the extension of it's parent http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750
+		Optional<ValueSet> shouldHaveTransitivelySetConditionCode = packagedBundle.getEntry().stream()
+			.filter(entry -> entry.getResource().getResourceType().equals(ResourceType.ValueSet))
+			.map(entry -> (ValueSet) entry.getResource())
+			.filter(vs -> vs.getUrl().equals("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749") && vs.getVersion().equals("20231215"))
+			.findFirst();
+		assertTrue(shouldHaveFocusSetToNewValue.isPresent());
+		Optional<UsageContext> focus2 = shouldHaveTransitivelySetConditionCode.get().getUseContext().stream()
+			.filter(useContext -> useContext.getCode().getSystem().equals(TransformProperties.hl7UsageContextType) && useContext.getCode().getCode().equals(KnowledgeArtifactProcessor.valueSetConditionCode))
+			.findFirst();
+		assertTrue(focus2.isPresent());
+		assertTrue(((CodeableConcept) focus2.get().getValue()).getCoding().get(0).getCode().equals("49649001"));
+		assertTrue(((CodeableConcept) focus2.get().getValue()).getCoding().get(0).getSystem().equals("http://snomed.info/sct"));
 	}
 
 	@Test
