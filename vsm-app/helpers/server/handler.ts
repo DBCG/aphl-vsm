@@ -7,7 +7,7 @@ import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
 const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
 type requestTypes = typeof requestTypes[number]
-type action<T extends NextApiRequest> = (req: T, res: NextApiResponse, session?: VSMSession) => Promise<any>
+type action<T extends NextApiRequest> = (req: T, res: NextApiResponse, session: VSMSession) => Promise<any>
 // we have to do this intermediate step because TS doesn't support mapped generics nicely
 type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof T]: action<U> }> = {
   [k in keyof T]?: T[k] extends action<infer V> ?

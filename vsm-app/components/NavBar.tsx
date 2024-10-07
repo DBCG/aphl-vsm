@@ -5,9 +5,12 @@ import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
-import { Tooltip, Button } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
+import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
+
+
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -59,9 +62,22 @@ export const NavContextProvider: React.FC<Props> = ({ children }) => {
 }
 
 const NavBar = () => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
+  const enableTerminologySource = process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'true'
+
   return (
     <BarWrapper>
       <Bar>
@@ -70,28 +86,68 @@ const NavBar = () => {
           <Tooltip title={`App Version v-${packageInfo.version}`}>
             <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
           </Tooltip>
-          <Button
-            id="logout"
-            onClick={() => {
-              signOut({ redirect: false })
-              router.push('/api/auth/logout')
-            }}
+          <IconButton
+            aria-label="more"
+            id="long-button"
+            aria-controls={open ? 'long-menu' : undefined}
+            aria-expanded={open ? 'true' : undefined}
+            aria-haspopup="true"
+            onClick={handleClick}
           >
-            Sign Out
-          </Button>
-          {session?.user?.roles?.[0] === 'admin' && (
-            <Button
-              id="admin"
-              onClick={() => {
-                router.push('/admin-tools')
-              }}
-            >
-              Admin Tools
-            </Button>
-
-          )}
+            <MoreVert />
+          </IconButton>
         </Box>
       </Bar>
+      <Menu
+        style={{ border: '1px solid red' }}
+        anchorEl={anchorEl}
+        id="account-menu"
+        open={open}
+        onClose={handleClose}
+        onClick={handleClose}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        {enableTerminologySource && session?.user?.roles?.[0] === 'admin' && (
+          <Box>
+            <MenuItem
+              id="admin"
+              onClick={() => {
+                router.push('/admin')
+              }}
+            >
+              <ListItemIcon>
+                <AdminPanelSettings />
+              </ListItemIcon>
+              Admin Panel
+            </MenuItem>
+            <Divider />
+          </Box>
+        )}
+        {enableTerminologySource && (
+          <Box>
+            <MenuItem onClick={() => router.push('/settings')}>
+              <ListItemIcon>
+                <Settings />
+              </ListItemIcon>
+              Settings
+            </MenuItem>
+            <Divider />
+          </Box>
+        )}
+        <MenuItem
+          id="logout"
+          onClick={() => {
+            signOut({ redirect: false })
+            router.push('/api/auth/logout')
+          }}
+        >
+          <ListItemIcon>
+            <Logout fontSize="small" />
+          </ListItemIcon>
+          Sign Out
+        </MenuItem>
+      </Menu>
     </BarWrapper>
   )
 }

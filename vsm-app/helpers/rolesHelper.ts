@@ -19,6 +19,7 @@ const permissions: { [key in RolesType]: string[] } = {
 export type VSMSession = Session & {
   idToken: string | undefined | null
   user: {
+    id: string
     roles?: string[] | null
   }
 }

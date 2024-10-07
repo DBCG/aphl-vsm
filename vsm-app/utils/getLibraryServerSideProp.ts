@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { fhirCdrClient } from '@/fhirClients'
 import { GetServerSidePropsContext } from 'next'
 import logger from '@/helpers/server/logger'

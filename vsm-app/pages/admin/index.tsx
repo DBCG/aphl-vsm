@@ -43,6 +43,7 @@ const TerminologyEndpoints: NextPage = () => {
     searchTotal: 0
   })
   const fetchEndpoints = async (offset: number, count: number) => {
+    console.log('test build')
     const url = `/api/endpoint?_offset=${offset}&_count=${count}`
     return fetch(url)
       .then((res) => res.json())
@@ -117,7 +118,9 @@ const TerminologyEndpoints: NextPage = () => {
         cell: (row: fhir4.Endpoint) => (
           <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
             <IconButton
-              onClick={() => router.push(`/admin-tools/edit-endpoint/${row.id}`)}
+              onClick={() => {
+                router.push(`/admin/edit-endpoint/${row.id}`)
+              }}
               buttoncontext={'edit'}
             />
             <IconButton
@@ -142,13 +145,11 @@ const TerminologyEndpoints: NextPage = () => {
   return (
     <Col>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-        <PageTitle>Administrator Tools</PageTitle>
+        <PageTitle>Administrator Panel</PageTitle>
       </Row>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
-        <h4>Endpoints</h4>
-        <Button variant='contained' onClick={() => router.push('/admin-tools/create-endpoint')}>
-          Create Endpoint
-        </Button>
+        <h4>Terminology Endpoints</h4>
+        <Button onClick={() => router.push('/admin/create-endpoint')}>Create Endpoint</Button>
       </Row>
       <ErrorMessage error={error?.error || null} />
       <DT

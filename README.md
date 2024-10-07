@@ -47,13 +47,21 @@ KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
 - At this point, you should be able to run the app using the username johndoe and password password (if you didn't change the default values)
 
 ### Run the frontend application
+
+##### Setup
 - If you don't have it already, copy .env.local.example to .env.local within `/vsm-app`
 ```cp vsm-app/.env.local.example vsm-app/.env.local```
 
-- keep in mind, the VSAC api requires a username and key. You must sign up with them to receive this.
+- Keep in mind, the VSAC api requires a username and key. You must sign up with them to receive this.
 
-- Run the Next.js app
-```cd vsm-app && npm install && npm run dev```
+- Next run the following command to install the necessary dependencies for the Next.js app
+```cd vsm-app && npm install```
+
+- You must also run the following script to generate keys for the app
+```node generateKeyPair.js```
+
+- Finally to launch the the Next.js app run the following command:
+```npm run dev```
 
 To see the app UI, navigate to http://localhost:3000/
 

@@ -10,12 +10,13 @@ import { authenticationOptions } from './types'
 import { useRouter } from 'next/router'
 import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
-import { FhirResource } from 'fhir/r4'
-import { ErrorMessage } from '../ErrorMessage'
 import { toast } from 'react-toastify'
+
 export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
+
 export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
   extensions.find((ext) => ext.url === authenticationTypeUrl)?.valueString
+
 export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -25,14 +26,11 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   const name = useRef<HTMLInputElement>(null)
   const address = useRef<HTMLInputElement>(null)
   const authenticationType = useRef<SelectInstance<{ value: string; label: string } | null>>(null)
+  
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     toast.dismiss()
     e.preventDefault()
     setLoading(true)
-    if (!name?.current?.value.trim() || !address?.current?.value.trim()) {
-      setLoading(false)
-      return
-    }
     const updatedEndpoint: fhir4.Endpoint = {
       ...(endpointToUpdate || {}),
       resourceType: 'Endpoint',
@@ -60,27 +58,28 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      }).then((res) => res.json() as Promise<fhir4.Endpoint | FhirResource>)
-      if (response?.resourceType === 'Endpoint') {
-        toast.success(`Successfully ${!!endpointToUpdate ? 'updated' : 'created'} Endpoint`)
-        if (!router.query.id) {
-          router.push(`/admin-tools/edit-endpoint/${response.id!}`)
-        }
-        setEndpointToUpdate(response)
-        setLoading(false)
+      })
+      if (response.ok) {
+        router.push(`/admin`)
+      } else {
+        const error = await response.json()
+        throw error
       }
+      
     } catch (err: any) {
       setLoading(false)
       toast.error(err?.error || typeof err === 'string' ? err : 'Error updating endpoint')
       console.error(err)
     }
   }
+
   async function validateWithHttpCall(address: string) {
     const invalid = 'Warning: The address provided could not be resolved'
     return fetch(address, { method: 'HEAD', mode: 'no-cors' })
       .then(() => setAddressError(''))
       .catch(() => setAddressError(invalid))
   }
+
   function isValidUrl(url: string) {
     try {
       new URL(url)
@@ -91,13 +90,16 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     setAddressError('')
     return true
   }
+
   const debouncedValidateWithHTTPCall = debounce(validateWithHttpCall, 1500)
   const debouncedValidUrl = debounce(isValidUrl, 150)
+
   useEffect(() => {
     if (!!endpoint) {
       setEndpointToUpdate(endpoint)
     }
   }, [endpoint])
+
   useEffect(() => {
     if (address.current) {
       address.current.value = endpointToUpdate?.address || ''
@@ -113,8 +115,16 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       name.current.value = endpointToUpdate?.name || ''
     }
   }, [endpointToUpdate])
+
   return (
     <>
+      <Button
+        style={{ marginBottom: '15px' }}
+        id="back-to-admin"
+        text="Back to Admin Tools"
+        onClick={() => router.push('/admin')}
+        disabled={loading}
+      />
       <GridContainer>
         <Col>
           <SubtitleRow>
@@ -192,14 +202,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
           text="Submit"
           onClick={handleSubmit}
           loading={loading}
-          disabled={loading}
-        />
-        <Button
-          style={{ marginLeft: '15px' }}
-          id="back-to-admin-tools"
-          text="Back to Admin Tools"
-          onClick={() => router.push('/admin-tools')}
-          disabled={loading}
+          disabled={loading || !!addressError}
         />
       </Row>
     </>

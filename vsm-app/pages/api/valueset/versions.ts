@@ -69,7 +69,7 @@ const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir
     clonedVs.useContext = [...existingUseContext, ...conditionsToAdd]
   }
 
-  const authSrcUrl = terminologyServerEndpoints?.find((grp) => grp.value.title.toLowerCase() === terminologyInfo?.value?.toLowerCase())
+  const authSrcUrl = terminologyServerEndpoints?.find((grp) => grp.value.id.toLowerCase() === terminologyInfo?.value?.toLowerCase())
     ?.value?.url as string
 
   const vsWithAuthSrc = addExtensionToVs(clonedVs, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
