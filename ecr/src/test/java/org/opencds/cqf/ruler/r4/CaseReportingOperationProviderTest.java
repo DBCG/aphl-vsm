@@ -1070,8 +1070,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(Bundle.class)
 			.execute();
 		// when count = 0 only show the total
-		assertTrue(countZeroBundle.getEntry().size() == 0);
-		assertTrue(countZeroBundle.getTotal() == 6);
+		assertEquals(0, countZeroBundle.getEntry().size());
+		assertEquals(9, countZeroBundle.getTotal());
 		Parameters count2Params = new Parameters();
 		count2Params.addParameter("count", new IntegerType(2));
 
@@ -1081,7 +1081,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(count2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(count2Bundle.getEntry().size() == 2);
+		assertEquals(2, count2Bundle.getEntry().size());
 		Parameters count2Offset2Params = new Parameters();
 		count2Offset2Params.addParameter("count", new IntegerType(2));
 		count2Offset2Params.addParameter("offset", new IntegerType(2));
@@ -1145,7 +1145,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 		assertTrue(countZeroBundle.getType() == Bundle.BundleType.SEARCHSET);
 		Parameters countSevenParams = new Parameters();
-		countSevenParams.addParameter("count", new IntegerType(7));
+		countSevenParams.addParameter("count", new IntegerType(9));
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1301,7 +1301,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750"
 		));
 		includeOptions.put("knowledge",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/Library/SpecificationLibrary",
@@ -1311,7 +1314,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		includeOptions.put("terminology",Arrays.asList(
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749",
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750"
 		));
 		includeOptions.put("conformance",Arrays.asList());
 		includeOptions.put("extensions",Arrays.asList());
@@ -1633,6 +1639,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		);
 		List<String> libraryDeletedPaths = List.of(
 			"Library.relatedArtifact[5]",  // deleted DXTC leaf VS
+			"Library.relatedArtifact[6]",  // deleted DXTC leaf VS
 			"Library.relatedArtifact[3].extension[1]"  // deleted condition
 		);
 		List<String> libraryInsertedPaths = List.of(
@@ -1659,6 +1666,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				.findFirst().get();
 			assertTrue(libraryDeletedPaths.contains(path));
 		}
+		// TODO: this may change
 		List<String> libraryNestedChanges = List.of(
 			"http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification",
 			"http://ersd.aimsplatform.org/fhir/Library/rctc",
@@ -1666,7 +1674,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
 			"http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.163", // the new VS added to the DXTC
-			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6" // the VS deleted from the DXTC
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6", // the VS deleted from the DXTC
+			"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750" // the VS deleted from the DXTC
 		);
 		libraryNestedChanges.stream()
 			.forEach(nestedChangeUrl -> {
@@ -1701,14 +1710,14 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertEquals(5, nestedChanges.size());
+		assertEquals(6, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
-		// delete the old leaf
-		assertTrue(deleteOperations.size() == 1);
+		// delete 2 leafs and extensions
+		assertEquals(5, deleteOperations.size());
 		// there aren't actually 2 operations here
-		assertTrue(insertOperations.size() == 2);
+		assertEquals( 2, insertOperations.size());
 		String path1 = insertOperations.get(0).getPart().stream().filter(p -> p.getName().equals("path")).map(p -> ((StringType)p.getValue()).getValue()).findFirst().get();
 		String path2 = insertOperations.get(1).getPart().stream().filter(p -> p.getName().equals("path")).map(p -> ((StringType)p.getValue()).getValue()).findFirst().get();
 		// insert the new leaf; adding a node takes multiple operations if
@@ -1727,10 +1736,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		diffParams.addParameter("source", specificationLibReference);
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter("compareExecutable", new BooleanType(true));
-		// only testing local expansion currently
-		// diffParams.addParameter()
-		// 		.setName("terminologyEndpoint")
-		// 		.setResource(endpointCredentials);
 		Parameters returnedParams = getClient().operation()
 			.onServer()
 			.named("$artifact-diff")
@@ -1742,12 +1747,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.map(p -> (Parameters)p.getResource())
 			.filter(p -> p != null)
 			.collect(Collectors.toList());
-		assertEquals(5, nestedChanges.size());
+		assertEquals(6, nestedChanges.size());
 		Parameters grouperChanges = returnedParams.getParameter().stream().filter(p -> p.getName().contains("/dxtc")).map(p-> (Parameters)p.getResource()).findFirst().get();
 		List<Parameters.ParametersParameterComponent> deleteOperations = getOperationsByType(grouperChanges.getParameter(), "delete");
 		List<Parameters.ParametersParameterComponent> insertOperations = getOperationsByType(grouperChanges.getParameter(), "insert");
 		// old codes removed
-		assertEquals(23, deleteOperations.size());
+		assertEquals(33, deleteOperations.size());
 		// new codes added
 		assertEquals(40, insertOperations.size());
 	}
@@ -1764,10 +1769,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		endpoint.addExtension("vsacUsername", new StringType("tahaattarismile"));
 		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter().setName("terminologyEndpoint").setResource( endpointCredentials);
-		// only testing local expansion currently
-				// diffParams.addParameter()
-				// 		.setName("terminologyEndpoint")
-				// 		.setResource(endpointCredentials);
 		return diffParams;
 	}
 

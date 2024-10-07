@@ -127,7 +127,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
 					},
 					{
 						"type": "depends-on",
@@ -225,7 +225,7 @@
 					"include": [
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
 							]
 						},
 						{
@@ -272,7 +272,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
@@ -288,7 +288,7 @@
 						"value": "urn:oid:2.16.840.1.113883.3.464.1003.113.11.1090"
 					}
 				],
-				"version": "20210526",
+				"version": "20180310",
 				"status": "active",
 				"compose": {
 					"include": [
@@ -312,7 +312,7 @@
 			"request": {
 				"method": "POST",
 				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
-				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20210526"
+				"ifNoneExist": "url=http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090&version=20180310"
 			}
 		},
 		{
