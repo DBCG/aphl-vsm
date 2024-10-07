@@ -36,7 +36,7 @@ const ImageContainer = styled.div`
 
 interface IButtonProps extends IconButtonProps {
   buttoncontext?: string | undefined
-  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => Promise<unknown>
+  onClick: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
   disabled?: boolean
   color?: 'default' | 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' | undefined
   deletedItemDescription?: string

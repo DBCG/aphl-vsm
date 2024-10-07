@@ -68,6 +68,9 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         headers: {
           'Cache-control': 'no-cache, no-store, must-revalidate'
         }
+      },
+      searchParams: {
+        artifact: req.query['id'] as string
       }
     }) as fhir4.Bundle
 
@@ -76,15 +79,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       const asstResources = asstSearchResult?.entry?.map((e) => e?.resource)
       const programs = libResources?.filter(is.library)
       let assessments = asstResources?.filter(is.basic)
-      if (req.query['id']) {
-        assessments = assessments
-          ?.filter(
-            a => a?.extension?.find((ext) => (
-              ext?.url?.endsWith('/crmi-artifactAssessmentArtifact')
-              && ext?.valueReference?.reference?.split('/')?.[1] === req.query['id']
-            ))
-          ) || []
-      }
+    
       return res.status(200).send({ programs, total: libSearchResult?.total, assessments })
     } else {
       // do not error out if version doesn't exist, it's just not found

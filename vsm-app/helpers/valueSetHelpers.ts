@@ -102,6 +102,8 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
   return vs
 }
 
+const isVsmAuthored = (vs: fhir4.ValueSet) => vs?.meta?.tag?.find((tag) => tag?.code === 'vsm-authored')
+
 const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
 
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
@@ -109,12 +111,12 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
   if (terminologyExt) {
     let val = terminologyServerEndpoints?.find((endpoint) => !!endpoint?.value?.url && terminologyExt?.valueUri?.startsWith(endpoint.value.url))
     if (!val) {
-      // bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
-      if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost')) {
+      // TODO: bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
+      if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost') || isVsmAuthored(valueSet)) {
         val = {
           label: 'VSM',
           value: {
-            title: 'VSM',
+            id: 'VSM',
             url: terminologyExt?.valueUri
           }
         }
@@ -480,6 +482,7 @@ export {
   transformFromVSACToCqf,
   isProvisionalVs,
   isGrouperValueSet,
+  isVsmAuthored,
   addProfileToValueSet,
   updateVsCodeItem,
   updateAuthSource

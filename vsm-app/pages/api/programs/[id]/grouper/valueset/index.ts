@@ -467,7 +467,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
         const authSrcUrl = terminologyServerEndpoints?.find(
-          (grp) => grp.value.title.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase()
+          (grp) => grp.value.id.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase()
         )?.value?.url
 
         // handle if no matching authoritativeSource url
