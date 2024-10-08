@@ -53,6 +53,11 @@ spec:
           value: "{{ .Values.vsm_app.redis_db }}"
         - name: VSAC_USERNAME
           value: apikey
+        - name: KEY
+          valueFrom:  
+            secretKeyRef:
+              name: encryption-key
+              key: encryption-key
         - name: NEXTAUTH_URL
           value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}
         - name: KEYCLOAK_ID
