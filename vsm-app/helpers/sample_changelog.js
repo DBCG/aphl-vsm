@@ -30,7 +30,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],
@@ -50,7 +50,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],
@@ -295,7 +295,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],
@@ -315,7 +315,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],
@@ -623,7 +623,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],
@@ -679,7 +679,7 @@ const changelog = {
             value: {
               extension: [
                 {
-                  url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                  url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                   valueBoolean: true
                 }
               ],

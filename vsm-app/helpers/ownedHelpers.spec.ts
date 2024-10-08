@@ -7,7 +7,7 @@ const TEST_RELATED_ARTIFACT_OWNED = {
   resource: "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
   extension: [
     {
-      url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+      url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
       valueBoolean: true
     }
   ]
@@ -67,7 +67,7 @@ const TEST_LIB = {
       resource: "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
       extension: [
         {
-          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
           valueBoolean: true
         }
       ]
@@ -87,7 +87,7 @@ const TEST_LIB = {
       resource: "http://ersd.aimsplatform.org/fhir/Library/rctc|1.0.0",
       extension: [
         {
-          url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+          url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
           valueBoolean: true
         }
       ]
@@ -175,7 +175,7 @@ const TEST_GROUPER_LIB = {
         resource: "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|1.0.0",
         extension: [
           {
-            url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+            url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
             valueBoolean: true
           }
         ]
@@ -185,7 +185,7 @@ const TEST_GROUPER_LIB = {
         resource: "http://ersd.aimsplatform.org/fhir/ValueSet/ostc|1.0.0",
         extension: [
           {
-            url: "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+            url: "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
             valueBoolean: true
           }
         ]

@@ -84,7 +84,7 @@ describe('libraryHelpers', () => {
             resource: 'www.example.com|1.1',
             extension: [
               {
-                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                 valueBoolean: true
               }
             ]
@@ -94,7 +94,7 @@ describe('libraryHelpers', () => {
             resource: 'www.secondExample.com',
             extension: [
               {
-                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                 valueBoolean: true
               }
             ]
@@ -110,7 +110,7 @@ describe('libraryHelpers', () => {
             resource: 'www.secondExample.com',
             extension: [
               {
-                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                 valueBoolean: true
               }
             ]
@@ -136,7 +136,7 @@ describe('libraryHelpers', () => {
             resource: 'www.example.com|1.1',
             extension: [
               {
-                url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                 valueBoolean: true
               }
             ]
@@ -672,7 +672,7 @@ const FIXTURE_PROGRAM_1 = {
       resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
       extension: [
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
           valueBoolean: true
         }
       ]
@@ -682,7 +682,7 @@ const FIXTURE_PROGRAM_1 = {
       resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
       extension: [
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
           valueBoolean: true
         }
       ]
@@ -775,7 +775,7 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
       resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
       extension: [
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
           valueBoolean: true
         }
       ]
@@ -785,7 +785,7 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
       resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
       extension: [
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
           valueBoolean: true
         }
       ]

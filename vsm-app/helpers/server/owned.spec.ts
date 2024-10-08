@@ -93,32 +93,32 @@ describe('updateOwnedResources', () => {
               experimental: true,
               relatedArtifact: [
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.9.0.0-draft'
                 },
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.9.0.0-draft'
                 },
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.9.0.0-draft'
                 },
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.9.0.0-draft'
                 },
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.9.0.0-draft'
                 },
                 {
-                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned', valueBoolean: true }],
+                  extension: [{ url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned', valueBoolean: true }],
                   type: 'composed-of',
                   resource: 'http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.9.0.0-draft'
                 },
@@ -311,7 +311,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -321,7 +321,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -921,7 +921,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -931,7 +931,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -941,7 +941,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -951,7 +951,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -961,7 +961,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
@@ -971,7 +971,7 @@ const fixture = {
                 {
                   extension: [
                     {
-                      url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+                      url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
                       valueBoolean: true
                     }
                   ],
