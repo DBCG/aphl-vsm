@@ -130,7 +130,7 @@ public class KnowledgeArtifactProcessor {
 	 * @param manifest the resource containing all RelatedArtifact references
 	 * @param bundleEntries the list of packaged resources to modify according to the extensions on the manifest relatedArtifact references
 	 */
-	public static void handleValueSetReferenceExtensions(MetadataResource manifest, List<BundleEntryComponent> bundleEntries, Repository hapiFhirRepository) throws UnprocessableEntityException, IllegalArgumentException {
+	public static void handleValueSetReferenceExtensions(MetadataResource manifest, List<BundleEntryComponent> bundleEntries) throws UnprocessableEntityException, IllegalArgumentException {
 		var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(manifest);
 		var urlValueSetMap = populateUrlValueSetMap(bundleEntries);
 		var relatedArtifactsWithPreservedExtension = getRelatedArtifactsWithPreservedExtensions(adapter.getDependencies());
@@ -138,6 +138,7 @@ public class KnowledgeArtifactProcessor {
 		relatedArtifactsWithPreservedExtension.forEach(ra -> {
 			relatedArtifactMap.put(Canonicals.getUrl(ra.getReference()),ra);
 		});
+		Map<String,Set<String>> ancestorsMap = null;
 		for (final var valueSet : urlValueSetMap.values()) {
 					// remove any existing Priority and Conditions
 					var usageContexts = removeExistingReferenceExtensionData(valueSet.getUseContext());
@@ -149,21 +150,24 @@ public class KnowledgeArtifactProcessor {
 						// since the reference might be to a transitive dependency
 						// First check direct references
 						if (relatedArtifactMap.containsKey(valueSet.getUrl())
-						&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(valueSet.getUrl()), hapiFhirRepository)) {
+						&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(valueSet.getUrl()), null)) {
 							valueSetNeedsCondition = false;
 							maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(valueSet.getUrl()));
 						}
 						// Then check transitive references
 						if(valueSetNeedsCondition) {
-							for (final var maybeHasTransitiveReference: urlValueSetMap.keySet()) {
-								if (!isGrouper(urlValueSetMap.get(maybeHasTransitiveReference))
-								// necessary to only check in non-grouper descendants because Groupers
-								// are frequently parents but the relatedArtifacts won't have Conditions on them
-								&& checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSet.getUrl(), urlValueSetMap, maybeHasTransitiveReference)
-								// take the first relatedArtifact which HAS a valid VSM Condition
-								&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(maybeHasTransitiveReference), hapiFhirRepository)) {
+							// generate only if needed because its an expensive operation
+							if (ancestorsMap == null) {
+								ancestorsMap = generateAncestorsMap(urlValueSetMap);
+							}
+							final var ancestors = ancestorsMap.get(valueSet.getUrl());
+							for (final var ancestor: ancestors) {
+								if (!isGrouper(urlValueSetMap.get(ancestor))								
+								// take the first ancestor relatedArtifact which HAS a valid VSM Condition
+								// and is NOT a grouper
+								&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(ancestor), null)) {
 									valueSetNeedsCondition = false;
-									maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(maybeHasTransitiveReference));
+									maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(ancestor));
 									break;
 								}
 							}
@@ -198,21 +202,29 @@ public class KnowledgeArtifactProcessor {
 				};
 	}
 
-	private static boolean checkIfValueSetReferencedInANonGrouperVSetDescendant(String valueSetUrlToFind, Map<String, ValueSet> valueSetMap, String nextValueSetToCheck) {
-		var vSet = valueSetMap.get(nextValueSetToCheck);
-		return vSet
-			.getCompose().getInclude().stream()
-			.anyMatch(include -> include.getValueSet().stream().anyMatch(includedCanonical -> {
-				// if the ValueSet being checked is NOT a grouper and has the reference in the `compose.include` then return true
-				// because Groupers have references to many ValueSets but do not have Condition extensions so it would return a misleading error later on
-				if (!isGrouper(vSet) && Canonicals.getUrl(includedCanonical.getValue()).equals(valueSetUrlToFind)) {
-					return true;
-				} else if (checkIfValueSetReferencedInANonGrouperVSetDescendant(valueSetUrlToFind, valueSetMap, Canonicals.getUrl(includedCanonical.getValue()))) {
-					return true;
-				} else {
-					return false;
+	private static Map<String, Set<String>> generateAncestorsMap(Map<String, ValueSet> valueSetMap) {
+		Map<String, Set<String>> ancestorsMap = new HashMap<String, Set<String>>();
+		for (final var valueSet : valueSetMap.values()) {
+			populateAncestry(valueSet, valueSetMap, ancestorsMap);
+		}
+		return ancestorsMap;
+	}
+
+	private static void populateAncestry(ValueSet vs, Map<String, ValueSet> valueSetMap, Map<String, Set<String>> ancestorsMap) {
+		final var currentAncestor = vs.getUrl();
+		for(final var include:vs.getCompose().getInclude()) {
+			for (final var canonical: include.getValueSet()) {
+				final var leafUrl = Canonicals.getUrl(canonical.getValue());
+				if (!ancestorsMap.containsKey(leafUrl)) {
+					ancestorsMap.put(leafUrl, new HashSet<>());
 				}
-			}));
+				final var ancestors = ancestorsMap.get(leafUrl);
+				ancestors.add(currentAncestor);
+				if (valueSetMap.containsKey(leafUrl)) {
+					populateAncestry(valueSetMap.get(leafUrl), valueSetMap, ancestorsMap);
+				}
+			}
+		}
 	}
 
 	/**
