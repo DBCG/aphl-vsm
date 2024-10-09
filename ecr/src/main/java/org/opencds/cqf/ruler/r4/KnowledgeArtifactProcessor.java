@@ -161,14 +161,16 @@ public class KnowledgeArtifactProcessor {
 								ancestorsMap = generateAncestorsMap(urlValueSetMap);
 							}
 							final var ancestors = ancestorsMap.get(valueSet.getUrl());
-							for (final var ancestor: ancestors) {
-								if (!isGrouper(urlValueSetMap.get(ancestor))								
-								// take the first ancestor relatedArtifact which HAS a valid VSM Condition
-								// and is NOT a grouper
-								&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(ancestor), null)) {
-									valueSetNeedsCondition = false;
-									maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(ancestor));
-									break;
+							if (ancestors != null) {
+								for (final var ancestor: ancestors) {
+									if (!isGrouper(urlValueSetMap.get(ancestor))								
+									// take the first ancestor relatedArtifact which HAS a valid VSM Condition
+									// and is NOT a grouper
+									&& !checkIfValueSetNeedsCondition(valueSet, relatedArtifactMap.get(ancestor), null)) {
+										valueSetNeedsCondition = false;
+										maybeVSRelatedArtifact = Optional.of(relatedArtifactMap.get(ancestor));
+										break;
+									}
 								}
 							}
 						}
