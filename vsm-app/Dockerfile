@@ -28,7 +28,7 @@ COPY ./ /opt/app
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM ubuntu:jammy-20240808
+FROM ubuntu:jammy-20240911.1
 
 RUN apt-get update && \
 	apt-get install curl -y && \
