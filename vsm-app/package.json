@@ -30,7 +30,7 @@
     "ioredis": "^5.2.4",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
-    "next": "^14.2.3",
+    "next": "^14.2.15",
     "next-auth": "4.24.7",
     "normalize.css": "^8.0.1",
     "pino": "^8.11.0",

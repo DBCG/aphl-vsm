@@ -4,6 +4,7 @@
 # Allow files and directories
 !/helpers
 !/components
+!/backend
 !/hooks
 !/pages
 !/public
