@@ -794,32 +794,32 @@
         "effectivePeriod": { "start": "2019-11-01" },
         "relatedArtifact": [
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0"
           },
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0"
           },
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0"
           },
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0"
           },
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0"
           },
           {
-            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned", "valueBoolean": true }],
+            "extension": [{ "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned", "valueBoolean": true }],
             "type": "composed-of",
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0"
           },

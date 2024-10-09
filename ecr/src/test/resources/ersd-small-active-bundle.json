@@ -48,7 +48,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -58,7 +58,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -136,7 +136,37 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "routine"
+										}
+									],
+									"text": "routine"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750|20231215"
 					},
 					{
 						"type": "depends-on",
@@ -188,7 +218,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-11-19",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -212,6 +242,24 @@
 				"url": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc",
 				"version": "2022-11-19",
 				"status": "active",
+				"extension": [
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+            "valueContactDetail": {
+              "name": "CSTE Author"
+            }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-steward",
+            "valueContactDetail": {
+              "name": "CSTE Steward"
+            }
+          },
+          {
+            "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+            "valueUri": "https://www.test.com/fhir/ValueSet/dxtc"
+          }
+        ],
 				"compose": {
 					"include": [
 						{
@@ -221,7 +269,12 @@
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
+							]
+						},
+						{
+							"valueSet": [
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750|20231215"
 							]
 						}
 					]
@@ -267,6 +320,26 @@
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113762.1.4.1146.6",
 				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6",
+				"extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+                "valueContactDetail": {
+                    "name": "Optum Author"
+                }
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/resource-lastReviewDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+              "valueUri": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6"
+            }
+        ],
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
@@ -404,18 +477,38 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
 				"url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090",
+				"extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+                "valueContactDetail": {
+                    "name": "Optum Author"
+                }
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/resource-lastReviewDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+              "valueUri": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
+            }
+        ],
 				"identifier": [
 					{
 						"system": "urn:ietf:rfc:3986",
 						"value": "urn:oid:2.16.840.1.113883.3.464.1003.113.11.1090"
 					}
 				],
-				"version": "20210526",
+				"version": "20180310",
 				"status": "active",
 				"compose": {
 					"include": [
@@ -440,6 +533,248 @@
 				"method": "PUT",
 				"url": "ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090"
 			}
-		}
+		},
+    {
+      "fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750|20231215",
+      "resource": {
+        "resourceType": "ValueSet",
+        "id": "2.16.840.1.113762.1.4.1078.750",
+        "meta": {
+            "versionId": "7",
+            "lastUpdated": "2023-12-21T17:43:03.000-05:00",
+            "profile": [
+                "http://hl7.org/fhir/StructureDefinition/shareablevalueset",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-valueset-cqfm",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+                "valueContactDetail": {
+                    "name": "Optum Author"
+                }
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/resource-lastReviewDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+              "valueUri": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750"
+            }
+        ],
+        "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.750",
+        "identifier": [
+            {
+                "system": "urn:ietf:rfc:3986",
+                "value": "urn:oid:2.16.840.1.113762.1.4.1078.750"
+            }
+        ],
+        "version": "20231215",
+        "name": "COVID19",
+        "title": "COVID19",
+        "status": "active",
+        "date": "2023-12-15T19:18:20-05:00",
+        "publisher": "Optum Steward",
+        "jurisdiction": [
+            {
+                "extension": [
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+                        "valueCode": "unknown"
+                    }
+                ]
+            }
+        ],
+        "purpose": "(Clinical Focus: The purpose of this value set is to represent concepts for a diagnosis of COVID-19.),(Data Element Scope: This value set may use a model element related to Diagnosis.),(Inclusion Criteria: Includes concepts that represent a diagnosis of COVID-19 from ICD10 and SNOMEDCT),(Exclusion Criteria: Excludes concepts that represent suspected, possible or probable COVID-19, or possible exposure to COVID-19 without a definitive COVID-19 diagnosis.)",
+        "compose": {
+            "include": [
+                {
+                    "valueSet": [
+                        "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748"
+                    ]
+                },
+                {
+                    "valueSet": [
+                        "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749"
+                    ]
+                }
+            ]
+        }
+    },
+      "request": {
+        "method": "PUT",
+        "url": "ValueSet/2.16.840.1.113762.1.4.1078.750"
+      }
+    },
+    {
+      "fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748|20231215",
+      "resource": {
+        "resourceType": "ValueSet",
+        "id": "2.16.840.1.113762.1.4.1078.748",
+        "meta": {
+            "versionId": "12",
+            "lastUpdated": "2023-12-21T17:43:03.000-05:00",
+            "profile": [
+                "http://hl7.org/fhir/StructureDefinition/shareablevalueset",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-valueset-cqfm",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+                "valueContactDetail": {
+                    "name": "Optum Author"
+                }
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/resource-lastReviewDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+              "valueUri": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748"
+            }
+        ],
+        "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.748",
+        "identifier": [
+            {
+                "system": "urn:ietf:rfc:3986",
+                "value": "urn:oid:2.16.840.1.113762.1.4.1078.748"
+            }
+        ],
+        "version": "20231215",
+        "name": "COVID19I10",
+        "title": "COVID 19 I10",
+        "status": "active",
+        "date": "2023-12-15T19:18:20-05:00",
+        "publisher": "Optum Steward",
+        "jurisdiction": [
+            {
+                "extension": [
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+                        "valueCode": "unknown"
+                    }
+                ]
+            }
+        ],
+        "purpose": "(Clinical Focus: The purpose of this value set is to identify diagnoses of confirmed COVID-19),(Data Element Scope: This value set may use a model element related to diagnosis.),(Inclusion Criteria: Includes concepts that identify a diagnosis of acute COVID-19),(Exclusion Criteria: Excludes concepts that identify a suspected, probable COVID-19, or possible exposure to COVID-19. Excludes post-COVID-19 conditions.)",
+        "compose": {
+            "include": [
+                {
+                    "system": "http://hl7.org/fhir/sid/icd-10-cm",
+                    "concept": [
+                        {
+                            "code": "B97.21",
+                            "display": "SARS-associated coronavirus as the cause of diseases classified elsewhere"
+                        },
+                        {
+                            "code": "J12.82",
+                            "display": "Pneumonia due to coronavirus disease 2019"
+                        },
+                        {
+                            "code": "U07.1",
+                            "display": "COVID-19"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+      "request": {
+        "method": "PUT",
+        "url": "ValueSet/2.16.840.1.113762.1.4.1078.748"
+      }
+    },
+    {
+      "fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749|20231215",
+      "resource": {
+        "resourceType": "ValueSet",
+        "id": "2.16.840.1.113762.1.4.1078.749",
+        "meta": {
+            "versionId": "18",
+            "lastUpdated": "2023-12-21T17:43:03.000-05:00",
+            "profile": [
+                "http://hl7.org/fhir/StructureDefinition/shareablevalueset",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/computable-valueset-cqfm",
+                "http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/publishable-valueset-cqfm"
+            ]
+        },
+        "extension": [
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-author",
+                "valueContactDetail": {
+                    "name": "Optum Author"
+                }
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/resource-lastReviewDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+                "url": "http://hl7.org/fhir/StructureDefinition/valueset-effectiveDate",
+                "valueDate": "2023-12-15"
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource",
+              "valueUri": "https://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749"
+            }
+        ],
+        "url": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1078.749",
+        "identifier": [
+            {
+                "system": "urn:ietf:rfc:3986",
+                "value": "urn:oid:2.16.840.1.113762.1.4.1078.749"
+            }
+        ],
+        "version": "20231215",
+        "name": "COVID19SCT",
+        "title": "COVID19 SCT",
+        "status": "active",
+        "date": "2023-12-15T19:18:20-05:00",
+        "publisher": "Optum Steward",
+        "jurisdiction": [
+            {
+                "extension": [
+                    {
+                        "url": "http://hl7.org/fhir/StructureDefinition/data-absent-reason",
+                        "valueCode": "unknown"
+                    }
+                ]
+            }
+        ],
+        "purpose": "(Clinical Focus: The purpose of this value set is to represent concepts for a diagnosis of acute COVID-19),(Data Element Scope: This value set may use a model element related to Diagnosis.),(Inclusion Criteria: Includes concepts that represent a diagnosis of COVID-19),(Exclusion Criteria: Excludes concepts that represent suspected, possible or probable COVID-19, or possible exposure to COVID-19 without a definitive COVID-19 diagnosis. Excludes post-acute and chronic COVID.)",
+        "compose": {
+            "include": [
+                {
+                    "system": "http://snomed.info/sct",
+                    "version": "http://snomed.info/sct/731000124108/version/20240901",
+										"concept": [{
+											"code":"840539006"
+										},{
+											"code":"866151004"
+										},{
+											"code":"1240531000000103"
+										}]
+                }
+            ]
+        }
+    },
+      "request": {
+        "method": "PUT",
+        "url": "ValueSet/2.16.840.1.113762.1.4.1078.749"
+      }
+    }
 	]
 }

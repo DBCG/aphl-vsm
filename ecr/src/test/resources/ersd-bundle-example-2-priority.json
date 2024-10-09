@@ -76,7 +76,7 @@
 						"resource": "http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -86,7 +86,7 @@
 						"resource": "http://hl7.org/fhir/us/ecr/Library/library-rctc-example",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1206,7 +1206,7 @@
 						"resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]

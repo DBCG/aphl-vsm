@@ -22,7 +22,7 @@ public class TransformProperties implements DaoRegistryUser {
   public static final String hl7UsageContextType = "http://terminology.hl7.org/CodeSystem/usage-context-type";
   public static final String usPHUsageContext = "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context";
   public static final String crmiManifestLibrary = "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-manifestlibrary";
-  public static final String crmiIsOwned = "http://hl7.org/fhir/StructureDefinition/crmi-isOwned";
+  public static final String crmiIsOwned = "http://hl7.org/fhir/StructureDefinition/artifact-isOwned";
   public static final String vsmCondition = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition";
   public static final String vsmPriority = "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority";
   public static final String authoritativeSourceExtUrl = "http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource";

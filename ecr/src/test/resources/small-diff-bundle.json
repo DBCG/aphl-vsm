@@ -49,7 +49,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -59,7 +59,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-10-19",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -138,7 +138,7 @@
 							}
 						],
 						"type": "depends-on",
-						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
 					},
 					{
 						"extension": [
@@ -208,7 +208,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-10-19",
 						"extension": [
 							{
-								"url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -288,7 +288,7 @@
 						},
 						{
 							"valueSet": [
-								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526"
+								"http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310"
 							]
 						},
 						{
@@ -468,7 +468,7 @@
 			}
 		},
 		{
-			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20210526",
+			"fullUrl": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113883.3.464.1003.113.11.1090|20180310",
 			"resource": {
 				"resourceType": "ValueSet",
 				"id": "2.16.840.1.113883.3.464.1003.113.11.1090",
@@ -479,7 +479,7 @@
 						"value": "urn:oid:2.16.840.1.113883.3.464.1003.113.11.1090"
 					}
 				],
-				"version": "20210526",
+				"version": "20180310",
 				"name":"AnkylosingSpondylitis",
 				"status": "active",
 				"compose": {
