@@ -126,10 +126,10 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         const updateInput = formatBatchGrouperUpdate(updatedGroupers)
 
-        const programUpdateJob = deleteLeafsFromLibrary(programToUpdate, Object.keys(batchDelete))
+        const updatedLibraryBatchEntryItem = deleteLeafsFromLibrary(programToUpdate, Object.keys(batchDelete))
 
-        if (programUpdateJob && updateInput?.entry) {
-          updateInput.entry.push(programUpdateJob)
+        if (updatedLibraryBatchEntryItem && updateInput?.entry) {
+          updateInput.entry.push(updatedLibraryBatchEntryItem)
         }
 
         let updateGroupers
