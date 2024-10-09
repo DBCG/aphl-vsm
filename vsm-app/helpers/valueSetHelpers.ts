@@ -485,5 +485,6 @@ export {
   isVsmAuthored,
   addProfileToValueSet,
   updateVsCodeItem,
-  updateAuthSource
+  updateAuthSource,
+  urlWithoutPinnedVersion
 }

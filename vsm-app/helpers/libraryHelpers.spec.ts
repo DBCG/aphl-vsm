@@ -11,7 +11,8 @@ import {
   setVSConditions,
   getVSConditions,
   addVSConditions,
-  updateGrouperLeafs
+  updateGrouperLeafs,
+  deleteLeafsFromLibrary
 } from './libraryHelpers'
 import { Condition } from './conditionHelpers'
 
@@ -583,6 +584,18 @@ describe('libraryHelpers', () => {
       ])
     })
 
+  })
+  describe('deleteLeafsFromLibrary', () => {
+    const leafsToDelete = ['http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|abc'] 
+
+    it('deletes leafs ignoring version field', () => {
+      const leafExistsAtBeginning = FIXTURE_PROGRAM_CONDITIONS_1.relatedArtifact?.find(raItem => raItem.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+      expect(leafExistsAtBeginning).toBeTruthy()
+      const result = deleteLeafsFromLibrary(FIXTURE_PROGRAM_CONDITIONS_1, leafsToDelete)
+      // @ts-ignore
+      const leafExistsAtEnd = result.resource.relatedArtifact.find(raItem => raItem.resource == 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526')
+      expect(leafExistsAtEnd).toBeFalsy()
+    })
   })
 })
 

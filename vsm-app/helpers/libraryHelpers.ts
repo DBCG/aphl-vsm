@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 import { Condition } from './conditionHelpers'
+import { urlWithoutPinnedVersion } from './valueSetHelpers'
 
 interface RelatedArtifactItem {
   url: string
@@ -405,6 +406,29 @@ const deleteValueSetReferencesFromLibrary = (library: fhir4.Library, canonicalsT
   return clonedLib
 }
 
+const deleteLeafsFromLibrary = (programLib: fhir4.Library, valuesetUrlsToDelete: string[]): fhir4.BundleEntry => {
+  let programLibToUpdate = cloneDeep(programLib)
+  const cleanedUrlsToDelete = valuesetUrlsToDelete.map((url) => urlWithoutPinnedVersion(url).toLowerCase())
+  const updatedRA = programLibToUpdate.relatedArtifact?.filter((raItem) => {
+    const raItemResourceUrl = raItem.resource?.split('|')?.[0]?.toLowerCase() as string
+
+    if (raItem.type === 'depends-on' && cleanedUrlsToDelete.includes(raItemResourceUrl)) {
+      return !cleanedUrlsToDelete.includes(raItemResourceUrl!)
+    }
+    return true
+  })
+
+  programLibToUpdate.relatedArtifact = updatedRA
+
+  return {
+    resource: programLibToUpdate,
+    request: {
+      method: 'PUT',
+      url: `Library/${programLib.id}`
+    }
+  } as fhir4.BundleEntry
+}
+
 export {
   getGrouperLibraryCanonical,
   getReleaseDescription,
@@ -423,5 +447,6 @@ export {
   validStartDate,
   addVSConditions,
   updateGrouperLeafs,
-  deleteValueSetReferencesFromLibrary
+  deleteValueSetReferencesFromLibrary,
+  deleteLeafsFromLibrary
 }
