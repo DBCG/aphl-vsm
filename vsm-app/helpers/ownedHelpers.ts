@@ -2,7 +2,7 @@ import { is } from './is'
 
 const artifactIsOwned = (art: fhir4.RelatedArtifact) => {
   return Boolean(art?.type === 'composed-of' && (
-    art?.extension?.find(ext => ext?.url?.endsWith('crmi-isOwned') && ext?.valueBoolean === true)
+    art?.extension?.find(ext => ext?.url?.endsWith('artifact-isOwned') && ext?.valueBoolean === true)
   ))
 }
 

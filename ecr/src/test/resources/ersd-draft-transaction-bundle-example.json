@@ -80,7 +80,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/draft-us-ecr-specification",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -90,7 +90,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/Library/draft-rctc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1340,7 +1340,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/draft-dxtc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1350,7 +1350,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/draft-ostc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1360,7 +1360,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/draft-lotc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1370,7 +1370,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/draft-lrtc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1380,7 +1380,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/mrtc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]
@@ -1390,7 +1390,7 @@
 						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/draft-sdtc",
 						"extension":[
 							{
-								"url":"http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+								"url":"http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
 								"valueBoolean": true
 							}
 						]

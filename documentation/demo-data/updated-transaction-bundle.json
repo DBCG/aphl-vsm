@@ -86,7 +86,7 @@
           {
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ],
@@ -96,7 +96,7 @@
           {
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ],
@@ -2178,7 +2178,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/dxtc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -2188,7 +2188,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/ostc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -2198,7 +2198,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lotc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -2208,7 +2208,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/lrtc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -2218,7 +2218,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/mrtc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -2228,7 +2228,7 @@
             "resource": "http://hl7.org/fhir/us/ecr/ValueSet/sdtc|1.0.0",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]

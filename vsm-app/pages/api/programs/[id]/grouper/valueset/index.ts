@@ -567,7 +567,7 @@ const updateProgramLibraryWithGrouperRef = async (
       resource: grouperRef,
       extension: [
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/crmi-isOwned',
+          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
           valueBoolean: true
         }
       ]
