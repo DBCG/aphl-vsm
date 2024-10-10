@@ -39,7 +39,7 @@ const updateOwnedResources = async ({ programId, programVersion, isExperimental 
       ?.entry?.map((i: any) => {
         return (i?.resource?.entry)
           ?.map((r: any) => r?.resource)
-    }).flat()
+    }).flat().filter((i: any) => i)
 
     if (!resourcesWithMatchingVersion.length) {
       return ({ error: 'Did not find resources with matching version' })
