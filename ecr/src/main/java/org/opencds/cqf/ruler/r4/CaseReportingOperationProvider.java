@@ -393,7 +393,7 @@ public class CaseReportingOperationProvider {
 			})
 			.findFirst()
 			.ifPresent(m -> {
-				KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry(), repository);
+				KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry());
 			});
 		return retval;
 	}
