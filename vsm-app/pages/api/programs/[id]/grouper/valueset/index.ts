@@ -85,6 +85,12 @@ export const formatBatchGrouperUpdate = (groupers: fhir4.ValueSet[]): fhir4.Bund
 // --------------------- ROUTE TO DELETE VSETS FROM EXISTING GROUPERS --------------
 // ---------------------------------------------------------------------------------
 // also need to update the depends-on relatedArtifact in the program library if any
+
+// There is one edge case that this ignores, but it's not currently a problem for draft resources
+// if a leaf vs is a leaf of another grouper, the reference technically shouldn't be removed, but it won't case any problems.
+// package + release do their own dependency tracing, so if we accidentally delete something we shouldn't in draft, it's not a big deal
+// Having extra/invalid references is a problem, but missing them would not break the workflow
+// Link to github explanation: https://github.com/DBCG/aphl-vsm/pull/435#issuecomment-2405648700
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const programId = req.query.id as string
