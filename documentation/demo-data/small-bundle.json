@@ -3547,17 +3547,17 @@
           "versionId": "1",
           "lastUpdated": "2023-08-08T01:11:33.529+00:00",
           "source": "#bojbBl7a7T0wm1Eh",
-          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessment"]
+          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessment"]
         },
         "extension": [
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentArtifact",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentArtifact",
             "valueReference": {
               "reference": "Library/SmallSpecificationLibrary"
             }
           },
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentContent",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentContent",
             "extension": [
               {
                 "url": "informationType",
@@ -3590,7 +3590,7 @@
             ]
           },
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentDate",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentDate",
             "valueDateTime": "2023-08-08T01:11:33+00:00"
           }
         ]
