@@ -86,7 +86,7 @@
           {
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ],
@@ -96,7 +96,7 @@
           {
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ],
@@ -1644,7 +1644,7 @@
             "resource": "http://not-hl7.org/fhir/us/ecr/ValueSet/dxtc2|9.1.1",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -1654,7 +1654,7 @@
             "resource": "http://not-hl7.org/fhir/us/ecr/ValueSet/lrtc2|9.1.1",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -1664,7 +1664,7 @@
             "resource": "http://not-hl7.org/fhir/us/ecr/ValueSet/sdtc2|9.1.1",
             "extension": [
               {
-                "url": "http://hl7.org/fhir/StructureDefinition/crmi-isOwned",
+                "url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
                 "valueBoolean": true
               }
             ]
@@ -3547,17 +3547,17 @@
           "versionId": "1",
           "lastUpdated": "2023-08-08T01:11:33.529+00:00",
           "source": "#bojbBl7a7T0wm1Eh",
-          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessment"]
+          "profile": ["http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessment"]
         },
         "extension": [
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentArtifact",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentArtifact",
             "valueReference": {
               "reference": "Library/SmallSpecificationLibrary"
             }
           },
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentContent",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentContent",
             "extension": [
               {
                 "url": "informationType",
@@ -3590,7 +3590,7 @@
             ]
           },
           {
-            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-artifactAssessmentDate",
+            "url": "http://hl7.org/fhir/uv/crmi/StructureDefinition/artifact-artifactAssessmentDate",
             "valueDateTime": "2023-08-08T01:11:33+00:00"
           }
         ]
