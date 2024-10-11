@@ -173,7 +173,7 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             <span style={{ height:'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
-                data-button-context={`release-${row.status}`}
+                data-button-context={`retire-${row.status}`}
                 variant="contained"
                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
                 disabled={row.status !== 'active'}
