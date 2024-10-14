@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs'
 import { fhirCdrClient } from '@/fhirClients'
-import { getVsSteward, getVsAuthor } from '@/helpers/valueSetHelpers'
+import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
 import { addTerminologyEndpointToParameters } from '@/pages/api/programs/[id]/package'
 
@@ -194,7 +194,7 @@ const generateReadMeSheet = (
   const currentVersion = readmeSheet.addRows([
     ['Name', sourceGrouperLibrary.title],
     ['Purpose', sourceGrouperLibrary?.purpose],
-    ['RCTC OID', sourceGrouperLibrary?.id?.toString()],
+    ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', sourceGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', sourceGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', sourceGrouperLibrary?.version]
