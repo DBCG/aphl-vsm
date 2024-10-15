@@ -436,3 +436,7 @@ button {
 [data-column-id='value-set-conditions'].rdt_TableCol .rdt_TableCol_Sortable {
   overflow: visible;
 }
+
+.programs-tab-table {
+  max-height: unset !important;
+}

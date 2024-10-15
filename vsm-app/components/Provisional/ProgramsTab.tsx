@@ -568,6 +568,7 @@ const ProgramsTab: NextPage = () => {
       </div>
       <ErrorMessage error={error?.error || null} handleClose={() => setError({})} />
       <DT
+        className='programs-tab-table'
         key={refreshkey}
         data={programs}
         clearSelectedRows={toggledClearRows}
