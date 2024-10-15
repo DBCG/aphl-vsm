@@ -101,7 +101,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache =
       <NavContextProvider>
         <ToastContainer
           position="top-right"
-          autoClose={3000}
+          autoClose={7000}
           hideProgressBar
           newestOnTop
           closeOnClick
