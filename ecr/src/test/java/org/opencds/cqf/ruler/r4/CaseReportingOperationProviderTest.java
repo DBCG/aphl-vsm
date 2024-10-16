@@ -1943,7 +1943,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					new codeAndOperation("49649001", null)
 				),
 				"priority", List.of(
-					new codeAndOperation("routine", null)
+					new codeAndOperation("emergent", "replace")
 				)
 			),
 			"2.16.840.1.113762.1.4.1146.163", Map.of(
@@ -1994,9 +1994,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 								assertEquals(conditionInList.get().operation, condition.get("operation").get("type").asText());
 							}
 						}
-						assertNotNull(leaf.get("priority").get("value").asText());
+						assertNotNull(leaf.get("priority").get("value"));
 						codeAndOperation expectedPriority = oldLeafsAndConditions.get(memberOid).get("priority").get(0);
 						assertEquals(expectedPriority.code, leaf.get("priority").get("value").asText());
+						if (expectedPriority.operation != null) {
+							assertEquals(expectedPriority.operation, leaf.get("priority").get("operation").get("type").asText());
+						}
 					}
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
 					assertTrue(page.get("newData").get("priority").get("value").asText().equals("routine"));
@@ -2013,9 +2016,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 								assertEquals(conditionInList.get().operation, condition.get("operation").get("type").asText());
 							}
 						}
-						assertNotNull(leaf.get("priority").get("value").asText());
+						assertNotNull(leaf.get("priority").get("value"));
 						codeAndOperation expectedPriority = newLeafsAndConditions.get(memberOid).get("priority").get(0);
 						assertEquals(expectedPriority.code, leaf.get("priority").get("value").asText());
+						if (expectedPriority.operation != null) {
+							assertEquals(expectedPriority.operation, leaf.get("priority").get("operation").get("type").asText());
+						}
 					}
 				}
 			}

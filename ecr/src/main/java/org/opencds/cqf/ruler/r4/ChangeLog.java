@@ -51,11 +51,6 @@ public class ChangeLog {
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
     if (valueSet != null) {
       var leafData = updateLeafMap(leafMap, valueSet);
-      var maybePriority = getPriority(valueSet);
-      // getConditions(valueSet).forEach(c -> leafData.tryAddCondition(c));
-      if (leafData.priority.value == null && maybePriority.isPresent()) {
-        leafData.priority.value = maybePriority.get();
-      }
       if (valueSet.getCompose().hasInclude()) {
         valueSet.getCompose().getInclude()
           .forEach(concept -> {
@@ -202,15 +197,15 @@ public class ChangeLog {
   }
   private void updateConditions(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
     ra.conditions.forEach(condition -> {
-      if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
-        var c = leafValueSet.tryAddCondition((CodeableConcept)condition.value.getValue());
+      if (condition.value != null) {
+        var c = leafValueSet.tryAddCondition(condition.value);
         c.operation = condition.operation;
       }
     });
   }
   private void updatePriorities(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
-    if (ra.priority.value != null && ra.priority.value.hasValue()) {
-      var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
+    if (ra.priority.value != null) {
+      var coding = ra.priority.value.getCodingFirstRep();
       leafValueSet.priority.value = coding.getCode();
       leafValueSet.priority.operation = ra.priority.operation;
     }
@@ -659,12 +654,12 @@ public class ChangeLog {
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
     public RelatedArtifact fullRelatedArtifact;
-    public List<extensionWithOperation> conditions = new ArrayList<>();
-    public extensionWithOperation priority = new extensionWithOperation(null);
-    public static class extensionWithOperation {
-      public Extension value;
+    public List<codeableConceptWithOperation> conditions = new ArrayList<>();
+    public codeableConceptWithOperation priority = new codeableConceptWithOperation(null);
+    public static class codeableConceptWithOperation {
+      public CodeableConcept value;
       public Operation operation;
-      extensionWithOperation(Extension e) {
+      codeableConceptWithOperation(CodeableConcept e) {
         this.value = e;
       }
     }
@@ -672,12 +667,14 @@ public class ChangeLog {
       if (relatedArtifact != null) {
         this.value = relatedArtifact.getResource();
         this.conditions = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmCondition).stream()
-          .map(e -> new extensionWithOperation(e)).collect(Collectors.toList());
-        var priorities = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmPriority);
+          .map(e -> new codeableConceptWithOperation((CodeableConcept)e.getValue())).collect(Collectors.toList());
+        var priorities = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmPriority).stream().map(e ->  (CodeableConcept)e.getValue()).collect(Collectors.toList());
         if (priorities.size() > 1) {
           throw new UnprocessableEntityException("too many priorities");
         } else if (priorities.size() == 1) {
           this.priority.value = priorities.get(0);
+        } else {
+          this.priority.value = new CodeableConcept(new Coding(TransformProperties.usPHUsageContext, "routine", "Routine"));
         }
       }
       this.fullRelatedArtifact = relatedArtifact;
@@ -709,10 +706,8 @@ public class ChangeLog {
     private void tryAddConditionOperation(Extension maybeCondition, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybeCondition.getUrl().equals(TransformProperties.vsmCondition)) {
         target.conditions.stream()
-          .filter(e -> e.value.getUrl().equals(TransformProperties.vsmCondition)
-               && e.value.getValue() instanceof CodeableConcept
-               && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getSystem())
-               && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getCode())
+          .filter(e ->  e.value.getCodingFirstRep().getSystem().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getSystem())
+               && e.value.getCodingFirstRep().getCode().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getCode())
           )
           .findAny()
           .ifPresent(condition -> {
@@ -723,11 +718,13 @@ public class ChangeLog {
     private void tryAddPriorityOperation(Extension maybePriority, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybePriority.getUrl().equals(TransformProperties.vsmPriority)) {
         if (target.priority.value != null
-          && target.priority.value.getUrl().equals(TransformProperties.vsmPriority)
-          && target.priority.value.getValue() instanceof CodeableConcept
-          && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getSystem())
-          && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getCode())
+          && target.priority.value.getCodingFirstRep().getSystem().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getSystem())
+          && target.priority.value.getCodingFirstRep().getCode().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getCode())
           ) {
+            // priority will always be replace because:
+            // insert = an extension exists where it did not before, which is a replacement from "routine" to "emergent"
+            // delete = an extension does not exist where it did before, which is a replacement from "emergent" to "routine"
+            newOperation.type = "replace";
             target.priority.operation = newOperation;
           };
       }
