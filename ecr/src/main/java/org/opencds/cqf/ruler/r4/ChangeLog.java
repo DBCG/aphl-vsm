@@ -50,16 +50,21 @@ public class ChangeLog {
   }
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
     if (valueSet != null) {
-      var leafCodeSystems = updateLeafMap(leafMap, valueSet).codeSystems;
+      var leafData = updateLeafMap(leafMap, valueSet);
+      var maybePriority = getPriority(valueSet);
+      // getConditions(valueSet).forEach(c -> leafData.tryAddCondition(c));
+      if (leafData.priority.value == null && maybePriority.isPresent()) {
+        leafData.priority.value = maybePriority.get();
+      }
       if (valueSet.getCompose().hasInclude()) {
         valueSet.getCompose().getInclude()
           .forEach(concept -> {
             if (concept.hasConcept()) {
               var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
               var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
-              var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+              var doesOidExistInList = leafData.codeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
               if (!doesOidExistInList) {
-                leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+                leafData.codeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
               }
               mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
             }
@@ -79,9 +84,9 @@ public class ChangeLog {
           if (!codeMap.containsKey(cnt.getCode())) {
             var codeSystemName = ValueSetChild.Code.getCodeSystemName(cnt.getSystem());
             var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(cnt.getSystem());
-            var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+            var doesOidExistInList = leafData.codeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
             if (!doesOidExistInList) {
-              leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+              leafData.codeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
             }
             mapExpansionContainsToCodeMap(codeMap, cnt, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
           }
@@ -198,19 +203,8 @@ public class ChangeLog {
   private void updateConditions(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
     ra.conditions.forEach(condition -> {
       if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
-        var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-        var conditionName = (coding.getDisplay() == null || coding.getDisplay().isBlank()) ? ((CodeableConcept)condition.value.getValue()).getText() : coding.getDisplay();
-        leafValueSet.conditions.add(new ValueSetChild.Code(
-          coding.getId(), 
-          coding.getSystem(), 
-          coding.getCode(), 
-          coding.getVersion(), 
-          conditionName,
-          null, 
-          null,
-          null,
-          null,
-          condition.operation));
+        var c = leafValueSet.tryAddCondition((CodeableConcept)condition.value.getValue());
+        c.operation = condition.operation;
       }
     });
   }
@@ -482,6 +476,28 @@ public class ChangeLog {
         copy.priority.operation = this.priority.operation;
         copy.operation = this.operation;
         return copy;
+      }
+      public ValueSetChild.Code tryAddCondition(CodeableConcept condition) {
+        var coding = condition.getCodingFirstRep();
+        var conditionName = (coding.getDisplay() == null || coding.getDisplay().isBlank()) ? condition.getText() : coding.getDisplay();
+        final var maybeExisting = this.conditions.stream().filter(code -> code.system.equals(coding.getSystem()) && code.code.equals(coding.getCode())).findAny();        
+        if (maybeExisting.isEmpty()) {
+          final var newCondition = new ValueSetChild.Code(
+            coding.getId(), 
+            coding.getSystem(), 
+            coding.getCode(), 
+            coding.getVersion(), 
+            conditionName,
+            null, 
+            null,
+            null,
+            null,
+            null);
+            this.conditions.add(newCondition);
+            return newCondition;
+        } else {
+          return maybeExisting.get();
+        }
       }
     }
     ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap, String priority) {
