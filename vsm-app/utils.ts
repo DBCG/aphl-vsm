@@ -1,6 +1,5 @@
 import { cloneDeep, isArray, isEqual, isObject, keys, sortBy } from 'lodash'
-import { isValidSimpleSemver } from './helpers/server/semverHelpers'
-import { P } from 'pino'
+import { isValidThreeOrFourPartSemver } from './helpers/server/semverHelpers'
 
 // Usage: await sleep(1000);
 export const sleep = (millis: number) => {
@@ -30,7 +29,7 @@ export const fetcher = (...args) => fetch(...args).then(async (res) => {
     // @ts-ignore
     error.status = res.status
     throw error
-  } 
+  }
   return res.json()
 })
 
@@ -65,7 +64,7 @@ const deepSort = (obj: any): any => {
       .sort()
       .reduce((result: { [key: string]: any }, key: string) => {
         // @ts-ignore
-        result[key] = deepSort(obj[key]); 
+        result[key] = deepSort(obj[key]);
         return result;
       }, {});
   }
@@ -98,7 +97,7 @@ export const incrementSemver = ({
   const semverWithoutTag = valueToIncrement.split('-')[0]
 
   // if value is not semver format, return fallback
-  if (!isValidSimpleSemver(semverWithoutTag)) return fallbackValue
+  if (!isValidThreeOrFourPartSemver(semverWithoutTag)) return fallbackValue
 
   let [major, minor, patch] = semverWithoutTag.split('.')
 
