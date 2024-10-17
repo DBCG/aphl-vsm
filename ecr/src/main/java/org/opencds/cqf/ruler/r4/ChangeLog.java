@@ -50,16 +50,16 @@ public class ChangeLog {
   }
   private void updateCodeMapAndLeafMetadataMap(Map<String, ValueSetChild.Code> codeMap, Map<String, Map<String,ValueSetChild.Leaf>> leafMap, ValueSet valueSet, KnowledgeArtifactProcessor.diffCache cache) {
     if (valueSet != null) {
-      var leafCodeSystems = updateLeafMap(leafMap, valueSet).codeSystems;
+      var leafData = updateLeafMap(leafMap, valueSet);
       if (valueSet.getCompose().hasInclude()) {
         valueSet.getCompose().getInclude()
           .forEach(concept -> {
             if (concept.hasConcept()) {
               var codeSystemName = ValueSetChild.Code.getCodeSystemName(concept.getSystem());
               var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(concept.getSystem());
-              var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+              var doesOidExistInList = leafData.codeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
               if (!doesOidExistInList) {
-                leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+                leafData.codeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
               }
               mapConceptSetToCodeMap(codeMap, concept, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
             }
@@ -79,9 +79,9 @@ public class ChangeLog {
           if (!codeMap.containsKey(cnt.getCode())) {
             var codeSystemName = ValueSetChild.Code.getCodeSystemName(cnt.getSystem());
             var codeSystemOid = ValueSetChild.Code.getCodeSystemOid(cnt.getSystem());
-            var doesOidExistInList = leafCodeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
+            var doesOidExistInList = leafData.codeSystems.stream().anyMatch(nameAndOid -> nameAndOid.oid != null && nameAndOid.oid.equals(codeSystemOid));
             if (!doesOidExistInList) {
-              leafCodeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
+              leafData.codeSystems.add(new ValueSetChild.Leaf.NameAndOid(codeSystemName, codeSystemOid));
             }
             mapExpansionContainsToCodeMap(codeMap, cnt, Canonicals.getIdPart(valueSet.getUrl()), valueSet.getName(), valueSet.getTitle(), valueSet.getUrl());
           }
@@ -197,26 +197,15 @@ public class ChangeLog {
   }
   private void updateConditions(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
     ra.conditions.forEach(condition -> {
-      if (condition.value != null && condition.value.hasValue() && condition.value.getValue() instanceof CodeableConcept) {
-        var coding = ((CodeableConcept)condition.value.getValue()).getCodingFirstRep();
-        var conditionName = (coding.getDisplay() == null || coding.getDisplay().isBlank()) ? ((CodeableConcept)condition.value.getValue()).getText() : coding.getDisplay();
-        leafValueSet.conditions.add(new ValueSetChild.Code(
-          coding.getId(), 
-          coding.getSystem(), 
-          coding.getCode(), 
-          coding.getVersion(), 
-          conditionName,
-          null, 
-          null,
-          null,
-          null,
-          condition.operation));
+      if (condition.value != null) {
+        var c = leafValueSet.tryAddCondition(condition.value);
+        c.operation = condition.operation;
       }
     });
   }
   private void updatePriorities(RelatedArtifactUrlWithOperation ra, ChangeLog.ValueSetChild.Leaf leafValueSet) {
-    if (ra.priority.value != null && ra.priority.value.hasValue()) {
-      var coding = ((CodeableConcept)ra.priority.value.getValue()).getCodingFirstRep();
+    if (ra.priority.value != null) {
+      var coding = ra.priority.value.getCodingFirstRep();
       leafValueSet.priority.value = coding.getCode();
       leafValueSet.priority.operation = ra.priority.operation;
     }
@@ -483,6 +472,28 @@ public class ChangeLog {
         copy.operation = this.operation;
         return copy;
       }
+      public ValueSetChild.Code tryAddCondition(CodeableConcept condition) {
+        var coding = condition.getCodingFirstRep();
+        var conditionName = (coding.getDisplay() == null || coding.getDisplay().isBlank()) ? condition.getText() : coding.getDisplay();
+        final var maybeExisting = this.conditions.stream().filter(code -> code.system.equals(coding.getSystem()) && code.code.equals(coding.getCode())).findAny();        
+        if (maybeExisting.isEmpty()) {
+          final var newCondition = new ValueSetChild.Code(
+            coding.getId(), 
+            coding.getSystem(), 
+            coding.getCode(), 
+            coding.getVersion(), 
+            conditionName,
+            null, 
+            null,
+            null,
+            null,
+            null);
+            this.conditions.add(newCondition);
+            return newCondition;
+        } else {
+          return maybeExisting.get();
+        }
+      }
     }
     ValueSetChild(String title, String id, String version, String name, String url, List<ValueSet.ConceptSetComponent> compose, List<ValueSet.ValueSetExpansionContainsComponent> contains, Map< String , Code> codeMap, Map< String, Map< String, Leaf > > leafMetadataMap, String priority) {
       super(title, id, version, name, url, "ValueSet");
@@ -643,12 +654,12 @@ public class ChangeLog {
   }
   public static class RelatedArtifactUrlWithOperation extends ValueAndOperation {
     public RelatedArtifact fullRelatedArtifact;
-    public List<extensionWithOperation> conditions = new ArrayList<>();
-    public extensionWithOperation priority = new extensionWithOperation(null);
-    public static class extensionWithOperation {
-      public Extension value;
+    public List<codeableConceptWithOperation> conditions = new ArrayList<>();
+    public codeableConceptWithOperation priority = new codeableConceptWithOperation(null);
+    public static class codeableConceptWithOperation {
+      public CodeableConcept value;
       public Operation operation;
-      extensionWithOperation(Extension e) {
+      codeableConceptWithOperation(CodeableConcept e) {
         this.value = e;
       }
     }
@@ -656,12 +667,14 @@ public class ChangeLog {
       if (relatedArtifact != null) {
         this.value = relatedArtifact.getResource();
         this.conditions = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmCondition).stream()
-          .map(e -> new extensionWithOperation(e)).collect(Collectors.toList());
-        var priorities = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmPriority);
+          .map(e -> new codeableConceptWithOperation((CodeableConcept)e.getValue())).collect(Collectors.toList());
+        var priorities = relatedArtifact.getExtensionsByUrl(TransformProperties.vsmPriority).stream().map(e ->  (CodeableConcept)e.getValue()).collect(Collectors.toList());
         if (priorities.size() > 1) {
           throw new UnprocessableEntityException("too many priorities");
         } else if (priorities.size() == 1) {
           this.priority.value = priorities.get(0);
+        } else {
+          this.priority.value = new CodeableConcept(new Coding(TransformProperties.usPHUsageContext, "routine", "Routine"));
         }
       }
       this.fullRelatedArtifact = relatedArtifact;
@@ -693,10 +706,8 @@ public class ChangeLog {
     private void tryAddConditionOperation(Extension maybeCondition, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybeCondition.getUrl().equals(TransformProperties.vsmCondition)) {
         target.conditions.stream()
-          .filter(e -> e.value.getUrl().equals(TransformProperties.vsmCondition)
-               && e.value.getValue() instanceof CodeableConcept
-               && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getSystem())
-               && ((CodeableConcept)e.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getCode())
+          .filter(e ->  e.value.getCodingFirstRep().getSystem().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getSystem())
+               && e.value.getCodingFirstRep().getCode().equals(((CodeableConcept)maybeCondition.getValue()).getCodingFirstRep().getCode())
           )
           .findAny()
           .ifPresent(condition -> {
@@ -707,11 +718,13 @@ public class ChangeLog {
     private void tryAddPriorityOperation(Extension maybePriority, RelatedArtifactUrlWithOperation target, Operation newOperation) {
       if (maybePriority.getUrl().equals(TransformProperties.vsmPriority)) {
         if (target.priority.value != null
-          && target.priority.value.getUrl().equals(TransformProperties.vsmPriority)
-          && target.priority.value.getValue() instanceof CodeableConcept
-          && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getSystem().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getSystem())
-          && ((CodeableConcept)target.priority.value.getValue()).getCodingFirstRep().getCode().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getCode())
+          && target.priority.value.getCodingFirstRep().getSystem().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getSystem())
+          && target.priority.value.getCodingFirstRep().getCode().equals(((CodeableConcept)maybePriority.getValue()).getCodingFirstRep().getCode())
           ) {
+            // priority will always be replace because:
+            // insert = an extension exists where it did not before, which is a replacement from "routine" to "emergent"
+            // delete = an extension does not exist where it did before, which is a replacement from "emergent" to "routine"
+            newOperation.type = "replace";
             target.priority.operation = newOperation;
           };
       }

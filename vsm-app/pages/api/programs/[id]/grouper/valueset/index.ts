@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import { deleteLeafsFromLibrary } from '@/helpers/libraryHelpers'
 import {
   addExtensionToVs,
   addValueSetToGrouper,
@@ -19,7 +20,7 @@ import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import logger from '@/helpers/server/logger'
-import { uniq, uniqBy } from 'lodash'
+import { cloneDeep, uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
 import { ErrorItem } from '@/helpers/is'
@@ -80,39 +81,27 @@ export const formatBatchGrouperUpdate = (groupers: fhir4.ValueSet[]): fhir4.Bund
   }
 }
 
-const removeValueSetFromLibrary = async (programId: string, valuesetUrls: string[]) => {
-  const program = (await fhirCdrClient.read({
-    resourceType: 'Library',
-    id: programId
-  })) as fhir4.Library
-  if (!program) {
-    logger.error(`Could not find Program: ${programId}`)
-    throw new Error('Could not find Program: ' + programId)
-  }
-
-  program.relatedArtifact = program.relatedArtifact?.filter((artifact) => {
-    if (artifact.type === 'depends-on' && artifact.extension?.[0]?.url?.endsWith('vsm-valueset-priority')) {
-      return !valuesetUrls.includes(artifact.resource!)
-    }
-    return true
-  })
-
-  return {
-    resource: program,
-    request: {
-      method: 'PUT',
-      url: `Library/${program.id}`
-    }
-  } as fhir4.BundleEntry
-}
-
 // ---------------------------------------------------------------------------------
 // --------------------- ROUTE TO DELETE VSETS FROM EXISTING GROUPERS --------------
 // ---------------------------------------------------------------------------------
+// also need to update the depends-on relatedArtifact in the program library if any
+
+// There is one edge case that this ignores, but it's not currently a problem for draft resources
+// if a leaf vs is a leaf of another grouper, the reference technically shouldn't be removed, but it won't case any problems.
+// package + release do their own dependency tracing, so if we accidentally delete something we shouldn't in draft, it's not a big deal
+// Having extra/invalid references is a problem, but missing them would not break the workflow
+// Link to github explanation: https://github.com/DBCG/aphl-vsm/pull/435#issuecomment-2405648700
 const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const programId = req.query.id as string
     const body = await req.body
+
+    let programToUpdate = await getProgram(programId)
+
+    if (!is.library(programToUpdate)) {
+      return res.status(404).send({ error: `Program with ID '${req.query.id}' not found` })
+    }
+
     // if you are deleting valuesets from groupers in a batch...
     if (body.batchDelete) {
       try {
@@ -143,10 +132,10 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         const updateInput = formatBatchGrouperUpdate(updatedGroupers)
 
-        const programUpdateJob = await removeValueSetFromLibrary(programId, Object.keys(batchDelete))
+        const updatedLibraryBatchEntryItem = deleteLeafsFromLibrary(programToUpdate, Object.keys(batchDelete))
 
-        if (programUpdateJob && updateInput?.entry) {
-          updateInput.entry.push(programUpdateJob)
+        if (updatedLibraryBatchEntryItem && updateInput?.entry) {
+          updateInput.entry.push(updatedLibraryBatchEntryItem)
         }
 
         let updateGroupers

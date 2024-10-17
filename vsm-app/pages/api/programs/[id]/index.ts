@@ -28,25 +28,6 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
   }
 }
 
-//TODO: This does not seem to be called anywhere from the frontend
-// const createProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
-//   try {
-//     // update the program by id
-
-//     const response = (await fhirCdrClient.update<fhir4.Library>({
-//       resourceType: 'Library',
-//       id: req.query['id'] as string,
-//       body: req.body
-//     })) as fhir4.Library
-//     res.send(response)
-//     return
-//   } catch (e: any) {
-//     const error = e as HapiError
-//     logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
-//     res.status(error.response?.status).json({ error: `Error updating program by ID` })
-//     return
-//   }
-
 const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | fhir4.Resource | { error: string }>) => {
   try {
     // if the user does not want to change the id of the FHIR Library
@@ -92,5 +73,4 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
 export default handler({
   GET: { action: retrieveProgramLibrary },
   PUT: { action: updateProgramLibrary, access: ['admin', 'editor'] },
-  // POST: { action: createProgramLibrary, access: ['admin', 'editor'] } //TODO: This does not seem to be called anywhere from the frontend
 })

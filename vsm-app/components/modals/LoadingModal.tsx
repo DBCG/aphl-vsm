@@ -220,7 +220,7 @@ const LoadingModal = ({
         <Button
           text={`YES, ${actionType}`}
           data-modal={'confirm'}
-          disabled={disableSubmission}
+          disabled={disableSubmission || loading}
           loading={loading || false}
           onClick={() => {
             let currProgram = currentProgram
