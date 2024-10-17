@@ -13,7 +13,7 @@ import {
 import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
 import { SearchInput } from '../SearchInput'
-import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
+import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
@@ -106,7 +106,7 @@ const LoadingModal = ({
   const matches = useGetPrograms({ version: versionToCheck })
 
   useEffect(() => {
-    const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
+    const versionFormatErrorExists = versionToCheck ? !isValidThreeOrFourPartSemver(versionToCheck) : false
     if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck) {
       setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0 are valid')
     } else if (matches.length) {
