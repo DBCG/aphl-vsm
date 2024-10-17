@@ -45,10 +45,19 @@ const latestVersion = (cdrVersion: string, templateVersion: string): string | nu
 
 
 const convertBackToCqfSemver = (libSemver: string) => libSemver.replace('+', '.')
-
+const normalizeToThreePartSemver = (maybeMoreThanThree: string) => {
+  const split = maybeMoreThanThree.split('.');
+  if (split.length > 3) {
+    return split.slice(0, 3).join('.') + '-' + split.slice(3, split.length).join('-')
+  } else {
+    return maybeMoreThanThree
+  }
+}
 const getLatestFromList = (versions: string[]) => {
-  const filteredVersions = versions.filter(v => isValidSimpleSemver(removeFlags(v)))
-  const sorted = sort(filteredVersions)
+  const filteredNormalizedVersions = versions
+    .filter(v => isValidSimpleSemver(removeFlags(v)))
+    .map(normalizeToThreePartSemver)
+  const sorted = sort(filteredNormalizedVersions)
   return convertBackToCqfSemver(sorted[sorted.length - 1] || "")
 }
 
