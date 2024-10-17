@@ -9,9 +9,9 @@ const removeFlags = (item: string) => {
   return item?.split('-')?.[0]
 }
 
-const threeCompartmentSemver = new RegExp('^(\\d+).(\\d+).(\\d+)$', 'gm')
+const threeOrFourCompartmentSemver = new RegExp('^(\\d+).(\\d+).(\\d+).?\\d*$', 'gm')
 
-const isValidSimpleSemver = (item: string) => Boolean(item?.match(threeCompartmentSemver))
+const isValidSimpleSemver = (item: string) => Boolean(item?.match(threeOrFourCompartmentSemver))
 
 // returns the latest version between two options (not considering flags)
 const latestVersion = (cdrVersion: string, templateVersion: string): string | null => {
