@@ -205,7 +205,7 @@ const generateReadMeSheet = (
   const previousVersion = readmeSheet.addRows([
     ['Name', targetGrouperLibrary.title],
     ['Purpose', targetGrouperLibrary?.purpose],
-    ['RCTC OID', targetGrouperLibrary?.id],
+    ['RCTC OID', getOid(sourceGrouperLibrary)],
     ['RCTC Definition Version', targetGrouperLibrary?.version],
     ['RCTC Definition Effective Start Date', targetGrouperLibrary?.effectivePeriod?.start],
     ['RCTC Release Label', targetGrouperLibrary?.version]
