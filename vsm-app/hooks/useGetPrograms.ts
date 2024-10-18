@@ -1,4 +1,4 @@
-import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
+import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { ProgramApiResponse } from 'pages/api/programs'
 import { useState, useEffect } from 'react'
 
@@ -30,7 +30,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
   useEffect(() => {
     async function getPrograms(): Promise<void> {
       // early return if wrong format for version
-      if (version && !isValidSimpleSemver(version)) {
+      if (version && !isValidThreeOrFourPartSemver(version)) {
         setLibraries([])
       } else {
         let endpoint = '/api/programs'
