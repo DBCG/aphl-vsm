@@ -82,7 +82,16 @@ public class ImportBundleProducer {
 		}
 	}
 
-	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties) throws FhirResourceExists {
+	private static void addAuthoritativeSource(ValueSet vs, String url) {
+		if (vs.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
+			var ext = new Extension();
+			ext.setUrl(TransformProperties.authoritativeSourceExtUrl);
+			ext.setValue(new UriType(url));
+			vs.getExtension().add(ext);
+		}
+	}
+
+	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties, String appAuthoritativeUrl) throws FhirResourceExists {
 		// store for processing root library
 		Map<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
 		Map<String, List<CodeableConcept>> priorityMap = new HashMap<>();
@@ -102,12 +111,14 @@ public class ImportBundleProducer {
 						var valueSet = (ValueSet) resource;
             			valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
 						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
+
 						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filteredGrouperProfiles);
 							groupers.add(valueSetCanonicalUrl);
+							addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getId());
 						} else {
 							// Leaf ValueSets
 							var leafVsProfiles = addMetaProfileUrl(
@@ -118,13 +129,8 @@ public class ImportBundleProducer {
 							valueSet.getMeta().setProfile(filtered);
 
 							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
-
-							if (valueSet.getExtensionByUrl(TransformProperties.authoritativeSourceExtUrl) == null) {
-								var ext = new Extension();
-								ext.setUrl(TransformProperties.authoritativeSourceExtUrl);
-								ext.setValue(new UriType(TransformProperties.vsacUrl));
-								valueSet.getExtension().add(ext);
-							}
+							// Add authoritative source extension
+							addAuthoritativeSource(valueSet, valueSet.getUrl());
 						}
 
 						// Remove conditions and priority from useContext of leaf valuesets and groupers
