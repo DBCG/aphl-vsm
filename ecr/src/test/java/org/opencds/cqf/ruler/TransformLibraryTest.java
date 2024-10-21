@@ -71,7 +71,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		// ensures that resources not found when doing checks
 		when(transformProperties.search(any(), any())).thenThrow(new ResourceNotFoundException("Not Found"));
 
-		List<Bundle.BundleEntryComponent> transactionBundleEntry = transformImportBundle(v2Bundle, transformProperties);
+		List<Bundle.BundleEntryComponent> transactionBundleEntry = transformImportBundle(v2Bundle, transformProperties, "http://localhost:8080/fhir");
 
 		Library updatedRootLibrary = extractRootLibrary(transactionBundleEntry);
 
