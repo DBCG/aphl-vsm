@@ -118,7 +118,7 @@ public class ImportBundleProducer {
 							var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filteredGrouperProfiles);
 							groupers.add(valueSetCanonicalUrl);
-							addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getId());
+							addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getIdPart());
 						} else {
 							// Leaf ValueSets
 							var leafVsProfiles = addMetaProfileUrl(
