@@ -1,3 +1,3 @@
-FROM alphora/cqf-ruler:cqf-ruler-vsm-ecr
+FROM alphora/cqf-ruler:latest
 
 COPY ./target/cqf-ruler-*.jar plugin/
