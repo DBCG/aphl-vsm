@@ -6,12 +6,13 @@ const fs = require('fs')
 const MAX_VS_PER_GROUPER = 5
 const GENERATE_3_PART_VERSION = true
 
+// starting file to edit
 const ersdWithFourPartVersion = 'ersd-1.2.2.0-bundle.json'
 const fileToEdit = JSON.parse(fs.readFileSync(ersdWithFourPartVersion).toString())
 
+// files to be generated
 const smallerBundle4PartVersion = 'ersd-1.2.2.0-smaller-four-part-version-bundle.json'
 const smallerBundle3PartVersion = 'ersd-1.2.2-smaller-three-part-version-bundle.json'
-
 
 const isSpecLibrary = (someResource) => Boolean(
   someResource?.resourceType === 'Library'
@@ -71,6 +72,14 @@ const grouperIsUnionOfValueSets = (grouperValueSet) => Boolean(
   && grouperValueSet?.compose?.include[0]?.valueSet?.length > 1
 )
 
+const getLeafReferences = (grouperValueset) => {
+  if (grouperIsUnionOfValueSets(grouperValueset)) {
+    return grouperValueset.compose.include[0].valueSet
+  } else {
+    return grouperValueset.compose.include.map(includeItem => includeItem.valueSet[0])
+  }
+}
+
 const limitLeafsInGrouper = (grouperValueset, maxNumber) => {
   if (grouperIsUnionOfValueSets(grouperValueset)) {
     console.info(`The grouper value set ${grouperValueset.url} is structured as an intersection of ValueSet contents.`)
@@ -84,6 +93,40 @@ const limitLeafsInGrouper = (grouperValueset, maxNumber) => {
   return grouperValueset
 }
 
+const allCodesFromLeafsInGrouper = (leafReferences) => {
+  const allCodesInGrouper = []
+  leafReferences.forEach(leafRef => {
+    const matchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
+      return (
+        entryItem?.resource?.url === leafRef
+      )
+    })
+
+    const matchingLeaf = fileToEdit?.entry?.[matchIndexInEntry]?.resource
+
+    if (matchingLeaf) {
+      matchingLeaf.compose.include.forEach(newIncludeItem => {
+        const indexOfCachedSystem = allCodesInGrouper.findIndex(item => (
+          item.system === newIncludeItem.system
+          && item.version === newIncludeItem.version
+        ))
+        if (indexOfCachedSystem > -1) {
+          const codesAlreadyCached = allCodesInGrouper[indexOfMatch].concept.map(concept => concept.code)
+          const dedupedItemsToAdd = [...composeIncludeItems[indexOfMatch].concept, ...includeItem.concept].filter(concept => !codesAlreadyCached.includes(concept.code))
+          composeIncludeItems[indexOfMatch].concept = dedupedItemsToAdd
+        } else {
+          composeIncludeItems.push(newIncludeItem)
+        }
+      })
+    } else {
+      console.error(`No ValueSet in the bundle with url ${leafRef}`)
+    }
+  })
+  return allCodesInGrouper
+}
+
+let allLeafReferences = []
+// for each grouper valueset
 grouperValuesetReferences.forEach(ref => {
   const [unversionedGrouperVsUrl, grouperVsVersion] = ref.split('|')
   const matchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
@@ -92,13 +135,19 @@ grouperValuesetReferences.forEach(ref => {
     )
   })
 
-  const match = fileToEdit?.entry?.[matchIndexInEntry]?.resource
+  // get the matching grouper
+  const matchingGrouper = fileToEdit?.entry?.[matchIndexInEntry]?.resource
 
   // consider version match if no version is specified
   const versionMatch = Boolean(!grouperVsVersion || resourceWithMatchingUrl?.version === grouperVsVersion)
 
-  if (match && versionMatch) {
-    const updatedGrouper = limitLeafsInGrouper(match, MAX_VS_PER_GROUPER)
+  if (matchingGrouper && versionMatch) {
+    // first, reduce the # of leafs in the grouper
+    const updatedGrouper = limitLeafsInGrouper(matchingGrouper, MAX_VS_PER_GROUPER)
+  
+    // // get references to leaf valuesets left in the grouper
+    // allLeafReferences = Array.from(new Set([...allLeafReferences, ...getLeafReferences(updatedGrouper)]))
+    // get all codes present in the leaf valuesets
     fileToEdit.entry[matchIndexInEntry].resource = updatedGrouper
     return match
   } else if (match && !versionMatch) {
@@ -108,6 +157,8 @@ grouperValuesetReferences.forEach(ref => {
   }
   return
 })
+
+// remove all 
 
 const json = JSON.stringify(fileToEdit)
 
@@ -124,5 +175,6 @@ if (GENERATE_3_PART_VERSION) {
     fs.writeFileSync(smallerBundle3PartVersion, JSON.stringify(editedJson))
   }
 }
+
 // write file for 4-part version
 fs.writeFileSync(smallerBundle4PartVersion, json)
