@@ -174,11 +174,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const debouncedFilters = useDebounce(filters, 300)
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
-  // don't allow editing if any loading in progress
-  const blockChanges = useMemo(() => {
-    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight
-  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
-
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
   }, [currentProgram])
@@ -276,7 +271,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const allConditions = useGetConditions() as ConditionItem[]
 
-  const { programValuesets, refreshProgramValueSets } = useGetProgramValueSetDetails({
+  const { programValuesets, isLoading, refreshProgramValueSets } = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
@@ -373,6 +368,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     toast.dismiss()
     subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
   }
+
+  // don't allow editing if any loading in progress
+  const blockChanges = useMemo(() => {
+    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight || isLoading
+  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, isLoading])
 
   const columns = useMemo(
     () => [
