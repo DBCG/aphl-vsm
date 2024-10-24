@@ -115,7 +115,12 @@ public class TransformProvider implements OperationProvider {
 	@Operation(idempotent = true, name = "$ersd-v2-import")
 	public OperationOutcome importReportSpec(
 		RequestDetails requestDetails,
-		@OperationParam(name = "bundle") IBaseResource maybeBundle) throws UnprocessableEntityException, FhirResourceExists {
+		@OperationParam(name = "bundle") IBaseResource maybeBundle,
+		@OperationParam(name = "appAuthoritativeUrl") String appAuthoritativeUrl
+		) throws UnprocessableEntityException, FhirResourceExists {
+		if (appAuthoritativeUrl == null) {
+			throw new UnprocessableEntityException("appAuthoritativeUrl is missing, e.g. http://example.com/fhir");
+		}
 		if (maybeBundle == null) {
 			throw new UnprocessableEntityException("Resource is missing");
 		}
@@ -123,7 +128,7 @@ public class TransformProvider implements OperationProvider {
 			throw new UnprocessableEntityException("Resource is not a bundle");
 		}
 		var v2Bundle = (Bundle) maybeBundle;
-		var importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties);
+		var importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties, appAuthoritativeUrl);
 
 		new Thread(() -> {
 			executeImportTransactionBundle(importTxBundleEntries);

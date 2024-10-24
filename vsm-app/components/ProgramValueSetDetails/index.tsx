@@ -174,11 +174,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const debouncedFilters = useDebounce(filters, 300)
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
-  // don't allow editing if any loading in progress
-  const blockChanges = useMemo(() => {
-    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight
-  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight])
-
   const conditionsMap = useMemo(() => {
     return getVSConditions(currentProgram)
   }, [currentProgram])
@@ -276,7 +271,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const allConditions = useGetConditions() as ConditionItem[]
 
-  const { programValuesets, refreshProgramValueSets } = useGetProgramValueSetDetails({
+  const { programValuesets, isLoading, refreshProgramValueSets } = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
     updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
@@ -374,6 +369,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
   }
 
+  // don't allow editing if any loading in progress
+  const blockChanges = useMemo(() => {
+    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight || isLoading
+  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, isLoading])
+
   const columns = useMemo(
     () => [
       {
@@ -457,7 +457,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             : // default to Routine, this option does not actually need to be set and will be inferred by default
               // when running $package operation
               priorityLevelOptions[1]
-          return row.programStatus === 'active' || !can(session, 'edit') ? (
+          return !isEditable ? (
             <ReadOnlyContainer>
               <ReadOnlyTag>{currentPriority || 'Routine'}</ReadOnlyTag>
             </ReadOnlyContainer>
@@ -499,7 +499,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
-          if (currentProgram?.status === 'active' || !can(session, 'edit')) {
+          if (!isEditable) {
             return row?.valueSetPinnedVersion || 'latest'
           }
           var errors: string[] = []
@@ -635,7 +635,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               }
             })
             .filter((x) => x) as Condition[]
-          return row.programStatus === 'active' || !can(session, 'edit') ? (
+          return !isEditable ? (
             <ReadOnlyContainer>
               {selectedOptions?.map((o) => (
                 <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>
@@ -698,7 +698,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
           const dedupedSelectedOptions = uniqBy(selectedOptions, 'label')
 
-          return row.programStatus === 'active' || !can(session, 'edit') ? (
+          return !isEditable ? (
             <ReadOnlyContainer>
               {dedupedSelectedOptions.map((o) => (
                 <ReadOnlyTag key={o.label.replaceAll(' ', '')}>{o.label}</ReadOnlyTag>

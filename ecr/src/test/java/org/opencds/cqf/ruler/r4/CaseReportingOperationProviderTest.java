@@ -1906,7 +1906,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					new codeAndOperation("49649001", null),
 					new codeAndOperation("000000000", "delete")
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("routine", null)
+				)
 			),
 			"2.16.840.1.113762.1.4.1146.6", Map.of(
 				"conditions", List.of(
@@ -1921,13 +1923,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"conditions", List.of(
 					new codeAndOperation("49649001", null)
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("routine", null)
+				)
 			),
 			"fake.oid.to.trigger.naive.expansion", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("49649001", null)
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("routine", null)
+				)
 			)
 		);
 		Map<String,Map<String,List<codeAndOperation>>> newLeafsAndConditions = Map.of(
@@ -1936,7 +1942,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 					new codeAndOperation("767146004", "insert"),
 					new codeAndOperation("49649001", null)
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("emergent", "replace")
+				)
 			),
 			"2.16.840.1.113762.1.4.1146.163", Map.of(
 				"conditions", List.of(
@@ -1950,13 +1958,17 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 				"conditions", List.of(
 					new codeAndOperation("49649001", null)
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("routine", null)
+				)
 			),
 			"fake.oid.to.trigger.naive.expansion", Map.of(
 				"conditions", List.of(
 					new codeAndOperation("49649001", null)
 				),
-				"priority", new ArrayList<>()
+				"priority", List.of(
+					new codeAndOperation("routine", null)
+				)
 			)
 		);
 		ObjectMapper mapper = new ObjectMapper();
@@ -1982,6 +1994,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 								assertEquals(conditionInList.get().operation, condition.get("operation").get("type").asText());
 							}
 						}
+						assertNotNull(leaf.get("priority").get("value"));
+						codeAndOperation expectedPriority = oldLeafsAndConditions.get(memberOid).get("priority").get(0);
+						assertEquals(expectedPriority.code, leaf.get("priority").get("value").asText());
+						if (expectedPriority.operation != null) {
+							assertEquals(expectedPriority.operation, leaf.get("priority").get("operation").get("type").asText());
+						}
 					}
 					assertTrue(page.get("newData").get("leafValuesets").isArray());
 					assertTrue(page.get("newData").get("priority").get("value").asText().equals("routine"));
@@ -1997,6 +2015,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 							if (conditionInList.get().operation != null) {
 								assertEquals(conditionInList.get().operation, condition.get("operation").get("type").asText());
 							}
+						}
+						assertNotNull(leaf.get("priority").get("value"));
+						codeAndOperation expectedPriority = newLeafsAndConditions.get(memberOid).get("priority").get(0);
+						assertEquals(expectedPriority.code, leaf.get("priority").get("value").asText());
+						if (expectedPriority.operation != null) {
+							assertEquals(expectedPriority.operation, leaf.get("priority").get("operation").get("type").asText());
 						}
 					}
 				}

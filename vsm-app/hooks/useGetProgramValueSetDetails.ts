@@ -124,7 +124,7 @@ const useGetProgramValueSetDetails = ({
     programStatus: data
   } as Result
   if (!resultData || isLoading) {
-    return { programValuesets: resultData, refreshProgramValueSets: mutate }
+    return { programValuesets: resultData, isLoading, refreshProgramValueSets: mutate }
   }
   if (activePriority && activePriority?.length > 0) {
     const filteredData = resultData?.data?.filter((vs: DataItem) => {
@@ -151,7 +151,7 @@ const useGetProgramValueSetDetails = ({
     resultData.data = filteredConditionData
   }
 
-  return { programValuesets: resultData, refreshProgramValueSets: mutate }
+  return { programValuesets: resultData, isLoading, refreshProgramValueSets: mutate }
 }
 
 export { useGetProgramValueSetDetails }

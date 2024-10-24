@@ -13,11 +13,11 @@ import {
 import { TextArea } from '../TextArea'
 import DateInput from '../DateInput'
 import { SearchInput } from '../SearchInput'
-import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
+import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone' | 'withdraw' | 'delete'
+  actionType: 'release' | 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -81,18 +81,30 @@ const modalText = {
       </LoadingText>
     )
   },
+  retire: {
+    title: 'Retire Program',
+    text: 'Retire this active program will retire it from VSM.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Retiring may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
   delete: {
-      title: 'Delete Program',
-      text: 'Deleting this retired program will delete it from VSM permanently.',
-      actionText: 'Would you like to continue?',
-      modalLoadingText: (
-        <LoadingText>
-          Deleting may take up to a minute.
-          <br />
-          Please keep this window open until it completes.
-        </LoadingText>
-      )
-    }
+    title: 'Delete Program',
+    text: 'Deleting this retired program will delete it from VSM permanently.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Deleting may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  }
 }
 
 const LoadingModal = ({
@@ -118,7 +130,7 @@ const LoadingModal = ({
   const matches = useGetPrograms({ version: versionToCheck })
 
   useEffect(() => {
-    const versionFormatErrorExists = versionToCheck ? !isValidSimpleSemver(versionToCheck) : false
+    const versionFormatErrorExists = versionToCheck ? !isValidThreeOrFourPartSemver(versionToCheck) : false
     if (versionFormatErrorExists || typeof versionToCheck === 'string' && versionToCheck.trim() === '' || !versionToCheck) {
       setVersionError('Please ensure proper semantic version format. Numbers and periods only. Example: 3.14.1 or 10.4.0 are valid')
     } else if (matches.length) {
@@ -220,7 +232,7 @@ const LoadingModal = ({
         <Button
           text={`YES, ${actionType}`}
           data-modal={'confirm'}
-          disabled={disableSubmission}
+          disabled={disableSubmission || loading}
           loading={loading || false}
           onClick={() => {
             let currProgram = currentProgram
