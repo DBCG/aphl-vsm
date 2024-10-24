@@ -5,7 +5,7 @@ import { Session } from 'next-auth'
 // ContentAdministrator - Review, Approve, Create drafts, Edit any draft version, Release
 
 const reviewerPermissions = ['approve']
-const editorPermissions = ['clone', 'approve', 'edit', 'withdraw']
+const editorPermissions = ['clone', 'approve', 'edit', 'withdraw', 'retire']
 const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, ...editorPermissions])) // unique permissions
 
 type RolesType = 'admin' | 'editor' | 'reviewer'
@@ -52,6 +52,11 @@ interface AllowToWithdraw {
   programStatus: fhir4.Library['status'] | undefined
 }
 
+interface AllowToRetire {
+  session: VSMSession
+  programStatus: fhir4.Library['status'] | undefined
+}
+
 interface AllowToRelease {
   session: VSMSession
   programStatus: fhir4.Library['status'] | undefined
@@ -72,4 +77,8 @@ export const allowEditing = ({ session, programStatus }: AllowToEdit): boolean =
 
 export const allowWithdraw = ({ session, programStatus }: AllowToWithdraw): boolean => {
   return can(session, 'withdraw') && programStatus === 'draft'
+}
+
+export const allowRetire = ({ session, programStatus }: AllowToRetire): boolean => {
+  return can(session, 'retire') && programStatus === 'active'
 }
