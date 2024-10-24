@@ -37,6 +37,8 @@ spec:
         name: vsm-app
         imagePullPolicy: Always
         env:
+        - name: PROTOCOL
+          value: {{.Values.protocol}}
         - name: FHIR_CDR_URL
           value: http://cqf-ruler-vsm/fhir
         - name: ENABLE_CACHE
