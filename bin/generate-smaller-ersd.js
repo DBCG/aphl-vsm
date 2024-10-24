@@ -39,7 +39,6 @@ const grouperLibReference = specificationLibrary
     artifact?.type === 'composed-of' && artifact?.resource?.includes('/Library/')
   ))?.resource
 
-  console.log(grouperLibReference)
 
 if (typeof grouperLibReference !== 'string') {
   console.error('No grouper library reference found in the bundle.')
@@ -80,6 +79,13 @@ const getLeafReferences = (grouperValueset) => {
   }
 }
 
+const dedupeArrayOfObjects = (arr) => {
+  jsonObject = arr.map(JSON.stringify)
+  uniqueSet = new Set(jsonObject)
+  uniqueArray = Array.from(uniqueSet).map(JSON.parse)
+  return uniqueArray
+}
+
 const limitLeafsInGrouper = (grouperValueset, maxNumber) => {
   if (grouperIsUnionOfValueSets(grouperValueset)) {
     console.info(`The grouper value set ${grouperValueset.url} is structured as an intersection of ValueSet contents.`)
@@ -93,8 +99,31 @@ const limitLeafsInGrouper = (grouperValueset, maxNumber) => {
   return grouperValueset
 }
 
+const flattenLeafData = (composeIncludeArr) => {
+  const allCodes = []
+  composeIncludeArr.forEach(includeItem => {
+    const codeSystem = includeItem?.system
+    const codeVersion = includeItem?.version
+    includeItem.concept.forEach(concept => {
+      allCodes.push({
+        system: codeSystem,
+        version: codeVersion,
+        code: concept.code
+      })
+    })
+  })
+  return allCodes
+}
+
 const allCodesFromLeafsInGrouper = (leafReferences) => {
+  // structure in groupers expansion: contains[{system: '', version: '', code: ''}]
+  // structure in leafs: compose: {include: [{system: '', version: '', concept: [{code: ''}]}]}
+
+  // step 1: get all codes from leafs in grouper
+  // step 2: remove all codes from grouper that are not present in leafs
+  // place grouper in bundle
   const allCodesInGrouper = []
+
   leafReferences.forEach(leafRef => {
     const matchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
       return (
@@ -144,12 +173,48 @@ grouperValuesetReferences.forEach(ref => {
   if (matchingGrouper && versionMatch) {
     // first, reduce the # of leafs in the grouper
     const updatedGrouper = limitLeafsInGrouper(matchingGrouper, MAX_VS_PER_GROUPER)
-  
+
+    const leafReferencesInGrouper = getLeafReferences(updatedGrouper)
+    allLeafReferences = [...allLeafReferences, ...leafReferencesInGrouper]
+
+    // remove all codes from the grouper that are not present in the leaf valuesets
+    // to do this, must first create a list of all codes present in leafs
+    let allCodesFromGrouperLeaves = []
+    leafReferencesInGrouper.forEach(leafRef => {
+      const [unversionedLeafVsUrl, leafVsVersion] = leafRef.split('|')
+      const leafMatchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
+        return (
+          entryItem?.resource?.url === unversionedLeafVsUrl
+        )
+      })
+
+      const matchingLeaf = fileToEdit?.entry?.[leafMatchIndexInEntry]?.resource
+
+      if (matchingLeaf) {
+        allCodesFromGrouperLeaves = [...allCodesFromGrouperLeaves, ...(flattenLeafData(matchingLeaf.compose.include))]
+      } else {
+        console.error(`No ValueSet in the bundle with url ${leafRef}`)
+      }
+    })
+    // dedupe codes just in case
+    const dedupedCodesFromGrouperLeaves = dedupeArrayOfObjects(allCodesFromGrouperLeaves)
+    // now, remove all codes from the grouper that are not present in the leaf valuesets
+    const updatedGrouperExpansion = updatedGrouper.expansion.contains.filter(grouperContainsItem => {
+      // const updatedConcepts = includeItem.concept.filter(concept => {
+        return dedupedCodesFromGrouperLeaves.some(code => {
+          return code.system === grouperContainsItem.system
+            && code.version === grouperContainsItem.version
+            && code.code === grouperContainsItem.code
+        })
+    })
+
+    updatedGrouper.expansion.contains = updatedGrouperExpansion
+
     // // get references to leaf valuesets left in the grouper
     // allLeafReferences = Array.from(new Set([...allLeafReferences, ...getLeafReferences(updatedGrouper)]))
     // get all codes present in the leaf valuesets
     fileToEdit.entry[matchIndexInEntry].resource = updatedGrouper
-    return match
+    // return match
   } else if (match && !versionMatch) {
     console.error(`Version ${grouperVsVersion} does not match any ValueSet in the bundle with url ${unversionedGrouperVsUrl}`)
   } else {
@@ -158,7 +223,15 @@ grouperValuesetReferences.forEach(ref => {
   return
 })
 
-// remove all 
+// remove all valuesets that are not directly referenced by the program and grouper leafs
+// the current ersd has no difference in useContext (both are reporting: triggering) so this isn't ideal
+// it could catch other valuesets if they are not directly referenced by the program or grouper leafs in the future
+const allUnversionedLeafReferencesToKeep = [...grouperValuesetReferences, ...allLeafReferences]?.map(ref => ref.split('|')[0])
+
+// delete all valuesets that are not directly referenced by the program and grouper leafs
+fileToEdit.entry = fileToEdit.entry.filter(entryItem => {
+  return entryItem.resource.resourceType !== 'ValueSet' || allUnversionedLeafReferencesToKeep.includes(entryItem?.resource?.url)
+})
 
 const json = JSON.stringify(fileToEdit)
 
