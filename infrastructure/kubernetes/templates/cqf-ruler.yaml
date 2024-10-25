@@ -42,6 +42,10 @@ spec:
               value: R4
             - name: hapi.fhir.cql.cql_logging_enabled
               value: "true"
+            - name: spring.datasource.hikari.maximum-pool-size
+              value: "30"
+            - name: _JAVA_OPTIONS
+              value: '-Xmx4096m'
             - name: spring.datasource.url
               value: {{ .Values.cqf_ruler.db_url }}
             - name: spring.datasource.driverClassName
