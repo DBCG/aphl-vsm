@@ -17,7 +17,7 @@ import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone' | 'withdraw' | 'retire'
+  actionType: 'release' | 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -88,6 +88,18 @@ const modalText = {
     modalLoadingText: (
       <LoadingText>
         Retiring may take up to a minute.
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  delete: {
+    title: 'Delete Program',
+    text: 'Deleting this retired program will delete it from VSM permanently.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Deleting may take up to a minute.
         <br />
         Please keep this window open until it completes.
       </LoadingText>

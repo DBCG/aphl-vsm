@@ -1,9 +1,9 @@
-import { can, allowEditing } from './rolesHelper'
+import { can, allowEditing, allowDelete } from './rolesHelper'
 
 describe('rolesHelper', () => {
   describe('can', () => {
     it('admin role has the expected permissions', () => {
-      const allowedPermissions = ['clone', 'approve', 'edit', 'release', 'withdraw', 'retire']
+      const allowedPermissions = ['clone', 'approve', 'edit', 'release', 'withdraw', 'retire', 'delete']
       const session = {
         user: {
           roles: ['admin']
@@ -15,7 +15,7 @@ describe('rolesHelper', () => {
     })
 
     it('editor role has the expected permissions', () => {
-      const allowedPermissions = ['clone', 'approve', 'edit', 'withdraw', 'retire']
+      const allowedPermissions = ['clone', 'approve', 'edit', 'withdraw', 'retire', 'delete']
       const session = {
         user: {
           roles: ['editor']
@@ -78,6 +78,16 @@ describe('rolesHelper', () => {
       }
       const programStatus = 'active'
       expect(allowEditing({ session, programStatus })).toBe(false)
+    })
+
+    it('should not allow deleting if the program is not retired', () => {
+      const session = {
+        user: {
+          roles: ['editor']
+        }
+      }
+      const programStatus = 'active'
+      expect(allowDelete({ session, programStatus})).toBe(false)
     })
   })
 })

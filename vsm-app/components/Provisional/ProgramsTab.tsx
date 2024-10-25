@@ -13,7 +13,7 @@ import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ReleaseModal, ReleasePayload } from '@/components/modals/ReleaseModal'
-import { allowClone, allowRelease, allowWithdraw, allowRetire, can, VSMSession } from '@/helpers/rolesHelper'
+import { allowClone, allowRelease, allowWithdraw, allowRetire, allowDelete, can, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { formatDateForTable } from '@/helpers/formatDates'
@@ -63,7 +63,7 @@ export interface PaginationState {
   searchTotal: number | null
 }
 
-const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release' | 'withdraw' | 'retire') => {
+const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 'release' | 'withdraw' | 'retire' | 'delete') => {
   if (actionType === 'clone' && program.status !== 'active') {
     return 'Only Active (released) programs may be cloned'
   } else if (actionType === 'release') {
@@ -76,6 +76,8 @@ const generateBlockedReason = (program: fhir4.Library, actionType: 'clone' | 're
     return 'Only Draft programs may be withdrawn'
   } else if (actionType === 'retire' && program.status !== 'active') {
     return 'Only Active programs may be retired'
+  } else if (actionType === 'delete' && program.status !== 'retired') {
+    return 'Only Retired programs may be deleted'
   }
   return 'Action blocked'
 }
@@ -87,10 +89,11 @@ interface ExpandableRowProps {
   setProgramToRelease: (program: fhir4.Library | null) => void
   handleClickWithdraw: (programId: string | undefined) => void
   handleClickRetire: (programId: string | undefined) => void
+  handleClickDelete: (programId: string | undefined) => void
   setError: (error: Error) => void
 }
 
-const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, setError }: ExpandableRowProps) => {
+const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, handleClickDelete, setError }: ExpandableRowProps) => {
   const canClone = allowClone({ session, programStatus: row.status! })
   const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
   const defaultCloneDescription = 'Cloning an active program will create a draft copy that you can edit'
@@ -106,6 +109,10 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
   const canRetire = allowRetire({ session, programStatus: row.status! })
   const retireBlockedReason = !canRetire && generateBlockedReason(row, 'retire')
   const defaultRetireDescription = 'Retiring an active program will retire it from VSM'
+
+  const canDelete = allowDelete({ session, programStatus: row.status! })
+  const deleteBlockedReason = !canDelete && generateBlockedReason(row, 'delete')
+  const defaultDeleteDescription = 'Deleting a retired program will delete it from VSM permanently'
 
   return (
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
@@ -187,6 +194,25 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             </span>
           </Tooltip>
         )}
+        { can(session, 'delete') && (
+          <Tooltip title={deleteBlockedReason || defaultDeleteDescription} arrow>
+            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+              <Button
+                size="small"
+                data-button-context={`delete-${row.status}`}
+                variant="contained"
+                style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
+                disabled={row.status !== 'retired'}
+                onClick={() => {
+                  setError({})
+                  handleClickDelete(row?.id)
+                }}
+              >
+                Delete
+              </Button>
+            </span>
+          </Tooltip>
+        )}
       </div>
     </div>
   )
@@ -213,6 +239,11 @@ const ProgramsTab: NextPage = () => {
   const [retireLoading, setRetireLoading] = useState(false)
   const [retireModalOpen, setRetireModalOpen] = useState(false)
   const [progIdToRetire, setProgIdToRetire] = useState('')
+
+  // delete state
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [progIdToDelete, setProgIdToDelete] = useState('')
 
   // expandable rows
   const [expandableRowsClosed, setExpandableRowsClosed] = useState(null)
@@ -293,6 +324,38 @@ const ProgramsTab: NextPage = () => {
     closeRows()
   }
 
+  const handleEndDeleteAction = () => {
+    setProgIdToDelete('')
+    setDeleteLoading(false)
+    setDeleteModalOpen(false)
+  }
+
+  const handleDeleteRetired = async ({ id }: { id: string }) => {
+    setDeleteLoading(true)
+
+    // delete will fail unless you pass it an empty parameters object
+    const deleteParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(deleteParameters)
+
+    const result = await fetch(`/api/programs/${id}/delete`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: [`Error occurred while deleting program: ${id}.`,  `${res.error}`]
+      })
+    } else {
+      toast.success(`Program ${id} deleted from VSM.`)
+      mutate()
+    }
+    handleEndDeleteAction()
+    closeRows()
+  }
+
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -363,6 +426,12 @@ const ProgramsTab: NextPage = () => {
     setRetireModalOpen(true)
   }
 
+  const handleClickDelete = (programId: string | undefined) => {
+    if (!programId) return
+    setProgIdToDelete(programId)
+    setDeleteModalOpen(true)
+  }
+
   const cloneProgram = async (programId: string) => {
     if (cloneLoading) return
     setCloneLoading(true)
@@ -397,6 +466,7 @@ const ProgramsTab: NextPage = () => {
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
   const debouncedWithdrawProgram = debounce((programId) => handleWithdrawDraft({ id: programId }), 2000, { leading: true, trailing: false })
   const debouncedRetireProgram = debounce((programId) => handleRetireDraft({ id: programId }), 2000, { leading: true, trailing: false })
+  const debouncedDeleteProgram = debounce((programId) => handleDeleteRetired({ id: programId}), 2000, {leading: true, trailing: false})
 
   const columns = useMemo(
     () => [
@@ -497,6 +567,11 @@ const ProgramsTab: NextPage = () => {
     setRetireModalOpen(false)
   }
 
+  const handleCancelDeleteModal = () => {
+    setProgIdToDelete('')
+    setDeleteModalOpen(false)
+  }
+
   // release payload?
   const handleReleaseModalAction = async (payload: ReleasePayload) => {
     setLoading(true)
@@ -577,6 +652,20 @@ const ProgramsTab: NextPage = () => {
           program={null}
           loading={retireLoading}
           handleCancelModal={() => handleCancelRetireModal()}
+        />
+      )}
+      {deleteModalOpen && (
+        <LoadingModal
+          actionType="delete"
+          isOpen={deleteModalOpen}
+          handleModalAction={async () => {
+            // throttle this action based on if it is already ongoing
+            if (deleteLoading) return
+            debouncedDeleteProgram(progIdToDelete)
+          }}
+          program={null}
+          loading={deleteLoading}
+          handleCancelModal={() => handleCancelDeleteModal()}
         />
       )}
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}></Row>
@@ -683,7 +772,7 @@ const ProgramsTab: NextPage = () => {
         expandableRows={can(session, 'clone')}
         // @ts-ignore
         expandableRowsComponent={ExpandableRowComponent}
-        expandableRowsComponentProps={{ session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, setError }}
+        expandableRowsComponentProps={{ session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, handleClickDelete, setError }}
       />
     </Col>
   )
