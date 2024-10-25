@@ -22,10 +22,12 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.opencds.cqf.ruler.api.OperationProvider;
+import org.opencds.cqf.ruler.r4.CaseReportingOperationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.stream.IntStream;
 import java.util.ArrayList;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +40,9 @@ import static org.opencds.cqf.ruler.ImportBundleProducer.transformImportBundle;
 public class TransformProvider implements OperationProvider {
 	@Autowired
 	TransformProperties transformProperties;
+
+	private static final Logger logger = LoggerFactory.getLogger(TransformProvider.class);
+
 
 	/**
 	 * Implements the $ersd-v2-to-v1-transform operation which transforms an
@@ -138,7 +143,7 @@ public class TransformProvider implements OperationProvider {
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		for (int i =0; i<subLists.size(); i++) {
-			System.out.println("Processing sublist " + i);
+			logger.info("Processing sublist " + i);
 			Bundle txBundle = createTransactionBundle(subLists.get(i));
 			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 				transformProperties.transaction(txBundle);
@@ -158,7 +163,7 @@ public class TransformProvider implements OperationProvider {
 				long duration = (endTime - startTime) / 1_000_000;
 
 				// Print the total time taken for all tasks to complete
-				System.out.println("All tasks completed in " + duration + " milliseconds.");
+				logger.info("All tasks completed in " + duration + " milliseconds.");
 		});
 
 
