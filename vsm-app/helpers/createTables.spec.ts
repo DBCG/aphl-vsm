@@ -1,5 +1,5 @@
 import { createTableData } from './createTables'
-import { changelog } from './sample_changelog'
+import { changelog } from '../test_fixtures/sample_changelog'
 
 describe('createTableData', () => {
   it('should build the expected structure for root lib', () => {

@@ -22,10 +22,15 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.opencds.cqf.ruler.api.OperationProvider;
+import org.opencds.cqf.ruler.r4.CaseReportingOperationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.stream.IntStream;
+import java.util.ArrayList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
@@ -35,6 +40,9 @@ import static org.opencds.cqf.ruler.ImportBundleProducer.transformImportBundle;
 public class TransformProvider implements OperationProvider {
 	@Autowired
 	TransformProperties transformProperties;
+
+	private static final Logger logger = LoggerFactory.getLogger(TransformProvider.class);
+
 
 	/**
 	 * Implements the $ersd-v2-to-v1-transform operation which transforms an
@@ -130,9 +138,35 @@ public class TransformProvider implements OperationProvider {
 		var v2Bundle = (Bundle) maybeBundle;
 		var importTxBundleEntries = transformImportBundle(v2Bundle, transformProperties, appAuthoritativeUrl);
 
-		new Thread(() -> {
-			executeImportTransactionBundle(importTxBundleEntries);
-		}).start();
+		List<List<BundleEntryComponent>> subLists = splitList(importTxBundleEntries, 74);
+		long startTime = System.nanoTime();
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+		for (int i =0; i<subLists.size(); i++) {
+			logger.info("Processing sublist " + i);
+			Bundle txBundle = createTransactionBundle(subLists.get(i));
+			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+				transformProperties.transaction(txBundle);
+			});
+
+			futures.add(future);
+		}
+
+		CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+		// Once all tasks are complete, calculate and print the duration
+		allFutures.thenRun(() -> {
+				// Capture the end time
+				long endTime = System.nanoTime();
+
+				// Calculate the total duration in milliseconds
+				long duration = (endTime - startTime) / 1_000_000;
+
+				// Print the total time taken for all tasks to complete
+				logger.info("All tasks completed in " + duration + " milliseconds.");
+		});
+
+
 		var response = new OperationOutcome();
 		var issue = new OperationOutcome.OperationOutcomeIssueComponent();
 		issue.setSeverity(OperationOutcome.IssueSeverity.INFORMATION);
@@ -142,11 +176,17 @@ public class TransformProvider implements OperationProvider {
 		return response;
 	}
 
-	private Bundle executeImportTransactionBundle(List<BundleEntryComponent> bundleEntry) {
+	public static <T> List<List<T>> splitList(List<T> list, int chunkSize) {
+		return IntStream.range(0, (list.size() + chunkSize - 1) / chunkSize)
+						.mapToObj(i -> list.subList(i * chunkSize, Math.min((i + 1) * chunkSize, list.size())))
+						.collect(Collectors.toList());
+	}
+
+	private Bundle createTransactionBundle(List<BundleEntryComponent> bundleEntry) {
 		Bundle importBundle = new Bundle();
 		importBundle.setType(Bundle.BundleType.TRANSACTION);
 		importBundle.setEntry(bundleEntry);
-		return transformProperties.transaction(importBundle);
+		return importBundle;
 	}
 
 	private void updateV2GroupersUseContext(MetadataResource resource, IIdType planDefinitionId) {
