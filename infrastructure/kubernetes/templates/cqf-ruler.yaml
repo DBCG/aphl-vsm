@@ -33,12 +33,13 @@ spec:
         - image: {{ .Values.aws.account_id }}.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:{{ .Values.tag }}
           imagePullPolicy: Always
           name: cqf-ruler-vsm
-          requests:
-            memory: "3Gi"     
-            cpu: "1000m"
-          limits:
-            memory: "3.5Gi"
-            cpu: "1500m"
+          resources:
+            requests:
+              memory: "3Gi"     
+              cpu: "1000m"
+            limits:
+              memory: "3.5Gi"
+              cpu: "1500m"
           env:
             - name: hapi.fhir.server_address
               value: {{.Values.protocol}}://{{ .Values.cqf_ruler.app_url}}/fhir
