@@ -22,24 +22,19 @@ const nextConfig = {
   reactStrictMode: true,
   compress: true,
   async headers() {
-    const standardHeaders = [
-      {
-        key: 'Content-Security-Policy',
-        value: cspHeader.replace(/\n/g, '')
-      }
-    ]
-
-    if (process.env.PROTOCOL === 'https') {
-      standardHeaders.push({
-        key: 'Strict-Transport-Security',
-        value: 'max-age=63072000; includeSubDomains; preload'
-      })
-    }
-
     return [
       {
         source: '/(.*)',
-        headers: standardHeaders
+        headers:  [
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\n/g, '')
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          }
+        ]
       },
       {
         // matching all API routes
