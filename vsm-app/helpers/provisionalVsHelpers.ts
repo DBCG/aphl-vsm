@@ -235,9 +235,16 @@ export const createProvisionalCodeSystem = ({
 }: ProvisionalCodeSystemItems): fhir4.CodeSystem => {
   let codeSystemBase = provisionalCsBase
 
-  // this is dynamic based on the code system, so can't be templated
-  codeSystemBase.url = systemBaseUrl
-  codeSystemBase.name = name
+  // there will only be one instance of each provisional code system per base codesystem extended
+  codeSystemBase.url = `${process.env.NEXT_PUBLIC_DEFAULT_PUBLISHING_URL}/CodeSystem/${name}`
+  codeSystemBase.name = `${name}_provisional`
+
+  codeSystemBase.extension = [
+    {
+      url: EXTENSIONS.PROVISIONAL_CS_BASE,
+      valueUri: systemBaseUrl
+    }
+  ]
 
   const concept = createConceptItems(codeItems)
 

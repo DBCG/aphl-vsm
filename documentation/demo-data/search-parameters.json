@@ -2,65 +2,82 @@
   "resourceType": "Bundle",
   "id": "search-parameter-bundle",
   "type": "transaction",
-  "entry":
-  [
-      {
-          "fullUrl": "SearchParameter/ArtifactAssessmentArtifact",
-          "resource":
-          {
-              "resourceType": "SearchParameter",
-              "id": "ArtifactAssessmentArtifact",
-              "status": "active",
-              "code": "artifact",
-              "base": [
-                  "Basic"
-              ],
-              "type": "reference",
-              "description": "A reference to the artifact being assessed",
-              "expression": "Basic.extension.where(url.contains('crmi-artifactAssessmentArtifact')).value"
-          },
-          "request":
-          {
-              "method": "PUT",
-              "url": "SearchParameter/ArtifactAssessmentArtifact"
-          }
-      },{
-          "fullUrl": "SearchParameter/manifest-contains-code",
-          "resource":
-          {
-            "resourceType": "SearchParameter",
-            "id": "manifest-contains-code",
-            "status": "active",
-            "code": "manifest-contains-code",
-            "base": ["Library"],
-            "type": "token",
-            "description": "Return all Libraries which reference a particular code",
-            "expression": "Library.relatedArtifact.extension.where(url.contains('vsm-valueset-condition')).value as CodeableConcept"
-        },
-          "request":
-          {
-              "method": "PUT",
-              "url": "SearchParameter/manifest-contains-code"
-          }
+  "entry": [
+    {
+      "fullUrl": "SearchParameter/ArtifactAssessmentArtifact",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "id": "ArtifactAssessmentArtifact",
+        "status": "active",
+        "code": "artifact",
+        "base": [
+          "Basic"
+        ],
+        "type": "reference",
+        "description": "A reference to the artifact being assessed",
+        "expression": "Basic.extension.where(url.contains('crmi-artifactAssessmentArtifact')).value"
       },
-      {
-        "fullUrl": "SearchParameter/provisional-value-set",
-        "resource":
-        {
-          "resourceType": "SearchParameter",
-          "id": "provisional-value-set",
-          "status": "draft",
-          "code": "provisional-value-set",
-          "base": ["ValueSet"],
-          "type": "token",
-          "description": "Return all leaf ValueSets that are Provisional",
-          "expression": "ValueSet.extension.where(url.contains('vsm-provisional-vs')).value"
+      "request": {
+        "method": "PUT",
+        "url": "SearchParameter/ArtifactAssessmentArtifact"
+      }
+    },
+    {
+      "fullUrl": "SearchParameter/manifest-contains-code",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "id": "manifest-contains-code",
+        "status": "active",
+        "code": "manifest-contains-code",
+        "base": [
+          "Library"
+        ],
+        "type": "token",
+        "description": "Return all Libraries which reference a particular code",
+        "expression": "Library.relatedArtifact.extension.where(url.contains('vsm-valueset-condition')).value as CodeableConcept"
       },
-        "request":
-        {
-            "method": "PUT",
-            "url": "SearchParameter/provisional-value-set"
-        }
+      "request": {
+        "method": "PUT",
+        "url": "SearchParameter/manifest-contains-code"
+      }
+    },
+    {
+      "fullUrl": "SearchParameter/provisional-value-set",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "id": "provisional-value-set",
+        "status": "active",
+        "code": "provisional-value-set",
+        "base": [
+          "ValueSet"
+        ],
+        "type": "token",
+        "description": "Return all leaf ValueSets that are Provisional",
+        "expression": "ValueSet.extension.where(url.contains('vsm-provisional-vs')).value"
+      },
+      "request": {
+        "method": "PUT",
+        "url": "SearchParameter/provisional-value-set"
+      }
+    },
+    {
+      "fullUrl": "SearchParameter/provisional-cs-by-base-url",
+      "resource": {
+        "resourceType": "SearchParameter",
+        "id": "provisional-cs-by-base-url",
+        "status": "active",
+        "code": "provisional-cs-by-base-url",
+        "base": [
+          "CodeSystem"
+        ],
+        "type": "uri",
+        "description": "Return all provisional CodeSystems that match the given base URL in the vsm-codesystem-base extension",
+        "expression": "CodeSystem.extension('http://aphl.org/fhir/vsm/StructureDefinition/vsm-codesystem-base').value"
+      },
+      "request": {
+        "method": "PUT",
+        "url": "SearchParameter/provisional-cs-by-base-url"
+      }
     }
-    ]
-  }
+  ]
+}

@@ -633,7 +633,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <div>
             <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
             <ExistingCodesTable
-              codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.url === selectedCodeSystemBase?.value)}
+              codeSystem={provisionalCS.find((c: fhir4.CodeSystem) => c?.extension?.find(ext => ext.valueUri === selectedCodeSystemBase?.value))}
               isEditable={can(session, 'edit')}
               mutate={mutateProvCs}
             />

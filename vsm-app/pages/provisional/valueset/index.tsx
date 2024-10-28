@@ -747,7 +747,7 @@ const ProvisionalVSEdit = () => {
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
                   <ExistingCodesTable
                     systemName={selectedCodeSystemBase?.label!}
-                    codeSystem={existingProvisionalCs?.provisionalCS?.find((c: fhir4.CodeSystem | undefined) => c?.url === selectedCodeSystemBase?.value)!}
+                    codeSystem={existingProvisionalCs?.provisionalCS?.find((c: fhir4.CodeSystem | undefined) => c?.extension?.find(ext => ext.valueUri === selectedCodeSystemBase?.value))!}
                     handleAddCodes={handleUpdateStaging}
                   />
                   <p style={{ marginBottom: '1rem' }}>You may add custom provisional codes to your code system below:</p>

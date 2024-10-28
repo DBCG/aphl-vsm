@@ -32,40 +32,13 @@ interface DataItem {
 
 export type ProvisionalsByProgram = DataItem[]
 
-const getAllValueSetsReferencingProvisionalCS = async (): Promise<ProvisionalVsCsMap[]> => {
-
-  const provisionalVS = await fhirCdrClient.search({
-    resourceType: 'ValueSet',
-    searchParams: {
-      _tag: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
-    }
-  })
-
-  // early return if no provisional VS
-  if (!provisionalVS.entry.length) {
-    return ([])
-  } else {
-    // format provisional valuesets with important data
-    const formattedProvisionalInfo = provisionalVS.entry.map((vs: any) => {
-      const { id, url } = vs.resource as fhir4.ValueSet
-      const provisionalData = vs.resource.compose.include.filter((x: fhir4.ValueSetComposeInclude) => x.version === 'PROVISIONAL')
-      return ({
-        provisionalLeafId: id,
-        provisionalLeafUrl: url,
-        provisionalData
-      })
-    })
-
-    return formattedProvisionalInfo
-  }
-}
-
+// might eventually hit 1000 program limit. If possible, it'd be better to create a searchParam to directly grab the program libs that point to provisionals
 const getAllPrograms = async (): Promise<fhir4.Library[]> => {
   const progs = await fhirCdrClient.search({
     resourceType: 'Library',
     searchParams: {
       context: 'program',
-      _count: 100
+      _count: 1000
     }
   })
 
