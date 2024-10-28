@@ -11,7 +11,8 @@ import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional'
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
   AUTH_SOURCE_EXTENSION_URL: 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource',
-  EXPANSION_PARAM_URL: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters'
+  EXPANSION_PARAM_URL: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters',
+  PROVISIONAL_CS_BASE: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-codesystem-base'
 } as const
 
 const VSM_LEAF_PROFILE_URLS = {

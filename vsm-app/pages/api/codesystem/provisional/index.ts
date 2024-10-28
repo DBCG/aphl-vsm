@@ -74,7 +74,7 @@ const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiRespon
     let params = {}
     const systemUrl = req?.query?.systemUrl
     if (systemUrl) {
-      params = { url: systemUrl }
+      params = { 'provisional-cs-by-base-url': systemUrl }
     }
     const results = await getProvisionals({ resourceType: 'CodeSystem', params })
     if (results.error) {
@@ -101,7 +101,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     for (const systemUrl in codesBySystemToUpdate) {
       const searchParams = {
         version: 'PROVISIONAL',
-        url: systemUrl
+        'provisional-cs-by-base-url': systemUrl
       }
 
       const existingProvisionalCS = await fhirCdrClient.search({
