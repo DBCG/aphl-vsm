@@ -433,12 +433,18 @@ describe('generateProvisionalVs', () => {
             }
           ]
         },
+        extension: [
+          {
+            url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-codesystem-base',
+            valueUri: 'www.test.com',
+          }
+        ],
         version: 'PROVISIONAL',
         status: 'draft',
         experimental: true,
         content: 'complete',
-        url: 'www.test.com',
-        name: 'test',
+        url: 'http://www.test.com/fhir/CodeSystem/test',
+        name: 'test_provisional',
         concept: [
           {
             code: 'code1',
