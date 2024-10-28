@@ -454,6 +454,7 @@ const ProgramCompare = () => {
             const formattedChangelog = createTableData(differenceData)
             // @ts-ignore
             setDiffViewerFormattedData(formattedChangelog)
+            toast.success(`Difference generated successfully`, { position: 'bottom-right' })
           }
           setDownloadLoading(false)
           setIsLoadingDiff(false)
