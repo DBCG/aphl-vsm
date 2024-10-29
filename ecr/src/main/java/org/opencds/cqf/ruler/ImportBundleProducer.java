@@ -298,6 +298,10 @@ public class ImportBundleProducer {
 			var relatedArtifact = new RelatedArtifact();
 			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 			relatedArtifact.setResource(grouper);
+			var extension = new Extension();
+			extension.setUrl(TransformProperties.crmiIsOwned);
+			extension.setValue( new BooleanType(true));
+			relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
 			relatedArtifacts.add(relatedArtifact);
 		});
 
