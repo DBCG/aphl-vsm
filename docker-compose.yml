@@ -11,8 +11,8 @@ services:
     - 6379:6379
   cqf-ruler-vsm:
     image: alphora/cqf-ruler:cqf-ruler-vsm-ecr
-    # build: 
-    #   context: ./ecr
+    build: 
+      context: ./ecr
     environment:
       - spring.datasource.url=jdbc:postgresql://cqf-db:5432/cqfruler
       - spring.datasource.driverClassName=org.postgresql.Driver
@@ -76,6 +76,14 @@ services:
       KC_HOSTNAME_STRICT: false
     depends_on:
       - postgres
+  graphite-statsd:
+    image: graphiteapp/graphite-statsd
+    ports:
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+      - 80:80
   # vsm-app:
   #   build:
   #     context: ./vsm-app
