@@ -128,11 +128,12 @@ public class ImportBundleProducer {
 							var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filtered);
 
-							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
 							// Add authoritative source extension
 							addAuthoritativeSource(valueSet, valueSet.getUrl());
 						}
 
+						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
+						
 						// Remove conditions and priority from useContext of leaf valuesets and groupers
 						var cleanedContext = valueSet
 							.getUseContext()
@@ -313,6 +314,10 @@ public class ImportBundleProducer {
 			var relatedArtifact = new RelatedArtifact();
 			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 			relatedArtifact.setResource(grouper);
+			var extension = new Extension();
+			extension.setUrl(TransformProperties.crmiIsOwned);
+			extension.setValue( new BooleanType(true));
+			relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
 			relatedArtifacts.add(relatedArtifact);
 		});
 
