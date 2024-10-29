@@ -128,11 +128,12 @@ public class ImportBundleProducer {
 							var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filtered);
 
-							extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
 							// Add authoritative source extension
 							addAuthoritativeSource(valueSet, valueSet.getUrl());
 						}
 
+						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
+						
 						// Remove conditions and priority from useContext of leaf valuesets and groupers
 						var cleanedContext = valueSet
 							.getUseContext()
