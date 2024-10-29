@@ -177,6 +177,8 @@ public class ImportBundleProducer {
 		assert planDefinition != null;
 		assert rootLibrary != null;
 
+        prepareRCTCLibrary(rctcLibrary, groupers);
+
 		prepareRootLibrary(
 			conditionsMap,
 			priorityMap,
@@ -280,6 +282,19 @@ public class ImportBundleProducer {
 			.collect(Collectors.toList());
 		return profiles;
 	}
+
+    private static void prepareRCTCLibrary(Library rctcLibrary, List<String> groupers) {
+        groupers.forEach(grouper -> {
+            rctcLibrary.getRelatedArtifact()
+                    .removeIf(ra -> ra.getType() == RelatedArtifact.RelatedArtifactType.COMPOSEDOF
+                            && ra.hasResource()
+                            && grouper.split("\\|")[0].equals(ra.getResource().split("\\|")[0]));
+            var relatedArtifact = new RelatedArtifact();
+            relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+            relatedArtifact.setResource(grouper);
+            rctcLibrary.getRelatedArtifact().add(relatedArtifact);
+        });
+    };
 
 	private static void prepareRootLibrary(
 		Map<String, List<CodeableConcept>> conditionsMap,
