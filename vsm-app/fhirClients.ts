@@ -20,8 +20,11 @@ const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH
 
 const fhirCdrClient = new FhirKitClient({
   baseUrl: FHIR_CDR_URL,
-  ...(FHIR_CDR_BASIC_AUTH_USERNAME &&
-    FHIR_CDR_BASIC_AUTH_PASSWORD && { customHeaders: { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` } })
+  customHeaders: {
+    'x-b3-traceid': logId,
+    ...(FHIR_CDR_BASIC_AUTH_USERNAME &&
+      FHIR_CDR_BASIC_AUTH_PASSWORD && { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` })
+  }
 })
 
 const vsacFhirClient = new FhirKitClient({
