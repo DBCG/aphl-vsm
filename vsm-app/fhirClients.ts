@@ -1,4 +1,5 @@
 import Client from 'fhir-kit-client'
+import { logId } from '@/helpers/server/logger'
 import FhirKitClient from 'fhir-kit-client'
 import { transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { is } from '@/helpers/is'
