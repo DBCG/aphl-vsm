@@ -45,6 +45,8 @@ spec:
           value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}/fhir
         - name: NEXT_PUBLIC_VSAC_BASE_URL
           value: https://cts.nlm.nih.gov/fhir
+        - name: KEYCLOAK_SERVER_AUTH_ID
+          value: server_auth
         - name: NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL
           value: https://r4.ontoserver.csiro.au/fhir
         - name: REDIS_HOST
