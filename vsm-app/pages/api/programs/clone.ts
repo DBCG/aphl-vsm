@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { Logger } from 'pino'
 import { fhirCdrClient } from '@/fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { incrementSemver } from '@/utils'
@@ -18,7 +18,7 @@ interface ResponseItem {
 type DraftCreateResponse = fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] } | fhir4.OperationOutcome | { error: { message: string; type: string } }
 export type DraftAPIResponse = { message: string } | { error: string } | fhir4.OperationOutcome
 // this code ingests a FHIR Library, and will POST a modified clone as a template
-const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>) => {
+const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIResponse>, logger: Logger) => {
   // create library template
   const latestProgram = await fhirCdrClient.search({
     resourceType: 'Library',

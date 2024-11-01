@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
-import logger from '@/helpers/server/logger'
+import { Logger } from 'pino'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 interface Query {
@@ -21,7 +21,7 @@ export type ProgramApiResponse = {
   total: number
 } | { error: string }
 
-const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
+const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>, logger: Logger) => {
   try {
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string

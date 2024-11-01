@@ -61,6 +61,13 @@ spec:
               value: smile_cr
             - name: hapi.fhir.security.enabled
               value: "true"
+            - name: hapi.fhir.logger.format
+              value: >
+                Path[$${servletPath}] Source[$${requestHeader.x-forwarded-for}]
+                Trace[$${requestHeader.x-b3-traceid}]
+                Operation[$${operationType} $${operationName} $${idOrResourceName}]
+                UA[$${requestHeader.user-agent}] Params[$${requestParameters}]
+                ResponseEncoding[$${responseEncodingNoDefault}]
             - name: hapi.fhir.reuse_cached_search_results_millis
               value: "-1"
             - name: hapi.fhir.security.basic_auth.enabled
