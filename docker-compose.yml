@@ -26,6 +26,12 @@ services:
       - hapi.fhir.allow_multiple_delete=true
       - hapi.fhir.reuse_cached_search_results_millis=-1
       - hapi.fhir.casereporting.enabled=true
+      - hapi.fhir.logger.format=
+          Path[$${servletPath}] Source[$${requestHeader.x-forwarded-for}]
+          Trace[$${requestHeader.x-b3-traceid}]
+          Operation[$${operationType} $${operationName} $${idOrResourceName}]
+          UA[$${requestHeader.user-agent}] Params[$${requestParameters}]
+          ResponseEncoding[$${responseEncodingNoDefault}]
       # Enables CQF Ruler to call out to VSAC
       # - hapi.fhir.rulercr.enabled
       # - hapi.fhir.rulercr.vsac-username=apikey

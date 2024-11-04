@@ -5,6 +5,9 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
+import { v4 as uuidv4 } from 'uuid';
+import { Logger } from 'pino'
+
 const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
 type requestTypes = typeof requestTypes[number]
 type action<T extends NextApiRequest> = (req: T, res: NextApiResponse, session: VSMSession) => Promise<any>
@@ -17,6 +20,7 @@ type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof 
 }
 type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in requestTypes]: action<T> }>
 const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse): Promise<void> => {
+
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
   const methodFn = methodHandlers[req.method as requestTypes]
   // have to do "as any" because TS is annoying about readonlys
