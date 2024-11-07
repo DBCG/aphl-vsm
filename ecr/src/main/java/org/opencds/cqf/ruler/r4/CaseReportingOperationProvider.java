@@ -76,7 +76,7 @@ public class CaseReportingOperationProvider {
 
 	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
-	private static final StatsDClient statsd = new NonBlockingStatsDClient("aphl", "graphite-statsd", 8125);
+	private static final StatsDClient statsd = new NonBlockingStatsDClient("aphl", "telegraph", 8125);
 
 	/**
 	 * Applies an approval to an existing artifact, regardless of status.
