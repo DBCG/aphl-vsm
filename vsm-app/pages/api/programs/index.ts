@@ -13,6 +13,7 @@ interface Query {
   'version'?: string
   '_offset'?: string
   '_count'?: string
+  'status:not'?: string
 }
 
 export type ProgramApiResponse = {
@@ -45,6 +46,8 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
     }
     if (req.query['count']) {
       queries['_count'] = req.query['count'] as string
+    } if (req.query['showRetired'] === 'false') {
+      queries['status:not'] = 'retired'
     }
 
     const libSearchResult = await fhirCdrClient.search({

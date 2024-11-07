@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Checkbox, FormControlLabel, FormGroup, Tooltip } from '@mui/material'
+import { Button, Checkbox, FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material'
 import CallMadeIcon from '@mui/icons-material/CallMade'
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown'
 import useSWR from 'swr'
@@ -365,6 +365,9 @@ const ProgramsTab: NextPage = () => {
   const [enableCompare, setEnableCompare] = useState(false)
   const [selectedRows, setSelectedRows] = useState<fhir4.Library[] | null>(null)
 
+  // show/hide retired programs
+  const [showRetired, setShowRetired] = useState(false)
+
   const handleRowSelected = useCallback((state: any) => {
     setSelectedRows(() => state.selectedRows);
   }, [])
@@ -374,6 +377,7 @@ const ProgramsTab: NextPage = () => {
       url: '/api/programs',
       args: {
         list: true, // use this so on the server side we don't need to load all details of the program
+        showRetired,
         offset: pagination?.page > 1 ? (pagination?.page - 1) * pagination.countPerPage : 0,
         count: pagination?.countPerPage
       }
@@ -572,6 +576,10 @@ const ProgramsTab: NextPage = () => {
     setDeleteModalOpen(false)
   }
 
+  const handleToggleRetiredSwitch = (e: any) => {
+    setShowRetired(e?.target?.checked || false)
+  }
+
   // release payload?
   const handleReleaseModalAction = async (payload: ReleasePayload) => {
     setLoading(true)
@@ -747,6 +755,9 @@ const ProgramsTab: NextPage = () => {
         )}
       </div>
       <ErrorMessage error={error?.error || null} handleClose={() => setError({})} />
+      <FormGroup>
+        <FormControlLabel control={<Switch onChange={handleToggleRetiredSwitch}/>} label="Show retired programs" />
+      </FormGroup>
       <DT
         className='programs-tab-table'
         key={refreshkey}
