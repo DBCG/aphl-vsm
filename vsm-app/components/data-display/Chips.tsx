@@ -25,10 +25,14 @@ interface IChip {
 export const StyledChip = styled(Chip, { shouldForwardProp: (prop) => prop != 'experimental' })<StyledCh>`
   font-size: 80%;
   width: fit-content;
-  color: ${(props) => (props.experimental ? 'var(--theme-400)' : 'inherit')};
   color: var(--theme-400);
-  background-color: ${(props) =>
-    typeof props.label === 'string' && props?.label?.toLowerCase() === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'var(--draft)'};
+  background-color: ${(props) => {
+    if (typeof props?.label === 'string' && props?.label?.toLowerCase() === 'retired') {
+      return 'lightgray'
+    } else {
+      return typeof props.label === 'string' && props?.label?.toLowerCase() === 'active' ? 'rgba(46, 192, 205, 0.3)' : 'var(--draft)'};
+    }
+  }
 `
 
 const StatusChip = ({ label, style, experimental = false }: Chip) => {
