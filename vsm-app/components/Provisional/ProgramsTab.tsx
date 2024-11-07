@@ -218,6 +218,15 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
   )
 }
 
+const ToggleComponent = ({ handleToggleRetiredSwitch, programsExist }: any) => {
+  if (!programsExist) return null
+  return (
+    <FormGroup style={{ width: '100%', alignSelf: 'flex-start', marginTop: '1rem' }}>
+      <FormControlLabel style={{ color: 'var(--theme-500)'}} control={<Switch onChange={handleToggleRetiredSwitch}/>} label="Show retired programs" />
+    </FormGroup>
+  )
+}
+
 const ProgramsTab: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
@@ -755,10 +764,10 @@ const ProgramsTab: NextPage = () => {
         )}
       </div>
       <ErrorMessage error={error?.error || null} handleClose={() => setError({})} />
-      <FormGroup>
-        <FormControlLabel control={<Switch onChange={handleToggleRetiredSwitch}/>} label="Show retired programs" />
-      </FormGroup>
+
       <DT
+        subHeader={Boolean(programs?.length) || undefined}
+        subHeaderComponent={<ToggleComponent programsExist={Boolean(programs?.length)} handleToggleRetiredSwitch={handleToggleRetiredSwitch} />}
         className='programs-tab-table'
         key={refreshkey}
         data={programs}
