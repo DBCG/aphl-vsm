@@ -29,11 +29,21 @@ export const can = (session: VSMSession, requestedPermission: string) => {
     return false
   }
   // TODO: when users have more than one role we should look into modifying this
-  const role = session.user?.roles[0]
-  if (role === 'admin' || role === 'editor' || role === 'reviewer') {
-    return permissions?.[role]?.includes(requestedPermission.toLowerCase())
+  const allRoles = session.user?.roles[0]
+  let highestRole
+  const roles = ['reviewer', 'editor', 'admin']
+
+  for (const role of roles) {
+    if (allRoles?.includes(role)) {
+      highestRole = role
+    }
+  }
+
+  if (highestRole === 'admin' || highestRole === 'editor' || highestRole === 'reviewer') {
+    return permissions?.[highestRole]?.includes(requestedPermission.toLowerCase())
   } else {
-    throw new Error("Invalid role: " + role)
+    console.error('invalid role:', highestRole)
+    return false
   }
 }
 
