@@ -94,7 +94,7 @@ const allFieldsExist = (codeItems: string[]) => {
 
 const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: fhir4.CodeSystem, isEditable: boolean, mutate: KeyedMutator<any> }) => {
   const [originalCodeItemToEdit, setOriginalCodeItemToEdit] = useState<CodeTableData | null>(null)
-  const [itemToDelete, setItemToDelete] = useState<{code: string, url: string} | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<{ code: string, url: string } | null>(null)
   const defaultItem = { code: '', definition: '', display: '' }
   const [updatedCodeItem, setUpdatedCodeItem] = useState(defaultItem)
   const [codeUpdateLoading, setCodeUpdateLoading] = useState(false)
@@ -133,19 +133,21 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
         const matchingValueSetIds = matches?.matchingValueSets?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
 
         const result = await updateProvisionalCs(
-          {[codeSystem?.url!]: {
-            // @ts-ignore
-            id: codeSystem?.id,
-            action: 'replace-code',
-            codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
-            inValueSets: matchingValueSetIds,
-          }},
+          {
+            [codeSystem?.url!]: {
+              // @ts-ignore
+              id: codeSystem?.id,
+              action: 'replace-code',
+              codeUpdates: [{ old: originalCodeItemToEdit as CodeTableData, new: updatedCodeItem }],
+              inValueSets: matchingValueSetIds,
+            }
+          },
         )
         if (result.error) {
           toast.error(`Provisional Code System could not be updated`)
           setCodeUpdateLoading(false)
         } else {
-          toast.success(`Provisional Code System updated`) 
+          toast.success(`Provisional Code System updated`)
           mutate()
           setCodeUpdateLoading(false)
           handleCancel()
@@ -174,13 +176,15 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
           ?.map(vs => vs?.id!)?.filter(x => !!x) || [] as string[]
 
         const result = await updateProvisionalCs(
-          {[codeSystem?.url!]: {
-            // @ts-ignore
-            id: codeSystem?.id,
-            action: 'delete-code',
-            codeUpdates: [itemToDelete],
-            inValueSets: matchingValueSetIds,
-          }},
+          {
+            [codeSystem?.url!]: {
+              // @ts-ignore
+              id: codeSystem?.id,
+              action: 'delete-code',
+              codeUpdates: [itemToDelete],
+              inValueSets: matchingValueSetIds,
+            }
+          },
         )
         if (result.error) {
           toast.error(`Provisional Code System could not be updated`)
@@ -341,7 +345,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
                   <DeleteForever
                     style={{ color: 'var(--accent)' }}
                     color='error'
-                    onClick={async() => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })} 
+                    onClick={async () => await handleDeleteAttempt(false, { code: row.code, url: codeSystem.url! })}
                   />
                 </IconButton>
               </div>
@@ -379,12 +383,12 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
             if (programIdsWithProvisionals.length) {
               const results = programIdsWithProvisionals.map(p => {
                 return (
-                    <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true}/>
+                  <Chip key={p.programId} target="_blank" icon={<ArrowOutward />} component='a' label={`${p.programTitle} [ID: ${p.programId}]`} href={`/programs/${p.programId}`} clickable={true} />
                 )
               })
               return (
                 <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'nowrap', margin: '.8rem 0' }}>
-                  { results }
+                  {results}
                 </div>
               )
             }
@@ -419,8 +423,8 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
             By editing this code, you will also edit its definition in the above provisional Value Sets.
           </Typography>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
-            <Button onClick={() => setUpdateModalOpen(false)} style={{ backgroundColor: 'darkgray' }} text='Cancel'/>
-            <Button onClick={() => handleSaveAttempt(true)} text='Continue'/>
+            <Button onClick={() => setUpdateModalOpen(false)} style={{ backgroundColor: 'darkgray' }} text='Cancel' />
+            <Button onClick={() => handleSaveAttempt(true)} text='Continue' />
           </div>
         </Box>
       </Modal>
@@ -451,10 +455,10 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
                 setDeleteModalOpen(false)
                 setItemToDelete(null)
               }}
-            style={{ backgroundColor: 'darkgray' }}
-            text='Cancel'
+              style={{ backgroundColor: 'darkgray' }}
+              text='Cancel'
             />
-            <Button onClick={() => handleDeleteAttempt(true, itemToDelete)} text='Continue'/>
+            <Button onClick={() => handleDeleteAttempt(true, itemToDelete)} text='Continue' />
           </div>
         </Box>
       </Modal>
@@ -507,7 +511,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     clearCurrentCodeItems()
   }, [selectedCodeSystemBase])
 
-    useEffect(() => {
+  useEffect(() => {
     setMyDocument(document.body)
   }, [])
 
@@ -521,11 +525,13 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   }, [allVsacCS])
 
   useEffect(() => {
-    if (!selectedCodeSystemBase && router.query.csSelected) {
-      const option = selectOptions?.find((o) => o.value === router.query.csSelected)
+    const valueFromRouter = router.query.csSelected
+    if (!selectedCodeSystemBase && typeof valueFromRouter === 'string') {
+      const codeSystemName = valueFromRouter.split('/CodeSystem/')[1]
+      const option = selectOptions?.find((o) => o.label === codeSystemName)
       setSelectedCodeSystemBase(option)
     }
-  }, [router, selectOptions])
+  }, [router?.query?.csSelected, selectOptions])
 
   const enableAdd = useMemo(() => {
     const shouldEnable = allFieldsExist([codeToAdd, displayToAdd, definitionToAdd])
@@ -598,7 +604,6 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
       setFormSubmitting(false)
       setCodeItemsToAdd([])
       mutateProvCs()
-      // router.push('/programs?resourceType=provisional')
     } else {
       setFormSubmitting(false)
     }
