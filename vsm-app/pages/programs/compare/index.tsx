@@ -355,6 +355,8 @@ const ProgramCompare = () => {
     setIsLoadingDiff(false)
   }
 
+
+
   const handleDownload = async (base: string, target: string, download: boolean, rawData: any) => {
     if (!download) return
     if (!base || !target) {

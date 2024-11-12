@@ -115,44 +115,44 @@ const flattenLeafData = (composeIncludeArr) => {
   return allCodes
 }
 
-const allCodesFromLeafsInGrouper = (leafReferences) => {
-  // structure in groupers expansion: contains[{system: '', version: '', code: ''}]
-  // structure in leafs: compose: {include: [{system: '', version: '', concept: [{code: ''}]}]}
+// const allCodesFromLeafsInGrouper = (leafReferences) => {
+//   // structure in groupers expansion: contains[{system: '', version: '', code: ''}]
+//   // structure in leafs: compose: {include: [{system: '', version: '', concept: [{code: ''}]}]}
 
-  // step 1: get all codes from leafs in grouper
-  // step 2: remove all codes from grouper that are not present in leafs
-  // place grouper in bundle
-  const allCodesInGrouper = []
+//   // step 1: get all codes from leafs in grouper
+//   // step 2: remove all codes from grouper that are not present in leafs
+//   // place grouper in bundle
+//   const allCodesInGrouper = []
 
-  leafReferences.forEach(leafRef => {
-    const matchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
-      return (
-        entryItem?.resource?.url === leafRef
-      )
-    })
+//   leafReferences.forEach(leafRef => {
+//     const matchIndexInEntry = fileToEdit?.entry?.findIndex((entryItem) => {
+//       return (
+//         entryItem?.resource?.url === leafRef
+//       )
+//     })
 
-    const matchingLeaf = fileToEdit?.entry?.[matchIndexInEntry]?.resource
+//     const matchingLeaf = fileToEdit?.entry?.[matchIndexInEntry]?.resource
 
-    if (matchingLeaf) {
-      matchingLeaf.compose.include.forEach(newIncludeItem => {
-        const indexOfCachedSystem = allCodesInGrouper.findIndex(item => (
-          item.system === newIncludeItem.system
-          && item.version === newIncludeItem.version
-        ))
-        if (indexOfCachedSystem > -1) {
-          const codesAlreadyCached = allCodesInGrouper[indexOfMatch].concept.map(concept => concept.code)
-          const dedupedItemsToAdd = [...composeIncludeItems[indexOfMatch].concept, ...includeItem.concept].filter(concept => !codesAlreadyCached.includes(concept.code))
-          composeIncludeItems[indexOfMatch].concept = dedupedItemsToAdd
-        } else {
-          composeIncludeItems.push(newIncludeItem)
-        }
-      })
-    } else {
-      console.error(`No ValueSet in the bundle with url ${leafRef}`)
-    }
-  })
-  return allCodesInGrouper
-}
+//     if (matchingLeaf) {
+//       matchingLeaf.compose.include.forEach(newIncludeItem => {
+//         const indexOfCachedSystem = allCodesInGrouper.findIndex(item => (
+//           item.system === newIncludeItem.system
+//           && item.version === newIncludeItem.version
+//         ))
+//         if (indexOfCachedSystem > -1) {
+//           const codesAlreadyCached = allCodesInGrouper[indexOfMatch].concept.map(concept => concept.code)
+//           const dedupedItemsToAdd = [...composeIncludeItems[indexOfMatch].concept, ...includeItem.concept].filter(concept => !codesAlreadyCached.includes(concept.code))
+//           composeIncludeItems[indexOfMatch].concept = dedupedItemsToAdd
+//         } else {
+//           composeIncludeItems.push(newIncludeItem)
+//         }
+//       })
+//     } else {
+//       console.error(`No ValueSet in the bundle with url ${leafRef}`)
+//     }
+//   })
+//   return allCodesInGrouper
+// }
 
 let allLeafReferences = []
 // for each grouper valueset

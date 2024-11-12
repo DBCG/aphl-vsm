@@ -1,0 +1,14 @@
+What needs to be updated:
+
+Steps:
+
+generate uuid
+
+Bundle
+- bundle ID (add uuid to end?)
+
+generate new version for owned items, check if it exists in VSM
+
+Specification Library
+- update version
+- update version
