@@ -1,7 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { cloneDeep } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 
-const isSpecLibrary = (someResource) => Boolean(
+const isSpecLibrary = (someResource: any) => Boolean(
   someResource?.resourceType === 'Library'
   && (
     someResource?.useContext?.find(
@@ -16,11 +18,11 @@ const grouperIsUnionOfValueSets = (grouperValueSet) => Boolean(
   && grouperValueSet?.compose?.include[0]?.valueSet?.length > 1
 )
 
-const getLeafReferences = (grouperValueset) => {
+const getLeafReferences = (grouperValueset: fhir4.ValueSet) => {
   if (grouperIsUnionOfValueSets(grouperValueset)) {
-    return grouperValueset.compose.include[0].valueSet
+    return grouperValueset.compose!.include[0].valueSet
   } else {
-    return grouperValueset.compose.include.map(includeItem => includeItem.valueSet[0])
+    return grouperValueset.compose!.include.map(includeItem => includeItem?.valueSet?.[0])
   }
 }
 
@@ -60,8 +62,13 @@ const flattenLeafData = (composeIncludeArr) => {
   return allCodes
 }
 
+const getSpecificationLibIndex = (bundle) => {
+  return bundle?.entry?.findIndex(entryItem => {
+    return isSpecLibrary(entryItem?.resource)
+  })
+}
 
-const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
+const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper, versionToUse }) => {
   try {
     // append UUID to owned resource IDs
     const uuidToAppend = uuidv4()
@@ -75,31 +82,47 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
       return
     }
   
-    const specificationLibrary = ersdBundle?.entry?.find(entryItem => {
-      return isSpecLibrary(entryItem?.resource)
-    }).resource
+
+    let specificationLibraryIndex = getSpecificationLibIndex(bundleToEdit)
+    const specificationLibrary = ersdBundle?.entry?.[specificationLibraryIndex]?.resource
   
     const grouperLibReference = specificationLibrary
       ?.relatedArtifact
       ?.find(artifact => (
         artifact?.type === 'composed-of' && artifact?.resource?.includes('/Library/')
       ))?.resource
+    
+      const planDefReference = specificationLibrary
+        ?.relatedArtifact
+        ?.find(artifact => (
+          artifact?.type === 'composed-of' && artifact?.resource?.includes('/PlanDefinition/')
+        ))?.resource
   
     if (typeof grouperLibReference !== 'string') {
-      console.error('No grouper library reference found in the bundle.')
-      return
+      const errText = 'No grouper library reference found in the bundle.'
+      console.error(errText)
+      throw errText
+    } else if (typeof planDefReference !== 'string') {
+      const errText = 'No plan definition reference found in the bundle.' 
+      console.error(errText)
+      throw errText
     }
   
     const unversionedGrouperLibUrl = grouperLibReference.split('|')[0]
-  
-    const grouperLibrary = bundleToEdit?.entry?.find(entryItem => {
+    
+    let grouperLibraryIndex = bundleToEdit?.entry?.findIndex(entryItem => {
       return entryItem?.resource?.url === unversionedGrouperLibUrl
-    })?.resource
-  
+    })
+    
+    const grouperLibrary = bundleToEdit?.entry?.[grouperLibraryIndex]?.resource
+    
     if (!grouperLibrary) {
-      console.error('No grouper library found in the bundle.')
-      return
+      const errText = 'No grouper library found in the bundle.' 
+      console.error(errText)
+      throw errText
     }
+
+    const unversionedPlanDefUrl = planDefReference.split('|')[0]
   
     const grouperValuesetReferences = grouperLibrary?.relatedArtifact?.filter(
       artifact => artifact?.type === 'composed-of' && artifact?.resource?.includes('/ValueSet/')
@@ -107,11 +130,13 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
   
   
     if (!grouperValuesetReferences || grouperValuesetReferences.length === 0) {
-      console.error('No grouper value set references found in the bundle.')
-      return
+      const errText = 'No grouper value set references found in the bundle.'
+      console.error(errText)
+      throw errText
     }
   
     let allLeafReferences = []
+
     // for each grouper valueset
     grouperValuesetReferences.forEach(ref => {
       const [unversionedGrouperVsUrl, grouperVsVersion] = ref.split('|')
@@ -128,7 +153,6 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
       const versionMatch = Boolean(!grouperVsVersion || matchingGrouper?.version === grouperVsVersion)
   
       if (matchingGrouper && versionMatch) {
-        console.log('typeof maxleafspergrouper', typeof maxLeafsPerGrouper)
         // first, reduce the # of leafs in the grouper if specified
         const updatedGrouper = maxLeafsPerGrouper ? limitLeafsInGrouper(matchingGrouper, maxLeafsPerGrouper) : matchingGrouper
   
@@ -151,7 +175,9 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
           if (matchingLeaf) {
             allCodesFromGrouperLeaves = [...allCodesFromGrouperLeaves, ...(flattenLeafData(matchingLeaf.compose.include))]
           } else {
-            console.error(`No ValueSet in the bundle with url ${leafRef}`)
+            const errText = `No ValueSet in the bundle with url ${leafRef}`
+            console.error(errText)
+            throw errText
           }
         })
         // dedupe codes just in case
@@ -182,14 +208,101 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
       }
       return
     })
+
     // remove all valuesets that are not directly referenced by the program and grouper leafs
     // the current ersd has no difference in useContext (both are reporting: triggering) so this isn't ideal
     // it could catch other valuesets if they are not directly referenced by the program or grouper leafs in the future
     const allUnversionedLeafReferencesToKeep = [...grouperValuesetReferences, ...allLeafReferences]?.map(ref => ref.split('|')[0])
   
+    bundleToEdit.id = `${bundleToEdit.id}-${uuidToAppend}`
+
     // delete all valuesets that are not directly referenced by the program and grouper leafs
+    // this will change the indices
     bundleToEdit.entry = bundleToEdit.entry.filter(entryItem => {
       return entryItem.resource.resourceType !== 'ValueSet' || allUnversionedLeafReferencesToKeep.includes(entryItem?.resource?.url)
+    })
+
+    specificationLibraryIndex = getSpecificationLibIndex(bundleToEdit)
+    const planDefinitionIndex = bundleToEdit?.entry?.findIndex(entryItem => {
+      return entryItem?.resource?.url === unversionedPlanDefUrl
+    })
+
+     grouperLibraryIndex = bundleToEdit?.entry?.findIndex(entryItem => {
+      return entryItem?.resource?.url === unversionedGrouperLibUrl
+    })
+
+    const grouperVsIndicesInEntry = [] as number[]
+    grouperValuesetReferences.forEach(ref => {
+      const matchIndexInEntry = bundleToEdit?.entry?.findIndex((entryItem) => {
+        return (
+          entryItem?.resource?.url === ref
+        )
+      })
+
+      if (matchIndexInEntry !== -1) {
+        grouperVsIndicesInEntry.push(matchIndexInEntry)
+      }
+    })
+
+    // update spec library version
+    bundleToEdit.entry[specificationLibraryIndex].fullUrl = `${bundleToEdit.entry[specificationLibraryIndex].fullUrl}-${uuidToAppend}`
+    const specLibToEdit = cloneDeep(specificationLibrary)
+    specLibToEdit.version = versionToUse
+    specLibToEdit.id = `${specLibToEdit.id}-${uuidToAppend}`
+    // set changes on spec library resource
+    bundleToEdit.entry[specificationLibraryIndex].resource = specLibToEdit
+
+    // update references to planDefinition and grouper library
+    bundleToEdit.entry[specificationLibraryIndex].resource.relatedArtifact = specificationLibrary.relatedArtifact.map(ra => {
+      if (ra.resource.includes('/Library/') || ra.resource.includes('/ValueSet/')) {
+        const raToEdit = cloneDeep(ra)
+        const [raUrl, raVersion] = ra.resource.split('|')
+
+        const updatedResourceUrl = `${raUrl}-${uuidToAppend}${raVersion ? `|${versionToUse}` : ''}`
+        raToEdit.resource = updatedResourceUrl
+      } else {
+        return ra
+      }
+    })
+
+    // handle other relatedArtifacts? for instance, if conditions exist
+
+    // update PlanDefinition
+    bundleToEdit.entry[planDefinitionIndex].fullUrl = `${bundleToEdit.entry[planDefinitionIndex].fullUrl}-${uuidToAppend}`
+    const planDefToEdit = bundleToEdit.entry[planDefinitionIndex].resource
+    planDefToEdit.version = versionToUse
+    planDefToEdit.id = `${planDefToEdit.id}-${uuidToAppend}`
+    // set changes on planDef resource
+    bundleToEdit.entry[planDefinitionIndex].resource = planDefToEdit 
+    // update grouper library
+    bundleToEdit.entry[grouperLibraryIndex].fullUrl = `${bundleToEdit.entry[grouperLibraryIndex].fullUrl}-${uuidToAppend}`
+    const grouperLibToEdit = bundleToEdit.entry[grouperLibraryIndex].resource
+    grouperLibToEdit.version = versionToUse
+    grouperLibToEdit.id = `${grouperLibToEdit.id}-${uuidToAppend}`
+    // update references to grouper valuesets
+    const raToEdit = cloneDeep(grouperLibToEdit.relatedArtifact)
+    const newRa = raToEdit.map(ra => {
+      if (ra.type === 'composed-of' && ra.resource.includes('/ValueSet/')) {
+        const [raUrl, raVersion] = ra.resource.split('|')
+        const updatedResourceUrl = `${raUrl}-${uuidToAppend}${raVersion ? `|${versionToUse}` : ''}`
+        ra.resource = updatedResourceUrl
+        return ra
+      } else {
+        return ra
+      }
+    })
+    // set relatedArtifact on grouper library
+    grouperLibToEdit.relatedArtifact = newRa
+    // set changes on grouper lib resource
+    bundleToEdit.entry[grouperLibraryIndex].resource = grouperLibToEdit  
+
+    // finally, update grouper valuesets
+    grouperVsIndicesInEntry.forEach((grouperVsIndex) => {
+      bundleToEdit.entry[grouperVsIndex].fullUrl = `${bundleToEdit.entry[grouperVsIndex].fullUrl}-${uuidToAppend}`
+      const grouperVsToEdit = bundleToEdit.entry[grouperVsIndex].resource
+      grouperVsToEdit.version = versionToUse
+      grouperVsToEdit.id = `${grouperVsToEdit.id}-${uuidToAppend}`
+      bundleToEdit.entry[grouperVsIndex].resource = grouperVsToEdit
     })
 
     const result = {
@@ -206,7 +319,7 @@ const generateImportBundle = ({ ersdBundle, maxLeafsPerGrouper }) => {
       ]
     }
     // return edited bundle
-    return result
+    return result as fhir4.Bundle
   } catch (e) {
     console.error(e)
     // return error to be displayed to user in UI
