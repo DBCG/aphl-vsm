@@ -15,7 +15,7 @@ export const config = {
 
 const allowedEnvironments = [
   // qa endpoint
-  'a88ebe212beb245098a829c6616a4850-1737523659.us-east-1.elb.amazonaws.com',
+  'a88e',
   // local
   'localhost'
 ]
