@@ -34,7 +34,7 @@ const findUnusedVersion = async (version: string) => {
 
 const allowedStrings = [
   // qa endpoint
-  'a88ebe212beb245098a829c6616a4850-1737523659.us-east-1.elb.amazonaws.com',
+  'http://aa991ab66ca5841a1a65bc6f37293203-2009854043.us-east-1.elb.amazonaws.com/realms/aphl',
   // local
   'localhost'
 ]
@@ -43,7 +43,7 @@ const allowedStrings = [
 // it will output the data in a format that can be used for $ersd-v2-import in postman
 const createParamsBundleForQA = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | { error: string }>) => {
   // this endpoint should only be available on QA deployment
-  if (!allowedStrings.some(s => process.env.FHIR_CDR_URL?.includes(s))) {
+  if (!allowedStrings.some(s => process.env.KEYCLOAK_ISSUER?.includes(s))) {
     return res.status(400).json({ error: 'Endpoint only available for QA deployment' })
   }
 

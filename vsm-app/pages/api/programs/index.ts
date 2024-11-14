@@ -24,7 +24,6 @@ export type ProgramApiResponse = {
 
 const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
   try {
-    console.log('process.env: ', process.env)
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
     if (req.query['id']) {
