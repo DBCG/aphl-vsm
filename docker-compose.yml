@@ -41,6 +41,7 @@ services:
       - 8082:8080
     depends_on:
       - cqf-db
+
   cqf-db:
     image: postgres:9.4.26-alpine
     volumes:
@@ -51,6 +52,7 @@ services:
       POSTGRES_DB: cqfruler
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: secret
+
   postgres:
     image: postgres:9.4.26-alpine
     volumes:
@@ -59,6 +61,7 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.2
     command: 'start'
@@ -77,54 +80,34 @@ services:
       KC_HOSTNAME_STRICT: false
     depends_on:
       - postgres
-  influxdb:
-    image: influxdb:1.8.6
-    container_name: influxdb
+  prometheus:
+    image: prom/prometheus
     ports:
-      - 8086:8086
-    environment:
-      INFLUXDB_HTTP_AUTH_ENABLED: "true"
-      INFLUXDB_DB: "iot"
-      INFLUXDB_ADMIN_USER: "iotlnu"
-      INFLUXDB_ADMIN_PASSWORD: "micropython"
-#    networks: 
-#      - tig-net
+      - 9090:9090
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
     volumes:
-      - tig-data:/var/lib/influxdb
-
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
   grafana:
-    image: grafana/grafana:7.5.9
-    container_name: grafana
-    ports: 
+    image: grafana/grafana
+    ports:
       - 3003:3000
     environment:
-      GF_SECURITY_ADMIN_USER: king
-      GF_SECURITY_ADMIN_PASSWORD: arthur
-#    networks: 
-#      - tig-net
+      - GF_SECURITY_ADMIN_PASSWORD=your_password
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    ports:
+      - 8087:8080
     volumes:
-      - tig-data:/var/lib/grafana
-    restart: always        
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Add only if you have your containers running on Mac
 
-  telegraf:
-    image: telegraf:1.19.0
-    depends_on: 
-      - "influxdb"
-    environment:
-      HOST_NAME: "telegraf"
-      INFLUXDB_HOST: "influxdb"
-      INFLUXDB_PORT: "8086"
-      DATABASE: "iot"
-    volumes:
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf
-    tty: true
-#    networks: 
-#      - tig-net
-    privileged: true
-
-#networks: 
-#  tig-net:
-#    driver: bridge
+#networks:
+#  monitoring:
+#    external: true
 
   # vsm-app:
   #   build:

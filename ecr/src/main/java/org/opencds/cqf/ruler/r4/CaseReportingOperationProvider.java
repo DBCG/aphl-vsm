@@ -49,7 +49,6 @@ import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -60,8 +59,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import com.timgroup.statsd.NonBlockingStatsDClient;
-import com.timgroup.statsd.StatsDClient;
+
 
 public class CaseReportingOperationProvider {
 	private static final Logger log = LoggerFactory.getLogger(CaseReportingOperationProvider.class);
@@ -75,8 +73,6 @@ public class CaseReportingOperationProvider {
 	private FhirContext fhirContext;
 
 	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
-
-	private static final StatsDClient statsd = new NonBlockingStatsDClient("aphl", "telegraph", 8125);
 
 	/**
 	 * Applies an approval to an existing artifact, regardless of status.
@@ -603,11 +599,8 @@ public class CaseReportingOperationProvider {
 	@Description(shortDefinition = "$retire", value = "Retire an existing draft artifact")
 	public Bundle retireOperation(
 			RequestDetails requestDetails,
-			@IdParam IdType theId)
-			throws FHIRException {
-		log.info("=================== THIS IS A LOG ===================");
-		statsd.incrementCounter("executeRetire");
-		OffsetDateTime startTime = OffsetDateTime.now();
+			@IdParam IdType theId) {
+
 		var repository = repositoryFactory.create(requestDetails);
 		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
 		if (resource == null) {
@@ -620,12 +613,8 @@ public class CaseReportingOperationProvider {
 
 			Bundle result = (Bundle) adapter.accept(visitor, repository, params);
 
-			OffsetDateTime endTime = OffsetDateTime.now();
-			statsd.recordExecutionTime("retireOperationExecutionTime", endTime.toInstant().toEpochMilli() - startTime.toInstant().toEpochMilli());
-
 			return result;
 		} catch (Exception e) {
-			statsd.incrementCounter("retireExcepction");
 			throw new UnprocessableEntityException(e.getMessage());
 		}
 	}
