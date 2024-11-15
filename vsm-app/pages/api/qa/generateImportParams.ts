@@ -44,6 +44,8 @@ const allowedStrings = [
 const createParamsBundleForQA = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | { error: string }>) => {
   // this endpoint should only be available on QA deployment
   if (!allowedStrings.some(s => process.env.KEYCLOAK_ISSUER?.includes(s))) {
+    console.log('keycloak issuer:   ', process.env.KEYCLOAK_ISSUER)
+    console.log('allowed strings:   ', allowedStrings)
     return res.status(400).json({ error: 'Endpoint only available for QA deployment' })
   }
 
