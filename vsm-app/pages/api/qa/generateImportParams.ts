@@ -32,22 +32,10 @@ const findUnusedVersion = async (version: string) => {
   return unusedVsmVersion
 }
 
-const allowedStrings = [
-  // qa endpoint
-  'cqf-ruler-vsm',
-  // local
-  'localhost'
-]
-
 // this should create a smaller eRSD bundle for QA purposes
 // it will output the data in a format that can be used for $ersd-v2-import in postman
 const createParamsBundleForQA = async (req: NextApiRequest, res: NextApiResponse<fhir4.Bundle | { error: string }>) => {
   // this endpoint should only be available on QA deployment
-  if (!allowedStrings.some(s => process.env.KEYCLOAK_ISSUER?.includes(s))) {
-    console.log('keycloak issuer:   ', process.env.KEYCLOAK_ISSUER)
-    console.log('allowed strings:   ', allowedStrings)
-    return res.status(400).json({ error: 'Endpoint only available for QA deployment' })
-  }
 
   try {
     const payload = req.body
