@@ -82,6 +82,16 @@ public class TransformLibraryTest extends RestIntegrationTest {
 			.collect(Collectors.toList());
 		assertTrue(!ra.isEmpty());
 
+		List<RelatedArtifact> pds = updatedRootLibrary
+			.getRelatedArtifact()
+			.stream()
+			.filter(i -> i.getType().equals(RelatedArtifact.RelatedArtifactType.COMPOSEDOF))
+			.filter(i -> i.getResourceElement().asStringValue().equals("http://hl7.org/fhir/us/ecr/PlanDefinition/plandefinition-ersd-instance-example|0.1"))
+			.collect(Collectors.toList());
+		assertEquals(1, pds.size());
+		assertTrue(pds.get(0).hasExtension("http://hl7.org/fhir/StructureDefinition/artifact-isOwned"));
+
+
 		CodeableConcept conditionCodeableConcept = (CodeableConcept) ra.get(0).getExtension().get(0).getValue();
 		assertEquals(conditionCodeableConcept.getText(), "Infection caused by Acanthamoeba (disorder)");
 
