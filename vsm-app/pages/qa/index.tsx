@@ -13,24 +13,6 @@ const QAPage: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession()
 
-  // useEffect(() => {
-  //   const currentPath = router.asPath
-  //   console.log('currentPath: ', currentPath)
-  //   // @ts-ignore
-  //   if (!session?.user?.roles.includes('admin')) {
-  //     router.push('/programs')
-  //   }
-  // }, [router.asPath])
-
-  useEffect(() => {
-    const currentPath = router
-    console.log('currentPath: ', currentPath)
-    // @ts-ignore
-    // if (!session?.user?.roles.includes('admin')) {
-    //   router.push('/programs')
-    // }
-  }, [router.asPath]) 
-
   const fetchParameters = async () => fetch('/api/qa/generateImportParams', {
     method: 'POST',
     body: JSON.stringify({

@@ -34,7 +34,10 @@ export default withAuth(function middleware(req: NextRequest) {
   }
 
   if (req.nextUrl.pathname.startsWith('/qa')) {
-    if (allowedEnvironments.some(e => process?.env?.FHIR_CDR_URL?.includes(e))) {
+    const isAllowed = allowedEnvironments.some(e => process?.env?.FHIR_CDR_URL?.includes(e))
+    console.log('is allowed:', isAllowed)
+    console.log('process.env.FHIR_CDR_URL:', process?.env?.FHIR_CDR_URL)
+    if (isAllowed) {
       return NextResponse.next()
     } else {
       return NextResponse.redirect(new URL('/programs', req.url));
