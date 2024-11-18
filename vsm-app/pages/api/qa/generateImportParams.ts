@@ -34,7 +34,7 @@ const findUnusedVersion = async (version: string) => {
 
 const allowedStrings = [
   // qa endpoint
-  'http://aa991ab66ca5841a1a65bc6f37293203-2009854043.us-east-1.elb.amazonaws.com/realms/aphl',
+  'cqf-ruler-vsm',
   // local
   'localhost'
 ]

@@ -13,13 +13,6 @@ export const config = {
   ]
 }
 
-const allowedEnvironments = [
-  // qa endpoint
-  'a88e',
-  // local
-  'localhost'
-]
-
 export default withAuth(function middleware(req: NextRequest) {
   const addHeader = ['POST', 'PUT', 'DELETE'].includes(req.method)
   if (addHeader) {
@@ -33,15 +26,5 @@ export default withAuth(function middleware(req: NextRequest) {
     })
   }
 
-  if (req.nextUrl.pathname.startsWith('/qa')) {
-    const isAllowed = allowedEnvironments.some(e => process?.env?.FHIR_CDR_URL?.includes(e))
-    console.log('is allowed:', isAllowed)
-    console.log('process.env.FHIR_CDR_URL:', process?.env?.FHIR_CDR_URL)
-    if (isAllowed) {
-      return NextResponse.next()
-    } else {
-      return NextResponse.redirect(new URL('/programs', req.url));
-    }
-  }
   return NextResponse.next()
 })

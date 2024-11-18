@@ -10,9 +10,6 @@ const QAPage: NextPage = () => {
   const [leafsPerGrouper, setLeafsPerGrouper] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const router = useRouter()
-  const { data: session } = useSession()
-
   const fetchParameters = async () => fetch('/api/qa/generateImportParams', {
     method: 'POST',
     body: JSON.stringify({
