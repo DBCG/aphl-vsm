@@ -110,7 +110,10 @@ const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VS
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   if (terminologyExt) {
-    let val = terminologyServerEndpoints?.find((endpoint) => !!endpoint?.value?.url && terminologyExt?.valueUri?.startsWith(endpoint.value.url))
+    let val = terminologyServerEndpoints?.find((endpoint) => {
+    const urlPathNoProtocol = endpoint?.value?.url?.split('//')?.[1]
+    return !!urlPathNoProtocol && terminologyExt?.valueUri?.includes(urlPathNoProtocol)
+  })
     if (!val) {
       // TODO: bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
       if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost') || isVsmAuthored(valueSet)) {
