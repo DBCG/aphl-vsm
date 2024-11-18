@@ -88,6 +88,16 @@ const createParamsBundleForQA = async (req: NextApiRequest, res: NextApiResponse
   }
 }
 
+// had to increase the size limit because the default 1mb was too small
+// for the size of the response
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: false,
+    },
+  }
+}
+
 export default handler({
   POST: { action: createParamsBundleForQA, access: ['admin'] },
 })
