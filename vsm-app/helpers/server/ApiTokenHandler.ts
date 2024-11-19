@@ -1,4 +1,4 @@
-import logger from './logger'
+import logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
 
