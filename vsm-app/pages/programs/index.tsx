@@ -19,15 +19,6 @@ const Programs: NextPage = () => {
     setValue(newValue)
   }
 
-  useEffect(() => {
-    const qaTest = async () => fetch('/api/qa/generateImportParams', {
-      method: 'POST',
-      body: JSON.stringify({})
-    })
-
-    qaTest()
-  })
-
   return (
     <TabContext value={value}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
