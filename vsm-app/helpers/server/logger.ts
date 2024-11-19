@@ -8,7 +8,7 @@ const logId = uuidv4()
 let logger: Pino.Logger
 logger = Pino.pino(pretty(
   {
-    ignore: 'pid,hostname',
+    ignore: 'pid,hostname,logId', // prevent logId from being duplicate in logs
     messageFormat: (log) => {
       return "id: " + log.logId + " - " + log.msg
     }
