@@ -16,7 +16,7 @@ logger = Pino.pino(pretty(
 ))
 logger.level = process.env.LOG_LEVEL || 'info'
 
-const childLogger =  logger.child({ logId })
+const childLogger = logger.child({ logId })
 
 export { logId }
 export default childLogger

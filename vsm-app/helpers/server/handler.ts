@@ -5,8 +5,6 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
-import { v4 as uuidv4 } from 'uuid';
-import { Logger } from 'pino'
 
 const requestTypes = ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"] as const
 type requestTypes = typeof requestTypes[number]
@@ -29,7 +27,7 @@ const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandl
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  logger.info(`Request: ${req?.method} ${req?.url}`)
+  logger.info(`User: ${session?.user?.email} - Request: ${req?.method} ${req?.url}`)
 
   try {
     const { action, access } = methodFn
