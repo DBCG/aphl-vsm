@@ -66,18 +66,19 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
     } else {
       const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
       const endpointResource = await fhirClient.getTerminologyServer(terminologyServer)
+      logger.info(`User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`)
       const baseUrl = new URL(endpointResource?.address)
       if (endpointResource?.address == null) {
         throw new Error('Terminology server address is not set')
       } else if (!baseUrl.toString().endsWith('/fhir')) {
         baseUrl.pathname = '/fhir'
       }
-      console.log(authCredentials)
+
       try {
         terminologyClient.setCustomClient({
           clientName: endpointResource.name as string,
           baseUrl: baseUrl.toString(),
-          basicAuthHeader: `Basic ${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
+          basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
         })
       } catch (e) {
         // IMPORTANT: If something goes wrong with setting the auth header we should protect the user's data
