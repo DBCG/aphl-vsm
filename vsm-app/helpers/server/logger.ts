@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import * as Pino from 'pino'
 import pretty from 'pino-pretty'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 // let logId: string
 
@@ -24,26 +24,25 @@ import { v4 as uuidv4 } from 'uuid';
 
 // export { logId, logger }
 
-class Logger {  
+class Logger {
   static logId: string
   static log: Pino.Logger
 
   static initLogger() {
-    Logger.log = Pino.pino(pretty(
-      {
-        ignore: 'pid,hostname,logId', // prevent logId from being duplicate in logs
-        messageFormat: (log) => {
-          return "id: " + log.logId + " - " + log.msg
-        }
-      }
-    ))
-    Logger.log.level = process.env.LOG_LEVEL || 'info'
-    Logger.logId = uuidv4()
-    Logger.log = Logger.log.child({ logId: Logger.logId })
+      Logger.log = Pino.pino(
+        pretty({
+          ignore: 'pid,hostname,logId', // prevent logId from being duplicate in logs
+          messageFormat: (log) => {
+            return 'id: ' + log.logId + ' - ' + log.msg
+          }
+        })
+      )
+      Logger.log.level = process.env.LOG_LEVEL || 'info'
+      Logger.logId = uuidv4()
+      Logger.log = Logger.log.child({ logId: Logger.logId })
   }
 
   static getLogger() {
-    Logger.initLogger()
     return Logger.log
   }
 
@@ -53,8 +52,6 @@ class Logger {
 }
 const getLogger = Logger.getLogger
 const getLogId = Logger.getLogId
+const initLogger = Logger.initLogger
 
-export {
-  getLogger,
-  getLogId
-}
+export { initLogger, getLogger, getLogId, Logger }

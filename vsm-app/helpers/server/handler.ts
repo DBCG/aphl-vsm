@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from "next-auth/next"
-import { getLogger } from '@/helpers/server/logger'
+import { getLogger, initLogger } from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
@@ -18,6 +18,7 @@ type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof 
 }
 type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in requestTypes]: action<T> }>
 const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse): Promise<void> => {
+  initLogger()
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
   const methodFn = methodHandlers[req.method as requestTypes]
   // have to do "as any" because TS is annoying about readonlys

@@ -1,5 +1,5 @@
 import Client from 'fhir-kit-client'
-import { getLogger } from '@/helpers/server/logger'
+import { Logger } from '@/helpers/server/logger'
 import FhirKitClient from 'fhir-kit-client'
 import { transformFromVSACToCqf } from '@/helpers/valueSetHelpers'
 import { is } from '@/helpers/is'
@@ -21,7 +21,7 @@ const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH
 const fhirCdrClient = new FhirKitClient({
   baseUrl: FHIR_CDR_URL,
   customHeaders: {
-    'x-b3-traceid': '123',
+    'x-b3-traceid': Logger.getLogId(),
     ...(FHIR_CDR_BASIC_AUTH_USERNAME &&
       FHIR_CDR_BASIC_AUTH_PASSWORD && { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` })
   }
