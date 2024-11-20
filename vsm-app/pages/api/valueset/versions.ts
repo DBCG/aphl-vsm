@@ -2,7 +2,7 @@ import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, transformFromVSACTo
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { cloneDeep } from 'lodash'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
@@ -43,7 +43,7 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Pr
       return true
     }
   } catch (e) {
-    logger.error(`ERROR in getVsFromCQF: ${e}`)
+    getLogger().error(`ERROR in getVsFromCQF: ${e}`)
   }
   return false
 }
@@ -111,7 +111,7 @@ const getLeafFromTermServer = async ({
     })
 
     if (latestOrVersionedVsets?.entry?.length > 1) {
-      logger.info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
+      getLogger().info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
     }
 
     const matchingVs = latestOrVersionedVsets?.entry?.find(
@@ -128,22 +128,22 @@ const getLeafFromTermServer = async ({
     })
 
     if (!is.valueSet(fullMatch)) {
-      logger.error(`Could not find ValueSet with id ${matchingVs.id} in terminology server ${terminologyInfo.value}`)
+      getLogger().error(`Could not find ValueSet with id ${matchingVs.id} in terminology server ${terminologyInfo.value}`)
     }
 
     const vsWithNormalizedUrl = transformFromVSACToCqf(fullMatch as fhir4.ValueSet)
     if (!vsWithNormalizedUrl) {
-      logger.error('Error normalizing leaf valueset')
+      getLogger().error('Error normalizing leaf valueset')
       return
     }
     const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo })
     if (!vsWithMetadata) {
-      logger.error('Error adding conditions and auth source to leaf valueset')
+      getLogger().error('Error adding conditions and auth source to leaf valueset')
     }
 
     return vsWithMetadata
   } catch (e) {
-    logger.error(`ERROR: ${e}`)
+    getLogger().error(`ERROR: ${e}`)
     return
   }
 }
@@ -195,9 +195,9 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
     // Sometimes the server lags behind and has not yet indexed the search for a created valueset
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
     if (is.operationOutcome(maybeHapiError) && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
-      logger.warn(`ERROR: ${JSON.stringify(e)}`)
+      getLogger().warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
-      logger.error(`ERROR: ${JSON.stringify(e)}`)
+      getLogger().error(`ERROR: ${JSON.stringify(e)}`)
       return res.status(400).json({
         message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${selectedVersion} from ${terminologyInfo.value}`
       })
@@ -254,7 +254,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
     return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
   } catch (e) {
-    logger.error(`ERROR: ${JSON.stringify(e)}`)
+    getLogger().error(`ERROR: ${JSON.stringify(e)}`)
     return res.status(400).json({ message: `Failed to update groupers for ValueSet ${vsCanonical}` })
   }
 }

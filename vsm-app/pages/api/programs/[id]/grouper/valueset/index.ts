@@ -19,7 +19,7 @@ import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { cloneDeep, uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
@@ -150,12 +150,12 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         if (is.operationOutcome(updateGroupers)) {
           // send failure response
-          logger.error('error: ', updateGroupers)
+          getLogger().error('error: ', updateGroupers)
           return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
         }
         return res.status(200).send({})
       } catch (e) {
-        logger.error('error: ', JSON.stringify(e))
+        getLogger().error('error: ', JSON.stringify(e))
         return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
       }
 
@@ -198,7 +198,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
     }
   } catch (e) {
     console.error(e)
-    logger.error('error: ', e)
+    getLogger().error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
 }
@@ -224,7 +224,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
       const { errorMessage } = error
-      logger.error(`Error`, errorMessage)
+      getLogger().error(`Error`, errorMessage)
       throw new Error(errorMessage)
     }
 
@@ -265,7 +265,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     })
 
     if (is.errorResponse(serverUpdatesPayload)) {
-      logger.error(
+      getLogger().error(
         `Error found at location 'generateTransactionBundleEntriesToAddMissingValueSetsToServer':  ${JSON.stringify(
           serverUpdatesPayload,
           null,
@@ -337,7 +337,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
       return res.status(200).send({ message: responsesFromTransaction })
     }
   } catch (e: string | any) {
-    logger.error(e)
+    getLogger().error(e)
     return res.status(400).send({ error: `${JSON.stringify(e)} | 'Failed to create Grouper ValueSet'` })
   }
 }
@@ -598,14 +598,14 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (!originalVsBundle.entry) {
-      logger.error(`Could not find grouper valueset with ID ${grouperId} and version ${originalGrouperVersion} to update.`)
+      getLogger().error(`Could not find grouper valueset with ID ${grouperId} and version ${originalGrouperVersion} to update.`)
       return res.status(404).send({ message: 'Grouper not found' })
     }
 
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     if (grouperToEdit.status !== 'draft') {
-      logger.error(`Edited resource must be a draft.`)
+      getLogger().error(`Edited resource must be a draft.`)
       return res.status(400).send({ message: 'Can only edit draft resources' })
     }
 
@@ -620,7 +620,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (is.operationOutcome(grouperUpdated)) {
-      logger.error(`Update failed for grouper with ID ${grouperId}`)
+      getLogger().error(`Update failed for grouper with ID ${grouperId}`)
       return res.status(500).send({ message: 'Error updating grouper' })
     }
 

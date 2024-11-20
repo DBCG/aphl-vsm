@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { fhirCdrClient } from '@/fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { incrementSemver } from '@/utils'
@@ -65,7 +65,7 @@ const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRe
   const createDraftWithNewVersion = async (): Promise<DraftCreateResponse | undefined> => {
     let response: DraftCreateResponse | undefined
 
-    logger.info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
+    getLogger().info(`attempt #${totalAttempts - (attempts - 1)} out of ${totalAttempts} for $draft. Trying version ${versionToAttempt}`)
 
     try {
       const parameters = {
@@ -90,7 +90,7 @@ const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRe
         input: JSON.stringify(parameters)
       }) as fhir4.Bundle & { type: 'transaction-response' } & { entry: ResponseItem[] }
       if (!clientResponse?.entry?.length && attempts > 0) {
-        logger.error(`
+        getLogger().error(`
           Error: could not $draft Library/${programId} with version ${versionToAttempt}.
           Attempt #${attempts}/5.
         `)

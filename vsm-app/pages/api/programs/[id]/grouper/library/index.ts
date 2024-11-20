@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { editComposeInclude } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { artifactIsOwned } from '@/helpers/ownedHelpers'
 
@@ -55,7 +55,7 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
   const isGrouperPlanDefinitionDependency = planDefinitionDataRequirements.relatedArtifact?.some(ra => ra.resource && splitCanonical(ra.resource)[0] === editingInfo.vsCanonical)
   if (isGrouperPlanDefinitionDependency) {
     const error = "Grouper is dependency of: " + planDefinitionUrl
-    logger.error(error)
+    getLogger().error(error)
     return res.status(400).send({ error })
   }
 
@@ -116,7 +116,7 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
 
     return res.status(200).send(updatedGrouperLib)
   } else {
-    logger.info("'add' functionality not implemented on programs/[id]/grouper/library")
+    getLogger().info("'add' functionality not implemented on programs/[id]/grouper/library")
     return res.status(400).send({ error: "'add' functionality not implemented on programs/[id]/grouper/library" })
   }
 }

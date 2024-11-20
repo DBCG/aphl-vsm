@@ -4,7 +4,7 @@ import { splitCanonical } from '@/helpers/stringHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 export type programDetailsEndpointReturn =
@@ -72,7 +72,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
       throw new Error('returned resource was not Library')
     }
   } catch (e: any) {
-    logger.error(`error in programs/programId/details:  ${e}`)
+    getLogger().error(`error in programs/programId/details:  ${e}`)
     res.status(400).json({ error: 'Search for grouper libraries failed.' })
   }
 }
@@ -108,7 +108,7 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
     return res.status(200).send(updatedProgram)
   } catch (e) {
     const error = e instanceof Error ? e.stack : JSON.stringify(e)
-    logger.error(`error in PUT programs/programId/details:  \n${error}`)
+    getLogger().error(`error in PUT programs/programId/details:  \n${error}`)
     res.status(400).json({ error: 'Update of program details failed.' })
   }
 }

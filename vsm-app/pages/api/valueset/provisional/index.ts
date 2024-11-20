@@ -8,7 +8,7 @@ import {
   generateProvisionalVs, updateCsCodes, updateVsMetadata
 } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { addExtensionToVs, EXTENSIONS, removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
@@ -244,7 +244,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     }
 
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     res.status(400).json({ error: 'Creating Provisional Valueset failed' })
   }
 }
@@ -271,7 +271,7 @@ export const getProvisionals = async ({ resourceType, params = {} }: GetProvPara
     return allProvisionals
 
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     return ({ error: `Search for Provisional ${resourceType} Failed` })
   }
 }

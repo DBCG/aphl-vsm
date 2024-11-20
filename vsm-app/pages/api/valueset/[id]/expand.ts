@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
 import { extractOidFromUrl } from '@/utils'
 
@@ -17,7 +17,7 @@ export interface ExpandRequest extends NextApiRequest {
 const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
   const { valueSetId, expansionParameters, pinnedVersion } = req.body
   if (valueSetId == null) {
-    logger.error('Invalid request, missing ValueSet ID.')
+    getLogger().error('Invalid request, missing ValueSet ID.')
     return res.status(400).json({ error: 'Invalid request, missing ValueSet ID.' })
   }
   try {
@@ -51,11 +51,11 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
     const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
     const fetchOptions = getExpandFetchOptions(parameters)
     const response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
-    logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
+    getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
 
     res.status(200).send(response)
   } catch (e: any) {
-    logger.error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
+    getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }

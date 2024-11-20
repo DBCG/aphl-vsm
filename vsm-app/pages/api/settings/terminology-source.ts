@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 // keep the imports to the minumum, have only the service that will have all the business logic
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'

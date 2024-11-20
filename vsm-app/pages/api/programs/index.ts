@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 interface Query {
@@ -89,7 +89,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       if (req.query.version) {
         return void res.status(204).end() // 'void' helps fix a warning message
       } else {
-        logger.error(libSearchResult)
+        getLogger().error(libSearchResult)
         return res.status(404).send({ programs: [], assessments: [] })
       }
     }

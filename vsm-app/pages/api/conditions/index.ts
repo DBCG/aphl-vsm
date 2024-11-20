@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { ConditionItem, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 
@@ -24,12 +24,12 @@ const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<Condit
       const formatted = formatConditionsComposeInclude(conditions)
       return res.status(200).send(formatted)
     } else {
-      logger.error('Could not retrieve conditions data')
-      logger.debug('data from fhirCdrClient.search: ', JSON.stringify(data))
+      getLogger().error('Could not retrieve conditions data')
+      getLogger().debug('data from fhirCdrClient.search: ', JSON.stringify(data))
       return res.status(400).send({ error: 'Could not retrieve conditions data'}) 
     }
   } catch (e: any) {
-    logger.error('error:  ', e?.response?.data?.text)
+    getLogger().error('error:  ', e?.response?.data?.text)
     res.status(400).json({ error: 'Search for conditions valueset failed.' })
   }
 }

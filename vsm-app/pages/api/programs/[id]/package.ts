@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
@@ -101,7 +101,7 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
   if (!v2.entry) {
     throw 'Empty bundle returned from server'
   }
-  logger.info('Generating v2 to v1 transform for download')
+  getLogger().info('Generating v2 to v1 transform for download')
 
   const planDefResourceIndex = v2.entry.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
   const planDefFromV2Exist = planDefResourceIndex != null && planDefResourceIndex > -1
@@ -116,7 +116,7 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
   } else if (planDefFromV2Exist && planDefinition != null) {
     v2.entry[planDefResourceIndex].resource = planDefinition
   } else if (!planDefFromV2Exist && planDefinition == null) {
-    logger.error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
+    getLogger().error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
     throw 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request'
   }
   const v1BundleBody: fhir4.Parameters = {

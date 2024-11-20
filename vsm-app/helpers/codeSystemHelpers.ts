@@ -1,6 +1,6 @@
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional'
 import { cloneDeep } from 'lodash'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 
 interface UpdateItems {
   cs: fhir4.CodeSystem
@@ -30,7 +30,7 @@ const updateCsCodeItem = ({ cs, action, updateData }: UpdateItems | DeleteItems)
           codeConceptBlock[indexOfUpdate] = updateItem.new
         } else {
           const errorText = `Failed to replace code in system with url ${cs.url}`
-          logger.error(errorText)
+          getLogger().error(errorText)
           throw new Error(errorText)
         }
       })
@@ -41,7 +41,7 @@ const updateCsCodeItem = ({ cs, action, updateData }: UpdateItems | DeleteItems)
           codeConceptBlock.splice(indexOfDelete, 1)
         } else {
           const errorText = `Failed to delete code in system with url ${cs.url}`
-          logger.error(errorText)
+          getLogger().error(errorText)
           throw new Error(errorText)
         }
       })

@@ -5,7 +5,7 @@ import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, u
 import { terminologyClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
@@ -21,7 +21,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 
     res.status(200).send(response)
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     res.status(400).json({ error: 'Loading ValueSets failed' })
   }
 }
@@ -110,7 +110,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
                 const updatedMatchingVSetFromRemoteServer = addProfileToValueSet(matchingVSetFromRemoteServer)
                 vSetsToUpdate.push({ valueSet: updatedMatchingVSetFromRemoteServer })
               } else {
-                logger.error('no match found')
+                getLogger().error('no match found')
                 res.status(400).json({ error: `no match found` })
               }
             } else {
@@ -220,7 +220,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       res.status(400).json({ error: 'could not update valueset' })
     }
   } catch (e) {
-    logger.error('error 4: ', e)
+    getLogger().error('error 4: ', e)
     res.status(400).json({ error: 'failed to update valueSet' })
   }
 }

@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fhirCdrClient } from 'fhirClients'
 import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import getLibraryAndGrouper from '@/helpers/server/getProgramAndGrouper'
 
 interface GroupInfoItem {
@@ -15,7 +15,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retri
       const { grouperVSets } = await getLibraryAndGrouper(req.query.id as string)
       return res.status(200).send(grouperVSets)
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     res.status(400).send({ error: 'get groupers failed' })
   }
 }

@@ -1,6 +1,6 @@
 import { fhirCdrClient } from '@/fhirClients'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -26,7 +26,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     res.status(200).json({ success: true })
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     res.status(400).json({ error: 'Updating ValueSet failed' })
   }
 }

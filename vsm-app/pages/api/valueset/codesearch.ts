@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
 
 export interface ExpandRequest extends NextApiRequest {
@@ -51,15 +51,15 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
         })
         res.status(200).send(matchingVsUrlsCodes)
       } else {
-        logger.error('Missing code for search')
+        getLogger().error('Missing code for search')
         return res.status(500).json({ error: 'Missing code or system.' })
       }
     } else {
-      logger.error('Invalid request.')
+      getLogger().error('Invalid request.')
       return res.status(400).json({ error: 'Invalid request.' })
     }
   } catch (e: any) {
-    logger.error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
+    getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }

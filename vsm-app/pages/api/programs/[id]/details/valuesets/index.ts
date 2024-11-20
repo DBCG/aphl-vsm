@@ -5,7 +5,7 @@ import handler from '@/helpers/server/handler'
 import { getGrouperLibraryCanonical, getVSConditions } from '@/helpers/libraryHelpers'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 
 // Items in the table
 interface Group {
@@ -297,20 +297,20 @@ export const getProgramDetailsValuesets = async ({
     const program = await getProgram(programId)
 
     if (isError(program)) {
-      logger.error(`Problem encountered getting program with ID ${programId}`)
+      getLogger().error(`Problem encountered getting program with ID ${programId}`)
       return { status: 400, payload: { error: program.error } }
     }
 
     const grouperLibrary = await getGrouperLibrary(program)
 
     if (isError(grouperLibrary)) {
-      logger.error(`Problem encountered getting grouper library for Program ${programId}`)
+      getLogger().error(`Problem encountered getting grouper library for Program ${programId}`)
       return { status: 400, payload: { error: grouperLibrary.error } }
     }
 
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
-      logger.error(`Problem encountered getting grouper valuesets for Program ${programId}`)
+      getLogger().error(`Problem encountered getting grouper valuesets for Program ${programId}`)
       return { status: 400, payload: { error: grouperValueSets.error } }
     }
 
@@ -326,7 +326,7 @@ export const getProgramDetailsValuesets = async ({
     })
 
     if (isError(leafVsetResponse)) {
-      logger.error(`Problem encountered getting leaf valuesets for Program ${programId}`)
+      getLogger().error(`Problem encountered getting leaf valuesets for Program ${programId}`)
       return { status: 400, payload: { error: leafVsetResponse.error } }
     }
 
@@ -359,7 +359,7 @@ export const getProgramDetailsValuesets = async ({
     }
     return { status: 200, payload: composedResponse }
   } catch (e: any) {
-    logger.error(`error:  , ${JSON.stringify(e, null, 2)}`)
+    getLogger().error(`error:  , ${JSON.stringify(e, null, 2)}`)
     return { status: 400, payload: { error: 'Search for leaf valueset details failed.' } }
   }
 }

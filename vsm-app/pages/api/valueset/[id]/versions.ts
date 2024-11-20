@@ -3,7 +3,7 @@ import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHel
 import { fhirCdrClient, terminologyClient } from 'fhirClients'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 
 const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   // create library template
@@ -25,7 +25,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
       id
     }) as fhir4.ValueSet
   } catch (e) {
-    logger.error('error here is: ', e)
+    getLogger().error('error here is: ', e)
     // if error thrown, return
     return res.status(404).json({ error: `Error finding ValueSet with id ${id}.` })
   }
@@ -67,7 +67,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse) => {
 
     return res.status(200).json(versions)
   } catch (e) {
-    logger.error(e)
+    getLogger().error(e)
     return res.status(405).json({ error: `Error: ${id}.` })
   }
 }

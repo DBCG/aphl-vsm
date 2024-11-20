@@ -4,7 +4,7 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import handler from '@/helpers/server/handler'
 import { fhirCdrClient } from 'fhirClients'
 import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
-import logger from '@/helpers/server/logger'
+import { getLogger } from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { getProgramDetailsValuesets } from './details/valuesets'
 import { addTerminologyEndpointToParameters } from './package'
@@ -56,7 +56,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    logger.error('An error occured likely from the VSAC side')
+    getLogger().error('An error occured likely from the VSAC side')
     logSimpleError(e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
@@ -74,8 +74,8 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
       ...fhirCdrClient.customHeaders
     }
   }).then((i) => i.json()).catch((err) => {
-    logger.error('Something went wrong with $package operation for program Id:' + programId)
-    logger.error(err)
+    getLogger().error('Something went wrong with $package operation for program Id:' + programId)
+    getLogger().error(err)
     throw new Error('Something went wrong while packaging')
   })
   const allLeafVs = response?.entry
@@ -95,7 +95,7 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
   codeSystemsList = uniqBy(codeSystemsList, 'system').filter((i) => i)
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
-  logger.info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
+  getLogger().info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
   const latestVersions = await activeTerminologyClient?.batch({
     body: {
       resourceType: 'Bundle',
@@ -164,7 +164,7 @@ const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, 
       return res.status(200).json(latestVersionCodeSystems)
     }
   } catch (e) {
-    logger.error('error:  ' + JSON.stringify(e, null, 2))
+    getLogger().error('error:  ' + JSON.stringify(e, null, 2))
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
