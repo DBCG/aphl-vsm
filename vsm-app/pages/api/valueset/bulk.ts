@@ -1,6 +1,6 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -15,7 +15,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
       }
     }))
 
-    const response = await fhirCdrClient.batch({body: {
+    const response = await FhirClient.getInstance().batch({body: {
       resourceType: 'Bundle',
       type: 'batch',
       entry: batchPrepVs
@@ -26,7 +26,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
     }
     res.status(200).json({ success: true })
   } catch (e) {
-    getLogger().error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Updating ValueSet failed' })
   }
 }

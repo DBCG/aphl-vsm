@@ -1,4 +1,4 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { FhirResource } from 'fhir-kit-client'
@@ -25,13 +25,13 @@ const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.E
   // add/edit endpoint
   let updatedEndpoint: FhirResource | fhir4.Endpoint
   if (req.body?.endpoint?.id) {
-    updatedEndpoint = await fhirCdrClient.update<fhir4.Endpoint>({
+    updatedEndpoint = await FhirClient.getInstance().update<fhir4.Endpoint>({
       resourceType: 'Endpoint',
       id: req.body?.endpoint?.id,
       body: req.body?.endpoint
     })
   } else {
-    updatedEndpoint = await fhirCdrClient.create<fhir4.Endpoint>({
+    updatedEndpoint = await FhirClient.getInstance().create<fhir4.Endpoint>({
       resourceType: 'Endpoint',
       body: req.body?.endpoint
     })
@@ -43,7 +43,7 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
   if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'false' || process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT == null) {
     res.status(200).send({ endpoints: [], total: 0 })
   }
-  const endpointBundle = (await fhirCdrClient.search({
+  const endpointBundle = (await FhirClient.getInstance().search({
     resourceType: 'Endpoint',
     searchParams: {
       _total: 'accurate',

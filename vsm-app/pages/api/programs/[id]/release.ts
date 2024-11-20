@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { removeDraftFromVersionString } from '@/utils'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import {
@@ -17,7 +17,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body as ReleasePayload
   let program: fhir4.Library | undefined
   try {
-    program = (await fhirCdrClient.read({
+    program = (await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: programId as string
     })) as fhir4.Library
@@ -40,7 +40,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
   }
 
   try {
-    await fhirCdrClient.update({
+    await FhirClient.getInstance().update({
       resourceType: 'Library',
       id: program.id,
       body: program
@@ -68,7 +68,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     ]
   }
 
-  await fhirCdrClient.operation({
+  await FhirClient.getInstance().operation({
     name: '$release',
     resourceType: 'Library',
     id: req.query.id as string,

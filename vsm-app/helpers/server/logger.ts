@@ -25,11 +25,12 @@ import { v4 as uuidv4 } from 'uuid'
 // export { logId, logger }
 
 class Logger {
-  static logId: string
-  static log: Pino.Logger
+  private static instance: Pino.Logger
+  private static logId: string
 
   static initLogger() {
-      Logger.log = Pino.pino(
+    if (!Logger.instance) {
+      Logger.instance = Pino.pino(
         pretty({
           ignore: 'pid,hostname,logId', // prevent logId from being duplicate in logs
           messageFormat: (log) => {
@@ -37,21 +38,20 @@ class Logger {
           }
         })
       )
-      Logger.log.level = process.env.LOG_LEVEL || 'info'
-      Logger.logId = uuidv4()
-      Logger.log = Logger.log.child({ logId: Logger.logId })
+      Logger.instance.level = process.env.LOG_LEVEL || 'info'  
+    }
+    Logger.logId = uuidv4()
+    Logger.instance = Logger.instance.child({ logId: Logger.logId })
   }
 
   static getLogger() {
-    return Logger.log
+    return Logger.instance
   }
 
   static getLogId() {
     return Logger.logId
   }
 }
-const getLogger = Logger.getLogger
-const getLogId = Logger.getLogId
-const initLogger = Logger.initLogger
 
-export { initLogger, getLogger, getLogId, Logger }
+export default Logger
+

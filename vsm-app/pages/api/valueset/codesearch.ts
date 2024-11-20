@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
+import { vsacFhirClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
 
 export interface ExpandRequest extends NextApiRequest {
@@ -42,7 +43,7 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
       const codeToFind = req?.body?.codeToFind
       if (codeToFind) {
         const matchingVsUrlsCodes = await findMatchingVsetUrls({
-          fhirCdrClient,
+          fhirCdrClient: FhirClient.getInstance(),
           vsacFhirClient,
           parameters,
           codeToFind,
@@ -51,15 +52,15 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
         })
         res.status(200).send(matchingVsUrlsCodes)
       } else {
-        getLogger().error('Missing code for search')
+        Logger.getLogger().error('Missing code for search')
         return res.status(500).json({ error: 'Missing code or system.' })
       }
     } else {
-      getLogger().error('Invalid request.')
+      Logger.getLogger().error('Invalid request.')
       return res.status(400).json({ error: 'Invalid request.' })
     }
   } catch (e: any) {
-    getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
+    Logger.getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }

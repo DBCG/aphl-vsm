@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
 
@@ -32,13 +32,13 @@ const crmiPackage = async (
   const useV1 = !data?.useV2
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await fetch(`${fhirCdrClient.baseUrl}/Library/${req.query.id as string}/$package?_format=${currentFormat}`, {
+    let response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${req.query.id as string}/$package?_format=${currentFormat}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
       headers: {
         'Content-Type': 'application/fhir+json',
         // should be Basic Auth creds
-        ...fhirCdrClient.customHeaders
+        ...FhirClient.getInstance().customHeaders
       }
     })
       .then(async (r) => {
@@ -101,7 +101,7 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
   if (!v2.entry) {
     throw 'Empty bundle returned from server'
   }
-  getLogger().info('Generating v2 to v1 transform for download')
+  Logger.getLogger().info('Generating v2 to v1 transform for download')
 
   const planDefResourceIndex = v2.entry.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
   const planDefFromV2Exist = planDefResourceIndex != null && planDefResourceIndex > -1
@@ -116,7 +116,7 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
   } else if (planDefFromV2Exist && planDefinition != null) {
     v2.entry[planDefResourceIndex].resource = planDefinition
   } else if (!planDefFromV2Exist && planDefinition == null) {
-    getLogger().error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
+    Logger.getLogger().error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
     throw 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request'
   }
   const v1BundleBody: fhir4.Parameters = {
@@ -136,13 +136,13 @@ async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
     })
   }
 
-  return fetch(`${fhirCdrClient.baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
+  return fetch(`${FhirClient.getInstance().baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
     body: JSON.stringify(v1BundleBody),
     method: 'POST',
     headers: {
       'Content-Type': 'application/fhir+json',
       // should be Basic Auth creds
-      ...fhirCdrClient.customHeaders
+      ...FhirClient.getInstance().customHeaders
     }
   }).then(async (r) => {
     if (format === 'json') {

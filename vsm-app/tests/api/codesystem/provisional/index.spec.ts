@@ -1,8 +1,8 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/codesystem/provisional'
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
@@ -19,7 +19,7 @@ describe('/api/codesystem/provisional', () => {
   test('returns all the provisional codesystems', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 
-    fhirCdrClient.search = jest.fn().mockImplementation(() => ({
+    FhirClient.getInstance().search = jest.fn().mockImplementation(() => ({
       resourceType: 'Bundle',
       type: 'searchset',
       entry: [

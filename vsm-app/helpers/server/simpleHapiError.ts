@@ -1,4 +1,4 @@
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { FormattedHapiError, HapiError } from '@/types/hapiError'
 import { is } from '@/helpers/is'
 
@@ -27,14 +27,14 @@ const logSimpleError = (e: HapiError | any, location?: string): void => {
     if (isDevelopment) {
       console.error(formattedError)
     } else {
-      getLogger().error(formattedError)
+      Logger.getLogger().error(formattedError)
     }
   } else {
     if (isDevelopment) {
       console.error(e)
     } else {
-      getLogger().error(`Error not from HAPI: , ${e}`)
-      getLogger().error(`Location: ${location}`)
+      Logger.getLogger().error(`Error not from HAPI: , ${e}`)
+      Logger.getLogger().error(`Location: ${location}`)
     }
   }
 }

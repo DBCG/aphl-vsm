@@ -1,9 +1,9 @@
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
 
 if (process.env.KEY == null) {
-  getLogger().error('Symmetric key not found in env variables')
+  Logger.getLogger().error('Symmetric key not found in env variables')
   throw new Error('Symmetric key not found in env variables')
 }
 
@@ -119,7 +119,7 @@ class APITokenHandler {
       if (user?.attributes?.iv?.[0] == null) {
         const userId = user.id
         // If the user does not have an IV, generate one and store it in Keycloak
-        getLogger().info('IV Not found, Generating IV for user: ' + userId)
+        Logger.getLogger().info('IV Not found, Generating IV for user: ' + userId)
         const userIV = crypto.randomBytes(16).toString('hex')
         await this.storeCredsKeyCloak(user, 'iv', userIV)
         return userIV
@@ -134,7 +134,7 @@ class APITokenHandler {
   }
 
   private async retrieveStoredAttributes(userId: string | KeyCloakUser) {
-    getLogger().info('Retrieving stored attributes for userId: ' + userId)
+    Logger.getLogger().info('Retrieving stored attributes for userId: ' + userId)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
@@ -149,7 +149,7 @@ class APITokenHandler {
       }
       return response.json()
     } catch (error) {
-      getLogger().error(`Error retrieving attributes for userId: ${userId} from Keycloak: ${error}`)
+      Logger.getLogger().error(`Error retrieving attributes for userId: ${userId} from Keycloak: ${error}`)
       this.resetState()
       throw error
     }
@@ -164,7 +164,7 @@ class APITokenHandler {
   }
 
   private async deleteCredsKeyCloak(userId: string, serverId: string) {
-    getLogger().info(`Deleting creds for serverId: ${serverId} for user: ${userId}`)
+    Logger.getLogger().info(`Deleting creds for serverId: ${serverId} for user: ${userId}`)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
@@ -184,14 +184,14 @@ class APITokenHandler {
         headers
       })
       if (response.status === 204) {
-        getLogger().info(`Successfully deleted creds for serverId: ${serverId}`)
+        Logger.getLogger().info(`Successfully deleted creds for serverId: ${serverId}`)
         return response
       } else {
-        getLogger().error(`Failed to delete creds for serverId: ${serverId} in Keycloak: ${response.statusText}`)
+        Logger.getLogger().error(`Failed to delete creds for serverId: ${serverId} in Keycloak: ${response.statusText}`)
         throw new Error(`Failed to delete creds for serverId: ${serverId} in Keycloak: ${response.statusText}`)
       }
     } catch (error) {
-      getLogger().error(`Error deleting creds in Keycloak: ${error}`)
+      Logger.getLogger().error(`Error deleting creds in Keycloak: ${error}`)
       this.resetState()
       throw error
     }
@@ -209,7 +209,7 @@ class APITokenHandler {
       userId = user
     }
 
-    getLogger().info(`Setting creds '${key}' in Keycloak for user: ${userId}`)
+    Logger.getLogger().info(`Setting creds '${key}' in Keycloak for user: ${userId}`)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
@@ -232,15 +232,15 @@ class APITokenHandler {
         headers
       })
       if (response.status === 204) {
-        getLogger().info(`Successfully store key: '${key}' in keycloak`)
+        Logger.getLogger().info(`Successfully store key: '${key}' in keycloak`)
         return response
       } else {
-        getLogger().error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
+        Logger.getLogger().error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
         throw new Error(`Failed to store ${key} in Keycloak: ${response.statusText}`)
       }
       ;``
     } catch (error) {
-      getLogger().error(`Error setting API key in Keycloak: ${error}`)
+      Logger.getLogger().error(`Error setting API key in Keycloak: ${error}`)
       this.resetState()
       throw error
     }
@@ -248,7 +248,7 @@ class APITokenHandler {
 
   private async renewKeyCloakToken() {
     if (this._cacheJWT == null || Date.now() > (this._cacheJWTExpiry || -1)) {
-      getLogger().info('Renewing ServerSide JWT Token')
+      Logger.getLogger().info('Renewing ServerSide JWT Token')
       const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`
       const headers = new Headers()
       headers.set('Content-Type', 'application/x-www-form-urlencoded')
@@ -271,7 +271,7 @@ class APITokenHandler {
         this._cacheJWTExpiry = Date.now() + (data.expires_in - 3600) * 1000
         return data
       } catch (error) {
-        getLogger().error(`Error generating token: ${error}`)
+        Logger.getLogger().error(`Error generating token: ${error}`)
         throw error
       }
     }

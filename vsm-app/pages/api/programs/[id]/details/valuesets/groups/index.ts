@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import getLibraryAndGrouper from '@/helpers/server/getProgramAndGrouper'
 
 interface GroupInfoItem {
@@ -15,7 +15,7 @@ const retrieveGroupSets = async (req: NextApiRequest, res: NextApiResponse<retri
       const { grouperVSets } = await getLibraryAndGrouper(req.query.id as string)
       return res.status(200).send(grouperVSets)
   } catch (e) {
-    getLogger().error(e)
+    Logger.getLogger().error(e)
     res.status(400).send({ error: 'get groupers failed' })
   }
 }
@@ -24,7 +24,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
   const body = req.body
   const { groupInfo } = body
 
-  const programLibrary = await fhirCdrClient.read({ resourceType: 'Library', id: req.query.id as string })
+  const programLibrary = await FhirClient.getInstance().read({ resourceType: 'Library', id: req.query.id as string })
 
   const grouperLibraryCanonical = programLibrary?.relatedArtifact?.find(
     (art: any) => art?.type === 'composed-of' && art?.resource?.includes('/Library/')
@@ -32,7 +32,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
 
   const [grouperLibUrl, grouperLibVersion] = grouperLibraryCanonical.split('|')
 
-  const grouperLibrarySearchBundle = await fhirCdrClient.search({
+  const grouperLibrarySearchBundle = await FhirClient.getInstance().search({
     resourceType: 'Library',
     searchParams: {
       url: grouperLibUrl,
@@ -51,7 +51,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
     const grouperValueSetSearchSets = await Promise.all(
       grouperValueSetCanonicals?.map((canonical: string) => {
         const [url, version] = canonical.split('|')
-        return fhirCdrClient.search({
+        return FhirClient.getInstance().search({
           resourceType: 'ValueSet',
           searchParams: {
             url: url,
@@ -116,7 +116,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
 
     const result = await Promise.all(
       groupersToUpdate.map((grouperVs) =>
-        fhirCdrClient.update({
+        FhirClient.getInstance().update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs

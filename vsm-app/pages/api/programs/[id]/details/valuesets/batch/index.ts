@@ -1,4 +1,4 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { Condition } from '@/helpers/conditionHelpers'
 import { setVSPriority, setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
@@ -38,7 +38,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
         }
       }))
       
-      const response = await fhirCdrClient.batch({body: {
+      const response = await FhirClient.getInstance().batch({body: {
         resourceType: 'Bundle',
         type: 'batch',
         entry: grouperReqItems
@@ -58,7 +58,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
       const formattedUpdate = formatBatchGrouperUpdate(updatedGroupers)
       let grouperUpdateResponse
       try {
-        grouperUpdateResponse = await fhirCdrClient.transaction({
+        grouperUpdateResponse = await FhirClient.getInstance().transaction({
           body: formattedUpdate
         })
 
@@ -74,7 +74,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     // handle priority and conditions which both need the program library
-    const programToUpdate = await fhirCdrClient.read({
+    const programToUpdate = await FhirClient.getInstance().read({
       resourceType: 'Library', 
       id: programId
     }) as fhir4.Library
@@ -91,7 +91,7 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(501).json({ error: 'Bulk update not implemented for this item' }) 
     }
 
-    const updated = await fhirCdrClient.update({
+    const updated = await FhirClient.getInstance().update({
       resourceType: 'Library',
       id: programId,
       body: clonedProgram

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
+import { terminologyClient } from 'fhirClients'
 import { deleteLeafsFromLibrary } from '@/helpers/libraryHelpers'
 import {
   addExtensionToVs,
@@ -19,7 +20,7 @@ import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
 import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { cloneDeep, uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
@@ -109,7 +110,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
         const searchInput = formatTransactionSearchEntry(batchDelete)
 
         // grab all the groupers that need to be updated from CQF
-        const grouperBatchEntryToUpdate = await fhirCdrClient.transaction({
+        const grouperBatchEntryToUpdate = await FhirClient.getInstance().transaction({
           body: searchInput
         })
 
@@ -140,7 +141,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         let updateGroupers
         try {
-          updateGroupers = await fhirCdrClient.transaction({
+          updateGroupers = await FhirClient.getInstance().transaction({
             body: updateInput
           })
         } catch (e) {
@@ -150,12 +151,12 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         if (is.operationOutcome(updateGroupers)) {
           // send failure response
-          getLogger().error('error: ', updateGroupers)
+          Logger.getLogger().error('error: ', updateGroupers)
           return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
         }
         return res.status(200).send({})
       } catch (e) {
-        getLogger().error('error: ', JSON.stringify(e))
+        Logger.getLogger().error('error: ', JSON.stringify(e))
         return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
       }
 
@@ -165,7 +166,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
         const { vsCanonical, grouperInfo } = JSON.parse(`${body}`)
         const groupersToUpdate = []
         for (const grouperC of grouperInfo) {
-          const grouperValueSetBundle = (await fhirCdrClient.search({
+          const grouperValueSetBundle = (await FhirClient.getInstance().search({
             resourceType: 'ValueSet',
             searchParams: {
               url: grouperC.canonical,
@@ -181,7 +182,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
             groupersToUpdate.push(updatedGrouper)
             await Promise.all(
               groupersToUpdate.map((grouperVs) =>
-                fhirCdrClient.update({
+                FhirClient.getInstance().update({
                   resourceType: 'ValueSet',
                   id: grouperVs!.id,
                   body: grouperVs as fhir4.ValueSet
@@ -198,7 +199,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
     }
   } catch (e) {
     console.error(e)
-    getLogger().error('error: ', e)
+    Logger.getLogger().error('error: ', e)
     res.status(400).send({ error: 'error' })
   }
 }
@@ -224,7 +225,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
       const { errorMessage } = error
-      getLogger().error(`Error`, errorMessage)
+      Logger.getLogger().error(`Error`, errorMessage)
       throw new Error(errorMessage)
     }
 
@@ -265,7 +266,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
     })
 
     if (is.errorResponse(serverUpdatesPayload)) {
-      getLogger().error(
+      Logger.getLogger().error(
         `Error found at location 'generateTransactionBundleEntriesToAddMissingValueSetsToServer':  ${JSON.stringify(
           serverUpdatesPayload,
           null,
@@ -333,11 +334,11 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
           }
         ]
       }
-      const responsesFromTransaction = await fhirCdrClient.transaction({ body: putRequestBundle })
+      const responsesFromTransaction = await FhirClient.getInstance().transaction({ body: putRequestBundle })
       return res.status(200).send({ message: responsesFromTransaction })
     }
   } catch (e: string | any) {
-    getLogger().error(e)
+    Logger.getLogger().error(e)
     return res.status(400).send({ error: `${JSON.stringify(e)} | 'Failed to create Grouper ValueSet'` })
   }
 }
@@ -348,7 +349,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
 
 const getProgram = async (programId: fhir4.Library['id']): Promise<fhir4.Library | ErrorResponse> => {
   try {
-    const program = await fhirCdrClient.read({
+    const program = await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: programId!
     })
@@ -391,7 +392,7 @@ const getMatchingLeafsFromServer = async (grouperVSets: FlatGrouperVSet[]): Prom
       entry: buildBatchSearchEntries(grouperVSets)
     }
 
-    const batchSearchResponseBundleOfBundles = (await fhirCdrClient.batch({ body: getRequestBundle })) as fhir4.Bundle
+    const batchSearchResponseBundleOfBundles = (await FhirClient.getInstance().batch({ body: getRequestBundle })) as fhir4.Bundle
     return (
       batchSearchResponseBundleOfBundles?.entry
         ?.filter((outerBundleEntry) => outerBundleEntry.resource?.resourceType === 'Bundle')
@@ -494,7 +495,7 @@ const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][]
   const newGrouper = createGrouperWithMetadata(grouperMetadata)
   const grouperWithLeafRefs = addValueSetToGrouper(newGrouper, leafReferencesToAdd as string[])
   // create the original grouper valueset
-  const result = await fhirCdrClient.create({
+  const result = await FhirClient.getInstance().create({
     resourceType: 'ValueSet',
     body: grouperWithLeafRefs
   })
@@ -505,7 +506,7 @@ const createAndSaveGrouper = async (leafReferencesToAdd: fhir4.ValueSet['url'][]
     const updatedXt = updateAuthSource(result.extension || [], result.id)
     result.extension = updatedXt
 
-    const resultWithCorrectAuthoritativeSource = await fhirCdrClient.update({
+    const resultWithCorrectAuthoritativeSource = await FhirClient.getInstance().update({
       resourceType: 'ValueSet',
       id: result.id,
       body: result
@@ -533,7 +534,7 @@ const updateProgramLibraryWithGrouperRef = async (
 
     const [url, version] = vsLibUrlToUpdate.split('|')
 
-    const vsLib = await fhirCdrClient.search({
+    const vsLib = await FhirClient.getInstance().search({
       resourceType: 'Library',
       searchParams: {
         url,
@@ -588,7 +589,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
 
     // there should only be one result here if any
     // matching particular vs id and version
-    const originalVsBundle = await fhirCdrClient.search({
+    const originalVsBundle = await FhirClient.getInstance().search({
       resourceType: 'ValueSet',
       searchParams: {
         _id: grouperId,
@@ -598,20 +599,20 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (!originalVsBundle.entry) {
-      getLogger().error(`Could not find grouper valueset with ID ${grouperId} and version ${originalGrouperVersion} to update.`)
+      Logger.getLogger().error(`Could not find grouper valueset with ID ${grouperId} and version ${originalGrouperVersion} to update.`)
       return res.status(404).send({ message: 'Grouper not found' })
     }
 
     const grouperToEdit = originalVsBundle.entry[0].resource
 
     if (grouperToEdit.status !== 'draft') {
-      getLogger().error(`Edited resource must be a draft.`)
+      Logger.getLogger().error(`Edited resource must be a draft.`)
       return res.status(400).send({ message: 'Can only edit draft resources' })
     }
 
     const grouperToSubmit = updateGrouperWithMetadata({ vsToUpdate: grouperToEdit, metadata })
 
-    const grouperUpdated = await fhirCdrClient.update({
+    const grouperUpdated = await FhirClient.getInstance().update({
       resourceType: 'ValueSet',
       body: grouperToSubmit,
       searchParams: {
@@ -620,7 +621,7 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
     })
 
     if (is.operationOutcome(grouperUpdated)) {
-      getLogger().error(`Update failed for grouper with ID ${grouperId}`)
+      Logger.getLogger().error(`Update failed for grouper with ID ${grouperId}`)
       return res.status(500).send({ message: 'Error updating grouper' })
     }
 

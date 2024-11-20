@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 export type programDetailsEndpointReturn =
@@ -37,7 +37,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
       searchParams.status = 'draft'
     }
 
-    const grouperLibrary = await fhirCdrClient
+    const grouperLibrary = await FhirClient.getInstance()
       .search({
         resourceType: 'Library',
         searchParams
@@ -72,7 +72,7 @@ const getProgramDetails = async (req: NextApiRequest, res: NextApiResponse<progr
       throw new Error('returned resource was not Library')
     }
   } catch (e: any) {
-    getLogger().error(`error in programs/programId/details:  ${e}`)
+    Logger.getLogger().error(`error in programs/programId/details:  ${e}`)
     res.status(400).json({ error: 'Search for grouper libraries failed.' })
   }
 }
@@ -81,12 +81,12 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
   const body = await req.body
   const { grouperIds, conditions, priority, programId, vsUrl } = body
   try {
-    let program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
+    let program = (await FhirClient.getInstance().read({ resourceType: 'Library', id: programId })) as fhir4.Library
 
     // TODO: We should clean this up since grouperIds will always be a single grouper id,
     // we have another endpoint for batch processing so unecessary to have this here.
     const groupers = await Promise.allSettled(
-      grouperIds.map((id: string) => fhirCdrClient.read({ resourceType: 'ValueSet', id })) as fhir4.ValueSet[]
+      grouperIds.map((id: string) => FhirClient.getInstance().read({ resourceType: 'ValueSet', id })) as fhir4.ValueSet[]
     )
     // @ts-ignore
     groupers.map(i => i.value).forEach((grouper: fhir4.ValueSet) => {
@@ -104,11 +104,11 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
       }
     })
 
-    const updatedProgram = await fhirCdrClient.update({ resourceType: 'Library', id: programId, body: program })
+    const updatedProgram = await FhirClient.getInstance().update({ resourceType: 'Library', id: programId, body: program })
     return res.status(200).send(updatedProgram)
   } catch (e) {
     const error = e instanceof Error ? e.stack : JSON.stringify(e)
-    getLogger().error(`error in PUT programs/programId/details:  \n${error}`)
+    Logger.getLogger().error(`error in PUT programs/programId/details:  \n${error}`)
     res.status(400).json({ error: 'Update of program details failed.' })
   }
 }

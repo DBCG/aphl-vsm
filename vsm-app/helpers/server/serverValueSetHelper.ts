@@ -1,4 +1,4 @@
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import dayjs from 'dayjs'
@@ -19,7 +19,7 @@ interface FetchGrouperVsets {
 
 export const fetchGrouperValueSets = async ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
   const result = await Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
-    client: fhirCdrClient,
+    client: FhirClient.getInstance(),
     resourceType: 'ValueSet',
     canonical,
     whitelistFields
@@ -29,7 +29,7 @@ export const fetchGrouperValueSets = async ({ canonicals, whitelistFields }: Fet
 
 export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string) => {
   if (grouperLibUrl) {
-    const grouperSearchResult = await fetchGrouperLibrary({ client: fhirCdrClient, canonical: grouperLibUrl })
+    const grouperSearchResult = await fetchGrouperLibrary({ client: FhirClient.getInstance(), canonical: grouperLibUrl })
 
     // get all grouperValueSet canonicals
     if (is.bundle(grouperSearchResult) && is.library(grouperSearchResult?.entry?.[0]?.resource)) {
@@ -140,7 +140,7 @@ export const fetchLeafValueSets = async ({
       } if (provisionalOnly) {
         searchParameters._tag = 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
       }
-      return fhirCdrClient.search({
+      return FhirClient.getInstance().search({
         resourceType: 'ValueSet',
         searchParams: searchParameters
       })

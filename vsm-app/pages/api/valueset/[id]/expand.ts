@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient, fhirCdrClient } from 'fhirClients'
+import { vsacFhirClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
 import { extractOidFromUrl } from '@/utils'
 
@@ -17,11 +18,11 @@ export interface ExpandRequest extends NextApiRequest {
 const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
   const { valueSetId, expansionParameters, pinnedVersion } = req.body
   if (valueSetId == null) {
-    getLogger().error('Invalid request, missing ValueSet ID.')
+    Logger.getLogger().error('Invalid request, missing ValueSet ID.')
     return res.status(400).json({ error: 'Invalid request, missing ValueSet ID.' })
   }
   try {
-    const valueSet = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: valueSetId as string })) as fhir4.ValueSet
+    const valueSet = (await FhirClient.getInstance().read({ resourceType: 'ValueSet', id: valueSetId as string })) as fhir4.ValueSet
 
     const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
@@ -51,11 +52,11 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
     const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
     const fetchOptions = getExpandFetchOptions(parameters)
     const response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
-    getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
+    Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
 
     res.status(200).send(response)
   } catch (e: any) {
-    getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
+    Logger.getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }
 }

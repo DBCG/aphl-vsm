@@ -1,15 +1,15 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/index'
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/programs', () => {
 
   test('returns all the programs', async () => {
     const { req, res } = createMocks({ method: 'GET' })
 
-    fhirCdrClient.search = jest.fn().mockImplementation(() => ({
+    FhirClient.getInstance().search = jest.fn().mockImplementation(() => ({
       resourceType: 'Bundle',
       type: 'searchset',
       entry: [

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { editComposeInclude } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'
-import { getLogger } from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { artifactIsOwned } from '@/helpers/ownedHelpers'
 
@@ -34,19 +34,19 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
   }
   const [grouperLib, manifestLib, grouperVs, planDefinitionDataRequirements] = await
     Promise.all([
-      fhirCdrClient.read({
+      FhirClient.getInstance().read({
         resourceType: 'Library',
         id: libraryId
       }) as Promise<fhir4.Library>,
-      fhirCdrClient.read({
+      FhirClient.getInstance().read({
         resourceType: 'Library',
         id: manifestLibraryId
       }) as Promise<fhir4.Library>,
-      fhirCdrClient.read({
+      FhirClient.getInstance().read({
         resourceType: 'ValueSet',
         id: editingInfo.vsId
       }) as Promise<fhir4.ValueSet>,
-      fhirCdrClient.operation({
+      FhirClient.getInstance().operation({
         name: "$data-requirements",
         method: "POST",
         input: JSON.stringify(urlParameters)
@@ -55,7 +55,7 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
   const isGrouperPlanDefinitionDependency = planDefinitionDataRequirements.relatedArtifact?.some(ra => ra.resource && splitCanonical(ra.resource)[0] === editingInfo.vsCanonical)
   if (isGrouperPlanDefinitionDependency) {
     const error = "Grouper is dependency of: " + planDefinitionUrl
-    getLogger().error(error)
+    Logger.getLogger().error(error)
     return res.status(400).send({ error })
   }
 
@@ -86,7 +86,7 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
     })
     // update the grouper library to delete the reference
     // to the grouper valueset
-    await fhirCdrClient.transaction({
+    await FhirClient.getInstance().transaction({
       body: {
         type: "transaction",
         resourceType: "Bundle",
@@ -116,7 +116,7 @@ const updateGrouperLibrary = async (req: DeleteGrouperRequest, res: NextApiRespo
 
     return res.status(200).send(updatedGrouperLib)
   } else {
-    getLogger().info("'add' functionality not implemented on programs/[id]/grouper/library")
+    Logger.getLogger().info("'add' functionality not implemented on programs/[id]/grouper/library")
     return res.status(400).send({ error: "'add' functionality not implemented on programs/[id]/grouper/library" })
   }
 }
@@ -133,7 +133,7 @@ async function groupersFromGrouperLib(grouperLib: fhir4.Library) {
       if (urlAndMaybeVersion.length > 1) {
         searchParams.version = urlAndMaybeVersion[1]
       }
-      return fhirCdrClient.search({
+      return FhirClient.getInstance().search({
         resourceType: "ValueSet",
         searchParams: searchParams
       })
