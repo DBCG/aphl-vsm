@@ -8,7 +8,7 @@ const logId = uuidv4()
 let logger: Pino.Logger
 logger = Pino.pino(pretty(
   {
-    ignore: 'pid,hostname',
+    ignore: 'pid,hostname,logId', // prevent logId from being duplicate in logs
     messageFormat: (log) => {
       return "id: " + log.logId + " - " + log.msg
     }
@@ -16,7 +16,7 @@ logger = Pino.pino(pretty(
 ))
 logger.level = process.env.LOG_LEVEL || 'info'
 
-const childLogger =  logger.child({ logId })
+const childLogger = logger.child({ logId })
 
 export { logId }
 export default childLogger

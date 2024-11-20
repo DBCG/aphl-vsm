@@ -219,6 +219,7 @@ const SettingsPage = () => {
 
       if (result.ok) {
         toast.success('Credential updated successfully')
+        await reloadCurrentCredentials()
         return
       } else {
         const json = await result.json()

@@ -1,4 +1,4 @@
-import logger from './logger'
+import logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
 
@@ -248,7 +248,7 @@ class APITokenHandler {
 
   private async renewKeyCloakToken() {
     if (this._cacheJWT == null || Date.now() > (this._cacheJWTExpiry || -1)) {
-      logger.info('Renewing JWT Token')
+      logger.info('Renewing ServerSide JWT Token')
       const url = `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`
       const headers = new Headers()
       headers.set('Content-Type', 'application/x-www-form-urlencoded')

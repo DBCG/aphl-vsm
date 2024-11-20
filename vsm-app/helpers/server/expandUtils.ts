@@ -1,7 +1,7 @@
 import FhirKitClient from 'fhir-kit-client'
 import { cloneDeep } from 'lodash'
 import { is } from '../is'
-import logger from './logger'
+import logger from '@/helpers/server/logger'
 import { vsacFhirClient } from 'fhirClients'
 import { extractOidFromUrl } from '@/utils'
 

@@ -39,7 +39,6 @@ class TsCredentialServiceImpl implements TsCredentialService {
             return this.keyCloakClient.storeBasicAuthCreds(userId, terminologyServerId, username, password)
                 .then(() => {
                     let cred: TerminologyServerCredentials = {terminologyServerId, username, password}
-                    console.log(cred)
                     return cred
                 }, () => Promise.reject("Problem storing basic auth creds"))
         } else {
