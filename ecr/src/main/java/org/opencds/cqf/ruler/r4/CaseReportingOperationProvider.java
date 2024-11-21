@@ -599,7 +599,8 @@ public class CaseReportingOperationProvider {
 	@Description(shortDefinition = "$retire", value = "Retire an existing draft artifact")
 	public Bundle retireOperation(
 			RequestDetails requestDetails,
-			@IdParam IdType theId) {
+			@IdParam IdType theId)
+			throws FHIRException {
 
 		var repository = repositoryFactory.create(requestDetails);
 		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
@@ -611,9 +612,7 @@ public class CaseReportingOperationProvider {
 		try {
 			var visitor = new RetireVisitor();
 
-			Bundle result = (Bundle) adapter.accept(visitor, repository, params);
-
-			return result;
+			return (Bundle) adapter.accept(visitor, repository, params);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
