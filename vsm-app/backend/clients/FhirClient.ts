@@ -1,45 +1,60 @@
-import { Endpoint } from "fhir/r4";
-import { fhirCdrClient } from "@/fhirClients"
+import { Endpoint } from 'fhir/r4'
+import FhirKitClient from 'fhir-kit-client'
+import Client from 'fhir-kit-client'
+import Logger from '@/helpers/server/logger'
+import { update } from 'lodash'
 
-interface FhirClient {
+const { FHIR_CDR_URL, FHIR_CDR_BASIC_AUTH_USERNAME, FHIR_CDR_BASIC_AUTH_PASSWORD } = process.env as Record<string, string>
+const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH_PASSWORD}`
 
-    getTerminologyServers(): Promise<fhir4.Endpoint[]>
-    getTerminologyServer(id: string): Promise<Endpoint>
+class FhirClient {
+  private static instance: FhirClient
+  static client: any
 
+  constructor() {
+    FhirClient.client = new FhirKitClient({
+      baseUrl: FHIR_CDR_URL,
+      customHeaders: {
+        'x-b3-traceid': Logger.getLogId(),
+        ...(FHIR_CDR_BASIC_AUTH_USERNAME &&
+          FHIR_CDR_BASIC_AUTH_PASSWORD && { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` })
+      }
+    })
+  }
+
+  static getClient(): Client {
+    if (this.client.customHeaders) {
+      (this.client.customHeaders as Record<string, string>)['x-b3-traceid'] = Logger.getLogId()
+    }
+    return this.client
+  }
+
+  public static getInstance(): Client {
+    if (!this.instance) {
+      this.instance = new FhirClient()
+    }
+
+    return this.getClient()
+  }
+
+  async getTerminologyServers(): Promise<Endpoint[]> {
+    const endpointBundle = (await FhirClient.client.search({
+      resourceType: 'Endpoint',
+      searchParams: {
+        _total: 'accurate',
+        identifier: 'terminologyEndpoint'
+      }
+    })) as fhir4.Bundle
+
+    return endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || []
+  }
+
+  async getTerminologyServer(id: string): Promise<Endpoint> {
+    return (await FhirClient.client.read({
+      resourceType: 'Endpoint',
+      id: id
+    })) as fhir4.Endpoint
+  }
 }
 
-class FhirClientImpl implements FhirClient {
-    private static instance: FhirClientImpl;
-
-    public static getInstance(): FhirClientImpl {
-        if (!this.instance) {
-            this.instance = new FhirClientImpl
-        }
-
-        return this.instance
-    }
-
-    async getTerminologyServers(): Promise<Endpoint[]> {
-        const endpointBundle = await fhirCdrClient.search({
-            resourceType: 'Endpoint',
-            searchParams: {
-                _total: "accurate",
-                identifier: "terminologyEndpoint"
-            }
-            }) as fhir4.Bundle
-
-          return endpointBundle?.entry?.map(e => e.resource as fhir4.Endpoint) || []
-    }
-
-    async getTerminologyServer(id: string): Promise<Endpoint> {
-        return await fhirCdrClient.read({
-            resourceType: 'Endpoint',
-            id: id
-            }) as fhir4.Endpoint
-    }
-}
-
-const fhirClient = FhirClientImpl.getInstance()
-
-export {FhirClientImpl, fhirClient}
-export type {FhirClient}
+export default FhirClient

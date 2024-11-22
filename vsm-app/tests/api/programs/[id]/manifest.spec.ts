@@ -1,5 +1,6 @@
 import { createMocks } from 'node-mocks-http'
-import { terminologyClient, fhirCdrClient } from 'fhirClients'
+import { terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]/manifest'
 
 // Mock Auth for Setup
@@ -12,6 +13,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
+jest.mock('fhir-kit-client')
 jest.mock('fhirClients')
 
 describe('/api/programs/[id]/manifest', () => {
@@ -101,26 +103,26 @@ describe('/api/programs/[id]/manifest', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({
       resourceType: 'Library',
       status: 'draft',
       id: 'SpecificationLibrary',
       extension: []
     })
 
-    fhirCdrClient.update = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().update = jest.fn().mockResolvedValueOnce({
       resourceType: 'CodeSystem',
       version: '2.0.0',
       id: '123-2.0.0',
       date: '2021-10-01'
     })
 
-    terminologyClient.getClient = jest.fn().mockImplementation(() => fhirCdrClient)
+    terminologyClient.getClient = jest.fn().mockImplementation(() => FhirClient)
 
     await handler(req, res)
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: 'SpecificationLibrary',
       body: {
@@ -164,7 +166,7 @@ describe('/api/programs/[id]/manifest', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({
       resourceType: 'Library',
       status: 'active',
       id: 'SpecificationLibrary',

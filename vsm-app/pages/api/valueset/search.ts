@@ -4,9 +4,9 @@ import retry from 'helpers/retryRequest'
 import { SearchParams } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
-import { fhirClient } from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirClient'
 import { VSMSession } from '@/helpers/rolesHelper'
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
@@ -65,8 +65,9 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
       terminologyClient.setClient('vsac')
     } else {
       const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
-      const endpointResource = await fhirClient.getTerminologyServer(terminologyServer)
-      logger.info(`User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`)
+      // const endpointResource = await FhirClient.getInstance().getTerminologyServer(terminologyServer)
+      const endpointResource = [] as any
+      Logger.getLogger().info(`User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`)
       const baseUrl = new URL(endpointResource?.address)
       if (endpointResource?.address == null) {
         throw new Error('Terminology server address is not set')
@@ -83,7 +84,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
       } catch (e) {
         // IMPORTANT: If something goes wrong with setting the auth header we should protect the user's data
         // from being logged, hence this catch block        
-        logger.error(`Something went wrong with setting the custom client for ${terminologyServer} and user ${session.user.id}`) 
+        Logger.getLogger().error(`Something went wrong with setting the custom client for ${terminologyServer} and user ${session.user.id}`) 
         return res.status(500).json({ 'server-error': 'ValueSet search failed.' })
       }
     }
@@ -126,7 +127,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
               // will just fallback to the default responseInfo {}
             }
           } catch (e) {
-            logger.error(e)
+            Logger.getLogger().error(e)
             responseInfo.error = {
               errorType: 'server-error',
               message: `Search for '${search}' failed.`
@@ -178,7 +179,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
               }
             }
           } catch (e) {
-            logger.error(e)
+            Logger.getLogger().error(e)
             responseInfo.error = {
               errorType: 'oid-error',
               message: `Search by OID failed.`
@@ -236,7 +237,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
               responseInfo.last = getOffsetFromUrl(serverResponse?.link?.find((l: LinkItem) => l?.relation === 'last')?.url) || null
             }
           } catch (e) {
-            logger.error(e)
+            Logger.getLogger().error(e)
             responseInfo.error = {
               errorType: 'server-error',
               message: `Search for '${search}' in url failed.`
@@ -257,7 +258,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
 
     res.status(200).send(responseInfo)
   } catch (e) {
-    logger.error('error:  ', e)
+    Logger.getLogger().error('error:  ', e)
     res.status(400).json({ 'server-error': 'ValueSet search failed.' })
     return
   }

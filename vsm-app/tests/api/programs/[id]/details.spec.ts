@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'
 import handler from '@/pages/api/programs/[id]/details'
 
@@ -13,7 +13,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 jest.mock('../../../../helpers/server/serverValueSetHelper', () => ({
   fetchGrouperValueSets: jest.fn()
 }))
@@ -27,7 +27,7 @@ describe('/api/programs/[id]/details', () => {
       }
     })
 
-    fhirCdrClient.search = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().search = jest.fn().mockResolvedValueOnce({
       resourceType: 'Bundle',
       type: 'searchset',
       entry: [
@@ -66,8 +66,8 @@ describe('/api/programs/[id]/details', () => {
 
     await handler(req, res)
 
-    expect(fhirCdrClient.search).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.search).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().search).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().search).toHaveBeenCalledWith({
       resourceType: 'Library',
       searchParams: {
         url: 'http://example.com/library/123',
@@ -117,7 +117,7 @@ describe('/api/programs/[id]/details', () => {
     }
 
     // Retrieving program
-    fhirCdrClient.read = jest
+    FhirClient.getInstance().read = jest
       .fn()
       .mockResolvedValueOnce(inputLibrary)
       .mockResolvedValueOnce({
@@ -133,8 +133,8 @@ describe('/api/programs/[id]/details', () => {
 
     await handler(req, res)
 
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: 'SpecificationLibrary',
       body: {

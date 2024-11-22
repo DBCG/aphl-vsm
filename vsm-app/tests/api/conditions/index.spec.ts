@@ -1,8 +1,8 @@
 import handler from '@/pages/api/conditions'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
@@ -28,7 +28,7 @@ describe('GET /api/conditions', () => {
       send: jest.fn()
     } as any
 
-    fhirCdrClient.search = jest.fn(async () => ({
+    FhirClient.getInstance().search = jest.fn(async () => ({
       resourceType: "Bundle",
       entry: [{
         resource: {
@@ -44,7 +44,7 @@ describe('GET /api/conditions', () => {
     }))
 
     await handler(req, res)
-    expect(fhirCdrClient.search).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().search).toHaveBeenCalledWith({
       resourceType: 'ValueSet',
       searchParams: {
         url: process.env.CONDITIONS_CANONICAL as string

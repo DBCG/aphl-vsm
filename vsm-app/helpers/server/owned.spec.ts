@@ -1,7 +1,7 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import updateOwnedResources from './owned'
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('updateOwnedResources', () => {
   it('should update owned resources', async () => {
@@ -9,10 +9,10 @@ describe('updateOwnedResources', () => {
     const programVersion = '1'
     const isExperimental = true
 
-    fhirCdrClient.transaction = jest.fn().mockResolvedValueOnce(fixture)
+    FhirClient.getInstance().transaction = jest.fn().mockResolvedValueOnce(fixture)
 
     await updateOwnedResources({ programId, programVersion, isExperimental })
-    expect(fhirCdrClient.transaction).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().transaction).toHaveBeenCalledWith({
       body: {
         entry: [
           {
@@ -39,7 +39,7 @@ describe('updateOwnedResources', () => {
       }
     })
 
-    expect(fhirCdrClient.transaction).toHaveBeenLastCalledWith({
+    expect(FhirClient.getInstance().transaction).toHaveBeenLastCalledWith({
       body: {
         resourceType: 'Bundle',
         type: 'transaction',

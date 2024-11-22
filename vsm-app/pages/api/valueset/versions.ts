@@ -1,8 +1,9 @@
 import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
-import { fhirCdrClient, terminologyClient } from 'fhirClients'
+import { terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { cloneDeep } from 'lodash'
 import { terminologyServerEndpoints } from '@/fhirClientOptions'
@@ -34,7 +35,7 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Pr
       cqfSearchParams.version = versionToFind
     }
 
-    const matchInCqf = await fhirCdrClient.search({
+    const matchInCqf = await FhirClient.getInstance().search({
       resourceType: 'ValueSet',
       searchParams: cqfSearchParams
     })
@@ -43,7 +44,7 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Pr
       return true
     }
   } catch (e) {
-    logger.error(`ERROR in getVsFromCQF: ${e}`)
+    Logger.getLogger().error(`ERROR in getVsFromCQF: ${e}`)
   }
   return false
 }
@@ -111,7 +112,7 @@ const getLeafFromTermServer = async ({
     })
 
     if (latestOrVersionedVsets?.entry?.length > 1) {
-      logger.info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
+      Logger.getLogger().info(`More than 1 match found for ${vsCanonical} with version ${versionToFind}`)
     }
 
     const matchingVs = latestOrVersionedVsets?.entry?.find(
@@ -128,22 +129,22 @@ const getLeafFromTermServer = async ({
     })
 
     if (!is.valueSet(fullMatch)) {
-      logger.error(`Could not find ValueSet with id ${matchingVs.id} in terminology server ${terminologyInfo.value}`)
+      Logger.getLogger().error(`Could not find ValueSet with id ${matchingVs.id} in terminology server ${terminologyInfo.value}`)
     }
 
     const vsWithNormalizedUrl = transformFromVSACToCqf(fullMatch as fhir4.ValueSet)
     if (!vsWithNormalizedUrl) {
-      logger.error('Error normalizing leaf valueset')
+      Logger.getLogger().error('Error normalizing leaf valueset')
       return
     }
     const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo })
     if (!vsWithMetadata) {
-      logger.error('Error adding conditions and auth source to leaf valueset')
+      Logger.getLogger().error('Error adding conditions and auth source to leaf valueset')
     }
 
     return vsWithMetadata
   } catch (e) {
-    logger.error(`ERROR: ${e}`)
+    Logger.getLogger().error(`ERROR: ${e}`)
     return
   }
 }
@@ -179,7 +180,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
       const updatedMatchFromTermServer = addProfileToValueSet(matchFromTermServer)
       // save match to CQF to be used
-      const result = await fhirCdrClient.create({
+      const result = await FhirClient.getInstance().create({
         resourceType: 'ValueSet',
         body: updatedMatchFromTermServer
       })
@@ -195,9 +196,9 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
     // Sometimes the server lags behind and has not yet indexed the search for a created valueset
     // This is a fix to prevent the server from throwing an error when it tries to create a valueset that already exists
     if (is.operationOutcome(maybeHapiError) && maybeHapiError?.issue?.[0]?.diagnostics?.includes('already have one with resource ID:')) {
-      logger.warn(`ERROR: ${JSON.stringify(e)}`)
+      Logger.getLogger().warn(`ERROR: ${JSON.stringify(e)}`)
     } else {
-      logger.error(`ERROR: ${JSON.stringify(e)}`)
+      Logger.getLogger().error(`ERROR: ${JSON.stringify(e)}`)
       return res.status(400).json({
         message: `Unspecified error occurred updating ValueSet with url ${vsCanonical} of version ${selectedVersion} from ${terminologyInfo.value}`
       })
@@ -208,7 +209,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
     const groupersToUpdate = await Promise.all(
       grouperIds.map(
         (id: string) =>
-          fhirCdrClient.read({
+          FhirClient.getInstance().read({
             resourceType: 'ValueSet',
             id
           }) as Promise<fhir4.ValueSet>
@@ -225,7 +226,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
         resource: grouper as fhir4.ValueSet
       }))
 
-    const program = (await fhirCdrClient.read({ resourceType: 'Library', id: programId })) as fhir4.Library
+    const program = (await FhirClient.getInstance().read({ resourceType: 'Library', id: programId })) as fhir4.Library
     program.relatedArtifact?.forEach((i) => {
       if (i?.resource?.split('|')?.[0] === vsCanonical) {
         i.resource = selectedVersion === 'latest' ? vsCanonical : `${vsCanonical}|${selectedVersion}`
@@ -241,7 +242,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
       resource: program 
     })
 
-    await retry(() => fhirCdrClient.transaction({
+    await retry(() => FhirClient.getInstance().transaction({
         body: {
           resourceType: 'Bundle',
           type: 'transaction',
@@ -254,7 +255,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
 
     return res.status(200).json({ message: 'Update valueset versions completed', grouperIds, vsCanonical })
   } catch (e) {
-    logger.error(`ERROR: ${JSON.stringify(e)}`)
+    Logger.getLogger().error(`ERROR: ${JSON.stringify(e)}`)
     return res.status(400).json({ message: `Failed to update groupers for ValueSet ${vsCanonical}` })
   }
 }

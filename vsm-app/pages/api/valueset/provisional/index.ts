@@ -1,5 +1,6 @@
 import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
-import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
+import { vsacFhirClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { deleteValueSetReferencesFromLibrary, getGrouperLibraryCanonical, setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
@@ -8,7 +9,7 @@ import {
   generateProvisionalVs, updateCsCodes, updateVsMetadata
 } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { addExtensionToVs, EXTENSIONS, removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
@@ -101,7 +102,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     for (const systemUrl of systemUrls) {
       // if provisional code system already exists, update the codesystem with any new items
-      const existingCS = await fhirCdrClient.search({
+      const existingCS = await FhirClient.getInstance().search({
         resourceType: 'CodeSystem',
         searchParams: {
           version: 'PROVISIONAL',
@@ -139,7 +140,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     let provisionalLeaf = {} as fhir4.ValueSet
     if (provisionalVsIdForUpdate) {
       // provisional vs already exists, get it from server
-      provisionalLeaf = await fhirCdrClient.read({
+      provisionalLeaf = await FhirClient.getInstance().read({
         resourceType: 'ValueSet',
         id: provisionalVsIdForUpdate
       }) as fhir4.ValueSet
@@ -165,7 +166,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     const transactionBody = transactionBuilder(resourcesToSaveFirst)
 
-    const codeSysAndLeaf = await fhirCdrClient.transaction({
+    const codeSysAndLeaf = await FhirClient.getInstance().transaction({
       body: transactionBody
     })
 
@@ -179,7 +180,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
 
     // if it's a new valueset, update the url to use the id instead of the name
     if (!provisionalVsIdForUpdate) {
-      const leaf = await fhirCdrClient.read({
+      const leaf = await FhirClient.getInstance().read({
         resourceType: 'ValueSet',
         id: provisionalLeafId
       }) as fhir4.ValueSet
@@ -193,7 +194,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     }
 
     if (programId) {
-      let program = await fhirCdrClient.read({
+      let program = await FhirClient.getInstance().read({
         resourceType: 'Library',
         id: programId
       }) as fhir4.Library
@@ -219,7 +220,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         const getGrouperTransaction = transactionBuilder(grouperReqItems as BuilderItem[])
 
         // handles the 'add' case
-        const allGroupersToUpdate = await fhirCdrClient.transaction({ body: getGrouperTransaction })
+        const allGroupersToUpdate = await FhirClient.getInstance().transaction({ body: getGrouperTransaction })
 
         if (is.operationOutcome(allGroupersToUpdate)) {
           return res.status(500).json({ error: `Failed to find groupers with IDs ${grouperIds.join(', ')}` })
@@ -236,7 +237,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     }
     const finalUpdates = transactionBuilder(resourcesToSaveLast)
 
-    const updatedResources = await fhirCdrClient.transaction({ body: finalUpdates })
+    const updatedResources = await FhirClient.getInstance().transaction({ body: finalUpdates })
     if (is.operationOutcome(updatedResources)) {
       return res.status(500).json({ error: `Failed to update grouper references to provisional value set` })
     } else {
@@ -244,7 +245,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
     }
 
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Creating Provisional Valueset failed' })
   }
 }
@@ -262,7 +263,7 @@ export const getProvisionals = async ({ resourceType, params = {} }: GetProvPara
       _tag: 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
     }, params) as SearchParams
 
-    const provisionalBundle = await fhirCdrClient.search({
+    const provisionalBundle = await FhirClient.getInstance().search({
       resourceType,
       searchParams
     })
@@ -271,7 +272,7 @@ export const getProvisionals = async ({ resourceType, params = {} }: GetProvPara
     return allProvisionals
 
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     return ({ error: `Search for Provisional ${resourceType} Failed` })
   }
 }
@@ -322,7 +323,7 @@ const deleteProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) =>
         entry: programGetBatch
       }  as fhir4.Resource & { type: "transaction"; }
 
-      const programTransactionResult = await fhirCdrClient.transaction({
+      const programTransactionResult = await FhirClient.getInstance().transaction({
         body: transactionBody
       })
 
@@ -387,7 +388,7 @@ const deleteProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) =>
       })
 
 
-      const updateTransaction = await fhirCdrClient.transaction({
+      const updateTransaction = await FhirClient.getInstance().transaction({
         body: {
           resourceType: 'Bundle',
           type: 'transaction',
@@ -401,7 +402,7 @@ const deleteProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) =>
       return res.status(200).send({ message: `Provisional ValueSet with ID ${provVsId} deleted` })
     } else {
       // if no program IDs to update, just delete the provisional value set
-      const result = await fhirCdrClient.delete({
+      const result = await FhirClient.getInstance().delete({
         resourceType: 'ValueSet',
         id: provVsId
       })

@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import ExcelJS from 'exceljs'
-import logger from '@/helpers/server/logger'
-import { fhirCdrClient } from '@/fhirClients'
+import Logger from '@/helpers/server/logger'
+import FhirClient from '@/backend/clients/FhirClient'
 import { getGrouperLibrary } from './details/valuesets'
 import {
   generateReadMeSheet,
@@ -15,7 +15,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
   const changeJson = req.body
 
-  logger.info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
+  Logger.getLogger().info(`Comparing Source ID: ${req.query.id} with Target ID: ${req.query.targetId}`)
   if (!changeJson) {
     return res.status(400).json({ error: 'Need changelog data to continue' })
   }
@@ -26,12 +26,12 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   workbook.created = new Date()
   workbook.modified = new Date()
 
-  const targetLibrary = (await fhirCdrClient.read({
+  const targetLibrary = (await FhirClient.getInstance().read({
     resourceType: 'Library',
     id: req.query.targetId as string
   })) as fhir4.Library
 
-  const sourceLibrary = (await fhirCdrClient.read({
+  const sourceLibrary = (await FhirClient.getInstance().read({
     resourceType: 'Library',
     id: req.query.id as string
   })) as fhir4.Library
@@ -42,7 +42,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === targetGrouperLibrary.id
   )?.[0]
 
-  logger.debug(JSON.stringify(changeJson))
+  Logger.getLogger().debug(JSON.stringify(changeJson))
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
 
   generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])
@@ -60,7 +60,7 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
 
 const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   try {
-    const payload = (await fhirCdrClient.search({
+    const payload = (await FhirClient.getInstance().search({
       resourceType: 'Library',
       searchParams: {
         _elements: 'version',
@@ -74,7 +74,7 @@ const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Pr
         ?.filter((i) => i?.id !== req.query.id && i?.meta?.profile?.find((i) => i.endsWith('us-ph-specification-library'))) || []
     return res.status(200).json(libs)
   } catch (error: any) {
-    logger.error(error)
+    Logger.getLogger().error(error)
     return res.status(500).json({ error: error?.error || error || 'Unspecified error' })
   }
 }

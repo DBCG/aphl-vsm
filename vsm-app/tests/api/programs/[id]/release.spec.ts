@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]/release'
 
 // Mock Auth for Setup
@@ -12,7 +12,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]/release', () => {
   test('POST /api/programs/[id]/release, releases a program', async () => {
@@ -29,20 +29,20 @@ describe('/api/programs/[id]/release', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       id: 'SpecificationLibrary',
       name: 'Test Program',
       extension: [],
       version: '1.0.0',
       description: 'Test Program Description'
     })
-    fhirCdrClient.update = jest.fn().mockResolvedValue({})
-    fhirCdrClient.operation = jest.fn().mockResolvedValue({})
+    FhirClient.getInstance().update = jest.fn().mockResolvedValue({})
+    FhirClient.getInstance().operation = jest.fn().mockResolvedValue({})
 
     await handler(req, res)
 
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: 'SpecificationLibrary',
       body: {
@@ -66,8 +66,8 @@ describe('/api/programs/[id]/release', () => {
       }
     })
 
-    expect(fhirCdrClient.operation).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.operation).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledWith({
       name: '$release',
       resourceType: 'Library',
       id: 'SpecificationLibrary',
@@ -104,20 +104,20 @@ describe('/api/programs/[id]/release', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       id: 'SpecificationLibrary',
       name: 'Test Program',
       extension: [],
       version: '1.0.0',
       description: 'Test Program Description'
     })
-    fhirCdrClient.update = jest.fn().mockResolvedValue({})
-    fhirCdrClient.operation = jest.fn().mockResolvedValue({})
+    FhirClient.getInstance().update = jest.fn().mockResolvedValue({})
+    FhirClient.getInstance().operation = jest.fn().mockResolvedValue({})
 
     await handler(req, res)
 
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(0)
-    expect(fhirCdrClient.operation).toHaveBeenCalledTimes(0)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(0)
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledTimes(0)
 
     expect(res._getStatusCode()).toBe(400)
     expect(res._getData()).toEqual({ error: 'Release must have label and description set' })
@@ -137,19 +137,19 @@ describe('/api/programs/[id]/release', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       id: 'SpecificationLibrary',
       name: 'Test Program',
       extension: [],
       version: '1.0.0',
       description: 'Test Program Description'
     })
-    fhirCdrClient.update = jest.fn().mockRejectedValue({})
+    FhirClient.getInstance().update = jest.fn().mockRejectedValue({})
 
     await handler(req, res)
 
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.operation).toHaveBeenCalledTimes(0)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledTimes(0)
 
     expect(res._getStatusCode()).toBe(500)
     expect(res._getData()).toEqual({ error: 'Error encountered updating Library for release' })

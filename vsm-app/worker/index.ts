@@ -3,13 +3,14 @@
  * the cqf-ruler server with its latest values if they differ from version.
  **/
 import Queue from 'bull'
-import { fhirCdrClient, terminologyClient as termClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
+import { terminologyClient as termClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { addExtensionToVs, EXTENSIONS, getTerminologySource, isVsmAuthored } from '@/helpers/valueSetHelpers'
 import { isEqualComparator, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { isEqualWith, set } from 'lodash'
 
 type CDRResponseCollection = {
@@ -60,7 +61,7 @@ const parseCdrResponses = (cdrResponse: Bundle) => {
       } else if (valueSets.length === 1) {
         return valueSets[0]
       } else {
-        logger.error(`No ValueSets found in bundle for ${bundle.link?.[0]?.url}`)
+        Logger.getLogger().error(`No ValueSets found in bundle for ${bundle.link?.[0]?.url}`)
         return
       }
     })
@@ -95,7 +96,7 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
     const authSrcUrl = authoritativeFullUrl
     const needsUpdate = compareValueSets(cdrValueSet, authorativeValueSet!, authSrcUrl)
     if (!authorativeValueSet) {
-      logger.error(`No authoritative ValueSet found for ${cdrValueSet.id}`)
+      Logger.getLogger().error(`No authoritative ValueSet found for ${cdrValueSet.id}`)
       continue
     }
     authorativeValueSet.id = cdrValueSet.id // set the id to the same cdr value set id
@@ -106,7 +107,7 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
     authorativeValueSet.meta.profile = cdrValueSet?.meta?.profile // set the meta to the cdr value set meta
     const updatedAuthorativeValueSet = addExtensionToVs(authorativeValueSet!, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
     if (needsUpdate) {
-      logger.info(`ValueSet ${cdrValueSet.id} needs to be updated`)
+      Logger.getLogger().info(`ValueSet ${cdrValueSet.id} needs to be updated`)
       upgradeRequired.push({
         resource: updatedAuthorativeValueSet,
         request: {
@@ -141,7 +142,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
 
   try {
     // Gather request to CQF server for the ValueSets in local CQF instance
-    const cdrResponse = await fhirCdrClient.batch({ body: batchBundle })
+    const cdrResponse = await FhirClient.getInstance().batch({ body: batchBundle })
 
     const cachedCdrVS = parseCdrResponses(cdrResponse as Bundle) || []
     const toUpdateCollection: CDRResponseCollection = {}
@@ -149,7 +150,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
     await Promise.all(
       cachedCdrVS.map(async (valueset) => {
         if (isVsmAuthored(valueset)) {
-          logger.info(`Skipping VSM authored ValueSet ${valueset.id}`)
+          Logger.getLogger().info(`Skipping VSM authored ValueSet ${valueset.id}`)
           return
         }
         let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
@@ -176,7 +177,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         })) as fhir4.Bundle
 
         if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
-          logger.error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${value}`)
+          Logger.getLogger().error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${value}`)
           refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${value}`)
           return null
         }
@@ -195,7 +196,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
 
     if (updatesToBeMade?.length > 0) {
       totalUpdates.push(updatesToBeMade.length)
-      return fhirCdrClient.batch({
+      return FhirClient.getInstance().batch({
         body: {
           resourceType: 'Bundle',
           type: 'batch',
@@ -204,7 +205,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
       })
     }
   } catch (err) {
-    logger.error(err)
+    Logger.getLogger().error(err)
   }
 }
 
@@ -217,12 +218,12 @@ valueSetUpdateQueue.process(async function (job, done) {
   const totalUpdates: number[] = [] // Store total number of updates made
   const clonedUrls = [...urls]
   if (clonedUrls?.length === 0 || programId == null) {
-    logger.error('Urls and ProgramID required for valueset update worker')
+    Logger.getLogger().error('Urls and ProgramID required for valueset update worker')
     done()
   }
   const maxIterations = Math.ceil(clonedUrls.length / MAX_JOB_SIZE) // Scale batch number
   let iteration = 0
-  logger.info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
+  Logger.getLogger().info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
     const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates)
@@ -232,11 +233,11 @@ valueSetUpdateQueue.process(async function (job, done) {
     iteration += 1
     let progress = (iteration / maxIterations) * 100
     if (progress >= 100) {
-      logger.info('Progress: 99, begin checking for update to finish')
+      Logger.getLogger().info('Progress: 99, begin checking for update to finish')
       job.progress(99) // prevent job from finishing
       break
     } else {
-      logger.info('Progress: ' + (iteration / maxIterations) * 100)
+      Logger.getLogger().info('Progress: ' + (iteration / maxIterations) * 100)
       job.progress(progress)
       await sleep(5000)
     }
@@ -262,20 +263,20 @@ valueSetUpdateQueue.process(async function (job, done) {
 
       // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
       const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value))
-      logger.info('New VS ids', allBatchJobIds)
-      logger.info('current VS ids', currentVsIds)
+      Logger.getLogger().info('New VS ids', allBatchJobIds)
+      Logger.getLogger().info('current VS ids', currentVsIds)
       if (anyIntersection?.length) {
-        logger.info('Update finished')
+        Logger.getLogger().info('Update finished')
         didFinishUpdate = true
         break
       } else {
-        logger.info('Waiting for update to finish, leaf values intersection ids did not match')
+        Logger.getLogger().info('Waiting for update to finish, leaf values intersection ids did not match')
         await sleep(5000)
       }
     }
   }
   job.progress(100)
-  logger.info('job finished')
+  Logger.getLogger().info('job finished')
   const totalNumbOfUpdates = totalUpdates.reduce((a, b) => a + b, 0)
   done(null, { errors: refreshErrors, totalNumbOfUpdates })
 })

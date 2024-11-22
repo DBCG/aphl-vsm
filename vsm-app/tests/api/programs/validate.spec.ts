@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler, { ValidateBody, ValidateErrorResponse } from '@/pages/api/programs/validate'
 import { NextApiResponse } from 'next'
 
@@ -32,7 +32,7 @@ const parameterizedValidationPackage: fhir4.Parameters = {
   ]
 }
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
@@ -58,7 +58,7 @@ describe('/api/programs/validate', () => {
       }
     })
     const testBaseURl = 'www.test.com/fhir'
-    fhirCdrClient.baseUrl = testBaseURl
+    FhirClient.getInstance().baseUrl = testBaseURl
     await handler(req, res)
     expect(global.fetch).toHaveBeenCalledTimes(1)
     expect(global.fetch).toHaveBeenCalledWith(testBaseURl + "/$validate", {

@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 const deleteProgram = async (req: NextApiRequest, res: NextApiResponse<{ message: string } | { error: string }>): Promise<void> => {
   const body = req.body
   try {
-    await fhirCdrClient.operation({
+    await FhirClient.getInstance().operation({
       name: '$delete',
       resourceType: 'Library',
       id: req.query.id as string,

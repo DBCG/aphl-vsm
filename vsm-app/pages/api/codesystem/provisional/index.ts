@@ -1,8 +1,9 @@
-import { fhirCdrClient, vsacFhirClient } from '@/fhirClients'
+import { vsacFhirClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { ErrorItem, is } from '@/helpers/is'
 import { createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { BuilderItem, getProvisionals } from '../../valueset/provisional'
 import { updateCsCodeItem } from '@/helpers/codeSystemHelpers'
@@ -83,7 +84,7 @@ const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiRespon
     return res.status(200).json(results || [])
 
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
 }
@@ -104,7 +105,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
         'provisional-cs-by-base-url': systemUrl
       }
 
-      const existingProvisionalCS = await fhirCdrClient.search({
+      const existingProvisionalCS = await FhirClient.getInstance().search({
         resourceType: 'CodeSystem',
         searchParams
       })
@@ -151,7 +152,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     if (is.errorItem(transactionBody)) {
       return res.status(400).json({ error: transactionBody.error })
     }
-    const updatedCS = await fhirCdrClient.transaction({
+    const updatedCS = await FhirClient.getInstance().transaction({
       body: transactionBody
     })
 
@@ -163,7 +164,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
     }
 
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
 }
@@ -225,7 +226,7 @@ const getAllParentVSets = async (ids: string[]): Promise<fhir4.ValueSet[]> => {
     type: 'transaction'
   }
 
-  const result = await fhirCdrClient.transaction({
+  const result = await FhirClient.getInstance().transaction({
     body: getVsTransactionBundle
   })
 
@@ -253,7 +254,7 @@ const getProvisionalCsById = async (ids: string[]): Promise<fhir4.CodeSystem[]> 
     type: 'transaction'
   }
 
-  const result = await fhirCdrClient.transaction({
+  const result = await FhirClient.getInstance().transaction({
     body: getCsTransactionBundle
   })
 
@@ -393,7 +394,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       entry: batch
     } as fhir4.Bundle & { type: 'transaction' }
 
-    const updateTransaction = await fhirCdrClient.transaction({
+    const updateTransaction = await FhirClient.getInstance().transaction({
       body: updateBundle
     })
 
@@ -403,7 +404,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
       return res.status(400).json({ error: 'Provisional resource update failed' })
     }
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Search for Provisional Code Systems Failed' })
   }
 }

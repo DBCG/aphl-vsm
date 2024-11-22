@@ -1,7 +1,7 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import getProgramAndGrouper from './getProgramAndGrouper'
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('getProgramAndGrouper', () => {
   it('should return grouperVSets and programLibrary', async () => {
@@ -37,8 +37,8 @@ describe('getProgramAndGrouper', () => {
         version: '1.0.0'
       }
     ]
-    fhirCdrClient.read = jest.fn().mockResolvedValue(programLibrary)
-    fhirCdrClient.search = jest
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue(programLibrary)
+    FhirClient.getInstance().search = jest
       .fn()
       .mockResolvedValueOnce(grouperLibrarySearchBundle)
       .mockResolvedValueOnce({
@@ -78,8 +78,8 @@ describe('getProgramAndGrouper', () => {
         }
       ]
     }
-    fhirCdrClient.read = jest.fn().mockResolvedValue(programLibrary)
-    fhirCdrClient.search = jest.fn().mockResolvedValue(grouperLibrarySearchBundle)
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue(programLibrary)
+    FhirClient.getInstance().search = jest.fn().mockResolvedValue(grouperLibrarySearchBundle)
 
     const result = await getProgramAndGrouper(programId)
 
@@ -91,7 +91,7 @@ describe('getProgramAndGrouper', () => {
     const programLibrary = {
       status: 'active'
     }
-    fhirCdrClient.read = jest.fn().mockResolvedValue(programLibrary)
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue(programLibrary)
 
     await expect(getProgramAndGrouper(programId)).rejects.toThrow('Could not get canonical reference')
   })

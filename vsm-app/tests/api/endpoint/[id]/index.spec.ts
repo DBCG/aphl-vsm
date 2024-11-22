@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/endpoint/[id]'
 import { NextApiRequest, NextApiResponse } from 'next'
 
@@ -13,7 +13,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/endpoint/[id]', () => {
   test('GET /api/endpoint/[id]', async () => {
@@ -24,10 +24,10 @@ describe('/api/endpoint/[id]', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({ resourceType: 'Endpoint' })
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({ resourceType: 'Endpoint' })
     await handler(req, res)
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({
       resourceType: 'Endpoint',
       id: '123'
     })
@@ -42,10 +42,10 @@ describe('/api/endpoint/[id]', () => {
       }
     })
 
-    fhirCdrClient.delete = jest.fn().mockResolvedValueOnce({ resourceType: 'OperationOutcome' })
+    FhirClient.getInstance().delete = jest.fn().mockResolvedValueOnce({ resourceType: 'OperationOutcome' })
     await handler(req, res)
-    expect(fhirCdrClient.delete).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.delete).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().delete).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().delete).toHaveBeenCalledWith({
       resourceType: 'Endpoint',
       id: '123'
     })

@@ -1,6 +1,6 @@
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 
@@ -42,12 +42,12 @@ const validatePackage = async (
       }
       parameters = JSON.stringify(validateParameters)
     }
-    const validateResponse = (await fetch(fhirCdrClient.baseUrl + '/$validate', {
+    const validateResponse = (await fetch(FhirClient.getInstance().baseUrl + '/$validate', {
       method: 'POST',
       body: parameters,
       headers: {
         'Content-Type': `application/fhir+${typeof pkg === "string" ? "xml" : "json"}`,
-        ...fhirCdrClient.customHeaders
+        ...FhirClient.getInstance().customHeaders
       }
     }).then((response => {
       if (typeof pkg === "string") {

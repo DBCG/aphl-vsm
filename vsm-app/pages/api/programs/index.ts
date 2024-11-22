@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 
 interface Query {
@@ -50,7 +50,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       queries['status:not'] = 'retired'
     }
 
-    const libSearchResult = await fhirCdrClient.search({
+    const libSearchResult = await FhirClient.getInstance().search({
       resourceType: 'Library',
       options: {
         headers: {
@@ -65,7 +65,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       }
     }) as fhir4.Bundle
 
-    const asstSearchResult = await fhirCdrClient.search({
+    const asstSearchResult = await FhirClient.getInstance().search({
       resourceType: 'Basic',
       options: {
         headers: {
@@ -89,7 +89,7 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       if (req.query.version) {
         return void res.status(204).end() // 'void' helps fix a warning message
       } else {
-        logger.error(libSearchResult)
+        Logger.getLogger().error(libSearchResult)
         return res.status(404).send({ programs: [], assessments: [] })
       }
     }

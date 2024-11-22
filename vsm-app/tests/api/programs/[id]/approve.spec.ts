@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]/approve'
 
 // Mock Auth for Setup
@@ -12,7 +12,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]/approve', () => {
   test('should call $approve', async () => {
@@ -28,8 +28,8 @@ describe('/api/programs/[id]/approve', () => {
     })
 
     await handler(req, res)
-    expect(fhirCdrClient.operation).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.operation).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().operation).toHaveBeenCalledWith({
       name: '$approve',
       resourceType: 'Library',
       id: '123',
@@ -53,7 +53,7 @@ describe('/api/programs/[id]/approve', () => {
       }
     })
 
-    fhirCdrClient.operation = jest.fn().mockRejectedValueOnce(new Error('Test Error'))
+    FhirClient.getInstance().operation = jest.fn().mockRejectedValueOnce(new Error('Test Error'))
     await handler(req, res)
     expect(res._getStatusCode()).toBe(500)
   })

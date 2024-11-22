@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import updateOwnedResources from '@/helpers/server/owned'
 
@@ -11,7 +11,7 @@ import updateOwnedResources from '@/helpers/server/owned'
 const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
   if (is.string(req?.query?.id)) {
     try {
-      const lib = (await fhirCdrClient.read({
+      const lib = (await FhirClient.getInstance().read({
         resourceType: 'Library',
         id: req.query.id as string
       })) as fhir4.Library
@@ -19,11 +19,11 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<
       return res.status(200).send(lib)
     } catch (e: any) {
       const error = e as HapiError
-      logger.error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+      Logger.getLogger().error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
       return res.status(error.response?.status || 400).json({ error: 'Search for program by id failed.' })
     }
   } else {
-    logger.error('error: Invalid program ID')
+    Logger.getLogger().error('error: Invalid program ID')
     return res.status(400).json({ error: 'Search for program by id failed.' })
   }
 }
@@ -34,7 +34,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
     // simply update the values in the existing resource
     const { id, status, experimental, version } = req.body
     if (status === 'active') {
-      logger.error('Cannot edit an active Program Library')
+      Logger.getLogger().error('Cannot edit an active Program Library')
       return res.status(409).send({ error: 'Not allowed' })
     }
 
@@ -54,7 +54,7 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
     }
 
     if (id === req.query['id']?.toString()) {
-      const response = await fhirCdrClient.update({
+      const response = await FhirClient.getInstance().update({
         resourceType: 'Library',
         id: id as string,
         body: req.body

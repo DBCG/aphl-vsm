@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
 import { getServerSession } from 'next-auth/next'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
@@ -26,7 +26,7 @@ const approve = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library |
   parameters?.parameter?.push(approvalUser)
 
   try {
-    const response = (await fhirCdrClient.operation({
+    const response = (await FhirClient.getInstance().operation({
       name: '$approve',
       resourceType: 'Library',
       id: req.query.id as string,
