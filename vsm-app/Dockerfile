@@ -1,4 +1,4 @@
-FROM node:20-alpine as Builder
+FROM node:20-alpine AS builder
 
 # Placeholder for build, will be replaced by actual runtime env vars
 ENV FHIR_CDR_URL="http://localhost:8082"
@@ -42,10 +42,10 @@ RUN apt-get clean
 
 WORKDIR /opt/app
 
-COPY --from=Builder /opt/app/node_modules /opt/app/node_modules
-COPY --from=Builder /opt/app/.next /opt/app/.next
-COPY --from=Builder /opt/app/public /opt/app/public
-COPY --from=Builder /opt/app/package.json /opt/app/package.json
-COPY --from=Builder /opt/app/package-lock.json /opt/app/package-lock.json
+COPY --from=builder /opt/app/node_modules /opt/app/node_modules
+COPY --from=builder /opt/app/.next /opt/app/.next
+COPY --from=builder /opt/app/public /opt/app/public
+COPY --from=builder /opt/app/package.json /opt/app/package.json
+COPY --from=builder /opt/app/package-lock.json /opt/app/package-lock.json
 
 CMD ["npm", "start"]
