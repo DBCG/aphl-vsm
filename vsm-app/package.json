@@ -40,9 +40,11 @@
     "react-dom": "^18.3.1",
     "react-select": "^5.7.0",
     "react-toastify": "^9.0.4",
+    "rxjs": "^7.8.1",
     "semver": "^7.5.4",
     "styled-components": "^5.3.3",
     "swr": "^2.1.2",
+    "undici": "^7.1.0",
     "uuid": "^11.0.2"
   },
   "devDependencies": {

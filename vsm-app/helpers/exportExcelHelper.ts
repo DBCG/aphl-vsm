@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
-import { addTerminologyEndpointToParameters } from '@/pages/api/programs/[id]/package'
+import { addTerminologyEndpointToParameters } from './fhirResourceHelper'
 
 interface CollectedChange extends ChangeValue {
   keyName: string

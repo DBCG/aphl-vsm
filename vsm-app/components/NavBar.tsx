@@ -10,8 +10,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
 import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
-
-
+import Notifications from '@/components/Notifications'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -84,6 +83,7 @@ const NavBar = () => {
       <Bar>
         <BreadCrumbs isGrouperView={isGrouperView} />
         <Box sx={{ alignItems: 'center', display: 'flex' }}>
+          <Notifications />
           <Tooltip title={`App Version v-${packageInfo.version}`}>
             <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
           </Tooltip>

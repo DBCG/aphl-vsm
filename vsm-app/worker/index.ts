@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import Logger from '@/helpers/server/logger'
 import { isEqualWith, set } from 'lodash'
+import { QUEUE_REDIS_URL } from '@/config'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -21,11 +22,9 @@ type CDRResponseCollection = {
   }
 }
 
-const REDIS_HOST = process.env.REDIS_HOST
-const REDIS_DB = process.env.REDIS_DB
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `redis://${REDIS_HOST}:6379/${REDIS_DB}`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
   limiter: {
     max: 1,
     duration: 10000
