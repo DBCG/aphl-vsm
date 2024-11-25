@@ -105,7 +105,12 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 
 const isVsmAuthored = (vs: fhir4.ValueSet) => vs?.meta?.tag?.find((tag) => tag?.code === 'vsm-authored')
 
-const isGrouperValueSet = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
+const isVsmGrouper = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
+const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
+  return vs?.compose?.include?.find((include) => include.valueSet)
+}
+
+const isGrouperValueSet = (vs: fhir4.ValueSet) => isVsmGrouper(vs) || isTerminologyServerGrouper(vs)
 
 const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
   const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)

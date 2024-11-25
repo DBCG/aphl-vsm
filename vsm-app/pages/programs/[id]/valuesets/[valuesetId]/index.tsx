@@ -10,7 +10,7 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { isGrouperValueSet } from '@/helpers/valueSetHelpers'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
-export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
+export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp"
 
 const ValueSetPageView = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
