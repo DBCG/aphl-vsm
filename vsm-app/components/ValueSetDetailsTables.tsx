@@ -8,7 +8,7 @@ import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
-import { getProgramManifestVersions, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
+import { getProgramManifestVersions, isTerminologyServerGrouper, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
 import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
@@ -169,15 +169,18 @@ const ValueSetDetailsTables = ({
   let expansionColumns, expansionData
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
   if (isGrouperValueSet) {
+    console.log('dataInGroup', programValuesets?.data)
     // @ts-ignore-next-line
     const dataInGroup = programValuesets?.data?.filter((item: any) => {
-      const match = Boolean(
+      const vsmGrouperMatch = Boolean(
         item?.groups?.find((groupInfo: any) => {
           return groupInfo.id === router.query.valuesetId
         })
       )
 
-      return match
+      const grouperLeafMatch = isTerminologyServerGrouper(currentValueSet) ? currentValueSet : null
+      console.log('grouperLeafMatch', grouperLeafMatch)
+      return vsmGrouperMatch || grouperLeafMatch
     })
 
     definitionData = leafDataForDisplay(dataInGroup)

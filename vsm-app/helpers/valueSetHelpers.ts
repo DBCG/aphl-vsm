@@ -106,7 +106,7 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 const isVsmAuthored = (vs: fhir4.ValueSet) => vs?.meta?.tag?.find((tag) => tag?.code === 'vsm-authored')
 
 const isVsmGrouper = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
-const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
+export const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
   return vs?.compose?.include?.find((include) => include.valueSet)
 }
 
