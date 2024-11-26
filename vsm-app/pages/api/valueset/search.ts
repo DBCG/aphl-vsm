@@ -65,8 +65,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
       terminologyClient.setClient('vsac')
     } else {
       const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
-      // const endpointResource = await FhirClient.getInstance().getTerminologyServer(terminologyServer)
-      const endpointResource = [] as any
+      const endpointResource = await FhirClient.getTerminologyServer(terminologyServer)
       Logger.getLogger().info(`User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`)
       const baseUrl = new URL(endpointResource?.address)
       if (endpointResource?.address == null) {

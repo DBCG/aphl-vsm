@@ -2,7 +2,6 @@ import { Endpoint } from 'fhir/r4'
 import FhirKitClient from 'fhir-kit-client'
 import Client from 'fhir-kit-client'
 import Logger from '@/helpers/server/logger'
-import { update } from 'lodash'
 
 const { FHIR_CDR_URL, FHIR_CDR_BASIC_AUTH_USERNAME, FHIR_CDR_BASIC_AUTH_PASSWORD } = process.env as Record<string, string>
 const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH_PASSWORD}`
@@ -38,7 +37,7 @@ class FhirClient {
   }
 
   async getTerminologyServers(): Promise<Endpoint[]> {
-    const endpointBundle = (await FhirClient.client.search({
+    const endpointBundle = (await FhirClient.getInstance().search({
       resourceType: 'Endpoint',
       searchParams: {
         _total: 'accurate',
@@ -50,7 +49,7 @@ class FhirClient {
   }
 
   async getTerminologyServer(id: string): Promise<Endpoint> {
-    return (await FhirClient.client.read({
+    return (await FhirClient.getInstance().read({
       resourceType: 'Endpoint',
       id: id
     })) as fhir4.Endpoint
