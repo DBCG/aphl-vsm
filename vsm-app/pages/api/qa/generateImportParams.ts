@@ -1,7 +1,7 @@
 import handler from '@/helpers/server/handler'
 import ersd from '@/helpers/server/templates/ersd-1.2.2.0.json'
 import { generateImportBundle } from '@/helpers/server/generateImportBundle'
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { incrementSemver } from '@/utils'
 import { NextApiRequest, NextApiResponse } from 'next/types'
 import { is } from '@/helpers/is'
@@ -11,7 +11,7 @@ const findUnusedVersion = async (version: string) => {
   let unusedVsmVersion
 
   while (!unusedVsmVersion) {
-    const matchingLib = await fhirCdrClient.search({
+    const matchingLib = await FhirClient.getInstance().search({
       resourceType: 'Library',
       searchParams: {
         context: 'program',

@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]/details/valuesets/groups'
 
 // Mock Auth for Setup
@@ -12,7 +12,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]/details/valuesets/groups', () => {
   it('GET /api/programs/[id]/details/valuesets/groups, should call retrieveGroupSets', async () => {
@@ -25,8 +25,8 @@ describe('/api/programs/[id]/details/valuesets/groups', () => {
     })
 
     await handler(req, res)
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({ resourceType: 'Library', id: '123' })
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({ resourceType: 'Library', id: '123' })
   })
 
   it('GET /api/programs/[id]/details/valuesets/groups, should throw an error', async () => {
@@ -36,7 +36,7 @@ describe('/api/programs/[id]/details/valuesets/groups', () => {
         id: '123'
       }
     })
-    fhirCdrClient.read = jest.fn().mockRejectedValueOnce(new Error('Test Error'))
+    FhirClient.getInstance().read = jest.fn().mockRejectedValueOnce(new Error('Test Error'))
     
     await handler(req, res)
     expect(res._getStatusCode()).toBe(400)
@@ -82,8 +82,8 @@ describe('/api/programs/[id]/details/valuesets/groups', () => {
   //     ]
   //   }
 
-  //   fhirCdrClient.read = jest.fn().mockResolvedValue(programLibrary)
-  //   fhirCdrClient.search = jest
+  //   FhirClient.getInstance().read = jest.fn().mockResolvedValue(programLibrary)
+  //   FhirClient.getInstance().search = jest
   //     .fn()
   //     .mockResolvedValueOnce(grouperLibrarySearchBundle)
   //     .mockResolvedValueOnce({
@@ -99,8 +99,8 @@ describe('/api/programs/[id]/details/valuesets/groups', () => {
   //     })
 
   //     await handler(req, res)
-  //     expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-  //     expect(fhirCdrClient.read).toHaveBeenCalledWith({ resourceType: 'Library', id: '123' })
+  //     expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+  //     expect(FhirClient.getInstance().read).toHaveBeenCalledWith({ resourceType: 'Library', id: '123' })
   //     expect(res._getStatusCode()).toBe(200)
   // })
 })

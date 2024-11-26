@@ -1,9 +1,9 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { WHITELIST_VALUESET_FIELDS } from '@/pages/api/programs/[id]/details/valuesets'
 
 const getProgramAndGrouper = async (programId: string) => {
   // get all grouper valueSets from within a program
-  const programLibrary = (await fhirCdrClient.read({ resourceType: 'Library', id: programId as string })) as fhir4.Library
+  const programLibrary = (await FhirClient.getInstance().read({ resourceType: 'Library', id: programId as string })) as fhir4.Library
 
   const programStatus = programLibrary.status
 
@@ -20,7 +20,7 @@ const getProgramAndGrouper = async (programId: string) => {
     version: grouperLibVersion || '',
     status: programStatus
   }
-  const grouperLibrarySearchBundle = await fhirCdrClient.search({
+  const grouperLibrarySearchBundle = await FhirClient.getInstance().search({
     resourceType: 'Library',
     searchParams
   })
@@ -34,7 +34,7 @@ const getProgramAndGrouper = async (programId: string) => {
     const grouperValueSetSearchSets = await Promise.all(
       grouperValueSetCanonicals?.map((canonical: string) => {
         const [url, version] = canonical.split('|')
-        return fhirCdrClient.search({
+        return FhirClient.getInstance().search({
           resourceType: 'ValueSet',
           searchParams: {
             url: url,

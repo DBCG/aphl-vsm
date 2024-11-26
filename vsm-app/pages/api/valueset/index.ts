@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
@@ -17,11 +17,11 @@ interface BundleEntryItem {
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
-    const response = (await fhirCdrClient.read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
+    const response = (await FhirClient.getInstance().read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
 
     res.status(200).send(response)
   } catch (e) {
-    logger.error(e)
+    Logger.getLogger().error(e)
     res.status(400).json({ error: 'Loading ValueSets failed' })
   }
 }
@@ -46,7 +46,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
   // check fhir server first to see if we already have the selected valueSets
   const serverResponses = await Promise.allSettled(
     body?.selectedValueSets?.map((item: fhir4.ValueSet) =>
-      fhirCdrClient.search({
+      FhirClient.getInstance().search({
         resourceType: 'ValueSet',
         searchParams: {
           url: item.url?.split('|')?.[0] || '',
@@ -110,7 +110,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
                 const updatedMatchingVSetFromRemoteServer = addProfileToValueSet(matchingVSetFromRemoteServer)
                 vSetsToUpdate.push({ valueSet: updatedMatchingVSetFromRemoteServer })
               } else {
-                logger.error('no match found')
+                Logger.getLogger().error('no match found')
                 res.status(400).json({ error: `no match found` })
               }
             } else {
@@ -134,7 +134,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
 
   try {
 
-    let program = await fhirCdrClient.read({
+    let program = await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: req.query.programId as string
     }) as fhir4.Library
@@ -159,7 +159,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       }
     })
 
-    const performedUpdate = await fhirCdrClient.transaction({
+    const performedUpdate = await FhirClient.getInstance().transaction({
       body: {
         resourceType: 'Bundle',
         type: 'transaction',
@@ -178,7 +178,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
   // get groupers
   const groupersToUpdate = await Promise.all(
     body.selectedGroupers.map(async (grouperItem: any) => {
-      return await fhirCdrClient.read({
+      return await FhirClient.getInstance().read({
         resourceType: 'ValueSet',
         id: grouperItem.id
       })
@@ -205,7 +205,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
         // this sets the compose include whether it exists or not
         set(grouperVs, 'compose.include', newComposeInclude)
 
-        return await fhirCdrClient.update({
+        return await FhirClient.getInstance().update({
           resourceType: 'ValueSet',
           id: grouperVs.id,
           body: grouperVs
@@ -220,7 +220,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       res.status(400).json({ error: 'could not update valueset' })
     }
   } catch (e) {
-    logger.error('error 4: ', e)
+    Logger.getLogger().error('error 4: ', e)
     res.status(400).json({ error: 'failed to update valueSet' })
   }
 }

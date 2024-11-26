@@ -1,5 +1,6 @@
 import { createMocks } from 'node-mocks-http'
-import { terminologyClient, fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
+import { terminologyClient } from 'fhirClients'
 import handler from '@/pages/api/valueset/[id]/versions'
 
 // Mock Auth for Setup
@@ -12,7 +13,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/valueset/[id]/versions', () => {
   test('GET /api/valueset/[id]/versions, retrieves versions for valueset', async () => {
@@ -41,7 +42,7 @@ describe('/api/valueset/[id]/versions', () => {
     }
 
     terminologyClient.getClient = jest.fn().mockImplementation(() => vsacTerminologyClient)
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({
       resourceType: 'ValueSet',
       id: '123',
       extension: [
@@ -56,8 +57,8 @@ describe('/api/valueset/[id]/versions', () => {
 
     await handler(req, res)
 
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({
       resourceType: 'ValueSet',
       id: '123'
     })
@@ -80,7 +81,7 @@ describe('/api/valueset/[id]/versions', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({
       resourceType: 'ValueSet',
       id: '123',
       extension: [],
@@ -90,8 +91,8 @@ describe('/api/valueset/[id]/versions', () => {
 
     await handler(req, res)
 
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({
       resourceType: 'ValueSet',
       id: '123'
     })
@@ -107,14 +108,14 @@ describe('/api/valueset/[id]/versions', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockRejectedValueOnce({
+    FhirClient.getInstance().read = jest.fn().mockRejectedValueOnce({
       error: 'Not Found'
     })
 
     await handler(req, res)
 
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({
       resourceType: 'ValueSet',
       id: '123'
     })

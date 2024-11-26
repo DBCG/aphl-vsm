@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { ConditionItem, formatConditionsComposeInclude } from '@/helpers/conditionHelpers'
 
@@ -9,7 +9,7 @@ export type ConditionsAPIResponse = ConditionItem[] | { error: string }
 
 const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<ConditionsAPIResponse>) => {
   try {
-    const data = await fhirCdrClient.search({
+    const data = await FhirClient.getInstance().search({
       resourceType: 'ValueSet',
       searchParams: {
         url: process.env.CONDITIONS_CANONICAL as string
@@ -24,12 +24,12 @@ const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<Condit
       const formatted = formatConditionsComposeInclude(conditions)
       return res.status(200).send(formatted)
     } else {
-      logger.error('Could not retrieve conditions data')
-      logger.debug('data from fhirCdrClient.search: ', JSON.stringify(data))
+      Logger.getLogger().error('Could not retrieve conditions data')
+      Logger.getLogger().debug('data from FhirClient.getInstance().search: ', JSON.stringify(data))
       return res.status(400).send({ error: 'Could not retrieve conditions data'}) 
     }
   } catch (e: any) {
-    logger.error('error:  ', e?.response?.data?.text)
+    Logger.getLogger().error('error:  ', e?.response?.data?.text)
     res.status(400).json({ error: 'Search for conditions valueset failed.' })
   }
 }

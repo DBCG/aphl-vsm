@@ -1,7 +1,7 @@
 import handler, { ExpandRequest } from 'pages/api/valueset/[id]/expand'
 import { createMocks } from 'node-mocks-http'
 import fetchMock from 'jest-fetch-mock'
-import { vsacFhirClient, fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { NextApiResponse } from 'next'
 
 // Mock Auth for Setup
@@ -14,7 +14,7 @@ jest.mock('next-auth/next', () => ({
   }))
 }))
 
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('pages/api/valueset/[id]/expand', () => {
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('pages/api/valueset/[id]/expand', () => {
       method: 'POST',
       body: body
     })
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       resourceType: 'ValueSet',
       id: '4224',
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.32.33.44.22.55',
@@ -81,7 +81,7 @@ describe('pages/api/valueset/[id]/expand', () => {
       method: 'POST',
       body: body
     })
-    fhirCdrClient.read = jest.fn().mockResolvedValue({
+    FhirClient.getInstance().read = jest.fn().mockResolvedValue({
       resourceType: 'ValueSet',
       id: '4224',
       url: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.32.33.44.22.55',
@@ -126,7 +126,7 @@ describe('pages/api/valueset/[id]/expand', () => {
   //     method: 'POST',
   //     body: body
   //   })
-  //   fhirCdrClient.batch = jest.fn().mockResolvedValue({
+  //   FhirClient.getInstance().batch = jest.fn().mockResolvedValue({
   //     resourceType: 'Bundle',
   //     type: 'batch',
   //     entry: [
@@ -146,7 +146,7 @@ describe('pages/api/valueset/[id]/expand', () => {
   //   })
   //   await handler(req, res)
 
-  //   expect(fhirCdrClient.batch).toHaveBeenCalledWith({
+  //   expect(FhirClient.getInstance().batch).toHaveBeenCalledWith({
   //     body: {
   //       resourceType: 'Bundle',
   //       type: 'batch',

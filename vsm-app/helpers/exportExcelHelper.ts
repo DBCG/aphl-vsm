@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs'
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
 import { addTerminologyEndpointToParameters } from '@/pages/api/programs/[id]/package'
@@ -120,14 +120,14 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
     ]
   }
   const input = JSON.stringify(addTerminologyEndpointToParameters(parameters))
-  const changeJson = (await fhirCdrClient.operation({
+  const changeJson = (await FhirClient.getInstance().operation({
     name: '$create-changelog',
     input,
     method: 'POST',
     options: {
       headers: {
         'Content-Type': `application/fhir+json`,
-        ...fhirCdrClient.customHeaders
+        ...FhirClient.getInstance().customHeaders
       }
     }
   })) as fhir4.Binary
@@ -318,7 +318,7 @@ const generateGrouperValuesetSheet = async (workbook: ExcelJS.Workbook, grouping
   await Promise.all(
     groupingValueSetsChangeLogs.map(async (page: any) => {
       const currentId = page.newData?.id?.value || page.oldData?.id?.value // use new ID unless it's a deleted grouper
-      const grouperVs = (await fhirCdrClient.read({
+      const grouperVs = (await FhirClient.getInstance().read({
         resourceType: 'ValueSet',
         id: currentId
       })) as fhir4.ValueSet

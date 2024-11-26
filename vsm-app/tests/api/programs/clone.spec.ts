@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/clone'
 import { NextApiRequest, NextApiResponse } from 'next'
 
@@ -13,7 +13,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/clone', () => {
   test('POST /api/clone, successfully clones a program', async () => {
@@ -25,7 +25,7 @@ describe('/api/clone', () => {
       }
     })
 
-    fhirCdrClient.search = jest.fn().mockResolvedValueOnce({
+    FhirClient.getInstance().search = jest.fn().mockResolvedValueOnce({
       entry: [{
         resource: {
           resourceType: 'Library',
@@ -35,7 +35,7 @@ describe('/api/clone', () => {
       }]
     })
 
-    fhirCdrClient.operation = jest
+    FhirClient.getInstance().operation = jest
       .fn()
       .mockResolvedValueOnce({
         resourceType: 'Bundle',

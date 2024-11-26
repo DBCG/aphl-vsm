@@ -1,10 +1,10 @@
-import { fhirCdrClient } from "@/fhirClients"
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from "@/helpers/server/handler"
 import { NextApiRequest, NextApiResponse } from "next"
 
 const getEndpoint = async (req: NextApiRequest, res: NextApiResponse<fhir4.Endpoint | { error: string }>) => {
   if (req.query.id !== null && typeof req.query.id === "string") {
-    const endpoint = await fhirCdrClient.read({
+    const endpoint = await FhirClient.getInstance().read({
       resourceType: 'Endpoint',
       id: req.query.id
     }) as fhir4.Endpoint
@@ -15,7 +15,7 @@ const getEndpoint = async (req: NextApiRequest, res: NextApiResponse<fhir4.Endpo
 }
 const deleteEndpoint = async (req: NextApiRequest, res: NextApiResponse<fhir4.OperationOutcome | { error: string }>) => {
   if (req.query.id !== null && typeof req.query.id === "string") {
-    const outcome = await fhirCdrClient.delete({
+    const outcome = await FhirClient.getInstance().delete({
       resourceType: 'Endpoint',
       id: req.query.id
     }) as fhir4.OperationOutcome

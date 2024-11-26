@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { uniqBy } from 'lodash'
@@ -34,7 +34,7 @@ export type ProvisionalsByProgram = DataItem[]
 
 // might eventually hit 1000 program limit. If possible, it'd be better to create a searchParam to directly grab the program libs that point to provisionals
 const getAllPrograms = async (): Promise<fhir4.Library[]> => {
-  const progs = await fhirCdrClient.search({
+  const progs = await FhirClient.getInstance().search({
     resourceType: 'Library',
     searchParams: {
       context: 'program',

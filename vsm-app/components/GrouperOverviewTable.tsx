@@ -128,7 +128,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
         cell: (row: fhir4.ValueSet) => (
           <TextLink
             href={`/programs/${programId}/valuesets/${row?.id}`}
-            linkText={row?.title}
+            linkText={row?.name}
             forceReload={false}
           />
         )

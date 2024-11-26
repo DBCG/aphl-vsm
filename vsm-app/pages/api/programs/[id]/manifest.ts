@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import handler from '@/helpers/server/handler'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { getProgramDetailsValuesets } from './details/valuesets'
 import { addTerminologyEndpointToParameters } from './package'
@@ -56,7 +56,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 
     return res.status(200).json(availableCodeSystems)
   } catch (e) {
-    logger.error('An error occured likely from the VSAC side')
+    Logger.getLogger().error('An error occured likely from the VSAC side')
     logSimpleError(e)
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
@@ -65,17 +65,17 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
   const parameters = addTerminologyEndpointToParameters({ resourceType: 'Parameters' } as fhir4.Parameters)
 
-  const response = await fetch(`${fhirCdrClient.baseUrl}/Library/${programId}/$package`, {
+  const response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$package`, {
     body: JSON.stringify(parameters),
     method: 'POST',
     headers: {
       'Content-Type': 'application/fhir+json',
       // should be Basic Auth creds
-      ...fhirCdrClient.customHeaders
+      ...FhirClient.getInstance().customHeaders
     }
   }).then((i) => i.json()).catch((err) => {
-    logger.error('Something went wrong with $package operation for program Id:' + programId)
-    logger.error(err)
+    Logger.getLogger().error('Something went wrong with $package operation for program Id:' + programId)
+    Logger.getLogger().error(err)
     throw new Error('Something went wrong while packaging')
   })
   const allLeafVs = response?.entry
@@ -95,7 +95,7 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
   codeSystemsList = uniqBy(codeSystemsList, 'system').filter((i) => i)
   terminologyClient.setClient('vsac')
   const activeTerminologyClient = terminologyClient.getClient()
-  logger.info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
+  Logger.getLogger().info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
   const latestVersions = await activeTerminologyClient?.batch({
     body: {
       resourceType: 'Bundle',
@@ -164,13 +164,13 @@ const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, 
       return res.status(200).json(latestVersionCodeSystems)
     }
   } catch (e) {
-    logger.error('error:  ' + JSON.stringify(e, null, 2))
+    Logger.getLogger().error('error:  ' + JSON.stringify(e, null, 2))
     return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
   }
 }
 
 const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
-  const grouperLibrary = (await fhirCdrClient.read({
+  const grouperLibrary = (await FhirClient.getInstance().read({
     resourceType: 'Library',
     id: req.query.id as string
   })) as fhir4.Library
@@ -182,7 +182,7 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
   setExpansionParameters(grouperLibrary, req.body)
   const updatedExpansionParameters = getProgramManifestVersions(grouperLibrary)
 
-  await fhirCdrClient.update({
+  await FhirClient.getInstance().update({
     resourceType: 'Library',
     id: grouperLibrary.id,
     body: grouperLibrary

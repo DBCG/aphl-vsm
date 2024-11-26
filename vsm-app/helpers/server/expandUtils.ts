@@ -1,7 +1,7 @@
 import FhirKitClient from 'fhir-kit-client'
 import { cloneDeep } from 'lodash'
 import { is } from '../is'
-import logger from './logger'
+import Logger from '@/helpers/server/logger'
 import { vsacFhirClient } from 'fhirClients'
 import { extractOidFromUrl } from '@/utils'
 
@@ -262,7 +262,7 @@ const findMatchingVsetUrls = async ({
           const parametersFetchOptions = getExpandFetchOptions(parameters)
           const oid = extractOidFromUrl(leaf.url!)
           const url = `${vsacFhirClient.baseUrl}/ValueSet/${oid}/$expand`
-          logger.debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(parametersFetchOptions)}`)
+          Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(parametersFetchOptions)}`)
           return fetch(url, parametersFetchOptions).then(i => i.json())
         }
       ))
@@ -314,7 +314,7 @@ const findMatchingVsetUrls = async ({
       const matchingVSets = await matchingExpansions()
       return matchingVSets
     } catch (e) {
-      logger.error(e)
+      Logger.getLogger().error(e)
       return []
     }
   }

@@ -1,4 +1,4 @@
-import { fhirCdrClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { HapiError } from '@/types/hapiError'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { getOwnedCanonicals } from '@/helpers/ownedHelpers'
@@ -31,7 +31,7 @@ const updateOwnedResources = async ({ programId, programVersion, isExperimental 
       entry: getTransactionBody
     }
     
-    const versionMatches = await fhirCdrClient.transaction({
+    const versionMatches = await FhirClient.getInstance().transaction({
       body: batchReqBundle
     })
 
@@ -63,7 +63,7 @@ const updateOwnedResources = async ({ programId, programVersion, isExperimental 
       })
     })
 
-    const result = await fhirCdrClient.transaction({
+    const result = await FhirClient.getInstance().transaction({
       body: {
         resourceType: 'Bundle',
         type: 'transaction',

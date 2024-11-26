@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import { getGrouperLibraryCanonical, getVSConditions } from '@/helpers/libraryHelpers'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
-import logger from '@/helpers/server/logger'
+import Logger from '@/helpers/server/logger'
 
 // Items in the table
 interface Group {
@@ -43,7 +43,7 @@ const isDefinedString = (item: any): item is string => {
 }
 
 const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> => {
-  const program = await fhirCdrClient.read({ resourceType: 'Library', id: programId })
+  const program = await FhirClient.getInstance().read({ resourceType: 'Library', id: programId })
   // disabling proto-cache because it causes problems with updating groupers
   if (!is.library(program)) {
     return { error: `Program ${programId} must be a FHIR Library` }
@@ -61,7 +61,7 @@ export const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.L
   const grouperStatus = program.status // active programs get active groupers, draft get draft groupers
   // there is still going to be a bug here until we fix the fact that groupers are unversioned after draft
 
-  const grouperSearchResult = await fetchGrouperLibrary({ client: fhirCdrClient, canonical: grouperLibraryCanonical, grouperStatus })
+  const grouperSearchResult = await fetchGrouperLibrary({ client: FhirClient.getInstance(), canonical: grouperLibraryCanonical, grouperStatus })
 
   const result = grouperSearchResult?.entry?.[0]?.resource
   if (is.library(result)) {
@@ -297,20 +297,20 @@ export const getProgramDetailsValuesets = async ({
     const program = await getProgram(programId)
 
     if (isError(program)) {
-      logger.error(`Problem encountered getting program with ID ${programId}`)
+      Logger.getLogger().error(`Problem encountered getting program with ID ${programId}`)
       return { status: 400, payload: { error: program.error } }
     }
 
     const grouperLibrary = await getGrouperLibrary(program)
 
     if (isError(grouperLibrary)) {
-      logger.error(`Problem encountered getting grouper library for Program ${programId}`)
+      Logger.getLogger().error(`Problem encountered getting grouper library for Program ${programId}`)
       return { status: 400, payload: { error: grouperLibrary.error } }
     }
 
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
     if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
-      logger.error(`Problem encountered getting grouper valuesets for Program ${programId}`)
+      Logger.getLogger().error(`Problem encountered getting grouper valuesets for Program ${programId}`)
       return { status: 400, payload: { error: grouperValueSets.error } }
     }
 
@@ -326,7 +326,7 @@ export const getProgramDetailsValuesets = async ({
     })
 
     if (isError(leafVsetResponse)) {
-      logger.error(`Problem encountered getting leaf valuesets for Program ${programId}`)
+      Logger.getLogger().error(`Problem encountered getting leaf valuesets for Program ${programId}`)
       return { status: 400, payload: { error: leafVsetResponse.error } }
     }
 
@@ -359,7 +359,7 @@ export const getProgramDetailsValuesets = async ({
     }
     return { status: 200, payload: composedResponse }
   } catch (e: any) {
-    logger.error(`error:  , ${JSON.stringify(e, null, 2)}`)
+    Logger.getLogger().error(`error:  , ${JSON.stringify(e, null, 2)}`)
     return { status: 400, payload: { error: 'Search for leaf valueset details failed.' } }
   }
 }

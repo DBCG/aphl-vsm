@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import { fhirCdrClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]'
 
 // Mock Auth for Setup
@@ -12,7 +12,7 @@ jest.mock('next-auth/next', () => ({
     }
   }))
 }))
-jest.mock('fhirClients')
+jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]', () => {
   test('GET /api/programs/[id]', async () => {
@@ -23,10 +23,10 @@ describe('/api/programs/[id]', () => {
       }
     })
 
-    fhirCdrClient.read = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
+    FhirClient.getInstance().read = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
     await handler(req, res)
-    expect(fhirCdrClient.read).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.read).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().read).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: '123'
     })
@@ -49,10 +49,10 @@ describe('/api/programs/[id]', () => {
       }
     })
 
-    fhirCdrClient.update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
+    FhirClient.getInstance().update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
     await handler(req, res)
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: '123',
       body: {
@@ -82,9 +82,9 @@ describe('/api/programs/[id]', () => {
       }
     })
 
-    fhirCdrClient.update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
+    FhirClient.getInstance().update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
     await handler(req, res)
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(0)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(0)
     expect(res._getStatusCode()).toBe(409)
   })
 
@@ -104,10 +104,10 @@ describe('/api/programs/[id]', () => {
       }
     })
 
-    fhirCdrClient.update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
+    FhirClient.getInstance().update = jest.fn().mockResolvedValueOnce({ resourceType: 'Library' })
     await handler(req, res)
-    expect(fhirCdrClient.update).toHaveBeenCalledTimes(1)
-    expect(fhirCdrClient.update).toHaveBeenCalledWith({
+    expect(FhirClient.getInstance().update).toHaveBeenCalledTimes(1)
+    expect(FhirClient.getInstance().update).toHaveBeenCalledWith({
       resourceType: 'Library',
       id: '123',
       body: {
