@@ -6,7 +6,6 @@ import FhirClient from '@/backend/clients/FhirClient'
 import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import Logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
-import { getProgramDetailsValuesets } from './details/valuesets'
 import { addTerminologyEndpointToParameters } from './package'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
