@@ -6,8 +6,9 @@ import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import InfoIcon from '@mui/icons-material/Info'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { VSMSession } from '@/helpers/rolesHelper'
-import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip } from '@mui/material'
+import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
 import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
 
 
@@ -108,6 +109,13 @@ const NavBar = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
+        <Box style={{ padding: '6px 16px', textAlign: 'left', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+          <AccountCircleIcon style={{ marginRight: '18px', color: 'var(--theme-400)' }} fontSize='medium'/>
+          <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
+             {session?.user?.name}
+          </Typography>
+        {/* </MenuItem> */}
+        </Box>
         {enableTerminologySource && session?.user?.roles?.[0] === 'admin' && (
           <Box>
             <MenuItem
