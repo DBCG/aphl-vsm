@@ -17,6 +17,8 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.NotImplementedOperationException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import ca.uhn.fhir.sl.cache.CacheFactory;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
@@ -382,6 +384,7 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
+		addValueSetExpansionParams(params, adapter);
 		var visitor = new PackageVisitor(fhirContext);
 		var retval = (Bundle) adapter.accept(visitor, repository, params);
 		retval.getEntry().stream()
@@ -396,6 +399,19 @@ public class CaseReportingOperationProvider {
 				KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry());
 			});
 		return retval;
+	}
+
+	private void addValueSetExpansionParams(Parameters params, KnowledgeArtifactAdapter adapter) {
+		// TODO: make this is a transaction
+		var cache = new ValueSetExpansionCache();
+		var expansionCacheParams = new Parameters();
+		for (final var uncastedRA: adapter.getRelatedArtifact()) {
+			if (uncastedRA instanceof RelatedArtifact) {
+				final var relatedArtifact = (RelatedArtifact)uncastedRA;
+				expansionCacheParams.addParameter().setName(relatedArtifact.getResource()).setResource((Resource)cache.getExpansionsForCanonical(relatedArtifact.getResource()));
+			}
+		}
+		params.addParameter().setName("valueSetExpansions").setResource(expansionCacheParams);
 	}
 
 	@Operation(name = "$revise", idempotent = true, global = true, type = MetadataResource.class)
