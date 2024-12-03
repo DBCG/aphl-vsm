@@ -168,7 +168,8 @@ const ValueSetDetailsTables = ({
   let definitionColumns, definitionData
   let expansionColumns, expansionData
   // Conditionally set the columns and data based on whether the valueset is a grouper or not
-  if (isGrouperValueSet) {
+  if (isGrouperValueSet && isVSMOwnedVSet(currentValueSet)) {
+    // need to check if it is a vsm grouper valueset or not
     console.log('dataInGroup', programValuesets?.data)
     // @ts-ignore-next-line
     const dataInGroup = programValuesets?.data?.filter((item: any) => {
@@ -220,6 +221,9 @@ const ValueSetDetailsTables = ({
     ]
 
     expansionColumns = EXPANSION_COLUMNS
+  // otherwise, it might be a terminology server "grouper-leaf"
+  } else if (isGrouperValueSet && !isVSMOwnedVSet(currentValueSet)) {
+    console.log('currentValueSet', currentValueSet)
   } else {
     definitionData = memberSet?.[0]?.concept
     expansionData = expansion?.contains
