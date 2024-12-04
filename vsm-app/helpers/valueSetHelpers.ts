@@ -468,7 +468,102 @@ const updateVsCodeItem = ({ vs, action, updateData, csUrl }: UpdateVsItems | Del
   }
 }
 
+// could be codes, valuesets, or filters
+// this valueset definition...
+// 1. includes codes from these systems (intensional)
+// 2. includes codes from these valuesets
+// 3. includes the overlapping codes from these valuesets
+// 4. includes codes defined by these filters
+// ... then all the same for excludes
+// cannot have both concept and filter
+interface vsDefinitionData {
+  "include"?: {
+    valuesetUnion?: Record<any, any>[]
+    valuesetIntersection?: Record<any, any>[]
+    filterItems?: Record<any, any>[]
+    codes?: Record<any, any>[]
+
+  }
+  "exclude"?: {
+    valuesetUnion?: Record<any, any>[]
+    valuesetIntersection?: Record<any, any>[]
+    filterItems?: Record<any, any>[]
+    codes?: Record<any, any>[]
+  }
+}
+
+const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
+  const compiledDefinitionData: vsDefinitionData = {}
+  // avoid duplication by interpolating include and exclude
+  const possibilities: Array<'include' | 'exclude'> = ['include', 'exclude']
+
+  possibilities.forEach((includeOrExclude: 'include' | 'exclude') => {
+    vs?.compose?.[includeOrExclude]?.forEach((item) => {
+      // add object if it doesn't exist
+      if (!compiledDefinitionData?.[includeOrExclude]) {
+        compiledDefinitionData[includeOrExclude] = {}
+      }
+      // if there's a system, it's either a set of codes or a filter
+      if (item?.system) {
+        // if there's a concept block, it includes codes
+        if (item?.concept) {
+          // create array if doesn't already exist
+          if(!compiledDefinitionData?.[includeOrExclude]?.codes) {
+            compiledDefinitionData[includeOrExclude].codes = []
+          }
+          // add each included code to the array with system and version info
+          item.concept.forEach((concept) => {
+            compiledDefinitionData[includeOrExclude]!.codes!.push({
+              system: item.system,
+              version: item.version,
+              code: concept.code,
+              display: concept.display
+            })
+          })
+        // otherwise it's a filter
+        } else if (item.filter) {
+          // create array if doesn't already exist
+          if(!compiledDefinitionData?.[includeOrExclude]?.filterItems) {
+            compiledDefinitionData[includeOrExclude].filterItems = []
+          }
+          // add filter to the array
+          compiledDefinitionData[includeOrExclude].filterItems.push({
+            system: item.system,
+            version: item.version,
+            filter: item.filter
+          })
+        }
+        // 
+      }
+      // if there's no system noted, it might be a valueset
+      const vsLength = item?.valueSet?.length || 0
+      // if there's only one item, it's a union situation
+      if (vsLength == 1) {
+        // create array if doesn't already exist
+        if(!compiledDefinitionData?.[includeOrExclude]?.valuesetUnion) {
+          compiledDefinitionData[includeOrExclude].valuesetUnion = []
+        }
+        // add to the array
+        compiledDefinitionData[includeOrExclude].valuesetUnion.push({
+          url: item.valueSet![0]
+        })
+      } else if (vsLength > 1) {
+        // create array if doesn't already exist
+        if(!compiledDefinitionData?.[includeOrExclude]?.valuesetIntersection) {
+          compiledDefinitionData[includeOrExclude].valuesetIntersection = []
+        }
+        // add to the array
+        compiledDefinitionData[includeOrExclude].valuesetIntersection.push({
+          urls: item.valueSet
+        })
+      }
+    })
+  })
+  return compiledDefinitionData
+}
+
 export {
+  organizeValueSetDefinitionData,
   getVsSteward,
   isVSMOwnedVSet,
   getVsAuthor,
