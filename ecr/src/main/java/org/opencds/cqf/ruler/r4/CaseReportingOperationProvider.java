@@ -17,7 +17,6 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.NotImplementedOperationException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
-import ca.uhn.fhir.sl.cache.CacheFactory;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,7 +41,10 @@ import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
 import org.opencds.cqf.fhir.utility.visitor.*;
 import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
 import org.opencds.cqf.ruler.IBaseSerializer;
+import org.opencds.cqf.ruler.ValueSetCache.FhirRedisService;
+import org.opencds.cqf.ruler.ValueSetCache.ValueSetExpansionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,8 @@ public class CaseReportingOperationProvider {
 
 	@Autowired
 	private FhirContext fhirContext;
+
+	private final FhirRedisService redisService = new FhirRedisService(fhirContext);
 
 	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
@@ -384,34 +388,27 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		addValueSetExpansionParams(params, adapter);
-		var visitor = new PackageVisitor(fhirContext);
-		var retval = (Bundle) adapter.accept(visitor, repository, params);
-		retval.getEntry().stream()
-			.map(e -> (MetadataResource) e.getResource())
-			.filter(r -> {
-				var id1 = r.getResourceType().toString() + "/" + r.getIdPart();
-				var id2 = r.getResourceType().toString() + "/" + theId.getIdPart();
-				return id1.equals(id2);
-			})
-			.findFirst()
-			.ifPresent(m -> {
-				KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry());
-			});
-		return retval;
-	}
-
-	private void addValueSetExpansionParams(Parameters params, KnowledgeArtifactAdapter adapter) {
-		// TODO: make this is a transaction
-		var cache = new ValueSetExpansionCache();
-		var expansionCacheParams = new Parameters();
-		for (final var uncastedRA: adapter.getRelatedArtifact()) {
-			if (uncastedRA instanceof RelatedArtifact) {
-				final var relatedArtifact = (RelatedArtifact)uncastedRA;
-				expansionCacheParams.addParameter().setName(relatedArtifact.getResource()).setResource((Resource)cache.getExpansionsForCanonical(relatedArtifact.getResource()));
-			}
-		}
-		params.addParameter().setName("valueSetExpansions").setResource(expansionCacheParams);
+		var vs= new ValueSet();
+		vs.setUrl("test");
+		vs.setVersion("1.0");
+		var c = new ValueSetExpansionCache(redisService);
+		c.addToCache((ValueSetAdapter)adapterFactory.createKnowledgeArtifactAdapter(vs),c.getExpansionParametersHash(adapter).orElse("null"));
+		// addValueSetExpansionParams(params, adapter);
+		// var visitor = new PackageVisitor(fhirContext);
+		// var retval = (Bundle) adapter.accept(visitor, repository, params);
+		// retval.getEntry().stream()
+		// 	.map(e -> (MetadataResource) e.getResource())
+		// 	.filter(r -> {
+		// 		var id1 = r.getResourceType().toString() + "/" + r.getIdPart();
+		// 		var id2 = r.getResourceType().toString() + "/" + theId.getIdPart();
+		// 		return id1.equals(id2);
+		// 	})
+		// 	.findFirst()
+		// 	.ifPresent(m -> {
+		// 		KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry());
+		// 	});
+		// return retval;
+		return new Bundle();
 	}
 
 	@Operation(name = "$revise", idempotent = true, global = true, type = MetadataResource.class)

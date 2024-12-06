@@ -14,19 +14,18 @@ import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
 import org.opencds.cqf.ruler.IValueSetExpansionCache;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.FhirVersionEnum;
 
 public class ValueSetExpansionCache implements IValueSetExpansionCache {
-    private final RedisService cacheService;
+    private final FhirRedisService cacheService;
     private final FhirVersionEnum myVersion;
-    public ValueSetExpansionCache(RedisService cache, FhirContext context) {
+    public ValueSetExpansionCache(FhirRedisService cache) {
         this.cacheService = cache;
-        this.myVersion = context.getVersion().getVersion();
+        this.myVersion = this.cacheService.getFhirContext().getVersion().getVersion();
     } 
     @Override
     public IBaseBundle getExpansionsForCanonical(String canonical) {
-      return (IBaseBundle) cacheService.readFromCache(canonical);
+      return (IBaseBundle) cacheService.read(canonical);
     }
     @Override
     public boolean addToCache(ValueSetAdapter vset, String expansionParametersHash) {
@@ -35,13 +34,13 @@ public class ValueSetExpansionCache implements IValueSetExpansionCache {
       if (cachedExpansions == null) {
         var newBundle = BundleHelper.newBundle(myVersion);
         BundleHelper.addEntry(newBundle, entry);
-        cacheService.writeToCache(vset.getCanonical(), newBundle, 0, null);
+        cacheService.write(vset.getCanonical(), newBundle);
         return true;
       }
       boolean present = BundleHelper.getEntryResources(cachedExpansions).stream().anyMatch(r -> ((IDomainResource)r).getExtension().stream().anyMatch(e -> e.getUrl().equals("expansionParametersHash") && ((IPrimitiveType<String>)e.getValue()).getValue().equals(expansionParametersHash)));
       if (!present) {
         BundleHelper.addEntry(cachedExpansions, entry);
-        cacheService.writeToCache(vset.getCanonical(), cachedExpansions, 0, null);
+        cacheService.write(vset.getCanonical(), cachedExpansions);
         return true;
       }
       return false;
