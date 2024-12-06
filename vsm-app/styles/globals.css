@@ -389,6 +389,8 @@ body {
   --theme-100: rgba(237, 248, 249, 1);
   --draft: #ffeecc;
   --accent: #d32f2f;
+  --light-error: #e0b9b9;
+  --light-success: #cae8d5;
   --warning-light: #f4cb92;
   --warning-medium: rgb(250, 160, 36);
   --hover-background: #FAA024;
