@@ -1,5 +1,5 @@
-import { useState, SetStateAction, Dispatch, useEffect } from 'react'
-import { Tabs, Box, Tab, Tooltip, TextField, IconButton } from '@mui/material'
+import { useState, SetStateAction, Dispatch, useEffect, useMemo } from 'react'
+import { Tabs, Box, Tab, Tooltip, TextField, IconButton, Typography } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { toast } from 'react-toastify'
@@ -8,12 +8,25 @@ import { ProgramDetails } from '@/types/grouperTypes'
 import ClearIcon from '@mui/icons-material/Clear'
 import { DataItem, useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
 import { useRouter } from 'next/router'
-import { getProgramManifestVersions, isTerminologyServerGrouper, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
+import { getProgramManifestVersions, isVSMOwnedVSet, organizeValueSetDefinitionData } from '@/helpers/valueSetHelpers'
 import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
 import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
 import { extractOidFromUrl } from '@/utils'
 import styled from 'styled-components'
+import { CodeBlock } from 'react-code-block'
+
+const CB = ({ code }: {code: string}) => {
+  return (
+    <CodeBlock code={code} language='js'>
+      <CodeBlock.Code className="bg-gray-900 p-6 rounded-xl shadow-lg">
+        <CodeBlock.LineContent>
+          <CodeBlock.Token />
+        </CodeBlock.LineContent>
+      </CodeBlock.Code>
+    </CodeBlock>
+  );
+}
 
 const StyledParagraph = styled.p`
   margin-bottom: .4rem;
@@ -73,6 +86,16 @@ const EXPANSION_COLUMNS = [
   }
 ]
 
+interface GrouperTableDetail {
+  title: string
+  oid: string
+  canonical: string
+  version?: string
+  valueSetPinnedVersion?: string | undefined
+  valuesetId: string
+  url?: string
+}
+
 function TabPanel(props: TabPanelProps) {
   const { children, value, index, ...other } = props
 
@@ -99,7 +122,6 @@ const ValueSetDetailsTables = ({
 }: ValueSetDetailsTablesProps) => {
   const [value, setValue] = useState(0) // Used for tabs
   const [isLoadingExpansion, setIsLoadingExpansion] = useState(false)
-  const [filterDefinitionText, setFilterDefinitionText] = useState('')
   const [filterExpansionText, setFilterExpansionText] = useState('')
   const [isLoadingDefinition, setIsLoadingDefinition] = useState(true)
 
@@ -115,15 +137,15 @@ const ValueSetDetailsTables = ({
 
   const leafDataForDisplay = (pData: any) => {
     return pData?.map((i: DataItem) => {
-     return ({
-      title: i?.valueSet?.title,
-      oid: extractOidFromUrl(i?.valueSet?.url!),
-      canonical: i?.canonical,
-      version: i?.version,
-      valuesetId: i?.valueSet?.id,
-      valueSetPinnedVersion: i?.valueSetPinnedVersion
-    })})
-
+      return ({
+        title: i?.valueSet?.title,
+        oid: extractOidFromUrl(i?.valueSet?.url!),
+        canonical: i?.canonical,
+        version: i?.version,
+        valuesetId: i?.valueSet?.id,
+        valueSetPinnedVersion: i?.valueSetPinnedVersion
+      })
+    })
   }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -164,99 +186,7 @@ const ValueSetDetailsTables = ({
   const memberSet = currentValueSet?.compose?.include
   const expansion = currentValueSet?.expansion
   const timeStamp = expansion?.timestamp
-
-  let definitionColumns, definitionData
-  let expansionColumns, expansionData
-  // Conditionally set the columns and data based on whether the valueset is a grouper or not
-  if (isGrouperValueSet && isVSMOwnedVSet(currentValueSet)) {
-    // need to check if it is a vsm grouper valueset or not
-    console.log('dataInGroup', programValuesets?.data)
-    // @ts-ignore-next-line
-    const dataInGroup = programValuesets?.data?.filter((item: any) => {
-      const vsmGrouperMatch = Boolean(
-        item?.groups?.find((groupInfo: any) => {
-          return groupInfo.id === router.query.valuesetId
-        })
-      )
-
-      const grouperLeafMatch = isTerminologyServerGrouper(currentValueSet) ? currentValueSet : null
-      console.log('grouperLeafMatch', grouperLeafMatch)
-      return vsmGrouperMatch || grouperLeafMatch
-    })
-
-    definitionData = leafDataForDisplay(dataInGroup)
-    expansionData = expansion?.contains
-    definitionColumns = [
-      {
-        name: 'Title',
-        selector: (row: GrouperTableDetail) => row?.title!,
-        sortable: true,
-        wrap: true,
-        cell: (row: GrouperTableDetail) => {
-          let href = `/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.valuesetId}`
-          if (!row.valueSetPinnedVersion) {
-            href += '?pinnedVersion=true'
-          }
-          return (
-            <TextLink
-              href={href}
-              linkText={row.title}
-              forceReload={true}
-            />
-        )}
-      },
-      {
-        name: 'OID',
-        selector: (row: GrouperTableDetail) => row?.oid!,
-        sortable: true,
-        wrap: true
-      },
-      {
-        name: 'Canonical',
-        selector: (row: GrouperTableDetail) => row?.canonical!,
-        sortable: true,
-        wrap: true,
-        cell: (row: GrouperTableDetail) => (row?.valueSetPinnedVersion ? `${row?.canonical}|${row?.valueSetPinnedVersion}` : `${row?.canonical}`)
-      }
-    ]
-
-    expansionColumns = EXPANSION_COLUMNS
-  // otherwise, it might be a terminology server "grouper-leaf"
-  } else if (isGrouperValueSet && !isVSMOwnedVSet(currentValueSet)) {
-    console.log('currentValueSet', currentValueSet)
-  } else {
-    definitionData = memberSet?.[0]?.concept
-    expansionData = expansion?.contains
-
-    definitionColumns = [
-      {
-        name: 'Code',
-        selector: (row: any) => row?.code!,
-        sortable: true,
-        wrap: true,
-        maxWidth: '5em'
-      },
-      {
-        name: 'Display',
-        selector: (row: any) => row?.display!,
-        sortable: true,
-        wrap: true
-      },
-      {
-        name: 'System',
-        selector: (row: any) => memberSet?.[0]?.system,
-        sortable: true,
-        wrap: true
-      },
-      {
-        name: 'Version',
-        selector: (row: any) => memberSet?.[0]?.version,
-        sortable: true,
-        wrap: true
-      }
-    ]
-    expansionColumns = EXPANSION_COLUMNS
-  }
+  let expansionColumns = EXPANSION_COLUMNS
 
   if (timeStamp) {
     const timestampExpansionIndex = expansionColumns.findIndex((i) => i.name === 'Timestamp')
@@ -274,21 +204,266 @@ const ValueSetDetailsTables = ({
     }
   }
 
-  const filteredDefinitions = (defData: any) => {
-    const textToFind = filterDefinitionText.trim()
-    if (!textToFind) return defData
+  const formattedValueSetDefinitionData: { [key: string]: any } = organizeValueSetDefinitionData(currentValueSet)
+  const generateValueSetColumns = (unionOrIntersection: 'union' | 'intersection') => {
+    let valueSetColumns = []
 
-    if (isGrouperValueSet) {
-      return defData.filter(
-        (item: any) =>
-          item?.title?.toLowerCase().includes(filterDefinitionText.toLowerCase()) ||
-          item?.oid?.toLowerCase().includes(filterDefinitionText.toLowerCase())
-      )
+    if (unionOrIntersection === 'union') {
+      valueSetColumns = [
+        {
+          name: 'Canonical',
+          selector: (row: any) => row?.url!,
+          sortable: true,
+          wrap: true,
+          cell: (row: any) => {
+            const base = isVsmGrouper ? row?.canonical : row?.url
+            return (row?.valueSetPinnedVersion ? `${base}|${row?.valueSetPinnedVersion}` : `${base}`)
+          }
+        }
+      ]
+      // if it's a vsm grouper, we know more about the contents because we "own" the data
+      if (isGrouperValueSet && isVSMOwnedVSet(currentValueSet)) {
+        valueSetColumns.unshift(
+          {
+            name: 'Title',
+            selector: (row: GrouperTableDetail) => row?.title!,
+            sortable: true,
+            wrap: true,
+            // @ts-expect-error
+            cell: (row: GrouperTableDetail) => {
+              let href = `/programs/${programAndGrouperInfo?.program?.id}/valuesets/${row?.valuesetId}`
+              if (!row.valueSetPinnedVersion) {
+                href += '?pinnedVersion=true'
+              }
+              return (
+                <TextLink
+                  href={href}
+                  linkText={row.title}
+                  forceReload={true}
+                />
+              )
+            }
+          },
+          {
+            name: 'OID',
+            selector: (row: GrouperTableDetail) => row?.oid!,
+            sortable: true,
+            wrap: true
+          },
+        )
+      }
     } else {
-      return defData.filter((item: any) => item?.display?.toLowerCase().includes(filterDefinitionText.toLowerCase()))
+      // otherwise, it's the intersection of the items
+      valueSetColumns = [
+        {
+          name: 'Canonical',
+          selector: (row: any) => row?.urls?.join(''),
+          sortable: false,
+          wrap: true,
+          cell: (row: any) => {
+            const items = row.urls.map((url: string) => <li key={url}>{url}</li>)
+            return (
+              <div>
+                <p>The intersection (common elements) between:</p>
+                <ul>
+                  {...items}
+                </ul>
+              </div>
+            )
+          }
+        }
+      ]
     }
+    return valueSetColumns
   }
-  const filteredDefinitionData = filteredDefinitions(definitionData)
+
+
+  const filterColumns = [
+    {
+      name: 'Expression',
+      selector: (row: any) => row?.filter!,
+      sortable: false,
+      wrap: true,
+      cell: (row: any) => {
+        return (
+          <CB code={JSON.stringify(row?.filter)} />
+        )
+      }
+    },
+  ]
+
+  const codeColumns = [
+    {
+      name: 'Code',
+      selector: (row: any) => row?.code!,
+      sortable: true,
+      wrap: true,
+      maxWidth: '5em'
+    },
+    {
+      name: 'Display',
+      selector: (row: any) => row?.display!,
+      sortable: true,
+      wrap: true
+    },
+    {
+      name: 'System',
+      selector: (row: any) => memberSet?.[0]?.system,
+      sortable: true,
+      wrap: true
+    },
+    {
+      name: 'Version',
+      selector: (row: any) => memberSet?.[0]?.version,
+      sortable: true,
+      wrap: true
+    }
+  ]
+
+  const columns = {
+    valuesetUnion: generateValueSetColumns('union'),
+    valuesetIntersection: generateValueSetColumns('intersection'),
+    filterItems: filterColumns,
+    codes: codeColumns
+  }
+
+  // valuesets in grouper only applies to VSM value sets
+  const generateColumnsAndData = ({ currentVs, valueSetsInVsmGrouper }: { currentVs: fhir4.ValueSet, valueSetsInVsmGrouper: any }) => {
+    const formattedVsmGrouperData = leafDataForDisplay(valueSetsInVsmGrouper)
+    const formattedDefinitionData: { [key: string]: any } = organizeValueSetDefinitionData(currentVs)
+    const columnsAndDataResult: { [key: string]: any } = {}
+    Object.keys(formattedDefinitionData).forEach((key) => {
+      const includeOrExclude = key
+      // add arr if doesn't exist
+      if (!columnsAndDataResult[includeOrExclude]) {
+        columnsAndDataResult[includeOrExclude] = []
+      }
+      // find all non-empty subcategories for include or exclude data from valueset
+      const existingDataCategories = Object.keys(formattedValueSetDefinitionData[key])?.filter(subcategory => formattedValueSetDefinitionData[key][subcategory].length)
+      existingDataCategories.forEach((subcategory) => {
+        // handle vsm grouper data differently
+        columnsAndDataResult[includeOrExclude].push({
+          subcategory,
+          data: valueSetsInVsmGrouper ? formattedVsmGrouperData : formattedValueSetDefinitionData[key][subcategory]
+        })
+      })
+    })
+    return columnsAndDataResult
+  }
+
+  const isVsmGrouper = isGrouperValueSet && isVSMOwnedVSet(currentValueSet)
+  const definitionColumnsAndData = generateColumnsAndData({
+    currentVs: currentValueSet,
+    valueSetsInVsmGrouper: isVsmGrouper ? programValuesets?.data : null
+  })
+
+  let expansionData = expansion?.contains
+
+  const [tableFilters, setTableFilters] = useState<{ [key: string]: string }>({})
+
+  const definitionContent = Object.keys(definitionColumnsAndData).map((includeOrExclude) => {
+    const tables = definitionColumnsAndData[includeOrExclude]?.map((dataItem: any) => {
+      const { subcategory, data } = dataItem
+      let title = ''
+      let filterTitle = ''
+      let filterField: undefined | string
+
+      const match = subcategory.toLowerCase()
+      if (match.includes('valuesetintersection')) {
+        title = 'Valueset Intersection'
+        filterField = 'urls'
+      } else if (match.includes('valuesetunion')) {
+        title = 'Valuesets'
+        filterField = 'url'
+      } else if (match.includes('filter')) {
+        title = 'Filters'
+      } else if (match.includes('code')) {
+        title = 'Codes'
+        filterField = 'display'
+      }
+
+      if (filterField?.includes('url')) {
+        filterTitle = 'canonical'
+      } else {
+        filterTitle = filterField || ''
+      }
+
+      const clearField = () => {
+        const filters = { ...tableFilters }
+        delete filters?.[subcategory]
+        setTableFilters(filters)
+      }
+
+      const updateTableFilters = (text: any) => {
+        const filters = { ...tableFilters }
+        filters[subcategory] = text
+        setTableFilters(filters)
+      }
+
+      const filterData = (filter: any) => {
+        if (!filter) return data
+        if (filterField === 'urls') {
+          return data.filter((item: any) => item[filterField].join('').toLowerCase().includes(tableFilters[subcategory].toLowerCase()))
+        } else {
+          return filterField ? data.filter((item: any) => item[filterField].toLowerCase().includes(filter.toLowerCase())) : data
+        } 
+      }
+
+      const result = (
+        <Box key={`${includeOrExclude}-${subcategory}`} style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+
+          <DataTable
+            title={
+              <Box style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', padding: '1rem .4rem 0 0' }}>
+                {/* @ts-expect-error */}
+                <Typography variant='h7'>{title}</Typography>
+                {filterField && (
+                  <TextField
+                    sx={{ backgroundColor: 'white', mb: 2, width: '240px', minWidth: '240px', alignSelf: 'end', justifySelf: 'flex-end' }}
+                    InputProps={{
+                      endAdornment: (
+                        <IconButton onClick={() => clearField()}>
+                          <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
+                        </IconButton>
+                      )
+                    }}
+                    value={tableFilters?.[subcategory] || ''}
+                    onChange={(e) => updateTableFilters(e.target.value)}
+                    id="filter-expansion-table"
+                    label={`Filter by ${filterTitle}`}
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            }
+            // @ts-expect-error
+            columns={columns[subcategory]}
+            keyField={isGrouperValueSet ? 'url' : 'code'}
+            data={filterData(tableFilters?.[subcategory])}
+            pagination
+            paginationPerPage={10}
+            highlightOnHover={isGrouperValueSet}
+            progressPending={isLoadingDefinition}
+            progressComponent={<LoadingIndicator />}
+          />
+        </Box>
+      )
+      return result
+    }).flat()
+
+    return (
+      <Box key={includeOrExclude} style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', backgroundColor: `${includeOrExclude === 'include' ? 'var(--light-success)' : 'var(--light-error)'}` }}>
+        <Typography>
+          The following are
+          <b>{`${includeOrExclude === 'include' ? ' included ' : ' excluded '}`}</b>
+          {`${includeOrExclude === 'include' ? ' in' : ' from'} this Valueset's definition:`}
+
+        </Typography>
+        {...tables}
+      </Box>
+    )
+  }).flat()
+
   const isVsmVset = isVSMOwnedVSet(currentValueSet)
   const filteredExpansionData = expansionData?.filter((item) => item?.code?.toLowerCase().includes(filterExpansionText.toLowerCase())) || []
 
@@ -315,31 +490,7 @@ const ValueSetDetailsTables = ({
         </Tabs>
       </Box>
       <TabPanel value={value} index={0}>
-        <TextField
-          sx={{ backgroundColor: 'white', mb: 2, width: '240px', alignSelf: 'end' }}
-          InputProps={{
-            endAdornment: (
-              <IconButton onClick={() => setFilterDefinitionText('')}>
-                <ClearIcon sx={{ color: 'black', width: '20px', height: '20px' }} />
-              </IconButton>
-            )
-          }}
-          value={filterDefinitionText}
-          onChange={(e) => setFilterDefinitionText(e.target.value)}
-          id="filter-definition-table"
-          label={`Filter by ${isGrouperValueSet ? 'Title or OID' : 'Display'}`}
-          variant="outlined"
-        />
-        <DataTable
-          columns={definitionColumns}
-          keyField={isGrouperValueSet ? 'oid' : 'code'}
-          data={filteredDefinitionData as GrouperTableDetail[]}
-          pagination
-          paginationPerPage={10}
-          highlightOnHover={isGrouperValueSet}
-          progressPending={isLoadingDefinition}
-          progressComponent={<LoadingIndicator />}
-        />
+        {...definitionContent}
       </TabPanel>
       <TabPanel value={value} index={1}>
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', flexDirection: 'column' }}>
@@ -364,7 +515,6 @@ const ValueSetDetailsTables = ({
             label="Filter Expansion Codes"
             variant="outlined"
           />
-
         </div>
         <DataTable
           columns={expansionColumns}
