@@ -508,7 +508,8 @@ const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
         // if there's a concept block, it includes codes
         if (item?.concept) {
           // create array if doesn't already exist
-          if(!compiledDefinitionData?.[includeOrExclude]?.codes) {
+          if(!compiledDefinitionData[includeOrExclude]?.codes) {
+            // @ts-ignore-next-line
             compiledDefinitionData[includeOrExclude].codes = []
           }
           // add each included code to the array with system and version info
@@ -524,9 +525,11 @@ const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
         } else if (item.filter) {
           // create array if doesn't already exist
           if(!compiledDefinitionData?.[includeOrExclude]?.filterItems) {
+            // @ts-ignore-next-line
             compiledDefinitionData[includeOrExclude].filterItems = []
           }
           // add filter to the array
+          // @ts-ignore-next-line
           compiledDefinitionData[includeOrExclude].filterItems.push({
             system: item.system,
             version: item.version,
@@ -541,18 +544,22 @@ const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
       if (vsLength == 1) {
         // create array if doesn't already exist
         if(!compiledDefinitionData?.[includeOrExclude]?.valuesetUnion) {
+          // @ts-ignore-next-line
           compiledDefinitionData[includeOrExclude].valuesetUnion = []
         }
         // add to the array
+        // @ts-ignore-next-line
         compiledDefinitionData[includeOrExclude].valuesetUnion.push({
           url: item.valueSet![0]
         })
       } else if (vsLength > 1) {
         // create array if doesn't already exist
         if(!compiledDefinitionData?.[includeOrExclude]?.valuesetIntersection) {
+          // @ts-ignore-next-line
           compiledDefinitionData[includeOrExclude].valuesetIntersection = []
         }
         // add to the array
+        // @ts-ignore-next-line
         compiledDefinitionData[includeOrExclude].valuesetIntersection.push({
           urls: item.valueSet
         })

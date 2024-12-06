@@ -401,12 +401,15 @@ const ValueSetDetailsTables = ({
       }
 
       const filterData = (filter: any) => {
-        if (!filter) return data
-        if (filterField === 'urls') {
-          return data.filter((item: any) => item[filterField].join('').toLowerCase().includes(tableFilters[subcategory].toLowerCase()))
+        if (!filter || filterField === undefined) {
+          return data
         } else {
-          return filterField ? data.filter((item: any) => item[filterField].toLowerCase().includes(filter.toLowerCase())) : data
-        } 
+          if (filterField === 'urls') {
+            return data.filter((item: any) => item[filterField as string].join('').toLowerCase().includes(tableFilters[subcategory].toLowerCase()))
+          } else {
+            return filterField ? data.filter((item: any) => item?.[filterField as string]?.toLowerCase()?.includes(filter.toLowerCase())) : data
+          }
+        }
       }
 
       const result = (
