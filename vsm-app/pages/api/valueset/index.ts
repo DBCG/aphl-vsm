@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
 import FhirClient from '@/backend/clients/FhirClient'
-import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, isGrouperValueSet, isVsmAuthored, urlWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
@@ -17,21 +17,10 @@ interface BundleEntryItem {
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
-    console.log('fhirClient', FhirClient.getInstance())
     const response = (
       await FhirClient.getInstance()
         .read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
 
-    // check if it's a grouper-leaf, need to add a little extra information to the response if it is
-    if (isGrouperValueSet(response) && !isVsmAuthored(response)) {
-      // const leafs = FhirClient.
-      console.log('response', response.extension)
-      // add a little information from the grouper to the response to help with rendering UI
-      // otherwise all we know about the underlying valuesets is their canonical urls
-      const authSource = response.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)?.valueUri as string
-      console.log('authSource', authSource)
-
-    }
     res.status(200).send(response)
   } catch (e) {
     Logger.getLogger().error(e)
