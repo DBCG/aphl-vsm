@@ -13,19 +13,6 @@ type Props = {
   closeNotification: () => void
 }
 
-const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
-  try {
-    const body: ValidateBody['body'] = { pkg: pkgBundle }
-    return await fetch(`/api/programs/validate`, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    }).then((res) => res.json() as Promise<ValidateErrorResponse>)
-  } catch (e) {
-    console.error('validate error: ', e)
-    return { error: 'Unknown error occured while validating this program.' }
-  }
-}
-
 type StatusActionNotificationProps = {
   jobStatus: string
   programTitle: string
@@ -98,8 +85,7 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
     const job = await JobsService.getJob(jobId)
     const packageResponse = job?.returnvalue?.response
 
-    const validationResult = await validatePackage(packageResponse)
-
+    // TODO: figure out what to do with the validaiton errors 
     // document validation errors
     // if (validationResult?.error?.length) {
     //   const validationErrorStrings = validationResult.error
