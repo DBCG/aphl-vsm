@@ -14,13 +14,17 @@ type Props = {
 }
 
 type StatusActionNotificationProps = {
-  jobStatus: string
-  programTitle: string
-  errorMessage?: string
+  jobDetails: JobData
   downloadExport: () => void
 }
 
-const StatusActionNotification = ({ jobStatus, programTitle, errorMessage, downloadExport }: StatusActionNotificationProps) => {
+const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
+  const { status: jobStatus, metadata } = jobDetails
+  const programTitle = metadata?.programTitle || 'program'
+  const type = metadata?.isJSON ? 'JSON' : 'XML'
+  const errorMessage = jobDetails?.error
+  const version = metadata?.version
+  const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
   let display
   switch (jobStatus) {
     case JOB_STATUS.IN_PROGRESS:
@@ -29,7 +33,11 @@ const StatusActionNotification = ({ jobStatus, programTitle, errorMessage, downl
           <ListItemIcon>
             <DownloadIcon fontSize="small" />
           </ListItemIcon>
-          <Typography variant="body1">Preparing {programTitle} for download</Typography>
+          <Stack>
+            <Typography variant="body1">
+              Preparing {type} {version} {programTitle} for download
+            </Typography>
+          </Stack>
         </Box>
       )
       break
@@ -40,24 +48,31 @@ const StatusActionNotification = ({ jobStatus, programTitle, errorMessage, downl
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
-          <Typography variant="body1">Export for {programTitle} failed</Typography>
-          <Typography variant="caption" color="error">
-            {errorMessage}
-          </Typography>
+            <Typography variant="body1">
+              Export for {type} {version} {programTitle} failed
+            </Typography>
+            <Typography variant="caption" color="error">
+              {errorMessage}
+            </Typography>
           </Stack>
         </Box>
       )
       break
     default:
       display = (
-        <>
+        <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
             <PendingIcon />
           </ListItemIcon>
           <Link onClick={downloadExport}>
-            <Typography variant="body1">{programTitle} is ready for download</Typography>
+            <Stack>
+              <Typography variant="body1">
+                {type} {version} {programTitle} is ready for download
+              </Typography>
+              {hasCustomPlanDefinition && <Typography variant="caption">Custom Plan Definition was used</Typography>}
+            </Stack>
           </Link>
-        </>
+        </Box>
       )
   }
   return <>{display}</>
@@ -85,7 +100,7 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
     const job = await JobsService.getJob(jobId)
     const packageResponse = job?.returnvalue?.response
 
-    // TODO: figure out what to do with the validaiton errors 
+    // TODO: figure out what to do with the validaiton errors
     // document validation errors
     // if (validationResult?.error?.length) {
     //   const validationErrorStrings = validationResult.error
@@ -117,11 +132,10 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
       closeNotification()
     }
   }
-  const programTitle = jobDetails?.metadata?.programTitle || 'program'
   return (
     <MenuItem>
       <Box>
-        <StatusActionNotification jobStatus={jobDetails.status} errorMessage={jobDetails.error} programTitle={programTitle} downloadExport={downloadExport} />
+        <StatusActionNotification jobDetails={jobDetails} downloadExport={downloadExport} />
       </Box>
     </MenuItem>
   )

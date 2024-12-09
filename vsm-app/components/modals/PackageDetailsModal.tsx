@@ -161,6 +161,9 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     const filename = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
     const metadata = {
       programId: program.id,
+      version: versionRadioValue,
+      hasCustomPlanDefinition: fileUploadContent != null,
+      isJson: fileType === 'json',
       filename,
       programTitle: program?.title
     }
