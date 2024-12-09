@@ -26,6 +26,7 @@ import type { ExpectedPackageBody } from '@/pages/api/programs/[id]/package'
 import { ModalContent } from '@/styles/modal'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
+import dayjs from 'dayjs';
 
 interface ModalInfo {
   isOpen: boolean
@@ -158,7 +159,10 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     // next, replace all _ with -
     const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
     const spaceAndUnderscoreRx = /[\s_]/gi
-    const filename = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
+    const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
+    const fileExtension = fileType === 'json' ? 'json' : 'xml'
+    const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+    const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
     const metadata = {
       programId: program.id,
       version: versionRadioValue,

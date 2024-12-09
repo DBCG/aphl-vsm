@@ -1,8 +1,6 @@
-import { JOB_STATUS, JOB_TYPE } from '@/constants'
-import JobsService, { JobData, Jobs } from '@/services/frontend/JobsService'
-import { ValidateBody, ValidateErrorResponse } from '@/pages/api/programs/validate'
-import { MenuItem, Box, Typography, Link, ListItemIcon, CircularProgress, Stack } from '@mui/material'
-
+import { JOB_STATUS } from '@/constants'
+import JobsService, { JobData } from '@/services/frontend/JobsService'
+import { MenuItem, Box, Typography, Link, ListItemIcon, Stack } from '@mui/material'
 import { toast } from 'react-toastify'
 import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
@@ -21,7 +19,7 @@ type StatusActionNotificationProps = {
 const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
   const { status: jobStatus, metadata } = jobDetails
   const programTitle = metadata?.programTitle || 'program'
-  const type = metadata?.isJSON ? 'JSON' : 'XML'
+  const type = metadata?.isJson ? 'JSON' : 'XML'
   const errorMessage = jobDetails?.error
   const version = metadata?.version
   const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
@@ -85,8 +83,7 @@ const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`, file
   // create "a" HTLM element with href to file
   const link = document.createElement('a')
   link.href = href
-  const fileExtension = type.includes('json') ? 'json' : 'xml'
-  link.download = `${filename}-bundle.${fileExtension}`
+  link.download = `${filename}`
   document.body.appendChild(link)
   link.click()
 
