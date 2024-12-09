@@ -17,7 +17,9 @@ interface BundleEntryItem {
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
-    const response = (await FhirClient.getInstance().read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
+    const response = (
+      await FhirClient.getInstance()
+        .read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
 
     res.status(200).send(response)
   } catch (e) {
@@ -25,6 +27,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
     res.status(400).json({ error: 'Loading ValueSets failed' })
   }
 }
+
 export interface UpdateValueSetBody extends NextApiRequest {
   body: {
     selectedTerminologyServer: "vsac" | "ontoserverR4" | "vsm"
