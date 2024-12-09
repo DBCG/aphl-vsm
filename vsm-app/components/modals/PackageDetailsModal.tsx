@@ -164,6 +164,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       filename,
       programTitle: program?.title
     }
+    toast.info('Exporting package. You will be notified when it is ready for download.')
+
     // TODO: rename this var
     const jobResponse = await packageProgram({
       isJson: fileType === 'json',
@@ -182,7 +184,6 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       onFailure: onFailureExport
     })
 
-    toast.info('Exporting package. You will be notified when it is ready for download.')
     handleExitExportModal()
   }
 
