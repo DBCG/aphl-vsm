@@ -9,10 +9,11 @@ const getAllJobs = async (req: NextApiRequest, res: NextApiResponse, session: VS
   const cache = await Cache.getInstance()
   const userId = session.user.id
 
-  let jobIds = req?.body as string[]
-  if (!jobIds) {
+  let jobIds = req?.body as string[] || []
+  if (!jobIds || jobIds.length === 0) {
     jobIds = await cache.smembers(`user:${userId}:jobs`)
   }
+
   const multiRun = cache.multi()
   jobIds.forEach((jobId) => {
     multiRun.hgetall(`user:${userId}:job:${jobId}`)

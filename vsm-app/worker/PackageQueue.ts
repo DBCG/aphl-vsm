@@ -207,7 +207,6 @@ PackageQueue.process(async function (job: any, done) {
     job.progress(90)
     const sanitizedExport = sanitizeExport(response)
     const validationResults = await validatePackage(sanitizedExport)
-    console.log('validationResults', validationResults)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
     await cache.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
