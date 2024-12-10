@@ -10,11 +10,14 @@
 !/public
 !/styles
 !/worker
+!/services
+!/store
 !/types
 !/utils
 !.babelrc
 !cache.ts
 !fhirClientOptions.ts
+!config.ts
 !constants.ts
 !fhirClients.ts
 !middleware.ts

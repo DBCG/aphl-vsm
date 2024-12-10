@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20.18.1-alpine AS builder
 
 # Placeholder for build, will be replaced by actual runtime env vars
 ENV FHIR_CDR_URL="http://localhost:8082"
