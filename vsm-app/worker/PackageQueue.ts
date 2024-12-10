@@ -201,15 +201,15 @@ PackageQueue.process(async function (job: any, done) {
       (typeof response !== 'string' && response.resourceType === 'OperationOutcome') ||
       (typeof response === 'string' && response.startsWith('<OperationOutcome'))
     ) {
-      const errors = formatErrors(response, 'Error while performing $package')
-      return done(null, { error: errors.map((e) => e.diagnostics!).join(', ') })
+      const errors = formatErrors(response, 'Error while performing $package').map((e) => e.diagnostics!).join(', ')
+      await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', errors)
+      return done(null, { error: errors })
     }
     job.progress(90)
     const sanitizedExport = sanitizeExport(response)
     const validationResults = await validatePackage(sanitizedExport)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
-    await cache.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
     done(null, { response: sanitizeExport(sanitizedExport) })
   } catch (error: any) {
     logSimpleError(error)
