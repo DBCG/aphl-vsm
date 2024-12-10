@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import FhirClient from '@/backend/clients/FhirClient'
-import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import Logger from '@/helpers/server/logger'
-import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
-import sanitizeExport from '@/helpers/sanitizeExportHelper'
+import { JOB_EXPIRATION } from '@/config'
+import Queue from 'bull'
+import Cache from '@/cache'
+import { VSMSession } from '@/helpers/rolesHelper'
+import { JOB_STATUS, JOB_TYPE } from '@/constants'
+import PackageQueue from '@/worker/PackageQueue'
 
 export interface ExpectedPackageBody extends NextApiRequest {
   body: {
@@ -15,178 +16,49 @@ export interface ExpectedPackageBody extends NextApiRequest {
     }
     planDefinition?: fhir4.PlanDefinition
     targetVersion?: string
+    metadata?: any
   }
 }
 export type PackageResponse = fhir4.Bundle | string | { error: string }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
-const crmiPackage = async (
-  req: ExpectedPackageBody,
-  res: NextApiResponse<PackageResponse>): Promise<void> => {
-  const { data, planDefinition, targetVersion } = (req.body || {})
+
+const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.Job>, session: VSMSession) => {
+  const { data, planDefinition, targetVersion, metadata } = req.body || {}
   if (!data?.parameters) {
-    throw new Error("Missing parameters for Export")
+    throw new Error('Missing parameters for Export')
   }
-  const parameters = addTerminologyEndpointToParameters(data?.parameters)
-  const userDesiredFormat = data?.json ? 'json' : 'xml'
-  const useV1 = !data?.useV2
-  try {
-    let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${req.query.id as string}/$package?_format=${currentFormat}`, {
-      body: JSON.stringify(parameters),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/fhir+json',
-        // should be Basic Auth creds
-        ...FhirClient.getInstance().customHeaders
-      }
-    })
-      .then(async (r) => {
-        if (currentFormat === 'json') {
-          try {
-            return await r.json() as fhir4.Bundle | fhir4.OperationOutcome
-          } catch (e) {
-            return await r.text()
-          }
-        } else {
-          return await r.text()
-        }
-      })
-      .catch((err) => {
-        logSimpleError(err)
-        if ("cause" in err) {
-          throw err.cause
-        } else {
-          throw err
-        }
-      })
-
-    if (useV1) {
-      if (typeof response === 'string') {
-        throw new Error("Got string (XML?) response but expected FHIR JSON")
-      }
-      if (response.resourceType === 'OperationOutcome') {
-        return res.status(500).send({ error: response?.issue?.map((e) => e?.diagnostics!).join(", ") || 'Error encountered while packaging V1' })
-      }
-      try {
-        response = await convertV2toV1(
-          response,
-          currentFormat = userDesiredFormat, // reset to actual format for v1
-          planDefinition,
-          targetVersion
-        )
-      } catch (error: any) {
-        // print V2/V1 errors
-        if (typeof error === "string") {
-          return res.status(400).send({ error })
-        } else {
-          throw error
-        }
+  const userId = session.user.id
+  const job = await PackageQueue.add(
+    { data, planDefinition, targetVersion, programId: req.query.id as string, userId },
+    {
+      removeOnComplete: {
+        age: 24 * 3600 // keep up to 24 hours
+      },
+      removeOnFail: {
+        age: 24 * 3600 // keep up to 24 hours
       }
     }
-    if ((typeof response !== "string" && response.resourceType === 'OperationOutcome')
-      || (typeof response === "string" && response.startsWith("<OperationOutcome"))) {
-      const errors = formatErrors(response, "Error while performing $package")
-      return res.status(500).send({ error: errors.map(e => e.diagnostics!).join(", ") })
-    }
-    res.send(sanitizeExport(response))
-  } catch (error: any) {
-    logSimpleError(error)
-    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
-    return res.status(500).json({ error: diagnostics || error?.error || error.toString() || 'Unspecified error' })
-  }
-}
+  )
 
-async function convertV2toV1(v2: fhir4.Bundle, format: 'json' | 'xml', planDefinition?: fhir4.PlanDefinition, targetVersion?: string) {
-  if (!v2.entry) {
-    throw 'Empty bundle returned from server'
-  }
-  Logger.getLogger().info('Generating v2 to v1 transform for download')
+  const cache = await Cache.getInstance()
+  const cacheKey = `user:${userId}:job:${job.id}`
 
-  const planDefResourceIndex = v2.entry.findIndex((e: fhir4.BundleEntry) => e.resource?.resourceType === 'PlanDefinition')
-  const planDefFromV2Exist = planDefResourceIndex != null && planDefResourceIndex > -1
-
-  // if planDefinition is provided in the request, and not present then add it to bundle entry
-  if (!planDefFromV2Exist && planDefinition != null) {
-    v2.entry.push({
-      fullUrl: planDefinition?.url,
-      resource: planDefinition
-    })
-    // if planDefinition is provided in the request, use it to replace the one from the v2 package response
-  } else if (planDefFromV2Exist && planDefinition != null) {
-    v2.entry[planDefResourceIndex].resource = planDefinition
-  } else if (!planDefFromV2Exist && planDefinition == null) {
-    Logger.getLogger().error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
-    throw 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request'
-  }
-  const v1BundleBody: fhir4.Parameters = {
-    resourceType: 'Parameters',
-    parameter: [
-      {
-        name: 'bundle',
-        resource: v2
-      }
-    ]
-  }
-
-  if (targetVersion && targetVersion?.length > 0) {
-    v1BundleBody.parameter?.push({
-      name: 'targetVersion',
-      valueString: targetVersion
-    })
-  }
-
-  return fetch(`${FhirClient.getInstance().baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
-    body: JSON.stringify(v1BundleBody),
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/fhir+json',
-      // should be Basic Auth creds
-      ...FhirClient.getInstance().customHeaders
-    }
-  }).then(async (r) => {
-    if (format === 'json') {
-      try {
-        return await r.json() as fhir4.Bundle | fhir4.OperationOutcome
-      } catch (e) {
-        return await r.text()
-      }
-    } else {
-      return await r.text()
-    }
-  }).catch((err) => {
-    logSimpleError(err)
-    if ("cause" in err) {
-      throw err.cause
-    } else {
-      throw err
-    }
+  await cache.hset(cacheKey, {
+    jobId: job.id,
+    status: JOB_STATUS.IN_PROGRESS,
+    type: JOB_TYPE.EXPORT,
+    metadata: JSON.stringify(metadata)
   })
+  await cache.sadd(`user:${userId}:jobs`, job.id) // Adds job to user's job list
+  await cache.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
+  res.status(200).json(job)
 }
-export function addTerminologyEndpointToParameters(parameters: fhir4.Parameters, address?: string): fhir4.Parameters {
-  const updatedParameters = structuredClone(parameters)
-  const endpointWithVsacCredentials: fhir4.Endpoint = {
-    resourceType: "Endpoint",
-    extension: [
-      { url: "vsacUsername", valueString: process.env.VSAC_USERNAME },
-      { url: "apiKey", valueString: process.env.VSAC_API_KEY },
-    ],
-    address: address || process.env.NEXT_PUBLIC_VSAC_BASE_URL || "",
-    connectionType: { system: "http://hl7.org/fhir/ValueSet/endpoint-connection-type", code: "hl7-fhir-rest" },
-    status: "active",
-    payloadType: [{ coding: [{ system: "http://hl7.org/fhir/ValueSet/endpoint-payload-type", code: "any" }] }]
-  }
-  updatedParameters.parameter ??= []
-  updatedParameters.parameter?.push({
-    name: "terminologyEndpoint",
-    resource: endpointWithVsacCredentials
-  })
-  return updatedParameters
-}
+
 
 export default handler({
   POST: {
     action: crmiPackage,
-    access: ['admin']
+    access: ['admin', 'editor']
   }
 })

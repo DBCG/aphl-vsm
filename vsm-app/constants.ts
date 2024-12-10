@@ -1,3 +1,14 @@
 export const VSM_META_PROFILE_URLS = {
   VSM_GROUPERVALUESET_URL: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset'
 }
+
+// Stores Jobs in local storage and checks for job status
+export const JOB_STATUS = {
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED'
+}
+
+export const JOB_TYPE = {
+  EXPORT: 'EXPORT'
+}

@@ -75,7 +75,7 @@ const validatePackage = async (
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '2mb',
+      sizeLimit: '50mb',
     },
   }
 }
