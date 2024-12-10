@@ -48,15 +48,26 @@ interface MatchResult {
 }
 
 const findMatches = ({ vs, codeToFind, systemToFind }: FindMatches): MatchResult => {
+
+  const formattedSystemToFind = systemToFind?.toLowerCase()?.trim()
+  const formattedCodeToFind = codeToFind?.toLowerCase()?.trim()
+
   const match = !systemToFind
-    ? vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === codeToFind?.toLowerCase())
+    ? vs?.expansion?.contains?.find(i => i?.code?.toLowerCase() === formattedCodeToFind)
     : vs?.expansion?.contains?.find(
-      i => i?.code?.toLowerCase() === codeToFind?.toLowerCase() && i?.system?.toLowerCase() === systemToFind?.toLowerCase()
+      i => {
+        const codeMatch = i?.code?.toLowerCase() === formattedCodeToFind
+        const systemMatch = i?.system?.toLowerCase() === formattedSystemToFind
+        return codeMatch && systemMatch
+      }
     )
-  return ({
-    isMatch: Boolean(match),
-    codeMatches: match
-  })
+
+    const result = {
+      isMatch: Boolean(match),
+      codeMatches: match
+    }
+
+  return (result)
 }
 
 const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: FhirKitClient) => {
@@ -178,7 +189,6 @@ const findMatchingVsetUrls = async ({
 }: FindMatchingVsetUrlsParams) => {
 
   let returnData: MatchesFromServer = {}
-
   const matchingLeafs = async (groupersByLeaf: GrouperIdsByUrl) => {
     if (Object.keys(groupersByLeaf).length <= 0) return []
 
@@ -190,7 +200,6 @@ const findMatchingVsetUrls = async ({
     const batchEntries: fhir4.BundleEntry[] = leafUrls.map((leafUrl) => {
       const leafVersion = groupersByLeaf?.[leafUrl]?.version
       const searchUrl = buildSearchUrl({ leafUrl, leafVersion })
-
       return {
         request: {
           method: 'GET',
@@ -235,6 +244,7 @@ const findMatchingVsetUrls = async ({
         }
       }
     })
+
     const vsacLeafRequestBundle: fhir4.Bundle & { type: 'batch' } = {
       resourceType: 'Bundle',
       type: 'batch',

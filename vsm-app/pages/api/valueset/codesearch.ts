@@ -41,6 +41,7 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
     if (typeof groupersToSearch !== 'undefined') {
       const systemToFind = req?.body?.codeSystem
       const codeToFind = req?.body?.codeToFind
+
       if (codeToFind) {
         const matchingVsUrlsCodes = await findMatchingVsetUrls({
           fhirCdrClient: FhirClient.getInstance(),
