@@ -27,6 +27,7 @@ import DataTable from 'react-data-table-component'
 import { customTableStyles } from './tables/themes'
 import { UpdateValueSetBody } from '@/pages/api/valueset'
 import useSWR from 'swr'
+import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -547,7 +548,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const allConditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
 
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
+  const { terminologySources } = useGetEndpointOptionsForUI()
 
   useEffect(() => {
     setMyDocument(document?.body)
@@ -841,11 +842,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const handleSearchToggleChange = (e: TableContextOptions) => {
     setSearchTableContext(e)
   }
-
-  const terminologySources = [
-    ...terminologyServerEndpoints,
-    ...(currentEndpoints?.endpoints?.map((i: any) => ({ label: i?.name, value: { id: i?.id, url: i?.address } })) || [])
-  ]
 
   return (
     <Col>

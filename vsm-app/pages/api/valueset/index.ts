@@ -94,7 +94,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               const orderedMatchingVSets = allAvailableMatches.entry
                 .sort((a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
               
-                const matchingId = orderedMatchingVSets[0].resource.id
+              const matchingId = orderedMatchingVSets[0].resource.id
               const matchingFullUrl = orderedMatchingVSets[0].fullUrl
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
@@ -102,6 +102,8 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
+                console.log('fullUrl', matchingFullUrl)
+                // the issue with auth source in UAT is here
                 const authSrcUrl = matchingFullUrl
 
                 if (authSrcUrl) {
