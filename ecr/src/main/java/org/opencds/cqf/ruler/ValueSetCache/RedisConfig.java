@@ -1,37 +1,40 @@
 package org.opencds.cqf.ruler.ValueSetCache;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+import ca.uhn.fhir.context.FhirContext;
 
+@Configuration
 public class RedisConfig {
 
-    private final JedisPool jedisPool;
-
-    public RedisConfig() {
-        // Fetch Redis details from environment variables
-        String redisHost = System.getProperty("REDIS_HOST", "localhost"); // Default to "localhost"
-        int redisPort = Integer.parseInt(System.getProperty("REDIS_PORT", "6379")); // Default to 6379
-        int redisDb = Integer.parseInt(System.getProperty("REDIS_DB", "4")); // Default to DB 4
-
-        // Configure Jedis connection pool
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(10); // Maximum number of connections
-        poolConfig.setMaxIdle(5);  // Maximum idle connections
-        poolConfig.setMinIdle(1);  // Minimum idle connections
-        poolConfig.setTestOnBorrow(true); // Test connection before borrowing
-        poolConfig.setTestOnReturn(true); // Test connection before returning
-
-        this.jedisPool = new JedisPool(poolConfig, redisHost, redisPort, 2000, null, redisDb);
+    @Bean
+    public LettuceConnectionFactory redisConnectionFactory() {
+        // Configure the connection to Redis
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+        config.setHostName("localhost");
+        config.setPort(6379);
+        config.setDatabase(4); // Set to database 4
+        return new LettuceConnectionFactory(config);
     }
 
-    public Jedis getConnection() {
-        return jedisPool.getResource();
-    }
+    @Bean
+    public RedisTemplate<String, IBaseResource> redisTemplate(LettuceConnectionFactory connectionFactory) {
+        RedisTemplate<String, IBaseResource> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
 
-    public void closePool() {
-        if (jedisPool != null) {
-            jedisPool.close();
-        }
+        // Use String serializer for keys
+        template.setKeySerializer(new StringRedisSerializer());
+
+        // Use custom JSON serializer for values
+        template.setValueSerializer(new RedisFhirParser(FhirContext.forR4Cached()));
+
+
+        template.afterPropertiesSet();
+        return template;
     }
 }

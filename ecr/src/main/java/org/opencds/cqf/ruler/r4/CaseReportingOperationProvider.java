@@ -74,7 +74,10 @@ public class CaseReportingOperationProvider {
 	@Autowired
 	private FhirContext fhirContext;
 
-	private final FhirRedisService redisService = new FhirRedisService(fhirContext);
+	@Autowired
+	private FhirRedisService fhirRedisService;
+
+	private final ValueSetExpansionCache expansionCache = new ValueSetExpansionCache(fhirRedisService, fhirContext.getVersion().getVersion());
 
 	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
@@ -391,8 +394,7 @@ public class CaseReportingOperationProvider {
 		var vs= new ValueSet();
 		vs.setUrl("test");
 		vs.setVersion("1.0");
-		var c = new ValueSetExpansionCache(redisService);
-		c.addToCache((ValueSetAdapter)adapterFactory.createKnowledgeArtifactAdapter(vs),c.getExpansionParametersHash(adapter).orElse("null"));
+	  expansionCache.addToCache((ValueSetAdapter)adapterFactory.createKnowledgeArtifactAdapter(vs),expansionCache.getExpansionParametersHash(adapter).orElse("null"));
 		// addValueSetExpansionParams(params, adapter);
 		// var visitor = new PackageVisitor(fhirContext);
 		// var retval = (Bundle) adapter.accept(visitor, repository, params);

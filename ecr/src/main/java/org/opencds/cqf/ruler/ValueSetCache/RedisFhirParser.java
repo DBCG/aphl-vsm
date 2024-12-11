@@ -1,27 +1,44 @@
 package org.opencds.cqf.ruler.ValueSetCache;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
+
+import java.nio.charset.StandardCharsets;
+
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 
-public class RedisFhirParser     {
+public class RedisFhirParser implements RedisSerializer<IBaseResource> {
 
-    private final FhirContext myFhirContext;
+    private final FhirContext fhirContext;
 
     public RedisFhirParser(FhirContext fhirContext) {
-      this.myFhirContext = fhirContext;
+        this.fhirContext = fhirContext; // Change to the desired FHIR version, e.g., DSTU3, R4, R5
     }
 
-    public String serialize(IBaseResource resource) {
-            IParser jsonParser = myFhirContext.newJsonParser(); // Use XML parser if needed
-            return jsonParser.encodeResourceToString(resource);
+    @Override
+    public byte[] serialize(IBaseResource t) throws SerializationException {
+        if (t == null) {
+            return new byte[0];
+        }
+        try {
+            String json = fhirContext.newJsonParser().encodeResourceToString(t);
+            return json.getBytes(StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new SerializationException("Could not serialize FHIR resource", e);
+        }
     }
 
-    public IBaseResource deserialize(String string) {
-        if (string == null || string.length() == 0) {
+    @Override
+    public IBaseResource deserialize(byte[] bytes) throws SerializationException {
+        if (bytes == null || bytes.length == 0) {
             return null;
         }
-            IParser jsonParser = myFhirContext.newJsonParser();
-            return jsonParser.parseResource(IBaseResource.class, string);
+        try {
+            String json = new String(bytes, StandardCharsets.UTF_8);
+            return fhirContext.newJsonParser().parseResource(json);
+        } catch (Exception e) {
+            throw new SerializationException("Could not deserialize FHIR resource", e);
+        }
     }
 }

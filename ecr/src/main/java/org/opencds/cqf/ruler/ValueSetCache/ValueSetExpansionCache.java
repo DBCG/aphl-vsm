@@ -19,13 +19,13 @@ import ca.uhn.fhir.context.FhirVersionEnum;
 public class ValueSetExpansionCache implements IValueSetExpansionCache {
     private final FhirRedisService cacheService;
     private final FhirVersionEnum myVersion;
-    public ValueSetExpansionCache(FhirRedisService cache) {
+    public ValueSetExpansionCache(FhirRedisService cache, FhirVersionEnum version) {
         this.cacheService = cache;
-        this.myVersion = this.cacheService.getFhirContext().getVersion().getVersion();
+        this.myVersion = version;
     } 
     @Override
     public IBaseBundle getExpansionsForCanonical(String canonical) {
-      return (IBaseBundle) cacheService.read(canonical);
+      return (IBaseBundle) cacheService.getData(canonical);
     }
     @Override
     public boolean addToCache(ValueSetAdapter vset, String expansionParametersHash) {
@@ -34,13 +34,13 @@ public class ValueSetExpansionCache implements IValueSetExpansionCache {
       if (cachedExpansions == null) {
         var newBundle = BundleHelper.newBundle(myVersion);
         BundleHelper.addEntry(newBundle, entry);
-        cacheService.write(vset.getCanonical(), newBundle);
+        cacheService.saveData(vset.getCanonical(), newBundle);
         return true;
       }
       boolean present = BundleHelper.getEntryResources(cachedExpansions).stream().anyMatch(r -> ((IDomainResource)r).getExtension().stream().anyMatch(e -> e.getUrl().equals("expansionParametersHash") && ((IPrimitiveType<String>)e.getValue()).getValue().equals(expansionParametersHash)));
       if (!present) {
         BundleHelper.addEntry(cachedExpansions, entry);
-        cacheService.write(vset.getCanonical(), cachedExpansions);
+        cacheService.saveData(vset.getCanonical(), cachedExpansions);
         return true;
       }
       return false;
