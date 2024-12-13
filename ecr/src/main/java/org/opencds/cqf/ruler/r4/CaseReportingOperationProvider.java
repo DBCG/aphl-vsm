@@ -345,7 +345,6 @@ public class CaseReportingOperationProvider {
 		@OperationParam(name = "artifactEndpointConfiguration") Parameters.ParametersParameterComponent artifactEndpointConfiguration,
 		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint
 	) throws FHIRException {
-		log.info("hello!");
 		var repository = repositoryFactory.create(requestDetails);
 		var resource = (MetadataResource) SearchHelper.readRepository(repository, theId);
 		if (resource == null) {
@@ -390,8 +389,6 @@ public class CaseReportingOperationProvider {
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
-		log.info("redisService: " + (fhirRedisService != null));
-		log.info("expansionCache: " + (expansionCache != null));
 		var visitor = new PackageVisitor(repository, expansionCache);
 		var retval = (Bundle) adapter.accept(visitor, params);
 		retval.getEntry().stream()
