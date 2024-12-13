@@ -960,7 +960,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			try {
 				getClient().operation()
 					.onInstance(specificationLibReference)
-					.named("$package")
+					.named("$ecr.package")
 					.withParameters(params)
 					.returnResourceType(Bundle.class)
 					.execute();
@@ -976,7 +976,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle packaged = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(allParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -995,7 +995,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle updatedCanonicalVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1015,7 +1015,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		try {
 			getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withParameters(params)
 				.returnResourceType(Bundle.class)
 				.execute();
@@ -1028,7 +1028,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle noErrorCheckCanonicalPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1044,7 +1044,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle forcedVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1064,7 +1064,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		countZeroParams.addParameter("count", new IntegerType(0));
 		Bundle countZeroBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countZeroParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1076,7 +1076,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle count2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(count2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1087,7 +1087,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle count2Offset2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(count2Offset2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1100,7 +1100,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offset4Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offset4Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1112,7 +1112,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetMaxBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offsetMaxParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1123,7 +1123,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetMaxRandomCountBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offsetMaxRandomCountParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1138,7 +1138,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countZeroBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countZeroParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1148,7 +1148,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.packagekage")
 			.withParameters(countSevenParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1158,7 +1158,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countFourBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.packagekagekage")
 			.withParameters(countFourParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1171,7 +1171,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.packagekagekage")
 			.withParameters(offsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1186,7 +1186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countOneOffsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.packagekage")
 			.withParameters(countOneOffsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1202,7 +1202,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1220,7 +1220,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1257,7 +1257,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1329,7 +1329,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 			Bundle packaged = getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withParameters(params)
 				.returnResourceType(Bundle.class)
 				.execute();
@@ -1355,7 +1355,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1368,7 +1368,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1397,7 +1397,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		try {
 			getClient().operation()
 					.onInstance("Library/SmallSpecificationLibrary")
-					.named("$package")
+					.named("$ecr.package")
 					.withParameters(emptyParams)
 					.returnResourceType(Bundle.class)
 					.execute();
@@ -1413,7 +1413,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1434,13 +1434,12 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadResource("artifactAssessment-search-parameter.json");
 		UnprocessableEntityException noConditionExtension = null;
 		try {
-			var s = getClient().operation()
+			getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withNoParameters(Parameters.class)
 				.returnResourceType(Bundle.class)
 				.execute();
-				var k = s;
 		} catch (UnprocessableEntityException e) {
 			noConditionExtension = e;
 		}
@@ -1527,7 +1526,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
