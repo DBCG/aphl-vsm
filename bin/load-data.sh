@@ -2,8 +2,6 @@
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-SPECIFICATION=${DIR}/../documentation/demo-data/updated-transaction-bundle.json
-SMALLSPECIFICATION=${DIR}/../documentation/demo-data/small-bundle.json
 CONDITIONS=${DIR}/../documentation/demo-data/valueset-rckms-condition-codes.json
 SEARCHPARAMS=${DIR}/../documentation/demo-data/search-parameters.json
 USERRESOURCES=${DIR}/../documentation/demo-data/user-resources.json
@@ -28,8 +26,6 @@ curl --location "$FHIR_SERVER/\$expunge" \
 echo "Loading data into $FHIR_SERVER"
 # if no args, print a help message and exit
 curl -d @${SEARCHPARAMS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
-curl -d @${SPECIFICATION} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
-curl -d @${SMALLSPECIFICATION} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 curl -d @${CONDITIONS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 curl -d @${USERRESOURCES} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 curl -d @${ENDPOINTS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
