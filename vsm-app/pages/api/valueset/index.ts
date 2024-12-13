@@ -74,7 +74,9 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       const updatedMatchingValueSetInCQF = addProfileToValueSet(matchingValueSetInCQF)
       vSetsToUpdate.push({ valueSet: updatedMatchingValueSetInCQF })
     } else {
+      
       try {
+        console.log('terminology server', terminologyClient.getClientName())
         terminologyClient.setClient(body.selectedTerminologyServer)
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
@@ -103,6 +105,10 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
                 console.log('fullUrl', matchingFullUrl)
+                console.log('body', body)
+                // can't use fullUrl because it's the same for VSAC UAT and regular VSAC
+                // so we won't be able to differentiate if we did
+
                 // the issue with auth source in UAT is here
                 const authSrcUrl = matchingFullUrl
 
