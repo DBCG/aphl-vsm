@@ -24,15 +24,15 @@ import org.hl7.fhir.r4.model.ValueSet.ValueSetComposeComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.opencds.cqf.fhir.api.Repository;
+import org.opencds.cqf.fhir.cr.visitor.ExpandHelper;
 import org.opencds.cqf.fhir.utility.BundleHelper;
 import org.opencds.cqf.fhir.utility.Canonicals;
-import org.opencds.cqf.fhir.utility.ExpandHelper;
 import org.opencds.cqf.fhir.utility.SearchHelper;
-import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.adapter.EndpointAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.IEndpointAdapter;
 import org.opencds.cqf.fhir.utility.adapter.IDependencyInfo;
-import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
-import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IValueSetAdapter;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isGrouper;
@@ -55,7 +55,7 @@ public class KnowledgeArtifactProcessor {
 
 	private static MetadataResource retrieveResourcesByCanonical(String reference, Repository hapiFhirRepository) throws ResourceNotFoundException {
 		var referencedResourceBundle = SearchHelper.searchRepositoryByCanonicalWithPaging(hapiFhirRepository, reference);
-		var referencedResource = KnowledgeArtifactAdapter.findLatestVersion(referencedResourceBundle);
+		var referencedResource = IKnowledgeArtifactAdapter.findLatestVersion(referencedResourceBundle);
 		if (referencedResource.isEmpty()) {
 			throw new ResourceNotFoundException(String.format("Resource for Canonical '%s' not found.", reference));
 		}
@@ -131,7 +131,7 @@ public class KnowledgeArtifactProcessor {
 	 * @param bundleEntries the list of packaged resources to modify according to the extensions on the manifest relatedArtifact references
 	 */
 	public static void handleValueSetReferenceExtensions(MetadataResource manifest, List<BundleEntryComponent> bundleEntries) throws UnprocessableEntityException, IllegalArgumentException {
-		var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(manifest);
+		var adapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(manifest);
 		var urlValueSetMap = populateUrlValueSetMap(bundleEntries);
 		var relatedArtifactsWithPreservedExtension = getRelatedArtifactsWithPreservedExtensions(adapter.getDependencies());
 		var relatedArtifactMap = new HashMap<String,IDependencyInfo>();
@@ -299,8 +299,8 @@ public class KnowledgeArtifactProcessor {
 		return libraryDiff;
 	}
 	private static Parameters handleRelatedArtifactArrayElementsDiff(MetadataResource theSourceLibrary,MetadataResource theTargetLibrary, FhirPatch patch) {
-		var updateSource = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceLibrary);
-		var updateTarget = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetLibrary);
+		var updateSource = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceLibrary);
+		var updateTarget = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetLibrary);
 		
 		// separate into replacements/insertions/deletions
 		var processedRelatedArtifacts = extractAdditionsAndDeletions(updateSource.getRelatedArtifact(), updateTarget.getRelatedArtifact(), RelatedArtifact.class);
@@ -316,7 +316,7 @@ public class KnowledgeArtifactProcessor {
 		processedRelatedArtifacts.reorderArrayElements(theSourceLibrary, theTargetLibrary);
 		return updateOperations;
 	}
-	private static Parameters diffWithExtensions(KnowledgeArtifactAdapter updateSource, KnowledgeArtifactAdapter updateTarget, additionsAndDeletions<RelatedArtifact> processedRelatedArtifacts, FhirPatch patch) {
+	private static Parameters diffWithExtensions(IKnowledgeArtifactAdapter updateSource, IKnowledgeArtifactAdapter updateTarget, additionsAndDeletions<RelatedArtifact> processedRelatedArtifacts, FhirPatch patch) {
 		updateSource.setRelatedArtifact(processedRelatedArtifacts.getSourceMatches());
 		updateTarget.setRelatedArtifact(processedRelatedArtifacts.getTargetMatches());
 
@@ -340,9 +340,9 @@ public class KnowledgeArtifactProcessor {
 		}
 		return updateOperations;
 	}
-	private static IDomainResource removeRelatedArtifactExtensions(KnowledgeArtifactAdapter resource) {
+	private static IDomainResource removeRelatedArtifactExtensions(IKnowledgeArtifactAdapter resource) {
 		var retval = resource.copy();
-		AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(retval).getRelatedArtifact().stream().forEach(ra -> {
+		IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(retval).getRelatedArtifact().stream().forEach(ra -> {
 			((RelatedArtifact)ra).setExtension(new ArrayList<>());
 		});
 		return retval;
@@ -404,24 +404,24 @@ public class KnowledgeArtifactProcessor {
 			// ValueSet was not changed since last expansion, don't need to update
 			return;
 		} else {
-			var factory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+			var factory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 			var ts = new TerminologyServerClient(theContext);
-			var expandHelper = new ExpandHelper(theContext, ts);
+			var expandHelper = new ExpandHelper(repository, ts);
 			var endpointAdapter = Optional.ofNullable(terminologyEndpoint).map(e -> factory.createEndpoint(e));
-			var valueSetAdapter = (ValueSetAdapter)factory.createKnowledgeArtifactAdapter(vset);
+			var valueSetAdapter = (IValueSetAdapter)factory.createKnowledgeArtifactAdapter(vset);
 			var parametersAdapter = factory.createParameters(new Parameters());
 			parametersAdapter.addParameter("url", new UrlType(vset.getUrl()));
 			parametersAdapter.addParameter("valueSetVersion", new StringType(vset.getVersion()));
-			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), repository, new Date());
+			expandHelper.expandValueSet(valueSetAdapter,parametersAdapter,endpointAdapter, new ArrayList(), new ArrayList(), new Date());
 		}
 	}
-	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
+	private static ValueSet vsacExpandOrFallbackToNaive(CanonicalType canonical, TerminologyServerClient ts, IEndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException{
 		try {
-			var factory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+			var factory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 			var parametersAdapter = factory.createParameters(new Parameters());
 			parametersAdapter.addParameter("url", new UriType(Canonicals.getUrl(canonical)));
 			parametersAdapter.addParameter("valueSetVersion", new StringType(Canonicals.getVersion(canonical)));
-			return (ValueSet)ts.expand((ValueSetAdapter)factory.createKnowledgeArtifactAdapter(new ValueSet()), endpoint, parametersAdapter );
+			return (ValueSet)ts.expand((IValueSetAdapter)factory.createKnowledgeArtifactAdapter(new ValueSet()), endpoint, parametersAdapter );
 		} catch (ResourceNotFoundException e) {
 			return naiveExpand(null, dao, canonical.getValue(), repository);
 		}
@@ -433,7 +433,7 @@ public class KnowledgeArtifactProcessor {
 		}
 		return canonicalString;
 	}
-	public static ValueSet vsacExpandOrFallbackToNaive(ValueSet valueSet, TerminologyServerClient ts, EndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
+	public static ValueSet vsacExpandOrFallbackToNaive(ValueSet valueSet, TerminologyServerClient ts, IEndpointAdapter endpoint, Repository repository, IFhirResourceDaoValueSet<ValueSet> dao) throws ResourceNotFoundException {
 		return vsacExpandOrFallbackToNaive(new CanonicalType(extractCanonicalFromValueSet(valueSet)), ts, endpoint, repository, dao);
 	}
 	private static boolean wasValueSetChangedSinceLastExpansion(ValueSet valueSet) {
@@ -709,8 +709,8 @@ public class KnowledgeArtifactProcessor {
 										   FhirPatch patch, diffCache cache, FhirContext ctx, boolean compareComputable, boolean compareExecutable,
 										   IFhirResourceDaoValueSet<ValueSet> dao, Endpoint terminologyEndpoint) throws UnprocessableEntityException {
 		// get the references in both the source and target
-		var targetReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
-		var sourceReferences = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
+		var targetReferences = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
+		var sourceReferences = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceBase).getRelatedArtifact().stream().map(ra->(RelatedArtifact)ra).collect(Collectors.toList());
 		var combinedReferenceList = extractAdditionsAndDeletions(sourceReferences, targetReferences, RelatedArtifact.class);
 		if (combinedReferenceList.getSourceMatches().size() > 0) {
 			for(int i = 0; i < combinedReferenceList.getSourceMatches().size(); i++) {
@@ -945,8 +945,8 @@ public class KnowledgeArtifactProcessor {
 			prepareForComparison	( theBase,  thePatch,  theStartIndex,  false, this.myDeletions);
 		}
 		public void reorderArrayElements(MetadataResource theSourceResource, MetadataResource theTargetResource) {
-			var sourceAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceResource);
-			var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
+			var sourceAdapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theSourceResource);
+			var targetAdapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource);
 			if (this.t.isAssignableFrom(RelatedArtifact.class) ) {
 				var sourceRelatedArtifacts = (List<RelatedArtifact>)Stream.concat(this.mySourceMatches.stream(), this.myDeletions.stream()).collect(Collectors.toList());
 				var targetRelatedArtifacts = (List<RelatedArtifact>)Stream.concat(this.myTargetMatches.stream(), this.myInsertions.stream()).collect(Collectors.toList());

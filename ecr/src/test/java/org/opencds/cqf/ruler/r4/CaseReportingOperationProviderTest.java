@@ -12,11 +12,10 @@ import org.opencds.cqf.ruler.TransformProperties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.fhir.utility.Canonicals;
-import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.r4.ArtifactAssessment;
 import org.opencds.cqf.ruler.CaseReportingConfig;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
@@ -106,10 +105,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		List<RelatedArtifact> relatedArtifacts = lib.getRelatedArtifact();
 		assertTrue(!relatedArtifacts.isEmpty());
 		forEachMetadataResource(returnedBundle.getEntry(), resource -> {
-			List<RelatedArtifact> relatedArtifacts2 = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource).getRelatedArtifact();
+			List<RelatedArtifact> relatedArtifacts2 = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource).getRelatedArtifact();
 			if (relatedArtifacts2 != null && relatedArtifacts2.size() > 0) {
 				for (RelatedArtifact relatedArtifact : relatedArtifacts2) {
-					if (KnowledgeArtifactAdapter.checkIfRelatedArtifactIsOwned(relatedArtifact)) {
+					if (IKnowledgeArtifactAdapter.checkIfRelatedArtifactIsOwned(relatedArtifact)) {
 						assertTrue(Canonicals.getVersion(relatedArtifact.getResource()).equals(draftedVersion));
 					}
 				}
@@ -143,7 +142,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 
 		forEachMetadataResource(returnedBundle.getEntry(), resource -> {
-			var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
+			var adapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
 			assertFalse(((Period)adapter.getEffectivePeriod()).hasStart() || ((Period)adapter.getEffectivePeriod()).hasEnd());
 		});
 	}
@@ -489,7 +488,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		forEachMetadataResource(returnResource.getEntry(), resource -> {
 			assertNotNull(resource);
 			if(!resource.getClass().getSimpleName().equals("ValueSet")){
-				var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
+				var adapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
 				assertTrue(((Period)adapter.getEffectivePeriod()).hasStart());
 				var start = ((Period)adapter.getEffectivePeriod()).getStart();
 				var calendar = new GregorianCalendar();
@@ -1435,12 +1434,13 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		loadResource("artifactAssessment-search-parameter.json");
 		UnprocessableEntityException noConditionExtension = null;
 		try {
-			getClient().operation()
+			var s = getClient().operation()
 				.onInstance(specificationLibReference)
 				.named("$package")
 				.withNoParameters(Parameters.class)
 				.returnResourceType(Bundle.class)
 				.execute();
+				var k = s;
 		} catch (UnprocessableEntityException e) {
 			noConditionExtension = e;
 		}
@@ -1758,7 +1758,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		var endpoint = new Endpoint();
 		endpoint.setAddress("https://cts.nlm.nih.gov/fhir");
 		endpoint.addExtension("vsacUsername", new StringType("tahaattarismile"));
-		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
+		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));	
+		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter().setName("terminologyEndpoint").setResource( endpointCredentials);
 		return diffParams;
 	}

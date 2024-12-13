@@ -5,18 +5,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
-import org.hl7.fhir.instance.model.api.IBaseBundle;
-import org.hl7.fhir.instance.model.api.IDomainResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.Parameters;
-import org.opencds.cqf.fhir.utility.BundleHelper;
-import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
-import org.opencds.cqf.fhir.utility.adapter.ValueSetAdapter;
-import org.opencds.cqf.ruler.IValueSetExpansionCache;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IValueSetAdapter;
 
 import ca.uhn.fhir.context.FhirVersionEnum;
 
-public class ValueSetExpansionCache implements IValueSetExpansionCache {
+public class ValueSetExpansionCache implements org.opencds.cqf.fhir.cr.visitor.IValueSetExpansionCache {
     private final FhirRedisService cacheService;
     private final FhirVersionEnum myVersion;
     public ValueSetExpansionCache(FhirRedisService cache, FhirVersionEnum version) {
@@ -24,29 +21,26 @@ public class ValueSetExpansionCache implements IValueSetExpansionCache {
         this.myVersion = version;
     } 
     @Override
-    public IBaseBundle getExpansionsForCanonical(String canonical) {
-      return (IBaseBundle) cacheService.getData(canonical);
+    public IValueSetAdapter getExpansionForCanonical(String canonical, String expansionParametersHash) {
+      var resource = cacheService.getData(createKey(canonical, expansionParametersHash));
+      if (resource == null) {
+        return null;
+      } else {
+        return (IValueSetAdapter) IAdapterFactory.forFhirVersion(myVersion).createResource(resource);
+      }
+    }
+    private String createKey(String canonical, String expansionParametersHash) {
+      return canonical + "-" + expansionParametersHash;
     }
     @Override
-    public boolean addToCache(ValueSetAdapter vset, String expansionParametersHash) {
-      var cachedExpansions = getExpansionsForCanonical(vset.getCanonical());
-      var entry = BundleHelper.newEntryWithResource(myVersion, vset.get());
-      if (cachedExpansions == null) {
-        var newBundle = BundleHelper.newBundle(myVersion);
-        BundleHelper.addEntry(newBundle, entry);
-        cacheService.saveData(vset.getCanonical(), newBundle);
-        return true;
+    public boolean addToCache(IValueSetAdapter vset, String expansionParametersHash) {
+      if (getExpansionForCanonical(vset.getCanonical(), expansionParametersHash) == null) {
+        cacheService.saveData(createKey(vset.getCanonical(), expansionParametersHash) , vset.get());
       }
-      boolean present = BundleHelper.getEntryResources(cachedExpansions).stream().anyMatch(r -> ((IDomainResource)r).getExtension().stream().anyMatch(e -> e.getUrl().equals("expansionParametersHash") && ((IPrimitiveType<String>)e.getValue()).getValue().equals(expansionParametersHash)));
-      if (!present) {
-        BundleHelper.addEntry(cachedExpansions, entry);
-        cacheService.saveData(vset.getCanonical(), cachedExpansions);
-        return true;
-      }
-      return false;
+      return true;
     }
     @Override
-    public Optional<String> getExpansionParametersHash(KnowledgeArtifactAdapter adapter) {
+    public Optional<String> getExpansionParametersHash(IKnowledgeArtifactAdapter adapter) {
       return adapter.getExpansionParameters().map(p -> ((Parameters)p).getParameter().stream()
         .map(p2 -> ((IPrimitiveType<String>)p2.getValue()).getValue())
         .sorted()

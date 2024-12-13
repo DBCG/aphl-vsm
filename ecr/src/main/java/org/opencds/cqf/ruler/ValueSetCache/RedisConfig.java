@@ -1,6 +1,7 @@
 package org.opencds.cqf.ruler.ValueSetCache;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -12,13 +13,22 @@ import ca.uhn.fhir.context.FhirContext;
 @Configuration
 public class RedisConfig {
 
+    @Value("${redis.host:redis}")
+    private String host;
+
+    @Value("${redis.port:6379}")
+    private int port;
+
+    @Value("${redis.database:4}")
+    private int database;
+
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         // Configure the connection to Redis
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName("localhost");
-        config.setPort(6379);
-        config.setDatabase(4); // Set to database 4
+        config.setHostName(host);
+        config.setPort(port);
+        config.setDatabase(database); // Set to database 4
         return new LettuceConnectionFactory(config);
     }
 
