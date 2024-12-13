@@ -1148,7 +1148,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$ecr.packagekage")
+			.named("$ecr.package")
 			.withParameters(countSevenParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1158,7 +1158,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countFourBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$ecr.packagekagekage")
+			.named("$ecr.package")
 			.withParameters(countFourParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1171,7 +1171,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$ecr.packagekagekage")
+			.named("$ecr.package")
 			.withParameters(offsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1186,7 +1186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countOneOffsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$ecr.packagekage")
+			.named("$ecr.package")
 			.withParameters(countOneOffsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
