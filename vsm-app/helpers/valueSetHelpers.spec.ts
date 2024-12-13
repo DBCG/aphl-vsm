@@ -8,8 +8,9 @@ import {
   urlWithoutVersion,
   idWithoutVersion,
   addProfileToValueSet,
-  updateVsCodeItem
-} from "./valueSetHelpers";
+  updateVsCodeItem,
+  organizeValueSetDefinitionData
+} from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
 
@@ -20,6 +21,276 @@ const VSM_LEAF_PROFILE_URLS = {
 
 const testUrl = 'www.test.com'
 const testUrl2 = 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1082'
+
+const fixtureWithAllComposeIncludesAndExcludesAndFilter = {
+  resourceType: "ValueSet",
+  id: "example-123",
+  version: "6.0.0-ballot2",
+  name: "SampleForTesting",
+  status: "draft",
+  description: "This is an example value set that references all types of inclusion and exclusion data for testing.",
+  compose: {
+    lockedDate: "2012-06-13",
+    inactive: true,
+    include: [
+      {
+        valueSet: ['www.example.com/hello-union|1.0.0'],
+      },
+      {
+        valueSet: [
+          'www.example.com/hello-intersection|2.0.0',
+          'www.example.com/hello-intersection|2.0.1'
+        ],
+      },
+      {
+        system : "http://loinc.org",
+        filter : [{
+          property : "parent",
+          op : "=",
+          value : "LP382412-7"
+        }]
+      }
+    ],
+    exclude: [
+      {
+        valueSet: ['www.example.com/hello-exclusion-union|1.0.0'],
+      },
+      {
+        valueSet: [
+          'www.example.com/hello-exclusion-intersection|2.0.0',
+          'www.example.com/hello-exclusion-intersection|2.0.1'
+        ],
+      },
+      {
+        system : "http://loinc.org",
+        filter : [{
+          property : "parent",
+          op : "=",
+          value : "abcd-7"
+        }]
+      }
+    ]
+  }
+} as fhir4.ValueSet
+
+const fixtureWithAllComposeIncludesAndExcludesAndConcept = {
+  resourceType: "ValueSet",
+  id: "example-123",
+  version: "6.0.0-ballot2",
+  name: "SampleForTesting",
+  status: "draft",
+  description: "This is an example value set that references all types of inclusion and exclusion data for testing.",
+  compose: {
+    lockedDate: "2012-06-13",
+    inactive: true,
+    include: [
+      {
+        valueSet: ['www.example.com/hello-union|1.0.0'],
+      },
+      {
+        valueSet: [
+          'www.example.com/hello-intersection|2.0.0',
+          'www.example.com/hello-intersection|2.0.1'
+        ],
+      },
+      {
+        system: "http://loinc.org",
+        version: "2.36",
+        concept: [
+          {
+            code: "14647-2",
+            display: "Cholesterol [Moles/Volume]"
+          },
+          {
+            code: "2093-3",
+            display: "Cholesterol [Mass/Volume]"
+          }
+        ]
+      }
+    ],
+    exclude: [
+      {
+        valueSet: ['www.example.com/hello-exclusion-union|1.0.0'],
+      },
+      {
+        valueSet: [
+          'www.example.com/hello-exclusion-intersection|2.0.0',
+          'www.example.com/hello-exclusion-intersection|2.0.1'
+        ],
+      },
+      {
+        system: "http://loinc.org",
+        version: "2.36",
+        concept: [
+          {
+            code: "5555",
+            display: "Exclude Cholesterol [Moles/Volume]"
+          },
+          {
+            code: "5556",
+            display: "Exclude Cholesterol [Mass/Volume]"
+          }
+        ]
+      },
+      {
+        system: "http://loinc2.org",
+        version: "2",
+        concept: [
+          {
+            code: "6666",
+            display: "Exclude Cholesterol [Moles/Volume]"
+          },
+          {
+            code: "6667",
+            display: "Exclude Cholesterol [Mass/Volume]"
+          }
+        ]
+      },
+    ]
+  }
+} as fhir4.ValueSet
+
+describe('organizeValueSetDefinitionData', () => {
+  it('should return a structure with all includes and excludes data when filters present', () => {
+    const result = organizeValueSetDefinitionData(fixtureWithAllComposeIncludesAndExcludesAndFilter)
+    const expectedResult = {
+      include: {
+        valuesetUnion: [
+          {
+            url: "www.example.com/hello-union|1.0.0"
+          }
+        ],
+        valuesetIntersection: [
+          {
+            urls: [
+              "www.example.com/hello-intersection|2.0.0",
+              "www.example.com/hello-intersection|2.0.1"
+            ]
+          }
+        ],
+        filterItems: [
+          {
+            system: "http://loinc.org",
+            version: undefined,
+            filter: [
+              {
+                property: "parent",
+                op: "=",
+                value: "LP382412-7"
+              }
+            ]
+          }
+        ]
+      },
+      exclude: {
+        valuesetUnion: [
+          {
+            url: "www.example.com/hello-exclusion-union|1.0.0"
+          }
+        ],
+        valuesetIntersection: [
+          {
+            urls: [
+              "www.example.com/hello-exclusion-intersection|2.0.0",
+              "www.example.com/hello-exclusion-intersection|2.0.1"
+            ]
+          }
+        ],
+        filterItems: [
+          {
+            system: "http://loinc.org",
+            version: undefined,
+            filter: [
+              {
+                property: "parent",
+                op: "=",
+                value: "abcd-7"
+              }
+            ]
+          }
+        ]
+      }
+    }
+    expect(result).toStrictEqual(expectedResult)
+  })
+
+  it('should return a value set with all includes and excludes and concepts present', () => {
+    const result = organizeValueSetDefinitionData(fixtureWithAllComposeIncludesAndExcludesAndConcept)
+    const expectedResult = {
+      include: {
+        valuesetUnion: [
+          {
+            url: "www.example.com/hello-union|1.0.0"
+          }
+        ],
+        valuesetIntersection: [
+          {
+            urls: [
+              "www.example.com/hello-intersection|2.0.0",
+              "www.example.com/hello-intersection|2.0.1"
+            ]
+          }
+        ],
+        codes: [
+          {
+            system: "http://loinc.org",
+            version: "2.36",
+            code: "14647-2",
+            display: "Cholesterol [Moles/Volume]"
+          },
+          {
+            system: "http://loinc.org",
+            version: "2.36",
+            code: "2093-3",
+            display: "Cholesterol [Mass/Volume]"
+          }
+        ]
+      },
+      exclude: {
+        valuesetUnion: [
+          {
+            url: "www.example.com/hello-exclusion-union|1.0.0"
+          }
+        ],
+        valuesetIntersection: [
+          {
+            urls: [
+              "www.example.com/hello-exclusion-intersection|2.0.0",
+              "www.example.com/hello-exclusion-intersection|2.0.1"
+            ]
+          }
+        ],
+        codes: [
+          {
+            system: "http://loinc.org",
+            version: "2.36",
+            code: "5555",
+            display: "Exclude Cholesterol [Moles/Volume]"
+          },
+          {
+            system: "http://loinc.org",
+            version: "2.36",
+            code: "5556",
+            display: "Exclude Cholesterol [Mass/Volume]"
+          },
+          {
+            system: "http://loinc2.org",
+            version: "2",
+            code: "6666",
+            display: "Exclude Cholesterol [Moles/Volume]"
+          },
+          {
+            system: "http://loinc2.org",
+            version: "2",
+            code: "6667",
+            display: "Exclude Cholesterol [Mass/Volume]"
+          }
+        ]
+      }
+    }
+    expect(result).toStrictEqual(expectedResult)
+  })
+})
 
 describe('valueSetHelpers', () => {
   let FIXTURE_GROUPER_VS: fhir4.ValueSet

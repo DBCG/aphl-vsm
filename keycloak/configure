@@ -6,17 +6,6 @@ set -e
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-read -p 'Keycloak Base URL (http://localhost:8080): ' base_url
-read -p 'VSM App Base URL: (http://localhost:3000) ' client
-read -p 'Admin Username: (admin) ' admin_username
-read -s -p $'Admin Password: (admin) \n' admin_password
-read -p 'Non-Admin Username: (johndoe) ' non_admin_username
-read -s -p $'Non-Admin Password: (password) \n' non_admin_password
-read -p 'Realm: (aphl) ' realm
-read -p 'Client: (aphl_app) ' client
-read -p 'Redirect URIs: (["http://localhost:3000/api/auth/callback/keycloak"]) ' redirect_uris
-read -p 'Web Origins: (["*"])' web_origins
-
 # set defaults if user does not enter anything themselves
 base_url=${base_url:-'http://localhost:8080'}
 admin_username=${admin_username:-admin}

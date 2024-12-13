@@ -6,7 +6,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import Logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
-import { addTerminologyEndpointToParameters } from './package'
+import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -190,7 +190,7 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  GET: { action: getManifestVersions, access: ['admin', 'editor'] },
+  GET: { action: getManifestVersions, access: ['admin', 'editor', 'reviewer'] },
   PUT: { action: updateManifest, access: ['admin', 'editor'] },
   POST: { action: getAvailableLatestVersionsFromLeafValueSets, access: ['admin', 'editor'] }
 })

@@ -5,13 +5,11 @@ import { BreadCrumbs } from './navigation/Breadcrumbs'
 import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
-import InfoIcon from '@mui/icons-material/Info'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { VSMSession } from '@/helpers/rolesHelper'
-import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Tooltip, Typography } from '@mui/material'
+import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
 import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
-
-
+import Notifications from '@/components/Notifications'
 
 const BarWrapper = styled.div`
   margin-bottom: 24px;
@@ -84,9 +82,7 @@ const NavBar = () => {
       <Bar>
         <BreadCrumbs isGrouperView={isGrouperView} />
         <Box sx={{ alignItems: 'center', display: 'flex' }}>
-          <Tooltip title={`App Version v-${packageInfo.version}`}>
-            <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
-          </Tooltip>
+          <Notifications />
           <IconButton
             aria-label="more"
             id="long-button"
@@ -114,7 +110,6 @@ const NavBar = () => {
           <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
              {session?.user?.name}
           </Typography>
-        {/* </MenuItem> */}
         </Box>
         {enableTerminologySource && session?.user?.roles?.[0] === 'admin' && (
           <Box>
@@ -155,6 +150,11 @@ const NavBar = () => {
           </ListItemIcon>
           Sign Out
         </MenuItem>
+        <Box style={{ padding: '1rem', paddingBottom: '.4rem', alignItems: 'center', width: '100%' }}>
+            <Typography variant="body1" sx={{ color: 'gray', fontSize: '80%', textAlign: 'center' }}>
+             App Version: {packageInfo.version}
+            </Typography>
+          </Box>
       </Menu>
     </BarWrapper>
   )

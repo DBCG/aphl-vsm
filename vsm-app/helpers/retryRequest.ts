@@ -23,6 +23,7 @@ const retry = async <T>(apiCall: () => Promise<T>, maxRetries = 3, delay = 500) 
       const results = await apiCall()
       return results
     } catch (e: any) {
+      console.log(e)
       error = e
       await wait(delay * i)
     }

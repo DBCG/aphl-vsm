@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20.18.1-alpine AS builder
 
 # Placeholder for build, will be replaced by actual runtime env vars
 ENV FHIR_CDR_URL="http://localhost:8082"
@@ -9,7 +9,6 @@ ENV NEXT_PUBLIC_DEFAULT_PUBLISHER="CSTE Steward"
 ENV NEXT_PUBLIC_DEFAULT_AUTHOR="CSTE Author"
 ENV NEXT_PUBLIC_DEFAULT_PUBLISHING_URL=http://ersd.aimsplatform.org/fhir
 ENV NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
-ENV NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL=https://r4.ontoserver.csiro.au/fhir
 ENV NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT=true
 
 RUN apk update

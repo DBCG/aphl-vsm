@@ -39,20 +39,14 @@ spec:
         env:
         - name: FHIR_CDR_URL
           value: http://cqf-ruler-vsm/fhir
-        - name: ENABLE_CACHE
-          value: "false"
         - name: EXTERNAL_FHIR_CDR_URL
           value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}/fhir
         - name: NEXT_PUBLIC_VSAC_BASE_URL
           value: https://cts.nlm.nih.gov/fhir
         - name: KEYCLOAK_SERVER_AUTH_ID
           value: server_auth
-        - name: NEXT_PUBLIC_ONTOSERVER_R4_BASE_URL
-          value: https://r4.ontoserver.csiro.au/fhir
         - name: REDIS_HOST
           value: {{ .Values.vsm_app.redis_host_url}}
-        - name: REDIS_DB
-          value: "{{ .Values.vsm_app.redis_db }}"
         - name: VSAC_USERNAME
           value: apikey
         - name: KEY
