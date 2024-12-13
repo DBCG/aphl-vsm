@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { NextPage } from 'next'
-import { Box, TextField, Typography } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { toast } from 'react-toastify'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
 
 const QAPage: NextPage = () => {
   const [leafsPerGrouper, setLeafsPerGrouper] = useState<string | null>(null)
