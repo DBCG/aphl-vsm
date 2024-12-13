@@ -32,7 +32,7 @@ const crmiPackage = async (
   const useV1 = !data?.useV2
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${req.query.id as string}/$package?_format=${currentFormat}`, {
+    let response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${req.query.id as string}/$ecr.package?_format=${currentFormat}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
       headers: {

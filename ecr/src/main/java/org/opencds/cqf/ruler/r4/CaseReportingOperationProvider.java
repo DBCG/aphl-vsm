@@ -326,8 +326,8 @@ public class CaseReportingOperationProvider {
 		return returnLibrary;
 	}
 	
-	@Operation(name = "$package", idempotent = true, global = true, type = MetadataResource.class)
-	@Description(shortDefinition = "$package", value = "Package an artifact and components / dependencies")
+	@Operation(name = "$ecr.package", idempotent = true, global = true, type = MetadataResource.class)
+	@Description(shortDefinition = "$ecr.package", value = "Package an artifact and components / dependencies")
 	public Bundle packageOperation(
 		RequestDetails requestDetails,
 		@IdParam IdType theId,
