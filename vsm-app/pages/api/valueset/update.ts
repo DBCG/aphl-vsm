@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import worker from '@/worker'
+import worker from '@/worker/ValueSetUpdateQueue'
 import { Job } from 'bull'
 import Logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'

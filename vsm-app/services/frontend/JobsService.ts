@@ -1,14 +1,4 @@
-export interface JobData {
-  jobId: string
-  status: string
-  metadata?: any
-  type: string
-  error?: string
-}
-
-export interface Jobs {
-  [key: string]: JobData
-}
+import { Jobs } from "@/types/jobTypes"
 
 class JobsService {
   static async clearJobs() {

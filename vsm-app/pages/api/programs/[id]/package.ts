@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { DEAFULT_QUEUE_CONFIG, JOB_EXPIRATION } from '@/config'
+import { DEFAULT_JOB_CONFIG, JOB_EXPIRATION } from '@/config'
 import Queue from 'bull'
 import Cache from '@/cache'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -31,7 +31,7 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   const userId = session.user.id
   const job = await PackageQueue.add(
     { data, planDefinition, targetVersion, programId: req.query.id as string, userId },
-    DEAFULT_QUEUE_CONFIG
+    DEFAULT_JOB_CONFIG
   )
 
   const cache = await Cache.getInstance()

@@ -2,8 +2,8 @@ import { of, timer } from 'rxjs'
 import { switchMap, catchError, takeWhile } from 'rxjs/operators'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_STATUS } from '@/constants'
-import { Jobs, JobData } from '@/services/frontend/JobsService'
 import { toast } from 'react-toastify'
+import { Jobs } from '@/types/jobTypes'
 // Function to subscribe to polling
 
 const defaultOnSuccess = () => toast.success('Job completed successfully')
