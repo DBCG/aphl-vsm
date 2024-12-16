@@ -7,9 +7,11 @@ import java.util.zip.CRC32;
 
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
 import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.adapter.IValueSetAdapter;
+import org.opencds.cqf.ruler.ImportBundleProducer;
 
 import ca.uhn.fhir.context.FhirVersionEnum;
 
@@ -34,7 +36,8 @@ public class ValueSetExpansionCache implements org.opencds.cqf.fhir.cr.visitor.I
     }
     @Override
     public boolean addToCache(IValueSetAdapter vset, String expansionParametersHash) {
-      if (getExpansionForCanonical(vset.getCanonical(), expansionParametersHash) == null) {
+      // don't cache Groupers
+      if (!ImportBundleProducer.isGrouper((ValueSet)vset.get()) && getExpansionForCanonical(vset.getCanonical(), expansionParametersHash) == null) {
         cacheService.saveData(createKey(vset.getCanonical(), expansionParametersHash) , vset.get());
       }
       return true;
