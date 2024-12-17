@@ -57,6 +57,8 @@ export interface UpdateValueSetBody extends NextApiRequest {
 const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>) => {
   const body = req.body
 
+  console.log('got here!')
+
   if (body?.selectedConditions?.length > 0 && !req.query.programId) {
     return res.status(400).json({ error: 'missing program Id required for conditions' })
   }
@@ -97,16 +99,30 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
         const session = <VSMSession>await getServerSession(req, res, AuthOptions)
         const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
-        const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
-        if (!matchingCredentialsForServer) {
-          return res.status(400).json({ error: 'No credentials found for selected terminology server' })
+        if (body?.selectedTerminologyServer === 'vsm') {
+          terminologyClient.setCustomClient({
+            clientName: 'VSM' as string,
+            baseUrl: `${process.env.FHIR_CDR_URL}`,
+            basicAuthHeader: `${Buffer.from(`${process.env.FHIR_CDR_BASIC_AUTH_USERNAME}:${process.env.FHIR_CDR_BASIC_AUTH_PASSWORD}`).toString('base64')}`
+          }) 
+        } else {
+          const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
+          if (!matchingCredentialsForServer) {
+            return res.status(400).json({ error: 'No credentials found for selected terminology server' })
+          }
+
+          terminologyClient.setCustomClient({
+            clientName: body?.selectedTerminologyServer?.label as string,
+            baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
+            basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+          })
         }
 
-        terminologyClient.setCustomClient({
-          clientName: body?.selectedTerminologyServer?.label as string,
-          baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
-          basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
-        })
+        // terminologyClient.setCustomClient({
+        //   clientName: body?.selectedTerminologyServer?.label as string,
+        //   baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
+        //   basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+        // })
 
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {

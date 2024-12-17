@@ -348,6 +348,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
   }
 
   const handleAddValueSets = async () => {
+    console.log('this called!!!')
     const body: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
       selectedTerminologyServer: 'vsm',
       selectedValueSets: uniqBy(selectedRows, 'id'),
@@ -780,12 +781,20 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       selectedGroupers
     } as LeafsToAdd
 
+    console.log('leafsToAdd', leafsToAdd)
+    // return
+    console.log('one*')
+
     // add grouper context needs to pass the info to the parent to submit
     if (tableContext === 'add-grouper') {
+      console.log('2*')
       if (handleAddValueSets) {
         handleAddValueSets(leafsToAdd)
         const selectedVSIds = selectedValueSets.map((i) => i.id)
-        setValueSets(valueSets?.filter((i) => !selectedVSIds?.includes(i?.id)))
+        console.log('selectedVSIds', selectedVSIds)
+        const result = valueSets?.filter((i) => !selectedVSIds?.includes(i?.id))
+        console.log('result', result)
+        setValueSets(result)
       }
       setToggledClearRows(true)
 
@@ -800,15 +809,19 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
         body: leafPutBody
       })
 
+      console.log('leafsUpdated', leafsUpdated)
+
       if (leafsUpdated.ok) {
         toast.success('ValueSet Add Successful')
         router.push(`/programs/${programId}/valuesets`)
       } else {
+        console.log('2.5** error')
         const { error } = await leafsUpdated.json()
         toast.error(error)
       }
       setAddedValueSetsLoading(false)
     }
+
     setSelectedValueSets([])
     setSearchTerm('')
     setSelectedConditions([])

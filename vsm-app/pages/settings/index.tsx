@@ -341,7 +341,7 @@ const CredentialsItem = (currentServerData) => {
                 sx={{
                   p: '1rem 0 0.5rem 1rem',
                   display: 'flex',
-                  justifyContent: 'space-between',
+                  // justifyContent: 'space-between',
                   borderRadius: '1rem',
                   width: '80%',
                 }}
@@ -376,17 +376,22 @@ const CredentialsItem = (currentServerData) => {
                     </Button>
                   </Box>
                 </Stack>
-                <Box sx={{ display: 'flex' }}>
-                  <IconButton
-                    buttoncontext="edit"
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', marginLeft: '2rem' }}>
+                  <Button
+                    disabled={showEditSet.has(e.id)}
                     onClick={() => {
                       showEditSet.add(e.id)
                       setShowEditSet(new Set(showEditSet))
                     }}
-                  />
+                  >
+                    Edit
+                  </Button>
                   <IconButton
-                    style={{ marginLeft: '1rem' }}
+                    // style={{ marginLeft: '1rem' }}
                     buttoncontext="delete"
+                    style={{
+                      backgroundColor: 'var(--accent)',
+                    }}
                     deletedItemDescription={`Are you sure you want to delete credential's for ${e.name}`}
                     onClick={async () => {
                       await deleteCredential(e.id!)
@@ -562,6 +567,26 @@ const TerminologyEndpoints: NextPage = () => {
     console.log('vsac invalid', vsacInvalid)
   },[currentCredentials, vsacInvalid])
 
+  const customSort = (rows, selector) => {
+    return rows.sort((rowA, rowB) => {
+      console.log('rowA', rowA)
+      console.log('rowB', rowB)
+     // use the selector function to resolve your field names by passing the sort comparitors
+     const aField = selector(rowA)
+     const bField = selector(rowB)
+   
+     let comparison = 0;
+   
+     if (aField > bField) {
+      comparison = 1;
+     } else if (aField < bField) {
+      comparison = -1;
+     }
+   
+     return direction === 'desc' ? comparison * -1 : comparison;
+    });
+   };
+
   return (
     <Col>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
@@ -583,7 +608,10 @@ const TerminologyEndpoints: NextPage = () => {
       )}
       <ErrorMessage error={error?.error || null} />
       <DT
-        data={data?.map((d, index) => ({ ...d, index }))}
+        data={
+          data?.map((d, index) => ({ ...d, index }))
+        }
+        // sortFunction={customSort}
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}

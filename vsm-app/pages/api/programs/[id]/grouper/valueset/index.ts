@@ -17,7 +17,6 @@ import {
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
 import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
-import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import Logger from '@/helpers/server/logger'
@@ -25,6 +24,8 @@ import { cloneDeep, uniq, uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
 import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
 import { ErrorItem } from '@/helpers/is'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 export type ErrorResponse = {
   errorMessage: string
@@ -212,7 +213,7 @@ interface BodyInfo {
 // ---------------------------------------------------------------------------------
 // -------------------------- ROUTE TO ADD NEW GROUPER -----------------------------
 // ---------------------------------------------------------------------------------
-const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession): Promise<any> => {
   const body: BodyInfo = req.body
 
   // programId will always be a string
@@ -262,7 +263,8 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse):
      */
     const serverUpdatesPayload = await generateTransactionBundleEntriesToAddMissingValueSetsToServer({
       grouperVSets: groupersToUpdate,
-      matchesInServer: matchesInServer
+      matchesInServer: matchesInServer,
+      session
     })
 
     if (is.errorResponse(serverUpdatesPayload)) {
@@ -413,16 +415,23 @@ const getMatchingLeafsFromServer = async (grouperVSets: FlatGrouperVSet[]): Prom
 interface FormatCqfUpdateTransactionBundle {
   matchesInServer: MatchesInServer
   grouperVSets: FlatGrouperVSet[]
+  session: VSMSession
 }
 
 const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
   matchesInServer,
-  grouperVSets
+  grouperVSets,
+  session
 }: FormatCqfUpdateTransactionBundle): Promise<fhir4.BundleEntry[] | ErrorResponse> => {
   // why error out if there are no matches??
   if (is.errorResponse(matchesInServer)) {
     return []
   }
+
+  const creds = await tsCredentialService.getAllCredentials(session.user.id)
+
+  console.log('matchesInServer', matchesInServer)
+  console.log('grouperValueSets', grouperVSets)
   const transactionEntries: fhir4.BundleEntry[] = []
   const matchesInCqfUrls = matchesInServer?.map((vs) => vs.url)
   // get from remote
@@ -442,9 +451,31 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
   })
 
   if (vsToAddFromTermServer) {
+    const allEndpoints = await FhirClient.getInstance().search({
+      resourceType: 'Endpoint'
+    })
+
+    const formattedEndpoints = allEndpoints?.entry?.map((e) => {
+      return {
+        label: e.resource?.name,
+        value: {id: e.resource.id, url: e.resource.address}
+      }
+    })
+    
+    console.log('allEndpoints', allEndpoints)
     for (const flatGrouperItem of vsToAddFromTermServer) {
+      const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === flatGrouperItem?.selectedTerminologyServer?.value?.id)
+      if (!matchingCredentialsForServer) {
+        console.log('No credentials found for terminology server')
+        return []
+      }
+  
       try {
-        terminologyClient.setClient(flatGrouperItem?.selectedTerminologyServer)
+        terminologyClient.setCustomClient({
+          baseUrl: flatGrouperItem?.selectedTerminologyServer?.value?.url,
+          clientName: flatGrouperItem?.selectedTerminologyServer?.label,
+          basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+      })
         const terminologyClientInstance = terminologyClient.getClient()
         // vsac appends version to the id, search by unversioned
         // must do a read operation to get whole valueset instead of subsetted
@@ -454,14 +485,23 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
           id: idNoVersion
         })
 
+        console.log('flatGrouperItem', flatGrouperItem)
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
-        const authSrcBase = terminologyServerEndpoints?.find(
-          (grp) => grp.value.id.toLowerCase() === flatGrouperItem.selectedTerminologyServer.toLowerCase()
+        console.log('terminologyServerEndpoints', formattedEndpoints)
+
+        const authSrcBase = formattedEndpoints?.find(
+          (endpointItem) => {
+            const endpoint = endpointItem.value.id.toLowerCase()
+            const idSpecifiedInRequest = flatGrouperItem.selectedTerminologyServer?.value?.id.toLowerCase()
+            console.log('endpoint: ', endpoint)
+            console.log('idSpecifiedInRequest: ', idSpecifiedInRequest)
+            return endpoint === idSpecifiedInRequest
+          }
         )?.value?.url
 
         const authSrcUrl = `${authSrcBase}/ValueSet/${idNoVersion}`
-
+        console.log('authSrcUrl: ', authSrcUrl)
         // handle if no matching authoritativeSource url
         const vsWithAuthSource = addExtensionToVs(
           valueSetToAdd as fhir4.ValueSet,
