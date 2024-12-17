@@ -123,9 +123,14 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
   const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {
+
     let val = availableTerminologyServers?.find((endpoint) => {
-    let urlPath = endpoint?.value?.url
-    return typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
+      let urlPath = endpoint?.value?.url
+      if (urlPath.toLowerCase().startsWith('https://cts.nlm.nih.gov/fhir')) {
+        // workaround for auth src and term server definition mismatch
+        urlPath = urlPath.replace('https://', 'http://')
+      }
+      return typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
     })
 
     if (!val) {
