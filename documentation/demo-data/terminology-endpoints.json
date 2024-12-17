@@ -1,15 +1,15 @@
 {
   "resourceType": "Bundle",
-  "id": "search-parameter-bundle",
+  "id": "endpoint-bundle",
   "type": "transaction",
   "entry":
   [
       {
-          "fullUrl": "Endpoint/vsac-endpoint",
+          "fullUrl": "Endpoint/vsac",
           "resource":
           {
             "resourceType": "Endpoint",
-            "id": "vsac-endpoint",
+            "id": "vsac",
             "identifier": [{ "value": "terminologyEndpoint" }],
             "connectionType": { "code": "fhir", "system": "http://hl7.org/fhir/ValueSet/endpoint-connection-type" },
             "status": "active",
@@ -21,7 +21,7 @@
           "request":
           {
               "method": "PUT",
-              "url": "Endpoint/vsac-endpoint"
+              "url": "Endpoint/vsac"
           }
       }
     ]
