@@ -54,9 +54,9 @@ spec:
             - name: redis.host
               value: {{ .Values.vsm_app.redis_host_url}}
             - name: redis.port
-              value: 6379
+              value: "6379"
             - name: redis.database
-              value: 4
+              value: "4"
             - name: _JAVA_OPTIONS
               value: '-Xmx3584m'
             - name: spring.datasource.url
