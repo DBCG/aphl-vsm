@@ -396,6 +396,8 @@ body {
   --hover-background: #FAA024;
   --neutral-300: rgba(147, 144, 137, 1);
   --neutral-200: rgba(241, 245, 248, 1);
+  --neutral-300: rgba(99, 127, 163, 0.24);
+  --neutral-350: rgba(217, 226, 238, 0.47);
   --neutral-100: rgba(179, 172, 166, 1);
   --theme-color-transparent: rgba(0, 128, 141, 0.05);
   --white: #fff;
