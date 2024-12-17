@@ -597,6 +597,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         cell: (row: TableRow) => {
           var errors: string[] = []
           const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
+          console.log('terminologySources', terminologySources)
+          
           return (
             <div>
               {terminologyInfo.value}

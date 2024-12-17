@@ -19,6 +19,19 @@ interface BundleEntryItem {
   resource: fhir4.ValueSet
 }
 
+function splitAtLastIndex(str: string, char: string) {
+  const lastIndex = str.lastIndexOf(char)
+
+  if (lastIndex === -1) {
+    return [str]; // Character not found
+  }
+
+  const firstPart = str.slice(0, lastIndex)
+  const secondPart = str.slice(lastIndex + 1)
+
+  return [firstPart, secondPart]
+}
+
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
     const response = (
@@ -113,11 +126,13 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               const orderedMatchingVSets = allAvailableMatches.entry
                 .sort((a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
               
-              const matchingId = orderedMatchingVSets[0].resource.id
-              const matchingFullUrl = orderedMatchingVSets[0].fullUrl
+
+              // need to remove the last -<version> from the ID if it exists
+              const matchingIdNoVersion = splitAtLastIndex(orderedMatchingVSets[0].resource.id, '-')[0]
+
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
-                id: matchingId
+                id: matchingIdNoVersion
               })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
@@ -125,7 +140,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
                 // so we won't be able to differentiate if we did
 
                 const authSrcUrlBase = body?.selectedTerminologyServer?.value?.url as string
-                const authSrcUrl = `${authSrcUrlBase}/ValueSet/${matchingId}`
+                const authSrcUrl = `${authSrcUrlBase}/ValueSet/${matchingIdNoVersion}`
 
                 if (authSrcUrl) {
                   // add authoritativeSource extension

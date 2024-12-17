@@ -119,6 +119,7 @@ interface AvailableTermServer {
     url: string
   }
 }
+
 const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServers: AvailableTermServer[], errors: string[]): TerminologyResult => {
   console.log('termServerOptions', availableTerminologyServers)
   const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
@@ -126,6 +127,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
   console.log('authoriativeSource: ', authoritativeSourceExtension)
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {
+    console.log('authoritativeSourceExtension: ', authoritativeSourceExtension)
     let val = terminologyServerEndpoints?.find((endpoint) => {
     const urlPath = endpoint?.value?.url
     return typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
