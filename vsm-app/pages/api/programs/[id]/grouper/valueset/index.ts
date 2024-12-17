@@ -488,7 +488,6 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
         console.log('flatGrouperItem', flatGrouperItem)
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
-        console.log('terminologyServerEndpoints', formattedEndpoints)
 
         const authSrcBase = formattedEndpoints?.find(
           (endpointItem) => {

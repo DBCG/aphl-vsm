@@ -1,5 +1,4 @@
 import { cloneDeep, set } from 'lodash'
-import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
@@ -128,8 +127,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {
     console.log('authoritativeSourceExtension: ', authoritativeSourceExtension)
-    console.log('terminologyServerEndpoints: ', terminologyServerEndpoints)
-    let val = terminologyServerEndpoints?.find((endpoint) => {
+    let val = availableTerminologyServers?.find((endpoint) => {
     let urlPath = endpoint?.value?.url
     console.log('endpoint: ', endpoint)
     console.log('urlPath: ', urlPath)
@@ -165,7 +163,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
     const valuesetServerBase = valueSet?.url?.split('/fhir/')?.[0]?.split('//')[1]
 
     if (valuesetServerBase) {
-      const terminologyItem = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
+      const terminologyItem = availableTerminologyServers?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
       return {
         value: terminologyItem?.label || "",
         hasExtension: false

@@ -6,7 +6,6 @@ import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { cloneDeep } from 'lodash'
-import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
 import retry from '@/helpers/retryRequest'
 
@@ -57,8 +56,9 @@ interface AddDetails {
   vs: fhir4.ValueSet
   useContext: fhir4.UsageContext[]
   terminologyInfo: TermInfo
+  terminologyServerEndpoints: { label: string; value: { id: string; url: string } }[]
 }
-const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir4.ValueSet => {
+const addDetailsToLeaf = ({ vs, useContext, terminologyInfo, terminologyServerEndpoints }: AddDetails): fhir4.ValueSet => {
   const clonedVs = cloneDeep(vs)
 
   const conditionsToAdd = useContext?.filter(
@@ -91,12 +91,7 @@ const getLeafFromTermServer = async ({
   useContext
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    console.log('this called again')
-    const client = terminologyInfo.value.toLowerCase()
-    // if (!(client === 'vsac' || client === 'ontoserverR4')) {
-    //   throw "Invalid terminology server"
-    // }
-    // terminologyClient.setClient(client)
+
     const terminologyClientInstance = terminologyClient.getClient()!
 
     const searchParams = {
@@ -138,7 +133,19 @@ const getLeafFromTermServer = async ({
       Logger.getLogger().error('Error normalizing leaf valueset')
       return
     }
-    const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo })
+
+    const allEndpoints = await FhirClient.getInstance().search({
+      resourceType: 'Endpoint'
+    })
+
+    const formattedEndpoints = allEndpoints?.entry?.map((e) => {
+      return {
+        label: e.resource?.name,
+        value: {id: e.resource.id, url: e.resource.address}
+      }
+    })
+
+    const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo, terminologyServerEndpoints: formattedEndpoints })
     if (!vsWithMetadata) {
       Logger.getLogger().error('Error adding conditions and auth source to leaf valueset')
     }
