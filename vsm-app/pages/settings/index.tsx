@@ -54,7 +54,7 @@ type CredentialsSnippetProps = {
 
 type EndpointDetails = { id: string; name: string; address: string }
 
-const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, username, password }: CredentialsSnippetProps) => {
+const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, username, password, reload }: CredentialsSnippetProps) => {
   const [newUsername, setNewUsername] = useState(username)
   const [newPassword, setNewPassword] = useState(password)
 
@@ -69,6 +69,7 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
             onClick={async () => {
               try {
                 await onUpdate(newUsername, newPassword)
+                await reload()
                 cancelEdit()
               } catch (e) {
                 // Catch here to prevent the cancelEdit from being called
@@ -301,6 +302,11 @@ const CredentialsItem = (currentServerData) => {
     return <LoadingIndicator />
   }
 
+  const reload = async () => {
+    reloadCurrentCredentials()
+    reloadCurrentEndpoints()
+  }
+
   return (
     <Box style={{ backgroundColor: isOdd ? 'var(--neutral-350)' : 'var(--neutral-300)'}}>
       { !credentials?.length ?
@@ -344,6 +350,7 @@ const CredentialsItem = (currentServerData) => {
                   <ValidStatus isValid={isEndpointValid} isLoading={pingLoading} />
                   <Box>
                     <CredentialsSnippet
+                      reload={reload}
                       isEditing={showEditSet.has(e.id)}
                       onUpdate={(newUsername, newPassword) => updateCredential(e.id!, newUsername, newPassword)}
                       cancelEdit={() => {
