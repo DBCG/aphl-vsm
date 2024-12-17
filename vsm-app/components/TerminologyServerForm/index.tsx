@@ -60,7 +60,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
         body: JSON.stringify(body)
       })
       if (response.ok) {
-        router.push(`/admin`)
+        router.push(`/settings`)
       } else {
         const error = await response.json()
         throw error
@@ -121,8 +121,8 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       <Button
         style={{ marginBottom: '15px' }}
         id="back-to-admin"
-        text="Back to Admin Tools"
-        onClick={() => router.push('/admin')}
+        text="Back to Settings"
+        onClick={() => router.push('/settings')}
         disabled={loading}
       />
       <GridContainer>

@@ -5,6 +5,8 @@ import DT, { TableColumn } from 'react-data-table-component'
 import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { EndpointResponse } from '../api/endpoint'
@@ -19,6 +21,7 @@ import { toast } from 'react-toastify'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 import { useSession } from 'next-auth/react'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 
 const Col = styled.div`
   display: flex;
@@ -159,6 +162,26 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
   )
 }
 
+const ValidStatus = ({ isValid }: { isValid: boolean }) => {
+  const inner = isValid ? (
+    <>
+      <Typography style={{ color: 'inherit' }}>Creds Valid</Typography>
+      <CheckCircleOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
+    </>
+  ) : (
+    <>
+      <Typography style={{ color: 'inherit' }}>Creds Invalid</Typography>
+      <ErrorOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
+    </>
+  )
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', color: isValid ? 'var(--theme-400)' : 'var(--accent)' }}>
+      {inner}
+    </div>
+  )
+}
+
 const CredentialsItem = (currentServerData) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
@@ -168,37 +191,47 @@ const CredentialsItem = (currentServerData) => {
   
   const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
-
-  if (credsLoading || endpointsLoading) {
-    return <LoadingIndicator />
-  }
-
   const refetchData = () => {
     reloadCurrentCredentials()
     reloadCurrentEndpoints()
   }
 
-  const availableEndpoints = [] as EndpointDetails[]
-  const credentials = [] as ({ username: string; password: string; } & EndpointDetails)[]
+  const [availableEndpoints, credentials] = useMemo(() => {
+    const availEnd = [] as EndpointDetails[]
+    const creds = [] as ({ username: string; password: string; } & EndpointDetails)[]
+    currentEndpoints?.endpoints
+    ?.filter(e => e?.id === data?.id)
+    ?.forEach((endpoint: fhir4.Endpoint) => {
+      const foundCred = currentCredentials?.find((cred) => cred.terminologyServerId === endpoint.id)
+      const baseEndpoint = {
+        id: endpoint.id,
+        name: endpoint.name,
+        address: endpoint.address
+      } as EndpointDetails
+      if (foundCred) {
+        creds.push({
+          ...baseEndpoint,
+          username: foundCred.username,
+          password: foundCred.password
+        })
+      } else {
+        availEnd.push(baseEndpoint)
+      }
+    })
+    return [availEnd, creds]
+  }, [currentCredentials, currentEndpoints])
 
-  currentEndpoints?.endpoints
-  ?.filter(e => e?.id === data?.id)
-  ?.forEach((endpoint: fhir4.Endpoint) => {
-    const foundCred = currentCredentials?.find((cred) => cred.terminologyServerId === endpoint.id)
-    const baseEndpoint = {
-      id: endpoint.id,
-      name: endpoint.name,
-      address: endpoint.address
-    } as EndpointDetails
-    if (foundCred) {
-      credentials.push({
-        ...baseEndpoint,
-        username: foundCred.username,
-        password: foundCred.password
-      })
-    } else {
-      availableEndpoints.push(baseEndpoint)
-    }
+  console.log('creds! ', credentials)
+    const {
+    isEndpointValid,
+    pingLoading,
+    pingError,
+    pingMutate
+  } = useTestTermEndpoint({
+    endpointUrl: credentials?.[0]?.address || '',
+    endpointName: credentials?.[0]?.name,
+    username: credentials?.[0]?.username,
+    password: credentials?.[0]?.password,
   })
 
   const updateCredential = async (id: string, username: string, password: string) => {
@@ -252,6 +285,10 @@ const CredentialsItem = (currentServerData) => {
 
   const isOdd = data?.index % 2 === 0
 
+  if (credsLoading || endpointsLoading) {
+    return <LoadingIndicator />
+  }
+
   return (
     <Box style={{ backgroundColor: isOdd ? 'var(--neutral-350)' : 'var(--neutral-300)'}}>
       { !credentials?.length ?
@@ -292,6 +329,7 @@ const CredentialsItem = (currentServerData) => {
                 }}
               >
                 <Stack>
+                  <ValidStatus isValid={isEndpointValid} />
                   <Box>
                     <CredentialsSnippet
                       isEditing={showEditSet.has(e.id)}
@@ -506,7 +544,7 @@ const TerminologyEndpoints: NextPage = () => {
       {isAdmin && (
         <Row style={{ alignItems: 'center' }}>
           <h4 style={{ color: 'var(--theme-400)'}}>Terminology Endpoints</h4>
-          <Button onClick={() => router.push('/admin/create-endpoint')}>Add New Terminology Endpoint</Button>
+          <Button onClick={() => router.push('/settings/create-endpoint')}>Add New Terminology Endpoint</Button>
         </Row>
       )}
       {!currentCredentials?.length ? (

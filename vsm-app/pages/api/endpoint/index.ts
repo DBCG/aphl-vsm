@@ -40,6 +40,7 @@ const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.E
 }
 
 const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointResponse>) => {
+  console.log('1**')
   if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'false' || process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT == null) {
     res.status(200).send({ endpoints: [], total: 0 })
   }
@@ -53,7 +54,7 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
       identifier: 'terminologyEndpoint'
     }
   })) as fhir4.Bundle
-
+  console.log('2**')
   let endpoints = endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || []
   if (req.query.user_set) {
     // This option will filter and return only those endpoints that the user has set credentials for
@@ -62,7 +63,7 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
     const endpointIds = new Set(creds.map((cred) => cred.terminologyServerId))
     endpoints = endpoints.filter((ep) => endpointIds.has(ep.id!))
   }
-
+  console.log('3**')
   res.status(200).send({ endpoints, total: endpoints?.length || 0 })
 }
 export default handler({

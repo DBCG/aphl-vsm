@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react'
-import type { GetServerSidePropsContext, NextPage } from 'next'
+import { useEffect, useMemo, useState } from 'react'
+import type { NextPage } from 'next'
 import ProgramsTab from '@/components/Provisional/ProgramsTab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
 import { useRouter } from 'next/router'
-import { getServerSession } from 'next-auth'
-import { AuthOptions } from '../api/auth/[...nextauth]'
-import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { useSession } from 'next-auth/react'
+import { useGetCredentials } from '@/hooks/useGetCredentials'
+import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
+import { useGetEndpoints } from '@/hooks/useGetEndpoints'
 
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
   const router = useRouter()
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   useEffect(() => {
     if (router?.query?.resourceType === 'provisional') {
       setValue('2')
@@ -21,6 +23,46 @@ const Programs: NextPage = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue)
   }
+
+  const {
+    allUserCredentials,
+    credsLoading,
+    errorGetCreds,
+    mutateGetCreds
+  } = useGetCredentials({ userId: session?.user?.id })
+
+  const {
+    allEndpoints,
+    endpointsLoading,
+    errorEndpoints,
+    mutateEndpoints
+  } = useGetEndpoints()
+
+  const vsacEndpoint = useMemo(() => {
+    console.log('allEndpoints***', allEndpoints)
+    const result = allEndpoints?.endpoints?.find((endpoint: any) => endpoint.id === 'vsac')
+    console.log('result endpoint***', result)
+    return result
+  }, [allEndpoints])
+
+  const {
+    isEndpointValid,
+    pingLoading,
+    pingError,
+    pingMutate
+  } = useTestTermEndpoint({
+    endpointUrl: vsacEndpoint?.address || '',
+    endpointName: 'VSAC',
+    username: allUserCredentials?.find((cred: any) => cred.terminologyServerId === 'vsac')?.username,
+    password: allUserCredentials?.find((cred: any) => cred.terminologyServerId === 'vsac')?.password,
+  })
+  
+  useEffect(() => {
+    if (vsacEndpoint && !isEndpointValid && !pingLoading && pingError) {
+      router.push('/settings')
+      // pingMutate()
+    }
+  }, [vsacEndpoint, isEndpointValid, pingLoading, pingError])
 
   return (
     <TabContext value={value}>
@@ -38,32 +80,6 @@ const Programs: NextPage = () => {
       </TabPanel>
     </TabContext>
   )
-}
-
-const getVsacCredsServerSideProp = async (ctx: GetServerSidePropsContext) => {
-  const session = await getServerSession(ctx.req, ctx.res, AuthOptions)
-  const creds = await tsCredentialService.getAllCredentials(session?.user?.id as string)
-  console.log('creds: ', creds)
-  // const vsacId = 'vsac'
-  const testId = 'vsac'
-  const hasVsacCreds = creds.find(c => c?.terminologyServerId === testId)
-    return { hasVsacCreds }
-}
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-
-  const props = await getVsacCredsServerSideProp(context)
-  if (!props.hasVsacCreds) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/settings",
-      },
-      props: props
-    };
-  } else {
-    return { props: props }
-  }
 }
 
 export default Programs
