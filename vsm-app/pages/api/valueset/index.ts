@@ -9,6 +9,10 @@ import Logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
+import { getServerSession } from 'next-auth'
+import { AuthOptions } from '../auth/[...nextauth]'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 interface BundleEntryItem {
   fullUrl: string,
@@ -76,8 +80,21 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     } else {
       
       try {
-        console.log('terminology server', terminologyClient.getClientName())
-        terminologyClient.setClient(body.selectedTerminologyServer)
+
+        const session = <VSMSession>await getServerSession(req, res, AuthOptions)
+        const creds = await tsCredentialService.getAllCredentials(session.user.id)
+
+        const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
+        if (!matchingCredentialsForServer) {
+          return res.status(400).json({ error: 'No credentials found for selected terminology server' })
+        }
+
+        terminologyClient.setCustomClient({
+          clientName: body?.selectedTerminologyServer?.label as string,
+          baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
+          basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+        })
+
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
           let url = idWithoutVersion(selectedVS?.url as string)
@@ -104,13 +121,11 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
-                console.log('fullUrl', matchingFullUrl)
-                console.log('body', body)
                 // can't use fullUrl because it's the same for VSAC UAT and regular VSAC
                 // so we won't be able to differentiate if we did
 
-                // the issue with auth source in UAT is here
-                const authSrcUrl = matchingFullUrl
+                const authSrcUrlBase = body?.selectedTerminologyServer?.value?.url as string
+                const authSrcUrl = `${authSrcUrlBase}/ValueSet/${matchingId}`
 
                 if (authSrcUrl) {
                   // add authoritativeSource extension
