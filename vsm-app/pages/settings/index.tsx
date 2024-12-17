@@ -494,9 +494,10 @@ const TerminologyEndpoints: NextPage = () => {
   )
 
   const onboardingText = {
-    title: 'Welcome to the Valueset Manager',
-    body: 'In order to continue, you must first add credentials to the VSAC server below. This is required for the app to be able to run.'
+    title: 'Welcome to the Valueset Manager!',
+    body: 'In order to view content, you must first add credentials for the VSAC server below. This is required for the app to be able to run.'
   }
+
   return (
     <Col>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
@@ -508,10 +509,13 @@ const TerminologyEndpoints: NextPage = () => {
           <Button onClick={() => router.push('/admin/create-endpoint')}>Add New Terminology Endpoint</Button>
         </Row>
       )}
-      {}
-      <Box>
-
+      {!currentCredentials?.length ? (
+      <Box style={{ backgroundColor: 'white', padding: '1rem' }}>
+        <p style={{ fontWeight: 'bold' }}>{onboardingText.title}</p>
+        <p>{onboardingText.body}</p>
       </Box>
+
+      ): null}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={data?.map((d, index) => ({ ...d, index }))}
