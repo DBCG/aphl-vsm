@@ -8,9 +8,6 @@ const useGetCredentials = ({ userId }: { userId: string }) => {
 
   const { data, error, isLoading, mutate } = useSWR(userId ? endpoint : null, fetcher)
 
-  console.log('data get creds***', data)
-  console.log('error get creds***', error)
-  // return
   return {
     allUserCredentials: data,
     credsLoading: isLoading,

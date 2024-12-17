@@ -8,9 +8,6 @@ const useGetEndpoints = () => {
 
   const { data, error, isLoading, mutate } = useSWR(endpoint, fetcher)
 
-  console.log('data get endpoints***', data)
-  console.log('error get endpoints***', error)
-  // return
   return {
     allEndpoints: data,
     endpointsLoading: isLoading,

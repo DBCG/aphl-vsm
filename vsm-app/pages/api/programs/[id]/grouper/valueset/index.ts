@@ -430,8 +430,6 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
 
   const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
-  console.log('matchesInServer', matchesInServer)
-  console.log('grouperValueSets', grouperVSets)
   const transactionEntries: fhir4.BundleEntry[] = []
   const matchesInCqfUrls = matchesInServer?.map((vs) => vs.url)
   // get from remote
@@ -462,7 +460,6 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
       }
     })
     
-    console.log('allEndpoints', allEndpoints)
     for (const flatGrouperItem of vsToAddFromTermServer) {
       const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === flatGrouperItem?.selectedTerminologyServer?.value?.id)
       if (!matchingCredentialsForServer) {
@@ -485,22 +482,17 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
           id: idNoVersion
         })
 
-        console.log('flatGrouperItem', flatGrouperItem)
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
-
         const authSrcBase = formattedEndpoints?.find(
           (endpointItem) => {
             const endpoint = endpointItem.value.id.toLowerCase()
             const idSpecifiedInRequest = flatGrouperItem.selectedTerminologyServer?.value?.id.toLowerCase()
-            console.log('endpoint: ', endpoint)
-            console.log('idSpecifiedInRequest: ', idSpecifiedInRequest)
             return endpoint === idSpecifiedInRequest
           }
         )?.value?.url
 
         const authSrcUrl = `${authSrcBase}/ValueSet/${idNoVersion}`
-        console.log('authSrcUrl: ', authSrcUrl)
         // handle if no matching authoritativeSource url
         const vsWithAuthSource = addExtensionToVs(
           valueSetToAdd as fhir4.ValueSet,

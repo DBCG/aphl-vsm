@@ -39,9 +39,7 @@ const Programs: NextPage = () => {
   } = useGetEndpoints()
 
   const vsacEndpoint = useMemo(() => {
-    console.log('allEndpoints***', allEndpoints)
     const result = allEndpoints?.endpoints?.find((endpoint: any) => endpoint.id === 'vsac')
-    console.log('result endpoint***', result)
     return result
   }, [allEndpoints])
 

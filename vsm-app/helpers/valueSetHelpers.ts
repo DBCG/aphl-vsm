@@ -120,22 +120,14 @@ interface AvailableTermServer {
 }
 
 const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServers: AvailableTermServer[], errors: string[]): TerminologyResult => {
-  console.log('termServerOptions', availableTerminologyServers)
   const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
-  console.log('valueSet.title: ', valueSet.title)
-  console.log('authoriativeSource: ', authoritativeSourceExtension)
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {
-    console.log('authoritativeSourceExtension: ', authoritativeSourceExtension)
     let val = availableTerminologyServers?.find((endpoint) => {
     let urlPath = endpoint?.value?.url
-    console.log('endpoint: ', endpoint)
-    console.log('urlPath: ', urlPath)
-    console.log('authoritativeSourceExtension?.valueUri?.startsWith(urlPath): ', authoritativeSourceExtension?.valueUri)
     return typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
     })
 
-    console.log('val', val)
     if (!val) {
       // TODO: bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
       if (isVsmAuthored(valueSet)) {

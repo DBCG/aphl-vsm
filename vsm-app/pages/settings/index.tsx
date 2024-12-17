@@ -190,7 +190,6 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
 const CredentialsItem = (currentServerData) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
-  console.log('currentServerData', currentServerData)
   const {data, currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
   
@@ -226,7 +225,6 @@ const CredentialsItem = (currentServerData) => {
     return [availEnd, creds]
   }, [currentCredentials, currentEndpoints])
 
-  console.log('creds! ', credentials)
     const {
     isEndpointValid,
     pingLoading,
@@ -562,31 +560,6 @@ const TerminologyEndpoints: NextPage = () => {
     requirements: 'This is required for the app to be able to run.'
   }
 
-  useEffect(() => {
-    console.log('currentCredentials', currentCredentials)
-    console.log('vsac invalid', vsacInvalid)
-  },[currentCredentials, vsacInvalid])
-
-  const customSort = (rows, selector) => {
-    return rows.sort((rowA, rowB) => {
-      console.log('rowA', rowA)
-      console.log('rowB', rowB)
-     // use the selector function to resolve your field names by passing the sort comparitors
-     const aField = selector(rowA)
-     const bField = selector(rowB)
-   
-     let comparison = 0;
-   
-     if (aField > bField) {
-      comparison = 1;
-     } else if (aField < bField) {
-      comparison = -1;
-     }
-   
-     return direction === 'desc' ? comparison * -1 : comparison;
-    });
-   };
-
   return (
     <Col>
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
@@ -611,7 +584,6 @@ const TerminologyEndpoints: NextPage = () => {
         data={
           data?.map((d, index) => ({ ...d, index }))
         }
-        // sortFunction={customSort}
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}

@@ -57,8 +57,6 @@ export interface UpdateValueSetBody extends NextApiRequest {
 const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>) => {
   const body = req.body
 
-  console.log('got here!')
-
   if (body?.selectedConditions?.length > 0 && !req.query.programId) {
     return res.status(400).json({ error: 'missing program Id required for conditions' })
   }

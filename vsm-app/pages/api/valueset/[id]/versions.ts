@@ -34,7 +34,6 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
     return res.status(404).json({ error: `Error finding ValueSet with id ${id}.` })
   }
 
-  console.log('response here: ', response)
   const authSourceBase = response?.extension?.find(ext => ext?.url?.endsWith('valueset-authoritativeSource'))?.valueUri?.split('/ValueSet')?.[0]
   if (!authSourceBase) {
     return res.status(404).json({ error: `Leaf valueset lacks authoritative source` })
@@ -45,14 +44,11 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
   }) as fhir4.Endpoint
 
   const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
-  console.log('endpoints: ', endpoints)
   
   // the VSAC endpoint is not the same as the authSourceBase
   // trying to use the http protocol for the custom client below didn't work
   // so this is a workaround
   const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => {
-    console.log('e.address: ', e.address)
-    console.log('authSourceBase: ', authSourceBase)
     if (authSourceBase === 'http://cts.nlm.nih.gov/fhir') {
       return e?.address?.toLowerCase() === 'https://cts.nlm.nih.gov/fhir'
     } else {

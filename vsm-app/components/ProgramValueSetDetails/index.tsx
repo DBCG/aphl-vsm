@@ -309,12 +309,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // fetch options for Version field
   const fetchVersionOptions = async (vsId: string) => {
-    console.log('this called  ')
     // if already cached in component, use that version
     if (versions?.[vsId]) {
       return
     }
-    console.log('terminologySources', terminologySources)
     // otherwise, loading states and fetch
     setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'
@@ -514,7 +512,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           }
           var errors: string[] = []
           const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
-          console.log('terminologyInfo', terminologyInfo)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
@@ -596,7 +593,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         cell: (row: TableRow) => {
           var errors: string[] = []
           const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
-          console.log('terminologySources', terminologySources)
           
           return (
             <div>
