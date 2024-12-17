@@ -119,7 +119,7 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
       return response.json()
     }
   })) as fhir4.OperationOutcome | string
-  
+
   const nonBreakingErrors = formatErrors(validateResponse, 'Unknown error performing validation')
 
   // validation failure does not break the workflow in the app
@@ -140,7 +140,7 @@ PackageQueue.process(async function (job: any, done) {
   const cacheKey = `user:${userId}:job:${job.id}`
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$package?_format=${currentFormat}`, {
+    let response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$ecr.package?_format=${currentFormat}`, {
       body: JSON.stringify(parameters),
       method: 'POST',
       dispatcher: new Agent({

@@ -13,8 +13,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.context.annotation.Import;
+import org.opencds.cqf.ruler.ValueSetCache.RedisConfig;
 @Configuration
+@Import(RedisConfig.class)
 @ConditionalOnProperty(prefix = "hapi.fhir.casereporting", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CaseReportingConfig {
 	@Bean

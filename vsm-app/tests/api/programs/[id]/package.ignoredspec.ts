@@ -75,7 +75,7 @@ describe('/api/programs/[id]/package', () => {
     // v1 export response
 
     await handler(req, res)
-    expect(fetchMock.mock.calls[0][0]).toContain('/fhir/Library/SpecificationLibrary/$package?_format=json')
+    expect(fetchMock.mock.calls[0][0]).toContain('/fhir/Library/SpecificationLibrary/$ecr.package?_format=json')
     expect(fetchMock.mock.calls[1][0]).toContain('/fhir/$ersd-v2-to-v1-transform?_format=json')
     expect(fetchMock.mock.calls.length).toEqual(2)
 

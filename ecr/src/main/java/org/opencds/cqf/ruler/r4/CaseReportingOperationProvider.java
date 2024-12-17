@@ -17,6 +17,7 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.NotImplementedOperationException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
@@ -35,12 +36,14 @@ import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.*;
+import org.opencds.cqf.fhir.cr.visitor.*;
 import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
-import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.visitor.*;
-import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
 import org.opencds.cqf.ruler.IBaseSerializer;
+import org.opencds.cqf.ruler.ValueSetCache.FhirRedisService;
+import org.opencds.cqf.ruler.ValueSetCache.ValueSetExpansionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +73,10 @@ public class CaseReportingOperationProvider {
 	@Autowired
 	private FhirContext fhirContext;
 
-	private AdapterFactory adapterFactory = AdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+	@Autowired
+	private FhirRedisService fhirRedisService;
+
+	private IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
 	/**
 	 * Applies an approval to an existing artifact, regardless of status.
@@ -155,8 +161,8 @@ public class CaseReportingOperationProvider {
 			params.addParameter("artifactAssessmentAuthor", artifactAssessmentAuthor);
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new ApproveVisitor();
-		return ((Bundle) adapter.accept(visitor, repository, params));
+		var visitor = new ApproveVisitor(repository);
+		return ((Bundle) adapter.accept(visitor, params));
 	}
 
 	/**
@@ -178,8 +184,8 @@ public class CaseReportingOperationProvider {
 		}
 		var params = new Parameters().addParameter("version", new StringType(version));
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new DraftVisitor();
-		return ((Bundle) adapter.accept(visitor, repository, params));
+		var visitor = new DraftVisitor(repository);
+		return ((Bundle) adapter.accept(visitor, params));
 	}
 
 	/**
@@ -226,12 +232,12 @@ public class CaseReportingOperationProvider {
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
-			var visitor = new ReleaseVisitor();
+			var visitor = new ReleaseVisitor(repository);
 			adapter.getRelatedArtifact()
 				.forEach(ra -> {
 					KnowledgeArtifactProcessor.checkIfValueSetNeedsCondition(null, (RelatedArtifact) ra, repository);
 				});
-			var retval = (Bundle) adapter.accept(visitor, repository, params);
+			var retval = (Bundle) adapter.accept(visitor, params);
 			return retval;
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
@@ -302,7 +308,7 @@ public class CaseReportingOperationProvider {
 		}
 		return minimalDataRequirements(adapterFactory.createKnowledgeArtifactAdapter(resource));
 	}
-	private Library minimalDataRequirements(KnowledgeArtifactAdapter adapter) {
+	private Library minimalDataRequirements(IKnowledgeArtifactAdapter adapter) {
 		Library returnLibrary = new Library();
 		returnLibrary.setStatus(Enumerations.PublicationStatus.ACTIVE);
 		CodeableConcept libraryType = new CodeableConcept();
@@ -311,7 +317,7 @@ public class CaseReportingOperationProvider {
 		libraryType.addCoding(typeCoding);
 		returnLibrary.setName("EffectiveDataRequirements");
 		returnLibrary.setType(libraryType);
-		returnLibrary.getRelatedArtifact().addAll(adapter.getDependencies().stream().map(dep -> (RelatedArtifact)KnowledgeArtifactAdapter.newRelatedArtifact(
+		returnLibrary.getRelatedArtifact().addAll(adapter.getDependencies().stream().map(dep -> (RelatedArtifact)IKnowledgeArtifactAdapter.newRelatedArtifact(
 			FhirVersionEnum.R4,
 			"depends-on",
 			dep.getReference(),
@@ -320,8 +326,8 @@ public class CaseReportingOperationProvider {
 		return returnLibrary;
 	}
 	
-	@Operation(name = "$package", idempotent = true, global = true, type = MetadataResource.class)
-	@Description(shortDefinition = "$package", value = "Package an artifact and components / dependencies")
+	@Operation(name = "$ecr.package", idempotent = true, global = true, type = MetadataResource.class)
+	@Description(shortDefinition = "$ecr.package", value = "Package an artifact and components / dependencies")
 	public Bundle packageOperation(
 		RequestDetails requestDetails,
 		@IdParam IdType theId,
@@ -382,8 +388,9 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var visitor = new PackageVisitor(fhirContext);
-		var retval = (Bundle) adapter.accept(visitor, repository, params);
+		var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
+		var visitor = new PackageVisitor(repository, expansionCache);
+		var retval = (Bundle) adapter.accept(visitor, params);
 		retval.getEntry().stream()
 			.map(e -> (MetadataResource) e.getResource())
 			.filter(r -> {
@@ -535,7 +542,7 @@ public class CaseReportingOperationProvider {
 		var repository = repositoryFactory.create(requestDetails);
 		var dao = (IFhirResourceDaoValueSet<ValueSet>) daoRegistry.getResourceDao(ValueSet.class);
 		// 4) Use that diff to create a changelog
-		var targetAdapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource.get());
+		var targetAdapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource.get());
 		var diffParameters = KnowledgeArtifactProcessor.artifactDiff(theSourceResource.get(), theTargetResource.get(), fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
 		var changelog = new ChangeLog(manifestUrl);		// 2) Recursively process the Parameters into a flat ChangeLog
@@ -578,9 +585,9 @@ public class CaseReportingOperationProvider {
 		var params = new Parameters();
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
-			var visitor = new WithdrawVisitor();
+			var visitor = new WithdrawVisitor(repository);
 
-			return (Bundle) adapter.accept(visitor, repository, params);
+			return (Bundle) adapter.accept(visitor, params);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
@@ -607,9 +614,9 @@ public class CaseReportingOperationProvider {
 		var params = new Parameters();
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
-			var visitor = new RetireVisitor();
+			var visitor = new RetireVisitor(repository);
 
-			return (Bundle) adapter.accept(visitor, repository, params);
+			return (Bundle) adapter.accept(visitor, params);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}
@@ -636,9 +643,9 @@ public class CaseReportingOperationProvider {
 		var params = new Parameters();
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
-			var visitor = new DeleteVisitor();
+			var visitor = new DeleteVisitor(repository);
 
-			return (Bundle) adapter.accept(visitor, repository, params);
+			return (Bundle) adapter.accept(visitor, params);
 		} catch (Exception e) {
 			throw new UnprocessableEntityException(e.getMessage());
 		}

@@ -12,11 +12,10 @@ import org.opencds.cqf.ruler.TransformProperties;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.*;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.opencds.cqf.fhir.utility.Canonicals;
-import org.opencds.cqf.fhir.utility.adapter.AdapterFactory;
-import org.opencds.cqf.fhir.utility.adapter.KnowledgeArtifactAdapter;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.r4.ArtifactAssessment;
 import org.opencds.cqf.ruler.CaseReportingConfig;
 import org.opencds.cqf.ruler.test.RestIntegrationTest;
@@ -106,10 +105,10 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		List<RelatedArtifact> relatedArtifacts = lib.getRelatedArtifact();
 		assertTrue(!relatedArtifacts.isEmpty());
 		forEachMetadataResource(returnedBundle.getEntry(), resource -> {
-			List<RelatedArtifact> relatedArtifacts2 = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource).getRelatedArtifact();
+			List<RelatedArtifact> relatedArtifacts2 = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource).getRelatedArtifact();
 			if (relatedArtifacts2 != null && relatedArtifacts2.size() > 0) {
 				for (RelatedArtifact relatedArtifact : relatedArtifacts2) {
-					if (KnowledgeArtifactAdapter.checkIfRelatedArtifactIsOwned(relatedArtifact)) {
+					if (IKnowledgeArtifactAdapter.checkIfRelatedArtifactIsOwned(relatedArtifact)) {
 						assertTrue(Canonicals.getVersion(relatedArtifact.getResource()).equals(draftedVersion));
 					}
 				}
@@ -143,7 +142,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 
 		forEachMetadataResource(returnedBundle.getEntry(), resource -> {
-			var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
+			var adapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
 			assertFalse(((Period)adapter.getEffectivePeriod()).hasStart() || ((Period)adapter.getEffectivePeriod()).hasEnd());
 		});
 	}
@@ -489,7 +488,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		forEachMetadataResource(returnResource.getEntry(), resource -> {
 			assertNotNull(resource);
 			if(!resource.getClass().getSimpleName().equals("ValueSet")){
-				var adapter = AdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
+				var adapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(resource);
 				assertTrue(((Period)adapter.getEffectivePeriod()).hasStart());
 				var start = ((Period)adapter.getEffectivePeriod()).getStart();
 				var calendar = new GregorianCalendar();
@@ -961,7 +960,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			try {
 				getClient().operation()
 					.onInstance(specificationLibReference)
-					.named("$package")
+					.named("$ecr.package")
 					.withParameters(params)
 					.returnResourceType(Bundle.class)
 					.execute();
@@ -977,7 +976,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle packaged = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(allParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -996,7 +995,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle updatedCanonicalVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1016,7 +1015,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		try {
 			getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withParameters(params)
 				.returnResourceType(Bundle.class)
 				.execute();
@@ -1029,7 +1028,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle noErrorCheckCanonicalPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1045,7 +1044,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle forcedVersionPackage = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1065,7 +1064,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		countZeroParams.addParameter("count", new IntegerType(0));
 		Bundle countZeroBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countZeroParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1077,7 +1076,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle count2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(count2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1088,7 +1087,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle count2Offset2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(count2Offset2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1101,7 +1100,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offset4Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offset4Params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1113,7 +1112,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetMaxBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offsetMaxParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1124,7 +1123,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetMaxRandomCountBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offsetMaxRandomCountParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1139,7 +1138,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countZeroBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countZeroParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1149,7 +1148,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countSevenBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countSevenParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1159,7 +1158,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countFourBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countFourParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1172,7 +1171,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle offsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(offsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1187,7 +1186,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 		Bundle countOneOffsetOneBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(countOneOffsetOneParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1203,7 +1202,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1221,7 +1220,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1258,7 +1257,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1330,7 +1329,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 
 			Bundle packaged = getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withParameters(params)
 				.returnResourceType(Bundle.class)
 				.execute();
@@ -1356,7 +1355,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1369,7 +1368,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1398,7 +1397,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		try {
 			getClient().operation()
 					.onInstance("Library/SmallSpecificationLibrary")
-					.named("$package")
+					.named("$ecr.package")
 					.withParameters(emptyParams)
 					.returnResourceType(Bundle.class)
 					.execute();
@@ -1414,7 +1413,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters emptyParams = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance("Library/SmallSpecificationLibrary")
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(emptyParams)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1437,7 +1436,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		try {
 			getClient().operation()
 				.onInstance(specificationLibReference)
-				.named("$package")
+				.named("$ecr.package")
 				.withNoParameters(Parameters.class)
 				.returnResourceType(Bundle.class)
 				.execute();
@@ -1527,7 +1526,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		Parameters params = new Parameters();
 		Bundle packagedBundle = getClient().operation()
 			.onInstance(specificationLibReference)
-			.named("$package")
+			.named("$ecr.package")
 			.withParameters(params)
 			.returnResourceType(Bundle.class)
 			.execute();
@@ -1758,7 +1757,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		var endpoint = new Endpoint();
 		endpoint.setAddress("https://cts.nlm.nih.gov/fhir");
 		endpoint.addExtension("vsacUsername", new StringType("tahaattarismile"));
-		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
+		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));	
+		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
 		diffParams.addParameter().setName("terminologyEndpoint").setResource( endpointCredentials);
 		return diffParams;
 	}
