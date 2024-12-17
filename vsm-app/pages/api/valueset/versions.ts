@@ -138,7 +138,7 @@ const getLeafFromTermServer = async ({
       resourceType: 'Endpoint'
     })
 
-    const formattedEndpoints = allEndpoints?.entry?.map((e) => {
+    const formattedEndpoints = allEndpoints?.entry?.map((e: any) => {
       return {
         label: e.resource?.name,
         value: {id: e.resource.id, url: e.resource.address}

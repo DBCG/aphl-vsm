@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react'
 import { useGetCredentials } from '@/hooks/useGetCredentials'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { useGetEndpoints } from '@/hooks/useGetEndpoints'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
@@ -26,16 +27,10 @@ const Programs: NextPage = () => {
 
   const {
     allUserCredentials,
-    credsLoading,
-    errorGetCreds,
-    mutateGetCreds
   } = useGetCredentials({ userId: session?.user?.id })
 
   const {
     allEndpoints,
-    endpointsLoading,
-    errorEndpoints,
-    mutateEndpoints
   } = useGetEndpoints()
 
   const vsacEndpoint = useMemo(() => {
@@ -47,7 +42,6 @@ const Programs: NextPage = () => {
     isEndpointValid,
     pingLoading,
     pingError,
-    pingMutate
   } = useTestTermEndpoint({
     endpointUrl: vsacEndpoint?.address || '',
     endpointName: 'VSAC',
@@ -58,7 +52,6 @@ const Programs: NextPage = () => {
   useEffect(() => {
     if (vsacEndpoint && !isEndpointValid && !pingLoading && pingError) {
       router.push('/settings')
-      // pingMutate()
     }
   }, [vsacEndpoint, isEndpointValid, pingLoading, pingError])
 

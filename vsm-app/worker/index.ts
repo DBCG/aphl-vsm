@@ -26,7 +26,7 @@ type CDRResponseCollection = {
 
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, session }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, session: VSMSession }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
   limiter: {
     max: 1,
     duration: 10000
@@ -150,7 +150,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
 
     const endpointBundle = await FhirClient.getInstance().search({
       resourceType: 'Endpoint',
-    }) as fhir4.Endpoint
+    })
   
     const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
 
@@ -195,8 +195,8 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         })) as fhir4.Bundle
 
         if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
-          Logger.getLogger().error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${value}`)
-          refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${value}`)
+          Logger.getLogger().error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${baseTermServerUrl}`)
+          refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${baseTermServerUrl}`)
           return null
         }
 

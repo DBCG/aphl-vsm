@@ -13,6 +13,7 @@ import { getServerSession } from 'next-auth'
 import { AuthOptions } from '../auth/[...nextauth]'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { TermServerOption } from '@/types/grouperTypes'
 
 interface BundleEntryItem {
   fullUrl: string,
@@ -47,7 +48,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 
 export interface UpdateValueSetBody extends NextApiRequest {
   body: {
-    selectedTerminologyServer: "vsac" | "ontoserverR4" | "vsm"
+    selectedTerminologyServer: TermServerOption | 'vsm'
     selectedValueSets: fhir4.ValueSet[]
     selectedConditions: Condition[]
     selectedGroupers: FormattedGroup[]
@@ -104,6 +105,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             basicAuthHeader: `${Buffer.from(`${process.env.FHIR_CDR_BASIC_AUTH_USERNAME}:${process.env.FHIR_CDR_BASIC_AUTH_PASSWORD}`).toString('base64')}`
           }) 
         } else {
+          // @ts-ignore
           const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
           if (!matchingCredentialsForServer) {
             return res.status(400).json({ error: 'No credentials found for selected terminology server' })
@@ -115,12 +117,6 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
           })
         }
-
-        // terminologyClient.setCustomClient({
-        //   clientName: body?.selectedTerminologyServer?.label as string,
-        //   baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
-        //   basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
-        // })
 
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
@@ -152,7 +148,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               if (is.valueSet(matchingVSetFromRemoteServer)) {
                 // can't use fullUrl because it's the same for VSAC UAT and regular VSAC
                 // so we won't be able to differentiate if we did
-
+                // @ts-ignore
                 const authSrcUrlBase = body?.selectedTerminologyServer?.value?.url as string
                 const authSrcUrl = `${authSrcUrlBase}/ValueSet/${matchingIdNoVersion}`
 

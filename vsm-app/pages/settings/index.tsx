@@ -48,6 +48,7 @@ type CredentialsSnippetProps = {
   isEditing: boolean
   username: string
   password: string
+  reload: () => void
   cancelEdit: () => void
   onUpdate: (username: string, password: string) => void
 }
@@ -187,7 +188,7 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
   )
 }
 
-const CredentialsItem = (currentServerData) => {
+const CredentialsItem = (currentServerData: any) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
   const {data, currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
@@ -204,9 +205,9 @@ const CredentialsItem = (currentServerData) => {
     const availEnd = [] as EndpointDetails[]
     const creds = [] as ({ username: string; password: string; } & EndpointDetails)[]
     currentEndpoints?.endpoints
-    ?.filter(e => e?.id === data?.id)
+    ?.filter((e: any) => e?.id === data?.id)
     ?.forEach((endpoint: fhir4.Endpoint) => {
-      const foundCred = currentCredentials?.find((cred) => cred.terminologyServerId === endpoint.id)
+      const foundCred = currentCredentials?.find((cred: any) => cred.terminologyServerId === endpoint.id)
       const baseEndpoint = {
         id: endpoint.id,
         name: endpoint.name,

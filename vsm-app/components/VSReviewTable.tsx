@@ -52,6 +52,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions, handl
       name: 'Origin',
       maxWidth: '100px',
       wrap: true,
+      // @ts-ignore
       selector: (row: FlatGrouperVSet) => row?.selectedTerminologyServer?.label!
     },
     {

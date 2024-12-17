@@ -16,7 +16,7 @@ import {
 } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
-import { FlatGrouperVSet, GrouperMetadata } from '@/types/grouperTypes'
+import { FlatGrouperVSet, GrouperMetadata, TermServerOption } from '@/types/grouperTypes'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import Logger from '@/helpers/server/logger'
@@ -453,7 +453,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
       resourceType: 'Endpoint'
     })
 
-    const formattedEndpoints = allEndpoints?.entry?.map((e) => {
+    const formattedEndpoints = allEndpoints?.entry?.map((e: any) => {
       return {
         label: e.resource?.name,
         value: {id: e.resource.id, url: e.resource.address}
@@ -485,7 +485,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
         // add authoritativeSource to valueset
         // TODO should make this a helper now used in 2 files
         const authSrcBase = formattedEndpoints?.find(
-          (endpointItem) => {
+          (endpointItem: TermServerOption) => {
             const endpoint = endpointItem.value.id.toLowerCase()
             const idSpecifiedInRequest = flatGrouperItem.selectedTerminologyServer?.value?.id.toLowerCase()
             return endpoint === idSpecifiedInRequest

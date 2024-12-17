@@ -2,7 +2,6 @@ import { is } from '@/helpers/is'
 import { terminologyClient } from 'fhirClients'
 import FhirClient from '@/backend/clients/FhirClient'
 import { VSMSession } from '@/helpers/rolesHelper'
-
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
@@ -40,10 +39,13 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
 
   const endpointBundle = await FhirClient.getInstance().search({
     resourceType: 'Endpoint',
-  }) as fhir4.Endpoint
+  })
 
   const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
   
+  if (!endpoints) {
+    return res.status(404).json({ error: `No endpoints found` })
+  }
   // the VSAC endpoint is not the same as the authSourceBase
   // trying to use the http protocol for the custom client below didn't work
   // so this is a workaround

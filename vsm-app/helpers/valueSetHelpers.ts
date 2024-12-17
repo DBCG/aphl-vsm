@@ -135,7 +135,7 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
           label: 'VSM',
           value: {
             id: 'VSM',
-            url: authoritativeSourceExtension?.valueUri
+            url: authoritativeSourceExtension?.valueUri as string
           }
         }
       } else {
