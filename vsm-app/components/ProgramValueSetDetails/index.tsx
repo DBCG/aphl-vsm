@@ -310,10 +310,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   // fetch options for Version field
   const fetchVersionOptions = async (vsId: string) => {
+    console.log('this called  ')
     // if already cached in component, use that version
     if (versions?.[vsId]) {
       return
     }
+    console.log('terminologySources', terminologySources)
     // otherwise, loading states and fetch
     setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'

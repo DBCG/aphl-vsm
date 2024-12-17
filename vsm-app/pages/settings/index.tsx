@@ -560,14 +560,7 @@ const TerminologyEndpoints: NextPage = () => {
       <Row style={{ alignItems: 'center', marginBottom: '1rem' }}>
         <PageTitle>Settings</PageTitle>
       </Row>
-      {isAdmin && (
-        <Row style={{ alignItems: 'center' }}>
-          <h4 style={{ color: 'var(--theme-400)'}}>Terminology Endpoints</h4>
-          <Button onClick={() => router.push('/settings/create-endpoint')}>Add New Terminology Endpoint</Button>
-        </Row>
-      )}
-      {/* {vsacInvalid ? ( */}
-      <Box style={{ backgroundColor: 'white', padding: '1rem' }}>
+      <Box style={{ backgroundColor: 'white', padding: '1rem', marginBottom: '1rem' }}>
         <p style={{ fontWeight: 'bold' }}>{onboardingText.title}</p>
         <p>{onboardingText.body}</p>
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -575,7 +568,12 @@ const TerminologyEndpoints: NextPage = () => {
           <span>{onboardingText.requirements}</span>
         </div>
       </Box>
-      {/* ): null} */}
+      {isAdmin && (
+        <Row style={{ alignItems: 'center' }}>
+          <h4 style={{ color: 'var(--theme-400)'}}>Terminology Endpoints</h4>
+          <Button onClick={() => router.push('/settings/create-endpoint')}>Add New Terminology Endpoint</Button>
+        </Row>
+      )}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={data?.map((d, index) => ({ ...d, index }))}
