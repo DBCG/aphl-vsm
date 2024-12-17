@@ -1,5 +1,4 @@
 import { is } from '@/helpers/is'
-import { getTerminologySource, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import FhirClient from '@/backend/clients/FhirClient'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -35,9 +34,9 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
   }
 
   const authSourceBase = response?.extension?.find(ext => ext?.url?.endsWith('valueset-authoritativeSource'))?.valueUri?.split('/ValueSet')?.[0]
-  if (!authSourceBase) {
-    return res.status(404).json({ error: `Leaf valueset lacks authoritative source` })
-  }
+    if (!authSourceBase) {
+      return res.status(404).json({ error: `Leaf valueset lacks authoritative source` })
+    }
 
   const endpointBundle = await FhirClient.getInstance().search({
     resourceType: 'Endpoint',

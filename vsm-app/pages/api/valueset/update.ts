@@ -3,9 +3,10 @@ import handler from '@/helpers/server/handler'
 import worker from '@/worker'
 import { Job } from 'bull'
 import Logger from '@/helpers/server/logger'
+import { VSMSession } from '@/helpers/rolesHelper'
 export type UpdateValueSetsResponse = Job<{ urls: string[] }> | { error: any }
 
-const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<UpdateValueSetsResponse>) => {
+const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<UpdateValueSetsResponse>, session: VSMSession) => {
   /*
     Takes in an array of ValueSet URLs from a single Program. Perhaps even the Program (Library) itself?
       * Looks like there is an array of ValueSets in /pages/programs/[id]/valuesets/index.tsx
@@ -18,7 +19,7 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
       Logger.getLogger().error('programId is required')
       res.status(400).send({ error: 'programId is required' })
     }
-    const job = await worker.add({ urls, programId })
+    const job = await worker.add({ urls, programId, session })
     Logger.getLogger().info('UpdateValueSets job added', { job })
 
     res.json(job)
