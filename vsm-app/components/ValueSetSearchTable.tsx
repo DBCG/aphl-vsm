@@ -532,7 +532,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const [sortParams, setSortParams] = useState({ column: 'title', direction: 'asc' })
 
   // set default terminology server for search
-  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
+  const { terminologySources } = useGetEndpointOptionsForUI()
+  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologySources?.[0])
   const [searchType, setSearchType] = useState<typeof searchTypes[number]>(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
@@ -547,8 +548,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   const allConditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
-
-  const { terminologySources } = useGetEndpointOptionsForUI()
 
   useEffect(() => {
     setMyDocument(document?.body)
@@ -774,7 +773,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     }
 
     const leafsToAdd = {
-      selectedTerminologyServer: selectedTerminologyServer.value.id,
+      selectedTerminologyServer: selectedTerminologyServer,
       selectedValueSets: uniqBy(selectedValueSets, 'id'),
       selectedConditions,
       selectedPriority: selectedPriority.value || 'routine',
