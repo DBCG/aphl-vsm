@@ -6,6 +6,7 @@ import { IconButton } from '@/components/buttons/IconButton'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
+import WarningIcon from '@mui/icons-material/Warning'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { ErrorMessage } from '@/components/ErrorMessage'
@@ -162,7 +163,10 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
   )
 }
 
-const ValidStatus = ({ isValid }: { isValid: boolean }) => {
+const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: boolean }) => {
+  if (isLoading) return (
+    <p>Validating endpoint...</p>
+  )
   const inner = isValid ? (
     <>
       <Typography style={{ color: 'inherit' }}>Creds Valid</Typography>
@@ -186,7 +190,7 @@ const CredentialsItem = (currentServerData) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
   console.log('currentServerData', currentServerData)
-  const {data, currentCredentials, credsLoading, reloadCurrentCredentials} = currentServerData
+  const {data, currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
   
   const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
@@ -233,6 +237,14 @@ const CredentialsItem = (currentServerData) => {
     username: credentials?.[0]?.username,
     password: credentials?.[0]?.password,
   })
+
+  useEffect(() => {
+    if (credentials?.[0]?.id === 'vsac' && !isEndpointValid && !pingLoading && pingError) {
+      setVsacInvalid(true)
+    } else {
+      setVsacInvalid(false)
+    }
+  }, [isEndpointValid, pingLoading])
 
   const updateCredential = async (id: string, username: string, password: string) => {
     try {
@@ -292,7 +304,7 @@ const CredentialsItem = (currentServerData) => {
   return (
     <Box style={{ backgroundColor: isOdd ? 'var(--neutral-350)' : 'var(--neutral-300)'}}>
       { !credentials?.length ?
-        <RowStyle>
+        <RowStyle style={{ paddingTop: '1rem', paddingBottom: '1rem' }}>
           {<Button onClick={() => setIsAdding(true)}>&#43; Add Credentials</Button>}
         </RowStyle>
         : null
@@ -329,7 +341,7 @@ const CredentialsItem = (currentServerData) => {
                 }}
               >
                 <Stack>
-                  <ValidStatus isValid={isEndpointValid} />
+                  <ValidStatus isValid={isEndpointValid} isLoading={pingLoading} />
                   <Box>
                     <CredentialsSnippet
                       isEditing={showEditSet.has(e.id)}
@@ -392,6 +404,7 @@ const TerminologyEndpoints: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const isAdmin = session?.user?.roles?.includes('admin')
+  const [vsacInvalid, setVsacInvalid] = useState(false)
 
   const {
     data: currentCredentials = null,
@@ -533,8 +546,14 @@ const TerminologyEndpoints: NextPage = () => {
 
   const onboardingText = {
     title: 'Welcome to the Valueset Manager!',
-    body: 'In order to view content, you must first add credentials for the VSAC server below. This is required for the app to be able to run.'
+    body: 'In order to view content, you must first add valid credentials for the VSAC server below.',
+    requirements: 'This is required for the app to be able to run.'
   }
+
+  useEffect(() => {
+    console.log('currentCredentials', currentCredentials)
+    console.log('vsac invalid', vsacInvalid)
+  },[currentCredentials, vsacInvalid])
 
   return (
     <Col>
@@ -547,20 +566,23 @@ const TerminologyEndpoints: NextPage = () => {
           <Button onClick={() => router.push('/settings/create-endpoint')}>Add New Terminology Endpoint</Button>
         </Row>
       )}
-      {!currentCredentials?.length ? (
+      {/* {vsacInvalid ? ( */}
       <Box style={{ backgroundColor: 'white', padding: '1rem' }}>
         <p style={{ fontWeight: 'bold' }}>{onboardingText.title}</p>
         <p>{onboardingText.body}</p>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <WarningIcon style={{ color: 'var(--warning-medium)', marginRight: '.2rem', marginBottom: '.1rem' }}/>
+          <span>{onboardingText.requirements}</span>
+        </div>
       </Box>
-
-      ): null}
+      {/* ): null} */}
       <ErrorMessage error={error?.error || null} />
       <DT
         data={data?.map((d, index) => ({ ...d, index }))}
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}
-        expandableRowsComponentProps={{ currentCredentials, credsLoading, reloadCurrentCredentials }}
+        expandableRowsComponentProps={{ currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid }}
         conditionalRowStyles={[
           {
             when: (row) => data.findIndex((r) => r.id === row.id) % 2 !== 0,
