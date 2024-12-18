@@ -19,7 +19,8 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
       Logger.getLogger().error('programId is required')
       res.status(400).send({ error: 'programId is required' })
     }
-    const job = await worker.add({ urls, programId, session })
+    const { user: {id: userId} } = session
+    const job = await worker.add({ urls, programId, userId })
     Logger.getLogger().info('UpdateValueSets job added', { job })
 
     res.json(job)

@@ -232,8 +232,6 @@ const CredentialsItem = (currentServerData: any) => {
     pingError,
     pingMutate
   } = useTestTermEndpoint({
-    endpointUrl: credentials?.[0]?.address || '',
-    endpointName: credentials?.[0]?.name,
     endpointId: credentials?.[0]?.id
   })
 

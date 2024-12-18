@@ -9,7 +9,6 @@ import Logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
-import { getServerSession } from 'next-auth'
 import { AuthOptions } from '../auth/[...nextauth]'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -55,7 +54,7 @@ export interface UpdateValueSetBody extends NextApiRequest {
     selectedPriority: "emergent" | "routine"
   }
 }
-const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>) => {
+const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>, session: VSMSession) => {
   const body = req.body
 
   if (body?.selectedConditions?.length > 0 && !req.query.programId) {
@@ -95,7 +94,6 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       
       try {
 
-        const session = <VSMSession>await getServerSession(req, res, AuthOptions)
         const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
         if (body?.selectedTerminologyServer === 'vsm') {

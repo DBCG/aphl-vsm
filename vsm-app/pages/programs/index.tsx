@@ -38,8 +38,6 @@ const Programs: NextPage = () => {
     pingLoading,
     pingError,
   } = useTestTermEndpoint({
-    endpointUrl: vsacEndpoint?.address || '',
-    endpointName: 'VSAC',
     endpointId: 'vsac'
   })
   

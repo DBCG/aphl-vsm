@@ -14,7 +14,6 @@ import Logger from '@/helpers/server/logger'
 import { isEqualWith, set } from 'lodash'
 import { QUEUE_REDIS_URL } from '@/config'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
-import { VSMSession } from '@/helpers/rolesHelper'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -26,7 +25,7 @@ type CDRResponseCollection = {
 
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, session: VSMSession }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, userId: string }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
   limiter: {
     max: 1,
     duration: 10000
@@ -122,7 +121,7 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
 }
 
 // Executes a job batch
-const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpdates: number[], session: VSMSession) => {
+const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpdates: number[], userId: string) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
@@ -178,7 +177,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
           }
         })
 
-        const authCredentials = await tsCredentialService.getCredentials(session.user.id, matchingEndpoint?.id as string)
+        const authCredentials = await tsCredentialService.getCredentials(userId, matchingEndpoint?.id as string)
         let baseTermServerUrl = matchingEndpoint?.address?.toString()
       
         terminologyClient.setCustomClient({
@@ -231,7 +230,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
  * Job is processed here and will do a max of 20 urls at a time
  */
 valueSetUpdateQueue.process(async function (job, done) {
-  const { urls = [], programId, session } = job.data
+  const { urls = [], programId, userId } = job.data
   const refreshErrors: string[] = []
   const totalUpdates: number[] = [] // Store total number of updates made
   const clonedUrls = [...urls]
@@ -244,7 +243,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   Logger.getLogger().info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates, session)
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates, userId)
     if (batch) {
       batchedJobs.push(batch)
     }

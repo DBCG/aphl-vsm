@@ -3,23 +3,30 @@ import { terminologyClient } from 'fhirClients'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
+import FhirClient from '@/backend/clients/FhirClient'
 
 const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   try {
-    const { endpointUrl, endpointName, endpointId } = req.query
-    console.log('session is not populated: ', session)
+    const { endpointId } = req.query
     const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
 
+    const endpointBundle = await FhirClient.getInstance().search({
+      resourceType: 'Endpoint',
+    })
+  
+    const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
+
+    const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => e?.id === endpointId)
+  
     terminologyClient.setCustomClient({
-      clientName: endpointName as string,
-      baseUrl: endpointUrl!.toString() as string,
+      clientName: matchingEndpoint.name as string,
+      baseUrl: matchingEndpoint.address as string,
       basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
     })
 
     const activeTerminologyClient = await terminologyClient.getClient()
     if (activeTerminologyClient) {
       const serverResponse = await activeTerminologyClient.request('/metadata')
-      console.log('serverResponse', serverResponse)
       // @ts-ignore
       if (serverResponse?.resourceType == 'CapabilityStatement') {
         return res.status(200).json({ status: 'ok' })
@@ -30,7 +37,6 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
     return res.status(500).json({ error: 'No terminology server' })
 
   } catch (e) {
-    console.log('error here!!!')
     console.error(e)
     return res.status(500).json({ error: 'Error occurred' })
   }

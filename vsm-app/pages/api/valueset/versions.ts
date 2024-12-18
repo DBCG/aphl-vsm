@@ -12,6 +12,7 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import { getServerSession } from 'next-auth'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { AuthOptions } from '../auth/[...nextauth]'
+import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -110,8 +111,8 @@ const getLeafFromTermServer = async ({
   creds
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    console.log('creds: ', creds)
-    const matchingCreds = creds.find((cred) => cred.terminologyServerId === terminologyInfo.id)
+
+    const matchingCreds = creds.find((cred: TerminologyServerCredentials) => cred.terminologyServerId === terminologyInfo.id)
 
     if (!matchingCreds) {
       Logger.getLogger().error(`Could not find credentials for terminology server ${terminologyInfo.value}`)
@@ -210,7 +211,7 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
   try {
     const session = <VSMSession>await getServerSession(req, res, AuthOptions)
     const creds = await tsCredentialService.getAllCredentials(session.user.id)
-    
+
     const versionedLeafExistsInCQF = await matchExistsInCQF({ vsCanonical, versionToFind: selectedVersion })
     if (!versionedLeafExistsInCQF) {
       const matchFromTermServer = await getLeafFromTermServer({ terminologyInfo, vsCanonical, versionToFind: selectedVersion, useContext, creds })
