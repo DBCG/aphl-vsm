@@ -48,7 +48,6 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse, sess
           const finishedJob = await ChangeLogQueue.getJob(job.jobId)
           return res.status(200).json(finishedJob)
         }
-        // return res.status(200).send(job)
       }
     }
 
