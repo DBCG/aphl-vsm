@@ -7,7 +7,7 @@ import Queue from 'bull'
 import Logger from '@/helpers/server/logger'
 import { ExportJobMetadata } from '@/types/jobTypes'
 
-const ChangeLogQueue = new Queue('changeLowCompare', QUEUE_REDIS_URL)
+const ChangeLogQueue = new Queue('changeLogCompare', QUEUE_REDIS_URL)
 
 const originalAdd = ChangeLogQueue.add
 
