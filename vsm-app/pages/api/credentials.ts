@@ -1,5 +1,6 @@
 import { tsCredentialService } from "@/backend/services/TsCredentialService";
 import { VSMSession } from "@/helpers/rolesHelper";
+import handler from "@/helpers/server/handler";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const credentials = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
@@ -13,4 +14,6 @@ const credentials = async (req: NextApiRequest, res: NextApiResponse, session: V
   }
 }
 
-export default credentials
+export default handler({
+  GET: { action: credentials, access: ['admin', 'editor', 'reviewer'] },
+})

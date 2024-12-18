@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
+import handler from '@/helpers/server/handler'
 
 const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   try {
@@ -35,4 +36,6 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
   }
 }
 
-export default testTermEndpoint
+export default handler({
+  GET: { action: testTermEndpoint, access: ['admin', 'editor', 'reviewer'] },
+})

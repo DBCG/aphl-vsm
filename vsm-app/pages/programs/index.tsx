@@ -44,9 +44,9 @@ const Programs: NextPage = () => {
   })
   
   useEffect(() => {
-    // if (vsacEndpoint && !isEndpointValid && !pingLoading && pingError) {
-    //   router.push('/settings')
-    // }
+    if (vsacEndpoint && !isEndpointValid && !pingLoading && pingError) {
+      router.push('/settings')
+    }
   }, [vsacEndpoint, isEndpointValid, pingLoading, pingError])
 
   return (
