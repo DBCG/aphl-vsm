@@ -15,7 +15,7 @@
             "status": "active",
             "payloadType": [],
             "name": "VSAC",
-            "address": "http://cts.nlm.nih.gov/fhir",
+            "address": "https://cts.nlm.nih.gov/fhir",
             "extension": [{"url":"http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type", "valueString":"Basic Authentication"}]
           },
           "request":
