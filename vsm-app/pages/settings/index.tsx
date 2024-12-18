@@ -103,7 +103,6 @@ const CredentialsSnippet = ({ shouldDisplay, isEditing, cancelEdit, onUpdate, us
 }
 
 const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
-  const [selectedEndpoint, setSelectedEndpoint] = useState(availableEndpoints[0]?.id)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -191,10 +190,10 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
 const CredentialsItem = (currentServerData: any) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
-  const {data, currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
+  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
   
-  const { data: currentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
+  const { data: allCurrentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
 
   const refetchData = () => {
     reloadCurrentCredentials()
@@ -204,10 +203,10 @@ const CredentialsItem = (currentServerData: any) => {
   const [availableEndpoints, credentials] = useMemo(() => {
     const availEnd = [] as EndpointDetails[]
     const creds = [] as ({ username: string; password: string; } & EndpointDetails)[]
-    currentEndpoints?.endpoints
+    allCurrentEndpoints?.endpoints
     ?.filter((e: any) => e?.id === data?.id)
     ?.forEach((endpoint: fhir4.Endpoint) => {
-      const foundCred = currentCredentials?.find((cred: any) => cred.terminologyServerId === endpoint.id)
+      const foundCred = currentCredentialsByServerId?.find((cred: any) => cred.terminologyServerId === endpoint.id)
       const baseEndpoint = {
         id: endpoint.id,
         name: endpoint.name,
@@ -224,7 +223,7 @@ const CredentialsItem = (currentServerData: any) => {
       }
     })
     return [availEnd, creds]
-  }, [currentCredentials, currentEndpoints])
+  }, [currentCredentialsByServerId, allCurrentEndpoints])
 
     const {
     isEndpointValid,
@@ -234,6 +233,10 @@ const CredentialsItem = (currentServerData: any) => {
   } = useTestTermEndpoint({
     endpointId: credentials?.[0]?.id
   })
+
+  useEffect(() => {
+    pingMutate('/api/test-terminology-endpoint')
+  }, [credentials?.[0]])
 
   useEffect(() => {
     if (credentials?.[0]?.id === 'vsac' && !isEndpointValid && !pingLoading && pingError) {
@@ -294,7 +297,7 @@ const CredentialsItem = (currentServerData: any) => {
 
   const isOdd = data?.index % 2 === 0
 
-  if (credsLoading || endpointsLoading) {
+  if (currentCredentialsByServerIdLoading || endpointsLoading) {
     return <LoadingIndicator />
   }
 
@@ -311,7 +314,7 @@ const CredentialsItem = (currentServerData: any) => {
         </RowStyle>
         : null
       }
-      {!isAdding && !currentCredentials?.length && (
+      {!isAdding && !currentCredentialsByServerId?.length && (
         <div style={{ paddingBottom: '1rem' }}>
           <Typography sx={{ mt: '3rem', p: '2rem', color: 'gray' }}>
             No credentials found, Click &quot;Add Credentials&quot; to get started
@@ -410,7 +413,7 @@ const TerminologyEndpoints: NextPage = () => {
   const [error, setError] = useState({ error: '' })
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  // const isAdmin = session?.user?.roles?.includes('admin')
+
   const [vsacInvalid, setVsacInvalid] = useState(false)
 
   const isAdmin = useMemo(() => {
@@ -418,8 +421,8 @@ const TerminologyEndpoints: NextPage = () => {
   }, [session])
 
   const {
-    data: currentCredentials = null,
-    isLoading: credsLoading,
+    data: currentCredentialsByServerId = null,
+    isLoading: credentialsByServerIdLoading,
     mutate: reloadCurrentCredentials
   } = useSWR('/api/settings/terminology-source', fetcher) as {
     data: TerminologyServerCredentials[]
@@ -457,12 +460,14 @@ const TerminologyEndpoints: NextPage = () => {
       })
       .catch((error) => setError({ error: error.error || error.toString() }))
   }
+
   useEffect(() => {
     setLoading(true)
     fetchEndpoints((pagination.page - 1) * pagination.countPerPage, pagination.page * pagination.countPerPage).finally(() =>
       setLoading(false)
     )
   }, [pagination.page, pagination.countPerPage])
+
   const handlePageChange = (newPage: number) =>
     setPagination((current) => {
       if (current.page != newPage) {
@@ -471,6 +476,7 @@ const TerminologyEndpoints: NextPage = () => {
         return current
       }
     })
+  
   const columns: TableColumn<fhir4.Endpoint>[] = useMemo(
     () => [
       {
@@ -592,7 +598,7 @@ const TerminologyEndpoints: NextPage = () => {
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}
-        expandableRowsComponentProps={{ currentCredentials, credsLoading, reloadCurrentCredentials, setVsacInvalid }}
+        expandableRowsComponentProps={{ currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid }}
         conditionalRowStyles={[
           {
             when: (row) => data.findIndex((r) => r.id === row.id) % 2 !== 0,
