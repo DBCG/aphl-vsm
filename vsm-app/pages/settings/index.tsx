@@ -418,7 +418,6 @@ const TerminologyEndpoints: NextPage = () => {
   const [vsacInvalid, setVsacInvalid] = useState(false)
 
   const isAdmin = useMemo(() => {
-    console.log('session', session)
     return session?.user?.roles?.includes('admin')
   }, [session])
 
@@ -519,8 +518,6 @@ const TerminologyEndpoints: NextPage = () => {
         maxWidth: '3rem',
         minWidth: '10rem',
         cell: (row: fhir4.Endpoint) => {
-          console.log('row', row)
-          console.log('isAdmin', isAdmin)
           if (row.id === 'VSAC') {
             return 'VSAC endpoint details readonly'
           }
@@ -565,7 +562,9 @@ const TerminologyEndpoints: NextPage = () => {
   const onboardingText = {
     title: 'Welcome to the Valueset Manager!',
     body: 'In order to view content, you must first add valid credentials for the VSAC server below.',
-    requirements: 'This is required for the app to be able to run.'
+    requirements: 'This is required for the app to be able to run.',
+    checks: 'Valid and invalid credentials are determined by attempting a GET of a single ValueSet from the server.',
+    otherRequirements: 'All other endpoints must also be conformant FHIR servers to use in the VSM App.'
   }
 
   return (
@@ -580,6 +579,8 @@ const TerminologyEndpoints: NextPage = () => {
           <WarningIcon style={{ color: 'var(--warning-medium)', marginRight: '.2rem', marginBottom: '.1rem' }}/>
           <span>{onboardingText.requirements}</span>
         </div>
+        <p>{onboardingText.checks}</p>
+        <p>{onboardingText.otherRequirements}</p>
       </Box>
       {isAdmin && (
         <Row style={{ alignItems: 'center' }}>
