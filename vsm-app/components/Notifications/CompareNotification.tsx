@@ -37,7 +37,7 @@ const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActio
             <PendingIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
-            <Typography variant="body1">Change Log still being prepared</Typography>
+            <Typography variant="body1">Generating Change Log</Typography>
           </Stack>
         </NotificationContainer>
       )
