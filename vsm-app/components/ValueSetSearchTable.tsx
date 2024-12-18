@@ -25,7 +25,6 @@ import { priorityLevelOptions } from './ProgramValueSetDetails'
 import DataTable from 'react-data-table-component'
 import { customTableStyles } from './tables/themes'
 import { UpdateValueSetBody } from '@/pages/api/valueset'
-import useSWR from 'swr'
 import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 
 const searchTypes = [

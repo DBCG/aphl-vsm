@@ -18,7 +18,7 @@ import { getTerminologySource, getVsSteward, isProvisionalVs } from '@/helpers/v
 import { useDebounce } from '@/hooks/useDebounce'
 import { buildConditionOptions, ConditionToUpdate, Condition, ConditionItem } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
+import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
@@ -146,7 +146,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     selectedVersion: '',
     grouperIds: [],
     programId: '',
-    terminologyInfo: { value: '', hasExtension: false }
+    terminologyInfo: { value: '', hasExtension: false, id: '', url: '' }
   })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
@@ -596,7 +596,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           return (
             <div>
               {terminologyInfo.value}
-              {/* {terminologyInfo.hasExtension ? null : '*'} */}
+              {terminologyInfo.hasExtension ? null : '*'}
             </div>
           )
         }

@@ -123,16 +123,15 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
   const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {
-
     let val = availableTerminologyServers?.find((endpoint) => {
       let urlPath = endpoint?.value?.url
-      if (urlPath.toLowerCase().startsWith('https://cts.nlm.nih.gov/fhir')) {
+      if (urlPath.toLowerCase().startsWith('http://cts.nlm.nih.gov/fhir')) {
         // workaround for auth src and term server definition mismatch
-        urlPath = urlPath.replace('https://', 'http://')
+        urlPath = urlPath.replace('http://', 'https://')
       }
-      return typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
+      const result = typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
+      return result
     })
-
     if (!val) {
       // To get VSM to show up as an option because we don't want to add to terminology server list
       if (isVsmAuthored(valueSet)) {
@@ -149,6 +148,8 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
     }
     return {
       value: val?.label || "",
+      id: val?.value?.id || "",
+      url: val?.value?.url || "",
       hasExtension: true
     }
   // otherwise, if auth source does not exist
@@ -163,11 +164,15 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServ
       const terminologyItem = availableTerminologyServers?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
       return {
         value: terminologyItem?.label || "",
+        id: terminologyItem?.value?.id || "",
+        url: terminologyItem?.value?.url || "",
         hasExtension: false
       }
     } else {
       return {
         value: "",
+        id: '',
+        url: '',
         hasExtension: false
       }
     }

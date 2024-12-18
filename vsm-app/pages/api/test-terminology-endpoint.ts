@@ -1,13 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
-import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
-import { getServerSession } from 'next-auth/next'
+import { VSMSession } from '@/helpers/rolesHelper'
 
-const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse) => {
+const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   try {
     const { endpointUrl, endpointName, endpointId } = req.query
-    const session = await getServerSession(req, res, AuthOptions)
     const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
 
     terminologyClient.setCustomClient({
