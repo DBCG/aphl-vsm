@@ -6,9 +6,13 @@ import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { is } from '@/helpers/is'
 import { cloneDeep } from 'lodash'
-import { terminologyServerEndpoints } from '@/fhirClientOptions'
 import { HandleVersionChange } from '@/components/ProgramValueSetDetails'
 import retry from '@/helpers/retryRequest'
+import { VSMSession } from '@/helpers/rolesHelper'
+import { getServerSession } from 'next-auth'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { AuthOptions } from '../auth/[...nextauth]'
+import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 
 // --------------------------------------------
 // ------------ HELPER FUNCTIONS --------------
@@ -51,14 +55,17 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Pr
 interface TermInfo {
   value: string
   hasExtension: boolean
+  id: string
+  url: string
 }
 
 interface AddDetails {
   vs: fhir4.ValueSet
   useContext: fhir4.UsageContext[]
   terminologyInfo: TermInfo
+  terminologyServerEndpoints: { label: string; value: { id: string; url: string } }[]
 }
-const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir4.ValueSet => {
+const addDetailsToLeaf = ({ vs, useContext, terminologyInfo, terminologyServerEndpoints }: AddDetails): fhir4.ValueSet => {
   const clonedVs = cloneDeep(vs)
 
   const conditionsToAdd = useContext?.filter(
@@ -70,8 +77,19 @@ const addDetailsToLeaf = ({ vs, useContext, terminologyInfo }: AddDetails): fhir
     clonedVs.useContext = [...existingUseContext, ...conditionsToAdd]
   }
 
-  const authSrcUrl = terminologyServerEndpoints?.find((grp) => grp.value.id.toLowerCase() === terminologyInfo?.value?.toLowerCase())
+  const authSrcBase = terminologyServerEndpoints?.find((grp) => grp.value.id.toLowerCase() === terminologyInfo?.value?.toLowerCase())
     ?.value?.url as string
+
+  
+  let valueSetId = clonedVs?.id
+    
+    // VSAC adds -id to the end of ids, but we only want unversioned part
+  // for both VSAC and UAT endpoints, only want unversioned ID to build auth source URL
+  if (terminologyInfo?.url?.includes('cts.nlm.nih.gov')) {
+    valueSetId = valueSetId?.split('-')[0]
+  }
+
+  const authSrcUrl = `${authSrcBase}/ValueSet/${valueSetId}`
 
   const vsWithAuthSrc = addExtensionToVs(clonedVs, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
   return vsWithAuthSrc
@@ -82,20 +100,31 @@ interface GetLeaf {
   vsCanonical: string
   versionToFind: string
   useContext: fhir4.UsageContext[]
+  creds: any
 }
 
 const getLeafFromTermServer = async ({
   terminologyInfo,
   vsCanonical,
   versionToFind,
-  useContext
+  useContext,
+  creds
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    const client = terminologyInfo.value.toLowerCase()
-    if (!(client === 'vsac' || client === 'ontoserverR4')) {
-      throw "Invalid terminology server"
+
+    const matchingCreds = creds.find((cred: TerminologyServerCredentials) => cred.terminologyServerId === terminologyInfo.id)
+
+    if (!matchingCreds) {
+      Logger.getLogger().error(`Could not find credentials for terminology server ${terminologyInfo.value}`)
+      return
     }
-    terminologyClient.setClient(client)
+
+    terminologyClient.setCustomClient({
+      clientName: terminologyInfo.value,
+      baseUrl: terminologyInfo.url,
+      basicAuthHeader: `${Buffer.from(`${matchingCreds.username}:${matchingCreds.password}`).toString('base64')}`
+    })
+
     const terminologyClientInstance = terminologyClient.getClient()!
 
     const searchParams = {
@@ -137,7 +166,19 @@ const getLeafFromTermServer = async ({
       Logger.getLogger().error('Error normalizing leaf valueset')
       return
     }
-    const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo })
+
+    const allEndpoints = await FhirClient.getInstance().search({
+      resourceType: 'Endpoint'
+    })
+
+    const formattedEndpoints = allEndpoints?.entry?.map((e: any) => {
+      return {
+        label: e.resource?.name,
+        value: {id: e.resource.id, url: e.resource.address}
+      }
+    })
+
+    const vsWithMetadata = addDetailsToLeaf({ vs: vsWithNormalizedUrl, useContext, terminologyInfo, terminologyServerEndpoints: formattedEndpoints })
     if (!vsWithMetadata) {
       Logger.getLogger().error('Error adding conditions and auth source to leaf valueset')
     }
@@ -167,11 +208,13 @@ const updateLeafValueSetVersions = async (req: NextApiRequest, res: NextApiRespo
   // 2. set the terminology server to the correct endpoint
   // 3. get the correct version vset from the terminology server
   // 4. merge use-context and extension info (authoritative src) with versioned vset
-
   try {
+    const session = <VSMSession>await getServerSession(req, res, AuthOptions)
+    const creds = await tsCredentialService.getAllCredentials(session.user.id)
+
     const versionedLeafExistsInCQF = await matchExistsInCQF({ vsCanonical, versionToFind: selectedVersion })
     if (!versionedLeafExistsInCQF) {
-      const matchFromTermServer = await getLeafFromTermServer({ terminologyInfo, vsCanonical, versionToFind: selectedVersion, useContext })
+      const matchFromTermServer = await getLeafFromTermServer({ terminologyInfo, vsCanonical, versionToFind: selectedVersion, useContext, creds })
       if (!matchFromTermServer) {
         return res
           .status(404)

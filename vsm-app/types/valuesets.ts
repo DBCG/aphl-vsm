@@ -29,6 +29,8 @@ export interface GroupItem {
 export interface TerminologyResult {
   value: string
   hasExtension: boolean
+  id: string
+  url: string
 }
 
 export interface TableRow {

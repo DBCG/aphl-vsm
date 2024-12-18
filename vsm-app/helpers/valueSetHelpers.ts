@@ -1,5 +1,4 @@
 import { cloneDeep, set } from 'lodash'
-import { terminologyServerEndpoints } from '../fhirClientOptions'
 import { grouperValueSetBase } from './server/templates/grouperValueSetBase'
 import { GrouperMetadata } from '@/types/grouperTypes'
 import { TerminologyResult } from '@/types/valuesets'
@@ -112,21 +111,35 @@ export const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
 
 const isGrouperValueSet = (vs: fhir4.ValueSet) => isVsmGrouper(vs) || isTerminologyServerGrouper(vs)
 
-const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): TerminologyResult => {
-  const terminologyExt = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
-  if (terminologyExt) {
-    let val = terminologyServerEndpoints?.find((endpoint) => {
-    const urlPathNoProtocol = endpoint?.value?.url?.split('//')?.[1]
-    return !!urlPathNoProtocol && terminologyExt?.valueUri?.includes(urlPathNoProtocol)
-  })
+interface AvailableTermServer {
+  label: string
+  value: {
+    id: string
+    url: string
+  }
+}
+
+const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServers: AvailableTermServer[], errors: string[]): TerminologyResult => {
+  const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
+  // if the authoritative source exists, match the terminology server to the beginning of the auth source string
+  if (authoritativeSourceExtension) {
+    let val = availableTerminologyServers?.find((endpoint) => {
+      let urlPath = endpoint?.value?.url
+      if (urlPath.toLowerCase().startsWith('http://cts.nlm.nih.gov/fhir')) {
+        // workaround for auth src and term server definition mismatch
+        urlPath = urlPath.replace('http://', 'https://')
+      }
+      const result = typeof urlPath === 'string' && authoritativeSourceExtension?.valueUri?.startsWith(urlPath)
+      return result
+    })
     if (!val) {
-      // TODO: bit of a hack to get VSM to show up as an option because we don't want to add to terminology server list
-      if (terminologyExt?.valueUri?.includes('amazon') || terminologyExt?.valueUri?.includes('localhost') || isVsmAuthored(valueSet)) {
+      // To get VSM to show up as an option because we don't want to add to terminology server list
+      if (isVsmAuthored(valueSet)) {
         val = {
           label: 'VSM',
           value: {
             id: 'VSM',
-            url: terminologyExt?.valueUri
+            url: authoritativeSourceExtension?.valueUri as string
           }
         }
       } else {
@@ -135,8 +148,11 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
     }
     return {
       value: val?.label || "",
+      id: val?.value?.id || "",
+      url: val?.value?.url || "",
       hasExtension: true
     }
+  // otherwise, if auth source does not exist
   } else {
     errors.push(`Value Set ${valueSet.id} has no Authoritative Source`)
     // if no other choice, INFER the terminology server
@@ -145,14 +161,18 @@ const getTerminologySource = (valueSet: fhir4.ValueSet, errors: string[]): Termi
     const valuesetServerBase = valueSet?.url?.split('/fhir/')?.[0]?.split('//')[1]
 
     if (valuesetServerBase) {
-      const terminologyItem = terminologyServerEndpoints?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
+      const terminologyItem = availableTerminologyServers?.find((endpoint) => endpoint?.value?.url?.includes(valuesetServerBase))
       return {
         value: terminologyItem?.label || "",
+        id: terminologyItem?.value?.id || "",
+        url: terminologyItem?.value?.url || "",
         hasExtension: false
       }
     } else {
       return {
         value: "",
+        id: '',
+        url: '',
         hasExtension: false
       }
     }

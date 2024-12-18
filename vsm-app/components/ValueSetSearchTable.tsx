@@ -17,7 +17,6 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
-import { terminologyServerEndpoints } from 'fhirClientOptions'
 import { shallowEqual, fetcher } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import { uniqBy } from 'lodash'
@@ -26,7 +25,7 @@ import { priorityLevelOptions } from './ProgramValueSetDetails'
 import DataTable from 'react-data-table-component'
 import { customTableStyles } from './tables/themes'
 import { UpdateValueSetBody } from '@/pages/api/valueset'
-import useSWR from 'swr'
+import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 
 const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -531,7 +530,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const [sortParams, setSortParams] = useState({ column: 'title', direction: 'asc' })
 
   // set default terminology server for search
-  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologyServerEndpoints[0])
+  const { terminologySources } = useGetEndpointOptionsForUI()
+  const [selectedTerminologyServer, setSelectedTerminologyServer] = useState(terminologySources?.[0])
   const [searchType, setSearchType] = useState<typeof searchTypes[number]>(searchTypes[0])
 
   // set conditions and groupers to be applied to valuesets
@@ -546,8 +546,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
   const allConditions = useGetConditions()
   const { groups } = useGetGroups({ programId })
-
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
 
   useEffect(() => {
     setMyDocument(document?.body)
@@ -773,7 +771,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     }
 
     const leafsToAdd = {
-      selectedTerminologyServer: selectedTerminologyServer.value.id,
+      selectedTerminologyServer: selectedTerminologyServer,
       selectedValueSets: uniqBy(selectedValueSets, 'id'),
       selectedConditions,
       selectedPriority: selectedPriority.value || 'routine',
@@ -785,7 +783,8 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       if (handleAddValueSets) {
         handleAddValueSets(leafsToAdd)
         const selectedVSIds = selectedValueSets.map((i) => i.id)
-        setValueSets(valueSets?.filter((i) => !selectedVSIds?.includes(i?.id)))
+        const result = valueSets?.filter((i) => !selectedVSIds?.includes(i?.id))
+        setValueSets(result)
       }
       setToggledClearRows(true)
 
@@ -809,6 +808,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       }
       setAddedValueSetsLoading(false)
     }
+
     setSelectedValueSets([])
     setSearchTerm('')
     setSelectedConditions([])
@@ -841,11 +841,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   const handleSearchToggleChange = (e: TableContextOptions) => {
     setSearchTableContext(e)
   }
-
-  const terminologySources = [
-    ...terminologyServerEndpoints,
-    ...(currentEndpoints?.endpoints?.map((i: any) => ({ label: i?.name, value: { id: i?.id, url: i?.address } })) || [])
-  ]
 
   return (
     <Col>

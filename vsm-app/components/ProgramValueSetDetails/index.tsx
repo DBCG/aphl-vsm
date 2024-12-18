@@ -1,5 +1,6 @@
 import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
+import useSWR from 'swr'
 import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
 import { Box, LinearProgress, Tooltip } from '@mui/material'
@@ -11,12 +12,13 @@ import { FilterInput } from '@/components/FilterInput'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { Button } from '@/components/buttons/Button'
 import { useGetProgramValueSetDetails } from '@/hooks/useGetProgramValueSetDetails'
+import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource, getVsSteward, isProvisionalVs } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
 import { buildConditionOptions, ConditionToUpdate, Condition, ConditionItem } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
-import { can, allowEditing, VSMSession } from '@/helpers/rolesHelper'
+import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
@@ -30,6 +32,7 @@ import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/val
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
 import TextLink from '../TextLink'
+import { fetcher } from '@/utils'
 
 const subscribe = async (
   setJobStatus: React.Dispatch<SetStateAction<number | null>>,
@@ -125,6 +128,11 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
   const [refreshErrors, setRefreshErrors] = useState<null | string[]>(null)
   const [versions, setVersions] = useState({} as any)
+
+  const { terminologySources } = useGetEndpointOptionsForUI()
+
+  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
+
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
     canonical: '',
@@ -138,7 +146,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     selectedVersion: '',
     grouperIds: [],
     programId: '',
-    terminologyInfo: { value: '', hasExtension: false }
+    terminologyInfo: { value: '', hasExtension: false, id: '', url: '' }
   })
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
@@ -503,7 +511,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
             return row?.valueSetPinnedVersion || 'latest'
           }
           var errors: string[] = []
-          const terminologyInfo = getTerminologySource(row.valueSet, errors)
+          const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
@@ -584,7 +592,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         wrap: true,
         cell: (row: TableRow) => {
           var errors: string[] = []
-          const terminologyInfo = getTerminologySource(row.valueSet, errors)
+          const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
           return (
             <div>
               {terminologyInfo.value}

@@ -9,10 +9,27 @@ import Logger from '@/helpers/server/logger'
 import { setVSConditions } from '@/helpers/libraryHelpers'
 import { Condition } from '@/helpers/conditionHelpers'
 import { FormattedGroup } from '@/components/ValueSetSearchTable'
+import { AuthOptions } from '../auth/[...nextauth]'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { VSMSession } from '@/helpers/rolesHelper'
+import { TermServerOption } from '@/types/grouperTypes'
 
 interface BundleEntryItem {
   fullUrl: string,
   resource: fhir4.ValueSet
+}
+
+function splitAtLastIndex(str: string, char: string) {
+  const lastIndex = str.lastIndexOf(char)
+
+  if (lastIndex === -1) {
+    return [str]; // Character not found
+  }
+
+  const firstPart = str.slice(0, lastIndex)
+  const secondPart = str.slice(lastIndex + 1)
+
+  return [firstPart, secondPart]
 }
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
@@ -30,14 +47,14 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 
 export interface UpdateValueSetBody extends NextApiRequest {
   body: {
-    selectedTerminologyServer: "vsac" | "ontoserverR4" | "vsm"
+    selectedTerminologyServer: TermServerOption | 'vsm'
     selectedValueSets: fhir4.ValueSet[]
     selectedConditions: Condition[]
     selectedGroupers: FormattedGroup[]
     selectedPriority: "emergent" | "routine"
   }
 }
-const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>) => {
+const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>, session: VSMSession) => {
   const body = req.body
 
   if (body?.selectedConditions?.length > 0 && !req.query.programId) {
@@ -74,8 +91,31 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       const updatedMatchingValueSetInCQF = addProfileToValueSet(matchingValueSetInCQF)
       vSetsToUpdate.push({ valueSet: updatedMatchingValueSetInCQF })
     } else {
+      
       try {
-        terminologyClient.setClient(body.selectedTerminologyServer)
+
+        const creds = await tsCredentialService.getAllCredentials(session.user.id)
+
+        if (body?.selectedTerminologyServer === 'vsm') {
+          terminologyClient.setCustomClient({
+            clientName: 'VSM' as string,
+            baseUrl: `${process.env.FHIR_CDR_URL}`,
+            basicAuthHeader: `${Buffer.from(`${process.env.FHIR_CDR_BASIC_AUTH_USERNAME}:${process.env.FHIR_CDR_BASIC_AUTH_PASSWORD}`).toString('base64')}`
+          }) 
+        } else {
+          // @ts-ignore
+          const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
+          if (!matchingCredentialsForServer) {
+            return res.status(400).json({ error: 'No credentials found for selected terminology server' })
+          }
+
+          terminologyClient.setCustomClient({
+            clientName: body?.selectedTerminologyServer?.label as string,
+            baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
+            basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+          })
+        }
+
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
           let url = idWithoutVersion(selectedVS?.url as string)
@@ -94,15 +134,21 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               const orderedMatchingVSets = allAvailableMatches.entry
                 .sort((a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
               
-                const matchingId = orderedMatchingVSets[0].resource.id
-              const matchingFullUrl = orderedMatchingVSets[0].fullUrl
+
+              // need to remove the last -<version> from the ID if it exists
+              const matchingIdNoVersion = splitAtLastIndex(orderedMatchingVSets[0].resource.id, '-')[0]
+
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
-                id: matchingId
+                id: matchingIdNoVersion
               })) as fhir4.ValueSet
 
               if (is.valueSet(matchingVSetFromRemoteServer)) {
-                const authSrcUrl = matchingFullUrl
+                // can't use fullUrl because it's the same for VSAC UAT and regular VSAC
+                // so we won't be able to differentiate if we did
+                // @ts-ignore
+                const authSrcUrlBase = body?.selectedTerminologyServer?.value?.url as string
+                const authSrcUrl = `${authSrcUrlBase}/ValueSet/${matchingIdNoVersion}`
 
                 if (authSrcUrl) {
                   // add authoritativeSource extension
