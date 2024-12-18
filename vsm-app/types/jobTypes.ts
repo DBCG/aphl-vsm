@@ -7,7 +7,12 @@ export interface JobData {
 }
 
 export interface ExportJobMetadata {
-
+  programId: string
+  version: string
+  hasCustomPlanDefinition: boolean
+  filename: string
+  isJson: boolean
+  programTitle: string
 }
 
 export interface CompareJobMetadata {
