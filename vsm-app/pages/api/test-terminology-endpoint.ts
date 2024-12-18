@@ -12,7 +12,7 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const activeTerminologyClient = await terminologyClient.getClient()
     if (activeTerminologyClient) {
-      const serverResponse = await activeTerminologyClient.request('/ValueSet?_count=1')
+      const serverResponse = await activeTerminologyClient.request('/metadata')
       // @ts-ignore
       if (serverResponse?.resourceType == 'Bundle') {
         return res.status(200).json({ status: 'ok' })
