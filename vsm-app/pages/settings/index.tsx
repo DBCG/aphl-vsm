@@ -561,7 +561,7 @@ const TerminologyEndpoints: NextPage = () => {
     title: 'Welcome to the Valueset Manager!',
     body: 'In order to view content, you must first add valid credentials for the VSAC server below.',
     requirements: 'This is required for the app to be able to run.',
-    checks: 'Valid and invalid credentials are determined by attempting a GET of a single ValueSet from the server.',
+    checks: `Valid and invalid credentials are determined by attempting to GET the FHIR /metadata endpoint.`,
     otherRequirements: 'All other endpoints must also be conformant FHIR servers to use in the VSM App.'
   }
 

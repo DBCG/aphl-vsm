@@ -1,12 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { terminologyClient } from 'fhirClients'
-import { VSMSession } from '@/helpers/rolesHelper'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
+import { getServerSession } from 'next-auth/next'
 
-const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
+const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { endpointUrl, endpointName, endpointId } = req.query
-    const authCredentials = await tsCredentialService.getCredentials(session.user.id, endpointId as string)
+    const session = await getServerSession(req, res, AuthOptions)
+    const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
 
     terminologyClient.setCustomClient({
       clientName: endpointName as string,
@@ -18,7 +20,7 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
     if (activeTerminologyClient) {
       const serverResponse = await activeTerminologyClient.request('/metadata')
       // @ts-ignore
-      if (serverResponse?.resourceType == 'Bundle') {
+      if (serverResponse?.resourceType == 'CapabilityStatement') {
         return res.status(200).json({ status: 'ok' })
       } else {
         return res.status(500).json({ error: 'Invalid terminology server credentials' })
