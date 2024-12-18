@@ -463,7 +463,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
     for (const flatGrouperItem of vsToAddFromTermServer) {
       const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === flatGrouperItem?.selectedTerminologyServer?.value?.id)
       if (!matchingCredentialsForServer) {
-        console.log('No credentials found for terminology server')
+        Logger.getLogger().info('No credentials found for terminology server')
         return []
       }
   
