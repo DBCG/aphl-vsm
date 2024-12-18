@@ -6,7 +6,6 @@ import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
-import { useGetCredentials } from '@/hooks/useGetCredentials'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { useGetEndpoints } from '@/hooks/useGetEndpoints'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -26,10 +25,6 @@ const Programs: NextPage = () => {
   }
 
   const {
-    allUserCredentials,
-  } = useGetCredentials()
-
-  const {
     allEndpoints,
   } = useGetEndpoints()
 
@@ -45,8 +40,7 @@ const Programs: NextPage = () => {
   } = useTestTermEndpoint({
     endpointUrl: vsacEndpoint?.address || '',
     endpointName: 'VSAC',
-    username: allUserCredentials?.find((cred: any) => cred.terminologyServerId === 'vsac')?.username,
-    password: allUserCredentials?.find((cred: any) => cred.terminologyServerId === 'vsac')?.password,
+    endpointId: 'vsac'
   })
   
   useEffect(() => {

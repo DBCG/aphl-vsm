@@ -234,8 +234,7 @@ const CredentialsItem = (currentServerData: any) => {
   } = useTestTermEndpoint({
     endpointUrl: credentials?.[0]?.address || '',
     endpointName: credentials?.[0]?.name,
-    username: credentials?.[0]?.username,
-    password: credentials?.[0]?.password,
+    endpointId: credentials?.[0]?.id
   })
 
   useEffect(() => {
