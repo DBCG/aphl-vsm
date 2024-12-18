@@ -54,6 +54,8 @@ const matchExistsInCQF = async ({ vsCanonical, versionToFind }: MatchExists): Pr
 interface TermInfo {
   value: string
   hasExtension: boolean
+  id: string
+  url: string
 }
 
 interface AddDetails {
@@ -97,6 +99,7 @@ interface GetLeaf {
   vsCanonical: string
   versionToFind: string
   useContext: fhir4.UsageContext[]
+  creds: any
 }
 
 const getLeafFromTermServer = async ({
@@ -107,7 +110,7 @@ const getLeafFromTermServer = async ({
   creds
 }: GetLeaf): Promise<fhir4.ValueSet | undefined> => {
   try {
-    // return
+    console.log('creds: ', creds)
     const matchingCreds = creds.find((cred) => cred.terminologyServerId === terminologyInfo.id)
 
     if (!matchingCreds) {
