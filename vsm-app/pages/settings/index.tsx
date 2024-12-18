@@ -339,7 +339,6 @@ const CredentialsItem = (currentServerData: any) => {
                 sx={{
                   p: '1rem 0 0.5rem 1rem',
                   display: 'flex',
-                  // justifyContent: 'space-between',
                   borderRadius: '1rem',
                   width: '80%',
                 }}
