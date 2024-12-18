@@ -414,8 +414,13 @@ const TerminologyEndpoints: NextPage = () => {
   const [error, setError] = useState({ error: '' })
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const isAdmin = session?.user?.roles?.includes('admin')
+  // const isAdmin = session?.user?.roles?.includes('admin')
   const [vsacInvalid, setVsacInvalid] = useState(false)
+
+  const isAdmin = useMemo(() => {
+    console.log('session', session)
+    return session?.user?.roles?.includes('admin')
+  }, [session])
 
   const {
     data: currentCredentials = null,
@@ -554,7 +559,7 @@ const TerminologyEndpoints: NextPage = () => {
         }
       }
     ],
-    [pagination.countPerPage, pagination.page, router]
+    [pagination.countPerPage, pagination.page, router, isAdmin]
   )
 
   const onboardingText = {
