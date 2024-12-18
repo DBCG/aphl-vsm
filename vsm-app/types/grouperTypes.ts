@@ -35,11 +35,16 @@ interface SelectedGrouper {
   version: fhir4.ValueSet['version'];
 }
 
+export interface TermServerOption {
+  label: string;
+  value: { id: string, url: string };
+}
+
 interface FlatGrouperVSet {
   selectedValueSet: SelectedValueSet;
   selectedConditions: Condition[];
   selectedGroupers?: SelectedGrouper[];
-  selectedTerminologyServer: 'vsac' | 'ontoserverR4';
+  selectedTerminologyServer: TermServerOption;
   selectedPriority: 'routine' | 'emergent'
 }
 

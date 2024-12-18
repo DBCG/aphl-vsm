@@ -4,15 +4,16 @@
  **/
 import Queue from 'bull'
 import FhirClient from '@/backend/clients/FhirClient'
-import { terminologyClient as termClient } from 'fhirClients'
+import { terminologyClient } from 'fhirClients'
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
-import { addExtensionToVs, EXTENSIONS, getTerminologySource, isVsmAuthored } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, EXTENSIONS, isVsmAuthored } from '@/helpers/valueSetHelpers'
 import { isEqualComparator, sleep } from 'utils'
 import dayjs from 'dayjs'
 import { getProgramDetailsValuesets } from '@/pages/api/programs/[id]/details/valuesets'
 import Logger from '@/helpers/server/logger'
 import { isEqualWith, set } from 'lodash'
 import { QUEUE_REDIS_URL } from '@/config'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
 type CDRResponseCollection = {
   [url: string]: {
@@ -24,7 +25,7 @@ type CDRResponseCollection = {
 
 const MAX_JOB_SIZE = 20
 
-const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
+const valueSetUpdateQueue = new Queue<{ urls: string[]; programId: string, userId: string }>('vsUpdate', `${QUEUE_REDIS_URL}`, {
   limiter: {
     max: 1,
     duration: 10000
@@ -120,7 +121,7 @@ const gatherVsToUpdate = (toUpdateCollection: CDRResponseCollection) => {
 }
 
 // Executes a job batch
-const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpdates: number[]) => {
+const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpdates: number[], userId: string) => {
   const batchBundle: Bundle & { type: 'batch' } = {
     resourceType: 'Bundle',
     type: 'batch',
@@ -145,30 +146,47 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
 
     const cachedCdrVS = parseCdrResponses(cdrResponse as Bundle) || []
     const toUpdateCollection: CDRResponseCollection = {}
-    // Gather all the valuesets from their respective authorative sources
+
+    const endpointBundle = await FhirClient.getInstance().search({
+      resourceType: 'Endpoint',
+    })
+  
+    const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
+
+    
+    // Gather all the valuesets from their respective authoritive sources
     await Promise.all(
       cachedCdrVS.map(async (valueset) => {
         if (isVsmAuthored(valueset)) {
           Logger.getLogger().info(`Skipping VSM authored ValueSet ${valueset.id}`)
           return
         }
-        let serverType: 'vsac' | 'ontoserverR4' = 'vsac'
-        const { value } = getTerminologySource(valueset, refreshErrors) //fetch the terminology server
 
-        switch (value) {
-          case 'https://cts.nlm.nih.gov/fhir':
-            serverType = 'vsac'
-            break
-          case 'Ontoserver (R4)':
-            refreshErrors.push(`Authoritative Source ${value} for Value Set ${valueset.id} is currently unsupported`)
-            break
-          default:
-            // default will also be vsac
-            break
-        }
+        const authSourceBase = valueset?.extension?.find(ext => ext?.url?.endsWith('valueset-authoritativeSource'))?.valueUri?.split('/ValueSet')?.[0]
+        
+        if (!authSourceBase) {
+          refreshErrors.push(`Leaf valueset ${valueset.id} lacks supported authoritative source`)
+          return
+        } 
 
-        termClient.setClient(serverType)
-        const targetFhirClient = termClient.getClient()!
+        const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => {
+          if (authSourceBase === 'http://cts.nlm.nih.gov/fhir') {
+            return e?.address?.toLowerCase() === 'https://cts.nlm.nih.gov/fhir'
+          } else {
+            return e?.address?.toLowerCase() === authSourceBase.toLowerCase()
+          }
+        })
+
+        const authCredentials = await tsCredentialService.getCredentials(userId, matchingEndpoint?.id as string)
+        let baseTermServerUrl = matchingEndpoint?.address?.toString()
+      
+        terminologyClient.setCustomClient({
+          baseUrl: baseTermServerUrl,
+          clientName: matchingEndpoint?.name?.toString(),
+          basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
+        })
+
+        const targetFhirClient = terminologyClient.getClient()!
 
         const vsComparatorResponses = (await targetFhirClient?.search({
           resourceType: 'ValueSet',
@@ -176,13 +194,13 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         })) as fhir4.Bundle
 
         if (!vsComparatorResponses || vsComparatorResponses?.total == 0) {
-          Logger.getLogger().error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${value}`)
-          refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${value}`)
+          Logger.getLogger().error(`No ValueSets found in bundle for ${valueset.url} from authoritative source ${baseTermServerUrl}`)
+          refreshErrors.push(`Refresh failed for Value Set ${valueset.id} from authoritative source ${baseTermServerUrl}`)
           return null
         }
 
         const authorativeValueSet = vsComparatorResponses.entry?.[0].resource as ValueSet
-        const authoritativeFullUrl = authorativeValueSet.url?.replace('http://', 'https://') as string // necessary for auth source
+        const authoritativeFullUrl = authorativeValueSet.url?.replace('http://', 'https://') as string // necessary for auth source... why though?
         toUpdateCollection[valueset.url!] = {
           cdrValueSet: valueset,
           authorativeValueSet,
@@ -212,7 +230,7 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
  * Job is processed here and will do a max of 20 urls at a time
  */
 valueSetUpdateQueue.process(async function (job, done) {
-  const { urls = [], programId } = job.data
+  const { urls = [], programId, userId } = job.data
   const refreshErrors: string[] = []
   const totalUpdates: number[] = [] // Store total number of updates made
   const clonedUrls = [...urls]
@@ -225,7 +243,7 @@ valueSetUpdateQueue.process(async function (job, done) {
   Logger.getLogger().info(`Starting job id: ${job.id} with urls ${clonedUrls.length} and dividing into ${maxIterations} batches`)
   const batchedJobs = [] as any
   while (clonedUrls.length > 0) {
-    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates)
+    const batch = await executeJobBatch(clonedUrls.splice(0, MAX_JOB_SIZE), refreshErrors, totalUpdates, userId)
     if (batch) {
       batchedJobs.push(batch)
     }

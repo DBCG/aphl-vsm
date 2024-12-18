@@ -111,22 +111,6 @@ const NavBar = () => {
              {session?.user?.name}
           </Typography>
         </Box>
-        {enableTerminologySource && session?.user?.roles?.[0] === 'admin' && (
-          <Box>
-            <MenuItem
-              id="admin"
-              onClick={() => {
-                router.push('/admin')
-              }}
-            >
-              <ListItemIcon>
-                <AdminPanelSettings />
-              </ListItemIcon>
-              Admin Panel
-            </MenuItem>
-            <Divider />
-          </Box>
-        )}
         {enableTerminologySource && (
           <Box>
             <MenuItem onClick={() => router.push('/settings')}>

@@ -89,6 +89,7 @@ const AddGrouper = ({ program }: LibraryServerSideProps) => {
     }))
 
     const updated = [...grouperVSets, ...leafsToAdd]
+    // @ts-ignore
     setGrouperVSets(updated)
   }
 

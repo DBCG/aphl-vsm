@@ -53,7 +53,6 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
       identifier: 'terminologyEndpoint'
     }
   })) as fhir4.Bundle
-
   let endpoints = endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || []
   if (req.query.user_set) {
     // This option will filter and return only those endpoints that the user has set credentials for
@@ -62,7 +61,6 @@ const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointRe
     const endpointIds = new Set(creds.map((cred) => cred.terminologyServerId))
     endpoints = endpoints.filter((ep) => endpointIds.has(ep.id!))
   }
-
   res.status(200).send({ endpoints, total: endpoints?.length || 0 })
 }
 export default handler({

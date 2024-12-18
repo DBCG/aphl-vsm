@@ -149,6 +149,7 @@ class APITokenHandler {
       }
       return response.json()
     } catch (error) {
+      console.log(error)
       Logger.getLogger().error(`Error retrieving attributes for userId: ${userId} from Keycloak: ${error}`)
       this.resetState()
       throw error
