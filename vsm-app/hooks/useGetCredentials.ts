@@ -2,11 +2,11 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 
 // get all available user credentials
-const useGetCredentials = ({ userId }: { userId: string }) => {
+const useGetCredentials = () => {
 
-  const endpoint = `/api/credentials?userId=${userId}`
+  const endpoint = '/api/credentials'
 
-  const { data, error, isLoading, mutate } = useSWR(userId ? endpoint : null, fetcher)
+  const { data, error, isLoading, mutate } = useSWR(endpoint, fetcher)
 
   return {
     allUserCredentials: data,

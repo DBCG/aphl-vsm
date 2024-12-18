@@ -27,7 +27,7 @@ const Programs: NextPage = () => {
 
   const {
     allUserCredentials,
-  } = useGetCredentials({ userId: session?.user?.id })
+  } = useGetCredentials()
 
   const {
     allEndpoints,
