@@ -514,14 +514,16 @@ const TerminologyEndpoints: NextPage = () => {
         maxWidth: '3rem',
         minWidth: '10rem',
         cell: (row: fhir4.Endpoint) => {
-          if (row.id === 'vsac') {
+          console.log('row', row)
+          console.log('isAdmin', isAdmin)
+          if (row.id === 'VSAC') {
             return 'VSAC endpoint details readonly'
           }
           return (
             <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
               <IconButton
                 onClick={() => {
-                  router.push(`/admin/edit-endpoint/${row.id}`)
+                  router.push(`/settings/edit-endpoint/${row.id}`)
                 }}
                 buttoncontext={'edit'}
               />
