@@ -2,8 +2,8 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Cache from '@/cache'
-import { JobData, Jobs } from '@/services/frontend/JobsService'
 import PackageQueue from '@/worker/PackageQueue'
+import { Jobs, JobData } from '@/types/jobTypes'
 
 const getAllJobs = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   const cache = await Cache.getInstance()

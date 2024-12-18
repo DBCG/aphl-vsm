@@ -3,7 +3,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
 import { addTerminologyEndpointToParameters } from './fhirResourceHelper'
-
+import { Agent, fetch as f } from 'undici'
 interface CollectedChange extends ChangeValue {
   keyName: string
   change: string
@@ -120,17 +120,23 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
     ]
   }
   const input = JSON.stringify(addTerminologyEndpointToParameters(parameters))
-  const changeJson = (await FhirClient.getInstance().operation({
-    name: '$create-changelog',
-    input,
+
+  const changeJson = await f(`${FhirClient.getInstance().baseUrl}/$create-changelog`, {
+    body: input,
     method: 'POST',
-    options: {
-      headers: {
-        'Content-Type': `application/fhir+json`,
-        ...FhirClient.getInstance().customHeaders
-      }
+    dispatcher: new Agent({
+      connectTimeout: 24 * 60 * 60 * 1000,
+      headersTimeout: 24 * 60 * 60 * 1000,
+      keepAliveTimeout: 24 * 60 * 60 * 1000,
+      keepAliveMaxTimeout: 24 * 60 * 60 * 1000
+    }),
+    // @ts-ignore
+    headers: {
+      'Content-Type': 'application/fhir+json',
+      ...FhirClient.getInstance().customHeaders
     }
-  })) as fhir4.Binary
+  }).then((response) => response.json())
+
   return (changeJson!)
 }
 

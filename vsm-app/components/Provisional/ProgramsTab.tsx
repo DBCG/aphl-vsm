@@ -705,25 +705,6 @@ const ProgramsTab: NextPage = () => {
         ) : <></>}
         {programs?.length > 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', backgroundColor: enableCompare ? 'white' : 'transparent', padding: '.8rem .6rem', width: 'fit-content', alignSelf: 'flex-end' }}>
-            {
-              enableCompare ? (
-                <div style={{ backgroundColor: 'white', padding: '.8rem .6rem' }}>
-                  <i>Comparison options:</i>
-                  <FormGroup style={{ paddingBottom: '0' }} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadSpreadsheet(Boolean(e?.target?.checked))}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={downloadSpreadsheet}
-                          sx={checkboxStyles}
-                        />
-                      }
-                      label="Download Changelog Spreadsheet"
-                    />
-                  </FormGroup>
-                </div>
-
-              ) : null
-            }
             <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
               <Button
                 style={{
@@ -738,7 +719,7 @@ const ProgramsTab: NextPage = () => {
                 disabled={enableCompare && selectedRows?.length !== 2}
                 onClick={() => {
                   if (selectedRows && selectedRows?.length > 1) {
-                    router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}&showDiffViewer=true&downloadSpreadsheet=${downloadSpreadsheet}`)
+                    router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}`)
                   } else {
                     setEnableCompare(true)
                   }

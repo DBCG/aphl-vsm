@@ -1,10 +1,11 @@
 import { JOB_STATUS } from '@/constants'
-import JobsService, { JobData } from '@/services/frontend/JobsService'
+import JobsService from '@/services/frontend/JobsService'
 import { MenuItem, Box, Typography, Link, ListItemIcon, Stack } from '@mui/material'
 import { toast } from 'react-toastify'
 import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import { JobData } from '@/types/jobTypes'
 type Props = {
   jobId: string
   jobDetails: JobData

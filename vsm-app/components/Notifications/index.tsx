@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
-import { Jobs } from '@/services/frontend/JobsService'
 import ExportNotification from './ExportNotification'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { toast } from 'react-toastify'
+import CompareNotification from './CompareNotification'
+import { Jobs } from '@/types/jobTypes'
 
 const Notifications = () => {
   const [jobs, setJobs] = useState<Jobs>({})
@@ -46,6 +47,13 @@ const Notifications = () => {
       >
         {Object.entries(jobs).map(([jobId, jobDetails]) => {
           switch (jobDetails.type as string) {
+            case JOB_TYPE.CHANGE_LOG:
+              return (
+                <Box key={jobId}>
+                  <CompareNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose}  />
+                  <hr />
+                </Box>
+              )
             case JOB_TYPE.EXPORT:
               return (
                 <Box key={jobId}>

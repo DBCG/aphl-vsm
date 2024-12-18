@@ -42,7 +42,6 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
     (page: any) => page.resourceType === 'Library' && page.oldData?.id?.operation?.newValue === targetGrouperLibrary.id
   )?.[0]
 
-  Logger.getLogger().debug(JSON.stringify(changeJson))
   const groupingValueSetsChangeLogs = changeJson.pages.filter((page: any) => page.resourceType === 'ValueSet')
 
   generateReadMeSheet(workbook, sourceGrouperLibrary, targetGrouperLibrary, changeJson.pages[0])

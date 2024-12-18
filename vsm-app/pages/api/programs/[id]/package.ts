@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { JOB_EXPIRATION } from '@/config'
+import { DEFAULT_JOB_CONFIG, JOB_EXPIRATION } from '@/config'
 import Queue from 'bull'
 import Cache from '@/cache'
 import { VSMSession } from '@/helpers/rolesHelper'
@@ -31,14 +31,7 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   const userId = session.user.id
   const job = await PackageQueue.add(
     { data, planDefinition, targetVersion, programId: req.query.id as string, userId },
-    {
-      removeOnComplete: {
-        age: 24 * 3600 // keep up to 24 hours
-      },
-      removeOnFail: {
-        age: 24 * 3600 // keep up to 24 hours
-      }
-    }
+    DEFAULT_JOB_CONFIG
   )
 
   const cache = await Cache.getInstance()
@@ -54,7 +47,6 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   await cache.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
   res.status(200).json(job)
 }
-
 
 export default handler({
   POST: {
