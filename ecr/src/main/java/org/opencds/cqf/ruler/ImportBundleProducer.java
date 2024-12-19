@@ -9,6 +9,8 @@ import org.hl7.fhir.r4.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,6 +93,19 @@ public class ImportBundleProducer {
 		}
 	}
 
+    public static String ensureHttps(String urlString) throws MalformedURLException {
+        URL url = new URL(urlString);
+
+        // Check if the protocol is already HTTPS
+        if ("https".equalsIgnoreCase(url.getProtocol())) {
+            return urlString;
+        }
+
+        // Construct a new URL with the HTTPS protocol
+        URL httpsUrl = new URL("https", url.getHost(), url.getPort(), url.getFile());
+        return httpsUrl.toString();
+    }
+
 	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties, String appAuthoritativeUrl) throws FhirResourceExists {
 		// store for processing root library
 		Map<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
@@ -128,8 +143,16 @@ public class ImportBundleProducer {
 							var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filtered);
 
+                            String valueSetAuthoritativeSourceUrl = valueSet.getUrl();
+                            
+                            try {
+                                valueSetAuthoritativeSourceUrl = ensureHttps(valueSetAuthoritativeSourceUrl);
+                            } catch (MalformedURLException e) {
+                                // Do nothing here and let the malformed URL flow through. 
+                            }                            
+
 							// Add authoritative source extension
-							addAuthoritativeSource(valueSet, valueSet.getUrl());
+							addAuthoritativeSource(valueSet, valueSetAuthoritativeSourceUrl);
 						}
 
 						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
