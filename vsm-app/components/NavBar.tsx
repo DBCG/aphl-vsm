@@ -124,8 +124,8 @@ const NavBar = () => {
         )}
         <MenuItem
           id="logout"
-          onClick={() => {
-            signOut({ redirect: false })
+          onClick={async () => {
+            await signOut({ redirect: false })
             router.push('/api/auth/logout')
           }}
         >
