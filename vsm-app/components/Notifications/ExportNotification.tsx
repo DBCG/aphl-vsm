@@ -50,7 +50,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
             <Typography variant="body1">
               Export for {type} {version} {programTitle} failed
             </Typography>
-            <Typography variant="caption" color="error">
+            <Typography sx={{ textWrap: 'wrap' }} variant="caption" color="error">
               {errorMessage}
             </Typography>
           </Stack>

@@ -50,7 +50,7 @@ const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActio
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">Change Log has failed</Typography>
-            <Typography variant="caption" color="error">
+            <Typography sx={{textWrap: 'wrap'}} variant="caption" color="error">
               {errorMessage}
             </Typography>
           </Stack>
