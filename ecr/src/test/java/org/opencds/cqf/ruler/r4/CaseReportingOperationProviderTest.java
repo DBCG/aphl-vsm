@@ -93,6 +93,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.execute();
 
 		assertNotNull(returnedBundle);
+		assertEquals(9, returnedBundle.getEntry().size());
 		Optional<Bundle.BundleEntryComponent> maybeLib = returnedBundle.getEntry().stream().filter(entry -> entry.getResponse().getLocation().contains("Library")).findAny();
 		assertTrue(maybeLib.isPresent());
 		Library lib = getClient().fetchResourceFromUrl(Library.class,maybeLib.get().getResponse().getLocation());

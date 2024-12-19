@@ -38,8 +38,8 @@ public class CaseReportingConfig {
 
 	@Bean
 	@Conditional(OnR4Condition.class)
-	public CaseReportingOperationProvider r4CaseReportingOperationProvider() {
-		return new CaseReportingOperationProvider();
+	public CaseReportingOperationProvider r4CaseReportingOperationProvider(FhirContext fhirContext) {
+		return new CaseReportingOperationProvider(fhirContext);
 	}
 
 	@Bean

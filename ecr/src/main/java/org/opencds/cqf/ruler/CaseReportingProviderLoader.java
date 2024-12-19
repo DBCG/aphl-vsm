@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import ca.uhn.fhir.jpa.api.config.JpaStorageSettings;
 
 public class CaseReportingProviderLoader {
 	private static final Logger myLogger = LoggerFactory.getLogger(CaseReportingProviderLoader.class);
@@ -22,6 +23,9 @@ public class CaseReportingProviderLoader {
 
 	@Autowired
 	CaseReportingOperationProvider myCaseReportingOperationProvider;
+
+	@Autowired
+	JpaStorageSettings myStorageSettings;
 
 	private final ResourceProviderFactory myResourceProviderFactory;
 
@@ -43,5 +47,11 @@ public class CaseReportingProviderLoader {
 				throw new ConfigurationException("CaseReporting not supported for FHIR version "
 						+ myFhirContext.getVersion().getVersion());
 		}
+	}
+
+	@EventListener(ContextRefreshedEvent.class)
+	public void updateStorageSettings() {
+		myLogger.info("Setting Pre-Expand ValueSets to 'false'");
+		myStorageSettings.setPreExpandValueSets(false);
 	}
 }

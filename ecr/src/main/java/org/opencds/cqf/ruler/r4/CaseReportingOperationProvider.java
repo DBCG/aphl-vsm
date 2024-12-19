@@ -17,6 +17,7 @@ import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.NotImplementedOperationException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import ca.uhn.fhir.validation.FhirValidator;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -70,13 +71,47 @@ public class CaseReportingOperationProvider {
 	@Autowired
 	private DaoRegistry daoRegistry;
 
-	@Autowired
-	private FhirContext fhirContext;
 
 	@Autowired
 	private FhirRedisService fhirRedisService;
 
-	private IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+	private final FhirContext fhirContext;
+	private final IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+	private final FhirValidator fhirValidator;
+	
+	@Autowired
+	public CaseReportingOperationProvider(FhirContext fhirContext) {
+		this.fhirContext = fhirContext;
+		this.fhirValidator = fhirContext.newValidator();
+		var npm = new NpmPackageValidationSupport(fhirContext);
+		registerValidator(npm);
+	}
+	private void registerValidator(NpmPackageValidationSupport npm) {
+		fhirValidator.setValidateAgainstStandardSchema(false);
+		fhirValidator.setValidateAgainstStandardSchematron(false);
+		try {
+			npm.loadPackageFromClasspath("classpath:hl7.fhir.us.ecr-2.1.0.tgz");
+		} catch (IOException e) {
+			throw new InternalErrorException("Could not load package hl7.fhir.us.ecr");
+		}
+		var vsmIG = new NpmPackageValidationSupport(fhirContext);
+		try {
+			npm.loadPackageFromClasspath("classpath:aphl.fhir.vsm-0.0.1.tgz");
+		} catch (IOException e) {
+			throw new InternalErrorException("Could not load package aphl.fhir.vsm");
+		}
+		var chain = new ValidationSupportChain(
+			npm,
+			vsmIG,
+			new DefaultProfileValidationSupport(fhirContext),
+			new InMemoryTerminologyServerValidationSupport(fhirContext),
+			new CommonCodeSystemsTerminologyService(fhirContext),
+			new SnapshotGeneratingValidationSupport(fhirContext)
+		);
+		var instanceValidatorModule = new FhirInstanceValidator(chain);
+		instanceValidatorModule.setValidatorResourceFetcher(new ValidatorResourceFetcher(fhirContext, chain, daoRegistry));
+		fhirValidator.registerValidatorModule(instanceValidatorModule);
+	}
 
 	/**
 	 * Applies an approval to an existing artifact, regardless of status.
@@ -430,37 +465,8 @@ public class CaseReportingOperationProvider {
 		if (resource == null) {
 			throw new UnprocessableEntityException("A FHIR resource must be provided for validation");
 		}
-		if (fhirContext != null) {
-			var fhirValidator = fhirContext.newValidator();
-			fhirValidator.setValidateAgainstStandardSchema(false);
-			fhirValidator.setValidateAgainstStandardSchematron(false);
-			var npm = new NpmPackageValidationSupport(fhirContext);
-			try {
-				npm.loadPackageFromClasspath("classpath:hl7.fhir.us.ecr-2.1.0.tgz");
-			} catch (IOException e) {
-				throw new InternalErrorException("Could not load package");
-			}
-			var vsmIG = new NpmPackageValidationSupport(fhirContext);
-			try {
-				npm.loadPackageFromClasspath("classpath:aphl.fhir.vsm-0.0.1.tgz");
-			} catch (IOException e) {
-				throw new InternalErrorException("Could not load package");
-			}
-			var chain = new ValidationSupportChain(
-				npm,
-				vsmIG,
-				new DefaultProfileValidationSupport(fhirContext),
-				new InMemoryTerminologyServerValidationSupport(fhirContext),
-				new CommonCodeSystemsTerminologyService(fhirContext),
-				new SnapshotGeneratingValidationSupport(fhirContext)
-			);
-			var instanceValidatorModule = new FhirInstanceValidator(chain);
-			instanceValidatorModule.setValidatorResourceFetcher(new ValidatorResourceFetcher(fhirContext, chain, daoRegistry));
-			fhirValidator.registerValidatorModule(instanceValidatorModule);
-			return (OperationOutcome) fhirValidator.validateWithResult(resource, null).toOperationOutcome();
-		} else {
-			throw new InternalErrorException("Could not load FHIR Context");
-		}
+		
+		return (OperationOutcome) fhirValidator.validateWithResult(resource, null).toOperationOutcome();
 	}
 
 	@Operation(name = "$artifact-diff", idempotent = true, global = true, type = MetadataResource.class)
