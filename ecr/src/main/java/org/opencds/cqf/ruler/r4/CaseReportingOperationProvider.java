@@ -71,23 +71,24 @@ public class CaseReportingOperationProvider {
 	@Autowired
 	private DaoRegistry daoRegistry;
 
-	@Autowired
-	private FhirContext fhirContext;
 
 	@Autowired
 	private FhirRedisService fhirRedisService;
 
-	private IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
-	private FhirValidator fhirValidator;
-
-	public CaseReportingOperationProvider() {
-			registerValidator();
+	private final FhirContext fhirContext;
+	private final IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
+	private final FhirValidator fhirValidator;
+	
+	@Autowired
+	public CaseReportingOperationProvider(FhirContext fhirContext) {
+		this.fhirContext = fhirContext;
+		this.fhirValidator = fhirContext.newValidator();
+		var npm = new NpmPackageValidationSupport(fhirContext);
+		registerValidator(npm);
 	}
-	private void registerValidator() {
-		fhirValidator = fhirContext.newValidator();
+	private void registerValidator(NpmPackageValidationSupport npm) {
 		fhirValidator.setValidateAgainstStandardSchema(false);
 		fhirValidator.setValidateAgainstStandardSchematron(false);
-		var npm = new NpmPackageValidationSupport(fhirContext);
 		try {
 			npm.loadPackageFromClasspath("classpath:hl7.fhir.us.ecr-2.1.0.tgz");
 		} catch (IOException e) {
