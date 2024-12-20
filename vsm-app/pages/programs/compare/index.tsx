@@ -1,6 +1,6 @@
 import DiffViewerComponent from '@/components/DiffViewer/DiffViewerComponent'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
-import { CircularProgress, Drawer, IconButton, Tooltip, Typography } from '@mui/material'
+import { CircularProgress, Drawer, IconButton, Tooltip } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import { useRouter } from 'next/router'
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react'
@@ -411,6 +411,13 @@ const ProgramCompare = () => {
   }
 
   const setDiffResults = (base: any, target: any, diffResponse: Job) => {
+    // early return if there's an error
+    if (diffResponse?.returnvalue?.error) {
+      setDownloadLoading(false)
+      setIsLoadingDiff(false)
+      return
+    }
+
     const differenceData = JSON.parse(diffResponse?.returnvalue)
 
     const diffDataByParents = {
@@ -490,8 +497,9 @@ const ProgramCompare = () => {
           ) : null}
           <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', gap: '2rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}>
-              <NoteParagraph>It may take a few minutes to process the data.</NoteParagraph>
-              <NoteParagraph>Please wait until the action is complete before navigating away from this page.</NoteParagraph>
+              <NoteParagraph>For larger programs, it can take around 30 minutes to generate difference data.</NoteParagraph>
+              <NoteParagraph>You can navigate away from this page.</NoteParagraph>
+              <NoteParagraph>Upon success or failure you will receive a notification in the top navbar.</NoteParagraph>
               <ProgramCol style={{ minWidth: '300px', maxWidth: '600px' }}>
                 <StyledP>Select base program</StyledP>
                 <Select
@@ -558,12 +566,15 @@ const ProgramCompare = () => {
                 </LoadingButton>
               </ButtonContainer>
             </div>
-            {isError && (
-              <Typography sx={{ color: 'red' }} variant="h6">
-                Error encountered while generating difference data
-              </Typography>
-            )}
           </ProgramCol>
+          {isError && (
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'flex-start' }}>
+              <WarningIcon style={{ color: 'var(--accent)', marginRight: '1rem' }} />
+              <p style={{ color: 'var(--accent)', lineHeight: '150%'  }}>
+                Error encountered while generating difference data.<br></br>See notification in navbar for details.
+              </p>
+            </div>
+          )}
         </NoteContainer>
       </ProgramContainer>
       {diffViewerFormattedData && <DiffViewerComponent changelogData={diffViewerFormattedData} />}
