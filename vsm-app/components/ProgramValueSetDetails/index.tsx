@@ -327,10 +327,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   useEffect(() => {
-    setVersionToUpdate(defaultVersionData)
-  }, [programValuesets])
-
-  useEffect(() => {
     if (!versionToUpdate.grouperIds?.length) {
       return
     }
@@ -546,10 +542,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                       terminologyInfo
                     })
                   }}
-                  isLoading={
-                    loadingVersionsForVs === row?.valueSet?.id ||
-                    (versionToUpdate.vsCanonical === row?.valueSet?.url && row?.valueSetPinnedVersion !== versionToUpdate.selectedVersion)
-                  }
+                  isLoading={loadingVersionsForVs === row?.valueSet?.id}
                   loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                   isMulti={false}
                   styles={reactSelectOptionStyle()}
