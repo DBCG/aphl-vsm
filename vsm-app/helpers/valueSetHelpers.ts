@@ -383,11 +383,13 @@ const transformForVSAC = (vs: fhir4.ValueSet) => {
   return clonedVs
 }
 
+// TODO: Dec 19 2025 - VSAC used to have verions in their url like so http://vsac.nlm.nih.gov/ValueSet/2.16.840.1.113883-20220901
+// but this seems to have changed and have had the version removed and also changed their protocol from http to https
 // fullUrlBundle comes with the bundle resource when search is applied
 const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   const clonedVs = cloneDeep(vs)
   if (typeof fullUrlBundle === 'string') {
-    clonedVs.url = fullUrlBundle
+    clonedVs.url = fullUrlBundle.replaceAll('https', 'http')
   }
   const splitPaths = clonedVs?.url?.split('/') || []
   // get last part of url
