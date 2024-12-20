@@ -145,7 +145,7 @@ const ErrorBlockText = styled.p`
   }
 `
 
-const CopyButton = styled.button`
+export const CopyButton = styled.button`
   background-color: transparent;
   position: absolute;
   top: 4px;
