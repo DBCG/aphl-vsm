@@ -31,6 +31,9 @@ const Notifications = () => {
     toast.success('All notifications cleared')
   }
 
+  //@ts-ignore
+  const sortedJobs = Object.entries(jobs).sort((a,b) => a?.[0] - b?.[0])
+
   return (
     <Box>
       <Badge sx={{ mr: 3 }} onClick={handleClick} badgeContent={Object.keys(jobs)?.length} color="primary">
@@ -45,7 +48,7 @@ const Notifications = () => {
           'aria-labelledby': 'basic-button'
         }}
       >
-        {Object.entries(jobs).map(([jobId, jobDetails]) => {
+        {sortedJobs.map(([jobId, jobDetails]) => {
           switch (jobDetails.type as string) {
             case JOB_TYPE.CHANGE_LOG:
               return (

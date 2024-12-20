@@ -106,6 +106,8 @@ spec:
           ports:
             - containerPort: 8080
               protocol: TCP
+      nodeSelector:
+        kubernetes.io/memory-intensive: "true"
       tolerations:
       - key: "memory-intensive"
         operator: "Equal"
