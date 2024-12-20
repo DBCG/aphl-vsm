@@ -1,11 +1,13 @@
 import { JOB_STATUS } from '@/constants'
 import JobsService from '@/services/frontend/JobsService'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { MenuItem, Box, Typography, Link, ListItemIcon, Stack } from '@mui/material'
 import { toast } from 'react-toastify'
 import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { JobData } from '@/types/jobTypes'
+
 type Props = {
   jobId: string
   jobDetails: JobData
@@ -17,6 +19,8 @@ type StatusActionNotificationProps = {
   downloadExport: () => void
 }
 
+const copyText = (txt: string) => navigator.clipboard.writeText(txt)
+
 const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
   const { status: jobStatus, metadata } = jobDetails
   const programTitle = metadata?.programTitle || 'program'
@@ -24,6 +28,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
   const errorMessage = jobDetails?.error
   const version = metadata?.version
   const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
+
   let display
   switch (jobStatus) {
     case JOB_STATUS.IN_PROGRESS:
@@ -42,15 +47,23 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       break
     case JOB_STATUS.FAILED:
       display = (
-        <Box sx={{ display: 'flex' }}>
+        <Box
+          sx={{ display: 'flex', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.preventDefault()
+            toast.success('Copied errors to clipboard', { autoClose: 1000 })
+            copyText(errorMessage || '')
+          }}
+        >
           <ListItemIcon>
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
+            <ContentCopyIcon style={{ color: 'gray', alignSelf: 'flex-end' }}/>
             <Typography variant="body1">
               Export for {type} {version} {programTitle} failed
             </Typography>
-            <Typography variant="caption" color="error">
+            <Typography sx={{ textWrap: 'wrap' }} variant="caption" color="error">
               {errorMessage}
             </Typography>
           </Stack>
@@ -130,6 +143,7 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
       closeNotification()
     }
   }
+
   return (
     <MenuItem>
       <Box>

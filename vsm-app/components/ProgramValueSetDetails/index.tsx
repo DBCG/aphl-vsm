@@ -32,7 +32,6 @@ import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/val
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
 import TextLink from '../TextLink'
-import { fetcher } from '@/utils'
 
 const subscribe = async (
   setJobStatus: React.Dispatch<SetStateAction<number | null>>,
@@ -131,15 +130,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const { terminologySources } = useGetEndpointOptionsForUI()
 
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
-
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
     canonical: '',
     version: ''
   })
   const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
-  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>({
+  const defaultVersionData = {
     vsCanonical: '',
     useContext: [],
     selectedVsId: '',
@@ -147,7 +144,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     grouperIds: [],
     programId: '',
     terminologyInfo: { value: '', hasExtension: false, id: '', url: '' }
-  })
+  }
+  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>(defaultVersionData)
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
@@ -207,6 +205,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   useEffect(() => {
     setMyDocument(document.body)
+    refreshProgramValueSets()
   }, [])
 
   const handleChange = ({ selectedRows }: SelectedRows) => {

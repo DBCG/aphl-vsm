@@ -45,6 +45,10 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
   }
 }
 
+export const isVsac = (termClientInstance: any) => {
+  return termClientInstance?.baseUrl.includes('cts.nlm.nih.gov') 
+}
+
 export interface UpdateValueSetBody extends NextApiRequest {
   body: {
     selectedTerminologyServer: TermServerOption | 'vsm'
@@ -118,7 +122,11 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
 
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
-          let url = idWithoutVersion(selectedVS?.url as string)
+          const serverIsVsac = isVsac(terminologyClientInstance)
+          let url = (selectedVS?.url as string)
+          if (serverIsVsac) {
+            url = idWithoutVersion(selectedVS?.url as string)
+          }
           if (is.string(url)) {
             // get all matching valuesets
             // vsac doesn't support _sort so doing this broader search + sorting below
@@ -129,6 +137,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               }
             })
 
+            // if there are available matches
             if (allAvailableMatches?.entry) {
               // sorting here because we cannot use _sort on VSAC server -- not supported
               const orderedMatchingVSets = allAvailableMatches.entry
@@ -136,7 +145,10 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               
 
               // need to remove the last -<version> from the ID if it exists
-              const matchingIdNoVersion = splitAtLastIndex(orderedMatchingVSets[0].resource.id, '-')[0]
+              let matchingIdNoVersion = orderedMatchingVSets[0].resource.id
+              if (serverIsVsac) {
+                matchingIdNoVersion = splitAtLastIndex(orderedMatchingVSets[0].resource.id, '-')[0]
+              }
 
               let matchingVSetFromRemoteServer: fhir4.ValueSet = (await terminologyClientInstance.read({
                 resourceType: 'ValueSet',
@@ -161,9 +173,11 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               } else {
                 Logger.getLogger().error('no match found')
                 res.status(400).json({ error: `no match found` })
+                return
               }
+              // otherwise there are no available matches
             } else {
-              res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
+               res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
               return
             }
           } else {
@@ -175,6 +189,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
           return
         }
       } catch (e) {
+        Logger.getLogger().error('error while attempting to add valueset: ', e)
         res.status(400).json({ error: `Error adding ValueSet with url ${selectedVS.url}` })
         return
       }

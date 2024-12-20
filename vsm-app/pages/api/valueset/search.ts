@@ -70,8 +70,6 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
       const baseUrl = new URL(endpointResource?.address)
       if (endpointResource?.address == null) {
         throw new Error('Terminology server address is not set')
-      } else if (!baseUrl.toString().endsWith('/fhir')) {
-        baseUrl.pathname = '/fhir'
       }
 
       try {
@@ -98,6 +96,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
           _offset: typeof offset === 'string' && offset
         }
         if (activeTerminologyClient) {
+          console.log('activeTerminologyClient', activeTerminologyClient)
           try {
             const serverResponse = await retry(() =>
               activeTerminologyClient.search({
