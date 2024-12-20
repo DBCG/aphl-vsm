@@ -45,7 +45,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
   }
 }
 
-export const isVsac = (termClientInstance) => {
+export const isVsac = (termClientInstance: any) => {
   return termClientInstance?.baseUrl.includes('cts.nlm.nih.gov') 
 }
 
