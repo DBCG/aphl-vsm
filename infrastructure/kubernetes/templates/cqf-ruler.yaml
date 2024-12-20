@@ -35,11 +35,11 @@ spec:
           name: cqf-ruler-vsm
           resources:
             requests:
-              memory: "7Gi"     
-              cpu: "1500m"
+              memory: "6.5Gi"
+              cpu: "1200m"
             limits:
-              memory: "7.5Gi"
-              cpu: "1800m"
+              memory: "7Gi"
+              cpu: "1500m"
           env:
             - name: hapi.fhir.server_address
               value: {{.Values.protocol}}://{{ .Values.cqf_ruler.app_url}}/fhir
@@ -58,7 +58,7 @@ spec:
             - name: redis.database
               value: "4"
             - name: _JAVA_OPTIONS
-              value: '-Xmx7500m'
+              value: '-Xmx6500m'
             - name: spring.datasource.url
               value: {{ .Values.cqf_ruler.db_url }}
             - name: spring.datasource.driverClassName
