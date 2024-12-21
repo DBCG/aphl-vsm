@@ -11,6 +11,7 @@ import {
   setReleaseLabel
 } from '@/helpers/libraryHelpers'
 import { ReleasePayload } from '@/components/modals/ReleaseModal'
+import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
@@ -54,7 +55,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     program.version = releaseAsVersion
   }
 
-  const releasePayload = {
+  const releasePayload = addTerminologyEndpointToParameters({
     resourceType: 'Parameters',
     parameter: [
       {
@@ -64,9 +65,13 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       {
         name: 'versionBehavior',
         valueCode: 'force'
+      },
+      {
+        name: 'latestFromTxServer',
+        valueBoolean: true
       }
     ]
-  }
+  })
 
   await FhirClient.getInstance().operation({
     name: '$release',
