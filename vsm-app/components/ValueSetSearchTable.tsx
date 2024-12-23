@@ -362,6 +362,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     })
 
     if (leafsUpdated.ok) {
+      toast.success('Valueset sucessfully added')
       router.push(`/programs/${router.query.id}/valuesets`)
     }
   }
@@ -424,7 +425,6 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
           <Button
             style={{ alignSelf: 'center', marginBottom: 0 }}
             key="delete"
-            type="submit"
             onClick={handleAddValueSets}
             text="Add"
             disabled={!Boolean(selectedGroupers.length)}
