@@ -7,6 +7,8 @@ import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters }
 import Logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import { Agent, fetch as f } from 'undici'
+import { is } from '@/helpers/is'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -64,30 +66,48 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
 const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
   const parameters = addTerminologyEndpointToParameters({ resourceType: 'Parameters' } as fhir4.Parameters)
 
-  const response = await fetch(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$ecr.package`, {
+  const response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$ecr.package`, {
     body: JSON.stringify(parameters),
     method: 'POST',
+    dispatcher: new Agent({
+      connectTimeout: 24 * 60 * 60 * 1000,
+      headersTimeout: 24 * 60 * 60 * 1000,
+      keepAliveTimeout: 24 * 60 * 60 * 1000,
+      keepAliveMaxTimeout: 24 * 60 * 60 * 1000
+    }),
+    // @ts-ignore
     headers: {
       'Content-Type': 'application/fhir+json',
       // should be Basic Auth creds
       ...FhirClient.getInstance().customHeaders
     }
-  }).then((i) => i.json()).catch((err) => {
-    Logger.getLogger().error('Something went wrong with $package operation for program Id:' + programId)
-    Logger.getLogger().error(err)
-    throw new Error('Something went wrong while packaging')
   })
-  const allLeafVs = response?.entry
-    ?.map((i: fhir4.BundleEntry) => i.resource)
+    .then((i) => i.json())
+    .catch((err) => {
+      Logger.getLogger().error('Something went wrong with $package operation for program Id:' + programId)
+      Logger.getLogger().error(err)
+      throw new Error('Something went wrong while packaging')
+    })
+  const isError = is.hapiOperationOutcomeError(response)
+  if (isError) {
+    const operationOutcome = response as fhir4.OperationOutcome
+    const errorMsg = operationOutcome?.issue?.[0]?.diagnostics
+    throw new Error(errorMsg)
+  }
+
+  const bundleResponse = response as fhir4.Bundle
+  const allLeafVs = bundleResponse ?.entry
+    ?.map((i: fhir4.BundleEntry) => i.resource as fhir4.ValueSet)
     ?.filter((i: fhir4.ValueSet) => i.resourceType === 'ValueSet' && !isGrouperValueSet(i))
 
   let codeSystemsList: fhir4.Coding[] = []
 
   allLeafVs?.forEach((i: fhir4.ValueSet) => {
-    const codeSystems = i?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({
-      system: i.system,
-      code: i.concept?.[0]?.code
-    })) || [] as fhir4.Coding[]
+    const codeSystems =
+      i?.compose?.include?.map((i: fhir4.ValueSetComposeInclude) => ({
+        system: i.system,
+        code: i.concept?.[0]?.code
+      })) || ([] as fhir4.Coding[])
     codeSystemsList.push(...codeSystems)
   })
 
@@ -162,9 +182,10 @@ const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, 
       }))
       return res.status(200).json(latestVersionCodeSystems)
     }
-  } catch (e) {
-    Logger.getLogger().error('error:  ' + JSON.stringify(e, null, 2))
-    return res.status(400).json({ 'server-error': 'ValueSet search failed.' })
+  } catch (e: any) {
+    const message = e?.message
+    Logger.getLogger().error('error:  ' + message)
+    return res.status(400).json({ error: message })
   }
 }
 
