@@ -1,6 +1,6 @@
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
-import { JOB_EXPIRATION, QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_REDIS_URL } from '@/config'
 import Cache from '@/cache'
 import { JOB_STATUS } from '@/constants'
 import { Agent, fetch as f } from 'undici'
@@ -9,6 +9,8 @@ import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import Queue from 'bull'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import VSDownloadQueue from './VSDownloadQueue'
+import { isVsmGrouper } from '@/helpers/valueSetHelpers'
 
 const PackageQueue = new Queue('exportProgram', QUEUE_REDIS_URL)
 
@@ -129,6 +131,17 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
   )
 }
 
+const extractVSUrls = (exportPackage: fhir4.Bundle) => {
+  const vsUrls = new Set()
+  exportPackage?.entry?.forEach((bundleEntry) => {
+    const resource = bundleEntry?.resource || {} as fhir4.ValueSet
+    if (resource.resourceType === 'ValueSet' && !isVsmGrouper(resource)) {
+      resource?.compose?.include.forEach((i) => vsUrls.add(i?.valueSet?.[0]))
+    }
+  })
+  return Array.from(vsUrls).filter(i => i)
+}
+
 PackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info('Begin Export Operation Job')
   const { data, programId, planDefinition, targetVersion, userId } = job.data
@@ -207,6 +220,8 @@ PackageQueue.process(async function (job: any, done) {
     }
     job.progress(90)
     const sanitizedExport = sanitizeExport(response)
+    const vsUrls = extractVSUrls(response as fhir4.Bundle)
+    VSDownloadQueue.add({ urls: vsUrls, userId })
     const validationResults = await validatePackage(sanitizedExport)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
