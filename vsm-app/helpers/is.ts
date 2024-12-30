@@ -55,6 +55,9 @@ const is = {
   errorItem: (resource: ErrorItem | any): resource is ErrorItem => {
     return typeof resource?.error === 'string'
   },
+  hapiOperationOutcomeError: (resource: any): boolean => {
+    return resource?.resourceType === 'OperationOutcome' && resource?.issue?.[0]?.severity === 'error'
+  },
   hapiError: (error: any): error is HapiError => {
     return (
       typeof error?.response?.status === 'number' &&

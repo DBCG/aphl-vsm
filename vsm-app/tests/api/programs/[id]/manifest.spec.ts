@@ -4,6 +4,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/pages/api/programs/[id]/manifest'
 
 // Mock Auth for Setup
+jest.mock('undici', () => jest.fn())
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
   getServerSession: jest.fn().mockImplementation(() => ({
