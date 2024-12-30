@@ -443,3 +443,7 @@ button {
 .programs-tab-table {
   max-height: unset !important;
 }
+
+.Toastify__toast-body {
+  word-break: break-all
+}
