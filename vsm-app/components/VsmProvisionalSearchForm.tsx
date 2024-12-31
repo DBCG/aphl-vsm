@@ -18,6 +18,7 @@ import { TextArea } from './TextArea'
 import { ConditionItem } from '@/components/ValueSetSearchTable/types'
 import { StyledForm, Row, DropdownContainer, TextAreaSubmitContainer, NoData } from '@/components/ValueSetSearchTable/styles'
 import { searchTypes } from '@/components/ValueSetSearchTable'
+import LoadingButton from '@mui/lab/LoadingButton'
 
 interface RowSelectionItem {
   allSelected: boolean
@@ -144,29 +145,32 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     setSelectedRows(r.selectedRows)
   }
 
-  const handleAddValueSets = async () => {
-    const body: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
-      selectedTerminologyServer: 'vsm',
-      selectedValueSets: uniqBy(selectedRows, 'id'),
-      selectedConditions,
-      selectedGroupers,
-      selectedPriority: selectedPriority?.value || 'routine'
-    }
-
-    const leafPutBody = JSON.stringify(body)
-
-    const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
-      method: 'PUT',
-      body: leafPutBody
-    })
-
-    if (leafsUpdated.ok) {
-      toast.success('Valueset sucessfully added')
-      router.push(`/programs/${router.query.id}/valuesets`)
-    }
-  }
   const contextActions = useMemo(() => {
     const options = buildConditionOptions(allConditions, selectedConditions)
+
+    const handleAddValueSets = async () => {
+      if (loading) return
+      setLoading(true)
+      const leafPutBody: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
+        selectedTerminologyServer: 'vsm',
+        selectedValueSets: uniqBy(selectedRows, 'id'),
+        selectedConditions,
+        selectedGroupers,
+        selectedPriority: selectedPriority?.value || 'routine'
+      }
+
+      const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
+        method: 'PUT',
+        body: JSON.stringify(leafPutBody)
+      })
+      if (leafsUpdated.ok) {
+        toast.success('Valueset sucessfully added')
+        router.push(`/programs/${router.query.id}/valuesets`)
+      } else {
+        const error = await leafsUpdated.json()
+        toast.error('Something went wrong: ' + error)
+      }
+    }
 
     return (
       <Row style={{ marginBottom: '1rem', display: selectedRows.length ? 'inherit' : 'none' }}>
@@ -221,18 +225,30 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
               }}
             />
           </SelectInputContainer>
-          <Button
-            style={{ alignSelf: 'center', marginBottom: 0 }}
-            key="add"
+          <LoadingButton
+            sx={{ alignSelf: 'center', marginBottom: 0 }}
             loading={loading}
+            variant="contained"
             onClick={handleAddValueSets}
-            text="Add"
-            disabled={!Boolean(selectedGroupers.length)}
-          />
+            disabled={!Boolean(selectedGroupers.length) || loading}
+          >
+            Add
+          </LoadingButton>
         </form>
       </Row>
     )
-  }, [selectedRows, allConditions, selectedConditions, selectedGroupers])
+  }, [
+    allConditions,
+    selectedConditions,
+    selectedRows,
+    toggleKey,
+    document,
+    formattedGroups,
+    selectedGroupers,
+    selectedPriority,
+    loading,
+    router
+  ])
 
   return (
     <div>
