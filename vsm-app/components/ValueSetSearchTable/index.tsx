@@ -17,13 +17,13 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
 import { TextArea } from '@/components/TextArea'
-import { shallowEqual, fetcher } from 'utils'
+import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
 import { uniqBy } from 'lodash'
-import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
-import { priorityLevelOptions } from './ProgramValueSetDetails'
+import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
+import { priorityLevelOptions } from '@/components//ProgramValueSetDetails'
 import DataTable from 'react-data-table-component'
-import { customTableStyles } from './tables/themes'
+import { customTableStyles } from '../tables/themes'
 import { UpdateValueSetBody } from '@/pages/api/valueset'
 import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 
@@ -424,7 +424,8 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
           </SelectInputContainer>
           <Button
             style={{ alignSelf: 'center', marginBottom: 0 }}
-            key="delete"
+            key="add"
+            loading={loading}
             onClick={handleAddValueSets}
             text="Add"
             disabled={!Boolean(selectedGroupers.length)}
