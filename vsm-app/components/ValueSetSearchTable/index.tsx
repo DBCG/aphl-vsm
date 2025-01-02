@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogTitle, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
@@ -19,7 +19,7 @@ import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
 import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
-import { uniqBy } from 'lodash'
+import { debounce, uniqBy } from 'lodash'
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 import {
@@ -147,71 +147,77 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by title/OID/steward
    */
-  const submitVSetSearch = async ({
-    searchContext = 'search',
-    pageNumber,
-    newResultsPerPage
-  }: {
-    searchContext?: 'filter' | 'search'
-    pageNumber?: number
-    newResultsPerPage?: number
-  }) => {
-    setToggledClearRows(true)
+  const submitVSetSearch = useCallback(
+    debounce(
+      async ({
+        searchContext = 'search',
+        pageNumber,
+        newResultsPerPage
+      }: {
+        searchContext?: 'filter' | 'search'
+        pageNumber?: number
+        newResultsPerPage?: number
+      }) => {
+        setToggledClearRows(true)
+        let response
 
-    let response
-    if (!searchTerm.trim()) {
-      setIsLoading(false)
-      return
-    }
+        if (!searchTerm.trim()) {
+          setIsLoading(false)
+          return
+        }
 
-    setIsLoading(true)
+        setIsLoading(true)
 
-    let searchStr = ''
+        let searchStr = ''
+        if (searchType.value === 'oid') {
+          const trimmedWords = searchTerm
+            ?.trim()
+            ?.split(',')
+            ?.map((term) => term?.trim())
+          const dedupedOids = Array.from(new Set(trimmedWords)) // dedupe the OIDs
+          // if more than 100 OIDs, exit with error
+          if (dedupedOids?.length > PAGINATION_MAXIMUM) {
+            const message = `OID search maximum is ${PAGINATION_MAXIMUM} at a time.`
+            setIsLoading(false)
+            toast.error(message)
+            return
+          }
+          searchStr = dedupedOids?.join(',')
+        } else if (searchType.value === 'title') {
+          searchStr = searchTerm.trim()
+        } else if (searchType.value === 'url') {
+          searchStr = searchTerm.trim()
+        }
 
-    if (searchType.value === 'oid') {
-      const trimmedWords = searchTerm
-        ?.trim()
-        ?.split(',')
-        ?.map((term) => term?.trim())
-      const dedupedOids = Array.from(new Set(trimmedWords)) // dedupe the OIDs
-      // if more than 100 OIDs, exit with error
-      if (dedupedOids?.length > PAGINATION_MAXIMUM) {
-        const message = `OID search maximum is ${PAGINATION_MAXIMUM} at a time.`
+        // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber and newResultsPerPage being passed in
+        const offset = ((pageNumber || currentPage?.page) - 1) * (newResultsPerPage || resultsPerPage)
+
+        let queryStringItems = {
+          searchType: searchType?.value,
+          count: newResultsPerPage || resultsPerPage,
+          sortBy: sortParams?.column,
+          sortDirection: sortParams?.direction,
+          offset: offset,
+          terminologyServer: selectedTerminologyServer?.value?.id
+        }
+
+        let queryString = ''
+
+        Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
+
+        const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+
+        response = await fetch(endpoint)
+        await handleSearchResponse({ searchContext, response })
+        setToggledClearRows(false)
+        setSelectedValueSets([])
         setIsLoading(false)
-        toast.error(message)
-        return
-      }
-      searchStr = dedupedOids?.join(',')
-    } else if (searchType.value === 'title') {
-      searchStr = searchTerm.trim()
-    } else if (searchType.value === 'url') {
-      searchStr = searchTerm.trim()
-    }
-
-    // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber and newResultsPerPage being passed in
-    const offset = ((pageNumber || currentPage?.page) - 1) * (newResultsPerPage || resultsPerPage)
-
-    let queryStringItems = {
-      searchType: searchType?.value,
-      count: newResultsPerPage || resultsPerPage,
-      sortBy: sortParams?.column,
-      sortDirection: sortParams?.direction,
-      offset: offset,
-      terminologyServer: selectedTerminologyServer?.value?.id
-    }
-
-    let queryString = ''
-
-    Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
-
-    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
-
-    response = await fetch(endpoint)
-    await handleSearchResponse({ searchContext, response })
-    setToggledClearRows(false)
-    setSelectedValueSets([])
-    setIsLoading(false)
-  }
+      },
+      800,
+      { leading: true, trailing: false }
+    ),
+    [searchTerm, searchType, selectedTerminologyServer, currentPage?.page, resultsPerPage, sortParams]
+  )
 
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
