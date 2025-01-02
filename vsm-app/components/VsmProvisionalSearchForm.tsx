@@ -1,6 +1,6 @@
-import { uniqBy } from 'lodash'
+import { debounce, uniqBy } from 'lodash'
 import { NextRouter, useRouter } from 'next/router'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import DataTable from 'react-data-table-component'
 import { toast } from 'react-toastify'
 import Select from 'react-select'
@@ -71,24 +71,34 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
     setToggleKey((k) => k + 1)
   }
 
-  const handleSearchProvisionalVS = async () => {
-    setLoading(true)
-    clearItems()
+  const handleSearchProvisionalVS = useCallback(
+    debounce(
+      async () => {
+        setLoading(true)
+        clearItems()
 
-    const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
-    const results = await fetch(urlToSearch)
+        const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
+        const results = await fetch(urlToSearch)
 
-    if (results.ok) {
-      const json = await results.json()
-      setSearchResults(json)
-      if (!searchTerm && !initialSearchResults.length) {
-        setInitialSearchResults(json)
+        if (results.ok) {
+          const json = await results.json()
+          setSearchResults(json)
+          if (!searchTerm && !initialSearchResults.length) {
+            setInitialSearchResults(json)
+          }
+        } else {
+          console.error('error occurred')
+        }
+        setLoading(false)
+      },
+      800,
+      {
+        leading: true,
+        trailing: false
       }
-    } else {
-      console.error('error occurred')
-    }
-    setLoading(false)
-  }
+    ),
+    [searchTerm, currentSearchField.value, initialSearchResults]
+  )
 
   useEffect(() => {
     handleSearchProvisionalVS()

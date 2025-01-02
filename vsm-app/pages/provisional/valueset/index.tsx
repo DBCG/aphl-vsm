@@ -584,6 +584,7 @@ const ProvisionalVSEdit = () => {
   }
 
   const handleProvisionalVsUpdate = async () => {
+    if (loading) return
     setLoading(true)
     // identify urls of all codesystems that don't exist yet
     const newCsUrls = Object.keys(codesBySystemToAdd).filter(system => !provisionalCS?.find((cs: fhir4.CodeSystem | undefined) => cs?.url === system))
@@ -839,7 +840,7 @@ const ProvisionalVSEdit = () => {
                 <Button
                   text={`${provisionalVsIdForUpdate ? 'Update' : 'Create'} Provisional Value Set`}
                   onClick={handleProvisionalVsUpdate}
-                  disabled={provisionalVsIdForUpdate ? !changesExistForExistingVs : !flattenCodesBySystem.length}
+                  disabled={loading || (provisionalVsIdForUpdate ? !changesExistForExistingVs : !flattenCodesBySystem.length)}
                   loading={loading}
                 />
               </div>

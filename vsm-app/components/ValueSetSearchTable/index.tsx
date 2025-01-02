@@ -404,7 +404,16 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     errorMessageComponent = <ErrorText>Minimum 3 characters required</ErrorText>
   }
 
-  const handleSearchToggleChange = (e: TableContextOptions) => setSearchTableContext(e)
+  const handleSearchToggleChange = useCallback(
+    debounce(
+      (_evt, e: TableContextOptions) => {
+        setSearchTableContext(e)
+      },
+      500,
+      { trailing: false, leading: true }
+    ),
+    []
+  )
 
   return (
     <Col>
@@ -416,13 +425,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       </Dialog>
       <Row style={{ justifyContent: 'flex-start' }}>
         {tableContext === 'search-page' && (
-          <ToggleButtonGroup
-            color="primary"
-            value={searchTableContext}
-            exclusive
-            onChange={(e, v) => handleSearchToggleChange(v)}
-            aria-label="Platform"
-          >
+          <ToggleButtonGroup color="primary" value={searchTableContext} exclusive onChange={handleSearchToggleChange} aria-label="Platform">
             <ToggleButton value="terminology">Search in Terminology Servers</ToggleButton>
             <ToggleButton value="vsm-provisional">Search in VSM Provisional</ToggleButton>
           </ToggleButtonGroup>

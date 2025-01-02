@@ -82,6 +82,7 @@ export const ApproveForm = ({ program }: ApproveFormProps) => {
   }, [program])
 
   const handleApprove = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (loading) return
     setLoading(true)
     const parameterObj = createParametersObj()
     const approveEndpoint = `/api/programs/${program.id}/approve`
@@ -176,7 +177,7 @@ export const ApproveForm = ({ program }: ApproveFormProps) => {
         </Col>
       </GridContainer>
       <Row style={{ justifyContent: 'center' }}>
-        <Button id="submit-approve" text="Submit" onClick={handleApprove} loading={loading} />
+        <Button id="submit-approve" text="Submit" onClick={handleApprove} disabled={loading} loading={loading} />
       </Row>
     </>
   )

@@ -11,11 +11,10 @@ import { useRouter } from 'next/router'
 import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
 import { toast } from 'react-toastify'
-
-export const authenticationTypeUrl = 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-endpoint-authentication-type'
+import { AUTHENTICATION_TYPE_URL } from '@/constants'
 
 export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
-  extensions.find((ext) => ext.url === authenticationTypeUrl)?.valueString
+  extensions.find((ext) => ext.url === AUTHENTICATION_TYPE_URL)?.valueString
 
 export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint }) => {
   const router = useRouter()
@@ -28,6 +27,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   const authenticationType = useRef<SelectInstance<{ value: string; label: string } | null>>(null)
   
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    if (loading) return
     toast.dismiss()
     e.preventDefault()
     setLoading(true)
@@ -43,11 +43,11 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     }
     updatedEndpoint.extension ??= []
     const authenticationTypeValue = authenticationType.current?.getValue()?.[0]?.value
-    const authenticationExtension = updatedEndpoint.extension?.find((ext) => ext.url === authenticationTypeUrl)
+    const authenticationExtension = updatedEndpoint.extension?.find((ext) => ext.url === AUTHENTICATION_TYPE_URL)
     if (authenticationExtension) {
       authenticationExtension.valueString = authenticationTypeValue
     } else {
-      updatedEndpoint.extension.push({ url: authenticationTypeUrl, valueString: authenticationTypeValue })
+      updatedEndpoint.extension.push({ url: AUTHENTICATION_TYPE_URL, valueString: authenticationTypeValue })
     }
     const url = `/api/endpoint`
     const body: EndpointRequest['body'] = { endpoint: updatedEndpoint }
@@ -105,7 +105,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       address.current.value = endpointToUpdate?.address || ''
     }
     if (authenticationType.current) {
-      const type = endpointToUpdate?.extension?.find((ext) => ext?.url === authenticationTypeUrl)?.valueString
+      const type = endpointToUpdate?.extension?.find((ext) => ext?.url === AUTHENTICATION_TYPE_URL)?.valueString
       const authenticationOption = authenticationOptions.find((a) => a.value === type)
       if (authenticationOption) {
         authenticationType.current.setValue(authenticationOption, 'select-option')

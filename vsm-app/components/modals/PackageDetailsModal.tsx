@@ -129,9 +129,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   const handleExitExportModal = () => {
-    setDownloadLoading(false)
     toggleModalOpen()
-    handleResetState()
+    setTimeout(() => handleResetState(), 500) // Workaround to prevent 
   }
 
   const onSuccessExport = () => {
