@@ -48,6 +48,8 @@ const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActio
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">Generating Change Log</Typography>
+            <Typography variant="caption">Base ID: {baseProgramId}</Typography>
+            <Typography variant="caption">Target ID: {targetProgramId}</Typography>
           </Stack>
         </NotificationContainer>
       )

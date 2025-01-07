@@ -35,7 +35,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       display = (
         <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
-            <DownloadIcon fontSize="small" />
+            <PendingIcon />
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
@@ -74,7 +74,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       display = (
         <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
-            <PendingIcon />
+            <DownloadIcon fontSize="small" />
           </ListItemIcon>
           <Link onClick={downloadExport}>
             <Stack>
@@ -90,7 +90,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
   return <>{display}</>
 }
 
-const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`, filename: string) => {
+const downloadTextData = (data: string, type: `${string}${'json' | 'xml' | 'txt'}`, filename: string) => {
   // https://stackoverflow.com/a/55613750/8144343
   const blob = new Blob([data], { type: type })
   const href = URL.createObjectURL(blob)
@@ -110,35 +110,18 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
   const downloadExport = async () => {
     const job = await JobsService.getJob(jobId)
     const packageResponse = job?.returnvalue?.response
-
-    // TODO: figure out what to do with the validaiton errors
-    // document validation errors
-    // if (validationResult?.error?.length) {
-    //   const validationErrorStrings = validationResult.error
-    //   if (typeof validationErrorStrings === 'string') {
-    //     errorByTopic['Validation Errors'].push(validationErrorStrings)
-    //   } else {
-    //     errorByTopic['Validation Errors'].push(...validationErrorStrings)
-    //   }
-    // }
-
+    const validationResults = job?.returnvalue?.validationResults
     try {
       if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
         downloadTextData(packageResponse, 'application/fhir+xml', jobDetails?.metadata?.filename)
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
         downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', jobDetails?.metadata?.filename)
-      } else {
-        // errorByTopic['Download Errors'].push(`Could not download file in ${fileType.toUpperCase()} format`)
       }
-
-      // const errorsExist = Boolean(Object.values(errorByTopic).filter((e) => Boolean(e?.length))?.length > 0)
-      // if (errorsExist) {
-      //   setExportError(errorByTopic)
-      // }
+      if (validationResults.length > 0) {
+        downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${jobDetails?.metadata?.programTitle}_validationResults.txt`)
+      }
     } catch (error) {
       toast.error('Error downloading file: ' + error)
-      // errorByTopic['Download Errors'].push('File download failed')
-      // setExportError(errorByTopic)
     } finally {
       closeNotification()
     }
