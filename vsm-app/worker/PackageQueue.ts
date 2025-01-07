@@ -225,7 +225,7 @@ PackageQueue.process(async function (job: any, done) {
     const validationResults = await validatePackage(sanitizedExport)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
-    done(null, { response: sanitizeExport(sanitizedExport) })
+    done(null, { response: sanitizeExport(sanitizedExport), validationResults })
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
