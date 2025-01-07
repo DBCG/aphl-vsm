@@ -7,6 +7,7 @@ import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import { JobData } from '@/types/jobTypes'
+import PopOverErrorMessage from './PopoverErrorMessage'
 
 type Props = {
   jobId: string
@@ -35,7 +36,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       display = (
         <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
-            <PendingIcon />
+            <PendingIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
@@ -58,15 +59,13 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           <ListItemIcon>
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
-          <Stack>
-            <ContentCopyIcon style={{ color: 'gray', alignSelf: 'flex-end' }}/>
-            <Typography variant="body1">
+          <Stack sx={{ maxWidth: '300px' }}>
+            <Typography variant="body1" sx={{fontSize: '14px'}}>
               Export for {type} {version} {programTitle} failed
             </Typography>
-            <Typography sx={{ textWrap: 'wrap' }} variant="caption" color="error">
-              {errorMessage}
-            </Typography>
+            <PopOverErrorMessage errorMessage={errorMessage || ''} />
           </Stack>
+          <ContentCopyIcon style={{ color: 'gray', alignSelf: 'flex-end' }} />
         </Box>
       )
       break
