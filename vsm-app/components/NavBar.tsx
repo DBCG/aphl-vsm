@@ -8,7 +8,7 @@ import Box from '@mui/material/Box'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
-import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
+import { Logout, MoreVert, Settings } from '@mui/icons-material'
 import Notifications from '@/components/Notifications'
 
 const BarWrapper = styled.div`
@@ -124,10 +124,7 @@ const NavBar = () => {
         )}
         <MenuItem
           id="logout"
-          onClick={async () => {
-            await signOut({ redirect: false })
-            router.push('/api/auth/logout')
-          }}
+          onClick={async () => await signOut()}
         >
           <ListItemIcon>
             <Logout fontSize="small" />
