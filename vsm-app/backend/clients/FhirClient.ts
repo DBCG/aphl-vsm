@@ -55,6 +55,13 @@ class FhirClient {
       id: id
     })) as fhir4.Endpoint
   }
+
+  async getVSACTerminologyServer(): Promise<Endpoint> {
+    return (await FhirClient.getInstance().read({
+      resourceType: 'Endpoint',
+      id: 'vsac' // TODO: hard-coded, we should double check seed data always adds this as ID
+    })) as fhir4.Endpoint
+  }
 }
 
 export default FhirClient
