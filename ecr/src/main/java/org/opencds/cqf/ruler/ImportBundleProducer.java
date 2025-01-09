@@ -129,6 +129,7 @@ public class ImportBundleProducer {
 
 						if (hasGrouperCompose(valueSet)) {
 							addModelGrouperUseContextIfMissing(valueSet);
+							valueSet.setExpansion(null);
 							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 							var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
 							valueSet.getMeta().setProfile(filteredGrouperProfiles);
