@@ -192,6 +192,10 @@ class TransformProviderIT extends RestIntegrationTest {
 				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
 				.collect(Collectors.toList());
 
+		importedGroupers.forEach(grouper -> {
+			assertNull(grouper.getExpansion());
+		});
+
 		// Check there are 6 groupers to be imported and none of them have group type  as use context
 		assertEquals(6,exportedGroupers.size());
 		assertEquals(0, groupersWithGroupTypeFromExportedBundle.size());
