@@ -4,8 +4,8 @@ import { FilterInput } from './FilterInput'
 import LoadingIndicator from './LoadingIndicator'
 import { SelectInputTitle } from '@/components/ProgramValueSetDetails/styles'
 import { formatResourceDate } from '@/helpers/formatDates'
-import { TableContextType } from './ValueSetSearchTable'
 import { customTableStyles } from './tables/themes'
+import { TableContextType } from '@/components/ValueSetSearchTable/types'
 
 interface TableData {
   name: ValueSet['name']

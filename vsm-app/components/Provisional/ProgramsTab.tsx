@@ -2,12 +2,12 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, Checkbox, FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material'
+import { Button, FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material'
 import CallMadeIcon from '@mui/icons-material/CallMade'
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown'
 import useSWR from 'swr'
 import styled from 'styled-components'
-import { debounce, set } from 'lodash'
+import { debounce } from 'lodash'
 import DT from 'react-data-table-component'
 import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
@@ -234,7 +234,6 @@ const ProgramsTab: NextPage = () => {
   const [programToRelease, setProgramToRelease] = useState<fhir4.Library | null>(null)
   const [error, setError] = useState<Error>({})
   const [latestProgramVersion, setLatestProgramVersion] = useState<null | string>(null)
-  const [downloadSpreadsheet, setDownloadSpreadsheet] = useState(true)
 
   // clear rows
   const [toggledClearRows, setToggledClearRows] = useState(false)
@@ -255,7 +254,6 @@ const ProgramsTab: NextPage = () => {
   const [progIdToDelete, setProgIdToDelete] = useState('')
 
   // expandable rows
-  const [expandableRowsClosed, setExpandableRowsClosed] = useState(null)
   const [refreshkey, setRefreshKey] = useState(0)
 
   // Table Pagination
@@ -716,9 +714,10 @@ const ProgramsTab: NextPage = () => {
                 }}
                 endIcon={enableCompare && selectedRows?.length == 2 ? <CallMadeIcon /> : null}
                 variant='text'
-                disabled={enableCompare && selectedRows?.length !== 2}
+                disabled={loading || enableCompare && selectedRows?.length !== 2}
                 onClick={() => {
                   if (selectedRows && selectedRows?.length > 1) {
+                    setLoading(true)
                     router.push(`programs/compare?old=${selectedRows[1].id}&new=${selectedRows[0].id}`)
                   } else {
                     setEnableCompare(true)
@@ -733,7 +732,6 @@ const ProgramsTab: NextPage = () => {
                   onClick={() => {
                     setSelectedRows(null)
                     setToggledClearRows((prev) => !prev)
-                    setDownloadSpreadsheet(true)
                     setEnableCompare(false)
                   }}
                 >

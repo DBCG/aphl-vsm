@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import 'react-toastify/dist/ReactToastify.min.css'
 import { PageTitle } from '@/components/Typography'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 import { Col } from '@/styles'
