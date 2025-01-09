@@ -130,7 +130,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const handleExitExportModal = () => {
     toggleModalOpen()
-    setTimeout(() => handleResetState(), 500) // Workaround to prevent 
+    setTimeout(() => handleResetState(), 500) // Workaround to force state change 
   }
 
   const onSuccessExport = () => {
