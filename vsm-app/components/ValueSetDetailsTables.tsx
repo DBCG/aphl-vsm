@@ -476,7 +476,7 @@ const ValueSetDetailsTables = ({
         <Tabs value={value} onChange={handleTabChange}>
           <Tab label="Definition" {...a11yProps(0)} />
           {!isVsmVset && <Tab label="Expansion" {...a11yProps(1)} />}
-          {value === 1 && (
+          {value === 1 && !isGrouperValueSet && (
             <Box sx={{ ml: 'auto', mr: 3, display: 'flex' }}>
               {isDraftProgram && (
                 <Box sx={{ mt: 1, mr: 1 }}>

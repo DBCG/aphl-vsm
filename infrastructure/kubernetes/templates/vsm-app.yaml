@@ -45,6 +45,8 @@ spec:
           value: https://cts.nlm.nih.gov/fhir
         - name: KEYCLOAK_SERVER_AUTH_ID
           value: server_auth
+        - name: LOG_LEVEL
+          value: debug
         - name: REDIS_HOST
           value: {{ .Values.vsm_app.redis_host_url}}
         - name: VSAC_USERNAME
