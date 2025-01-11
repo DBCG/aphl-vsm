@@ -25,7 +25,7 @@ type StatusActionNotificationProps = {
 const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActionNotificationProps) => {
-  const { baseProgramId, targetProgramId } = jobDetails.metadata
+  const { baseProgramId, targetProgramId } = JSON.parse(jobDetails.metadata)
   const router = useRouter()
   const jobStatus = jobDetails.status
   const errorMessage = jobDetails?.error || ''
