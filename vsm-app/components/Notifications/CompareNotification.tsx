@@ -24,7 +24,16 @@ type StatusActionNotificationProps = {
 const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActionNotificationProps) => {
-  const { baseProgramId, targetProgramId } = typeof jobDetails?.metadata === 'string' ? JSON.parse(jobDetails.metadata) : jobDetails.metadata
+  let defaultJobInfo = {
+    baseProgramId: null,
+    targetProgramId: null,
+  }
+  try {
+    defaultJobInfo = typeof jobDetails?.metadata === 'string' ? JSON.parse(jobDetails.metadata) : jobDetails.metadata
+  } catch (e) {
+    console.error(e)
+  }
+  const { baseProgramId, targetProgramId } = defaultJobInfo
   const router = useRouter()
   const jobStatus = jobDetails?.status || ''
   const errorMessage = jobDetails?.error || ''

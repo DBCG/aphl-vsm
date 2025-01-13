@@ -61,7 +61,7 @@ const NotificationStore = {
     }
     subject.next(state)
   },
-  setMetadata: (input: Jobs) => {
+  setMetadata: (input: Jobs = {}) => {
     const jobDetails = Object.values(input)?.[0]
     const jobId = Object.keys(input)?.[0]
     state = {
