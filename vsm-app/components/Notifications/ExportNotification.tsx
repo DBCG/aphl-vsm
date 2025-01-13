@@ -24,11 +24,12 @@ const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
   const { status: jobStatus, metadata } = jobDetails
-  const programTitle = metadata?.programTitle || 'program'
-  const type = metadata?.isJson ? 'JSON' : 'XML'
+  const additionalData = typeof metadata === 'string' ? JSON.parse(metadata) : metadata
+  const programTitle = additionalData?.programTitle || 'program'
+  const type = additionalData?.isJson ? 'JSON' : 'XML'
   const errorMessage = jobDetails?.error
-  const version = metadata?.version
-  const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
+  const version = additionalData?.version
+  const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
 
   let display
   switch (jobStatus) {

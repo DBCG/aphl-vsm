@@ -35,7 +35,7 @@ const NotificationStore = {
       .filter((job) => job.status === JOB_STATUS.IN_PROGRESS)
       .map((job) => job.jobId)
     // subscribe to all in progress jobs
-    subscribe(inProgressJobIds)
+    subscribe({ jobIds: inProgressJobIds })
     subject.next(state)
   },
   listenForJob: (targetedJobId: string, callback: Function) => {
@@ -48,11 +48,25 @@ const NotificationStore = {
       }
     })
   },
-  addJob: ({ jobId, jobType, metadata = {}, onSuccess, onFailure, updateStatus }: AddJobParams) => {
-    subscribe([jobId], onSuccess, onFailure)
+  addJob: async ({ jobId, jobType, metadata = {}, onSuccess, onFailure, updateStatus }: AddJobParams) => {
+    subscribe({
+      jobIds: [jobId],
+      onSuccess,
+      setMetaData: NotificationStore.setMetadata,
+      onFailure
+    })
     state = {
       ...state,
       [jobId]: { jobId, status: JOB_STATUS.IN_PROGRESS, metadata, type: jobType }
+    }
+    subject.next(state)
+  },
+  setMetadata: (input: Jobs) => {
+    const jobDetails = Object.values(input)?.[0]
+    const jobId = Object.keys(input)?.[0]
+    state = {
+      ...state,
+      [jobId]: { ...state[jobId], metadata: jobDetails?.metadata }
     }
     subject.next(state)
   },
@@ -81,7 +95,7 @@ const NotificationStore = {
       .filter((job) => job.status === JOB_STATUS.IN_PROGRESS)
       .map((job) => job.jobId)
     // re-subscribe to all in progress jobs
-    subscribe(inProgressJobIds)
+    subscribe({ jobIds: inProgressJobIds })
   },
   // @ts-ignore
   subscribe: (setState: Dispatch<SetStateAction<Jobs>>) => subject.subscribe(setState)

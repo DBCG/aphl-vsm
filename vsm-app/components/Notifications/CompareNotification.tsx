@@ -6,7 +6,6 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
 import { toast } from 'react-toastify'
 import PopOverErrorMessage from './PopoverErrorMessage'
 
@@ -25,12 +24,7 @@ type StatusActionNotificationProps = {
 const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActionNotificationProps) => {
-  const defaultJobInfo = {
-    baseProgramId: null,
-    targetProgramId: null,
-  }
-
-  const { baseProgramId, targetProgramId } = jobDetails?.metadata ? JSON.parse(jobDetails.metadata) : defaultJobInfo
+  const { baseProgramId, targetProgramId } = typeof jobDetails?.metadata === 'string' ? JSON.parse(jobDetails.metadata) : jobDetails.metadata
   const router = useRouter()
   const jobStatus = jobDetails?.status || ''
   const errorMessage = jobDetails?.error || ''
