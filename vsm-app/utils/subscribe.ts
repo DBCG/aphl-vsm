@@ -8,7 +8,14 @@ import { Jobs } from '@/types/jobTypes'
 
 const defaultOnSuccess = () => toast.success('Job completed successfully')
 
-const subscribe = (jobIds: string[], onSuccess: any = defaultOnSuccess, onFailure: any = () => {}) => {
+type SubscribeProps = {
+  jobIds: string[]
+  onSuccess?: any
+  setMetaData?: any
+  onFailure?: any
+}
+
+const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {}, onFailure = () => {} }: SubscribeProps) => {
   if (!jobIds.length) return
   // Create an observable for polling
   const polling$ = timer(0, 5000).pipe(
@@ -20,7 +27,11 @@ const subscribe = (jobIds: string[], onSuccess: any = defaultOnSuccess, onFailur
         },
         body: JSON.stringify(jobIds)
       })
-        .then((response) => response.json())
+        .then(async (response) => {
+          const res = await response.json()
+          setMetaData(res)
+          return res
+        })
         .catch((error) => {
           throw error // Handle fetch error
         })

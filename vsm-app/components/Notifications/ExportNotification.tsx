@@ -24,11 +24,17 @@ const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
   const { status: jobStatus, metadata } = jobDetails
-  const programTitle = metadata?.programTitle || 'program'
-  const type = metadata?.isJson ? 'JSON' : 'XML'
+  let additionalData = {} as any
+  try {
+    additionalData = typeof metadata === 'string' ? JSON.parse(metadata) : metadata
+  } catch (e) {
+    console.error(e)
+  }
+  const programTitle = additionalData?.programTitle || 'program'
+  const type = additionalData?.isJson ? 'JSON' : 'XML'
   const errorMessage = jobDetails?.error
-  const version = metadata?.version
-  const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
+  const version = additionalData?.version
+  const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
 
   let display
   switch (jobStatus) {
@@ -60,7 +66,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
           <Stack sx={{ maxWidth: '300px' }}>
-            <Typography variant="body1" sx={{fontSize: '14px'}}>
+            <Typography variant="body1" sx={{ fontSize: '14px' }}>
               Export for {type} {version} {programTitle} failed
             </Typography>
             <PopOverErrorMessage errorMessage={errorMessage || ''} />
