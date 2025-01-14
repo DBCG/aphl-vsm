@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
 import FhirClient from '@/backend/clients/FhirClient'
-import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, isVsmGrouper, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
@@ -12,13 +12,22 @@ import { FormattedGroup } from '@/components/VsmProvisionalSearchForm'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { TermServerOption } from '@/types/grouperTypes'
+import VSDownloadQueue from '@/worker/VSDownloadQueue'
 
 interface BundleEntryItem {
   fullUrl: string,
   resource: fhir4.ValueSet
 }
 
-function splitAtLastIndex(str: string, char: string) {
+const extractComposeVsUrls = (valueSet: { valueSet: fhir4.ValueSet }[]) => {
+  const vsUrls = new Set()
+  valueSet?.forEach(({valueSet}) => {
+    valueSet?.compose?.include.forEach((i) => vsUrls.add(i?.valueSet?.[0]))
+  })
+  return Array.from(vsUrls).filter(i => i)
+}
+
+const splitAtLastIndex = (str: string, char: string) => {
   const lastIndex = str.lastIndexOf(char)
 
   if (lastIndex === -1) {
@@ -231,7 +240,6 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     })
 
     if (!performedUpdate?.entry) {
-      // @ts-ignore
       return res.status(400).json({ error: 'Failed to update Value Sets' })
     }
   } catch (e) {
@@ -275,9 +283,11 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
         })
       })
     )
-
+    
     const validResults = result?.filter((r) => r.resourceType === 'ValueSet')
     if (validResults?.length && validResults?.length > 0) {
+      const urls = extractComposeVsUrls(vSetsToUpdate)
+      VSDownloadQueue.add({ urls, userId: session.user.id })
       return res.status(200).send(200)
     } else {
       res.status(400).json({ error: 'could not update valueset' })
