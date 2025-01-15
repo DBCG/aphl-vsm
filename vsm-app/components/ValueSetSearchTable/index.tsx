@@ -39,6 +39,7 @@ import {
   TitleRow
 } from './styles'
 import { LeafsToAdd, Offset, QueryStringItems, SearchReponseParams, TableContextOptions, ValueSetSearchTableProps } from './types'
+import { DescriptionText } from '@/pages/programs/[id]/valuesets/search'
 
 export const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -521,6 +522,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               </StyledForm>
             </Row>
           </TitleRow>
+          <DescriptionText style={{ marginBottom: '1rem', marginTop: '0rem' }}>* This search will only return <b>active</b> valuesets</DescriptionText>
           <SubmitSelectedForm hide={!selectedValueSets?.length}>
             <Row>
               <div>
