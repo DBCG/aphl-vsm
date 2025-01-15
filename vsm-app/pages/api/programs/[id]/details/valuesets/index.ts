@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
-import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
-import { getGrouperLibraryCanonical, getVSConditions } from '@/helpers/libraryHelpers'
+import { getVSConditions } from '@/helpers/libraryHelpers'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
-import { fetchGrouperValueSets, fetchGrouperLibrary, fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
+import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 import Logger from '@/helpers/server/logger'
+import { getProgram, getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
+import { getLeafUrlsFromGrouper } from '@/helpers/valueSetHelpers'
+import { uniq } from 'lodash'
 
 // Items in the table
 interface Group {
@@ -13,10 +14,6 @@ interface Group {
   title: string
   url: string
   defaultValueSetVersion?: string
-}
-
-interface ErrorRes {
-  error: string
 }
 
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
@@ -38,141 +35,8 @@ export const WHITELIST_VALUESET_FIELDS = [
 // ------------------------------------------------------------------------------------------------
 // ------------------------HELPER FUNCTIONS FOR ROUTE----------------------------------------------
 // ------------------------------------------------------------------------------------------------
-const isDefinedString = (item: any): item is string => {
-  return !!item
-}
-
-const getProgram = async (programId: string): Promise<fhir4.Library | ErrorRes> => {
-  const program = await FhirClient.getInstance().read({ resourceType: 'Library', id: programId })
-  // disabling proto-cache because it causes problems with updating groupers
-  if (!is.library(program)) {
-    return { error: `Program ${programId} must be a FHIR Library` }
-  }
-  return program
-}
-
-export const getGrouperLibrary = async (program: fhir4.Library): Promise<fhir4.Library | ErrorRes> => {
-  // get the grouper canonical, which is a Library resource
-  // the program only has 2 relatedArtifacts: a Library and a PlanDefinition
-  const grouperLibraryCanonical = getGrouperLibraryCanonical(program)
-  if (!grouperLibraryCanonical) {
-    return { error: `Could not find Grouper Library canonical for Program ${program.id}` }
-  }
-  const grouperStatus = program.status // active programs get active groupers, draft get draft groupers
-  // there is still going to be a bug here until we fix the fact that groupers are unversioned after draft
-
-  const grouperSearchResult = await fetchGrouperLibrary({ client: FhirClient.getInstance(), canonical: grouperLibraryCanonical, grouperStatus })
-
-  const result = grouperSearchResult?.entry?.[0]?.resource
-  if (is.library(result)) {
-    return result
-  }
-  return { error: `Could not get Grouper Library for Program ${program.id}` }
-}
-
-export const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
-  grouperVs?.compose?.include
-    ?.map((item) => item?.valueSet)
-    ?.filter((x) => !!x) // filter out undefined
-    ?.flat() || []
-
-// All leaf valuesets are required to belong to at least one grouper
-// so if none exist, this is a problem
-export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fhir4.ValueSet[] | ErrorRes> => {
-  const grouperValueSetCanonicals = grouperLib.relatedArtifact
-    ?.filter((a) => a.type == 'composed-of')
-    .map((res) => res.resource)
-    .filter(isDefinedString)
-
-  if (!grouperValueSetCanonicals) return { error: `No Grouper Valuesets linked to Library ${grouperLib.id}` }
-
-  const allGrouperVSets = (
-    (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
-      .filter(is.bundle)
-      .flatMap((bundle) => bundle?.entry?.map((e) => e?.resource!))
-      .filter((x) => !!x) as fhir4.Resource[]
-  ).filter(is.valueSet)
-
-  if (!allGrouperVSets) return { error: `No Grouper Valuesets found for Library ${grouperLib.id}` }
-  return allGrouperVSets
-}
-
-interface GetLeafs {
-  allGrouperVSets: fhir4.ValueSet[]
-  titleToFind: string
-  stewardToFind: string
-  publisherToFind: string
-  versionToFind: string
-  oidToFind: string
-  provisionalOnly: boolean
-}
 
 type LeafVersionsByUrl = Record<string, string>
-
-interface GetLeafsReturn {
-  leafVersionsByCanonical: LeafVersionsByUrl
-  leafValueSets: fhir4.ValueSet[]
-  totalLeafs: number
-}
-
-const getLeafValueSets = async ({
-  allGrouperVSets,
-  titleToFind,
-  stewardToFind,
-  publisherToFind,
-  versionToFind,
-  oidToFind,
-  provisionalOnly = false
-}: GetLeafs): Promise<GetLeafsReturn | ErrorRes> => {
-  const leafValueSetCanonicals: string[] = []
-  allGrouperVSets.forEach((grouperVs) => {
-    const leafUrlsInGrouper = getLeafUrlsFromGrouper(grouperVs) as string[]
-    // add groups to the leaf URLs
-    leafUrlsInGrouper?.forEach((url) => {
-      if (!url || leafValueSetCanonicals?.includes(url)) return
-
-      leafValueSetCanonicals.push(url)
-    })
-  })
-  if (!leafValueSetCanonicals.length) {
-    return ({
-      leafValueSets: [],
-      leafVersionsByCanonical: {},
-      totalLeafs: 0
-    })
-  }
-
-  const leafValueSets = await fetchLeafValueSets({
-    leafValueSetCanonicals,
-    titleToFind,
-    stewardToFind,
-    publisherToFind,
-    versionToFind,
-    oidToFind,
-    whitelistFields: WHITELIST_VALUESET_FIELDS,
-    provisionalOnly
-  })
-
-  if (!leafValueSets?.length) {
-    return { error: 'Could not fetch Leaf Valuesets' }
-  }
-
-  const leafVersionsByCanonical = leafValueSetCanonicals
-    ?.filter((canonical) => canonical?.includes('|'))
-    ?.reduce((acc, can) => {
-      let [baseCanonical, version] = can.split('|')
-      return { ...acc, [baseCanonical]: version }
-    }, {})
-
-  const result = {
-    leafValueSets,
-    leafVersionsByCanonical,
-    totalLeafs: leafValueSetCanonicals.length
-  }
-
-  return result
-}
-
 type GroupsByCanonical = Record<string, Group[]>
 
 const arrangeGroupInfoByValueSetCanonical = (allGrouperVSets: fhir4.ValueSet[]) => {
@@ -251,10 +115,6 @@ const formatValuesetData = (
   return formattedVsets
 }
 
-const isError = (res: any): res is ErrorRes => {
-  return typeof (res as ErrorRes).error === 'string'
-}
-
 // ------------------------------------------------------------------------------------------------
 // ------------------------API ROUTE BEGINS HERE---------------------------------------------------
 // ------------------------------------------------------------------------------------------------
@@ -295,42 +155,28 @@ export const getProgramDetailsValuesets = async ({
 }: RequestQueryParams) => {
   try {
     const program = await getProgram(programId)
-
-    if (isError(program)) {
-      Logger.getLogger().error(`Problem encountered getting program with ID ${programId}`)
-      return { status: 400, payload: { error: program.error } }
-    }
-
     const grouperLibrary = await getGrouperLibrary(program)
-
-    if (isError(grouperLibrary)) {
-      Logger.getLogger().error(`Problem encountered getting grouper library for Program ${programId}`)
-      return { status: 400, payload: { error: grouperLibrary.error } }
-    }
-
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
-    if (!Array.isArray(grouperValueSets) && isError(grouperValueSets)) {
-      Logger.getLogger().error(`Problem encountered getting grouper valuesets for Program ${programId}`)
-      return { status: 400, payload: { error: grouperValueSets.error } }
-    }
-
-    // filters here (<x>.toFind strings) are applied on the server side
-    const leafVsetResponse = await getLeafValueSets({
-      allGrouperVSets: grouperValueSets,
+    
+    const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[]))
+    
+    const leafValueSets = (await fetchLeafValueSets({
+      leafValueSetCanonicals,
       oidToFind: findInOid || '',
       stewardToFind: findInSteward || '',
       publisherToFind: findInPublisher || '',
       versionToFind: findInVersion || '',
       titleToFind: findInVsTitle || '',
+      whitelistFields: WHITELIST_VALUESET_FIELDS,
       provisionalOnly: false
-    })
+    })) as fhir4.ValueSet[]
 
-    if (isError(leafVsetResponse)) {
-      Logger.getLogger().error(`Problem encountered getting leaf valuesets for Program ${programId}`)
-      return { status: 400, payload: { error: leafVsetResponse.error } }
-    }
-
-    const { leafValueSets, leafVersionsByCanonical, totalLeafs } = leafVsetResponse
+    const leafVersionsByCanonical = leafValueSetCanonicals
+      ?.filter((canonical) => canonical?.includes('|'))
+      ?.reduce((acc, can) => {
+        let [baseCanonical, version] = can.split('|')
+        return { ...acc, [baseCanonical]: version }
+      }, {})
 
     const groupInfoByVsCanonical = arrangeGroupInfoByValueSetCanonical(grouperValueSets)
 
@@ -355,12 +201,13 @@ export const getProgramDetailsValuesets = async ({
     const composedResponse = {
       data: formattedVsets,
       groupsInProgram: grouperValueSets,
-      totalLeafs
+      totalLeafs: leafValueSets.length
     }
     return { status: 200, payload: composedResponse }
   } catch (e: any) {
     Logger.getLogger().error(`error:  , ${JSON.stringify(e, null, 2)}`)
-    return { status: 400, payload: { error: 'Search for leaf valueset details failed.' } }
+    const error = `Search for leaf valueset details failed: ${e?.message}`
+    return { status: 400, payload: { error } }
   }
 }
 

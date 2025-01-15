@@ -2,6 +2,10 @@ import FhirClient from '@/backend/clients/FhirClient'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import dayjs from 'dayjs'
+import { WHITELIST_VALUESET_FIELDS } from '@/pages/api/programs/[id]/details/valuesets'
+import { uniq } from 'lodash'
+import { getLeafUrlsFromGrouper } from '../valueSetHelpers'
+import { getProgram, getGrouperLibrary, getGrouperValuesets } from './serverLibraryHelper'
 interface FetchGrouperLib {
   client: FhirKitClient
   canonical: string
@@ -123,7 +127,7 @@ export const fetchLeafValueSets = async ({
     leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind as string))
   }
 
-  if (whitelistFields) {
+  if (whitelistFields && whitelistFields?.length > 0) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
