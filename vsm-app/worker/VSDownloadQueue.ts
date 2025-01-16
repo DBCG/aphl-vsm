@@ -52,6 +52,7 @@ VSDownloadQueue.process(async function (job: any, done) {
     Logger.getLogger().info(`${urlsToDownload.length} ValueSets to download to cache `)
 
     const vsacClient = terminologyClient.getClient()
+    Logger.getLogger().debug(`Getting vsac creds for ${userId}`)
     const creds = await tsCredentialService.getVsacCredentials(userId)
 
     // @ts-ignore
