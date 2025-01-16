@@ -182,6 +182,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       metadata
     }).then((res) => res.json())
 
+    if (jobResponse?.error) {
+      onFailureExport(jobResponse?.error)
+      return
+    }
+
     NotificationStore.addJob({
       jobId: jobResponse.id,
       jobType: JOB_TYPE.EXPORT,

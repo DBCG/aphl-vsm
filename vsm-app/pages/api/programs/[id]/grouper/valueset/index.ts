@@ -20,12 +20,12 @@ import { FlatGrouperVSet, GrouperMetadata, TermServerOption } from '@/types/grou
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 import Logger from '@/helpers/server/logger'
-import { cloneDeep, uniq, uniqBy } from 'lodash'
+import { uniqBy } from 'lodash'
 import { setVSConditions, setVSPriority } from '@/helpers/libraryHelpers'
-import { getGrouperLibrary, getGrouperValuesets } from '../../details/valuesets'
 import { ErrorItem } from '@/helpers/is'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
 
 export type ErrorResponse = {
   errorMessage: string

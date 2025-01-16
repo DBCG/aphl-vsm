@@ -158,7 +158,8 @@ export const getProgramDetailsValuesets = async ({
     const grouperLibrary = await getGrouperLibrary(program)
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
     
-    const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[]))
+    // @ts-ignore
+    const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [])) as string[]
     
     const leafValueSets = (await fetchLeafValueSets({
       leafValueSetCanonicals,
