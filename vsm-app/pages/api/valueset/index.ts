@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
 import FhirClient from '@/backend/clients/FhirClient'
-import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, isVsmGrouper, urlWithoutVersion } from '@/helpers/valueSetHelpers'
+import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
 import { terminologyClient } from 'fhirClients'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
@@ -22,7 +22,7 @@ interface BundleEntryItem {
 const extractComposeVsUrls = (valueSet: { valueSet: fhir4.ValueSet }[]) => {
   const vsUrls = new Set()
   valueSet?.forEach(({valueSet}) => {
-    valueSet?.compose?.include.forEach((i) => vsUrls.add(i?.valueSet?.[0]))
+    valueSet?.compose?.include.forEach((i) => i?.valueSet?.forEach(j => vsUrls.add(j)))
   })
   return Array.from(vsUrls).filter(i => i)
 }
