@@ -7,7 +7,8 @@ SEARCHPARAMS=${DIR}/../documentation/demo-data/search-parameters.json
 USERRESOURCES=${DIR}/../documentation/demo-data/user-resources.json
 ENDPOINTS=${DIR}/../documentation/demo-data/terminology-endpoints.json
 IMPORT_DATA="${DIR}/../documentation/demo-data/2024-02-02 eRSD/20240202-eRSD-parameters-request-body-for-import-corrected-compose.json"
- 
+# SMALLSPECIFICATION=${DIR}/../documentation/demo-data/small-bundle.json
+
 # $2 will default to the a dev HAPI server endpoint if not provided
 FHIR_SERVER=${2:-http://localhost:8082/fhir}
 
@@ -30,6 +31,7 @@ curl -d @${SEARCHPARAMS} --header "Content-Type: application/fhir+json" -v $FHIR
 curl -d @${CONDITIONS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 curl -d @${USERRESOURCES} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 curl -d @${ENDPOINTS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
+# curl -d @${SMALLSPECIFICATION} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 
 jq --arg url "$FHIR_SERVER" '(.parameter[] | select(.name == "appAuthoritativeUrl")).valueString = $url' "$IMPORT_DATA" | \
 curl -d @- --location ${FHIR_SERVER}/\$ersd-v2-import --header 'Content-Type: application/json'

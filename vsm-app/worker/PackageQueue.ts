@@ -131,17 +131,6 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
   )
 }
 
-const extractVSUrls = (exportPackage: fhir4.Bundle) => {
-  const vsUrls = new Set()
-  exportPackage?.entry?.forEach((bundleEntry) => {
-    const resource = bundleEntry?.resource || {} as fhir4.ValueSet
-    if (resource.resourceType === 'ValueSet' && !isVsmGrouper(resource)) {
-      resource?.compose?.include.forEach((i) => vsUrls.add(i?.valueSet?.[0]))
-    }
-  })
-  return Array.from(vsUrls).filter(i => i)
-}
-
 PackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info('Begin Export Operation Job')
   const { data, programId, planDefinition, targetVersion, userId } = job.data
@@ -220,8 +209,6 @@ PackageQueue.process(async function (job: any, done) {
     }
     job.progress(90)
     const sanitizedExport = sanitizeExport(response)
-    const vsUrls = extractVSUrls(response as fhir4.Bundle)
-    VSDownloadQueue.add({ urls: vsUrls, userId })
     const validationResults = await validatePackage(sanitizedExport)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)

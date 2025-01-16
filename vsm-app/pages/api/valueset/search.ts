@@ -96,7 +96,6 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
           _offset: typeof offset === 'string' && offset
         }
         if (activeTerminologyClient) {
-          console.log('activeTerminologyClient', activeTerminologyClient)
           try {
             const serverResponse = await retry(() =>
               activeTerminologyClient.search({
