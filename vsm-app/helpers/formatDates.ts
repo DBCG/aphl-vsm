@@ -26,9 +26,9 @@ const formatDateForTable = (date: string | any, format: string): string => {
     }
 
     try {
-      if (format?.toLowerCase() === 'm/d/yyyy') {
+      if (format?.toLowerCase() === 'm/d/yyyy' || format?.toLowerCase() === 'yyyy/mm/dd') {
         const dateItem = new Date(date)
-        const formattedDate = new Intl.DateTimeFormat('en-US').format(dateItem)
+        const formattedDate = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC' }).format(dateItem)
         return formattedDate
       }
       return date
@@ -40,10 +40,9 @@ const formatDateForTable = (date: string | any, format: string): string => {
   } else if (typeof date === 'number') {
     try {
       const dateItem = new Date(date)
-      const formattedDate = new Intl.DateTimeFormat('en-US').format(dateItem)
+      const formattedDate = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC' }).format(dateItem)
       return formattedDate
     } catch (e) {
-      console.log('error formatting date: ', e)
       return ''
     }
   }
