@@ -1,6 +1,6 @@
 import { Button } from '@/components/buttons/Button'
 import Select, { SingleValue } from 'react-select'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react'
 import DataTable from 'react-data-table-component'
 import { TextArea } from '@/components/TextArea'
 import styled from 'styled-components'
@@ -24,10 +24,11 @@ import { modalStyle } from '@/styles'
 import { toast } from 'react-toastify'
 import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
 
+type BooleanSetState = Dispatch<SetStateAction<boolean>>
+
 interface CodeDetailsProp {
   data: fhir4.ValueSet
 }
-
 
 interface RowItem {
   system: string
@@ -93,6 +94,9 @@ const NoProvVsWrapper = styled.div`
 type CodesBySystem = Record<string, CodeInfo[]>
 
 interface ExistingCodesProps {
+  setClearStagedCodes: BooleanSetState
+  toggledClearProvCodeRows: boolean
+  setToggledClearProvCodeRows: BooleanSetState
   systemName: string
   codeSystem: fhir4.CodeSystem
   handleAddCodes: (codes: CodesBySystem, action: 'add' | 'remove') => void
@@ -118,15 +122,14 @@ export const findProgramByProvisionalLeaf = (leafUrlToFind: string, provisionalC
   return programIds
 }
 
-const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: ExistingCodesProps) => {
+const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes, toggledClearProvCodeRows, setToggledClearProvCodeRows, setClearStagedCodes }: ExistingCodesProps) => {
   const [selectedRows, setSelectedRows] = useState<CodeInfo[]>([])
-  const [toggledClearRows, setToggledClearRows] = useState(false)
 
   const handleChangeSelectedRows = (r: SelectedRowsInExistingProvCodes) => {
     setSelectedRows(r.selectedRows)
   }
 
-  const handleClear = () => setToggledClearRows(t => !t)
+  const handleClear = () => setToggledClearProvCodeRows((t: boolean) => !t)
 
   const handleAdd = () => {
     handleAddCodes({ [codeSystem.url!]: [...selectedRows] }, 'add')
@@ -180,10 +183,14 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes }: Existing
       // @ts-ignore
       columns={columns}
       onSelectedRowsChange={(r) => {
+        // clear out selections on the other staging table if changes are made here
+        if (r.selectedCount !== 0) {
+          setClearStagedCodes((t: boolean) => !t)
+        }
         handleChangeSelectedRows(r)
       }}
       contextActions={contextActions}
-      clearSelectedRows={toggledClearRows}
+      clearSelectedRows={toggledClearProvCodeRows}
     />
   )
 }
@@ -244,7 +251,7 @@ const ProvisionalVSEdit = () => {
   const [selectedCodeSystemBase, setSelectedCodeSystemBase] = useState<SingleValue<{ value: string; label: string; }> | undefined>(undefined)
   // staging table
   const [selectedStagingRows, setSelectedStagingRows] = useState<FlattenedCodeWithSystem[]>([])
-  const [clearStagedCodes, setClearStagedCodes] = useState(false)
+  const [clearStagedCodes, setClearStagedCodes] = useState<boolean>(false)
   // NOTE! provisional value sets are not associated with conditions at this point
 
   // deleting
@@ -284,7 +291,10 @@ const ProvisionalVSEdit = () => {
     return Boolean(title?.trim() !== defaultTitle?.trim() || author.trim() !== defaultAuthor.trim() || steward.trim() !== defaultSteward.trim() || Object.keys(codesBySystemToAdd).length)
   }, [codesBySystemToAdd, title, author, steward])
 
+  const [toggledClearProvCodeRows, setToggledClearProvCodeRows] = useState<boolean>(false)
+
   const handleToggleClearStaged = () => setClearStagedCodes((c: boolean) => !c)
+
   const router = useRouter()
 
   const handleUpdateStaging = (codesBySystemToUpdate: CodesBySystemToAdd, action: 'add' | 'remove') => {
@@ -747,9 +757,12 @@ const ProvisionalVSEdit = () => {
                 <div>
                   <p>A provisional code system exists in VSM for {selectedCodeSystemBase?.label} containing the following codes:</p>
                   <ExistingCodesTable
+                    setToggledClearProvCodeRows={setToggledClearProvCodeRows}
+                    toggledClearProvCodeRows={toggledClearProvCodeRows}
                     systemName={selectedCodeSystemBase?.label!}
                     codeSystem={existingProvisionalCs?.provisionalCS?.find((c: fhir4.CodeSystem | undefined) => c?.extension?.find(ext => ext.valueUri === selectedCodeSystemBase?.value))!}
                     handleAddCodes={handleUpdateStaging}
+                    setClearStagedCodes={setClearStagedCodes}
                   />
                   <p style={{ marginBottom: '1rem' }}>You may add custom provisional codes to your code system below:</p>
                 </div>
@@ -827,7 +840,12 @@ const ProvisionalVSEdit = () => {
                     data={flattenCodesBySystem || []}
                     columns={stagedCodeColumns}
                     clearSelectedRows={clearStagedCodes}
-                    onSelectedRowsChange={(r) => handleChangeSelectedStagingRows(r)}
+                    onSelectedRowsChange={(r) => {
+                      if (r.selectedCount !== 0) {
+                        setToggledClearProvCodeRows((t: boolean) => !t)
+                      }
+                      handleChangeSelectedStagingRows(r)
+                    }}
                   />
                 </div>
               )}
