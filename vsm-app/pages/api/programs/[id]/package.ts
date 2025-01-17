@@ -46,7 +46,7 @@ const validateConditionLeafVs = async (programId: string) => {
   })
 
   if (missingConditionsVs.length > 0) {
-    throw new Error(`Failed pre-checks for Missing condition for ValueSets: ${missingConditionsVs.join('\n')}`)
+    throw new Error(`Pre-check failed. To export, please add at least 1 condition to the following ValueSets: ${missingConditionsVs.join('\n')}`)
   }
 }
 
