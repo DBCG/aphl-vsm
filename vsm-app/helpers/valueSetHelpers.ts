@@ -592,6 +592,12 @@ const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
   return compiledDefinitionData
 }
 
+const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
+  grouperVs?.compose?.include
+    ?.map((item) => item?.valueSet)
+    ?.filter((x) => !!x) // filter out undefined
+    ?.flat() || []
+
 export {
   organizeValueSetDefinitionData,
   getVsSteward,
@@ -603,6 +609,7 @@ export {
   EXTENSIONS,
   getProgramManifestVersions,
   getTerminologySource,
+  getLeafUrlsFromGrouper,
   removeValueSetFromGrouper,
   setExpansionParameters,
   getKeywords,
