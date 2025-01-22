@@ -9,7 +9,6 @@ ENV NEXT_PUBLIC_DEFAULT_PUBLISHER="CSTE Steward"
 ENV NEXT_PUBLIC_DEFAULT_AUTHOR="CSTE Author"
 ENV NEXT_PUBLIC_DEFAULT_PUBLISHING_URL=http://ersd.aimsplatform.org/fhir
 ENV NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
-ENV NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT=true
 
 RUN apk update
 RUN apk add --no-cache curl
