@@ -320,21 +320,16 @@ const ProgramCompare = () => {
     }
 
     const existingData = rawDiffData?.[baseProgram.value]?.[targetProgram.value]
-    let rawDifferenceData
 
     if (existingData) {
-      toast.success('Using existing difference data')
       // just use existing data if it's there
-      rawDifferenceData = existingData
+      setIsLoadingDiff(false)
+      toast.success('Using existing difference data')
+      
+      return
     } else {
       loadDiffResults(baseProgram, targetProgram) 
     }
-
-    // const formattedChangelog = createTableData(rawDifferenceData)
-    // // @ts-ignore
-    // setDiffViewerFormattedData(formattedChangelog)
-    // setDownloadLoading(false)
-    // setIsLoadingDiff(false)
   }
 
   const handleDownload = async (base: string | undefined, target: string | undefined, rawData: any) => {
@@ -387,7 +382,7 @@ const ProgramCompare = () => {
         return
       } else if (diffResponse != null && diffResponse.finishedOn == null) {
         // if create-changelog is still in progress...
-        toast.info('Difference data is still being generated.')
+        toast.info('Difference data is being generated.')
 
         NotificationStore.listenForJob(diffResponse.id, async (job: JobData) => {
           if (job?.status === JOB_STATUS.COMPLETED) {
@@ -552,7 +547,6 @@ const ProgramCompare = () => {
               <ButtonContainer style={{ alignItems: 'flex-end', margin: '1rem 0' }}>
                 <LoadingButton
                   onClick={async () => {
-                    setDiffViewerFormattedData(null)
                     setIsLoadingDiff(true)
                     await handleGenerateDifference()
                   }}
