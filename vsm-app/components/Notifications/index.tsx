@@ -7,7 +7,18 @@ import ExportNotification from './ExportNotification'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { toast } from 'react-toastify'
 import CompareNotification from './CompareNotification'
-import { Jobs } from '@/types/jobTypes'
+import { Jobs, JobData } from '@/types/jobTypes'
+
+const convertMetadataToObj = (job: JobData) => {
+  if (typeof job?.metadata === 'string') {
+    try {
+      const objMetadata =  JSON.parse(job.metadata)
+      job.metadata = objMetadata
+    } catch (e) {
+      console.error(e)}
+  }
+  return job
+}
 
 const Notifications = () => {
   const [jobs, setJobs] = useState<Jobs>({})
@@ -49,6 +60,7 @@ const Notifications = () => {
         }}
       >
         {sortedJobs.map(([jobId, jobDetails]) => {
+          jobDetails = convertMetadataToObj(jobDetails)
           switch (jobDetails.type as string) {
             case JOB_TYPE.CHANGE_LOG:
               return (
