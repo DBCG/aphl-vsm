@@ -8,6 +8,17 @@ set -e
 set -o pipefail
 
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+GIT_TAG=$(git tag -l --contains HEAD 2>&1)
+
+PACKAGE_VERSION=$(jq -r '.version' package.json)
+
+# Check if GIT_TAG matches the package version
+if [ "$GIT_TAG" == "$PACKAGE_VERSION" ]; then
+    echo "GIT_TAG matches the version in package.json!"
+else
+    echo "Mismatch: GIT_TAG is '$GIT_TAG', but package.json version is '$PACKAGE_VERSION'."
+    exit 1
+fi
 
 # Login to ECR
 aws sts get-caller-identity
@@ -44,9 +55,6 @@ for namespace in "${namespaces[@]}"; do
     helm install "$helm_chart_name" --namespace=$namespace --set tag=$TAG $k8s_dir -f $values_file
   fi
 done
-
-
-GIT_TAG=$(git tag -l --contains HEAD 2>&1)
 
 if [[ -n "$GIT_TAG" ]]; then
   echo "Begin VSM image Push to Ruvos ECR"
