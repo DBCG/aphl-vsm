@@ -1,7 +1,7 @@
 export interface JobData {
   jobId: string
-  status: string
-  metadata?: any
+  status: "FAILED" | "COMPLETED" | "IN_PROGRESS";
+  metadata?: ExportJobMetadata | CompareJobMetadata
   type: string
   error?: string
 }
