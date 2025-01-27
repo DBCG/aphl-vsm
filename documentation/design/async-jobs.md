@@ -1,7 +1,7 @@
 In VSM we currently have several operations that run async and utilize a redis queue to perform them.
 The underlying framework for async jobs utilizies [Bull](https://github.com/OptimalBits/bull) which is a Redis-backed queue library. The library is used to create a queue for each type of job that needs to be run asynchronously. Most jobs are currently set to run one at a time given we don't have a large volume of users.
 
-These jobs are divide into two categories, jobs that are part of the notification system and jobs that are not.
+These jobs are divided into two categories, jobs that are part of the notification system and jobs that are not.
 
 **Data Modeling**
 
