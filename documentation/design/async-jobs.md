@@ -72,7 +72,7 @@ Metadata is associated with each of these notification jobs and can be find in t
   Any changes to either program will result in a new updated datetime
 
 **Independent Jobs:**
-- Updating the CQF Ruler Cache all the valuesets within a program
+- Updating the CQF Ruler Cache for all the valuesets within a program
   In a draft program the user has the ability to update the cqf-ruler cache with the latest valuesets from VSAC.
   This operation is performed asynchronously and the user is notified when the operation is complete on the same page. It is important to note 
   that this WILL not update the valuesets in the program itself. 
