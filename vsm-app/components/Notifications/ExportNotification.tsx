@@ -6,7 +6,7 @@ import { toast } from 'react-toastify'
 import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import { JobData } from '@/types/jobTypes'
+import { ExportJobMetadata, JobData } from '@/types/jobTypes'
 import PopOverErrorMessage from './PopoverErrorMessage'
 
 type Props = {
@@ -117,13 +117,15 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
     const packageResponse = job?.returnvalue?.response
     const validationResults = job?.returnvalue?.validationResults
     try {
+      const filename = (jobDetails?.metadata as ExportJobMetadata || {}).filename
       if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        downloadTextData(packageResponse, 'application/fhir+xml', jobDetails?.metadata?.filename)
+        downloadTextData(packageResponse, 'application/fhir+xml', filename || 'export.xml')
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
-        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', jobDetails?.metadata?.filename)
+        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', filename || 'export.json')
       }
       if (validationResults.length > 0) {
-        downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${jobDetails?.metadata?.programTitle}_validationResults.txt`)
+        const programTitle = (jobDetails.metadata as ExportJobMetadata)?.programTitle || 'program';
+        downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
       }
     } catch (error) {
       toast.error('Error downloading file: ' + error)
