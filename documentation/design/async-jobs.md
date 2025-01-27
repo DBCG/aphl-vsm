@@ -5,7 +5,9 @@ These jobs are divided into two categories, jobs that are part of the notificati
 
 **Data Modeling**
 
-There are two data structure for Jobs modeled in this feature, one defined by us and seen in jobTypes.ts supports the notification system and the other are the Bull Job objects that are used to store the completed result for the jobs.
+There are two data structures for Jobs modeled in this feature: 
+- one defined by us and seen in jobTypes.ts supports the notification system
+- the other type is the Bull Job objects that are used to store the completed result for the jobs.
 
 Example Bull data
 ```json
