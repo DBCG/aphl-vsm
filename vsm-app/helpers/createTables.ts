@@ -60,7 +60,7 @@ const getValue = (path: string, oldData: LibraryPage, newData: LibraryPage) => {
     const p = path.split('oldData.')[1]
     return get(oldData.oldData, p)
   } else if (path.startsWith('newData')) {
-    const p = path.split('oldData.')[1]
+    const p = path.split('newData.')[1]
     return get(newData.newData, p)
   }
 }
