@@ -10,7 +10,7 @@ export const JOB_STATUS = {
   IN_PROGRESS: 'IN_PROGRESS',
   COMPLETED: 'COMPLETED',
   FAILED: 'FAILED'
-}
+} as const
 
 export const JOB_TYPE = {
   EXPORT: 'EXPORT',

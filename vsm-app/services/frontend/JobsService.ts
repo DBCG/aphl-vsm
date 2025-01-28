@@ -10,7 +10,7 @@ class JobsService {
     for (const jobId in jobs) {
       const job = jobs[jobId]
       if (job.metadata) {
-        job.metadata = JSON.parse(job.metadata)
+        job.metadata = JSON.parse(job.metadata as string)
       }
     }
     return jobs
