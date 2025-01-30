@@ -10,7 +10,7 @@ set -o pipefail
 DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 GIT_TAG=$(git tag -l --contains HEAD 2>&1)
 
-PACKAGE_VERSION=$(jq -r '.version' package.json)
+PACKAGE_VERSION=$(jq -r '.version' ../vsm-app/package.json)
 
 # Check if GIT_TAG matches the package version
 if [ "$GIT_TAG" == "$PACKAGE_VERSION" ]; then
