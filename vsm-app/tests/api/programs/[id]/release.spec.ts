@@ -1,6 +1,9 @@
 import { createMocks } from 'node-mocks-http'
 import FhirClient from '@/backend/clients/FhirClient'
-import handler from '@/pages/api/programs/[id]/release'
+import handler, { ReleaseRequest } from '@/pages/api/programs/[id]/release'
+import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { ReleasePayload } from '@/components/modals/ReleaseModal'
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
@@ -16,17 +19,20 @@ jest.mock('fhir-kit-client')
 
 describe('/api/programs/[id]/release', () => {
   test('POST /api/programs/[id]/release, releases a program', async () => {
-    const { req, res } = createMocks({
+    const body: ReleasePayload = {
+      releaseAsVersion: '2.2.2',
+      releaseDescription: 'Release Description',
+      releaseLabel: 'ReleaseV2.2.2',
+      effectiveStartDate: '2022-01-01',
+      programId: 'SpecificationLibrary',
+      latestFromTxServer: false
+    }
+    const { req, res } = createMocks<ReleaseRequest, NextApiResponse>({
       method: 'POST',
       query: {
         id: 'SpecificationLibrary'
       },
-      body: {
-        releaseAsVersion: '2.2.2',
-        releaseDescription: 'Release Description',
-        releaseLabel: 'ReleaseV2.2.2',
-        effectiveStartDate: '2022-01-01'
-      }
+      body: body
     })
 
     FhirClient.getInstance().read = jest.fn().mockResolvedValue({
@@ -72,36 +78,43 @@ describe('/api/programs/[id]/release', () => {
       resourceType: 'Library',
       id: 'SpecificationLibrary',
       method: 'POST',
-      input: {
+      input: addTerminologyEndpointToParameters({
         resourceType: 'Parameters',
         parameter: [
           {
             name: 'version',
-            valueString: '2.2.2'
+            valueString: "2.2.2"
           },
           {
             name: 'versionBehavior',
             valueCode: 'force'
+          },
+          {
+            name: 'latestFromTxServer',
+            valueBoolean: false
           }
         ]
-      }
+      })
     })
 
     expect(res._getStatusCode()).toBe(200)
   })
 
   test('POST /api/programs/[id]/release, does not update when label or description missing', async () => {
-    const { req, res } = createMocks({
+    const body: ReleasePayload = {
+      releaseAsVersion: '2.2.2',
+      releaseDescription: undefined,
+      releaseLabel: undefined,
+      effectiveStartDate: '2022-01-01',
+      programId: 'SpecificationLibrary',
+      latestFromTxServer: false
+    }
+    const { req, res } = createMocks<ReleaseRequest, NextApiResponse>({
       method: 'POST',
       query: {
         id: 'SpecificationLibrary'
       },
-      body: {
-        releaseAsVersion: '2.2.2',
-        releaseDescription: undefined,
-        releaseLabel: undefined,
-        effectiveStartDate: '2022-01-01'
-      }
+      body: body
     })
 
     FhirClient.getInstance().read = jest.fn().mockResolvedValue({
@@ -124,17 +137,20 @@ describe('/api/programs/[id]/release', () => {
   })
 
   test('POST /api/programs/[id]/release, error while updating', async () => {
-    const { req, res } = createMocks({
+    const body: ReleasePayload = {
+      releaseAsVersion: '2.2.2',
+      releaseDescription: 'Release Description',
+      releaseLabel: 'ReleaseV2.2.2',
+      effectiveStartDate: '2022-01-01',
+      programId: "SpecificationLibrary",
+      latestFromTxServer: false
+    }
+    const { req, res } = createMocks<ReleaseRequest, NextApiResponse>({
       method: 'POST',
       query: {
         id: 'SpecificationLibrary'
       },
-      body: {
-        releaseAsVersion: '2.2.2',
-        releaseDescription: 'Release Description',
-        releaseLabel: 'ReleaseV2.2.2',
-        effectiveStartDate: '2022-01-01'
-      }
+      body: body
     })
 
     FhirClient.getInstance().read = jest.fn().mockResolvedValue({
