@@ -1,8 +1,8 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState, useRef } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
-import { Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography, CircularProgress } from '@mui/material'
+import { Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography, CircularProgress, FormControlLabel, Checkbox } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { getReleaseDescription, getReleaseLabel, validStartDate } from '@/helpers/libraryHelpers'
 import { TextArea } from '../TextArea'
@@ -21,6 +21,7 @@ export interface ReleasePayload {
   releaseLabel?: string
   effectiveStartDate: string | Date
   releaseAsVersion: string
+  latestFromTxServer:boolean
 }
 
 interface ModalInfo {
@@ -63,6 +64,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
   const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>(getProgramManifestVersions(program))
   const [isUpdating, setIsUpdating] = useState(false)
   const [availableUpdates, setAvailableUpdates] = useState([])
+  const [latestFromTxServer, setLatestFromTxServer] = useState(false)
   const { data: matches = [] } = useSWR(
     versionToCheck && isValidSimpleSemver(versionToCheck) ? `/api/programs?version=${versionToCheck}` : null,
     fetcher
@@ -220,6 +222,18 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
               disablePast={true}
               errorText={'Start date must be today or a future date'}
             />
+            <FormControlLabel
+              label='Use Terminology Server to Pin ValueSets to Latest Versions? (Slow)'
+              id='latestFromTxServer'
+              control={
+                <Checkbox
+                  readOnly={false}
+                  disabled={false}
+                  defaultChecked={false}
+                  onChange={e => setLatestFromTxServer(e.target.checked)}
+                />
+              }
+            />
           </>
         </div>
       )
@@ -307,7 +321,8 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
                     releaseDescription: releaseDescription.trim(),
                     releaseLabel: releaseLabel.trim(),
                     effectiveStartDate: effectiveStartDate || '',
-                    releaseAsVersion: versionToCheck || ''
+                    releaseAsVersion: versionToCheck || '',
+                    latestFromTxServer
                   })
                 }}
               />

@@ -15,7 +15,7 @@ import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper
 
 // this only gets the program library
 const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body as ReleasePayload
+  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate, latestFromTxServer } = req.body as ReleasePayload
   let program: fhir4.Library | undefined
   try {
     program = (await FhirClient.getInstance().read({
@@ -68,7 +68,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       },
       {
         name: 'latestFromTxServer',
-        valueBoolean: true
+        valueBoolean: latestFromTxServer
       }
     ]
   })
