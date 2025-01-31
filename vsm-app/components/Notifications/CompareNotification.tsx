@@ -1,11 +1,13 @@
 import { JOB_STATUS } from '@/constants'
 import { JobData } from '@/types/jobTypes'
-import { Box, Typography, Button, Link, ListItemIcon, Stack } from '@mui/material'
+import { Typography, Button, Link, ListItemIcon, Stack, Box, MenuItem } from '@mui/material'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { useRouter } from 'next/router'
-import styled from 'styled-components'
+import { toast } from 'react-toastify'
+import PopOverErrorMessage from './PopoverErrorMessage'
 
 type Props = {
   jobId: string
@@ -17,49 +19,65 @@ type StatusActionNotificationProps = {
   jobDetails: JobData
   closeNotification: () => void
 }
-const NotificationContainer = styled.div`
-  display: flex;
-  padding: 1rem;
-  max-width: 300px;
-`
+
+
+const copyText = (txt: string) => navigator.clipboard.writeText(txt)
 
 const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActionNotificationProps) => {
-  const { baseProgramId, targetProgramId } = jobDetails.metadata
+  let defaultJobInfo = {
+    baseProgramId: null,
+    targetProgramId: null,
+  }
+  try {
+    defaultJobInfo = typeof jobDetails?.metadata === 'string' ? JSON.parse(jobDetails.metadata) : jobDetails.metadata
+  } catch (e) {
+    console.error(e)
+  }
+  const { baseProgramId, targetProgramId } = defaultJobInfo
   const router = useRouter()
-  const jobStatus = jobDetails.status
+  const jobStatus = jobDetails?.status || ''
   const errorMessage = jobDetails?.error || ''
   let display
+
   switch (jobStatus) {
     case JOB_STATUS.IN_PROGRESS:
       display = (
-        <NotificationContainer>
+        <Box>
           <ListItemIcon>
             <PendingIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">Generating Change Log</Typography>
+            <Typography variant="caption">Base ID: {baseProgramId}</Typography>
+            <Typography variant="caption">Target ID: {targetProgramId}</Typography>
           </Stack>
-        </NotificationContainer>
+        </Box>
       )
       break
     case JOB_STATUS.FAILED:
       display = (
-        <NotificationContainer>
+        <Box
+          sx={{ display: 'flex', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.preventDefault()
+            toast.success('Copied errors to clipboard', { autoClose: 1000 })
+            copyText(errorMessage || '')
+          }}
+        >
           <ListItemIcon>
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
-          <Stack>
+          <Stack sx={{ maxWidth: '300px' }}>
             <Typography variant="body1">Change Log has failed</Typography>
-            <Typography variant="caption" color="error">
-              {errorMessage}
-            </Typography>
+            <PopOverErrorMessage errorMessage={errorMessage} />
           </Stack>
-        </NotificationContainer>
+          <ContentCopyIcon style={{ color: 'gray' }} />
+        </Box>
       )
       break
     default:
       display = (
-        <NotificationContainer>
+        <Box>
           <ListItemIcon>
             <CompareArrowsIcon />
           </ListItemIcon>
@@ -80,14 +98,20 @@ const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActio
               </Button>
             </Stack>
           </Link>
-        </NotificationContainer>
+        </Box>
       )
   }
-  return <>{display}</>
+  return <div style={{ cursor: jobStatus === JOB_STATUS.FAILED ? 'pointer' : 'unset' }}>{display}</div>
 }
 
 const CompareNotification = ({ jobId, jobDetails, closeNotification }: Props) => {
-  return <StatusActionNotification key={jobId} jobDetails={jobDetails} closeNotification={closeNotification} />
+  return (
+    <MenuItem>
+      <Box>
+        <StatusActionNotification key={jobId} jobDetails={jobDetails} closeNotification={closeNotification} />
+      </Box>
+    </MenuItem>
+  )
 }
 
 export default CompareNotification

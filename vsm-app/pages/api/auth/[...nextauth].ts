@@ -41,7 +41,14 @@ export const AuthOptions = {
     secret: process.env.NEXTAUTH_SECRET
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/auth/signin'
+  },
+  events: {
+    async signOut({ token }: { token: JWT }) {
+      const logOutUrl = new URL(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/logout`)
+      logOutUrl.searchParams.set('id_token_hint', token.account.id_token!)
+      await fetch(logOutUrl)
+    }
   }
 } as NextAuthOptions
 

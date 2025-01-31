@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: delete-non-running-pods
+spec:
+  schedule: "0 * * * *" # Runs hourly; adjust schedule as needed
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: delete-non-running-pods
+            image: bitnami/kubectl:latest # Uses a lightweight kubectl image
+            command:
+              - /bin/sh
+              - -c
+              - |
+                kubectl get pods --all-namespaces --field-selector=status.phase!=Running -o name | xargs -r kubectl delete
+          restartPolicy: OnFailure
+          serviceAccountName: cleanup-sa

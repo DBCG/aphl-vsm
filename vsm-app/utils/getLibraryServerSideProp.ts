@@ -1,7 +1,6 @@
 /* istanbul ignore file */
 import FhirClient from '@/backend/clients/FhirClient'
 import { GetServerSidePropsContext } from 'next'
-import Logger from '@/helpers/server/logger'
 export type LibraryServerSideProps = {
   program: fhir4.Library
 }
@@ -15,7 +14,8 @@ export const getLibraryServerSideProp = async (ctx: GetServerSidePropsContext) =
     })) as fhir4.Library
     return program
   } catch (e) {
-    Logger.getLogger().error(`Error fetching server side program with id: ${programId}`, e)
+    // TODO: Logger doesn't seem to work here
+    console.error(`Error fetching server side program with id: ${programId}`, e)
   }
 }
 

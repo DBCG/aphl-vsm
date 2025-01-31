@@ -1,13 +1,12 @@
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
-import 'react-toastify/dist/ReactToastify.min.css'
 import { PageTitle } from '@/components/Typography'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
 import { Col } from '@/styles'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
-const DescriptionText = styled.p`
+export const DescriptionText = styled.p`
   color: var(--theme-500);
   line-height: 160%;
   margin-bottom: 48px;

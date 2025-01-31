@@ -437,12 +437,6 @@ const TerminologyEndpoints: NextPage = () => {
     searchTotal: 0
   })
 
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT !== 'true') {
-      router.push('/')
-    }
-  }, [router])
-
   const fetchEndpoints = async (offset: number, count: number) => {
     const url = `/api/endpoint?_offset=${offset}&_count=${count}`
     return fetch(url)

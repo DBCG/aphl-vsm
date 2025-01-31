@@ -15,13 +15,18 @@ export interface EndpointResponse {
   endpoints: fhir4.Endpoint[]
   total: number
 }
-const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.Endpoint | FhirResource>) => {
+const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.Endpoint | FhirResource | string>) => {
   if (!req.body?.endpoint?.address?.trim()) {
     throw 'Missing address/URL on submitted resource'
   }
   if (!req.body?.endpoint?.name?.trim()) {
     throw 'Missing human-readable name on submitted resource'
   }
+
+  if (req.body?.endpoint?.name?.trim().toLowerCase() === 'iv') {
+    return res.status(400).send('cannot use iv namespace')
+  }
+  
   // add/edit endpoint
   let updatedEndpoint: FhirResource | fhir4.Endpoint
   if (req.body?.endpoint?.id) {
@@ -40,9 +45,6 @@ const updateEndpoint = async (req: EndpointRequest, res: NextApiResponse<fhir4.E
 }
 
 const getEndpoints = async (req: NextApiRequest, res: NextApiResponse<EndpointResponse>) => {
-  if (process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'false' || process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT == null) {
-    res.status(200).send({ endpoints: [], total: 0 })
-  }
   const endpointBundle = (await FhirClient.getInstance().search({
     resourceType: 'Endpoint',
     searchParams: {

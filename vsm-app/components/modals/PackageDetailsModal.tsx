@@ -129,9 +129,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   const handleExitExportModal = () => {
-    setDownloadLoading(false)
     toggleModalOpen()
-    handleResetState()
+    setTimeout(() => handleResetState(), 500) // Workaround to force state change 
   }
 
   const onSuccessExport = () => {
@@ -183,6 +182,11 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       metadata
     }).then((res) => res.json())
 
+    if (jobResponse?.error) {
+      onFailureExport(jobResponse?.error)
+      return
+    }
+
     NotificationStore.addJob({
       jobId: jobResponse.id,
       jobType: JOB_TYPE.EXPORT,
@@ -195,6 +199,12 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   }
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if ((e?.target?.files?.length ?? 0) > 1) {
+      toast.error('Cannot upload more than 1 file at a time')
+      setFileUploadContent(undefined)
+      return
+    }
+
     const file = e?.target?.files?.[0] as File
     const content = (await readFile(file)) as fhir4.PlanDefinition
     setFileUploadContent({ fileName: file?.name, content })

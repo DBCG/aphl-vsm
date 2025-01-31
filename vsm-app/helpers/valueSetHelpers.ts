@@ -105,7 +105,8 @@ const addExtensionToVs = (vs: fhir4.ValueSet, extensionUri: string, extensionVal
 const isVsmAuthored = (vs: fhir4.ValueSet) => vs?.meta?.tag?.find((tag) => tag?.code === 'vsm-authored')
 
 const isVsmGrouper = (vs: fhir4.ValueSet) => vs?.meta?.profile?.includes(VSM_META_PROFILE_URLS.VSM_GROUPERVALUESET_URL)
-export const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
+
+const isTerminologyServerGrouper = (vs: fhir4.ValueSet) => {
   return vs?.compose?.include?.find((include) => include.valueSet)
 }
 
@@ -383,11 +384,13 @@ const transformForVSAC = (vs: fhir4.ValueSet) => {
   return clonedVs
 }
 
+// TODO: Dec 19 2025 - VSAC used to have verions in their url like so http://vsac.nlm.nih.gov/ValueSet/2.16.840.1.113883-20220901
+// but this seems to have changed and have had the version removed and also changed their protocol from http to https
 // fullUrlBundle comes with the bundle resource when search is applied
 const transformFromVSACToCqf = (vs: fhir4.ValueSet, fullUrlBundle?: string) => {
   const clonedVs = cloneDeep(vs)
   if (typeof fullUrlBundle === 'string') {
-    clonedVs.url = fullUrlBundle
+    clonedVs.url = fullUrlBundle.replaceAll('https', 'http')
   }
   const splitPaths = clonedVs?.url?.split('/') || []
   // get last part of url
@@ -589,6 +592,12 @@ const organizeValueSetDefinitionData = (vs: fhir4.ValueSet) => {
   return compiledDefinitionData
 }
 
+const getLeafUrlsFromGrouper = (grouperVs: fhir4.ValueSet) =>
+  grouperVs?.compose?.include
+    ?.map((item) => item?.valueSet)
+    ?.filter((x) => !!x) // filter out undefined
+    ?.flat() || []
+
 export {
   organizeValueSetDefinitionData,
   getVsSteward,
@@ -600,6 +609,7 @@ export {
   EXTENSIONS,
   getProgramManifestVersions,
   getTerminologySource,
+  getLeafUrlsFromGrouper,
   removeValueSetFromGrouper,
   setExpansionParameters,
   getKeywords,
@@ -614,6 +624,8 @@ export {
   isProvisionalVs,
   isGrouperValueSet,
   isVsmAuthored,
+  isVsmGrouper,
+  isTerminologyServerGrouper,
   addProfileToValueSet,
   updateVsCodeItem,
   updateAuthSource,

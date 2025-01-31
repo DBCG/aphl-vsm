@@ -1,4 +1,3 @@
-import { cloneDeep } from 'lodash'
 import { MultiValue } from 'react-select'
 
 interface Condition {

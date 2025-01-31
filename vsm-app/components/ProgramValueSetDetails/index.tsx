@@ -1,11 +1,10 @@
-import React, { SetStateAction, useEffect, useMemo, useState } from 'react'
+import React, { SetStateAction, useCallback, useEffect, useMemo, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
-import useSWR from 'swr'
 import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
 import { Box, LinearProgress, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
-import { uniq, uniqBy } from 'lodash'
+import { uniq, uniqBy, debounce } from 'lodash'
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import { FilterInput } from '@/components/FilterInput'
@@ -32,7 +31,6 @@ import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/val
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
 import TextLink from '../TextLink'
-import { fetcher } from '@/utils'
 
 const subscribe = async (
   setJobStatus: React.Dispatch<SetStateAction<number | null>>,
@@ -131,15 +129,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const { terminologySources } = useGetEndpointOptionsForUI()
 
-  const { data: currentEndpoints = null, isLoading: endpointsLoading } = useSWR('/api/endpoint?user_set=true', fetcher)
-
   // updates that happen via multiselects within table
   const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
     canonical: '',
     version: ''
   })
   const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
-  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>({
+  const defaultVersionData = {
     vsCanonical: '',
     useContext: [],
     selectedVsId: '',
@@ -147,7 +143,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     grouperIds: [],
     programId: '',
     terminologyInfo: { value: '', hasExtension: false, id: '', url: '' }
-  })
+  }
+  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>(defaultVersionData)
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
@@ -207,6 +204,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   useEffect(() => {
     setMyDocument(document.body)
+    refreshProgramValueSets()
   }, [])
 
   const handleChange = ({ selectedRows }: SelectedRows) => {
@@ -351,31 +349,39 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   // Can only edit if program is loaded and in draft status
   const isEditable = allowEditing({ session, programStatus: currentProgram.status })
 
-  const handleUpdateValueSets = async (groupsInProgram: fhir4.ValueSet[] = []) => {
-    toast.info(
-      <div style={{ paddingLeft: '10px' }}>
-        <p>Attempting to update all Value Sets with version &lsquo;latest&rsquo; by fetching newest available data from terminology servers.</p>
-        <p>This is a long running operation.</p>
-        <p>Please wait for completion.</p>
-        <LinearProgress color="secondary" />
-      </div>, {
-      autoClose: false
-    })
-    const canonicalUrls: string[] = []
-    if (groupsInProgram?.length) {
-      for (const grouper of groupsInProgram) {
-        const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter((i) => i) || []) as string[]
-        canonicalUrls.push(...urls)
+  const handleUpdateValueSets = useCallback(
+    debounce(async (groupsInProgram: fhir4.ValueSet[] = []) => {
+      setJobInStatusProgress(0)
+      toast.info(
+        <div style={{ paddingLeft: '10px' }}>
+          <p>
+            Attempting to update all Value Sets with version &lsquo;latest&rsquo; by fetching newest available data from terminology
+            servers.
+          </p>
+          <p>This is a long running operation.</p>
+          <p>Please wait for completion.</p>
+          <LinearProgress color="secondary" />
+        </div>,
+        {
+          autoClose: 10000
+        }
+      )
+      const canonicalUrls: string[] = []
+      if (groupsInProgram?.length) {
+        for (const grouper of groupsInProgram) {
+          const urls = (grouper?.compose?.include?.map((i) => i?.valueSet?.[0]).filter((i) => i) || []) as string[]
+          canonicalUrls.push(...urls)
+        }
       }
-    }
-    const job = await fetch(`/api/valueset/update`, {
-      method: 'PUT',
-      body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
-    }).then((res) => res.json())
+      const job = await fetch(`/api/valueset/update`, {
+        method: 'PUT',
+        body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
+      }).then((res) => res.json())
 
-    toast.dismiss()
-    subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
-  }
+      subscribe(setJobInStatusProgress, job?.id, setRefreshErrors, refreshProgramValueSets)
+    }, 100),
+    []
+  )
 
   // don't allow editing if any loading in progress
   const blockChanges = useMemo(() => {
@@ -407,9 +413,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           if (row.valueSetPinnedVersion) {
             href += '?pinnedVersion=true'
           }
-          return (
-          <TextLink href={href} linkText={row.title} forceReload={false} />
-        )}
+          return <TextLink href={href} linkText={row.title} forceReload={false} />
+        }
       },
       {
         name: (

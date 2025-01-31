@@ -1,6 +1,6 @@
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 import sanitizeExport from '@/helpers/sanitizeExportHelper'
-import { JOB_EXPIRATION, QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_REDIS_URL } from '@/config'
 import Cache from '@/cache'
 import { JOB_STATUS } from '@/constants'
 import { Agent, fetch as f } from 'undici'
@@ -9,6 +9,8 @@ import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import Queue from 'bull'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import VSDownloadQueue from './VSDownloadQueue'
+import { isVsmGrouper } from '@/helpers/valueSetHelpers'
 
 const PackageQueue = new Queue('exportProgram', QUEUE_REDIS_URL)
 
@@ -210,7 +212,7 @@ PackageQueue.process(async function (job: any, done) {
     const validationResults = await validatePackage(sanitizedExport)
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
-    done(null, { response: sanitizeExport(sanitizedExport) })
+    done(null, { response: sanitizeExport(sanitizedExport), validationResults })
   } catch (error: any) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics

@@ -3,7 +3,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import { vsacFhirClient } from '@/fhirClients'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
-import { deleteValueSetReferencesFromLibrary, getGrouperLibraryCanonical, setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
+import { deleteValueSetReferencesFromLibrary, setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import {
   CreateProvisionalVs, addOrRemoveVsCodes, createProvisionalCodeSystem,
   generateProvisionalVs, updateCsCodes, updateVsMetadata
@@ -11,10 +11,10 @@ import {
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import { addExtensionToVs, EXTENSIONS, removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetHelpers'
+import { removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getGrouperLibrary, getGrouperValuesets } from '../../programs/[id]/details/valuesets'
+import { getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
 
 interface Body extends CreateProvisionalVs {
   grouperIds: string[]

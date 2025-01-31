@@ -52,13 +52,17 @@ const searchLeafValueSets = async ({
 }: SearchAvailLeafUpdates) => {
   const manifestEndpoint = `/api/programs/${programId}/manifest?leafValueSets=true`
   try {
-    const leafVSCodeSystems = await fetch(manifestEndpoint, {
+    const response = await fetch(manifestEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
-    }).then((res) => res.json())
+    })
+    const leafVSCodeSystemsRes = await response.json()
 
+    if (!response.ok) {
+      throw new Error(leafVSCodeSystemsRes.error)
+    }
     const newCodeSystems: { system: string; version: string }[] = []
-    leafVSCodeSystems.forEach((i: any) => {
+    leafVSCodeSystemsRes.forEach((i: any) => {
       const { system, version } = i
       const currentVersions = currentSelectedData[system]
       if (currentVersions == null) {
@@ -75,9 +79,9 @@ const searchLeafValueSets = async ({
     if (newCodeSystems.length === 0) {
       toast.info('No new CodeSystems from ValueSets found')
     }
-  } catch (e) {
-    console.error(e)
-    toast.error('Error finding available updates')
+  } catch (e: any) {
+    console.error(e?.message)
+    toast.error('Error: ' + e?.message)
   } finally {
     setIsUpdating(false)
   }

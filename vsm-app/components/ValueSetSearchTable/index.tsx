@@ -1,11 +1,9 @@
-import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { SyntheticEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Dialog, DialogTitle, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import Select from 'react-select'
 import Image from 'next/image'
-import { NextRouter, useRouter } from 'next/router'
-import styled from 'styled-components'
+import { useRouter } from 'next/router'
 import { toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.min.css'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { Condition, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { StyledLabel } from '@/components/InputLabel'
@@ -13,21 +11,37 @@ import { SearchTable } from '@/components/SearchTable'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { Button } from '@/components/buttons/Button'
 import { IconButton } from '@/components/buttons/IconButton'
+import { priorityLevelOptions } from '@/components//ProgramValueSetDetails'
+import { VsmProvisionalSearchForm } from '@/components/VsmProvisionalSearchForm'
+import { TextArea } from '@/components/TextArea'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import { SearchResponse, FetchError } from 'pages/api/valueset/search'
 import { formatResourceDate } from '@/helpers/formatDates'
-import { TextArea } from '@/components/TextArea'
-import { shallowEqual, fetcher } from 'utils'
+import { shallowEqual } from 'utils'
 import { SelectedValueSet, SelectedGrouper } from '@/types/grouperTypes'
-import { uniqBy } from 'lodash'
-import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
-import { priorityLevelOptions } from './ProgramValueSetDetails'
-import DataTable from 'react-data-table-component'
-import { customTableStyles } from './tables/themes'
-import { UpdateValueSetBody } from '@/pages/api/valueset'
+import { debounce, uniqBy } from 'lodash'
+import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
+import {
+  ErrorText,
+  Col,
+  SelectInputContainer,
+  ErrorBlock,
+  ErrorBlockText,
+  GroupsRequired,
+  CopyButton,
+  DropdownContainer,
+  Row,
+  SelectGrouperContainer,
+  StyledForm,
+  SubmitSelectedForm,
+  TextAreaSubmitContainer,
+  TitleRow
+} from './styles'
+import { LeafsToAdd, Offset, QueryStringItems, SearchReponseParams, TableContextOptions, ValueSetSearchTableProps } from './types'
+import { DescriptionText } from '@/pages/programs/[id]/valuesets/search'
 
-const searchTypes = [
+export const searchTypes = [
   { label: 'Title', value: 'title' },
   { label: 'OID', value: 'oid' },
   { label: 'URL (exact match only)', value: 'url' }
@@ -39,142 +53,7 @@ const searchInfoText = {
   url: 'URL search requires a full URL'
 }
 
-const NoData = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 1em 2em 2em;
-`
-
-interface QueryStringItems {
-  searchType: string
-  count: string
-  sortBy: string
-  sortDirection: string
-  offset: string
-  terminologyServer: string
-}
-
-const NoDataContainer = ({ router }: { router: NextRouter }) => {
-  return (
-    <NoData>
-      <p>No Provisional ValueSets Found</p>
-      <Button text="Create VSM Provisional Resources" onClick={() => router.push('/programs?resourceType=provisional')} />
-    </NoData>
-  )
-}
-
-const TitleRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-`
-
-const Row = styled.div`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-end;
-  column-gap: 12px;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-`
-
-const StyledForm = styled.form`
-  display: flex;
-  flex: 1;
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  column-gap: 12px;
-  row-gap: 15px;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-`
-
-interface SubmitProps {
-  hide: boolean
-}
-
-export const SubmitSelectedForm = styled.form<SubmitProps>`
-  padding: 12px 18px;
-  background-color: var(--theme-100);
-  max-height: ${(props) => (props.hide ? '0' : '1000px')};
-  padding: ${(props) => (props.hide ? '0' : 'auto')};
-  transition: all 0.3s;
-`
-
-const Col = styled.div`
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  height: fit-content;
-`
-
-const ErrorText = styled.span`
-  color: darkRed;
-  font-size: 90%;
-  margin-left: 0;
-`
-
-const SelectInputContainer = styled.div`
-  min-width: 300px;
-`
-
-const ErrorBlock = styled.div`
-  background-color: white;
-  border-left: 2px solid red;
-  border-bottom: 2px solid red;
-  padding: 4px 6px;
-  margin-top: 12px;
-  position: relative;
-`
-
-const GroupsRequired = styled.i`
-  color: var(--accent);
-  font-size: 80%;
-`
-
-const ErrorBlockText = styled.p`
-  margin-top: 0;
-  margin-bottom: 8px;
-  &:last-of-type {
-    margin-bottom: 0;
-  }
-`
-
-const CopyButton = styled.button`
-  background-color: transparent;
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  padding: 0px 6px 4px 6px;
-`
-
-const TextAreaSubmitContainer = styled.div`
-  display: flex;
-  width: 100%;
-  max-width: 38.5rem;
-`
-
-const DropdownContainer = styled.div`
-  align-self: flex-start;
-`
-
-const paginationMaximum = 100
-
-const columnSortMap = {
-  1: 'title',
-  3: 'lastupdated',
-  4: 'version',
-  5: 'publisher'
-}
-
-const SelectGrouperContainer = styled.div`
-  display: ${(props) => (props.hidden ? 'none' : 'block')};
-`
+const PAGINATION_MAXIMUM = 100
 
 const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   if (!grouperVsets) return []
@@ -187,13 +66,6 @@ const formatGrouperValueSets = (grouperVsets: fhir4.ValueSet[]) => {
   }))
 }
 
-const copyText = (txt: string) => navigator.clipboard.writeText(txt)
-
-interface SearchReponseParams {
-  searchContext: 'filter' | 'search'
-  response: Response | undefined
-}
-
 const defaultOffsets = {
   first: '0',
   next: null,
@@ -201,308 +73,7 @@ const defaultOffsets = {
   last: null
 }
 
-type Offset = {
-  [key: string]: string | null
-}
-
-export interface LeafsToAdd {
-  selectedTerminologyServer: 'vsac' | 'ontoserverR4'
-  selectedValueSets: SelectedValueSet[]
-  selectedConditions: Condition[]
-  selectedGroupers: SelectedGrouper[]
-  selectedPriority: 'emergent' | 'routine'
-}
-
-type HandleAddVSets = (vsets: LeafsToAdd) => void
-export type TableContextType = 'add-grouper' | 'search-page'
-
-interface ValueSetSearchTable {
-  handleAddValueSets?: HandleAddVSets
-  tableContext: TableContextType
-  currentSelectedVSId?: string[]
-}
-
-interface ConditionItem {
-  code: string
-  display: string
-  system: string
-  version: string
-}
-
-export interface FormattedGroup {
-  id: string
-  label: string
-  url: string
-  value: string
-  version: string
-}
-
-interface ProvisionalSearchForm {
-  allConditions: ConditionItem[]
-  document: HTMLElement | null
-  formattedGroups: FormattedGroup[]
-}
-
-interface RowSelectionItem {
-  allSelected: boolean
-  selectedCount: number
-  selectedRows: fhir4.ValueSet[]
-}
-
-const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: ProvisionalSearchForm) => {
-  const [currentSearchField, setCurrentSearchField] = useState<typeof searchTypes[number]>(searchTypes[0])
-  const [searchTerm, setSearchTerm] = useState<string | null>(null)
-  const [searchResults, setSearchResults] = useState([])
-  const [initialSearchResults, setInitialSearchResults] = useState([])
-  const [selectedConditions, setSelectedConditions] = useState<Condition[]>([])
-  const [selectedGroupers, setSelectedGroupers] = useState<FormattedGroup[]>([])
-  const [selectedRows, setSelectedRows] = useState<fhir4.ValueSet[]>([])
-  const [loading, setLoading] = useState(false)
-  const [selectedPriority, setSelectedPriority] = useState<typeof priorityLevelOptions[number] | undefined>()
-  const router = useRouter()
-  const [toggleKey, setToggleKey] = useState(0)
-
-  const clearItems = () => {
-    setSearchResults(() => [])
-    setSelectedConditions(() => [])
-    setSelectedGroupers(() => [])
-    setSelectedRows(() => [])
-    setSelectedPriority(() => undefined)
-    setToggleKey((k) => k + 1)
-  }
-
-  const handleSearchProvisionalVS = async () => {
-    setLoading(true)
-    clearItems()
-
-    const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
-    const results = await fetch(urlToSearch)
-
-    if (results.ok) {
-      const json = await results.json()
-      setSearchResults(json)
-      if (!searchTerm && !initialSearchResults.length) {
-        setInitialSearchResults(json)
-      }
-    } else {
-      console.error('error occurred')
-    }
-    setLoading(false)
-  }
-
-  useEffect(() => {
-    handleSearchProvisionalVS()
-  }, [])
-
-  useEffect(() => {
-    if (searchTerm?.trim() === '') {
-      handleSearchProvisionalVS()
-    }
-  }, [searchTerm])
-
-  const provisionalVsColumns = useMemo(() => {
-    const fields = [
-      {
-        name: 'Title',
-        selector: (row: fhir4.ValueSet) => row.title!,
-        sortable: true,
-        wrap: true,
-        maxWidth: '150px'
-      },
-      {
-        name: 'Url',
-        selector: (row: fhir4.ValueSet) => row.url!,
-        sortable: true,
-        wrap: true,
-        minWidth: '200px'
-      },
-      {
-        name: 'Contains Provisional Code System(s)',
-        selector: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map((ci) => ci.system || '[system missing]') || []
-          return systems.join(',')
-        },
-        sortable: true,
-        wrap: true,
-        maxWidth: '40rem',
-        cell: (row: fhir4.ValueSet) => {
-          const systems = row?.compose?.include?.map((ci) => ci.system) || []
-          return (
-            <div>
-              {systems.map((s) => (
-                <p key={s}>{s}</p>
-              ))}
-            </div>
-          )
-        }
-      }
-    ]
-
-    return fields
-  }, [searchResults])
-
-  const handleSelectedVSets = (r: RowSelectionItem) => {
-    setSelectedRows(r.selectedRows)
-  }
-
-  const handleAddValueSets = async () => {
-    const body: UpdateValueSetBody['body'] & { selectedTerminologyServer: 'vsm' } = {
-      selectedTerminologyServer: 'vsm',
-      selectedValueSets: uniqBy(selectedRows, 'id'),
-      selectedConditions,
-      selectedGroupers,
-      selectedPriority: selectedPriority?.value || 'routine'
-    }
-
-    const leafPutBody = JSON.stringify(body)
-
-    const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
-      method: 'PUT',
-      body: leafPutBody
-    })
-
-    if (leafsUpdated.ok) {
-      router.push(`/programs/${router.query.id}/valuesets`)
-    }
-  }
-  const contextActions = useMemo(() => {
-    const options = buildConditionOptions(allConditions, selectedConditions)
-
-    return (
-      <Row style={{ marginBottom: '1rem', display: selectedRows.length ? 'inherit' : 'none' }}>
-        <form style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', gap: '.5rem', flexWrap: 'wrap' }}>
-          <SelectInputContainer>
-            <Select
-              controlShouldRenderValue
-              key={`provisional-groups-${toggleKey}`}
-              required={true}
-              placeholder="Add to Groupers [required]*"
-              instanceId={`provisional-groups-${toggleKey}`}
-              isMulti={true}
-              menuPortalTarget={document}
-              styles={reactSelectOptionStyle()}
-              options={formattedGroups}
-              value={selectedGroupers}
-              onChange={(e) => {
-                // create new array since e is readonly
-                setSelectedGroupers([...e])
-              }}
-            />
-          </SelectInputContainer>
-          <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white' }}>
-            <Select
-              key={`provisional-conditions-${toggleKey}`}
-              placeholder="Add to Conditions"
-              instanceId={'provisional-conditions'}
-              isMulti={true}
-              styles={reactSelectOptionStyle()}
-              menuPortalTarget={document}
-              options={options}
-              value={selectedConditions}
-              onChange={(e) => {
-                // create new array since e is readonly
-                setSelectedConditions([...e])
-              }}
-            />
-          </SelectInputContainer>
-          <SelectInputContainer style={{ maxWidth: '300px', backgroundColor: 'white', height: 'fit-content' }}>
-            <Select
-              placeholder="Add priority"
-              instanceId="vsm-provisional-priority"
-              isMulti={false}
-              styles={reactSelectOptionStyle()}
-              // @ts-ignore
-              options={priorityLevelOptions}
-              menuPortalTarget={document}
-              value={selectedPriority}
-              onChange={(e) => {
-                // create new array since e is readonly
-                setSelectedPriority(e!)
-              }}
-            />
-          </SelectInputContainer>
-          <Button
-            style={{ alignSelf: 'center', marginBottom: 0 }}
-            key="delete"
-            type="submit"
-            onClick={handleAddValueSets}
-            text="Add"
-            disabled={!Boolean(selectedGroupers.length)}
-          />
-        </form>
-      </Row>
-    )
-  }, [selectedRows, allConditions, selectedConditions, selectedGroupers])
-
-  return (
-    <div>
-      <Row>
-        {Boolean(initialSearchResults?.length) && (
-          <StyledForm>
-            <DropdownContainer>
-              <StyledLabel id="aria-label" htmlFor="terminology-field-selector">
-                Search By ValueSet
-              </StyledLabel>
-              <SelectInputContainer>
-                <Select
-                  instanceId="provisional-searchByVS"
-                  isMulti={false}
-                  menuPortalTarget={document}
-                  styles={reactSelectOptionStyle()}
-                  options={searchTypes.filter((t) => t.value !== 'oid')}
-                  value={currentSearchField}
-                  onChange={(e) => {
-                    return setCurrentSearchField(e!)
-                  }}
-                />
-              </SelectInputContainer>
-            </DropdownContainer>
-            <TextAreaSubmitContainer>
-              <TextArea
-                style={{ width: '100%' }}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                id="vs-search"
-                label="Search Text"
-                hasIcon={true}
-              />
-              <IconButton
-                style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
-                id={'submit-search-valueset-button'}
-                disabled={!searchTerm || searchTerm.trim().length < 0}
-                buttoncontext="search"
-                type="submit"
-                onClick={async (e) => {
-                  e?.preventDefault()
-                  handleSearchProvisionalVS()
-                }}
-              />
-            </TextAreaSubmitContainer>
-          </StyledForm>
-        )}
-      </Row>
-      {contextActions}
-      <DataTable
-        title="VSM Provisional Value Sets"
-        theme="aphl"
-        noDataComponent={<NoDataContainer router={router} />}
-        selectableRows={true}
-        onSelectedRowsChange={handleSelectedVSets}
-        customStyles={customTableStyles('readonly')}
-        progressPending={loading}
-        progressComponent={<LoadingIndicator />}
-        // @ts-ignore-next-line
-        columns={provisionalVsColumns}
-        data={searchResults}
-        pagination
-        paginationPerPage={10}
-      />
-    </div>
-  )
-}
-
-type TableContextOptions = 'terminology' | 'vsm-provisional'
-
-const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelectedVSId }: ValueSetSearchTable) => {
+const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelectedVSId }: ValueSetSearchTableProps) => {
   const router = useRouter()
   const programId = router.query.id as string
 
@@ -572,76 +143,82 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
     () => findInTitle?.length || findInStatus?.length || findInVersion?.length || findInOid?.length || findInLastUpdated?.length,
     [findInLastUpdated?.length, findInTitle?.length, findInOid?.length, findInStatus?.length, findInVersion?.length]
   )
-  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > paginationMaximum
+  const vsNumExceedsFilterLimit = !!searchTotal && searchTotal > PAGINATION_MAXIMUM
 
   /**
    *  When a user clicks the search button, an API call is made to the `/search` endpoint to query by title/OID/steward
    */
-  const submitVSetSearch = async ({
-    searchContext = 'search',
-    pageNumber,
-    newResultsPerPage
-  }: {
-    searchContext?: 'filter' | 'search'
-    pageNumber?: number
-    newResultsPerPage?: number
-  }) => {
-    setToggledClearRows(true)
+  const submitVSetSearch = useCallback(
+    debounce(
+      async ({
+        searchContext = 'search',
+        pageNumber,
+        newResultsPerPage
+      }: {
+        searchContext?: 'filter' | 'search'
+        pageNumber?: number
+        newResultsPerPage?: number
+      }) => {
+        setToggledClearRows(true)
+        let response
 
-    let response
-    if (!searchTerm.trim()) {
-      setIsLoading(false)
-      return
-    }
+        if (!searchTerm.trim()) {
+          setIsLoading(false)
+          return
+        }
 
-    setIsLoading(true)
+        setIsLoading(true)
 
-    let searchStr = ''
+        let searchStr = ''
+        if (searchType.value === 'oid') {
+          const trimmedWords = searchTerm
+            ?.trim()
+            ?.split(',')
+            ?.map((term) => term?.trim())
+          const dedupedOids = Array.from(new Set(trimmedWords)) // dedupe the OIDs
+          // if more than 100 OIDs, exit with error
+          if (dedupedOids?.length > PAGINATION_MAXIMUM) {
+            const message = `OID search maximum is ${PAGINATION_MAXIMUM} at a time.`
+            setIsLoading(false)
+            toast.error(message)
+            return
+          }
+          searchStr = dedupedOids?.join(',')
+        } else if (searchType.value === 'title') {
+          searchStr = searchTerm.trim()
+        } else if (searchType.value === 'url') {
+          searchStr = searchTerm.trim()
+        }
 
-    if (searchType.value === 'oid') {
-      const trimmedWords = searchTerm
-        ?.trim()
-        ?.split(',')
-        ?.map((term) => term?.trim())
-      const dedupedOids = Array.from(new Set(trimmedWords)) // dedupe the OIDs
-      // if more than 100 OIDs, exit with error
-      if (dedupedOids?.length > paginationMaximum) {
-        const message = `OID search maximum is ${paginationMaximum} at a time.`
+        // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber and newResultsPerPage being passed in
+        const offset = ((pageNumber || currentPage?.page) - 1) * (newResultsPerPage || resultsPerPage)
+
+        let queryStringItems = {
+          searchType: searchType?.value,
+          count: newResultsPerPage || resultsPerPage,
+          sortBy: sortParams?.column,
+          sortDirection: sortParams?.direction,
+          offset: offset,
+          terminologyServer: selectedTerminologyServer?.value?.id
+        }
+
+        let queryString = ''
+
+        Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
+
+        const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
+
+        response = await fetch(endpoint)
+        await handleSearchResponse({ searchContext, response })
+        setToggledClearRows(false)
+        setSelectedValueSets([])
         setIsLoading(false)
-        toast.error(message)
-        return
-      }
-      searchStr = dedupedOids?.join(',')
-    } else if (searchType.value === 'title') {
-      searchStr = searchTerm.trim()
-    } else if (searchType.value === 'url') {
-      searchStr = searchTerm.trim()
-    }
-
-    // Since the state maybe updated asynchronously, we should rely on the explicit pageNumber and newResultsPerPage being passed in
-    const offset = ((pageNumber || currentPage?.page) - 1) * (newResultsPerPage || resultsPerPage)
-
-    let queryStringItems = {
-      searchType: searchType?.value,
-      count: newResultsPerPage || resultsPerPage,
-      sortBy: sortParams?.column,
-      sortDirection: sortParams?.direction,
-      offset: offset,
-      terminologyServer: selectedTerminologyServer?.value?.id
-    }
-
-    let queryString = ''
-
-    Object.keys(queryStringItems).forEach((key) => (queryString += `&${key}=${queryStringItems[key as keyof QueryStringItems]}`))
-
-    const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
-
-    response = await fetch(endpoint)
-    await handleSearchResponse({ searchContext, response })
-    setToggledClearRows(false)
-    setSelectedValueSets([])
-    setIsLoading(false)
-  }
+      },
+      800,
+      { leading: true, trailing: false }
+    ),
+    [searchTerm, searchType, selectedTerminologyServer, currentPage?.page, resultsPerPage, sortParams]
+  )
 
   const handleSearchResponse = async ({ searchContext, response }: SearchReponseParams) => {
     if (response?.ok) {
@@ -689,9 +266,9 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
     // if the number of valuesets are more than the max allowed,
     // send out a request to the server to filter
-    if (valueSets.length > paginationMaximum) {
+    if (valueSets.length > PAGINATION_MAXIMUM) {
       submitVSetSearch({ searchContext: 'filter' })
-      // if there are less than paginationMaximum, filter in FE synchronously
+      // if there are less than PAGINATION_MAXIMUM, filter in FE synchronously
       // this is not ideal, but VSAC does not allow us to combine multiple search params
     } else {
       let filteredValueSets: fhir4.ValueSet[] = valueSets
@@ -724,16 +301,6 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       setFilteredVSets(filteredValueSets)
     }
   }, [valueSets, findInTitle, findInStatus, findInVersion, findInOid, findInLastUpdated, filterExists])
-
-  // unused for now because VSAC FHIR does not seem support _filter params...
-  const handleSort = (column: any, sortDirection: 'asc' | 'desc') => {
-    // @ts-expect-error
-    const columnToSort = columnSortMap[column.id]
-    setSortParams({
-      column: columnToSort,
-      direction: sortDirection
-    })
-  }
 
   const handlePageChange = async (newPage: number) => {
     // don't call if same page
@@ -831,16 +398,23 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       <ErrorText>
         {searchTotal} results
         <br />
-        Refine search to enable filters (max {paginationMaximum} results)
+        Refine search to enable filters (max {PAGINATION_MAXIMUM} results)
       </ErrorText>
     )
   } else if (searchTerm.length < 3 && searchTerm.length > 0) {
     errorMessageComponent = <ErrorText>Minimum 3 characters required</ErrorText>
   }
 
-  const handleSearchToggleChange = (e: TableContextOptions) => {
-    setSearchTableContext(e)
-  }
+  const handleSearchToggleChange = useCallback(
+    debounce(
+      (_evt, e: TableContextOptions) => {
+        setSearchTableContext(e)
+      },
+      500,
+      { trailing: false, leading: true }
+    ),
+    []
+  )
 
   return (
     <Col>
@@ -852,15 +426,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       </Dialog>
       <Row style={{ justifyContent: 'flex-start' }}>
         {tableContext === 'search-page' && (
-          <ToggleButtonGroup
-            color="primary"
-            value={searchTableContext}
-            exclusive
-            onChange={(e, v) => {
-              handleSearchToggleChange(v)
-            }}
-            aria-label="Platform"
-          >
+          <ToggleButtonGroup color="primary" value={searchTableContext} exclusive onChange={handleSearchToggleChange} aria-label="Platform">
             <ToggleButton value="terminology">Search in Terminology Servers</ToggleButton>
             <ToggleButton value="vsm-provisional">Search in VSM Provisional</ToggleButton>
           </ToggleButtonGroup>
@@ -945,7 +511,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                       onClick={(e) => {
                         e.preventDefault()
                         toast.success('Copied failed OIDs to clipboard!')
-                        copyText(fetchError?.data || '')
+                        navigator.clipboard.writeText(fetchError?.data || '')
                       }}
                       title="Copy Failed OIDs"
                     >
@@ -956,6 +522,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
               </StyledForm>
             </Row>
           </TitleRow>
+          <DescriptionText style={{ marginBottom: '1rem', marginTop: '0rem' }}>* This search will only return <b>active</b> valuesets</DescriptionText>
           <SubmitSelectedForm hide={!selectedValueSets?.length}>
             <Row>
               <div>

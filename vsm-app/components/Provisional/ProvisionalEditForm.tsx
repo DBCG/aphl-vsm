@@ -15,7 +15,6 @@ import { useRouter } from 'next/router'
 import { PageTitle } from '../Typography'
 import { LoadingMessage } from '../ProgramValueSetDetails/styles'
 import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
-import { debounce } from 'lodash'
 import { ErrorMessage } from '../ErrorMessage'
 import ModeEditIcon from '@mui/icons-material/ModeEdit'
 import { toast } from 'react-toastify'
@@ -103,7 +102,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
   const [matchingValueSets, setMatchingValueSets] = useState<fhir4.ValueSet[]>([])
   const { provisionalContext } = useGetProvisionalContext()
   const allFieldsPresent = useMemo(() => Object.keys(updatedCodeItem).every(k => (updatedCodeItem as { [key: string]: string })[k]?.trim().length), [updatedCodeItem, originalCodeItemToEdit])
-  const router = useRouter()
+
   const changesExist = useMemo(
     () => {
       return (Object.keys(updatedCodeItem)
@@ -488,13 +487,13 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const [codeItemsToAdd, setCodeItemsToAdd] = useState<fhir4.CodeSystemConcept[]>([])
   const [formSubmitting, setFormSubmitting] = useState(false)
   const { data: session } = useSession() as unknown as { data: VSMSession }
-
+  const [loading, setLoading] = useState(false)
   // error states
   const [codeError, setCodeError] = useState<null | IsValidFormatResponse>(null)
   const [displayError, setDisplayError] = useState<null | IsValidFormatResponse>(null)
   const [definitionError, setDefinitionError] = useState<null | IsValidFormatResponse>(null)
 
-  const { provisionalCS, isCsLoading, provCsError, mutateProvCs } = useGetProvisionalCS(selectedCodeSystemBase?.value)
+  const { provisionalCS, provCsError, mutateProvCs } = useGetProvisionalCS(selectedCodeSystemBase?.value)
 
   const handleDelete = useCallback((item: CodeTableData) => {
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
@@ -581,16 +580,23 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   }, [codeItemsToAdd, handleDelete, provisionalCS])
 
   const handleAddToList = () => {
+    setLoading(true)
     setCodeItemsToAdd(prev => [
       ...prev,
       { code: codeToAdd, display: displayToAdd, definition: definitionToAdd }
     ])
     clearCurrentCodeItems()
+    setLoading(false)
   }
 
-  const handleUpdateCS = debounce(async () => {
+  const handleUpdateCS = async () => {
+    if (loading) return
+    setLoading(true)
     setFormSubmitting(true)
-    if (!selectedCodeSystemBase) throw new Error('No CodeSystemBase selected!')
+    if (!selectedCodeSystemBase) {
+      toast.error('No CodeSystemBase selected!')
+      return
+    }
     const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
 
     const submitBody = { codesBySystemToUpdate }
@@ -607,7 +613,8 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     } else {
       setFormSubmitting(false)
     }
-  }, 2000, { leading: true, trailing: false })
+    setLoading(false)
+  }
 
   if (!provisionalCS && !canEdit) {
     return <p>Editing Code Systems not permitted here.</p>
@@ -621,7 +628,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
           <Select
             isClearable={false}
             isDisabled={!canEdit}
-            isLoading={isCsLoading}
+            isLoading={loading}
             loadingMessage={() => <LoadingMessage>Loading...</LoadingMessage>}
             options={selectOptions}
             isMulti={false}
@@ -698,7 +705,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
                 variant='contained'
                 text='Add to List'
                 onClick={handleAddToList}
-                disabled={!enableAdd || isCsLoading || codeFormatErrorExists}
+                disabled={!enableAdd || loading || codeFormatErrorExists}
               />
             </ButtonRowContainer>
             <p>{`Code List to add: `}</p>
@@ -712,8 +719,8 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
               <Button
                 variant='contained'
                 text='ADD TO SYSTEM'
-                disabled={!Boolean(codeItemsToAdd?.length) || isCsLoading}
-                onClick={(e) => handleUpdateCS()}
+                disabled={!Boolean(codeItemsToAdd?.length) || loading}
+                onClick={handleUpdateCS}
                 loading={formSubmitting}
               />
             </ButtonRowContainer>

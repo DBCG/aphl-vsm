@@ -3,13 +3,13 @@ import handler from '@/helpers/server/handler'
 import ExcelJS from 'exceljs'
 import Logger from '@/helpers/server/logger'
 import FhirClient from '@/backend/clients/FhirClient'
-import { getGrouperLibrary } from './details/valuesets'
 import {
   generateReadMeSheet,
   generatePlanDefSheet,
   generateRCTCSheet,
   generateGrouperValuesetSheet
 } from '@/helpers/exportExcelHelper'
+import { getGrouperLibrary } from '@/helpers/server/serverLibraryHelper'
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
 

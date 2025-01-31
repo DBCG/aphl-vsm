@@ -21,3 +21,6 @@
 .idea/
 *.tmproj
 .vscode/
+
+# These do not need to be re-applied
+core/

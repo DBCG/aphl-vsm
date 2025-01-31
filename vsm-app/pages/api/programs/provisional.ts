@@ -3,9 +3,10 @@ import FhirClient from '@/backend/clients/FhirClient'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { uniqBy } from 'lodash'
-import { getGrouperLibrary, getGrouperValuesets, getLeafUrlsFromGrouper } from './[id]/details/valuesets'
 import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 import { is } from '@/helpers/is'
+import { getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
+import { getLeafUrlsFromGrouper } from '@/helpers/valueSetHelpers'
 
 export type ProgramApiResponse = {
   programs: fhir4.Library[]

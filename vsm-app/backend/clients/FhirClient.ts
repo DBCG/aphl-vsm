@@ -14,6 +14,7 @@ class FhirClient {
     FhirClient.client = new FhirKitClient({
       baseUrl: FHIR_CDR_URL,
       customHeaders: {
+        'Accept': 'Application/fhir+json',
         'x-b3-traceid': Logger.getLogId(),
         ...(FHIR_CDR_BASIC_AUTH_USERNAME &&
           FHIR_CDR_BASIC_AUTH_PASSWORD && { Authorization: `Basic ${Buffer.from(fhirCdrAuthString).toString('base64')}` })
@@ -52,6 +53,13 @@ class FhirClient {
     return (await FhirClient.getInstance().read({
       resourceType: 'Endpoint',
       id: id
+    })) as fhir4.Endpoint
+  }
+
+  async getVSACTerminologyServer(): Promise<Endpoint> {
+    return (await FhirClient.getInstance().read({
+      resourceType: 'Endpoint',
+      id: 'vsac' // TODO: hard-coded, we should double check seed data always adds this as ID
     })) as fhir4.Endpoint
   }
 }

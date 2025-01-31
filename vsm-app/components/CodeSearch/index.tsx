@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import DT from 'react-data-table-component'
 import { Button } from '../buttons/Button'
@@ -14,6 +14,7 @@ import { ExpandRequest } from '@/pages/api/valueset/codesearch'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { getVSConditions } from '@/helpers/libraryHelpers'
 import { toast } from 'react-toastify'
+import { debounce } from 'lodash'
 
 interface Props {
   program: fhir4.Library
@@ -45,15 +46,15 @@ const customStyles = {
     }
   },
   headCells: {
-		style: {
-			paddingLeft: '28px'
-		},
-	},
+    style: {
+      paddingLeft: '28px'
+    }
+  }
 }
 
 const convertToArrayForTable = (matchesData: MatchesFromServer) => {
   const allKeys = Object?.keys?.(matchesData) || []
-  return allKeys?.map(key => ({
+  return allKeys?.map((key) => ({
     // @ts-ignore
     codeData: matchesData[key].codeData,
     // @ts-ignore
@@ -87,7 +88,6 @@ const CodeSearch = ({ program, router }: Props) => {
     return getVSConditions(program)
   }, [[program]])
 
-
   const groupsInProgram = programValuesets?.groupsInProgram
 
   const handleClear = () => {
@@ -97,43 +97,49 @@ const CodeSearch = ({ program, router }: Props) => {
     setMatchingValueSetUrls(null)
   }
 
-  const handleSearchCodes = async () => {
-    setError(null)
-    setLoadingCodeSearch(true)
-    try {
-      if (!groupersToSearch?.length) return
-      const grouperIdsToSearch = groupersToSearch
-        ?.map((i) => i?.id)
-        ?.filter((x) => !!x)
-        ?.map((x) => x!)
+  const handleSearchCodes = useCallback(
+    debounce(
+      async () => {
+        setError(null)
+        setLoadingCodeSearch(true)
+        try {
+          if (!groupersToSearch?.length) return
+          const grouperIdsToSearch = groupersToSearch
+            ?.map((i) => i?.id)
+            ?.filter((x) => !!x)
+            ?.map((x) => x!)
 
-      const body: ExpandRequest['body'] = {
-        codeSystem: systemToFind,
-        groupersToSearch: grouperIdsToSearch,
-        codeToFind,
-        expansionParameters: getProgramManifestVersions(program)
-      }
+          const body: ExpandRequest['body'] = {
+            codeSystem: systemToFind,
+            groupersToSearch: grouperIdsToSearch,
+            codeToFind,
+            expansionParameters: getProgramManifestVersions(program)
+          }
 
-      const matches = await fetch('/api/valueset/codesearch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then((res) => res.json())
+          const matches = await fetch('/api/valueset/codesearch', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          }).then((res) => res.json())
 
-      if (matches.error) {
-        // handle error & return
-      }
-      const matchesData = convertToArrayForTable(matches)
-      setMatchingValueSetUrls(matchesData)
-      setError(null)
-
-    } catch (e) {
-      setError('Error occurred searching for code')
-    }
-    setLoadingCodeSearch(false)
-  }
+          if (matches.error) {
+            // handle error & return
+          }
+          const matchesData = convertToArrayForTable(matches)
+          setMatchingValueSetUrls(matchesData)
+          setError(null)
+        } catch (e) {
+          setError('Error occurred searching for code')
+        }
+        setLoadingCodeSearch(false)
+      },
+      800,
+      { leading: true, trailing: false }
+    ),
+    [groupersToSearch, systemToFind]
+  )
 
   const matchColumns = useMemo(
     () => [
@@ -165,7 +171,7 @@ const CodeSearch = ({ program, router }: Props) => {
         name: 'Display',
         id: 'vs-code-system-version',
         selector: (row: Row) => {
-         return  row?.codeData?.display!
+          return row?.codeData?.display!
         },
         sortable: false,
         maxWidth: '320px',
@@ -177,9 +183,7 @@ const CodeSearch = ({ program, router }: Props) => {
 
   return (
     <div>
-      <PageTitle style={{ marginBottom: '2rem' }}>
-        Find Codes in Program {program.id}
-      </PageTitle>
+      <PageTitle style={{ marginBottom: '2rem' }}>Find Codes in Program {program.id}</PageTitle>
       <FormControl style={{ marginBottom: '24px', marginTop: '1.5rem', width: '100%' }}>
         {/* <FormGroup>
           <FormControlLabel label='Search for VSM Provisional Codes in this Program' control={<Checkbox/>}/>
@@ -229,9 +233,9 @@ const CodeSearch = ({ program, router }: Props) => {
         <Grid container justifyContent="flex-end" spacing={2} xs={12} style={{ marginTop: '24px' }}>
           <Button
             text="Search"
-            onClick={() => handleSearchCodes()}
+            onClick={handleSearchCodes}
             style={{ marginRight: '8px' }}
-            disabled={!codeToFind || !groupersToSearch.length}
+            disabled={loadingCodeSearch || !codeToFind || !groupersToSearch.length}
             loading={loadingCodeSearch}
           />
           <Button text="Clear" onClick={handleClear} />

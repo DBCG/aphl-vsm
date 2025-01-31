@@ -8,7 +8,7 @@ import Box from '@mui/material/Box'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
-import { Logout, MoreVert, AdminPanelSettings, Settings } from '@mui/icons-material'
+import { Logout, MoreVert, Settings } from '@mui/icons-material'
 import Notifications from '@/components/Notifications'
 
 const BarWrapper = styled.div`
@@ -75,7 +75,6 @@ const NavBar = () => {
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const enableTerminologySource = process.env.NEXT_PUBLIC_ENABLE_TERMINOLOGY_ENDPOINT === 'true'
 
   return (
     <BarWrapper>
@@ -106,39 +105,31 @@ const NavBar = () => {
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <Box style={{ padding: '6px 16px', textAlign: 'left', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
-          <AccountCircleIcon style={{ marginRight: '18px', color: 'var(--theme-400)' }} fontSize='medium'/>
+          <AccountCircleIcon style={{ marginRight: '18px', color: 'var(--theme-400)' }} fontSize="medium" />
           <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
-             {session?.user?.name}
+            {session?.user?.name}
           </Typography>
         </Box>
-        {enableTerminologySource && (
-          <Box>
-            <MenuItem onClick={() => router.push('/settings')}>
-              <ListItemIcon>
-                <Settings />
-              </ListItemIcon>
-              Settings
-            </MenuItem>
-            <Divider />
-          </Box>
-        )}
-        <MenuItem
-          id="logout"
-          onClick={() => {
-            signOut({ redirect: false })
-            router.push('/api/auth/logout')
-          }}
-        >
+        <Box>
+          <MenuItem onClick={() => router.push('/settings')}>
+            <ListItemIcon>
+              <Settings />
+            </ListItemIcon>
+            Settings
+          </MenuItem>
+          <Divider />
+        </Box>
+        <MenuItem id="logout" onClick={async () => await signOut()}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
           Sign Out
         </MenuItem>
         <Box style={{ padding: '1rem', paddingBottom: '.4rem', alignItems: 'center', width: '100%' }}>
-            <Typography variant="body1" sx={{ color: 'gray', fontSize: '80%', textAlign: 'center' }}>
-             App Version: {packageInfo.version}
-            </Typography>
-          </Box>
+          <Typography variant="body1" sx={{ color: 'gray', fontSize: '80%', textAlign: 'center' }}>
+            App Version: {packageInfo.version}
+          </Typography>
+        </Box>
       </Menu>
     </BarWrapper>
   )

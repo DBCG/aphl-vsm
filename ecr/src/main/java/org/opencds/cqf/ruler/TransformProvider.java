@@ -60,7 +60,7 @@ public class TransformProvider implements OperationProvider {
 	public Bundle convert_v1(
 		RequestDetails requestDetails,
 		@OperationParam(name = "bundle") IBaseResource maybeBundle,
-		@OperationParam(name = "planDefinition") IBaseResource maybePlanDefinition,
+		@OperationParam(name = "planDefinition", max = 1) IBaseResource maybePlanDefinition,
 		@OperationParam(name = "targetVersion") String targetVersion) throws UnprocessableEntityException {
 		if (maybeBundle == null) {
 			throw new UnprocessableEntityException("Resource is missing");

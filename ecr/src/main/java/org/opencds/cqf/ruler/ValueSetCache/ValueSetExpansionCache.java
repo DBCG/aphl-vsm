@@ -37,7 +37,14 @@ public class ValueSetExpansionCache implements org.opencds.cqf.fhir.cr.visitor.I
     @Override
     public boolean addToCache(IValueSetAdapter vset, String expansionParametersHash) {
       // don't cache Groupers
-      if (!ImportBundleProducer.isGrouper((ValueSet)vset.get()) && getExpansionForCanonical(vset.getCanonical(), expansionParametersHash) == null) {
+      if (ImportBundleProducer.isGrouper((ValueSet)vset.get())) {
+        return true;
+      }
+      // don't cache without versions
+      if (!vset.hasVersion()) {
+        return true;
+      }
+      if (getExpansionForCanonical(vset.getCanonical(), expansionParametersHash) == null) {
         cacheService.saveData(createKey(vset.getCanonical(), expansionParametersHash) , vset.get());
       }
       return true;

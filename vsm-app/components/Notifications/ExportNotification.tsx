@@ -1,11 +1,14 @@
 import { JOB_STATUS } from '@/constants'
 import JobsService from '@/services/frontend/JobsService'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { MenuItem, Box, Typography, Link, ListItemIcon, Stack } from '@mui/material'
 import { toast } from 'react-toastify'
 import DownloadIcon from '@mui/icons-material/Download'
 import PendingIcon from '@mui/icons-material/Pending'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import { JobData } from '@/types/jobTypes'
+import { ExportJobMetadata, JobData } from '@/types/jobTypes'
+import PopOverErrorMessage from './PopoverErrorMessage'
+
 type Props = {
   jobId: string
   jobDetails: JobData
@@ -17,20 +20,29 @@ type StatusActionNotificationProps = {
   downloadExport: () => void
 }
 
+const copyText = (txt: string) => navigator.clipboard.writeText(txt)
+
 const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNotificationProps) => {
   const { status: jobStatus, metadata } = jobDetails
-  const programTitle = metadata?.programTitle || 'program'
-  const type = metadata?.isJson ? 'JSON' : 'XML'
+  let additionalData = {} as any
+  try {
+    additionalData = typeof metadata === 'string' ? JSON.parse(metadata) : metadata
+  } catch (e) {
+    console.error(e)
+  }
+  const programTitle = additionalData?.programTitle || 'program'
+  const type = additionalData?.isJson ? 'JSON' : 'XML'
   const errorMessage = jobDetails?.error
-  const version = metadata?.version
-  const hasCustomPlanDefinition = metadata?.hasCustomPlanDefinition
+  const version = additionalData?.version
+  const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
+
   let display
   switch (jobStatus) {
     case JOB_STATUS.IN_PROGRESS:
       display = (
         <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
-            <DownloadIcon fontSize="small" />
+            <PendingIcon fontSize="small" />
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
@@ -42,18 +54,24 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       break
     case JOB_STATUS.FAILED:
       display = (
-        <Box sx={{ display: 'flex' }}>
+        <Box
+          sx={{ display: 'flex', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.preventDefault()
+            toast.success('Copied errors to clipboard', { autoClose: 1000 })
+            copyText(errorMessage || '')
+          }}
+        >
           <ListItemIcon>
             <ErrorOutlineIcon fontSize="small" />
           </ListItemIcon>
-          <Stack>
-            <Typography variant="body1">
+          <Stack sx={{ maxWidth: '300px' }}>
+            <Typography variant="body1" sx={{ fontSize: '14px' }}>
               Export for {type} {version} {programTitle} failed
             </Typography>
-            <Typography variant="caption" color="error">
-              {errorMessage}
-            </Typography>
+            <PopOverErrorMessage errorMessage={errorMessage || ''} />
           </Stack>
+          <ContentCopyIcon style={{ color: 'gray', alignSelf: 'flex-end' }} />
         </Box>
       )
       break
@@ -61,7 +79,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
       display = (
         <Box sx={{ display: 'flex' }}>
           <ListItemIcon>
-            <PendingIcon />
+            <DownloadIcon fontSize="small" />
           </ListItemIcon>
           <Link onClick={downloadExport}>
             <Stack>
@@ -77,7 +95,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
   return <>{display}</>
 }
 
-const downloadTextData = (data: string, type: `${string}${'json' | 'xml'}`, filename: string) => {
+const downloadTextData = (data: string, type: `${string}${'json' | 'xml' | 'txt'}`, filename: string) => {
   // https://stackoverflow.com/a/55613750/8144343
   const blob = new Blob([data], { type: type })
   const href = URL.createObjectURL(blob)
@@ -97,39 +115,25 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
   const downloadExport = async () => {
     const job = await JobsService.getJob(jobId)
     const packageResponse = job?.returnvalue?.response
-
-    // TODO: figure out what to do with the validaiton errors
-    // document validation errors
-    // if (validationResult?.error?.length) {
-    //   const validationErrorStrings = validationResult.error
-    //   if (typeof validationErrorStrings === 'string') {
-    //     errorByTopic['Validation Errors'].push(validationErrorStrings)
-    //   } else {
-    //     errorByTopic['Validation Errors'].push(...validationErrorStrings)
-    //   }
-    // }
-
+    const validationResults = job?.returnvalue?.validationResults
     try {
+      const filename = (jobDetails?.metadata as ExportJobMetadata || {}).filename
       if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        downloadTextData(packageResponse, 'application/fhir+xml', jobDetails?.metadata?.filename)
+        downloadTextData(packageResponse, 'application/fhir+xml', filename || 'export.xml')
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
-        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', jobDetails?.metadata?.filename)
-      } else {
-        // errorByTopic['Download Errors'].push(`Could not download file in ${fileType.toUpperCase()} format`)
+        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', filename || 'export.json')
       }
-
-      // const errorsExist = Boolean(Object.values(errorByTopic).filter((e) => Boolean(e?.length))?.length > 0)
-      // if (errorsExist) {
-      //   setExportError(errorByTopic)
-      // }
+      if (validationResults.length > 0) {
+        const programTitle = (jobDetails.metadata as ExportJobMetadata)?.programTitle || 'program';
+        downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
+      }
     } catch (error) {
       toast.error('Error downloading file: ' + error)
-      // errorByTopic['Download Errors'].push('File download failed')
-      // setExportError(errorByTopic)
     } finally {
       closeNotification()
     }
   }
+
   return (
     <MenuItem>
       <Box>
