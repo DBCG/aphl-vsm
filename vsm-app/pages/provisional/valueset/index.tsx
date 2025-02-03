@@ -155,14 +155,17 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes, toggledCle
   const columns = useMemo(() => {
     const fields = [
       {
+        id: "code",
         name: 'Code',
         selector: (row: CodeSystemExtended['concept'][number]) => row.code!,
       },
       {
+        id: "display",
         name: 'Display',
         selector: (row: CodeSystemExtended['concept'][number]) => row.display!,
       },
       {
+        id: "definition",
         name: 'Definition',
         selector: (row: CodeSystemExtended['concept'][number]) => row.definition!,
         minWidth: '20rem',
@@ -174,6 +177,7 @@ const ExistingCodesTable = ({ systemName, codeSystem, handleAddCodes, toggledCle
 
   return (
     <DataTable
+      keyField={'code'}
       title={`Existing VSM Provisional Codes for ${systemName}`}
       selectableRows={true}
       selectableRowsNoSelectAll
@@ -741,6 +745,7 @@ const ProvisionalVSEdit = () => {
               <p>Select a Code System URL to create new or edit existing VSM Provisional Code System</p>
               <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
                 <Select
+                  id={"code-system-url-selector"}
                   isClearable={false}
                   options={csSelectOptions}
                   isMulti={false}

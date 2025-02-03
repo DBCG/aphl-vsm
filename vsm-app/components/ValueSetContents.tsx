@@ -1,8 +1,8 @@
 import { useState, useEffect, SetStateAction, Dispatch } from 'react'
-import { Box, Typography, Grid, FormControl } from '@mui/material'
+import { Box, Typography, Grid, FormControl, Button  } from '@mui/material'
+import LoadingButton from '@mui/lab/LoadingButton';
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
-import { Button } from './buttons/Button'
 import LoadingIndicator from './LoadingIndicator'
 import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
@@ -336,36 +336,34 @@ export default function ValueSetContents({
             </Grid>
             <Grid container justifyContent="flex-end">
               {isOwnedByVSM && enableEditing && !isEditing && (
-                <Button
-                  data-button="edit-metadata"
-                  text="Edit Metadata"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setIsEditing(true)
-                  }}
-                />
+                <Button variant='contained' onClick={() => setIsEditing(true)}>
+                    Edit Metadata
+                </Button>
               )}
               {enableEditing && isEditing && (
                 <ButtonContainer>
                   <Button
-                    text="Cancel"
-                    style={{ backgroundColor: 'darkGray' }}
+                    variant='contained'
+                    sx={{ backgroundColor: 'var(--neutral-300)' }}
                     onClick={(e) => {
                       resetValues()
                       e.preventDefault()
                       setIsEditing(false)
                     }}
-                  />
-                  <Button
+                  >
+                    Cancel
+                  </Button>
+                  <LoadingButton
+                    variant='contained'
                     disabled={!Boolean(Object.keys(changedMetadataItems).length)}
-                    data-button="edit-metadata-save"
                     loading={loading}
-                    text="Save Changes"
                     onClick={async (e) => {
                       e.preventDefault()
                       await submitGrouperUpdates()
                     }}
-                  />
+                  >
+                    Save Changes
+                  </LoadingButton>
                 </ButtonContainer>
               )}
             </Grid>

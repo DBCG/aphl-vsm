@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Dialog, DialogTitle, DialogContent, DialogContentText, Button, DialogActions } from '@mui/material'
 import styled from 'styled-components'
 
@@ -10,12 +10,17 @@ interface ModalInfo {
 }
 
 const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete, itemToDelete }: ModalInfo) => {
+  const [inProgress, setInProgress] = useState(false)
   const handleCancel = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     toggleModalOpen()
   }
 
   const handleConfirm = async () => {
+    if (inProgress) {
+      return
+    }
+    setInProgress(true)
     await handleConfirmDelete()
     toggleModalOpen()
   }
@@ -28,10 +33,10 @@ const DeleteConfirmationModal = ({ isOpen, toggleModalOpen, handleConfirmDelete,
           <DialogContentText>Delete{`${itemToDelete ? ' ' + itemToDelete : ''}?`}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
+          <Button disabled={inProgress} style={{ color: 'gray !important' }} onClick={handleCancel}>
             Cancel
           </Button>
-          <Button data-modal={'yes'} onClick={handleConfirm}>
+          <Button disabled={inProgress} data-modal={'yes'} onClick={handleConfirm}>
             YES
           </Button>
         </DialogActions>

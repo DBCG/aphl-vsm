@@ -61,7 +61,7 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
   )
 
   return (
-    <LinkContainer data-row-link>
+    <LinkContainer data-testid="text-link">
       {wrapWithLink({content})}
     </LinkContainer>
   )
