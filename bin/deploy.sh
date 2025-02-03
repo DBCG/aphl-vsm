@@ -12,12 +12,15 @@ GIT_TAG=$(git tag -l --contains HEAD 2>&1)
 
 PACKAGE_VERSION=$(jq -r '.version' ./vsm-app/package.json)
 
+# Ruvos Build Initiated if GIT_TAG is present
+if [[ -z "$GIT_TAG" ]]; then
 # Check if GIT_TAG matches the package version
-if [ "$GIT_TAG" == "$PACKAGE_VERSION" ]; then
-    echo "GIT_TAG matches the version in package.json!"
-else
-    echo "Mismatch: GIT_TAG is '$GIT_TAG', but package.json version is '$PACKAGE_VERSION'."
-    exit 1
+  if [ "$GIT_TAG" == "$PACKAGE_VERSION" ]; then
+      echo "GIT_TAG matches the version in package.json!"
+  else
+      echo "Mismatch: GIT_TAG is '$GIT_TAG', but package.json version is '$PACKAGE_VERSION'."
+      exit 1
+  fi
 fi
 
 # Login to ECR
