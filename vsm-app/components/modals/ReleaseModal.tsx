@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState, useRef } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import useSWR from 'swr'
 import { fetcher } from '@/utils'
