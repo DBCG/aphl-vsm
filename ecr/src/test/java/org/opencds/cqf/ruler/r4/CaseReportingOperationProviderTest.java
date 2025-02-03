@@ -526,30 +526,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	}
 
 	@Test
-	void releaseResource_latestFromTx_NotSupported_test() {
-		loadTransaction("ersd-small-approved-draft-bundle.json");
-		String actualErrorMessage = "";
-
-		Parameters params = new Parameters();
-		params.addParameter("version", "1.2.3");
-		params.addParameter("versionBehavior", new CodeType("default"));
-		params.addParameter("latestFromTxServer", new BooleanType(true));
-
-		try {
-			getClient().operation()
-				.onInstance(specificationLibReference)
-				.named("$release")
-				.withParameters(params)
-				.useHttpGet()
-				.returnResourceType(Bundle.class)
-				.execute();
-		} catch (Exception e) {
-			actualErrorMessage = e.getMessage();
-		}
-		assertTrue(actualErrorMessage.contains("not yet implemented"));
-	}
-
-	@Test
 	void release_missing_approvalDate_validation_test() {
 		loadTransaction("ersd-release-missing-approvalDate-validation-bundle.json");
 		String versionData = "1.2.3";

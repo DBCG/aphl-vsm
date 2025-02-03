@@ -11,10 +11,13 @@ import {
   setReleaseLabel
 } from '@/helpers/libraryHelpers'
 import { ReleasePayload } from '@/components/modals/ReleaseModal'
-
+import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+export interface ReleaseRequest extends NextApiRequest {
+  body: ReleasePayload
+}
 // this only gets the program library
-const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
-  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate } = req.body as ReleasePayload
+const release = async (req: ReleaseRequest, res: NextApiResponse): Promise<any> => {
+  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate, latestFromTxServer } = req.body
   let program: fhir4.Library | undefined
   try {
     program = (await FhirClient.getInstance().read({
@@ -54,7 +57,7 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
     program.version = releaseAsVersion
   }
 
-  const releasePayload = {
+  const releasePayload = addTerminologyEndpointToParameters({
     resourceType: 'Parameters',
     parameter: [
       {
@@ -64,9 +67,13 @@ const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> 
       {
         name: 'versionBehavior',
         valueCode: 'force'
+      },
+      {
+        name: 'latestFromTxServer',
+        valueBoolean: latestFromTxServer
       }
     ]
-  }
+  })
 
   await FhirClient.getInstance().operation({
     name: '$release',

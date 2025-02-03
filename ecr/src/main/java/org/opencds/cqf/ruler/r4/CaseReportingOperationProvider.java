@@ -242,6 +242,7 @@ public class CaseReportingOperationProvider {
 		@OperationParam(name = "versionBehavior") CodeType versionBehavior,
 		@OperationParam(name = "latestFromTxServer", typeName = "Boolean") IPrimitiveType<Boolean> latestFromTxServer,
 		@OperationParam(name = "requireNonExperimental") CodeType requireNonExperimental,
+		@OperationParam(name = "terminologyEndpoint") Endpoint terminologyEndpoint,
 		@OperationParam(name = "releaseLabel") String releaseLabel)
 		throws FHIRException {
 		var repository = repositoryFactory.create(requestDetails);
@@ -264,6 +265,9 @@ public class CaseReportingOperationProvider {
 		}
 		if (releaseLabel != null) {
 			params.addParameter("releaseLabel", releaseLabel);
+		}
+		if (terminologyEndpoint != null) {
+			params.addParameter().setName("terminologyEndpoint").setResource(terminologyEndpoint);
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
 		try {
