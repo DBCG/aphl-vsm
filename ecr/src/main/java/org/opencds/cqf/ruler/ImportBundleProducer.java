@@ -1,11 +1,14 @@
 package org.opencds.cqf.ruler;
 
+import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.jpa.searchparam.SearchParameterMap;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 
 import org.hl7.fhir.r4.model.*;
+import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +29,7 @@ import java.util.stream.Collectors;
 public class ImportBundleProducer {
 
 	private static final Logger myLogger = LoggerFactory.getLogger(ImportBundleProducer.class);
-
+	private static final IAdapterFactory adapterFactory = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4);
 
 	/**
 	 * Determines whether a given ValueSet is a grouper
@@ -124,47 +127,10 @@ public class ImportBundleProducer {
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
-            			valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
-						var valueSetCanonicalUrl = valueSet.getVersion() == null ? valueSet.getUrl() : valueSet.getUrl() + "|" + valueSet.getVersion();
-
-						if (hasGrouperCompose(valueSet)) {
-							addModelGrouperUseContextIfMissing(valueSet);
-							valueSet.setExpansion(null);
-							var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
-							var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
-							valueSet.getMeta().setProfile(filteredGrouperProfiles);
-							groupers.add(valueSetCanonicalUrl);
-							addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getIdPart());
-						} else {
-							// Leaf ValueSets
-							var leafVsProfiles = addMetaProfileUrl(
-								resource.getMeta(),
-								Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
-							);
-							var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
-							valueSet.getMeta().setProfile(filtered);
-
-                            String valueSetAuthoritativeSourceUrl = valueSet.getUrl();
-                            
-                            try {
-                                valueSetAuthoritativeSourceUrl = ensureHttps(valueSetAuthoritativeSourceUrl);
-                            } catch (MalformedURLException e) {
-                                // Do nothing here and let the malformed URL flow through. 
-                            }                            
-
-							// Add authoritative source extension
-							addAuthoritativeSource(valueSet, valueSetAuthoritativeSourceUrl);
-						}
-
+						valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
+						var valueSetCanonicalUrl = adapterFactory.createKnowledgeArtifactAdapter(valueSet).getCanonical();
+						prepareValueSet(valueSet, valueSetCanonicalUrl, appAuthoritativeUrl, groupers);
 						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
-						
-						// Remove conditions and priority from useContext of leaf valuesets and groupers
-						var cleanedContext = valueSet
-							.getUseContext()
-							.stream()
-							.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
-							.collect(Collectors.toList());
-						valueSet.setUseContext(cleanedContext);
 
 						// Check if ValueSet already exists
 						if (!doesResourceExist(valueSet.getUrl(), valueSet.getVersion(), ValueSet.class, transformProperties)) {
@@ -201,8 +167,7 @@ public class ImportBundleProducer {
 		assert planDefinition != null;
 		assert rootLibrary != null;
 
-        prepareRCTCLibrary(rctcLibrary, groupers);
-
+		prepareRCTCLibrary(rctcLibrary, groupers);
 		prepareRootLibrary(
 			conditionsMap,
 			priorityMap,
@@ -211,11 +176,62 @@ public class ImportBundleProducer {
 			groupers,
 			rootLibrary
 		);
+		preparePlanDef(planDefinition, adapterFactory.createKnowledgeArtifactAdapter(rctcLibrary));
 
 		bundleEntries.add(getPutResourceRequest(rootLibrary, "/Library", rootLibrary.getIdPart()));
 		bundleEntries.add(getPutResourceRequest(rctcLibrary, "/Library", rctcLibrary.getIdPart()));
 		bundleEntries.add(getPutResourceRequest(planDefinition, "/PlanDefinition", planDefinition.getIdPart()));
 		return bundleEntries;
+	}
+
+	private static void prepareValueSet(ValueSet valueSet, String valueSetCanonicalUrl, String appAuthoritativeUrl, List<String> groupers) {
+		if (hasGrouperCompose(valueSet)) {
+			addModelGrouperUseContextIfMissing(valueSet);
+			valueSet.setExpansion(null);
+			var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
+			var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
+			valueSet.getMeta().setProfile(filteredGrouperProfiles);
+			groupers.add(valueSetCanonicalUrl);
+			addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getIdPart());
+		} else {
+			// Leaf ValueSets
+			var leafVsProfiles = addMetaProfileUrl(
+				valueSet.getMeta(),
+				Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
+			);
+			var filtered = removeProfileFromList(leafVsProfiles, TransformProperties.ersdVSProfile);
+			valueSet.getMeta().setProfile(filtered);
+
+			String valueSetAuthoritativeSourceUrl = valueSet.getUrl();
+			
+			try {
+					valueSetAuthoritativeSourceUrl = ensureHttps(valueSetAuthoritativeSourceUrl);
+			} catch (MalformedURLException e) {
+					// Do nothing here and let the malformed URL flow through. 
+			}                            
+
+			// Add authoritative source extension
+			addAuthoritativeSource(valueSet, valueSetAuthoritativeSourceUrl);
+		}
+
+		
+		// Remove conditions and priority from useContext of leaf valuesets and groupers
+		var cleanedContext = valueSet
+			.getUseContext()
+			.stream()
+			.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+			.collect(Collectors.toList());
+		valueSet.setUseContext(cleanedContext);
+	}
+
+	private static void preparePlanDef(PlanDefinition planDefinition, IKnowledgeArtifactAdapter rctcAdapter) {
+		if (rctcAdapter.hasUrl() && rctcAdapter.hasVersion()) {
+			planDefinition.getRelatedArtifact().forEach(ra -> {
+				if (ra.getResource().contains(rctcAdapter.getUrl())) {
+					ra.setResource(rctcAdapter.getCanonical());
+				}
+			});
+		}
 	}
 
 	private static List<Identifier> fixIdentifiers(List<Identifier> identifiers) {
@@ -346,7 +362,7 @@ public class ImportBundleProducer {
 		});
 
 		// Set PlanDefinition
-		var planDefResourceUrl = planDefinition.getVersion() != null ? planDefinition.getUrl() + "|" + planDefinition.getVersion() : planDefinition.getUrl();
+		var planDefResourceUrl = adapterFactory.createKnowledgeArtifactAdapter(planDefinition).getCanonical();
 		var relatedArtifactPlanDefComposedOf = new RelatedArtifact();
 		relatedArtifactPlanDefComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 		relatedArtifactPlanDefComposedOf.setResource(planDefResourceUrl);
@@ -363,7 +379,7 @@ public class ImportBundleProducer {
 		relatedArtifacts.add(relatedArtifactPlanDefDependsOn);
 
 		// Set rctc Library
-		var rctcUrl = rctcLibrary.getVersion() != null ? rctcLibrary.getUrl() + "|" + rctcLibrary.getVersion() : rctcLibrary.getUrl();
+		var rctcUrl = adapterFactory.createKnowledgeArtifactAdapter(rctcLibrary).getCanonical();
 		var relatedArtifactRCTCComposedOf = new RelatedArtifact();
 		relatedArtifactRCTCComposedOf.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
 		relatedArtifactRCTCComposedOf.setResource(rctcUrl);
