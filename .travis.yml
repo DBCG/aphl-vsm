@@ -34,7 +34,6 @@ jobs:
         - npm ci && npm run test-ci
       install: skip
     - stage: mvn-test
-      if: branch =~ /java/
       jdk: openjdk17
       language: java
       script:
