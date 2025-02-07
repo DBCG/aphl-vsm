@@ -136,8 +136,8 @@ public class ImportBundleProducer {
 							prepareLeafValueSet(valueSet);
 							leafs.add(relatedArtifactFromLeafUrl(valueSetCanonicalUrl, conditionsList, priorityList));
 						}
-								// Remove conditions and priority from useContext of leaf valuesets and groupers
-							var cleanedContext = valueSet
+            // Remove conditions and priority from useContext of leaf valuesets and groupers
+            var cleanedContext = valueSet
 							.getUseContext()
 							.stream()
 							.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
@@ -220,6 +220,7 @@ public class ImportBundleProducer {
 
 			// Add authoritative source extension
 			addAuthoritativeSource(valueSet, valueSetAuthoritativeSourceUrl);
+
 	}
 
 	private static void preparePlanDef(PlanDefinition planDefinition, IKnowledgeArtifactAdapter rctcAdapter) {
