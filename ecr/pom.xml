@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.opencds.cqf.ruler</groupId>
 		<artifactId>cqf-ruler</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.15-VSM.0-SNAPSHOT</version>
 		<relativePath/>
 	</parent>
 
@@ -35,33 +35,15 @@
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-server</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.opencds.cqf.fhir</groupId>
-					<artifactId>cqf-fhir-cql</artifactId>				
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-storage</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.opencds.cqf.fhir</groupId>
-					<artifactId>cqf-fhir-cql</artifactId>				
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.opencds.cqf.ruler</groupId>
 			<artifactId>cqf-ruler-core</artifactId>
-			<version>0.15.0-SNAPSHOT</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.opencds.cqf.fhir</groupId>
-					<artifactId>cqf-fhir-cql</artifactId>				
-				</exclusion>
-			</exclusions>
+			<version>0.15-VSM.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -90,14 +72,8 @@
 		<dependency>
 			<groupId>org.opencds.cqf.ruler</groupId>
 			<artifactId>cqf-ruler-test</artifactId>
-			<version>0.15.0-SNAPSHOT</version>
+			<version>0.15-VSM.0-SNAPSHOT</version>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.opencds.cqf.fhir</groupId>
-					<artifactId>cqf-fhir-cql</artifactId>				
-				</exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
