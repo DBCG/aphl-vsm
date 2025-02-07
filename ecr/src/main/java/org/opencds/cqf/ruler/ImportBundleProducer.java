@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,7 +52,7 @@ public class ImportBundleProducer {
 	 */
 	public static boolean hasGrouperCompose(ValueSet valueSet) {
 		return valueSet.hasCompose()
-				&& valueSet.getCompose().getIncludeFirstRep().getValueSet().size() > 0;
+				&& !valueSet.getCompose().getIncludeFirstRep().getValueSet().isEmpty();
 	}
 
 	public static boolean isRootSpecificationLibrary(Resource resource) {
@@ -111,9 +112,8 @@ public class ImportBundleProducer {
 
 	public static List<Bundle.BundleEntryComponent> transformImportBundle(Bundle parameterBundle, TransformProperties transformProperties, String appAuthoritativeUrl) throws FhirResourceExists {
 		// store for processing root library
-		Map<String, List<CodeableConcept>> conditionsMap = new HashMap<>();
-		Map<String, List<CodeableConcept>> priorityMap = new HashMap<>();
-		List<String> groupers = new ArrayList<>();
+		Set<RelatedArtifact> groupers = new HashSet<>();
+		Set<RelatedArtifact> leafs = new HashSet<>();
 
 		PlanDefinition planDefinition = null;
 		Library rootLibrary = null;
@@ -127,11 +127,25 @@ public class ImportBundleProducer {
 				switch (resource.getResourceType()) {
 					case ValueSet:
 						var valueSet = (ValueSet) resource;
+						List<CodeableConcept> conditionsList = new ArrayList<>();
+						List<CodeableConcept> priorityList = new ArrayList<>();
 						valueSet.setIdentifier(fixIdentifiers(valueSet.getIdentifier()));
 						var valueSetCanonicalUrl = adapterFactory.createKnowledgeArtifactAdapter(valueSet).getCanonical();
-						prepareValueSet(valueSet, valueSetCanonicalUrl, appAuthoritativeUrl, groupers);
-						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityMap, conditionsMap, valueSetCanonicalUrl);
-
+						extractPrioritiesAndConditions(valueSet.getUseContext(), priorityList, conditionsList, valueSetCanonicalUrl);
+						if (hasGrouperCompose(valueSet)) {
+							prepareGrouperValueSet(valueSet, appAuthoritativeUrl);
+							groupers.add(relatedArtifactFromGrouperUrl(valueSetCanonicalUrl, conditionsList, priorityList));
+						} else {
+							prepareLeafValueSet(valueSet);
+							leafs.add(relatedArtifactFromLeafUrl(valueSetCanonicalUrl, conditionsList, priorityList));
+						}
+								// Remove conditions and priority from useContext of leaf valuesets and groupers
+							var cleanedContext = valueSet
+							.getUseContext()
+							.stream()
+							.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
+							.collect(Collectors.toList());
+						valueSet.setUseContext(cleanedContext);
 						// Check if ValueSet already exists
 						if (!doesResourceExist(valueSet.getUrl(), valueSet.getVersion(), ValueSet.class, transformProperties)) {
 							// Save the resource into entry bundle
@@ -169,11 +183,10 @@ public class ImportBundleProducer {
 
 		prepareRCTCLibrary(rctcLibrary, groupers);
 		prepareRootLibrary(
-			conditionsMap,
-			priorityMap,
 			planDefinition,
 			rctcLibrary,
 			groupers,
+			leafs,
 			rootLibrary
 		);
 		preparePlanDef(planDefinition, adapterFactory.createKnowledgeArtifactAdapter(rctcLibrary));
@@ -184,17 +197,15 @@ public class ImportBundleProducer {
 		return bundleEntries;
 	}
 
-	private static void prepareValueSet(ValueSet valueSet, String valueSetCanonicalUrl, String appAuthoritativeUrl, List<String> groupers) {
-		if (hasGrouperCompose(valueSet)) {
+	private static void prepareGrouperValueSet(ValueSet valueSet, String appAuthoritativeUrl) {
 			addModelGrouperUseContextIfMissing(valueSet);
 			valueSet.setExpansion(null);
 			var grouperProfiles = addMetaProfileUrl(valueSet.getMeta(), Collections.singletonList(TransformProperties.valueSetGrouperProfile));
 			var filteredGrouperProfiles = removeProfileFromList(grouperProfiles, TransformProperties.ersdVSProfile);
 			valueSet.getMeta().setProfile(filteredGrouperProfiles);
-			groupers.add(valueSetCanonicalUrl);
 			addAuthoritativeSource(valueSet, appAuthoritativeUrl + "/ValueSet/" + valueSet.getIdPart());
-		} else {
-			// Leaf ValueSets
+	}
+	private static void prepareLeafValueSet(ValueSet valueSet) {
 			var leafVsProfiles = addMetaProfileUrl(
 				valueSet.getMeta(),
 				Arrays.asList(TransformProperties.leafValueSetVsmHostedProfile, TransformProperties.leafValueSetConditionProfile)
@@ -212,16 +223,6 @@ public class ImportBundleProducer {
 
 			// Add authoritative source extension
 			addAuthoritativeSource(valueSet, valueSetAuthoritativeSourceUrl);
-		}
-
-		
-		// Remove conditions and priority from useContext of leaf valuesets and groupers
-		var cleanedContext = valueSet
-			.getUseContext()
-			.stream()
-			.filter(ctx -> ctx.hasCode() && !(ctx.getCode().getCode().equals("focus") || ctx.getCode().getCode().equals("priority")))
-			.collect(Collectors.toList());
-		valueSet.setUseContext(cleanedContext);
 	}
 
 	private static void preparePlanDef(PlanDefinition planDefinition, IKnowledgeArtifactAdapter rctcAdapter) {
@@ -255,31 +256,17 @@ public class ImportBundleProducer {
 		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
 	}
 
-	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, Map<String, List<CodeableConcept>> priorityMap, Map<String, List<CodeableConcept>> conditionsMap, String valueSetCanonicalUrl) {
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, List<CodeableConcept> priorityMap,List<CodeableConcept> conditionsMap, String valueSetCanonicalUrl) {
 		contexts.forEach(context -> {
 			if (context.hasCode()) {
 				var code = context.getCode().getCode();
 				if (code.equals("focus")) {
-					if (conditionsMap.containsKey(valueSetCanonicalUrl)) {
-						var conditions = conditionsMap.get(valueSetCanonicalUrl);
-						conditions.add(context.getValueCodeableConcept());
-					} else {
-						conditionsMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
-					}
+					conditionsMap.add(context.getValueCodeableConcept());
 				} else if (code.equals("priority")) {
-					if (priorityMap.containsKey(valueSetCanonicalUrl)) {
-						var priorities = priorityMap.get(valueSetCanonicalUrl);
-						if (priorities.size() == 0) {
-							priorities.add(context.getValueCodeableConcept());
-						} else {
-							priorities.forEach(p -> {
-								if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
-									throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
-								}
-							});
-						}
+					if (!priorityMap.isEmpty()) {
+						throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has multiple priority codes");
 					} else {
-						priorityMap.put(valueSetCanonicalUrl, new ArrayList<>(Collections.singletonList(context.getValueCodeableConcept())));
+						priorityMap.add(context.getValueCodeableConcept());
 					}
 				}
 			}
@@ -323,25 +310,46 @@ public class ImportBundleProducer {
 		return profiles;
 	}
 
-    private static void prepareRCTCLibrary(Library rctcLibrary, List<String> groupers) {
+    private static void prepareRCTCLibrary(Library rctcLibrary, Set<RelatedArtifact> groupers) {
         groupers.forEach(grouper -> {
             rctcLibrary.getRelatedArtifact()
                     .removeIf(ra -> ra.getType() == RelatedArtifact.RelatedArtifactType.COMPOSEDOF
                             && ra.hasResource()
-                            && grouper.split("\\|")[0].equals(ra.getResource().split("\\|")[0]));
-            var relatedArtifact = new RelatedArtifact();
-            relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-            relatedArtifact.setResource(grouper);
-            rctcLibrary.getRelatedArtifact().add(relatedArtifact);
+                            && grouper.getResource().split("\\|")[0].equals(ra.getResource().split("\\|")[0]));
+            rctcLibrary.getRelatedArtifact().add(grouper);
         });
-    };
+    }
+
+		private static RelatedArtifact relatedArtifactFromGrouperUrl(String grouperUrl, List<CodeableConcept> conditions, List<CodeableConcept> priorities) {
+			var relatedArtifact = new RelatedArtifact();
+			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
+			relatedArtifact.setResource(grouperUrl);
+			var isOwnedExtension = new Extension();
+			isOwnedExtension.setUrl(TransformProperties.crmiIsOwned);
+			isOwnedExtension.setValue( new BooleanType(true));
+			var extensions = new ArrayList<Extension>();
+			extensions.addAll(processCodeableConceptMapForLibrary(conditions, TransformProperties.vsmCondition));
+			extensions.addAll(processCodeableConceptMapForLibrary(priorities, TransformProperties.vsmPriority));
+			extensions.add(isOwnedExtension);
+			relatedArtifact.setExtension(extensions);
+			return relatedArtifact;
+		}
+		private static RelatedArtifact relatedArtifactFromLeafUrl(String leafUrl, List<CodeableConcept> conditions, List<CodeableConcept> priorities) {
+			var relatedArtifact = new RelatedArtifact();
+			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
+			relatedArtifact.setResource(leafUrl);
+			var extensions = new ArrayList<Extension>();
+			extensions.addAll(processCodeableConceptMapForLibrary(conditions, TransformProperties.vsmCondition));
+			extensions.addAll(processCodeableConceptMapForLibrary(priorities, TransformProperties.vsmPriority));
+			relatedArtifact.setExtension(extensions);
+			return relatedArtifact;
+		}
 
 	private static void prepareRootLibrary(
-		Map<String, List<CodeableConcept>> conditionsMap,
-		Map<String, List<CodeableConcept>> priorityMap,
 		PlanDefinition planDefinition,
 		Library rctcLibrary,
-		List<String> groupers,
+		Set<RelatedArtifact> groupers,
+		Set<RelatedArtifact> leafs,
 		Library rootLibrary
 	) {
 		// Add to profile and ensure not duplicated
@@ -349,17 +357,6 @@ public class ImportBundleProducer {
 		rootLibrary.getMeta().setProfile(rootLibraryProfiles);
 
 		List<RelatedArtifact> relatedArtifacts = new ArrayList<>();
-
-		groupers.forEach(grouper -> {
-			var relatedArtifact = new RelatedArtifact();
-			relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.COMPOSEDOF);
-			relatedArtifact.setResource(grouper);
-			var extension = new Extension();
-			extension.setUrl(TransformProperties.crmiIsOwned);
-			extension.setValue( new BooleanType(true));
-			relatedArtifact.setExtension(new ArrayList<>(Collections.singletonList(extension)));
-			relatedArtifacts.add(relatedArtifact);
-		});
 
 		// Set PlanDefinition
 		var planDefResourceUrl = adapterFactory.createKnowledgeArtifactAdapter(planDefinition).getCanonical();
@@ -395,8 +392,9 @@ public class ImportBundleProducer {
 		relatedArtifactRCTCDependsOn.setResource(rctcUrl);
 		relatedArtifacts.add(relatedArtifactRCTCDependsOn);
 
-		processCodeableConceptMapForLibrary(conditionsMap, TransformProperties.vsmCondition, relatedArtifacts);
-		processCodeableConceptMapForLibrary(priorityMap, TransformProperties.vsmPriority, relatedArtifacts);
+		relatedArtifacts.addAll(groupers);
+		relatedArtifacts.addAll(leafs);
+
 		rootLibrary.setRelatedArtifact(relatedArtifacts);
 	}
 
@@ -405,30 +403,14 @@ public class ImportBundleProducer {
 		return t -> seen.add(keyExtractor.apply(t));
 	}
 
-	private static void processCodeableConceptMapForLibrary(Map<String, List<CodeableConcept>> targetedMap, String extensionUrl, List<RelatedArtifact> relatedArtifacts) {
-		for (final var entry : targetedMap.entrySet()) {
-			var k = entry.getKey();
-			var v = entry.getValue();
-			List<Extension> extensions = new ArrayList<>();
+	private static List<Extension> processCodeableConceptMapForLibrary(List<CodeableConcept> v, String extensionUrl) {
+			var extensions = new ArrayList<Extension>();
 			v.forEach(codeableConcept -> {
 				var extension = new Extension();
 				extension.setUrl(extensionUrl);
 				extension.setValue(codeableConcept);
 				extensions.add(extension);
 			});
-
-			Optional<RelatedArtifact> foundArtifact = relatedArtifacts.stream().filter(i -> i.getResource().equals(k)).findFirst();
-			if (foundArtifact.isPresent()) {
-				var existingExtensions = foundArtifact.get().getExtension();
-				existingExtensions.addAll(extensions);
-			} else {
-				var relatedArtifact = new RelatedArtifact();
-				relatedArtifact.setType(RelatedArtifact.RelatedArtifactType.DEPENDSON);
-				relatedArtifact.setResource(k);
-				relatedArtifact.setExtension(extensions);
-
-				relatedArtifacts.add(relatedArtifact);
-			}
+			return extensions;
 		}
-	}
 }

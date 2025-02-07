@@ -427,8 +427,14 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
-		var visitor = new PackageVisitor(repository, expansionCache);
+		PackageVisitor visitor;
+		if (fhirRedisService.isConnected()) {
+			var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
+			visitor = new PackageVisitor(repository, expansionCache);
+		} else {
+			visitor = new PackageVisitor(repository);
+			log.warn("Redis service not found, running package without expansion cache");
+		}
 		var retval = (Bundle) adapter.accept(visitor, params);
 		retval.getEntry().stream()
 			.map(e -> (MetadataResource) e.getResource())

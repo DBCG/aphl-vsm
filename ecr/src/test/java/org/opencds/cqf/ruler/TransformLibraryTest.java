@@ -43,7 +43,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 	 * @throws FhirResourceExists
 	 */
 	@Test
-	public void testRootLibraryImport() throws FhirResourceExists {
+	void testRootLibraryImport() throws FhirResourceExists {
 		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
 		String targetedValueSetUrl = "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506";
 		String targetedPinnedValueSetVersion = "1.0.0";
