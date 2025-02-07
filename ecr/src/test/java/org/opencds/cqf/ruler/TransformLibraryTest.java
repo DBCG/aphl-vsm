@@ -160,7 +160,8 @@ class TransformLibraryTest {
 			.anyMatch(vs -> vs.getMeta().getProfile().stream()
 				.anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSProfile)));
 		assertFalse(valueSetHasV1);
-		var valueSetLibrary = getResourceFromEntriesById(updatedBundleEntries,"library-rctc-example").map(r -> (Library)r);
+		var valueSetLibraryId = "library-rctc-example";
+		var valueSetLibrary = getResourceFromEntriesById(updatedBundleEntries,valueSetLibraryId).map(r -> (Library)r);
 		assertTrue(valueSetLibrary.isPresent());
 		var valueSetLibraryHasV1 = valueSetLibrary.get().getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
 		assertFalse(valueSetLibraryHasV1);
@@ -174,6 +175,12 @@ class TransformLibraryTest {
 				fail("Invalid identifier present, should have been fixed by import");
 			}
 		});
+		var planDefinition = getResourceFromEntriesById(updatedBundleEntries,"plandefinition-ersd-instance-example").map(r -> (PlanDefinition)r);
+		assertTrue(planDefinition.isPresent());
+		var valueSetLibraryReferenceInPlanDef = planDefinition.get().getRelatedArtifact().stream().filter(ra -> ra.getResource().contains(valueSetLibraryId)).findFirst().map(ra -> ra.getResource());
+		assertTrue(valueSetLibraryReferenceInPlanDef.isPresent());
+		assertEquals(valueSetLibrary.get().getVersion(), Canonicals.getVersion(valueSetLibraryReferenceInPlanDef.get()));
+
 	}
 
 	@Test
