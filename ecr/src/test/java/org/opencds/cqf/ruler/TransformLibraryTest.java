@@ -1,16 +1,25 @@
 package org.opencds.cqf.ruler;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+
+import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.opencds.cqf.ruler.test.RestIntegrationTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.opencds.cqf.fhir.utility.Canonicals;
+import org.springframework.core.io.DefaultResourceLoader;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -18,19 +27,18 @@ import java.util.stream.Collectors;
 
 import static org.opencds.cqf.ruler.ImportBundleProducer.isRootSpecificationLibrary;
 import static org.opencds.cqf.ruler.ImportBundleProducer.transformImportBundle;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 
-@DirtiesContext
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
-	TransformConfig.class }, properties = { "hapi.fhir.fhir_version=r4" })
-public class TransformLibraryTest extends RestIntegrationTest {
-
+class TransformLibraryTest {
+	private final FhirContext fhirContext = FhirContext.forR4();
 	@Mock
 	private TransformProperties transformProperties; // Your DAO to mock
 
@@ -44,7 +52,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 	 */
 	@Test
 	void testRootLibraryImport() throws FhirResourceExists {
-		Bundle v2Bundle = (Bundle) loadResource("ersd-bundle-example.json");
+		Bundle v2Bundle = (Bundle) readResource("ersd-bundle-example.json");
 		String targetedValueSetUrl = "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.1506";
 		String targetedPinnedValueSetVersion = "1.0.0";
 
@@ -71,7 +79,7 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		// ensures that resources not found when doing checks
 		when(transformProperties.search(any(), any())).thenThrow(new ResourceNotFoundException("Not Found"));
 
-		List<Bundle.BundleEntryComponent> transactionBundleEntry = transformImportBundle(v2Bundle, transformProperties, "http://localhost:8080/fhir");
+		List<Bundle.BundleEntryComponent> transactionBundleEntry = transformImportBundle(v2Bundle.copy(), transformProperties, "http://localhost:8080/fhir");
 
 		Library updatedRootLibrary = extractRootLibrary(transactionBundleEntry);
 
@@ -111,6 +119,131 @@ public class TransformLibraryTest extends RestIntegrationTest {
 		assertNotNull(postImportVs);
 	}
 
+	@Test
+	void testImportOperation() {
+		Bundle v2Bundle = (Bundle) readResource("ersd-bundle-example.json");		
+		var updatedBundleEntries = transformImportBundle(v2Bundle.copy(), transformProperties, "www.test.com");
+
+		List<ValueSet> exportedGroupers = v2Bundle.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		var importedGroupers = updatedBundleEntries.stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		var groupersWithGroupTypeFromExportedBundle = exportedGroupers.stream()
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
+				.collect(Collectors.toList());
+
+		var transformedGroupersWithGroupType = importedGroupers.stream()
+				.filter(vs -> !ImportBundleProducer.isModelGrouperUseContextMissing(vs))
+				.collect(Collectors.toList());
+
+		importedGroupers.forEach(grouper -> {
+			assertFalse(grouper.hasExpansion());
+		});
+
+		// Check there are 6 groupers to be imported and none of them have group type  as use context
+		assertEquals(6,exportedGroupers.size());
+		assertEquals(0, groupersWithGroupTypeFromExportedBundle.size());
+
+		// After the import, check all of them have the group type as use context
+		assertEquals(6,transformedGroupersWithGroupType.size());
+
+		// Check that none of the valuesets have a v1 profile
+		var valueSetHasV1 = updatedBundleEntries.stream()
+			.filter(e -> e.getResource().getResourceType() == ResourceType.ValueSet)
+			.map(e -> (ValueSet)e.getResource())
+			.anyMatch(vs -> vs.getMeta().getProfile().stream()
+				.anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSProfile)));
+		assertFalse(valueSetHasV1);
+		var valueSetLibrary = getResourceFromEntriesById(updatedBundleEntries,"library-rctc-example").map(r -> (Library)r);
+		assertTrue(valueSetLibrary.isPresent());
+		var valueSetLibraryHasV1 = valueSetLibrary.get().getMeta().getProfile().stream().anyMatch(p -> p.getValue().equals(TransformProperties.ersdVSLibProfile));
+		assertFalse(valueSetLibraryHasV1);
+		valueSetLibrary.get().getIdentifier().forEach(i -> {
+			if (i.getSystem().equals("urn:ietf:rfc:3986") 
+			&& i.hasValue()
+			&& !i.getValue().startsWith("http")
+			&& !i.getValue().startsWith("urn:oid")
+			&& !i.getValue().startsWith("urn:uuid")
+			&& Character.isDigit(i.getValue().charAt(0))) {
+				fail("Invalid identifier present, should have been fixed by import");
+			}
+		});
+	}
+
+	@Test
+	void testImportOperation_conflicting_priorities() {
+		var v2Bundle = (Bundle) readResource("ersd-bundle-example-conflicting-priority.json");
+		UnprocessableEntityException expectingPriorityConflict = null;
+		
+		try {
+			transformImportBundle(v2Bundle.copy(), transformProperties, "www.test.com");
+		} catch (UnprocessableEntityException e) {
+			expectingPriorityConflict = e;
+		}
+		assertNotNull(expectingPriorityConflict);
+		assertTrue(expectingPriorityConflict.getMessage().contains("conflicting priorit"));
+	}
+	@Test
+	void testImportOperation_handle_duplicate_priorities() {
+		Bundle v2Bundle = (Bundle) readResource("ersd-bundle-example-2-priority.json");
+		var updatedBundleEntries = transformImportBundle(v2Bundle.copy(), transformProperties, "www.test.com");
+		var library = getResourceFromEntriesById(updatedBundleEntries, "SpecificationLibrary").map(r -> (Library)r);
+		assertTrue(library.isPresent());
+
+		var atLeastOneRelatedArtifactIsAValueSetWithPriority = false;
+		for (final var ra: library.get().getRelatedArtifact()) {
+			if (Canonicals.getResourceType(ra.getResource()).equals("ValueSet") && ra.hasExtension(TransformProperties.vsmPriority)) {
+				atLeastOneRelatedArtifactIsAValueSetWithPriority = true;
+				assertEquals(1, ra.getExtensionsByUrl(TransformProperties.vsmPriority).size());
+			}
+		}
+		assertTrue(atLeastOneRelatedArtifactIsAValueSetWithPriority);
+	}
+
+	@Test
+	void testImportOperation_appliesGrouperUseContext() {
+		Bundle v2Bundle = (Bundle) readResource("ersd-bundle-example-missing-grouper-use-context.json");
+		var updatedBundleEntries = transformImportBundle(v2Bundle.copy(), transformProperties, "www.test.com");
+
+		List<ValueSet> importedGroupers = updatedBundleEntries.stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		// After the import, check all of them have the group type as use context
+		assertEquals(6,importedGroupers.size());
+	}
+
+	@Test
+	void testImportOperationRemoveErsdValueset() {
+		Bundle v2Bundle = (Bundle) readResource("ersd-bundle-example-v1-vs.json");
+		var updatedBundleEntries = transformImportBundle(v2Bundle.copy(), transformProperties, "www.test.com");
+		
+
+		List<ValueSet> exportedGroupers = v2Bundle.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet) entry.getResource())
+				.collect(Collectors.toList());
+
+		var exportedDxtc = exportedGroupers.stream().filter(vs -> vs.getUrl().contains("dxtc")).collect(Collectors.toList()).get(0);
+		assertEquals(1, (int) exportedDxtc.getMeta().getProfile().stream().filter(p -> p.getValue().equals(TransformProperties.ersdVSProfile)).count());
+
+		List<ValueSet> importedGroupers = updatedBundleEntries.stream()
+				.filter(entry -> entry.getResource() instanceof MetadataResource && ImportBundleProducer.isGrouper((MetadataResource) entry.getResource()))
+				.map(entry -> (ValueSet)entry.getResource())
+				.collect(Collectors.toList());
+
+		var importedDxtc = importedGroupers.stream().filter(vs -> vs.getUrl().contains("dxtc")).collect(Collectors.toList()).get(0);
+		assertEquals(0, (int) importedDxtc.getMeta().getProfile().stream().filter(p -> p.getValue().equals(TransformProperties.ersdVSProfile)).count());
+
+	}
+
 	private Library extractRootLibrary(List<Bundle.BundleEntryComponent> bundleEntry) {
 		Optional<IBaseResource> rootLibraryEntry = bundleEntry.stream()
 			.filter(entry -> entry.hasResource() && isRootSpecificationLibrary(entry.getResource()))
@@ -118,5 +251,52 @@ public class TransformLibraryTest extends RestIntegrationTest {
 			.map(Bundle.BundleEntryComponent::getResource);
 		assertTrue(rootLibraryEntry.isPresent());
 		return (Library) rootLibraryEntry.get();
+	}
+
+	private String stringFromResource(String theLocation) {
+		InputStream is = null;
+		try {
+			if (theLocation.startsWith(File.separator)) {
+				is = new FileInputStream(theLocation);
+			} else {
+				DefaultResourceLoader resourceLoader = new DefaultResourceLoader();
+				org.springframework.core.io.Resource resource = resourceLoader.getResource(theLocation);
+				is = resource.getInputStream();
+			}
+			return IOUtils.toString(is, StandardCharsets.UTF_8);
+		} catch (Exception e) {
+			throw new RuntimeException(String.format("Error loading resource from %s", theLocation), e);
+		}
+
+	}
+	private Optional<Resource> getResourceFromEntriesById(List<BundleEntryComponent> bundle, String id){
+		return bundle.stream().map(e -> e.getResource()).filter(r -> r.getIdElement().getIdPart().equals(id)).findFirst();
+	}
+	private FhirContext getFhirContext() {
+		return this.fhirContext;
+	}
+	private IBaseResource readResource(String theLocation) {
+		String resourceString = stringFromResource(theLocation);
+		if (theLocation.endsWith("json")) {
+			return parseResource("json", resourceString);
+		} else {
+			return parseResource("xml", resourceString);
+		}
+	}
+	private IBaseResource parseResource(String encoding, String resourceString) {
+		IParser parser;
+		switch (encoding.toLowerCase()) {
+			case "json":
+				parser = getFhirContext().newJsonParser();
+				break;
+			case "xml":
+				parser = getFhirContext().newXmlParser();
+				break;
+			default:
+				throw new IllegalArgumentException(
+						String.format("Expected encoding xml, or json.  %s is not a valid encoding", encoding));
+		}
+
+		return parser.parseResource(resourceString);
 	}
 }

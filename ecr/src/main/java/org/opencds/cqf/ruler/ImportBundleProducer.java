@@ -17,11 +17,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -256,17 +253,20 @@ public class ImportBundleProducer {
 		return profiles.stream().filter(profile -> profile.hasValue() && !profile.getValue().equals(profileToRemove)).collect(Collectors.toList());
 	}
 
-	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, List<CodeableConcept> priorityMap,List<CodeableConcept> conditionsMap, String valueSetCanonicalUrl) {
+	private static void extractPrioritiesAndConditions(List<UsageContext> contexts, List<CodeableConcept> priorityList,List<CodeableConcept> conditionsList, String valueSetCanonicalUrl) {
 		contexts.forEach(context -> {
 			if (context.hasCode()) {
 				var code = context.getCode().getCode();
 				if (code.equals("focus")) {
-					conditionsMap.add(context.getValueCodeableConcept());
+					conditionsList.add(context.getValueCodeableConcept());
 				} else if (code.equals("priority")) {
-					if (!priorityMap.isEmpty()) {
-						throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has multiple priority codes");
-					} else {
-						priorityMap.add(context.getValueCodeableConcept());
+					if (!priorityList.isEmpty()) {
+						priorityList.forEach(p -> {
+							if (p.getCodingFirstRep().hasCode() && !p.getCodingFirstRep().getCode().equals(context.getValueCodeableConcept().getCodingFirstRep().getCode())) {
+								throw new UnprocessableEntityException("ValueSet with URL " + valueSetCanonicalUrl + " has conflicting priority codes");
+							}
+						});					} else {
+						priorityList.add(context.getValueCodeableConcept());
 					}
 				}
 			}
