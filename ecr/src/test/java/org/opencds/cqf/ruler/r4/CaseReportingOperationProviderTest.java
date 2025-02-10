@@ -1054,8 +1054,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	@Test
 	void packageOperation_should_respect_count_offset() {
 		loadTransaction("ersd-small-active-bundle.json");
+		var countSize = 0;
 		Parameters countZeroParams = new Parameters();
-		countZeroParams.addParameter("count", new IntegerType(0));
+		countZeroParams.addParameter("count", new IntegerType(countSize));
 		Bundle countZeroBundle = getClient().operation()
 			.onInstance(specificationLibReference)
 			.named("$ecr.package")
@@ -1063,10 +1064,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.returnResourceType(Bundle.class)
 			.execute();
 		// when count = 0 only show the total
-		assertEquals(0, countZeroBundle.getEntry().size());
+		assertEquals(countSize, countZeroBundle.getEntry().size());
 		assertEquals(9, countZeroBundle.getTotal());
+		countSize = 2;
 		Parameters count2Params = new Parameters();
-		count2Params.addParameter("count", new IntegerType(2));
+		count2Params.addParameter("count", new IntegerType(countSize));
 
 		Bundle count2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1074,10 +1076,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(count2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertEquals(2, count2Bundle.getEntry().size());
+		assertEquals(countSize, count2Bundle.getEntry().size());
+		var offsetSize = 2;
 		Parameters count2Offset2Params = new Parameters();
-		count2Offset2Params.addParameter("count", new IntegerType(2));
-		count2Offset2Params.addParameter("offset", new IntegerType(2));
+		count2Offset2Params.addParameter("count", new IntegerType(countSize));
+		count2Offset2Params.addParameter("offset", new IntegerType(offsetSize));
 
 		Bundle count2Offset2Bundle = getClient().operation()
 			.onInstance(specificationLibReference)
@@ -1085,9 +1088,11 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(count2Offset2Params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(count2Offset2Bundle.getEntry().size() == 2);
+		assertEquals(offsetSize, count2Offset2Bundle.getEntry().size());
+
+		offsetSize = 4;
 		Parameters offset4Params = new Parameters();
-		offset4Params.addParameter("offset", new IntegerType(4));
+		offset4Params.addParameter("offset", new IntegerType(offsetSize));
 		offset4Params.addParameter()
 				.setName("terminologyEndpoint")
 				.setResource(endpointCredentials);
@@ -1098,9 +1103,9 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(offset4Params)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(offset4Bundle.getEntry().size() == (countZeroBundle.getTotal() - 4));
-		assertTrue(offset4Bundle.getType() == Bundle.BundleType.COLLECTION);
-		assertTrue(offset4Bundle.hasTotal() == false);
+		assertEquals(countZeroBundle.getTotal() - offsetSize, offset4Bundle.getEntry().size());
+		assertSame(Bundle.BundleType.COLLECTION, offset4Bundle.getType());
+		assertFalse(offset4Bundle.hasTotal());
 		Parameters offsetMaxParams = new Parameters();
 		offsetMaxParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
 
@@ -1110,7 +1115,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 			.withParameters(offsetMaxParams)
 			.returnResourceType(Bundle.class)
 			.execute();
-		assertTrue(offsetMaxBundle.getEntry().size() == 0);
+		assertEquals(0,offsetMaxBundle.getEntry().size());
 		Parameters offsetMaxRandomCountParams = new Parameters();
 		offsetMaxRandomCountParams.addParameter("offset", new IntegerType(countZeroBundle.getTotal()));
 		offsetMaxRandomCountParams.addParameter("count", new IntegerType(ThreadLocalRandom.current().nextInt(3, 20)));
@@ -1124,10 +1129,6 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		assertEquals(0,offsetMaxRandomCountBundle.getEntry().size());
 	}
 
-	// $package with a small count value fails because there's a chance
-	// that there are a leaf will be included in the bundle but not its
-	// grouper, and so we can't find the vsm-condition extension
-	@Disabled
 	@Test
 	void packageOperation_different_bundle_types() {
 		loadTransaction("ersd-small-active-bundle.json");
