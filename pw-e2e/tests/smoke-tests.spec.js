@@ -153,10 +153,7 @@ test.describe.serial("Smoke Tests", () => {
     // Edit Grouper
     await page.getByRole("link", { name: "ExcellentTitleForGrouper" }).click();
 
-    // TODO: some kind of issue with this test, the first click doesn't seem to work
     await page.getByRole("button", { name: "Edit Metadata" }).click();
-    await page.getByRole("button", { name: "Edit Metadata" }).click();
-
     await page.getByRole("textbox", { name: "Grouper Title" }).click();
     await page.getByRole("textbox", { name: "Grouper Title" }).fill("test-title");
     await page.getByRole("textbox", { name: "Publisher" }).click();
