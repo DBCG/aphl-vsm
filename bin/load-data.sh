@@ -9,31 +9,37 @@ ENDPOINTS=${DIR}/../documentation/demo-data/terminology-endpoints.json
 IMPORT_DATA="${DIR}/../documentation/demo-data/2024-02-02 eRSD/20240202-eRSD-parameters-request-body-for-import-corrected-compose.json"
 # SMALLSPECIFICATION=${DIR}/../documentation/demo-data/small-bundle.json
 
-# $2 will default to the a dev HAPI server endpoint if not provided
-FHIR_SERVER=${2:-http://localhost:8082/fhir}
+FHIR_SERVER="${FHIR_SERVER:-http://localhost:8082/fhir}"
+
+HEADERS=("-H" "Content-Type: application/json")
+
+# Conditionally add Authorization header if AUTH_TOKEN is set
+if [[ -n "$AUTH_TOKEN" ]]; then
+    HEADERS+=("-H" "Authorization: Basic $AUTH_TOKEN")
+fi
 
 echo "Expunging all data from $FHIR_SERVER"
 curl --location "$FHIR_SERVER/\$expunge" \
---header 'Content-Type: application/json' \
---data '{
-  "resourceType": "Parameters",
-  "parameter": [
-    {
-      "name": "expungeEverything",
-      "valueBoolean": true
-    }
-  ]
-}'
+  "${HEADERS[@]}" \
+  --data '{
+    "resourceType": "Parameters",
+    "parameter": [
+      {
+        "name": "expungeEverything",
+        "valueBoolean": true
+      }
+    ]
+  }'
 
 echo "Loading data into $FHIR_SERVER"
 # if no args, print a help message and exit
-curl -d @${SEARCHPARAMS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
-curl -d @${CONDITIONS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
-curl -d @${USERRESOURCES} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
-curl -d @${ENDPOINTS} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
+curl -d @${SEARCHPARAMS} "${HEADERS[@]}" -v $FHIR_SERVER
+curl -d @${CONDITIONS} "${HEADERS[@]}" -v $FHIR_SERVER
+curl -d @${USERRESOURCES} "${HEADERS[@]}" -v $FHIR_SERVER
+curl -d @${ENDPOINTS} "${HEADERS[@]}" -v $FHIR_SERVER
 # curl -d @${SMALLSPECIFICATION} --header "Content-Type: application/fhir+json" -v $FHIR_SERVER
 
 jq --arg url "$FHIR_SERVER" '(.parameter[] | select(.name == "appAuthoritativeUrl")).valueString = $url' "$IMPORT_DATA" | \
-curl -d @- --location ${FHIR_SERVER}/\$ersd-v2-import --header 'Content-Type: application/json'
+curl -d @- --location ${FHIR_SERVER}/\$ersd-v2-import "${HEADERS[@]}"
 
 echo "All Done"
