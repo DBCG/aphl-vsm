@@ -399,15 +399,6 @@ public class CaseReportingOperationProvider {
 		if (terminologyEndpoint != null) {
 			params.addParameter().setName("terminologyEndpoint").setResource(terminologyEndpoint);
 		}
-		if (offset != null && offset.hasValue()) {
-			params.addParameter("offset", new IntegerType(offset.getValue()));
-		}
-		if (offset != null && offset.hasValue()) {
-			params.addParameter("offset", new IntegerType(offset.getValue()));
-		}
-		if (count != null && count.hasValue()) {
-			params.addParameter("count", new IntegerType(count.getValue()));
-		}
 		if (packageOnly != null && packageOnly.hasValue()) {
 			params.addParameter("packageOnly", packageOnly.getValue());
 		}
@@ -427,8 +418,14 @@ public class CaseReportingOperationProvider {
 			include.forEach(i -> params.addParameter("include", i));
 		}
 		var adapter = adapterFactory.createKnowledgeArtifactAdapter(resource);
-		var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
-		var visitor = new PackageVisitor(repository, expansionCache);
+		PackageVisitor visitor;
+		if (fhirRedisService.isConnected()) {
+			var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
+			visitor = new PackageVisitor(repository, expansionCache);
+		} else {
+			visitor = new PackageVisitor(repository);
+			log.warn("Redis service not found, running package without expansion cache");
+		}
 		var retval = (Bundle) adapter.accept(visitor, params);
 		retval.getEntry().stream()
 			.map(e -> (MetadataResource) e.getResource())
@@ -441,6 +438,12 @@ public class CaseReportingOperationProvider {
 			.ifPresent(m -> {
 				KnowledgeArtifactProcessor.handleValueSetReferenceExtensions(m, retval.getEntry());
 			});
+			// we don't forward these `count` or `offset` parameters to `clinical-reasoning` so that we can handle VSM-specific operations here using the entire packaged bundle
+			// then we use the logic from the PackageVisitor to page the bundle
+			var maybeCount = Optional.ofNullable(count).map(c -> c.getValue());
+			var maybeOffset = Optional.ofNullable(offset).map(o -> o.getValue());
+			PackageVisitor.setCorrectBundleType(maybeCount, maybeOffset, retval);
+			PackageVisitor.pageBundleBasedOnCountAndOffset(maybeCount, maybeOffset, retval);
 		return retval;
 	}
 

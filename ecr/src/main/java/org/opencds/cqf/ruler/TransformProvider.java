@@ -22,7 +22,6 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.UsageContext;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.opencds.cqf.ruler.api.OperationProvider;
-import org.opencds.cqf.ruler.r4.CaseReportingOperationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.stream.IntStream;
 import java.util.ArrayList;

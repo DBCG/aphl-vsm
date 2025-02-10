@@ -28,12 +28,12 @@ public class RedisConfig {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         config.setHostName(host);
         config.setPort(port);
-        config.setDatabase(database); // Set to database 4
+        config.setDatabase(database);
         return new LettuceConnectionFactory(config);
     }
 
     @Bean
-    public RedisTemplate<String, IBaseResource> redisTemplate(LettuceConnectionFactory connectionFactory) {
+    public FhirRedisService fhirRedisService(LettuceConnectionFactory connectionFactory) {
         RedisTemplate<String, IBaseResource> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
@@ -45,6 +45,6 @@ public class RedisConfig {
 
 
         template.afterPropertiesSet();
-        return template;
+        return new FhirRedisService(template);
     }
 }

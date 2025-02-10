@@ -118,7 +118,7 @@ public class KnowledgeArtifactProcessor {
 		return false;
 	}
 	private static Map<String, ValueSet> populateUrlValueSetMap(List<BundleEntryComponent> bundleEntries) {
-		Map<String, ValueSet> urlValueSetMap = new HashMap<String,ValueSet>();
+		Map<String, ValueSet> urlValueSetMap = new HashMap<>();
 		bundleEntries.stream()
 			.filter(e -> e.getResource().getResourceType().equals(ResourceType.ValueSet))
 			.map(e -> (ValueSet)e.getResource())
@@ -205,7 +205,7 @@ public class KnowledgeArtifactProcessor {
 	}
 
 	private static Map<String, Set<String>> generateAncestorsMap(Map<String, ValueSet> valueSetMap) {
-		Map<String, Set<String>> ancestorsMap = new HashMap<String, Set<String>>();
+		Map<String, Set<String>> ancestorsMap = new HashMap<>();
 		for (final var valueSet : valueSetMap.values()) {
 			populateAncestry(valueSet, valueSetMap, ancestorsMap);
 		}
