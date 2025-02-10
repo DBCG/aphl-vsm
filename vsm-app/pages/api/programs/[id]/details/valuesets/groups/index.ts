@@ -63,7 +63,6 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
       // also easy case, if canonical should be absent from grouper, delete it
     } else if (leafCanonicalExistsInGrouper && !leafShouldExistInGrouper) {
       const grouperWithVsRemoved = removeValueSetFromGrouper(grouperValueSet, [body.leafCanonical])
-      // TODO why this if statement? maybe because groupers can't have 0 valuesets?
       if (grouperWithVsRemoved) {
         // remove from grouper
         groupersToUpdate.push(grouperWithVsRemoved)
