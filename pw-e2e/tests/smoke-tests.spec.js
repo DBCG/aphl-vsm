@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 
 let appUrl = "http://localhost:3000";
 if (process.env.CI) {
-  appUrl = "http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com";
+  appUrl = process.env.VSM_APP_URL;
 }
 
 async function login(page) {
