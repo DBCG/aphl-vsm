@@ -372,7 +372,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("textbox", { name: "Definition (more detail about" }).fill("CptDefinition");
     await page.getByRole("button", { name: "Add to List" }).click();
     await page.getByRole("button", { name: "ADD TO SYSTEM" }).click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout("10000");
     await page.getByRole("link", { name: "provisional" }).click();
     await expect(page.getByText("CPT_provisional")).toHaveCount(1);
 
@@ -390,7 +390,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("checkbox", { name: "select-row-CPTCode" }).check();
     await page.getByRole("button", { name: "Add to Staging" }).click();
     await page.getByRole("button", { name: "Create Provisional Value Set" }).click();
-    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout("10000");
     await page.getByRole("link", { name: "provisional" }).click();
 
     await expect(page.getByText("provsTitle")).toHaveCount(1);
