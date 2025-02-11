@@ -20,49 +20,49 @@ before_install:
 
 install:
   - cd $TRAVIS_BUILD_DIR
-  # - ./bin/install_ci_dependencies.sh
+  - ./bin/install_ci_dependencies.sh
 jobs:
   include:
-    # - stage: npm-test
-    #   script:
-    #     - cd $TRAVIS_BUILD_DIR/vsm-app
-    #     - npm install
-    #     # These export placeholders are to workaround missing url in the build for MextJs SSR
-    #     - export FHIR_CDR_URL=https://placeholder.com/fhir
-    #     - export NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
-    #     - npm run build ## Test for typescript issues
-    #     - npm ci && npm run test-ci
-    #   install: skip
-    # - stage: mvn-test
-    #   if: branch =~ /java/
-    #   jdk: openjdk17
-    #   language: java
-    #   script:
-    #     - ./bin/test_plugin.sh
-    #   install: skip
-    # - stage: build-and-deploy-plugin
-      # if: branch IN (main) or tag IS present
-      # jdk: openjdk17
-      # language: java
-      # script:
-      #   - ./bin/build_plugin.sh
+    - stage: npm-test
+      script:
+        - cd $TRAVIS_BUILD_DIR/vsm-app
+        - npm install
+        # These export placeholders are to workaround missing url in the build for MextJs SSR
+        - export FHIR_CDR_URL=https://placeholder.com/fhir
+        - export NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
+        - npm run build ## Test for typescript issues
+        - npm ci && npm run test-ci
+      install: skip
+    - stage: mvn-test
+      jdk: openjdk17
+      language: java
+      script:
+        - ./bin/test_plugin.sh
+      install: skip
+    - stage: build-and-deploy-plugin
+      if: branch IN (main) or tag IS present
+      jdk: openjdk17
+      language: java
+      script:
+        - ./bin/build_plugin.sh
     - stage: e2e-test
+      if: branch IN (main) or tag IS present
       script:
         - cd ./pw-e2e
         - npm install
         - npx playwright install chromium --with-deps
         - npx playwright test
-    # - stage: deploy
-    #   if: branch IN (main) or tag IS present
-    #   script:
-    #     - cd $TRAVIS_BUILD_DIR/vsm-app
-    #     # TODO: Disabled for now as it stopped working with permission errors
-    #     # - git config user.name 'Travis CI User'
-    #     # - git remote set-url origin https://$GITHUB_TOKEN@github.com/DBCG/aphl-vsm.git
-    #     # - npm version patch
-    #     # - git add .
-    #     # - git commit -m "update version number [ci skip]"
-    #     # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
-    #     - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/ecr-sandbox-app:${TAG}-vsm .
-    #     - cd ../
-    #     - ./bin/deploy.sh
+    - stage: deploy
+      if: branch IN (main) or tag IS present
+      script:
+        - cd $TRAVIS_BUILD_DIR/vsm-app
+        # TODO: Disabled for now as it stopped working with permission errors
+        # - git config user.name 'Travis CI User'
+        # - git remote set-url origin https://$GITHUB_TOKEN@github.com/DBCG/aphl-vsm.git
+        # - npm version patch
+        # - git add .
+        # - git commit -m "update version number [ci skip]"
+        # - git push origin HEAD:$TRAVIS_BRANCH || travis_terminate 1
+        - docker build -t ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/vsm-app:${TAG} -t ${PROD_AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/ecr-sandbox-app:${TAG}-vsm .
+        - cd ../
+        - ./bin/deploy.sh
