@@ -627,6 +627,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         <QuestionnaireRowContainer style={{ marginBottom: '2rem' }}>
           <Select
             isClearable={false}
+            id={"code-system-url-selector"}
             isDisabled={!canEdit}
             isLoading={loading}
             loadingMessage={() => <LoadingMessage>Loading...</LoadingMessage>}
@@ -712,6 +713,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             <DataTable
               // @ts-ignore
               data={codeItemsToAdd}
+              keyField={'code'}
               columns={codeColumns}
               noDataComponent={noDataComponent('setProvisionals')}
             />

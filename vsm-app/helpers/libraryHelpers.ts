@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 import { Condition } from './conditionHelpers'
 import { urlWithoutPinnedVersion } from './valueSetHelpers'
+import FhirClient from '@/backend/clients/FhirClient'
 
 interface RelatedArtifactItem {
   url: string
@@ -22,7 +23,8 @@ interface EditComposeInclude {
 }
 
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
-  return program?.relatedArtifact?.find((related) => related?.resource?.includes('/Library/'))?.resource
+  return program?.relatedArtifact?.find((related) => related.type === 'composed-of' && related?.resource?.includes('/Library/'))
+    ?.resource as string
 }
 
 const getReleaseDescription = (program: fhir4.Library | null | undefined) => {
@@ -88,7 +90,7 @@ const getReleaseLabel = (program: fhir4.Library | null | undefined) => {
   return program?.extension?.find((ext) => ext?.url === 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel')?.valueString || ''
 }
 
-const setExtension = (program: fhir4.Library, url: string, value: string, valueType='valueString') => {
+const setExtension = (program: fhir4.Library, url: string, value: string, valueType = 'valueString') => {
   const clonedProgram = cloneDeep(program)
 
   const newExtensionEntry = {
@@ -126,7 +128,7 @@ const validStartDate = (date: any): boolean => {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-    timeZone: 'America/New_York'
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Get Users timezone
   }).format(Date.now())
   const [monthToday, dayToday, yearToday] = today.split('/')
 
@@ -136,20 +138,18 @@ const validStartDate = (date: any): boolean => {
   return testDate - todayDate > -1
 }
 
-const createPriorityItem = (code: string) => (
-  {
-    url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-    valueCodeableConcept: {
-      coding: [
-        {
-          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-          code
-        }
-      ],
-      text: capitalizeFirstLetter(code)
-    }
+const createPriorityItem = (code: string) => ({
+  url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
+  valueCodeableConcept: {
+    coding: [
+      {
+        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+        code
+      }
+    ],
+    text: capitalizeFirstLetter(code)
   }
-)
+})
 
 const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonicals: string[]) => {
   const clonedTarget = cloneDeep(target)
@@ -158,14 +158,14 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
   // update on iterate
   let newCanonicals = canonicals
   // update relatedArtifacts that exist
-  let newRA = clonedTarget.relatedArtifact?.map(item => {
+  let newRA = clonedTarget.relatedArtifact?.map((item) => {
     // find the matching relatedArtifact by canonical
     if (item?.resource && canonicals.includes(item.resource) && item.type === 'depends-on') {
-      newCanonicals = newCanonicals.filter(c => c !== item.resource)
+      newCanonicals = newCanonicals.filter((c) => c !== item.resource)
       // set if doesn't exist
       if (!item.extension) item.extension = []
-      const matchIndex = item.extension?.findIndex(i => i.url.endsWith('vsm-valueset-priority'))
-      
+      const matchIndex = item.extension?.findIndex((i) => i.url.endsWith('vsm-valueset-priority'))
+
       const itemToAdd = createPriorityItem(code)
       if (matchIndex > -1) {
         item.extension[matchIndex] = itemToAdd
@@ -177,7 +177,7 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
     return item
   })
 
-  newCanonicals.forEach(url => {
+  newCanonicals.forEach((url) => {
     newRA.push({
       type: 'depends-on',
       resource: url,
@@ -193,7 +193,7 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
 const getVSPriority = (library: fhir4.Library) => {
   const vsPriorityMap: Record<string, USHealthVSPriority> = {}
   library?.relatedArtifact?.forEach((ra) => {
-    const priorityExtensionIndex = ra.extension?.findIndex(ext => ext?.url?.endsWith('vsm-valueset-priority'))
+    const priorityExtensionIndex = ra.extension?.findIndex((ext) => ext?.url?.endsWith('vsm-valueset-priority'))
     // if priority already exists
     if (ra.type === 'depends-on' && typeof priorityExtensionIndex === 'number' && priorityExtensionIndex > -1) {
       const vsUrl = ra.resource?.split('|')?.[0] as string
@@ -219,26 +219,25 @@ interface ConditionsData {
 const getConditionText = (conditionItem: ConditionsData | undefined, currentConditionExtension: fhir4.Extension) => {
   const noTextResult = 'No display value for this condition'
 
-  return conditionItem?.display ||
-  currentConditionExtension?.valueCodeableConcept?.text ||
-  noTextResult
+  return conditionItem?.display || currentConditionExtension?.valueCodeableConcept?.text || noTextResult
 }
 
 // get all conditions by url
 const getVSConditions = (program: fhir4.Library) => {
   const vsConditions = {} as ValueSetConditionsMap
   program.relatedArtifact?.forEach((artifact) => {
-    const conditionExtensions = artifact?.extension?.filter(ext => ext?.url?.endsWith('vsm-valueset-condition'))
+    const conditionExtensions = artifact?.extension?.filter((ext) => ext?.url?.endsWith('vsm-valueset-condition'))
     if (artifact?.type === 'depends-on' && conditionExtensions?.length) {
       const vsUrl = artifact.resource?.split('|')?.[0] as string
 
-      const arrangedConditions = conditionExtensions.map(ext => {
+      const arrangedConditions = conditionExtensions.map((ext) => {
         const itemCode = ext?.valueCodeableConcept?.coding?.[0]?.code
 
-      return ({
-        id: `${ext?.valueCodeableConcept?.coding?.[0]?.system}|${itemCode}`!,
-        valueCodeableConcept: ext?.valueCodeableConcept || {}
-      })})
+        return {
+          id: `${ext?.valueCodeableConcept?.coding?.[0]?.system}|${itemCode}`!,
+          valueCodeableConcept: ext?.valueCodeableConcept || {}
+        }
+      })
       if (!vsConditions[vsUrl]) {
         vsConditions[vsUrl] = arrangedConditions
       } else {
@@ -271,8 +270,8 @@ const setVSConditions = (
 }
 
 const buildConditionExtensionItem = (code: string, system: string, text: string = 'no condition description provided') => {
-  return ({
-    url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+  return {
+    url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
     valueCodeableConcept: {
       coding: [
         {
@@ -282,15 +281,15 @@ const buildConditionExtensionItem = (code: string, system: string, text: string 
       ],
       text
     }
-  })
+  }
 }
 
 const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], vsUrls: string[]) => {
   const clonedProgram = cloneDeep(program)
 
   // if relatedArtifact items do not already exist, add them
-  vsUrls.forEach(url => {
-    const missingItem = !clonedProgram.relatedArtifact?.find(ra => vsUrls.includes(ra.resource!) && ra.type === 'depends-on')
+  vsUrls.forEach((url) => {
+    const missingItem = !clonedProgram.relatedArtifact?.find((ra) => vsUrls.includes(ra.resource!) && ra.type === 'depends-on')
     if (missingItem) {
       clonedProgram.relatedArtifact?.push({
         type: 'depends-on',
@@ -298,14 +297,16 @@ const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], v
       })
     }
   })
-  const updatedRA = clonedProgram.relatedArtifact?.map(item => {
+  const updatedRA = clonedProgram.relatedArtifact?.map((item) => {
     // valueset already exists in related artifacts
     if (item?.type === 'depends-on' && item.resource && vsUrls.includes(item.resource)) {
       if (!item.extension) {
-        item.extension = conditionsToAdd.map(c => buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found' ))
+        item.extension = conditionsToAdd.map((c) =>
+          buildConditionExtensionItem(c.value.code, c.value.system, c.value.text || c.label || 'No condition label found')
+        )
       } else {
-        conditionsToAdd.forEach(condition => {
-          const matchingCondition = item?.extension?.find(ext => {
+        conditionsToAdd.forEach((condition) => {
+          const matchingCondition = item?.extension?.find((ext) => {
             return (
               ext?.valueCodeableConcept?.coding?.[0]?.system == condition.value.system &&
               ext?.valueCodeableConcept?.coding?.[0]?.code == condition.value.code
@@ -314,7 +315,11 @@ const addVSConditions = (program: fhir4.Library, conditionsToAdd: Condition[], v
 
           // if condition doesn't already exist, add it
           if (!matchingCondition) {
-            const newExtensionItem = buildConditionExtensionItem(condition.value.code, condition.value.system, condition.value.text || condition.label || 'No condition label found' )
+            const newExtensionItem = buildConditionExtensionItem(
+              condition.value.code,
+              condition.value.system,
+              condition.value.text || condition.label || 'No condition label found'
+            )
             item.extension!.push(newExtensionItem)
           }
         })
@@ -334,11 +339,11 @@ const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], v
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
     if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
-      ra.extension = ra.extension.filter(xt => !xt.url.endsWith('vsm-valueset-condition'))
+      ra.extension = ra.extension.filter((xt) => !xt.url.endsWith('vsm-valueset-condition'))
     }
     return ra
   })
-  
+
   clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
   const progWithCondAdded = addVSConditions(clonedProgram, conditions, vsUrls)
 
@@ -350,13 +355,15 @@ const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsU
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
     if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
-      ra.extension = ra.extension.filter(xt => (
-        xt?.url?.endsWith('vsm-valueset-condition') && !conditions.find(cond => (
-          xt?.valueCodeableConcept?.coding?.[0]?.system == cond.value.system &&
-          xt?.valueCodeableConcept?.coding?.[0]?.code == cond.value.code
-        )
-        )
-      ))
+      ra.extension = ra.extension.filter(
+        (xt) =>
+          xt?.url?.endsWith('vsm-valueset-condition') &&
+          !conditions.find(
+            (cond) =>
+              xt?.valueCodeableConcept?.coding?.[0]?.system == cond.value.system &&
+              xt?.valueCodeableConcept?.coding?.[0]?.code == cond.value.code
+          )
+      )
     }
     return ra
   })
@@ -375,33 +382,32 @@ const updateGrouperLeafs = (grouperVs: fhir4.ValueSet, canonicalsToUpdate: strin
   // if compose include doesn't exist for some reason
   // but this really shouldn't happen after a grouper is created
   if (!clonedGrouper?.compose?.include) {
-    clonedGrouper.compose = {include: []}
+    clonedGrouper.compose = { include: [] }
   }
-  canonicalsToUpdate.forEach(canonical => {
-    const matchIndex = clonedGrouper.compose!.include
-      .findIndex(i => i?.valueSet?.[0] === canonical)
+  canonicalsToUpdate.forEach((canonical) => {
+    const matchIndex = clonedGrouper.compose!.include.findIndex((i) => i?.valueSet?.[0] === canonical)
 
     if (action === 'add' && matchIndex === -1) {
-      clonedGrouper.compose!.include.push({valueSet: [canonical]})
+      clonedGrouper.compose!.include.push({ valueSet: [canonical] })
     } else if (action === 'remove' && matchIndex > -1) {
       if (clonedGrouper.compose!.include.length === 1) {
         const grouperError = { canonical, grouper: clonedGrouper?.title || clonedGrouper.name! }
         errors.push(grouperError)
       } else {
-        const filtered = clonedGrouper.compose!.include.filter(i => i.valueSet![0] !== canonical)
+        const filtered = clonedGrouper.compose!.include.filter((i) => i.valueSet![0] !== canonical)
         // only delete if not the last one
         clonedGrouper.compose!.include = filtered
       }
     }
   })
-  return ({ grouper: clonedGrouper, errors })
+  return { grouper: clonedGrouper, errors }
 }
 
 const deleteValueSetReferencesFromLibrary = (library: fhir4.Library, canonicalsToRemove: string[]) => {
   // remove valueset from depends-on via canonical
   let clonedLib = cloneDeep(library)
-  
-  const updatedRelatedArtifacts = clonedLib.relatedArtifact?.filter(ra => !canonicalsToRemove.includes(ra.resource!))
+
+  const updatedRelatedArtifacts = clonedLib.relatedArtifact?.filter((ra) => !canonicalsToRemove.includes(ra.resource!))
   clonedLib.relatedArtifact = updatedRelatedArtifacts
   return clonedLib
 }
