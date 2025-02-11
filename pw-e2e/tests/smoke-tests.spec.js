@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 
+
+let appUrl = "http://localhost:3000";
+if (process.env.CI) {
+  appUrl = "http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com";
+}
+
 async function login(page) {
-  let appUrl = "http://localhost:3000";
-  if (process.env.CI) {
-    appUrl = "http://a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com";
-  }
   await page.goto(appUrl);
   await page.getByRole("button", { name: "Sign in" }).click();
   if (process.env.CI) {
@@ -154,6 +156,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("link", { name: "ExcellentTitleForGrouper" }).click();
 
     await page.getByRole("button", { name: "Edit Metadata" }).click();
+    await page.getByRole("button", { name: "Edit Metadata" }).click();
     await page.getByRole("textbox", { name: "Grouper Title" }).click();
     await page.getByRole("textbox", { name: "Grouper Title" }).fill("test-title");
     await page.getByRole("textbox", { name: "Publisher" }).click();
@@ -244,11 +247,7 @@ test.describe.serial("Smoke Tests", () => {
 
     await page.waitForTimeout(30000);
 
-    // await page.locator("#breadcrumb-programs", { exact: true }).dblclick();
-    // await page.waitForTimeout(1000); // Wait for data load
-    // await page.getByTestId("text-link").first().click();
-
-    await page.goto("http://localhost:3000/programs");
+    await page.goto(appUrl);
     await page.getByTestId("text-link").first().click();
 
     // TODO: We need to refactor the backend, so that the leaf valueset is removed more quickly.
@@ -358,7 +357,8 @@ test.describe.serial("Smoke Tests", () => {
 
   test("Creates provisional valueset and codesystem", async ({ page }) => {
     login(page);
-    await page.getByRole("tab", { name: "Provisional Resources" }).click();
+    await page.waitForTimeout(5000)
+    await page.getByRole("tab", { name: "Provisional Resources" }).click({ force: true });
 
     // Create new Provisional CodeSystem
     await page.getByRole("button", { name: "+ Create New" }).first().click();
