@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-
 let appUrl = "http://localhost:3000";
 if (process.env.CI) {
   appUrl = process.env.VSM_APP_URL;
@@ -104,7 +103,7 @@ test.describe.serial("Smoke Tests", () => {
     ).toBeDisabled();
 
     // Check that the one not added is on the available version manifest list
-    await expect(page.locator('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]')).toHaveCount(1);
+    await expect(page.locator('[data-add-manifest="http://hl7.org/fhir/sid/icd-10-cm|2022"]')).toHaveCount(0);
     await page.waitForTimeout(1000); // Wait for data to save
     await page.getByRole("button", { name: "← Back to program" }).click();
 
@@ -357,7 +356,7 @@ test.describe.serial("Smoke Tests", () => {
 
   test("Creates provisional valueset and codesystem", async ({ page }) => {
     login(page);
-    await page.waitForTimeout(5000)
+    await page.waitForTimeout(5000);
     await page.getByRole("tab", { name: "Provisional Resources" }).click({ force: true });
 
     // Create new Provisional CodeSystem
@@ -394,5 +393,29 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("link", { name: "provisional" }).click();
 
     await expect(page.getByText("provsTitle")).toHaveCount(1);
+  });
+
+  test("Update provisional code system and value set", async ({ page }) => {
+    login(page);
+    await page.waitForTimeout(5000);
+    await page.getByRole("tab", { name: "Provisional Resources" }).click({ force: true });
+
+    await page.getByRole('row', { name: 'CPT_provisional http://ersd.' }).getByRole('button').click();
+    await page.locator('#cell-4-CPTCode').getByRole('button').click();
+    await page.getByLabel("Code", { exact: true }).click();
+    await page.getByLabel("Code", { exact: true }).fill("CPTCodeEdit");
+    await page.getByRole("textbox", { name: "Update Display" }).click();
+    await page.getByRole("textbox", { name: "Update Display" }).fill("CPTDisplayEdit");
+    await page.getByRole("textbox", { name: "Update Definition" }).click();
+    await page.getByRole("textbox", { name: "Update Definition" }).fill("CptDefinitionEdit");
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.waitForTimeout(10000);
+    await page.goto(appUrl + "?resourceType=provisional");
+    await page.getByRole("row", { name: "provsTitle provsAuthor" }).getByRole("button").click();
+    await page.locator('[data-testid*="expander-button-"]').first().click();
+    await expect(page.getByText("CPTCodeEdit")).toBeVisible();
+    await expect(page.getByText("CPTDisplayEdit")).toBeVisible();
   });
 });

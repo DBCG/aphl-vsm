@@ -462,7 +462,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: { codeSystem?: f
         </Box>
       </Modal>
       {/* @ts-ignore */}
-      <DataTable pagination data={codeSystem?.concept || []} columns={columns} />
+      <DataTable keyField={'code'} pagination data={codeSystem?.concept || []} columns={columns} />
     </>
   )
 }
