@@ -236,6 +236,7 @@ const CodeDetailsExpanded = ({ data }: CodeDetailsProp) => {
   return (
     // @ts-ignore
     <DataTable
+      keyField='code'
       customStyles={customExpandStyles}
       // @ts-ignore-next-line
       data={codesBySystem || []}
