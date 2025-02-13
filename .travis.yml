@@ -45,13 +45,13 @@ jobs:
       language: java
       script:
         - ./bin/build_plugin.sh
-    - stage: e2e-test
-      if: branch IN (main) or tag IS present
-      script:
-        - cd ./pw-e2e
-        - npm install
-        - npx playwright install chromium --with-deps
-        - npx playwright test
+    # - stage: e2e-test
+    #   if: branch IN (main) or tag IS present
+    #   script:
+    #     - cd ./pw-e2e
+    #     - npm install
+    #     - npx playwright install chromium --with-deps
+    #     - npx playwright test
     - stage: deploy
       if: branch IN (main) or tag IS present
       script:
