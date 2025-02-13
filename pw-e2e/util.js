@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 
-const WAIT_TIME = process.env.WAIT_TIME ? parseInt(process.env.WAIT_TIME) : 120_000;
+const WAIT_TIME = process.env.WAIT_TIME ? parseInt(process.env.WAIT_TIME) : 240_000;
 /**
  * Helper to run shell commands (like loading data).
  */
@@ -9,6 +9,7 @@ async function setupData() {
     console.log('Setting up data...');
     // Run the shell script
     execSync(__dirname + '/../bin/load-data.sh');
+    console.log(`Waiting for ${WAIT_TIME}ms for data to load...`);
     setTimeout(() => {}, WAIT_TIME) // wait for data load to complete
     console.log('Data setup complete!');
   } catch (error) {

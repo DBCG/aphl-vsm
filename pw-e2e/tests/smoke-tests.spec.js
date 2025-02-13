@@ -357,7 +357,7 @@ test.describe.serial("Smoke Tests", () => {
   test("Creates provisional valueset and codesystem", async ({ page }) => {
     login(page);
     await page.waitForTimeout(5000);
-    await page.getByRole("tab", { name: "Provisional Resources" }).click({ force: true });
+    await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
     // Create new Provisional CodeSystem
     await page.getByRole("button", { name: "+ Create New" }).first().click();
@@ -398,7 +398,7 @@ test.describe.serial("Smoke Tests", () => {
   test("Update provisional code system and value set", async ({ page }) => {
     login(page);
     await page.waitForTimeout(5000);
-    await page.getByRole("tab", { name: "Provisional Resources" }).click({ force: true });
+    await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
     await page.getByRole('row', { name: 'CPT_provisional http://ersd.' }).getByRole('button').click();
     await page.locator('#cell-4-CPTCode').getByRole('button').click();
