@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 
-WAIT_TIME = process.env.WAIT_TIME || 60_000;
+const WAIT_TIME = process.env.WAIT_TIME || 60_000;
 /**
  * Helper to run shell commands (like loading data).
  */
