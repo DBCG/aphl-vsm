@@ -10,12 +10,16 @@ async function setupData() {
     // Run the shell script
     execSync(__dirname + '/../bin/load-data.sh');
     console.log(`Waiting for ${WAIT_TIME}ms for data to load...`);
-    setTimeout(() => {}, WAIT_TIME) // wait for data load to complete
+    await sleep(WAIT_TIME);
     console.log('Data setup complete!');
   } catch (error) {
     console.error('Failed to set up data:', error.message);
     process.exit(1); // Exit if setup fails
   }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = { setupData };

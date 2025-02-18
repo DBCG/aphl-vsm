@@ -22,7 +22,7 @@ async function login(page) {
 }
 
 // test("Enters Setup Credentials for VSAC", async ({ page }) => {
-//   login(page);
+//   await login(page);
 //   await page.getByRole("button", { name: "+ Add Credentials" }).click();
 //   await page.getByRole("textbox", { name: "Username" }).click();
 //   await page.getByRole("textbox", { name: "Username" }).fill("admin");
@@ -35,8 +35,7 @@ async function login(page) {
 
 test.describe.serial("Smoke Tests", () => {
   test("Creates a draft program", async ({ page }) => {
-    login(page);
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await login(page);
     await page.getByTestId("expander-button-SpecificationLibrary").click();
     await page.getByRole("button", { name: "Clone" }).click();
     await page.getByRole("button", { name: "YES, clone" }).click();
@@ -44,7 +43,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Edit Program Metadata", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "Edit Metadata" }).click();
 
@@ -87,7 +86,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Adds a manifest to program", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "Edit Manifest" }).click();
     await page.locator("#code-system-selector svg").click();
@@ -111,7 +110,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Creates, Edits, and Deletes new grouper", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
 
     // Create New Grouper
@@ -190,7 +189,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Adds a new valueset to multiple program groupers then removes it", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
 
     // vsac search for valuesets
@@ -264,7 +263,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Sets Priority on a valueset", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "View ValueSets" }).click();
     await expect(
@@ -286,7 +285,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Adds and Removes conditions from valuesets", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("text-link").first().click();
     await page.getByRole("button", { name: "View ValueSets" }).click();
 
@@ -302,7 +301,7 @@ test.describe.serial("Smoke Tests", () => {
 
   // TODO: wait until condition issue is fixed
   // test("Creates approval for draft library and release", async ({ page }) => {
-  //   login(page);
+  //   await login(page);
   //   const packageId = await page.getByTestId("text-link").first().textContent();
   //   await expect(page.getByText("DRAFT", { exact: true })).toHaveCount(1);
 
@@ -342,7 +341,7 @@ test.describe.serial("Smoke Tests", () => {
   // });
 
   test("Retires an active program", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.getByTestId("expander-button-SpecificationLibrary").click();
     await page.locator("body").press("ControlOrMeta+r");
     await page.locator("body").press("ControlOrMeta+r");
@@ -354,7 +353,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Creates provisional valueset and codesystem", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.waitForTimeout(5000);
     await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
@@ -395,7 +394,7 @@ test.describe.serial("Smoke Tests", () => {
   });
 
   test("Update provisional code system and value set", async ({ page }) => {
-    login(page);
+    await login(page);
     await page.waitForTimeout(5000);
     await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
