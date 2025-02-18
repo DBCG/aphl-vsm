@@ -35,9 +35,8 @@ async function login(page) {
 
 test.describe.serial("Smoke Tests", () => {
   test("Creates a draft program", async ({ page }) => {
-    await page.waitForTimeout(5000); // Wait for data load
-
     login(page);
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.getByTestId("expander-button-SpecificationLibrary").click();
     await page.getByRole("button", { name: "Clone" }).click();
     await page.getByRole("button", { name: "YES, clone" }).click();
