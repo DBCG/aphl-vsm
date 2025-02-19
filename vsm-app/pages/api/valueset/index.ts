@@ -15,23 +15,23 @@ import { TermServerOption } from '@/types/grouperTypes'
 import VSDownloadQueue from '@/worker/VSDownloadQueue'
 
 interface BundleEntryItem {
-  fullUrl: string,
+  fullUrl: string
   resource: fhir4.ValueSet
 }
 
 const extractComposeVsUrls = (valueSet: { valueSet: fhir4.ValueSet }[]) => {
   const vsUrls = new Set()
-  valueSet?.forEach(({valueSet}) => {
-    valueSet?.compose?.include.forEach((i) => i?.valueSet?.forEach(j => vsUrls.add(j)))
+  valueSet?.forEach(({ valueSet }) => {
+    valueSet?.compose?.include.forEach((i) => i?.valueSet?.forEach((j) => vsUrls.add(j)))
   })
-  return Array.from(vsUrls).filter(i => i)
+  return Array.from(vsUrls).filter((i) => i)
 }
 
 const splitAtLastIndex = (str: string, char: string) => {
   const lastIndex = str.lastIndexOf(char)
 
   if (lastIndex === -1) {
-    return [str]; // Character not found
+    return [str] // Character not found
   }
 
   const firstPart = str.slice(0, lastIndex)
@@ -42,9 +42,7 @@ const splitAtLastIndex = (str: string, char: string) => {
 
 const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.ValueSet | { error: string }>) => {
   try {
-    const response = (
-      await FhirClient.getInstance()
-        .read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
+    const response = (await FhirClient.getInstance().read({ resourceType: 'ValueSet', id: req.query.id as string })) as fhir4.ValueSet
 
     res.status(200).send(response)
   } catch (e) {
@@ -54,7 +52,7 @@ const getValueSet = async (req: NextApiRequest, res: NextApiResponse<fhir4.Value
 }
 
 export const isVsac = (termClientInstance: any) => {
-  return termClientInstance?.baseUrl.includes('cts.nlm.nih.gov') 
+  return termClientInstance?.baseUrl.includes('cts.nlm.nih.gov')
 }
 
 export interface UpdateValueSetBody extends NextApiRequest {
@@ -63,7 +61,7 @@ export interface UpdateValueSetBody extends NextApiRequest {
     selectedValueSets: fhir4.ValueSet[]
     selectedConditions: Condition[]
     selectedGroupers: FormattedGroup[]
-    selectedPriority: "emergent" | "routine"
+    selectedPriority: 'emergent' | 'routine'
   }
 }
 const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<number | { error: string }>, session: VSMSession) => {
@@ -103,20 +101,22 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       const updatedMatchingValueSetInCQF = addProfileToValueSet(matchingValueSetInCQF)
       vSetsToUpdate.push({ valueSet: updatedMatchingValueSetInCQF })
     } else {
-      
       try {
-
         const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
         if (body?.selectedTerminologyServer === 'vsm') {
           terminologyClient.setCustomClient({
             clientName: 'VSM' as string,
             baseUrl: `${process.env.FHIR_CDR_URL}`,
-            basicAuthHeader: `${Buffer.from(`${process.env.FHIR_CDR_BASIC_AUTH_USERNAME}:${process.env.FHIR_CDR_BASIC_AUTH_PASSWORD}`).toString('base64')}`
-          }) 
+            basicAuthHeader: `${Buffer.from(
+              `${process.env.FHIR_CDR_BASIC_AUTH_USERNAME}:${process.env.FHIR_CDR_BASIC_AUTH_PASSWORD}`
+            ).toString('base64')}`
+          })
         } else {
           // @ts-ignore
-          const matchingCredentialsForServer = creds?.find((cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id)
+          const matchingCredentialsForServer = creds?.find(
+            (cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id
+          )
           if (!matchingCredentialsForServer) {
             return res.status(400).json({ error: 'No credentials found for selected terminology server' })
           }
@@ -124,7 +124,9 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
           terminologyClient.setCustomClient({
             clientName: body?.selectedTerminologyServer?.label as string,
             baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
-            basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
+            basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString(
+              'base64'
+            )}`
           })
         }
 
@@ -148,9 +150,9 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             // if there are available matches
             if (allAvailableMatches?.entry) {
               // sorting here because we cannot use _sort on VSAC server -- not supported
-              const orderedMatchingVSets = allAvailableMatches.entry
-                .sort((a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || '')
-              
+              const orderedMatchingVSets = allAvailableMatches.entry.sort(
+                (a: BundleEntryItem, b: BundleEntryItem) => b?.resource?.version?.localeCompare(a?.resource?.version || '') || ''
+              )
 
               // need to remove the last -<version> from the ID if it exists
               let matchingIdNoVersion = orderedMatchingVSets[0].resource.id
@@ -173,7 +175,11 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
                 if (authSrcUrl) {
                   // add authoritativeSource extension
                   // this allows us to keep track of where valuesets come from
-                  matchingVSetFromRemoteServer = addExtensionToVs(matchingVSetFromRemoteServer, EXTENSIONS.AUTH_SOURCE_EXTENSION_URL, authSrcUrl)
+                  matchingVSetFromRemoteServer = addExtensionToVs(
+                    matchingVSetFromRemoteServer,
+                    EXTENSIONS.AUTH_SOURCE_EXTENSION_URL,
+                    authSrcUrl
+                  )
                 }
 
                 const updatedMatchingVSetFromRemoteServer = addProfileToValueSet(matchingVSetFromRemoteServer)
@@ -185,7 +191,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
               }
               // otherwise there are no available matches
             } else {
-               res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
+              res.status(400).json({ error: `Could not find ValueSet with url ${url}` })
               return
             }
           } else {
@@ -205,11 +211,10 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
   }
 
   try {
-
-    let program = await FhirClient.getInstance().read({
+    let program = (await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: req.query.programId as string
-    }) as fhir4.Library
+    })) as fhir4.Library
 
     const bundlePayload = []
     vSetsToUpdate.forEach((vs) => {
@@ -240,14 +245,15 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     })
 
     if (!performedUpdate?.entry) {
-      Logger.getLogger().error('failed to update library: ' + JSON.stringify(performedUpdate))
+      Logger.getLogger().error('failed to update library and/or leaf valuesets: ' + JSON.stringify(performedUpdate))
       return res.status(400).json({ error: 'Failed to update Value Sets' })
     }
   } catch (e) {
+    Logger.getLogger().error('failed to update library and/or leaf valuesets: ' + JSON.stringify(e))
     return res.status(400).json({ error: 'Server error encountered while updating Value Sets' })
   }
 
-  // Update on Groupers
+  //*** Update on Groupers ***//
   const groupersToUpdate = await Promise.all(
     body.selectedGroupers.map(async (grouperItem: any) => {
       return await FhirClient.getInstance().read({
