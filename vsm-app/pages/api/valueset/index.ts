@@ -86,14 +86,17 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     )
   )
 
-  const existingVSetBundles = serverResponses
-    ?.map((item) => item?.status === 'fulfilled' && item?.value)
-    ?.filter((x) => x) as fhir4.Bundle[]
-
-  const filteredVSets = existingVSetBundles?.map((item) => item?.entry?.[0]?.resource)?.filter((z) => Boolean(z)) as fhir4.ValueSet[]
+  const parsedVSResponse = serverResponses
+    ?.map((item) => {
+      if (item?.status === 'fulfilled' && item?.value?.entry) {
+        const bundleEntry = item?.value?.entry
+        return bundleEntry?.[0]?.resource
+      }
+    })
+    ?.filter((x) => x) as fhir4.ValueSet[]
 
   for (const selectedVS of body.selectedValueSets) {
-    const matchingValueSetInCQF = filteredVSets?.find(
+    const matchingValueSetInCQF = parsedVSResponse?.find(
       (vs) => vs?.url === selectedVS?.url?.split('|')?.[0] && vs?.version === selectedVS?.version
     )
     // valueset already exists in our server, don't need to call other terminology server
@@ -101,6 +104,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
       const updatedMatchingValueSetInCQF = addProfileToValueSet(matchingValueSetInCQF)
       vSetsToUpdate.push({ valueSet: updatedMatchingValueSetInCQF })
     } else {
+      // Retrieve VS from terminology source
       try {
         const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
@@ -133,7 +137,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
         const terminologyClientInstance = terminologyClient.getClient()
         if (terminologyClientInstance) {
           const serverIsVsac = isVsac(terminologyClientInstance)
-          let url = (selectedVS?.url as string)
+          let url = selectedVS?.url as string
           if (serverIsVsac) {
             url = idWithoutVersion(selectedVS?.url as string)
           }
@@ -210,6 +214,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     }
   }
 
+  // *** Update on Library and Cache ValueSets to CQF *** //
   try {
     let program = (await FhirClient.getInstance().read({
       resourceType: 'Library',
