@@ -240,13 +240,14 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     })
 
     if (!performedUpdate?.entry) {
+      Logger.getLogger().error('failed to update library: ' + JSON.stringify(performedUpdate))
       return res.status(400).json({ error: 'Failed to update Value Sets' })
     }
   } catch (e) {
     return res.status(400).json({ error: 'Server error encountered while updating Value Sets' })
   }
 
-  // get groupers
+  // Update on Groupers
   const groupersToUpdate = await Promise.all(
     body.selectedGroupers.map(async (grouperItem: any) => {
       return await FhirClient.getInstance().read({
@@ -258,42 +259,51 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
 
   try {
     const result = await Promise.all(
-      groupersToUpdate.map(async (grouperVs) => {
-        const originalComposeInclude: fhir4.ValueSetComposeInclude[] = grouperVs?.compose?.include || []
+      groupersToUpdate
+        .map(async (grouperVs) => {
+          // Create a set of the original valueSet canonicals to compare against
+          const originalComposeSet = new Set(
+            grouperVs?.compose?.include?.map((item: fhir4.ValueSetComposeInclude) => item?.valueSet?.[0]) || []
+          )
 
-        const newValueSetCanonicals = body.selectedValueSets
-          .map((item: any) => urlWithoutVersion(item.url))
-          // return only things that don't already exist
-          .filter((canonical: string) => {
-            if (originalComposeInclude.length == 0) return canonical
-            return originalComposeInclude?.find((item) => item?.valueSet?.[0] !== canonical)
+          const newValueSetCanonicals = body.selectedValueSets
+            .map((item: any) => urlWithoutVersion(item.url))
+            // return only things that don't already exist
+            .filter((canonical: string) => !originalComposeSet.has(canonical))
+
+          const newItems = newValueSetCanonicals?.map((c: string) => ({ valueSet: [c] }))
+
+          if (newValueSetCanonicals.length === 0) return Promise.resolve() // No updates needed
+          let newComposeInclude = [...(grouperVs?.compose?.include || []), ...newItems]
+
+          // this sets the compose include whether it exists or not
+          set(grouperVs, 'compose.include', newComposeInclude)
+
+          return await FhirClient.getInstance().update({
+            resourceType: 'ValueSet',
+            id: grouperVs.id,
+            body: grouperVs
           })
-
-        const newItems = newValueSetCanonicals?.map((c: string) => ({ valueSet: [c] }))
-
-        let newComposeInclude = [...originalComposeInclude, ...newItems]
-
-        // this sets the compose include whether it exists or not
-        set(grouperVs, 'compose.include', newComposeInclude)
-
-        return await FhirClient.getInstance().update({
-          resourceType: 'ValueSet',
-          id: grouperVs.id,
-          body: grouperVs
         })
-      })
+        .filter((i) => i) // filter out groupers that do not need to be updated
     )
-    
-    const validResults = result?.filter((r) => r.resourceType === 'ValueSet')
-    if (validResults?.length && validResults?.length > 0) {
+
+    const anyErrors = result.filter((r) => r?.response?.status !== 200) as any
+
+    if (result.length === 0) {
+      // No updates needed
+      return res.status(200)
+    } else if (result.length > 0 && anyErrors?.length === 0) {
       const urls = extractComposeVsUrls(vSetsToUpdate)
+      // Download Dependent ValueSets
       VSDownloadQueue.add({ urls, userId: session.user.id })
       return res.status(200).send(200)
     } else {
+      Logger.getLogger().error('Error updating groupers: ' + JSON.stringify(anyErrors))
       res.status(400).json({ error: 'could not update valueset' })
     }
   } catch (e) {
-    Logger.getLogger().error('error 4: ', e)
+    Logger.getLogger().error('Error updating groupers: ' + JSON.stringify(e))
     res.status(400).json({ error: 'failed to update valueSet' })
   }
 }
