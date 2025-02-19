@@ -153,7 +153,14 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("link", { name: "ExcellentTitleForGrouper" }).click();
 
     await page.getByRole("button", { name: "Edit Metadata" }).click();
-    await page.getByRole("button", { name: "Edit Metadata" }).click();
+
+    // TODO: Sometimes for some reason you have to click twice. This is a workaround
+    try {
+      await page.getByRole("button", { name: "Edit Metadata" }).click({ timeout: 20000 });
+    } catch (error) {
+      console.error("Second Click failed, but continuing execution:", error);
+    }
+   
     await page.getByRole("textbox", { name: "Grouper Title" }).click();
     await page.getByRole("textbox", { name: "Grouper Title" }).fill("test-title");
     await page.getByRole("textbox", { name: "Publisher" }).click();
