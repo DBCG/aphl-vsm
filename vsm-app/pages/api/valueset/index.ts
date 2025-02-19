@@ -117,8 +117,8 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             ).toString('base64')}`
           })
         } else {
-          // @ts-ignore
           const matchingCredentialsForServer = creds?.find(
+            // @ts-ignore
             (cred) => cred?.terminologyServerId === body?.selectedTerminologyServer?.value?.id
           )
           if (!matchingCredentialsForServer) {

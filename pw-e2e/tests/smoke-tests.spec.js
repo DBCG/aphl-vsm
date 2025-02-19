@@ -160,7 +160,7 @@ test.describe.serial("Smoke Tests", () => {
     } catch (error) {
       console.error("Second Click failed, but continuing execution:", error);
     }
-   
+
     await page.getByRole("textbox", { name: "Grouper Title" }).click();
     await page.getByRole("textbox", { name: "Grouper Title" }).fill("test-title");
     await page.getByRole("textbox", { name: "Publisher" }).click();
@@ -267,6 +267,65 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("textbox", { name: "Filter by canonical" }).dblclick();
     await page.getByRole("textbox", { name: "Filter by canonical" }).fill("2.16.840.1.113762.1.4.1146.2217");
     await expect(page.getByText("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.2217")).toHaveCount(1);
+  });
+
+  test("Adds a leaf valueset to grouper twice without duplicating", async ({ page }) => {
+    await login(page);
+    await page.getByTestId("text-link").first().click();
+
+    // vsac search for valuesets
+    await page.getByRole("button", { name: "View ValueSets" }).click();
+    await page.getByRole("button", { name: "Add Valuesets" }).click();
+    await page.getByRole("textbox", { name: "Search Text" }).click();
+    await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
+    await page.getByRole("button", { name: "search", exact: true }).click();
+    await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
+    await page
+      .locator("div")
+      .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
+      .locator("svg")
+      .click();
+    await page.getByText("Acute Flaccid Myelitis (AFM)").click();
+
+    await page.locator("#react-select-search-page-groups-input").click();
+    await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
+    await page.locator("#react-select-search-page-groups-input").click();
+    await page.getByText("Organism_Substance Release Triggers for Public Health Reporting", { exact: true }).click();
+    await page.getByRole("button", { name: "Add Selected To Program" }).click();
+    await page.getByRole("button", { name: "close" }).click(); // close notification
+    await page.waitForTimeout(1000); // Wait for data load
+
+    // Add same leaf valueset again and ensure only one exists on grouper
+
+    // vsac search for valuesets
+    await page.getByRole("button", { name: "Add Valuesets" }).click();
+    await page.getByRole("textbox", { name: "Search Text" }).click();
+    await page.getByRole("textbox", { name: "Search Text" }).fill("brain");
+    await page.getByRole("button", { name: "search", exact: true }).click();
+    await page.getByRole("checkbox", { name: "select-row-2.16.840.1.113762.1.4.1146.2216-" }).check();
+    await page
+      .locator("div")
+      .filter({ hasText: /^ConditionsSelect\.\.\.$/ })
+      .locator("svg")
+      .click();
+    await page.getByText("Acute Flaccid Myelitis (AFM)").click();
+
+    await page.locator("#react-select-search-page-groups-input").click();
+    await page.getByText("Diagnosis_Problem Triggers for Public Health Reporting", { exact: true }).click();
+
+    await page.getByRole("button", { name: "Add Selected To Program" }).click();
+    await page.getByRole("button", { name: "close" }).click(); // close notification
+    await page.waitForTimeout(1000); // Wait for data load
+
+    await page.locator("#breadcrumb-programs", { exact: true }).click();
+    await page.waitForTimeout(1000); // Wait for data load
+    await page.getByTestId("text-link").first().click();
+
+    // Check First Grouper to see if leaf exists
+    await page.getByRole("link", { name: "Diagnosis_ProblemTriggersforPublicHealthReporting" }).click();
+    await page.getByRole("textbox", { name: "Filter by canonical" }).dblclick();
+    await page.getByRole("textbox", { name: "Filter by canonical" }).fill("2.16.840.1.113762.1.4.1146.2216");
+    await expect(page.getByText("http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.2216")).toHaveCount(1);
   });
 
   test("Sets Priority on a valueset", async ({ page }) => {
@@ -405,8 +464,8 @@ test.describe.serial("Smoke Tests", () => {
     await page.waitForTimeout(5000);
     await page.getByRole("tab", { name: "Provisional Resources", exact: true }).click({ force: true });
 
-    await page.getByRole('row', { name: 'CPT_provisional http://ersd.' }).getByRole('button').click();
-    await page.locator('#cell-4-CPTCode').getByRole('button').click();
+    await page.getByRole("row", { name: "CPT_provisional http://ersd." }).getByRole("button").click();
+    await page.locator("#cell-4-CPTCode").getByRole("button").click();
     await page.getByLabel("Code", { exact: true }).click();
     await page.getByLabel("Code", { exact: true }).fill("CPTCodeEdit");
     await page.getByRole("textbox", { name: "Update Display" }).click();
