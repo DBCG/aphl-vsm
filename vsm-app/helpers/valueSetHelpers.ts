@@ -27,7 +27,7 @@ const vsmAuthoritativeSourceExtension: fhir4.Extension =
 }
 
 const isProvisionalVs = (vs: fhir4.ValueSet) => {
-  return Boolean(vs?.compose?.include?.find(ci => ci?.version === 'PROVISIONAL'))
+  return Boolean(vs?.meta?.tag?.find((tag) => tag?.code === 'vsm-provisional'))
 }
 const addValueSetToGrouper = (vs: fhir4.ValueSet, leafVsCanonical: string | string[]): fhir4.ValueSet => {
   if (!leafVsCanonical || leafVsCanonical.length === 0) {

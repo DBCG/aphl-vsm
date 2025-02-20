@@ -281,7 +281,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
           // return only things that don't already exist
           .filter((canonical: string) => !originalComposeSet.has(canonical))
 
-        const newItems = newValueSetCanonicals?.map((c: string) => ({ valueSet: [c] }))
+        const newItems = newValueSetCanonicals?.map((c: string) => ({ valueSet: [c] })) || []
 
         if (newValueSetCanonicals.length === 0) return Promise.resolve() // No updates needed
         let newComposeInclude = [...(grouperVs?.compose?.include || []), ...newItems]
