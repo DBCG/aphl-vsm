@@ -9,6 +9,7 @@ import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional'
 
 const EXTENSIONS = {
   VALUESET_KEYWORD: 'http://hl7.org/fhir/StructureDefinition/valueset-keyWord',
+  VALUESET_STEWARD: 'http://hl7.org/fhir/StructureDefinition/valueset-steward',
   AUTH_SOURCE_EXTENSION_URL: 'http://hl7.org/fhir/StructureDefinition/valueset-authoritativeSource',
   EXPANSION_PARAM_URL: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters',
   PROVISIONAL_CS_BASE: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-codesystem-base'
@@ -120,7 +121,7 @@ interface AvailableTermServer {
   }
 }
 
-const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServers: AvailableTermServer[], errors: string[]): TerminologyResult => {
+const getTerminologySource = (valueSet: fhir4.ValueSet, availableTerminologyServers: AvailableTermServer[], errors: string[] = []): TerminologyResult => {
   const authoritativeSourceExtension = valueSet?.extension?.find((ext) => ext.url === EXTENSIONS.AUTH_SOURCE_EXTENSION_URL)
   // if the authoritative source exists, match the terminology server to the beginning of the auth source string
   if (authoritativeSourceExtension) {

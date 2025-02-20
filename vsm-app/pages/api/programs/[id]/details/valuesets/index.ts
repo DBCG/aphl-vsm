@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import { getVSConditions } from '@/helpers/libraryHelpers'
 import { Result } from '@/hooks/useGetProgramValueSetDetails'
 import { fetchLeafValueSets } from '@/helpers/server/serverValueSetHelper'
 import Logger from '@/helpers/server/logger'
@@ -30,7 +29,7 @@ export const WHITELIST_VALUESET_FIELDS = [
   'description',
   'useContext',
   'purpose',
-  'compose'
+  // 'compose'
 ]
 // ------------------------------------------------------------------------------------------------
 // ------------------------HELPER FUNCTIONS FOR ROUTE----------------------------------------------
@@ -151,7 +150,6 @@ export const getProgramDetailsValuesets = async ({
   findInVersion,
   findInVsTitle,
   groups,
-  conditions
 }: RequestQueryParams) => {
   try {
     const program = await getProgram(programId)
@@ -183,8 +181,7 @@ export const getProgramDetailsValuesets = async ({
 
     // these filters are performed here
     const filterGroups = groups?.split(',')
-    const filterConditions = conditions?.split(',')
-    const conditionInfoByVsUrl = getVSConditions(program)
+
     // limit leafs to only those
     const filteredLeafVSets = leafValueSets
       .filter(
