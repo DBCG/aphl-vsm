@@ -315,7 +315,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const handleVersionUpdate = async (e: any, row: any) => {
-    const grouperIds = row?.groups?.map((g) => g.id)
+    const grouperIds = row?.groups?.map((g: any) => g.id)
     if (grouperIds?.length === 0) {
       return
     }
