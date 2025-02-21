@@ -46,7 +46,6 @@ interface TableActions {
   formattedConditions: ConditionItem[]
   handleDelete: (selectedRows: TableRow[]) => void
   handleToggleUpdateData: Dispatch<SetStateAction<void>>
-  handleBulkEdit: () => void
   isDeleting: boolean
   totalRows: number
   programId: string

@@ -135,16 +135,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     version: ''
   })
   const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
-  const defaultVersionData = {
-    vsCanonical: '',
-    useContext: [],
-    selectedVsId: '',
-    selectedVersion: '',
-    grouperIds: [],
-    programId: '',
-    terminologyInfo: { value: '', hasExtension: false, id: '', url: '' }
-  }
-  const [versionToUpdate, setVersionToUpdate] = useState<HandleVersionChange>(defaultVersionData)
   const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
@@ -164,7 +154,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
   // row actions
   const [selectedRows, setSelectedRows] = useState<TableRow[]>([])
-  const [showBulkEditModal, setShowBulkEditModal] = useState(false)
 
   // select portal target (z-index issues)
   const [myDocument, setMyDocument] = useState<HTMLElement | null>(null)
@@ -325,26 +314,34 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setLoadingVersionsForVs(null)
   }
 
-  useEffect(() => {
-    if (!versionToUpdate.grouperIds?.length) {
+  const handleVersionUpdate = async (e: any, row: any) => {
+    const grouperIds = row?.groups?.map((g: any) => g.id)
+    if (grouperIds?.length === 0) {
       return
     }
-    const body = JSON.stringify(versionToUpdate)
-    // you want to update the associated grouper valuesets, adding or removing versions
-    async function updateVersions() {
-      await fetch(`/api/valueset/versions`, {
-        method: 'PUT',
-        body
-      })
-    }
+    setVersionUpdateInFlight(true)
+    const terminologyInfo = getTerminologySource(row.valueSet, terminologySources)
 
-    updateVersions()
+    const body = JSON.stringify({
+      selectedVsId: row?.valueSet?.id as string,
+      selectedVersion: e?.value as string,
+      useContext: row?.valueSet?.useContext || [],
+      vsCanonical: row?.valueSet?.url as string,
+      programId: currentProgram?.id as string,
+      grouperIds,
+      terminologyInfo
+    })
+
+    await fetch(`/api/valueset/versions`, {
+      method: 'PUT',
+      body
+    })
       .catch((e) => console.error('error: ', e))
       .finally(() => {
         refreshProgramValueSets()
         setVersionUpdateInFlight(false)
       })
-  }, [versionToUpdate])
+  }
 
   // Can only edit if program is loaded and in draft status
   const isEditable = allowEditing({ session, programStatus: currentProgram.status })
@@ -515,8 +512,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           if (!isEditable) {
             return row?.valueSetPinnedVersion || 'latest'
           }
-          var errors: string[] = []
-          const terminologyInfo = getTerminologySource(row.valueSet, terminologySources, errors)
           const inputValue = 'Retrieving all versions'
           const defaultValue = row?.valueSetPinnedVersion || 'latest'
           const defaultOption = [{ label: defaultValue, value: defaultValue }]
@@ -535,19 +530,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   menuPlacement="top"
                   instanceId="version-selector"
                   isDisabled={blockChanges}
-                  onChange={(e) => {
-                    setVersionUpdateInFlight(true)
-                    const grouperIds = row?.groups?.map((g) => g.id)
-                    setVersionToUpdate({
-                      selectedVsId: row?.valueSet?.id as string,
-                      selectedVersion: e?.value as string,
-                      useContext: row?.valueSet?.useContext || [],
-                      vsCanonical: row?.valueSet?.url as string,
-                      programId: currentProgram?.id as string,
-                      grouperIds,
-                      terminologyInfo
-                    })
-                  }}
+                  onChange={(evt) => handleVersionUpdate(evt, row)}
                   isLoading={loadingVersionsForVs === row?.valueSet?.id}
                   loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                   isMulti={false}
@@ -813,7 +796,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       <Box id="vs-table-detail">
         <TableActions
           handleDelete={handleBatchDelete}
-          handleBulkEdit={() => setShowBulkEditModal(true)}
           formattedConditions={allConditions}
           groupsInProgram={programValuesets?.groupsInProgram!}
           selectedRows={selectedRows}

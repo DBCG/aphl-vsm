@@ -9,8 +9,6 @@ import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import Queue from 'bull'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
-import VSDownloadQueue from './VSDownloadQueue'
-import { isVsmGrouper } from '@/helpers/valueSetHelpers'
 
 const PackageQueue = new Queue('exportProgram', QUEUE_REDIS_URL)
 
