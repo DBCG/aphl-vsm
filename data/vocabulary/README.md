@@ -1,8 +1,8 @@
 # Vocabulary Documentation
 The eRSD Composition & Delivery pipeline will have several terminology dependencies
-beyond those that are directly part of the eRSD bundles. Documentation for those
-terminology dependencies is  
-RCKMS Condition Codes
+beyond those that are directly part of the eRSD bundles. This workspace (/data/vocabulary) is the space for maintaining and creating those terminology resources. Each known dependency and the relevant information for creating and maintaining it is documented below.
+
+### RCKMS Condition Codes
 The RCKMS Condition Codes value set defines the set of triggering Condition Codes
 and the value sets that contains the concepts representing that condition - this
 relationship is expressed via the useContext of type "focus" on the leaf value sets
