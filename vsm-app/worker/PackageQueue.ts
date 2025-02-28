@@ -140,7 +140,9 @@ PackageQueue.process(async function (job: any, done) {
   const cacheKey = `user:${userId}:job:${job.id}`
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
-    let response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$ecr.package?_format=${currentFormat}`, {
+    const url = `${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$ecr.package?_format=${currentFormat}`
+    Logger.getLogger().debug(`Exporting program ${programId} with parameters: ${JSON.stringify(parameters)}`)
+    let response = await f(url, {
       body: JSON.stringify(parameters),
       method: 'POST',
       dispatcher: new Agent({
@@ -185,6 +187,7 @@ PackageQueue.process(async function (job: any, done) {
         return done(null, { error: errorMsg })
       }
       try {
+        Logger.getLogger().info('Converting V2 to V1 for export program: ' + programId)
         response = await convertV2toV1(
           response,
           (currentFormat = userDesiredFormat), // reset to actual format for v1
@@ -202,6 +205,7 @@ PackageQueue.process(async function (job: any, done) {
       (typeof response === 'string' && response.startsWith('<OperationOutcome'))
     ) {
       const errors = formatErrors(response, 'Error while performing $package').map((e) => e.diagnostics!).join(', ')
+      Logger.getLogger().error(errors)
       await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', errors)
       return done(null, { error: errors })
     }
@@ -215,7 +219,7 @@ PackageQueue.process(async function (job: any, done) {
     logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
     const errorMsg = diagnostics || error?.error || error.toString() || 'Unspecified error'
-
+    Logger.getLogger().error(errorMsg)
     await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', errorMsg)
     return done(null, { error: errorMsg })
   }

@@ -6,7 +6,7 @@ CONDITIONS=${DIR}/../documentation/demo-data/valueset-rckms-condition-codes.json
 SEARCHPARAMS=${DIR}/../documentation/demo-data/search-parameters.json
 USERRESOURCES=${DIR}/../documentation/demo-data/user-resources.json
 ENDPOINTS=${DIR}/../documentation/demo-data/terminology-endpoints.json
-IMPORT_DATA="${DIR}/../documentation/demo-data/2024-02-02 eRSD/20240202-eRSD-parameters-request-body-for-import-corrected-compose.json"
+IMPORT_DATA="${DIR}/../documentation/demo-data/2024-06-28 eRSD/20240608-eRSD-parameters-request-body-for-import-corrected-compose.json"
 # SMALLSPECIFICATION=${DIR}/../documentation/demo-data/small-bundle.json
 
 FHIR_SERVER="${FHIR_SERVER:-http://localhost:8082/fhir}"
