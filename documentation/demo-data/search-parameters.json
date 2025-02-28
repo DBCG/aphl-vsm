@@ -27,7 +27,7 @@
       "resource": {
         "resourceType": "SearchParameter",
         "id": "manifest-contains-code",
-        "status": "draft",
+        "status": "active",
         "code": "manifest-contains-code",
         "base": [
           "Library"
