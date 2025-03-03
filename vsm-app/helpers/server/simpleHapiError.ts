@@ -33,7 +33,7 @@ const logSimpleError = (e: HapiError | any, location?: string): void => {
     if (isDevelopment) {
       console.error(e)
     } else {
-      Logger.getLogger().error(`Error not from HAPI: , ${JSON.stringify(e)}`)
+      Logger.getLogger().error(`Error not from HAPI: , ${e}`)
       Logger.getLogger().error(`Location: ${location}`)
     }
   }

@@ -51,9 +51,15 @@ const convertV2toV1 = async (v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
     })
   }
 
-  return fetch(`${FhirClient.getInstance().baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
+  return f(`${FhirClient.getInstance().baseUrl}/$ersd-v2-to-v1-transform?_format=${format}`, {
     body: JSON.stringify(v1BundleBody),
     method: 'POST',
+    dispatcher: new Agent({
+      connectTimeout: 24 * 60 * 60 * 1000,
+      headersTimeout: 24 * 60 * 60 * 1000,
+      keepAliveTimeout: 24 * 60 * 60 * 1000,
+      keepAliveMaxTimeout: 24 * 60 * 60 * 1000
+    }),
     headers: {
       'Content-Type': 'application/fhir+json',
       // should be Basic Auth creds
@@ -183,6 +189,7 @@ PackageQueue.process(async function (job: any, done) {
       if (response.resourceType === 'OperationOutcome') {
         job.progress(100)
         const errorMsg = response?.issue?.map((e) => e?.diagnostics!).join(', ') || 'Error encountered while packaging V1'
+        Logger.getLogger().error(errorMsg)
         await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', errorMsg)
         return done(null, { error: errorMsg })
       }
@@ -204,19 +211,22 @@ PackageQueue.process(async function (job: any, done) {
       (typeof response !== 'string' && response.resourceType === 'OperationOutcome') ||
       (typeof response === 'string' && response.startsWith('<OperationOutcome'))
     ) {
-      const errors = formatErrors(response, 'Error while performing $package').map((e) => e.diagnostics!).join(', ')
+      const errors = formatErrors(response, 'Error while performing $package')
+        .map((e) => e.diagnostics!)
+        .join(', ')
       Logger.getLogger().error(errors)
       await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', errors)
       return done(null, { error: errors })
     }
     job.progress(90)
     const sanitizedExport = sanitizeExport(response)
+    Logger.getLogger().info('Validating package')
     const validationResults = await validatePackage(sanitizedExport)
+    Logger.getLogger().info('Finished Validation, returning results')
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
-    done(null, { response: sanitizeExport(sanitizedExport), validationResults })
+    return done(null, { response: sanitizeExport(sanitizedExport), validationResults })
   } catch (error: any) {
-    logSimpleError(error)
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
     const errorMsg = diagnostics || error?.error || error.toString() || 'Unspecified error'
     Logger.getLogger().error(errorMsg)
