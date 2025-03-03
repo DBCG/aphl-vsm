@@ -111,9 +111,15 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
     }
     parameters = JSON.stringify(validateParameters)
   }
-  const validateResponse = (await fetch(FhirClient.getInstance().baseUrl + '/$validate', {
+  const validateResponse = (await f(FhirClient.getInstance().baseUrl + '/$validate', {
     method: 'POST',
     body: parameters,
+    dispatcher: new Agent({
+      connectTimeout: 24 * 60 * 60 * 1000,
+      headersTimeout: 24 * 60 * 60 * 1000,
+      keepAliveTimeout: 24 * 60 * 60 * 1000,
+      keepAliveMaxTimeout: 24 * 60 * 60 * 1000
+    }),
     headers: {
       'Content-Type': `application/fhir+${typeof pkgBundle === 'string' ? 'xml' : 'json'}`,
       ...FhirClient.getInstance().customHeaders
