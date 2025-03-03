@@ -60,6 +60,7 @@ const convertV2toV1 = async (v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
       keepAliveTimeout: 24 * 60 * 60 * 1000,
       keepAliveMaxTimeout: 24 * 60 * 60 * 1000
     }),
+    // @ts-ignore
     headers: {
       'Content-Type': 'application/fhir+json',
       // should be Basic Auth creds
@@ -120,6 +121,7 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
       keepAliveTimeout: 24 * 60 * 60 * 1000,
       keepAliveMaxTimeout: 24 * 60 * 60 * 1000
     }),
+    // @ts-ignore
     headers: {
       'Content-Type': `application/fhir+${typeof pkgBundle === 'string' ? 'xml' : 'json'}`,
       ...FhirClient.getInstance().customHeaders
