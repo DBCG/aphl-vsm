@@ -122,9 +122,7 @@ const useGetProgramValueSetDetails = ({
     groupsInProgram: data?.groupsInProgram,
     programStatus: data
   } as Result
-  if (!resultData || isLoading) {
-    return { programValuesets: resultData, isLoading, refreshProgramValueSets: mutate }
-  }
+
   if (activePriority && activePriority?.length > 0) {
     const filteredData = resultData?.data?.filter((vs: DataItem) => {
       if (!vs.valueSet.url) {
