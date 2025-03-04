@@ -17,7 +17,7 @@ interface Group {
 
 // Whitelisting ValueSet fields to avoid querying the 'expansion' field
 // as it could be quite large and slow down the application
-export const WHITELIST_VALUESET_FIELDS = [
+const WHITELIST_VALUESET_FIELDS = [
   'extension',
   'url',
   'identifier',

@@ -1,5 +1,19 @@
 import FhirClient from '@/backend/clients/FhirClient'
-import { WHITELIST_VALUESET_FIELDS } from '@/pages/api/programs/[id]/details/valuesets'
+
+const WHITELIST_VALUESET_FIELDS = [
+  'extension',
+  'url',
+  'identifier',
+  'version',
+  'name',
+  'title',
+  'status',
+  'publisher',
+  'description',
+  'useContext',
+  'purpose',
+  'compose'
+]
 
 const getProgramAndGrouper = async (programId: string) => {
   // get all grouper valueSets from within a program
