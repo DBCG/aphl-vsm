@@ -54,6 +54,7 @@ export default function ValueSetContents({
   enableEditing
 }: ValueSetContentsProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [currentValueSet, setCurrentValueSet] = useState(valueSet)
   const [loading, setLoading] = useState(false)
 
@@ -277,6 +278,7 @@ export default function ValueSetContents({
                   id="vs-title"
                   label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
+                  disabled={isSaving}
                   value={grouperTitle}
                   placeholder={`No ${isGrouperValueSet ? 'Grouper' : 'Valueset'} title set`}
                   onChange={(e) => setGrouperTitle(e.target.value)}
@@ -297,6 +299,7 @@ export default function ValueSetContents({
                 <TextArea
                   id="vs-publisher"
                   label="Publisher"
+                  disabled={isSaving}
                   readonly={!isEditing}
                   value={grouperPublisher}
                   placeholder={'No valueset publisher set'}
@@ -307,6 +310,7 @@ export default function ValueSetContents({
                 <SearchInput
                   id="vs-author"
                   label="Author"
+                  disabled={isSaving}
                   readonly={!isEditing}
                   value={grouperAuthor}
                   placeholder={'No valueset author set'}
@@ -317,6 +321,7 @@ export default function ValueSetContents({
                 <TextArea
                   id="vs-purpose"
                   label="Purpose"
+                  disabled={isSaving}
                   readonly={!isEditing}
                   value={grouperPurpose}
                   placeholder={'No valueset purpose set'}
@@ -327,6 +332,7 @@ export default function ValueSetContents({
                 <TextArea
                   id="vs-description"
                   label="Description"
+                  disabled={isSaving}
                   readonly={!isEditing}
                   value={grouperDescription}
                   placeholder={'No valueset description set'}
@@ -344,6 +350,7 @@ export default function ValueSetContents({
                 <ButtonContainer>
                   <Button
                     variant='contained'
+                    disabled={isSaving}
                     sx={{ backgroundColor: 'var(--neutral-300)' }}
                     onClick={(e) => {
                       resetValues()
@@ -355,11 +362,13 @@ export default function ValueSetContents({
                   </Button>
                   <LoadingButton
                     variant='contained'
-                    disabled={!Boolean(Object.keys(changedMetadataItems).length)}
-                    loading={loading}
+                    disabled={!Boolean(Object.keys(changedMetadataItems).length) || isSaving}
+                    loading={isSaving}
                     onClick={async (e) => {
                       e.preventDefault()
+                      setIsSaving(true)
                       await submitGrouperUpdates()
+                      setIsSaving(false)
                     }}
                   >
                     Save Changes

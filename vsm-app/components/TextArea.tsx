@@ -41,6 +41,7 @@ interface Props {
   defaultValue?: string
   maxInputHeight?: number
   hasIcon?: boolean
+  disabled?: boolean
   info?: string
   readonly?: boolean
   style?: React.CSSProperties
@@ -58,6 +59,7 @@ const TextArea = ({
   required = false,
   id,
   defaultValue,
+  disabled = false,
   readonly = false,
   style = {},
   errorMessage = null,
@@ -72,6 +74,7 @@ const TextArea = ({
           id={id}
           label={label}
           name={id}
+          disabled={disabled}
           variant="filled"
           InputLabelProps={{ shrink: true }}
           helperText={errorMessage || helperMessage}
