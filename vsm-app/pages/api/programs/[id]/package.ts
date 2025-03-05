@@ -9,6 +9,7 @@ import PackageQueue from '@/worker/PackageQueue'
 import { getProgram, getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
 import { getLeafUrlsFromGrouper } from '@/helpers/valueSetHelpers'
 import { uniq } from 'lodash'
+import Logger from '@/helpers/server/logger'
 
 export interface ExpectedPackageBody extends NextApiRequest {
   body: {
@@ -57,7 +58,9 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   }
   const userId = session.user.id
   try {
+    Logger.getLogger().info('Validating conditions for export on program: ' + req.query.id)
     await validateConditionLeafVs(req.query.id as string)
+    Logger.getLogger().info('Validatted for program: ' + req.query.id)
   } catch (error) {
     // @ts-ignore
     return res.status(400).json({ error: error?.message })

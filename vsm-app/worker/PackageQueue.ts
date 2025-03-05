@@ -154,6 +154,7 @@ PackageQueue.process(async function (job: any, done) {
   const cacheKey = `user:${userId}:job:${job.id}`
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
+    Logger.getLogger().info('Exporting program: ' + programId)
     const url = `${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$ecr.package?_format=${currentFormat}`
     Logger.getLogger().debug(`Exporting program ${programId} with parameters: ${JSON.stringify(parameters)}`)
     let response = await f(url, {
@@ -172,6 +173,9 @@ PackageQueue.process(async function (job: any, done) {
       }
     })
       .then(async (r) => {
+        if (!r.ok) {
+          throw new Error(`HTTP error: ${r.status} ${r.statusText}`);
+        }
         if (currentFormat === 'json') {
           try {
             return (await r.json()) as fhir4.Bundle | fhir4.OperationOutcome
@@ -183,6 +187,11 @@ PackageQueue.process(async function (job: any, done) {
         }
       })
       .catch((err) => {
+        Logger.getLogger().error('Export error details:');
+        Logger.getLogger().error(`Message: ${err?.message}`);
+        Logger.getLogger().error(`Name: ${err?.name}`);
+        Logger.getLogger().error(err?.stack);
+
         logSimpleError(err)
         if ('cause' in err) {
           throw err.cause
