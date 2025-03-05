@@ -28,7 +28,7 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
 
   const groupersToUpdate = []
 
-  // this is not currently handling versions right
+  // TODO: this is not currently handling versions right
   for (const grouperValueSet of grouperVSets) {
     const leafVSetsInGroupFromCQF = grouperValueSet?.compose?.include
       ?.map((item: any) => item?.valueSet)

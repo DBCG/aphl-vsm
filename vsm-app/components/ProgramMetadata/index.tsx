@@ -115,6 +115,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <SearchInput
             id="prog-title"
             label="Title"
+            disabled={isSaving}
             readonly={!editable || !enableEditing}
             defaultValue={title}
             onChange={(event) => handleFieldChange(event, 'title')}
@@ -139,6 +140,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               id="prog-release-label"
               label={`Release Label ${enableEditing ? `(read-only)` : ''}`}
               readonly={true}
+              disabled={isSaving}
               defaultValue={releaseLabel}
               placeholder={'No release label set'}
             />
@@ -155,7 +157,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               handleFieldChange(dateToSave, 'effectiveStartDate')
             }}
             disablePast={true}
-            readonly={!editable || !enableEditing}
+            readonly={!editable || !enableEditing || isSaving}
             errorText={errorMessages.startDate}
           />
         </Grid>
@@ -166,7 +168,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           control={
             <Checkbox
               readOnly={!editable || !enableEditing}
-              disabled={!editable || !enableEditing}
+              disabled={!editable || !enableEditing || isSaving}
               defaultChecked={isExperimental}
               value={true}
               onChange={(e) =>  setIsExperimental(e.target.checked)}
@@ -179,6 +181,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             id="prog-desc"
             label="Description"
             readonly={!editable || !enableEditing}
+            disabled={isSaving}
             defaultValue={description}
             onChange={(event) => handleFieldChange(event, 'description')}
             placeholder={'No program description set'}
@@ -190,6 +193,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <TextArea
             id="prog-release-desc"
             label="Release Description"
+            disabled={isSaving}
             readonly={!editable || !enableEditing}
             defaultValue={releaseDescription}
             onChange={(event) => handleFieldChange(event, 'releaseDescription')}
@@ -209,6 +213,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
               <Button
                 style={{ ...buttonStyles, backgroundColor: 'var(--neutral-300)' }}
                 variant='contained'
+                disabled={isSaving}
                 type="button"
                 onClick={(e) => {
                   e.preventDefault()
@@ -226,8 +231,8 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
                 loadingPosition="start"
                 type="submit"
                 onClick={async (e) => {
-                  setIsSaving(true)
                   e.preventDefault()
+                  setIsSaving(true)
                   await handleSubmit({ program: editedProgram, isExperimental })
                   setEnableEditing(false)
                   setFormTouched(false)

@@ -193,7 +193,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   useEffect(() => {
     setMyDocument(document.body)
-    refreshProgramValueSets()
   }, [])
 
   const handleChange = ({ selectedRows }: SelectedRows) => {
