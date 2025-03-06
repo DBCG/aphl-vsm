@@ -2,7 +2,6 @@ import ExcelJS from 'exceljs'
 import FhirClient from '@/backend/clients/FhirClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
-import { addTerminologyEndpointToParameters } from './fhirResourceHelper'
 import { Agent, fetch as f } from 'undici'
 interface CollectedChange extends ChangeValue {
   keyName: string
@@ -97,32 +96,9 @@ const autosortTable = (table: ExcelJS.Table, tableRows: ExcelJS.Rows, sheet: Exc
   })
 }
 
-const changeLogDiffOperation = async (sourceId: string, targetId: string) => {
-  const parameters: fhir4.Parameters = {
-    resourceType: 'Parameters',
-    parameter: [
-      {
-        name: 'source',
-        valueString: `Library/${sourceId}`
-      },
-      {
-        name: 'target',
-        valueString: `Library/${targetId}`
-      },
-      {
-        name: 'compareComputable',
-        valueBoolean: true
-      },
-      {
-        name: 'compareExecutable',
-        valueBoolean: true
-      }
-    ]
-  }
-  const input = JSON.stringify(addTerminologyEndpointToParameters(parameters))
-
+const changeLogDiffOperation = async (sourceId: string, targetId: string, input: fhir4.Parameters) => {
   const changeJson = await f(`${FhirClient.getInstance().baseUrl}/$create-changelog`, {
-    body: input,
+    body: JSON.stringify(input),
     method: 'POST',
     dispatcher: new Agent({
       connectTimeout: 24 * 60 * 60 * 1000,

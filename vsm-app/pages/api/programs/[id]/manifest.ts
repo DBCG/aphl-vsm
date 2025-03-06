@@ -9,6 +9,7 @@ import { uniqBy } from 'lodash'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import { Agent, fetch as f } from 'undici'
 import { is } from '@/helpers/is'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
   terminologyClient.setClient('vsac')
@@ -63,8 +64,8 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
   }
 }
 
-const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
-  const parameters = addTerminologyEndpointToParameters({ resourceType: 'Parameters' } as fhir4.Parameters)
+const collectCodeSystemsFromLeafValuesets = async (programId: string, userId: string) => {
+  const parameters = await addTerminologyEndpointToParameters({parameters: { resourceType: 'Parameters' } as fhir4.Parameters, userId})
 
   const response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$ecr.package`, {
     body: JSON.stringify(parameters),
@@ -147,13 +148,13 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string) => {
     .filter((i: any) => i)
 }
 
-const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, res: NextApiResponse) => {
+const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession ) => {
   try {
     if (req.query.leafValueSets) {
       const programId = req.query.id as string
 
       // Check all leaf ValueSets and collect their CodeSystem's
-      const list = await collectCodeSystemsFromLeafValuesets(programId)
+      const list = await collectCodeSystemsFromLeafValuesets(programId, session.user.id)
       return res.status(200).json(list)
     } else {
       terminologyClient.setClient('vsac')

@@ -147,7 +147,7 @@ PackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info('Begin Export Operation Job')
   const { data, programId, planDefinition, targetVersion, userId } = job.data
   job.progress(1)
-  const parameters = addTerminologyEndpointToParameters(data?.parameters)
+  const parameters = await addTerminologyEndpointToParameters({parameters: data?.parameters, userId})
   const userDesiredFormat = data?.json ? 'json' : 'xml'
   const useV1 = !data?.useV2
   const cache = await Cache.getInstance()
