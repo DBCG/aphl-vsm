@@ -1,3 +1,4 @@
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { cloneDeep } from 'lodash'
 
 type FhirResource = {
@@ -25,13 +26,21 @@ const setExtension = (resource: FhirResource, url: string, valueString: string) 
   return clonedResource
 }
 
-const addTerminologyEndpointToParameters = (parameters: fhir4.Parameters, address?: string): fhir4.Parameters => {
+type AddTerminologyEndpointToParameters = {
+  parameters: fhir4.Parameters;
+  address?: string;
+  userId: string;
+}
+
+const addTerminologyEndpointToParameters = async ({parameters, address, userId }: AddTerminologyEndpointToParameters): Promise<fhir4.Parameters> => {
+  const vsCreds = await tsCredentialService.getVsacCredentials(userId)
+  
   const updatedParameters = structuredClone(parameters)
   const endpointWithVsacCredentials: fhir4.Endpoint = {
     resourceType: 'Endpoint',
     extension: [
-      { url: 'vsacUsername', valueString: process.env.VSAC_USERNAME },
-      { url: 'apiKey', valueString: process.env.VSAC_API_KEY }
+      { url: 'vsacUsername', valueString: vsCreds.username },
+      { url: 'apiKey', valueString: vsCreds.password }
     ],
     address: address || process.env.NEXT_PUBLIC_VSAC_BASE_URL || '',
     connectionType: { system: 'http://hl7.org/fhir/ValueSet/endpoint-connection-type', code: 'hl7-fhir-rest' },

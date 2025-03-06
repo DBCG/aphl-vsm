@@ -16,6 +16,9 @@ jest.mock('next-auth/next', () => ({
   }))
 }))
 jest.mock('fhir-kit-client')
+jest.mock('../../../../helpers/fhirResourceHelper', () => ({
+  addTerminologyEndpointToParameters: jest.fn()
+}))
 
 describe('/api/programs/[id]/release', () => {
   test('POST /api/programs/[id]/release, releases a program', async () => {
@@ -27,6 +30,41 @@ describe('/api/programs/[id]/release', () => {
       programId: 'SpecificationLibrary',
       latestFromTxServer: false
     }
+
+    const input = {
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'version',
+          valueString: '2.2.2'
+        },
+        {
+          name: 'versionBehavior',
+          valueCode: 'force'
+        },
+        {
+          name: 'latestFromTxServer',
+          valueBoolean: false
+        },
+        {
+          name: 'terminologyEndpoint',
+          resource: {
+            resourceType: 'Endpoint',
+            extension: [
+              { url: 'vsacUsername', valueString: 'test' },
+              { url: 'apiKey', valueString: 'password' }
+            ],
+            address: 'https://cts.nlm.nih.gov/fhir',
+            connectionType: { system: 'http://hl7.org/fhir/ValueSet/endpoint-connection-type', code: 'hl7-fhir-rest' },
+            status: 'active',
+            payloadType: [{ coding: [{ system: 'http://hl7.org/fhir/ValueSet/endpoint-payload-type', code: 'any' }] }]
+          }
+        }
+      ]
+    }
+
+    addTerminologyEndpointToParameters.mockResolvedValue(input)
+
     const { req, res } = createMocks<ReleaseRequest, NextApiResponse>({
       method: 'POST',
       query: {
@@ -72,29 +110,15 @@ describe('/api/programs/[id]/release', () => {
       }
     })
 
+
+
     expect(FhirClient.getInstance().operation).toHaveBeenCalledTimes(1)
     expect(FhirClient.getInstance().operation).toHaveBeenCalledWith({
       name: '$release',
       resourceType: 'Library',
       id: 'SpecificationLibrary',
       method: 'POST',
-      input: addTerminologyEndpointToParameters({
-        resourceType: 'Parameters',
-        parameter: [
-          {
-            name: 'version',
-            valueString: "2.2.2"
-          },
-          {
-            name: 'versionBehavior',
-            valueCode: 'force'
-          },
-          {
-            name: 'latestFromTxServer',
-            valueBoolean: false
-          }
-        ]
-      })
+      input: input
     })
 
     expect(res._getStatusCode()).toBe(200)
@@ -142,7 +166,7 @@ describe('/api/programs/[id]/release', () => {
       releaseDescription: 'Release Description',
       releaseLabel: 'ReleaseV2.2.2',
       effectiveStartDate: '2022-01-01',
-      programId: "SpecificationLibrary",
+      programId: 'SpecificationLibrary',
       latestFromTxServer: false
     }
     const { req, res } = createMocks<ReleaseRequest, NextApiResponse>({

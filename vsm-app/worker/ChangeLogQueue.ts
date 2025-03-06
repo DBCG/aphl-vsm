@@ -1,11 +1,10 @@
 import Cache from '@/cache'
 import { DEFAULT_JOB_CONFIG, JOB_EXPIRATION, QUEUE_REDIS_URL } from '@/config'
 import { changeLogDiffOperation } from '@/helpers/exportExcelHelper'
-
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import Queue from 'bull'
 import Logger from '@/helpers/server/logger'
-import { ExportJobMetadata } from '@/types/jobTypes'
+import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 
 const ChangeLogQueue = new Queue('changeLogCompare', QUEUE_REDIS_URL)
 
@@ -35,7 +34,29 @@ ChangeLogQueue.process(async function (job: any, done) {
   const { baseProgramId, targetProgramId, userId } = job.data
   const cacheKey = `user:${userId}:job:${job.id}`
 
-  const changelogData = await changeLogDiffOperation(baseProgramId, targetProgramId) as fhir4.OperationOutcome | fhir4.Binary
+  const parameters: fhir4.Parameters = {
+    resourceType: 'Parameters',
+    parameter: [
+      {
+        name: 'source',
+        valueString: `Library/${baseProgramId}`
+      },
+      {
+        name: 'target',
+        valueString: `Library/${targetProgramId}`
+      },
+      {
+        name: 'compareComputable',
+        valueBoolean: true
+      },
+      {
+        name: 'compareExecutable',
+        valueBoolean: true
+      }
+    ]
+  }
+  const input = await addTerminologyEndpointToParameters({parameters, userId})
+  const changelogData = await changeLogDiffOperation(baseProgramId, targetProgramId, input) as fhir4.OperationOutcome | fhir4.Binary
   const cache = await Cache.getInstance()
 
   if (changelogData?.resourceType === 'OperationOutcome') {

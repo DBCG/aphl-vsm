@@ -12,11 +12,12 @@ import {
 } from '@/helpers/libraryHelpers'
 import { ReleasePayload } from '@/components/modals/ReleaseModal'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import { VSMSession } from '@/helpers/rolesHelper'
 export interface ReleaseRequest extends NextApiRequest {
   body: ReleasePayload
 }
 // this only gets the program library
-const release = async (req: ReleaseRequest, res: NextApiResponse): Promise<any> => {
+const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSession): Promise<any> => {
   const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate, latestFromTxServer } = req.body
   let program: fhir4.Library | undefined
   try {
@@ -57,22 +58,25 @@ const release = async (req: ReleaseRequest, res: NextApiResponse): Promise<any> 
     program.version = releaseAsVersion
   }
 
-  const releasePayload = addTerminologyEndpointToParameters({
-    resourceType: 'Parameters',
-    parameter: [
-      {
-        name: 'version',
-        valueString: removeDraftFromVersionString(program?.version!)
-      },
-      {
-        name: 'versionBehavior',
-        valueCode: 'force'
-      },
-      {
-        name: 'latestFromTxServer',
-        valueBoolean: latestFromTxServer
-      }
-    ]
+  const releasePayload = await addTerminologyEndpointToParameters({
+    parameters: {
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'version',
+          valueString: removeDraftFromVersionString(program?.version!)
+        },
+        {
+          name: 'versionBehavior',
+          valueCode: 'force'
+        },
+        {
+          name: 'latestFromTxServer',
+          valueBoolean: latestFromTxServer
+        }
+      ]
+    },
+    userId: session.user.id
   })
 
   await FhirClient.getInstance().operation({
