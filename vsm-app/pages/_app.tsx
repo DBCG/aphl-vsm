@@ -112,7 +112,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache =
         />
         <Scaffold>
           <ThemeProvider theme={theme}>
-            <SWRConfig value={{ revalidateOnFocus: false, shouldRetryOnError: false }}>
+            <SWRConfig value={{ revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 2000 }}>
               <Component {...pageProps} />
             </SWRConfig>
           </ThemeProvider>
