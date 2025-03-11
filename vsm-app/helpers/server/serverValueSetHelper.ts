@@ -2,6 +2,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import dayjs from 'dayjs'
+import Logger from './logger'
 interface FetchGrouperLib {
   client: FhirKitClient
   canonical: string
@@ -68,7 +69,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
         })
         if (leafValueSetCanonicals.length) {
           const res = await fetchLeafValueSets({ leafValueSetCanonicals })
-          return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values
+          return res?.filter((i: any) => i && is.valueSet(i)) // Clear undefined values
         }
       }
     }
@@ -82,7 +83,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
  * @param {boolean} [encodeValues=true] - Whether to URL encode parameter values
  * @returns {string} - The query string (including the leading '?')
  */
-function objectToQueryParams(obj, encodeValues = true) {
+function objectToQueryParams(obj: any, encodeValues = true) {
   // Return empty string for null or undefined
   if (obj === null || obj === undefined) {
     return ''
@@ -105,7 +106,7 @@ function objectToQueryParams(obj, encodeValues = true) {
         // For nested objects, convert to JSON string
         return `${key}=${encodeValues ? encodeURIComponent(JSON.stringify(value)) : JSON.stringify(value)}`
       } else {
-        // Simple key-value pair
+        // @ts-ignore
         return `${key}=${encodeValues ? encodeURIComponent(value) : value}`
       }
     })
@@ -220,14 +221,14 @@ export const fetchLeafValueSets = async ({
           }
         }
       })
-      ?.filter((x) => !!x) // filter out undefined
+      ?.filter((x: any) => !!x) // filter out undefined
       ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => (a?.name || 'z').localeCompare(b?.name || 'z'))
 
     return valueSets
   } catch (e) {
-    // TODO: handle
-    console.error('error here a', e)
+    Logger.getLogger().error('error while fetching leaf valuesets', e)
+    throw e
   }
 }
 
