@@ -1,4 +1,5 @@
-import useAbortableSWR from "./useAbortableSWR"
+import { fetcher } from '@/utils'
+import useSWR from 'swr'
 
 interface Group {
   label: string
@@ -74,7 +75,7 @@ const useGetProgramValueSetDetails = ({
   provisionalOnly
 }: Args) => {
   let endpoint = `/api/programs/${id}/details/valuesets`
-  const queries = []
+  let queries = []
 
   if (findInVsTitle?.length) {
     queries.push(`findInVsTitle=${encodeURIComponent(findInVsTitle)}`)
@@ -114,7 +115,7 @@ const useGetProgramValueSetDetails = ({
     }
   })
 
-  const { data, mutate, isLoading } = useAbortableSWR(id != null ? endpoint : null, {debug: true})
+  const { data, mutate, isLoading } = useSWR(id != null ? endpoint : null, fetcher)
   const resultData = {
     data: data?.data,
     totalLeafs: data?.totalLeafs,

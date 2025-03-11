@@ -20,22 +20,18 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (url, ...args) => {
-  const controller = new AbortController()
-  const signal = controller.signal
-  return fetch(url, Object.assign({}, args, { signal })).then(async (res) => {
-    if (!res.ok) {
-      const error = new Error('An error occurred while fetching the data.')
-      // Attach extra info to the error object.
-      // @ts-ignore
-      error.info = await res.json()
-      // @ts-ignore
-      error.status = res.status
-      throw error
-    }
-    return res.json()
-  })
-}
+export const fetcher = (...args) => fetch(...args).then(async (res) => {
+  if (!res.ok) {
+    const error = new Error('An error occurred while fetching the data.')
+    // Attach extra info to the error object.
+    // @ts-ignore
+    error.info = await res.json()
+    // @ts-ignore
+    error.status = res.status
+    throw error
+  }
+  return res.json()
+})
 
 const removeNullProperties = (obj: any) => {
   return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null))
@@ -62,32 +58,38 @@ const incrementStringValue = (str: string) => {
 
 const deepSort = (obj: any): any => {
   if (isArray(obj)) {
-    return sortBy(obj.map(deepSort), (item: any) => JSON.stringify(item))
+    return sortBy(obj.map(deepSort), (item: any) => JSON.stringify(item));
   } else if (isObject(obj)) {
     return keys(obj)
       .sort()
       .reduce((result: { [key: string]: any }, key: string) => {
         // @ts-ignore
-        result[key] = deepSort(obj[key])
-        return result
-      }, {})
+        result[key] = deepSort(obj[key]);
+        return result;
+      }, {});
   }
-  return obj
-}
+  return obj;
+};
+
 
 export const isEqualComparator = (objValue: any, othValue: any) => {
   if (isArray(objValue) && isArray(othValue)) {
     // Sort arrays and objects before comparison
-    return isEqual(deepSort(objValue), deepSort(othValue))
+    return isEqual(deepSort(objValue), deepSort(othValue));
   }
   // Return undefined to default to the standard isEqual comparison
-}
+};
 
 export const extractOidFromUrl = (url: string) => {
   return url.split('/').pop()
 }
 
-export const incrementSemver = ({ valueToIncrement, incrementType, fallbackValue }: IncrementParams) => {
+
+export const incrementSemver = ({
+  valueToIncrement,
+  incrementType,
+  fallbackValue
+}: IncrementParams) => {
   // if not a string to begin with, return fallback default
   if (typeof valueToIncrement !== 'string') return fallbackValue
 
