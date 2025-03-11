@@ -61,6 +61,25 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
         context: 'program',
         _sort: ['-_lastUpdated'],
         _total: 'accurate',
+        // Removed related artifacts from here since its very large
+        _elements: [
+          'date',
+          'description',
+          'contained',
+          'approvalDate',
+          'extension',
+          'effectivePeriod',
+          'experimental',
+          'meta',
+          'name',
+          'publisher',
+          'status',
+          'title',
+          'type',
+          'url',
+          'useContext',
+          'version'
+        ],
         ...queries
       }
     }) as fhir4.Bundle
