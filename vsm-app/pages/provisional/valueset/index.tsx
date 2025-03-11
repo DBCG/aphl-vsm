@@ -637,7 +637,7 @@ const ProvisionalVSEdit = () => {
           <Button
             text='+ Create New VS'
             onClick={handleClickNewVS}
-            disabled={Boolean(provisionalVsIdForUpdate)}
+            disabled={Boolean(provisionalVsIdForUpdate) || loading}
           />
         </div>
       )}
@@ -704,6 +704,7 @@ const ProvisionalVSEdit = () => {
             <TextArea
               label='Title'
               required={true}
+              disabled={loading}
               readonly={!can(session, 'edit')}
               style={{ minWidth: '20rem' }}
               value={title}
@@ -716,6 +717,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Author'
+              disabled={loading}
               readonly={!can(session, 'edit')}
               required={true}
               style={{ minWidth: '20rem' }}
@@ -729,6 +731,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Steward'
+              disabled={loading}
               readonly={!can(session, 'edit')}
               required={true}
               style={{ minWidth: '20rem' }}
@@ -784,6 +787,7 @@ const ProvisionalVSEdit = () => {
                   <QuestionnaireRowContainer>
                     <SearchInput
                       label='Code'
+                      disabled={loading}
                       required={true}
                       onChange={(e) => {
                         const codeErrorResult = isValidCode(e.target.value)
@@ -798,6 +802,7 @@ const ProvisionalVSEdit = () => {
                     <SearchInput
                       label='Display'
                       required={true}
+                      disabled={loading}
                       onChange={(e) => {
                         const displayErrorResult = isValidString(e.target.value)
                         setDisplayError(displayErrorResult)
@@ -810,6 +815,7 @@ const ProvisionalVSEdit = () => {
                     <TextArea
                       label='Definition (more detail about this code)'
                       required={true}
+                      disabled={loading}
                       onChange={(e) => {
                         const definitionErrorResult = isValidString(e.target.value)
                         setDefinitionError(definitionErrorResult)

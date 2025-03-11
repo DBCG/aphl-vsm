@@ -665,6 +665,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
             <QuestionnaireRowContainer>
               <SearchInput
                 label='Code'
+                disabled={loading}
                 onChange={(e) => {
                   const codeErrorResult = isValidCode(e?.target?.value)
                   setCodeError(codeErrorResult)
@@ -678,6 +679,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
               />
               <SearchInput
                 label='Display'
+                disabled={loading}
                 onChange={(e) => {
                   const displayErrorResult = isValidString(e?.target?.value)
                   setDisplayError(displayErrorResult)
@@ -690,6 +692,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
               />
               <TextArea
                 label='Definition (more detail about this code)'
+                disabled={loading}
                 onChange={(e) => {
                   const definitionErrorResult = isValidString(e?.target?.value)
                   setDefinitionError(definitionErrorResult)
