@@ -1,5 +1,4 @@
 import { getGrouperLibraryCanonical } from '@/helpers/libraryHelpers'
-import { ProgramApiResponse } from '@/pages/api/programs'
 import { ProgramDetailsEffect, ProgramDetails } from '@/types/grouperTypes'
 import useSwr from 'swr'
 import { fetcher } from '@/utils'
