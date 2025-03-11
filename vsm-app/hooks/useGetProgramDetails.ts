@@ -16,29 +16,29 @@ const useGetProgramDetails = (id: string): ProgramDetailsEffect => {
     artifactAssessments: []
   }
 
-  const { data: programData = {}, error } = useSwr(id ? `/api/programs?id=${id}` : null, fetcher)
+  const { data: programData = {}, error } = useSwr(id ? `/api/programs/${id}` : null, fetcher)
 
   if (error) {
     console.error('Error fetching program data:', error)
     throw error
   }
 
-  // @ts-ignore TODO: not sure why its complaining even though we are defining the type here
-  const { programs, assessments } = programData as ProgramApiResponse
+  const { program, assessments } = programData
   // Identify the valueset library within the program
   // the program, by design, only has 2 relatedArtifacts, one of which is this library, other is a planDefinition
-  const grouperLibraryUrl = getGrouperLibraryCanonical(programs?.[0])
-
+  const grouperLibraryUrl = getGrouperLibraryCanonical(program)
+  
   const {
     data: grouperData,
     isLoading: grouperLoading,
     error: grouperError
-  } = useSwr(() => `/api/programs/${programs[0].id}/details?url=${grouperLibraryUrl}`, fetcher)
+  } = useSwr(() => `/api/programs/${program.id}/details?url=${grouperLibraryUrl}`, fetcher)
 
   // if the data is found, override default empty objects
-  if (programs) {
-    result.program = programs[0]
+  if (program) {
+    result.program = program
   }
+
   if (assessments?.length) {
     result.artifactAssessments = assessments.map((assessment: fhir4.Basic) => {
       const content = assessment?.extension?.find((ext) => ext.url.includes('crmi-artifactAssessmentContent'))?.extension
