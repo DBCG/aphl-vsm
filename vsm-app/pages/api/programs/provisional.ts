@@ -13,12 +13,6 @@ export type ProgramApiResponse = {
   assessments: fhir4.Basic[]
 } | { error: string }
 
-interface ProvisionalVsCsMap {
-  provisionalLeafId: string
-  provisionalLeafUrl: string
-  provisionalData: fhir4.ValueSetComposeInclude
-}
-
 interface LeafItems {
   id: string
   title: string
@@ -71,7 +65,7 @@ const getProvisionalValueSetDataByProgram = async () => {
         const provisionalLeafs = await fetchLeafValueSets({ leafValueSetCanonicals, provisionalOnly: true })
         // only add to the structure if the program has provisional leafs
         if (provisionalLeafs && provisionalLeafs.length) {
-          const newLeafs = provisionalLeafs.map(l => ({
+          const newLeafs = provisionalLeafs.map((l: any) => ({
             id: l.id,
             title: l.title,
             url: l.url
