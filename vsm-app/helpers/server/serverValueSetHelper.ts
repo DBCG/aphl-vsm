@@ -2,6 +2,7 @@ import FhirClient from '@/backend/clients/FhirClient'
 import FhirKitClient, { ResourceType } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import dayjs from 'dayjs'
+import Logger from './logger'
 interface FetchGrouperLib {
   client: FhirKitClient
   canonical: string
@@ -13,17 +14,22 @@ export const fetchGrouperLibrary = async ({ client, canonical, grouperStatus }: 
 }
 
 interface FetchGrouperVsets {
-  canonicals: string[],
+  canonicals: string[]
   whitelistFields?: string[]
 }
 
 export const fetchGrouperValueSets = async ({ canonicals, whitelistFields }: FetchGrouperVsets) => {
-  const result = await Promise.all(canonicals.map(async (canonical) => await fetchByCanonical({
-    client: FhirClient.getInstance(),
-    resourceType: 'ValueSet',
-    canonical,
-    whitelistFields
-  })))
+  const result = await Promise.all(
+    canonicals.map(
+      async (canonical) =>
+        await fetchByCanonical({
+          client: FhirClient.getInstance(),
+          resourceType: 'ValueSet',
+          canonical,
+          whitelistFields
+        })
+    )
+  )
   return result
 }
 
@@ -63,7 +69,7 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
         })
         if (leafValueSetCanonicals.length) {
           const res = await fetchLeafValueSets({ leafValueSetCanonicals })
-          return res?.filter((i) => i && is.valueSet(i)) // Clear undefined values
+          return res?.filter((i: any) => i && is.valueSet(i)) // Clear undefined values
         }
       }
     }
@@ -71,14 +77,49 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
   return []
 }
 
+/**
+ * Converts a JavaScript object to a URL query string
+ */
+function objectToQueryParams(obj: any, encodeValues = true) {
+  // Return empty string for null or undefined
+  if (obj === null || obj === undefined) {
+    return ''
+  }
+
+  // Make sure we're working with an object
+  if (typeof obj !== 'object' || Array.isArray(obj)) {
+    throw new Error('Input must be a plain object')
+  }
+
+  // Build the query string
+  const params = Object.entries(obj)
+    .filter(([_, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => {
+      // Handle different value types
+      if (Array.isArray(value)) {
+        // Arrays become repeated parameters: arr[]=[val1]&arr[]=[val2]
+        return value.map((item) => `${key}[]=${encodeValues ? encodeURIComponent(item) : item}`).join('&')
+      } else if (typeof value === 'object') {
+        // For nested objects, convert to JSON string
+        return `${key}=${encodeValues ? encodeURIComponent(JSON.stringify(value)) : JSON.stringify(value)}`
+      } else {
+        // @ts-ignore
+        return `${key}=${encodeValues ? encodeURIComponent(value) : value}`
+      }
+    })
+    .join('&')
+
+  return params.length > 0 ? `?${params}` : ''
+}
+
 interface FetchLeafs {
-  leafValueSetCanonicals: string[],
-  titleToFind?: string,
-  stewardToFind?: string,
-  publisherToFind?: string,
-  versionToFind?: string,
-  whitelistFields?: string[],
-  oidToFind?: string,
+  leafValueSetCanonicals: string[]
+  titleToFind?: string
+  stewardToFind?: string
+  publisherToFind?: string
+  versionToFind?: string
+  whitelistFields?: string[]
+  oidToFind?: string
   provisionalOnly?: boolean
 }
 
@@ -98,8 +139,6 @@ export const fetchLeafValueSets = async ({
 }: FetchLeafs) => {
   let searchParams = {} as any
 
-  let result = []
-
   if (isValidString(titleToFind)) {
     searchParams['title:contains'] = titleToFind
   }
@@ -117,64 +156,76 @@ export const fetchLeafValueSets = async ({
     searchParams['version:contains'] = versionToFind
   }
 
-    // url:contains is not currently working on CQF for a partial string search
-    // so will filter this here instead
+  // url:contains is not currently working on CQF for a partial string search
+  // so will filter this here instead
   if (isValidString(oidToFind)) {
-    leafValueSetCanonicals = leafValueSetCanonicals.filter(c => c.includes(oidToFind as string))
+    leafValueSetCanonicals = leafValueSetCanonicals.filter((c) => c.includes(oidToFind as string))
   }
 
   if (whitelistFields && whitelistFields?.length > 0) {
     searchParams['_elements'] = whitelistFields.join(',')
   }
 
-  result = await Promise.all(
-    leafValueSetCanonicals.map((canonical) => {
-      const [urlNoVersion, version] = canonical.split('|')
-      const searchParameters = {
-        url: urlNoVersion,
-        // status: 'active',
-        ...searchParams
-      }
-      if (version) {
-        searchParameters.version = version
-      } if (provisionalOnly) {
-        searchParameters._tag = 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
-      }
-      return FhirClient.getInstance().search({
-        resourceType: 'ValueSet',
-        searchParams: searchParameters
-      })
+  const batchPayload = leafValueSetCanonicals.map((canonical) => {
+    const [urlNoVersion, version] = canonical.split('|')
+    const searchParameters = {
+      url: urlNoVersion,
+      // status: 'active',
+      ...searchParams
     }
-    )
-  )
+    if (version) {
+      searchParameters.version = version
+    }
+    if (provisionalOnly) {
+      searchParameters._tag = 'http://aphl.org/fhir/vsm/CodeSystem/vsm-workflow-codes|vsm-provisional'
+    }
+
+    return {
+      resourceType: 'ValueSet',
+      request: {
+        method: 'GET',
+        url: `ValueSet${objectToQueryParams(searchParameters)}`
+      }
+    }
+  })
+
+  const batchResults = await FhirClient.getInstance().batch({
+    body: {
+      resourceType: 'Bundle',
+      type: 'batch',
+      entry: batchPayload
+    }
+  })
 
   try {
     let valueSets
-    valueSets = result
-      ?.map((e) => {
-        if (e.entry) {
-          if (e?.entry?.length > 1) {
+    valueSets = batchResults.entry
+      ?.map((e: any) => {
+        const vsBundleEntry = e?.resource?.entry
+        if (vsBundleEntry) {
+          if (vsBundleEntry?.length > 1) {
             // Find latest valueset version to return
-            const latestEntry = e.entry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
+            const latestEntry = vsBundleEntry.reduce((acc: fhir4.BundleEntry, cur: fhir4.BundleEntry) => {
               const curDate = new Date((cur.resource as fhir4.ValueSet)?.version || 0)
               const accDate = new Date((acc.resource as fhir4.ValueSet)?.version || 0)
               return dayjs(curDate).isAfter(accDate) ? cur : acc
-            }, e.entry[0])
+            }, vsBundleEntry?.[0])
             return [latestEntry.resource]
-          } else if (e?.entry?.length === 1) {
-            return [e.entry[0].resource]
+          } else if (vsBundleEntry?.length === 1) {
+            return [vsBundleEntry?.[0]?.resource]
           } else {
             return
           }
         }
-      })?.filter(x => !!x) // filter out undefined
+      })
+      ?.filter((x: any) => !!x) // filter out undefined
       ?.flat()
-      ?.sort((a, b) => (a?.name || 'z').localeCompare(b?.name || 'z'))
+      ?.sort((a: fhir4.ValueSet, b: fhir4.ValueSet) => (a?.name || 'z').localeCompare(b?.name || 'z'))
 
     return valueSets
   } catch (e) {
-    // TODO: handle
-    console.error('error here a', e)
+    Logger.getLogger().error('error while fetching leaf valuesets', e)
+    throw e
   }
 }
 
@@ -204,7 +255,6 @@ export const fetchByCanonical = async ({ client, resourceType, canonical, whitel
   try {
     const result = await client.search({ resourceType, searchParams })
     return result
-
   } catch (e) {
     console.error('ERROR: ', e)
   }

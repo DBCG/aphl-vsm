@@ -8,15 +8,29 @@ import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import updateOwnedResources from '@/helpers/server/owned'
 
 // this only gets the program library
-const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library | { error: string }>) => {
+const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
   if (is.string(req?.query?.id)) {
     try {
-      const lib = (await FhirClient.getInstance().read({
+      const program = (await FhirClient.getInstance().read({
         resourceType: 'Library',
         id: req.query.id as string
       })) as fhir4.Library
 
-      return res.status(200).send(lib)
+      const asstSearchResult = await FhirClient.getInstance().search({
+        resourceType: 'Basic',
+        options: {
+          headers: {
+            'Cache-control': 'no-cache, no-store, must-revalidate'
+          }
+        },
+        searchParams: {
+          artifact: req.query['id'] as string
+        }
+      }) as fhir4.Bundle
+      
+      const assessments = asstSearchResult?.entry?.map((e) => e?.resource).filter(is.basic)
+
+      return res.status(200).send({program, assessments})
     } catch (e: any) {
       const error = e as HapiError
       Logger.getLogger().error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)

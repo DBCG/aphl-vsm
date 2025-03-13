@@ -445,5 +445,7 @@ button {
 }
 
 .Toastify__toast-body {
-  word-break: break-all
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
