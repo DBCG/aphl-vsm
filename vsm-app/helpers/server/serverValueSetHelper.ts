@@ -79,9 +79,6 @@ export const fetchLeafValueSetsByGrouperCanonical = async (grouperLibUrl: string
 
 /**
  * Converts a JavaScript object to a URL query string
- * @param {Object} obj - The object to convert to query parameters
- * @param {boolean} [encodeValues=true] - Whether to URL encode parameter values
- * @returns {string} - The query string (including the leading '?')
  */
 function objectToQueryParams(obj: any, encodeValues = true) {
   // Return empty string for null or undefined
