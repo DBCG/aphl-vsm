@@ -15,7 +15,7 @@ import { useGetEndpointOptionsForUI } from '@/hooks/useGetEndpointOptionsForUI'
 import { useGetConditions } from '@/hooks/useGetConditions'
 import { getTerminologySource, getVsSteward, isProvisionalVs } from '@/helpers/valueSetHelpers'
 import { useDebounce } from '@/hooks/useDebounce'
-import { buildConditionOptions, ConditionToUpdate, Condition, ConditionItem } from '@/helpers/conditionHelpers'
+import { buildConditionOptions, Condition, ConditionItem } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
 import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
@@ -123,32 +123,28 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
   return payload
 }
 
+type LoadingField = {
+  fieldName: string;
+  id: string
+}
+
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
   const [refreshErrors, setRefreshErrors] = useState<null | string[]>(null)
   const [versions, setVersions] = useState({} as any)
 
   const { terminologySources } = useGetEndpointOptionsForUI()
 
-  // updates that happen via multiselects within table
-  const [conditionToUpdate, setConditionToUpdate] = useState<ConditionToUpdate>({
-    canonical: '',
-    version: ''
-  })
   const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
-  const [versionUpdateInFlight, setVersionUpdateInFlight] = useState(false)
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
-  const handleCloseErrors = () => {
-    setRefreshErrors(null)
-  }
+  const handleCloseErrors = () => setRefreshErrors(null)
 
   // returned data from PUT operations
   const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
 
   // loading states
   const [grouperLoading, setGrouperLoading] = useState(false)
-  const [conditionLoading, setConditionLoading] = useState(false)
-  const [priorityLoading, setPriorityLoading] = useState(false)
+  const [loadingField, setLoadingField] = useState<LoadingField | null>(null)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
@@ -168,9 +164,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const debouncedFilters = useDebounce(filters, 300)
   const valueSetPriorityMap = getVSPriority(currentProgram)
 
-  const conditionsMap = useMemo(() => {
-    return getVSConditions(currentProgram)
-  }, [currentProgram])
+  const conditionsMap = useMemo(() => getVSConditions(currentProgram), [currentProgram])
 
   const handleBatchDelete = async (itemsToDelete: TableRow[]) => {
     setError(null)
@@ -201,7 +195,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds: string[]) => {
-    setConditionLoading(true)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
@@ -214,13 +207,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
       const oldConditions = conditionsMap[vsUrl]
       const conditionAction = oldConditions?.length > conditions?.length ? 'removed' : `added ${conditions?.[conditions.length - 1]?.label}`
-      const toastMessage = `Successfully ${conditionAction} condition`
-      toast.success(toastMessage)
+      toast.success(`Successfully ${conditionAction} condition`)
       setCurrentProgram(updatedLibrary)
     } catch (e) {
       toast.error('Error updating condition')
     } finally {
-      setConditionLoading(false)
+      setLoadingField(null)
     }
   }
 
@@ -247,7 +239,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
-    setPriorityLoading(true)
     const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
@@ -259,7 +250,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error('Error updating priority')
     } finally {
-      setPriorityLoading(false)
+      setLoadingField(null)
     }
   }
 
@@ -316,9 +307,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const handleVersionUpdate = async (e: any, row: any) => {
     const grouperIds = row?.groups?.map((g: any) => g.id)
     if (grouperIds?.length === 0) {
+      setLoadingField(null)
       return
     }
-    setVersionUpdateInFlight(true)
     const terminologyInfo = getTerminologySource(row.valueSet, terminologySources)
 
     const body = JSON.stringify({
@@ -336,9 +327,9 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       body
     })
       .catch((e) => console.error('error: ', e))
-      .finally(() => {
-        refreshProgramValueSets()
-        setVersionUpdateInFlight(false)
+      .finally(async () => {
+        await refreshProgramValueSets()
+        setLoadingField(null)
       })
   }
 
@@ -379,10 +370,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     []
   )
 
-  // don't allow editing if any loading in progress
-  const blockChanges = useMemo(() => {
-    return grouperLoading || conditionLoading || isDeleting || priorityLoading || versionUpdateInFlight || isLoading
-  }, [grouperLoading, conditionLoading, isDeleting, priorityLoading, versionUpdateInFlight, isLoading])
+  const blockChanges = false
 
   const columns = useMemo(
     () => [
@@ -479,13 +467,17 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 classNamePrefix="priority-selector"
                 inputId="priority-selector"
                 instanceId="priority-selector"
-                isLoading={priorityLoading}
-                isDisabled={blockChanges}
+                isLoading={loadingField?.fieldName === 'value-set-priority' && row.keyField === loadingField?.id}
+                isDisabled={row.keyField === loadingField?.id}
                 options={priorityLevelOptions}
                 value={currentPriorityValue}
-                onChange={(e) => {
+                onChange={async (e) => {
                   if (!!e?.value) {
-                    updateValueSetPriority(
+                    setLoadingField({
+                      id: row.keyField,
+                      fieldName: 'value-set-priority'
+                  })
+                    await updateValueSetPriority(
                       row?.valueSet,
                       e?.value,
                       row.groups.map((g) => g.id)
@@ -528,9 +520,15 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   menuPortalTarget={myDocument}
                   menuPlacement="top"
                   instanceId="version-selector"
-                  isDisabled={blockChanges}
-                  onChange={(evt) => handleVersionUpdate(evt, row)}
-                  isLoading={loadingVersionsForVs === row?.valueSet?.id}
+                  isLoading={loadingVersionsForVs === row?.valueSet?.id || (loadingField?.fieldName === 'vs-version-search' && row.keyField === loadingField?.id)}
+                  isDisabled={row.keyField === loadingField?.id}
+                  onChange={async (evt) => {
+                    setLoadingField({
+                      id: row.keyField,
+                      fieldName: 'vs-version-search'
+                    })
+                    await handleVersionUpdate(evt, row)}
+                  }
                   loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                   isMulti={false}
                   styles={reactSelectOptionStyle()}
@@ -639,7 +637,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                isDisabled={blockChanges}
+                isDisabled={blockChanges || loadingField?.fieldName === 'value-set-conditions'}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
@@ -647,10 +645,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 styles={reactSelectOptionStyle({ minWidth: '200px' })}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
-                isLoading={conditionLoading && row?.canonical === conditionToUpdate?.canonical}
+                isLoading={loadingField?.fieldName === 'value-set-conditions'}
                 // TODO should block add if already exists
                 onChange={async (e) => {
                   const conditionInfo = e as Condition[]
+                  setLoadingField({
+                    id: row?.keyField,
+                    fieldName: 'value-set-conditions'
+                  })
                   conditionInfo &&
                     (await updateVSConditions(
                       conditionInfo,
@@ -728,7 +730,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data]
+    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data, loadingField]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {

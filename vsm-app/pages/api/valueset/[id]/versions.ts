@@ -12,8 +12,6 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
   let response
   const { id } = req.query
 
-  const searchParams = { }
-
   // if ID not passed in
   if (!is.string(id)) {
     return res.status(400).json({ error: `ID not valid: ${id}.` })
@@ -77,7 +75,6 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
       resourceType: 'ValueSet',
       searchParams: {
         url: response?.url?.split('|')?.[0] as string,
-        ...searchParams
       }
     })
 
