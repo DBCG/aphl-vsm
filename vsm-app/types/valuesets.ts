@@ -35,6 +35,7 @@ export interface TerminologyResult {
 
 export interface TableRow {
   programName: string
+  keyField: string
   programId: string
   programStatus: string
   canonical: string

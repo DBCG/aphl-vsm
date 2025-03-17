@@ -18,7 +18,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { buildConditionOptions, Condition, ConditionItem } from '@/helpers/conditionHelpers'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
-import { GroupUpdateItem, TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
+import { TableRow, GroupInfoItem, TerminologyResult } from '@/types/valuesets'
 import LinearProgressWithLabel from '@/components/LinearProgressWithLabel'
 import { UpdateValueSetsResponse } from 'pages/api/valueset/update'
 import { Col, Row, FlexRow } from '@/styles'
@@ -124,8 +124,7 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 }
 
 type LoadingField = {
-  fieldName: string;
-  id: string
+  [rowKeyField: string]: string | null
 }
 
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
@@ -134,17 +133,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const { terminologySources } = useGetEndpointOptionsForUI()
 
-  const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
+  // const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
-  const handleCloseErrors = () => setRefreshErrors(null)
-
-  // returned data from PUT operations
-  const [updatedGrouperValueSets, setUpdatedGrouperValueSets] = useState<fhir4.ValueSet[]>([])
+  const handleCloseErrors = () => setRefreshErrors(null)  
 
   // loading states
-  const [grouperLoading, setGrouperLoading] = useState(false)
-  const [loadingField, setLoadingField] = useState<LoadingField | null>(null)
+  const [loadingField, setLoadingField] = useState<LoadingField>({})
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
@@ -194,7 +189,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     setSelectedRows(selectedRows)
   }
 
-  const updateVSConditions = async (conditions: Condition[] = [], vsUrl: string, grouperIds: string[]) => {
+  const updateVSConditions = async (conditions: Condition[] = [], row: TableRow) => {
+    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-conditions' })
+    const vsUrl = row?.canonical
+    const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
@@ -212,33 +210,39 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error('Error updating condition')
     } finally {
-      setLoadingField(null)
+      setLoadingField({ ...loadingField, [row.keyField]: null })
     }
   }
 
   // Updates Group ValueSets
-  useEffect(() => {
+  const updateVsGroups = async (groupInfo: GroupInfoItem[], row: TableRow) => {
+    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-groups' })
+    const leafCanonical = row?.canonical
+    const leafVersion = row?.valueSetPinnedVersion
     const endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/groups`
-    const postUpdate = async () => {
-      if (updateVsGroups?.groupInfo) {
-        setGrouperLoading(true)
-        const updatedVs = (await fetch(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(updateVsGroups)
-        }).then((res) => res.json())) as retrieveGrouperSetsReturn
-        setGrouperLoading(false)
-        if ('error' in updatedVs) {
-          throw new Error(updatedVs.error)
-        } else {
-          setUpdatedGrouperValueSets(updatedVs)
-        }
+    try {
+      const updatedVs = (await fetch(endpoint, {
+        method: 'PUT',
+        body: JSON.stringify({
+          groupInfo,
+          leafCanonical,
+          leafVersion
+        })
+      }).then((res) => res.json())) as retrieveGrouperSetsReturn
+      if ('error' in updatedVs) {
+        throw new Error(updatedVs.error)
       }
-      setGrouperLoading(false)
+    } catch (e) {
+      toast.error('Error updating groups')
+    } finally {
+      await refreshProgramValueSets()
+      setLoadingField({ ...loadingField, [row.keyField]: null })
     }
-    postUpdate()
-  }, [updateVsGroups.groupInfo, currentProgram?.id, updateVsGroups])
+  }
 
-  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, grouperIds: string[]) => {
+  const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, row: TableRow) => {
+    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-priority' })
+    const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
       const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
@@ -250,7 +254,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error('Error updating priority')
     } finally {
-      setLoadingField(null)
+      setLoadingField({ ...loadingField, [row.keyField]: null })
     }
   }
 
@@ -258,7 +262,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
   const { programValuesets, isLoading, refreshProgramValueSets } = useGetProgramValueSetDetails({
     id: currentProgram?.id!,
-    updatedGrouperValueSets, // this gets updated when a user adds a vs to a grouper
     conditionsMap,
     valueSetPriorityMap,
     ...debouncedFilters
@@ -305,9 +308,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const handleVersionUpdate = async (e: any, row: any) => {
+    setLoadingField({ ...loadingField, [row.keyField]: 'vs-version-search' })
     const grouperIds = row?.groups?.map((g: any) => g.id)
     if (grouperIds?.length === 0) {
-      setLoadingField(null)
+      setLoadingField({ ...loadingField, [row.keyField]: null })
       return
     }
     const terminologyInfo = getTerminologySource(row.valueSet, terminologySources)
@@ -329,7 +333,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       .catch((e) => console.error('error: ', e))
       .finally(async () => {
         await refreshProgramValueSets()
-        setLoadingField(null)
+        setLoadingField({ ...loadingField, [row.keyField]: null })
       })
   }
 
@@ -369,8 +373,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     }, 100),
     []
   )
-
-  const blockChanges = false
 
   const columns = useMemo(
     () => [
@@ -467,21 +469,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 classNamePrefix="priority-selector"
                 inputId="priority-selector"
                 instanceId="priority-selector"
-                isLoading={loadingField?.fieldName === 'value-set-priority' && row.keyField === loadingField?.id}
-                isDisabled={row.keyField === loadingField?.id}
+                isLoading={loadingField[row.keyField] === 'value-set-priority' && loadingField[row.keyField] != null}
+                isDisabled={loadingField[row.keyField] != null}
                 options={priorityLevelOptions}
                 value={currentPriorityValue}
                 onChange={async (e) => {
                   if (!!e?.value) {
-                    setLoadingField({
-                      id: row.keyField,
-                      fieldName: 'value-set-priority'
-                  })
-                    await updateValueSetPriority(
-                      row?.valueSet,
-                      e?.value,
-                      row.groups.map((g) => g.id)
-                    )
+                    await updateValueSetPriority(row?.valueSet, e?.value, row)
                   }
                 }}
               />
@@ -520,15 +514,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   menuPortalTarget={myDocument}
                   menuPlacement="top"
                   instanceId="version-selector"
-                  isLoading={loadingVersionsForVs === row?.valueSet?.id || (loadingField?.fieldName === 'vs-version-search' && row.keyField === loadingField?.id)}
-                  isDisabled={row.keyField === loadingField?.id}
-                  onChange={async (evt) => {
-                    setLoadingField({
-                      id: row.keyField,
-                      fieldName: 'vs-version-search'
-                    })
-                    await handleVersionUpdate(evt, row)}
+                  isLoading={
+                    loadingVersionsForVs === row?.valueSet?.id ||
+                    (loadingField[row.keyField] === 'vs-version-search' && loadingField[row.keyField] != null)
                   }
+                  isDisabled={loadingField[row.keyField] != null}
+                  onChange={async (evt) => await handleVersionUpdate(evt, row)}
                   loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                   isMulti={false}
                   styles={reactSelectOptionStyle()}
@@ -637,7 +628,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                isDisabled={blockChanges || loadingField?.fieldName === 'value-set-conditions'}
+                isDisabled={loadingField[row.keyField] != null}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
@@ -645,20 +636,11 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 styles={reactSelectOptionStyle({ minWidth: '200px' })}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
-                isLoading={loadingField?.fieldName === 'value-set-conditions'}
+                isLoading={loadingField[row.keyField] != null && loadingField[row.keyField] === 'value-set-conditions'}
                 // TODO should block add if already exists
                 onChange={async (e) => {
                   const conditionInfo = e as Condition[]
-                  setLoadingField({
-                    id: row?.keyField,
-                    fieldName: 'value-set-conditions'
-                  })
-                  conditionInfo &&
-                    (await updateVSConditions(
-                      conditionInfo,
-                      row.canonical,
-                      row.groups.map((i) => i.id)
-                    ))
+                  conditionInfo && (await updateVSConditions(conditionInfo, row))
                 }}
               />
             </SelectInputContainer>
@@ -704,7 +686,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`group-selector-${row.valueSet.id}`}>
               <Select
-                isDisabled={blockChanges}
+                isDisabled={loadingField[row.keyField] != null}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
@@ -713,16 +695,16 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 instanceId={`groups-selector-input-${row.canonical}`}
                 isMulti={true}
                 styles={reactSelectOptionStyle()}
-                isLoading={grouperLoading && updateVsGroups?.leafCanonical === row?.canonical}
+                isLoading={loadingField[row.keyField] != null && loadingField[row.keyField] === 'value-set-groups'}
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
-                onChange={(e) => {
-                  if (e.length === 0) {
+                onChange={async (e) => {
+                  const groupInfo = e as GroupInfoItem[]
+                  if (groupInfo.length === 0) {
                     toast.error('ValueSets must belong to a group.\nPlease add one before deleting.')
                     return
                   }
-                  const groupInfo = e as GroupInfoItem[]
-                  setUpdateVsGroups({ leafCanonical: row?.canonical, leafVersion: row?.valueSetPinnedVersion, groupInfo })
+                  await updateVsGroups(groupInfo, row)
                 }}
               />
             </SelectInputContainer>
@@ -820,7 +802,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           theme="aphl"
           pagination
           fixedHeader // TODO: Should we remove? adds an additional scrollbar
-          progressPending={blockChanges}
+          progressPending={isLoading}
           progressComponent={<LoadingIndicator />}
         />
       </Box>
