@@ -73,6 +73,10 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
         {
           name: 'latestFromTxServer',
           valueBoolean: latestFromTxServer
+        },
+        {
+          name: 'releaseLabel',
+          valueString: releaseLabel
         }
       ]
     },

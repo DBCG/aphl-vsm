@@ -467,7 +467,8 @@ const ProgramsTab: NextPage = () => {
       setError({ error: `Error cloning program ${programId}` })
     } finally {
       setPagination({ ...pagination, searchTotal: null })
-      mutate()
+      await mutate()
+      toast.success(`Program cloned successfully.`)
       setModalOpen(false)
       setCloneLoading(false)
       closeRows()

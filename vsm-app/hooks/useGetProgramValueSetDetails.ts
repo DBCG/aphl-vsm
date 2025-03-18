@@ -24,6 +24,7 @@ interface ConditionItem {
 
 export interface DataItem {
   canonical: string
+  keyField: string
   programName: string
   programId: string
   groups: GroupItem[]
@@ -53,7 +54,6 @@ interface Args {
   conditionsMap?: Record<string, { id: string }[]>
   activeGroups?: Group[]
   activeConditions?: ConditionItem[]
-  updatedGrouperValueSets?: fhir4.ValueSet[]
   updatedGrouper?: fhir4.Library
   versionToUpdate?: string
   toggleUpdateData?: boolean
@@ -71,7 +71,6 @@ const useGetProgramValueSetDetails = ({
   activePriority,
   valueSetPriorityMap = {},
   conditionsMap = {},
-  updatedGrouperValueSets,
   provisionalOnly
 }: Args) => {
   let endpoint = `/api/programs/${id}/details/valuesets`
@@ -97,10 +96,6 @@ const useGetProgramValueSetDetails = ({
     const canonicals = activeGroups.map((g) => g.value)
     const result = canonicals.join(',')
     queries.push(`groups=${encodeURIComponent(result)}`)
-  }
-
-  if (updatedGrouperValueSets?.length) {
-    queries.push('useCache=false')
   }
 
   if (provisionalOnly === true) {
