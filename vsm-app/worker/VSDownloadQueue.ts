@@ -48,7 +48,7 @@ VSDownloadQueue.process(async function (job: any, done) {
 
     if (urlsToDownload.length === 0) {
       Logger.getLogger().info('No new valuesets to cache.')
-      return
+      done(null)
     }
     Logger.getLogger().info(`${urlsToDownload.length} ValueSets to download to cache `)
 
@@ -57,7 +57,7 @@ VSDownloadQueue.process(async function (job: any, done) {
     const creds = await tsCredentialService.getVsacCredentials(userId)
 
     // @ts-ignore
-    vsacClient.customHeaders['Authorization'] = Buffer.from(creds.username + ':' + creds.password).toString('base64')
+    vsacClient.customHeaders['Authorization'] = `Basic ${Buffer.from(creds.username + ':' + creds.password).toString('base64')}`
     //Retrieve Valuesets from VSAC not cached in CQF
     Logger.getLogger().debug('Searching VSAC for ValueSets')
     const vsacResults = (await Promise.all(
