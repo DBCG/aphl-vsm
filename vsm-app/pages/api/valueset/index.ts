@@ -307,7 +307,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
     } else if (validatedResults.length > 0 && anyErrors?.length === 0) {
       const urls = extractComposeVsUrls(vSetsToUpdate)
       // Download Dependent ValueSets
-      VSDownloadQueue.add({ urls, userId: session.user.id })
+      await VSDownloadQueue.add({ urls, userId: session.user.id })
       return res.status(200).send(200)
     } else {
       Logger.getLogger().error('Error updating groupers: ' + JSON.stringify(anyErrors))

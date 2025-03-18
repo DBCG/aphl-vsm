@@ -13,6 +13,7 @@ const VSDownloadQueue = new Queue('vsDownload', QUEUE_REDIS_URL)
 
 VSDownloadQueue.process(async function (job: any, done) {
   const { urls, userId } = job.data
+  Logger.getLogger().info(`Preparing to cache ValueSet urls: ${urls}`)
   const batchBundleEntry = urls.map((url: string) => {
     return {
       request: {
