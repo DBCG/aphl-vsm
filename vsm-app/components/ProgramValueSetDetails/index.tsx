@@ -132,8 +132,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const [versions, setVersions] = useState({} as any)
 
   const { terminologySources } = useGetEndpointOptionsForUI()
-
-  // const [updateVsGroups, setUpdateVsGroups] = useState<GroupUpdateItem>({})
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
   const handleCloseErrors = () => setRefreshErrors(null)  
@@ -801,7 +799,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           columns={columns}
           theme="aphl"
           pagination
-          fixedHeader // TODO: Should we remove? adds an additional scrollbar
           progressPending={isLoading}
           progressComponent={<LoadingIndicator />}
         />
