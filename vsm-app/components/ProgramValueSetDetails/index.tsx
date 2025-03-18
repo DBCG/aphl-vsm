@@ -206,7 +206,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       toast.success(`Successfully ${conditionAction} condition`)
       setCurrentProgram(updatedLibrary)
     } catch (e) {
-      toast.error('Error updating condition')
+      toast.error(`Error updating condition for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
       setLoadingField({ ...loadingField, [row.keyField]: null })
     }
@@ -231,7 +231,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         throw new Error(updatedVs.error)
       }
     } catch (e) {
-      toast.error('Error updating groups')
+      toast.error(`Error updating groups for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
       await refreshProgramValueSets()
       setLoadingField({ ...loadingField, [row.keyField]: null })
@@ -250,7 +250,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       toast.success('Priority updated for ' + vs?.title)
       setCurrentProgram(updatedLibrary)
     } catch (e) {
-      toast.error('Error updating priority')
+      toast.error(`Error updating priority for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
       setLoadingField({ ...loadingField, [row.keyField]: null })
     }
