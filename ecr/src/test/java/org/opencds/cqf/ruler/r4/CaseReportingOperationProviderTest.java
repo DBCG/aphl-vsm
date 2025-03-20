@@ -2,6 +2,7 @@ package org.opencds.cqf.ruler.r4;
 
 import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
@@ -1423,6 +1424,31 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		});
 		return retval;
 	}
+
+	@Test
+	void packageOperation_expansion_invalid_credentials() {
+		loadTransaction("small-expansion-bundle.json");
+		Parameters emptyParams = new Parameters();
+		final var endpoint = new EndpointCredentials();
+		endpoint.setAddress("https://cts.nlm.nih.gov/fhir");
+		endpoint.setUsername(new StringType("chris"));
+		endpoint.setApiKey(new StringType("some-api-key"));
+		emptyParams.addParameter().setName("terminologyEndpoint").setResource(endpoint);
+
+		Exception maybeException = null;
+		try {
+			getClient().operation()
+					.onInstance("Library/SmallSpecificationLibrary")
+					.named("$ecr.package")
+					.withParameters(emptyParams)
+					.returnResourceType(Bundle.class)
+					.execute();
+		} catch (Exception e) {
+			maybeException = e;
+		}
+		assertTrue(maybeException.getMessage().contains("401"));
+		assertInstanceOf(AuthenticationException.class, maybeException);
+}
 
 @Test
 	void packageOperation_naive_expansion() {
