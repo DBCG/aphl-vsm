@@ -1,4 +1,4 @@
-import React, { SetStateAction, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Select, { MultiValue } from 'react-select'
 import { useSession } from 'next-auth/react'
 import DT, { TableColumn } from 'react-data-table-component'
@@ -124,7 +124,8 @@ const formatDeletePayload = (rows: TableRow[]): DeletePayload => {
 }
 
 type LoadingField = {
-  [rowKeyField: string]: string | null
+  rowKey: string
+  rowField: string
 }
 
 const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps) => {
@@ -134,10 +135,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   const { terminologySources } = useGetEndpointOptionsForUI()
   const [currentProgram, setCurrentProgram] = useState<fhir4.Library>(program)
 
-  const handleCloseErrors = () => setRefreshErrors(null)  
+  const handleCloseErrors = () => setRefreshErrors(null)
 
   // loading states
-  const [loadingField, setLoadingField] = useState<LoadingField>({})
+  const [loadingField, setLoadingField] = useState<LoadingField | null>(null)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [jobInProgressStatus, setJobInStatusProgress] = useState<number | null>(null)
   const [loadingVersionsForVs, setLoadingVersionsForVs] = useState<string | null>(null) // when active, id of vs
@@ -188,7 +189,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const updateVSConditions = async (conditions: Condition[] = [], row: TableRow) => {
-    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-conditions' })
+    setLoadingField({ rowKey: row.keyField, rowField: 'value-set-conditions' })
     const vsUrl = row?.canonical
     const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
@@ -208,13 +209,13 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error(`Error updating condition for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
-      setLoadingField({ ...loadingField, [row.keyField]: null })
+      setLoadingField(null)
     }
   }
 
   // Updates Group ValueSets
   const updateVsGroups = async (groupInfo: GroupInfoItem[], row: TableRow) => {
-    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-groups' })
+    setLoadingField({ rowKey: row.keyField, rowField: 'value-set-groups' })
     const leafCanonical = row?.canonical
     const leafVersion = row?.valueSetPinnedVersion
     const endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/groups`
@@ -234,12 +235,12 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       toast.error(`Error updating groups for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
       await refreshProgramValueSets()
-      setLoadingField({ ...loadingField, [row.keyField]: null })
+      setLoadingField(null)
     }
   }
 
   const updateValueSetPriority = async (vs: fhir4.ValueSet, priority: USHealthVSPriority, row: TableRow) => {
-    setLoadingField({ ...loadingField, [row.keyField]: 'value-set-priority' })
+    setLoadingField({ rowKey: row.keyField, rowField: 'value-set-priority' })
     const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
@@ -252,7 +253,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     } catch (e) {
       toast.error(`Error updating priority for ${row?.valueSet?.title || row?.valueSet?.id}`)
     } finally {
-      setLoadingField({ ...loadingField, [row.keyField]: null })
+      setLoadingField(null)
     }
   }
 
@@ -306,10 +307,10 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   const handleVersionUpdate = async (e: any, row: any) => {
-    setLoadingField({ ...loadingField, [row.keyField]: 'vs-version-search' })
+    setLoadingField({ rowKey: row.keyField, rowField: 'vs-version-search' })
     const grouperIds = row?.groups?.map((g: any) => g.id)
     if (grouperIds?.length === 0) {
-      setLoadingField({ ...loadingField, [row.keyField]: null })
+      setLoadingField(null)
       return
     }
     const terminologyInfo = getTerminologySource(row.valueSet, terminologySources)
@@ -331,7 +332,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       .catch((e) => console.error('error: ', e))
       .finally(async () => {
         await refreshProgramValueSets()
-        setLoadingField({ ...loadingField, [row.keyField]: null })
+        setLoadingField(null)
       })
   }
 
@@ -466,13 +467,14 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 isClearable={false}
                 classNamePrefix="priority-selector"
                 inputId="priority-selector"
+                isSearchable={false}
                 instanceId="priority-selector"
-                isLoading={loadingField[row.keyField] === 'value-set-priority' && loadingField[row.keyField] != null}
-                isDisabled={loadingField[row.keyField] != null}
+                isLoading={row.keyField === loadingField?.rowKey && loadingField?.rowField === 'value-set-priority'}
+                isDisabled={loadingField != null}
                 options={priorityLevelOptions}
                 value={currentPriorityValue}
                 onChange={async (e) => {
-                  if (!!e?.value) {
+                  if (!!e?.value && currentPriority !== e?.value) {
                     await updateValueSetPriority(row?.valueSet, e?.value, row)
                   }
                 }}
@@ -501,7 +503,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           const isProvisional = isProvisionalVs(row.valueSet)
 
           return (
-            <SelectInputContainer onClick={async () => await fetchVersionOptions(row.valueSet.id!)}>
+            <SelectInputContainer onClick={async () => loadingField === null && await fetchVersionOptions(row.valueSet.id!)}>
               {isProvisional ? (
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <IconChip experimental={false} indicatorType="provisional" />
@@ -511,13 +513,20 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 <Select
                   menuPortalTarget={myDocument}
                   menuPlacement="top"
+                  isSearchable={false}
                   instanceId="version-selector"
                   isLoading={
                     loadingVersionsForVs === row?.valueSet?.id ||
-                    (loadingField[row.keyField] === 'vs-version-search' && loadingField[row.keyField] != null)
+                    (loadingField?.rowField === 'vs-version-search' && row.keyField === loadingField?.rowKey)
                   }
-                  isDisabled={loadingField[row.keyField] != null}
-                  onChange={async (evt) => await handleVersionUpdate(evt, row)}
+                  isDisabled={loadingField != null}
+                  onChange={async (evt) => {
+                    if (evt?.value === 'latest' && row?.version === '[Undefined]') {
+                      return
+                    } else if (row?.version !== evt?.value) {
+                      await handleVersionUpdate(evt, row)
+                    }
+                  }}
                   loadingMessage={() => <LoadingMessage>{inputValue}</LoadingMessage>}
                   isMulti={false}
                   styles={reactSelectOptionStyle()}
@@ -626,7 +635,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`condition-selector-${row.valueSet.id}`}>
               <Select
-                isDisabled={loadingField[row.keyField] != null}
+                isDisabled={loadingField != null}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 instanceId="condition-selector"
@@ -634,7 +643,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 styles={reactSelectOptionStyle({ minWidth: '200px' })}
                 options={buildConditionOptions(allConditions, selectedOptions)}
                 value={selectedOptions}
-                isLoading={loadingField[row.keyField] != null && loadingField[row.keyField] === 'value-set-conditions'}
+                isLoading={row.keyField === loadingField?.rowKey && loadingField?.rowField === 'value-set-conditions'}
                 // TODO should block add if already exists
                 onChange={async (e) => {
                   const conditionInfo = e as Condition[]
@@ -684,7 +693,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           ) : (
             <SelectInputContainer id={`group-selector-${row.valueSet.id}`}>
               <Select
-                isDisabled={loadingField[row.keyField] != null}
+                isDisabled={loadingField != null}
                 menuPortalTarget={myDocument}
                 menuPlacement={index === 0 ? 'bottom' : 'top'}
                 isClearable={false}
@@ -693,7 +702,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                 instanceId={`groups-selector-input-${row.canonical}`}
                 isMulti={true}
                 styles={reactSelectOptionStyle()}
-                isLoading={loadingField[row.keyField] != null && loadingField[row.keyField] === 'value-set-groups'}
+                isLoading={row.keyField === loadingField?.rowKey && loadingField?.rowField === 'value-set-groups'}
                 options={buildGroupOptions(groupsInProgram)}
                 value={dedupedSelectedOptions}
                 onChange={async (e) => {
@@ -710,7 +719,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         }
       }
     ],
-    [router, groupsInProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data, loadingField]
+    [router, groupsInProgram, currentProgram, allConditions, conditionsMap, loadingVersionsForVs, programValuesets?.data, loadingField]
   ) as TableColumn<TableRow>[]
 
   const updateVSetsButton = (() => {
