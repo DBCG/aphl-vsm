@@ -421,7 +421,7 @@ public class CaseReportingOperationProvider {
 		PackageVisitor visitor;
 		if (fhirRedisService.isConnected()) {
 			var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
-			visitor = new PackageVisitor(repository, expansionCache);
+			visitor = new PackageVisitor(repository, null, expansionCache);
 		} else {
 			visitor = new PackageVisitor(repository);
 			log.warn("Redis service not found, running package without expansion cache");
@@ -558,7 +558,7 @@ public class CaseReportingOperationProvider {
 		var targetAdapter = IAdapterFactory.forFhirVersion(FhirVersionEnum.R4).createKnowledgeArtifactAdapter(theTargetResource.get());
 		var diffParameters = KnowledgeArtifactProcessor.artifactDiff(theSourceResource.get(), theTargetResource.get(), fhirContext, repository, true, true, dao, cache, terminologyEndpoint);
 		var manifestUrl = targetAdapter.getUrl();
-		var changelog = new ChangeLog(manifestUrl);		// 2) Recursively process the Parameters into a flat ChangeLog
+		var changelog = new ChangeLog(manifestUrl);	
 		processChanges(diffParameters.getParameter(), changelog, cache, manifestUrl);
 
 		// 5) Handle the Conditions and Priorities which are in RelatedArtifact changes

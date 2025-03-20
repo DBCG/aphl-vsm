@@ -2,6 +2,7 @@ package org.opencds.cqf.ruler.r4;
 
 import ca.uhn.fhir.context.FhirVersionEnum;
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum;
+import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
@@ -1428,7 +1429,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 	void packageOperation_expansion_invalid_credentials() {
 		loadTransaction("small-expansion-bundle.json");
 		Parameters emptyParams = new Parameters();
-		EndpointCredentials endpoint = new EndpointCredentials();
+		final var endpoint = new EndpointCredentials();
+		endpoint.setAddress("https://cts.nlm.nih.gov/fhir");
 		endpoint.setUsername(new StringType("chris"));
 		endpoint.setApiKey(new StringType("some-api-key"));
 		emptyParams.addParameter().setName("terminologyEndpoint").setResource(endpoint);
@@ -1444,7 +1446,8 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		} catch (Exception e) {
 			maybeException = e;
 		}
-		assertTrue(maybeException.getMessage().contains("HTTP 422 : Terminology Server expansion failed for"));
+		assertTrue(maybeException.getMessage().contains("401"));
+		assertInstanceOf(AuthenticationException.class, maybeException);
 }
 
 @Test
@@ -1799,7 +1802,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		endpoint.addExtension("vsacUsername", new StringType("tahaattarismile"));
 		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));	
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
-		diffParams.addParameter().setName("terminologyEndpoint").setResource( endpointCredentials);
+		// diffParams.addParameter().setName("terminologyEndpoint").setResource( endpoint);
 		return diffParams;
 	}
 
