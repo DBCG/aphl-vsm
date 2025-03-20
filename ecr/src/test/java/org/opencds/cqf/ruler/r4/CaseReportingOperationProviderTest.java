@@ -1799,7 +1799,7 @@ class CaseReportingOperationProviderTest extends RestIntegrationTest {
 		endpoint.addExtension("vsacUsername", new StringType("tahaattarismile"));
 		endpoint.addExtension("apiKey", new StringType("e071d986-0c68-4d06-95ee-00602a2bb748"));	
 		diffParams.addParameter("target", maybeLib.get().getResponse().getLocation());
-		diffParams.addParameter().setName("terminologyEndpoint").setResource( endpointCredentials);
+		// diffParams.addParameter().setName("terminologyEndpoint").setResource( endpoint);
 		return diffParams;
 	}
 
