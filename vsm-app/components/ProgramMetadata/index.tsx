@@ -21,11 +21,6 @@ interface ProgramEditModalContentProps {
 
 export const requiredFields = ['description', 'title']
 
-interface OptionType {
-  label: string
-  value: string
-}
-
 interface ErrorMessages {
   [key: string]: string
 }

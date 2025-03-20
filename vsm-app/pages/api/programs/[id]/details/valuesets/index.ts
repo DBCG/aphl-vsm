@@ -152,12 +152,19 @@ export const getProgramDetailsValuesets = async ({
   groups,
 }: RequestQueryParams) => {
   try {
+    console.timeStamp('getProgramDetailsValuesets')
+    let start, end;
+    start = performance.now();
+
     const program = await getProgram(programId)
     const grouperLibrary = await getGrouperLibrary(program)
     const grouperValueSets = await getGrouperValuesets(grouperLibrary)
     // @ts-ignore
     const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [])) as string[]
+    end = performance.now()
+    console.log(`Grouper VS Execution time: ${end - start} ms`);
 
+    start = performance.now();
     const leafValueSets = (await fetchLeafValueSets({
       leafValueSetCanonicals,
       oidToFind: findInOid || '',
@@ -168,6 +175,9 @@ export const getProgramDetailsValuesets = async ({
       whitelistFields: WHITELIST_VALUESET_FIELDS,
       provisionalOnly: false
     })) as fhir4.ValueSet[]
+    end = performance.now()
+    console.log(`Leaf VS Execution time: ${end - start} ms`);
+    start = performance.now();
 
     const leafVersionsByCanonical = leafValueSetCanonicals
       ?.filter((canonical) => canonical?.includes('|'))
@@ -200,6 +210,8 @@ export const getProgramDetailsValuesets = async ({
       groupsInProgram: grouperValueSets,
       totalLeafs: leafValueSets.length
     }
+    end = performance.now()
+    console.log(`Rest of it time: ${end - start} ms`);
     return { status: 200, payload: composedResponse }
   } catch (e: any) {
     Logger.getLogger().error(`error:  , ${JSON.stringify(e, null, 2)}`)
