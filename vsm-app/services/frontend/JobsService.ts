@@ -17,7 +17,7 @@ class JobsService {
   }
 
   // Checks for job status
-  static async getJob(jobId: string) {
+  static async getExportJob(jobId: string) {
     return fetch('/api/jobs/' + jobId).then((r) => r.json())
   }
 }
