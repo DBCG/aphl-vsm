@@ -26,7 +26,7 @@ export const checkboxStyles = {
   root: {
     color: 'inherit'
   }
-};
+}
 
 const Col = styled.div`
   display: flex;
@@ -93,7 +93,16 @@ interface ExpandableRowProps {
   setError: (error: Error) => void
 }
 
-const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, handleClickDelete, setError }: ExpandableRowProps) => {
+const ExpandableRowComponent = ({
+  data: row,
+  session,
+  handleClickClone,
+  setProgramToRelease,
+  handleClickWithdraw,
+  handleClickRetire,
+  handleClickDelete,
+  setError
+}: ExpandableRowProps) => {
   const canClone = allowClone({ session, programStatus: row.status! })
   const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
   const defaultCloneDescription = 'Cloning an active program will create a draft copy that you can edit'
@@ -118,10 +127,10 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
       <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
         <p style={{ display: 'inline-block', marginRight: '.4rem', fontSize: '90%' }}>Actions for Program {row.id}:</p>
-        { can(session, 'clone') && (
+        {can(session, 'clone') && (
           <Tooltip title={cloneBlockedReason || defaultCloneDescription} arrow>
             {/* these spans are necessary to get the tooltips to show up consistently */}
-            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <span style={{ height: 'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
                 data-button-context="clone-active"
@@ -137,9 +146,9 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             </span>
           </Tooltip>
         )}
-        { can(session, 'release') && (
+        {can(session, 'release') && (
           <Tooltip title={releaseBlockedReason || defaultReleaseDescription} arrow>
-            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <span style={{ height: 'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
                 data-button-context={`release-${row.status}`}
@@ -156,9 +165,9 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             </span>
           </Tooltip>
         )}
-        { can(session, 'withdraw') && (
+        {can(session, 'withdraw') && (
           <Tooltip title={withdrawBlockedReason || defaultWithdrawDescription} arrow>
-            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <span style={{ height: 'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
                 data-button-context={`release-${row.status}`}
@@ -175,9 +184,9 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             </span>
           </Tooltip>
         )}
-        { can(session, 'retire') && (
+        {can(session, 'retire') && (
           <Tooltip title={retireBlockedReason || defaultRetireDescription} arrow>
-            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <span style={{ height: 'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
                 data-button-context={`retire-${row.status}`}
@@ -194,9 +203,9 @@ const ExpandableRowComponent = ({ data: row, session, handleClickClone, setProgr
             </span>
           </Tooltip>
         )}
-        { can(session, 'delete') && (
+        {can(session, 'delete') && (
           <Tooltip title={deleteBlockedReason || defaultDeleteDescription} arrow>
-            <span style={{ height:'fit-content', alignSelf: 'center' }}>
+            <span style={{ height: 'fit-content', alignSelf: 'center' }}>
               <Button
                 size="small"
                 data-button-context={`delete-${row.status}`}
@@ -222,7 +231,12 @@ const ToggleComponent = ({ handleToggleRetiredSwitch, programsExist, showRetired
   if (!programsExist) return null
   return (
     <FormGroup style={{ width: '100%', alignSelf: 'flex-start', marginTop: '1rem' }}>
-      <FormControlLabel style={{ color: 'var(--theme-500)'}} control={<Switch onChange={handleToggleRetiredSwitch}/>} label="Show retired programs" checked={showRetired} />
+      <FormControlLabel
+        style={{ color: 'var(--theme-500)' }}
+        control={<Switch onChange={handleToggleRetiredSwitch} />}
+        label="Show retired programs"
+        checked={showRetired}
+      />
     </FormGroup>
   )
 }
@@ -280,18 +294,17 @@ const ProgramsTab: NextPage = () => {
 
     const parameters = JSON.stringify(withdrawParameters)
 
-
     // mock withdraw until the operation exists
     const result = await fetch(`/api/programs/${id}/withdraw`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: [`Error occurred while withdrawing program: ${id}.`,  `${res.error}`]
+        error: [`Error occurred while withdrawing program: ${id}.`, `${res.error}`]
       })
     } else {
+      await mutate()
       toast.success(`Program ${id} withdrawn and deleted from VSM.`)
-      mutate()
     }
     handleEndWithdrawAction()
     closeRows()
@@ -314,14 +327,13 @@ const ProgramsTab: NextPage = () => {
 
     const parameters = JSON.stringify(retireParameters)
 
-
     // mock retire until the operation exists
     const result = await fetch(`/api/programs/${id}/retire`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: [`Error occurred while retiring program: ${id}.`,  `${res.error}`]
+        error: [`Error occurred while retiring program: ${id}.`, `${res.error}`]
       })
     } else {
       toast.success(`Program ${id} retired from VSM.`)
@@ -353,11 +365,11 @@ const ProgramsTab: NextPage = () => {
     if (!result.ok) {
       const res = await result.json()
       setError({
-        error: [`Error occurred while deleting program: ${id}.`,  `${res.error}`]
+        error: [`Error occurred while deleting program: ${id}.`, `${res.error}`]
       })
     } else {
+      await mutate()
       toast.success(`Program ${id} deleted from VSM.`)
-      mutate()
     }
     handleEndDeleteAction()
     closeRows()
@@ -376,10 +388,10 @@ const ProgramsTab: NextPage = () => {
   const [showRetired, setShowRetired] = useState(false)
 
   const handleRowSelected = useCallback((state: any) => {
-    setSelectedRows(() => state.selectedRows);
+    setSelectedRows(() => state.selectedRows)
   }, [])
 
-  const { data = { programs: [], assessments: [], total: 0 }, mutate } = useSWR(
+  const { data = { programs: [], assessments: [], total: 0 }, isLoading, mutate } = useSWR(
     {
       url: '/api/programs',
       args: {
@@ -396,8 +408,7 @@ const ProgramsTab: NextPage = () => {
           return
         }
         return resp
-      }),
-    { revalidateOnFocus: false }
+      })
   )
 
   const { programs, total } = data
@@ -478,7 +489,7 @@ const ProgramsTab: NextPage = () => {
   const debouncedCloneProgram = debounce((programId) => cloneProgram(programId), 2000, { leading: true, trailing: false })
   const debouncedWithdrawProgram = debounce((programId) => handleWithdrawDraft({ id: programId }), 2000, { leading: true, trailing: false })
   const debouncedRetireProgram = debounce((programId) => handleRetireDraft({ id: programId }), 2000, { leading: true, trailing: false })
-  const debouncedDeleteProgram = debounce((programId) => handleDeleteRetired({ id: programId}), 2000, {leading: true, trailing: false})
+  const debouncedDeleteProgram = debounce((programId) => handleDeleteRetired({ id: programId }), 2000, { leading: true, trailing: false })
 
   const columns = useMemo(
     () => [
@@ -486,7 +497,7 @@ const ProgramsTab: NextPage = () => {
         name: 'Comparison',
         omit: !selectedRows?.length,
         cell: (row: fhir4.Library) => {
-          const match = selectedRows?.find(r => r.id == row.id)
+          const match = selectedRows?.find((r) => r.id == row.id)
           if (match && selectedRows?.length == 1) {
             return <p>Base</p>
           } else if (match && selectedRows?.length == 2 && selectedRows[0].id == row.id) {
@@ -568,7 +579,7 @@ const ProgramsTab: NextPage = () => {
   const handleCancelReleaseModal = () => {
     setProgramToRelease(null)
   }
-  
+
   const handleCancelWithdrawModal = () => {
     setProgIdToWithdraw('')
     setWithdrawModalOpen(false)
@@ -609,12 +620,12 @@ const ProgramsTab: NextPage = () => {
         errorText = 'Please try again.'
       }
       setError({
-        error: [`Error occurred while releasing program: ${payload.programId}.`,  `${errorText}`]
+        error: [`Error occurred while releasing program: ${payload.programId}.`, `${errorText}`]
       })
     } else {
       mutate()
     }
-    
+
     setLoading(false)
     setProgramToRelease(null)
     closeRows()
@@ -697,13 +708,37 @@ const ProgramsTab: NextPage = () => {
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
         {can(session, 'clone') ? (
-          <div style={{ color: 'var(--theme-500)', alignSelf: 'flex-end', backgroundColor: 'white', padding: '1rem 1.2rem', borderRadius: '8px', display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+          <div
+            style={{
+              color: 'var(--theme-500)',
+              alignSelf: 'flex-end',
+              backgroundColor: 'white',
+              padding: '1rem 1.2rem',
+              borderRadius: '8px',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'center',
+              marginBottom: '1rem'
+            }}
+          >
             <ArrowCircleDownIcon />
             Expand a row to view Program Actions
           </div>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
         {programs?.length > 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1rem', backgroundColor: enableCompare ? 'white' : 'transparent', padding: '.8rem .6rem', width: 'fit-content', alignSelf: 'flex-end' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              marginBottom: '1rem',
+              backgroundColor: enableCompare ? 'white' : 'transparent',
+              padding: '.8rem .6rem',
+              width: 'fit-content',
+              alignSelf: 'flex-end'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
               <Button
                 style={{
@@ -714,8 +749,8 @@ const ProgramsTab: NextPage = () => {
                   transition: 'background-color 200ms linear'
                 }}
                 endIcon={enableCompare && selectedRows?.length == 2 ? <CallMadeIcon /> : null}
-                variant='text'
-                disabled={loading || enableCompare && selectedRows?.length !== 2}
+                variant="text"
+                disabled={loading || (enableCompare && selectedRows?.length !== 2)}
                 onClick={() => {
                   if (selectedRows && selectedRows?.length > 1) {
                     setLoading(true)
@@ -725,7 +760,7 @@ const ProgramsTab: NextPage = () => {
                   }
                 }}
               >
-                {(selectedRows && selectedRows?.length > 1) ? 'Compare' : 'Select 2 Programs to Compare'}
+                {selectedRows && selectedRows?.length > 1 ? 'Compare' : 'Select 2 Programs to Compare'}
               </Button>
               {enableCompare ? (
                 <Button
@@ -747,8 +782,14 @@ const ProgramsTab: NextPage = () => {
 
       <DT
         subHeader={Boolean(programs?.length) || undefined}
-        subHeaderComponent={<ToggleComponent programsExist={Boolean(programs?.length)} handleToggleRetiredSwitch={handleToggleRetiredSwitch} showRetired={showRetired} />}
-        className='programs-tab-table'
+        subHeaderComponent={
+          <ToggleComponent
+            programsExist={Boolean(programs?.length)}
+            handleToggleRetiredSwitch={handleToggleRetiredSwitch}
+            showRetired={showRetired}
+          />
+        }
+        className="programs-tab-table"
         key={refreshkey}
         data={programs}
         clearSelectedRows={toggledClearRows}
@@ -761,18 +802,26 @@ const ProgramsTab: NextPage = () => {
         onChangePage={handlePageChange}
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
         fixedHeader
-        progressPending={!programs?.length}
+        progressPending={isLoading}
         progressComponent={<LoadingIndicator />}
         onSelectedRowsChange={handleRowSelected}
         selectableRows={enableCompare}
         selectableRowsNoSelectAll
         selectableRowDisabled={(row) => {
-          return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find(r => r?.id == row.id))
+          return Boolean(selectedRows && selectedRows?.length == 2 && !selectedRows?.find((r) => r?.id == row.id))
         }}
         expandableRows={can(session, 'clone')}
         // @ts-ignore
         expandableRowsComponent={ExpandableRowComponent}
-        expandableRowsComponentProps={{ session, handleClickClone, setProgramToRelease, handleClickWithdraw, handleClickRetire, handleClickDelete, setError }}
+        expandableRowsComponentProps={{
+          session,
+          handleClickClone,
+          setProgramToRelease,
+          handleClickWithdraw,
+          handleClickRetire,
+          handleClickDelete,
+          setError
+        }}
       />
     </Col>
   )

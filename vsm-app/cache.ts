@@ -1,7 +1,5 @@
 import Redis, { RedisOptions } from 'ioredis'
 import Logger from '@/helpers/server/logger'
-import { Job } from 'bull'
-import { JOB_STATUS } from './constants'
 
 // Parse Redis DB configuration
 const redisDb = 1

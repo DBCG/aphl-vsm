@@ -449,3 +449,8 @@ button {
   overflow-wrap: break-word;
   white-space: normal;
 }
+
+#mouse-over-popover .MuiPopover-paper {
+  min-width: 50%;
+  overflow-y: hidden;
+}

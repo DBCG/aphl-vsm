@@ -43,7 +43,7 @@ export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fh
     .map((res) => res.resource)
     .filter(isDefinedString)
 
-  if (!grouperValueSetCanonicals) throw new Error(`No Grouper Valuesets linked to Library ${grouperLib.id}`)
+  if (!grouperValueSetCanonicals || grouperValueSetCanonicals?.length === 0) throw new Error(`No Grouper Valuesets linked to Library ${grouperLib.id}`)
 
   const allGrouperVSets = (
     (await fetchGrouperValueSets({ canonicals: grouperValueSetCanonicals }))
@@ -52,6 +52,6 @@ export const getGrouperValuesets = async (grouperLib: fhir4.Library): Promise<fh
       .filter((x) => !!x) as fhir4.Resource[]
   ).filter(is.valueSet)
 
-  if (!allGrouperVSets) throw new Error(`No Grouper Valuesets found for Library ${grouperLib.id}`)
+  if (!allGrouperVSets || allGrouperVSets?.length === 0) throw new Error(`No Grouper Valuesets found for Library ${grouperLib.id}`)
   return allGrouperVSets
 }

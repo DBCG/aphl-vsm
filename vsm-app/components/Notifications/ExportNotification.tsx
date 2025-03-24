@@ -113,7 +113,7 @@ const downloadTextData = (data: string, type: `${string}${'json' | 'xml' | 'txt'
 
 const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => {
   const downloadExport = async () => {
-    const job = await JobsService.getJob(jobId)
+    const job = await JobsService.getExportJob(jobId)
     const packageResponse = job?.returnvalue?.response
     const validationResults = job?.returnvalue?.validationResults
     try {

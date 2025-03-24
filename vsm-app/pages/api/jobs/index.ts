@@ -1,5 +1,6 @@
 import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
+import { isEmpty } from 'lodash'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Cache from '@/cache'
 import PackageQueue from '@/worker/PackageQueue'
@@ -9,8 +10,8 @@ const getAllJobs = async (req: NextApiRequest, res: NextApiResponse, session: VS
   const cache = await Cache.getInstance()
   const userId = session.user.id
 
-  let jobIds = req?.body as string[] || []
-  if (!jobIds || jobIds.length === 0) {
+   let jobIds = req?.body as string[] || []
+  if (isEmpty(jobIds)) {
     jobIds = await cache.smembers(`user:${userId}:jobs`)
   }
 
