@@ -428,6 +428,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               menuPlacement="bottom"
               placeholder="Filter Priority"
               classNamePrefix="priority-filter"
+              isClearable={false}
               inputId="priority-filter"
               instanceId="priority-filter"
               isMulti
