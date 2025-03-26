@@ -5,9 +5,8 @@ import { fetcher } from '@/utils'
 import { Box, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Typography, CircularProgress, FormControlLabel, Checkbox } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { getReleaseDescription, getReleaseLabel, validStartDate } from '@/helpers/libraryHelpers'
-import { TextArea } from '../TextArea'
+import { TextArea } from '@/components/TextArea'
 import DateInput from '../DateInput'
-import { SearchInput } from '../SearchInput'
 import { isValidSimpleSemver } from '@/helpers/server/semverHelpers'
 import ManifestDetailTable from '../ManifestDetailTable'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
@@ -179,9 +178,11 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
           <DialogContentText>{text}</DialogContentText>
           <DialogContentText>{actionText}</DialogContentText>
           <>
-            <SearchInput
+            <TextArea
               style={{ marginTop: '2rem', marginBottom: '1rem' }}
-              label="Update Program Version *"
+              label="Update Program Version"
+              id="releaseVersion"
+              required={true}
               onChange={(e) => {
                 setVersionError(undefined)
                 setVersionToCheck(e?.target?.value)
@@ -210,7 +211,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
               }}
             />
             <DateInput
-              label={'Effective Start Date *'}
+              label={'Effective Start Date'}
               id="effectiveStartDate"
               defaultValue={effectiveStartDate || undefined}
               placeholder="No effective start date set"
@@ -300,9 +301,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
             {activeStep === 0 ? (
               <Button text="Next" style={{ width: 'fit-content' }} disabled={hasFormError()} onClick={handleNext} data-modal="next" />
             ) : (
-              <>
-                <Button text="Back" style={{ width: 'fit-content', backgroundColor: 'var(--theme-400)' }} onClick={() => handleBack()} />
-              </>
+              <Button disabled={loading} text="Back" style={{ width: 'fit-content', backgroundColor: 'var(--theme-400)' }} onClick={() => handleBack()} />
             )}
           </div>
           {activeStep === 1 && (

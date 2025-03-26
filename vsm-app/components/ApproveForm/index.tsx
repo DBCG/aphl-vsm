@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import Select, { SingleValue } from 'react-select'
 import { StyledSpan } from '@/styles'
 import { Button } from '@/components/buttons/Button'
-import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { toast } from 'react-toastify'
 import { Tooltip } from '@mui/material'
@@ -160,14 +159,14 @@ export const ApproveForm = ({ program }: ApproveFormProps) => {
             value={approvalFormData.artifactAssessmentSummary}
             onChange={(e) => handleFieldChange(e, 'artifactAssessmentSummary')}
           />
-          <SearchInput
+          <TextArea
             id="target"
             label="Target"
             value={approvalFormData.artifactAssessmentTarget}
             helperMessage="Target of the program comment"
             readonly={true}
           />
-          <SearchInput
+          <TextArea
             id="reference"
             label="Reference"
             helperMessage="Reference to the program being commented on"

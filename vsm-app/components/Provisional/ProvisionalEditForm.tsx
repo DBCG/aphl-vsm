@@ -17,7 +17,7 @@ import { ErrorMessage } from '../ErrorMessage'
 import { toast } from 'react-toastify'
 import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
 import { DeleteForever } from '@mui/icons-material'
-import ExistingCodesTable from './ExisitingCodesTable'
+import ExistingCodesTable from './ExistingCodesTable'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -100,6 +100,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
   const { provisionalCS, provCsError, mutateProvCs } = useGetProvisionalCS(selectedCodeSystemBase?.value)
 
   const handleDelete = useCallback((item: CodeTableData) => {
+    if (loading) return
     const filteredItems = codeItemsToAdd?.filter(i => !(i?.code === item.code))
     setCodeItemsToAdd(filteredItems)
   }, [codeItemsToAdd])
@@ -172,6 +173,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
         maxWidth: '4rem',
         cell: (row: CodeTableData) => (
           <IconButton
+            disabled={loading}
             onClick={() => handleDelete(row)}
           >
             <DeleteForever color='error' />
@@ -181,7 +183,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     ]
 
     return fields
-  }, [codeItemsToAdd, handleDelete, provisionalCS])
+  }, [codeItemsToAdd, handleDelete, loading, provisionalCS])
 
   const handleAddToList = () => {
     setLoading(true)

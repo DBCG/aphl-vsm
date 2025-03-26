@@ -4,10 +4,9 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { toast } from 'react-toastify'
 import { PageTitle } from '@/components/Typography'
 import LoadingIndicator from './LoadingIndicator'
-import { SearchInput } from '@/components/SearchInput'
 import { ProgramDetails } from '@/types/grouperTypes'
 import { InputContainer, ButtonContainer } from '@/styles'
-import { TextArea } from './TextArea'
+import { TextArea } from '@/components/TextArea'
 import { getOid, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
 import { getKeywords } from '@/helpers/valueSetHelpers'
@@ -211,7 +210,7 @@ export default function ValueSetContents({
             </Grid>
             <Grid container alignItems="flex-start" spacing={2}>
               <Grid item xs={12} sm={6} md={4}>
-                <SearchInput
+                <TextArea
                   id="prog-id"
                   label="Program ID"
                   readonly={true}
@@ -220,7 +219,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
-                <SearchInput
+                <TextArea
                   id="prog-name"
                   label="Program Name"
                   readonly={true}
@@ -229,7 +228,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
-                <SearchInput
+                <TextArea
                   id="prog-version"
                   label="Program Version"
                   readonly={true}
@@ -237,7 +236,7 @@ export default function ValueSetContents({
                   placeholder={'No program version set'}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12}>
                 <TextArea
                   id="prog-url"
                   label="Program URL"
@@ -247,7 +246,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               {keywords.length > 0 && (
-                <Grid item xs={6}>
+                <Grid item xs={12}>
                   <TextArea id="keywords" label="Keywords" readonly={true} defaultValue={keywords.join(', ')} />
                 </Grid>
               )}
@@ -256,7 +255,7 @@ export default function ValueSetContents({
           <InputContainer>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <SearchInput
+                <TextArea
                   id="vs-version"
                   label={isGrouperValueSet ? 'Grouper Version' : 'Valueset Version'}
                   readonly={true}
@@ -274,7 +273,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12}>
-                <SearchInput
+                <TextArea
                   id="vs-title"
                   label={isGrouperValueSet ? 'Grouper Title' : 'Valueset Title'}
                   readonly={!isEditing}
@@ -307,7 +306,7 @@ export default function ValueSetContents({
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <SearchInput
+                <TextArea
                   id="vs-author"
                   label="Author"
                   disabled={isSaving}
@@ -333,6 +332,7 @@ export default function ValueSetContents({
                   id="vs-description"
                   label="Description"
                   disabled={isSaving}
+                  multiline={true}
                   readonly={!isEditing}
                   value={grouperDescription}
                   placeholder={'No valueset description set'}

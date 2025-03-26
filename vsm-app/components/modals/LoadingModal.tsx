@@ -4,20 +4,12 @@ import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } 
 import { Button } from '@/components/buttons/Button'
 import {
   getReleaseDescription,
-  getReleaseLabel,
-  setReleaseLabel as releaseLabelSet,
-  setReleaseDescription as releaseDescriptionSet,
-  setEffectivePeriodStart,
-  validStartDate
-} from '@/helpers/libraryHelpers'
-import { TextArea } from '../TextArea'
-import DateInput from '../DateInput'
-import { SearchInput } from '../SearchInput'
+  getReleaseLabel} from '@/helpers/libraryHelpers'
 import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'release' | 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
+  actionType: 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -151,21 +143,6 @@ const LoadingModal = ({
     }
   }, [program])
 
-  useEffect(() => {
-    if (
-      actionType === 'release'
-      && (
-        releaseDescription.length === 0 ||
-        releaseLabel.length === 0 ||
-        !validStartDate(effectiveStartDate) ||
-        versionError
-      )) {
-      setDisableSubmission(true)
-    } else {
-      setDisableSubmission(false)
-    }
-  }, [actionType, releaseDescription.length, releaseLabel.length, effectiveStartDate])
-
   if (!isOpen) return null
 
   return (
@@ -176,56 +153,7 @@ const LoadingModal = ({
         <DialogContentText>
           {actionText}
         </DialogContentText>
-          {actionType === 'release' && (
-            <>
-              <SearchInput
-                style={{ marginTop: '2rem', marginBottom: '1rem' }}
-                label="Update Program Version *"
-                onChange={
-                  (e) => {
-                    setVersionError(null)
-                    setVersionToCheck(e?.target?.value)
-                    updateVersion!(e?.target?.value)
-                  }
-                }
-                defaultValue={currentProgram?.version?.split('-draft')?.[0]}
-                helperMessage={'This version must be in 3 or 4-digit semantic versioning format. Example: 3.0.2 or 10.1.2.3'}
-                errorMessage={versionError}
-              />
-              <TextArea
-                label="Description of Release"
-                id="releaseDescription"
-                required={true}
-                value={releaseDescription}
-                onChange={(e) => {
-                  setReleaseDescription(e?.target?.value)
-                }}
-              />
-              <TextArea
-                label="Label for Release"
-                id="releaseLabel"
-                style={{ marginTop: '24px', marginBottom: '3rem' }}
-                required={true}
-                value={releaseLabel}
-                onChange={(e) => {
-                  setReleaseLabel(e?.target?.value)
-                }}
-              />
-              <DateInput
-                label={'Effective Start Date'}
-                id="effectiveStartDate"
-                defaultValue={effectiveStartDate || undefined}
-                placeholder="No effective start date set"
-                readonly={false}
-                onChange={(newDate) => {
-                  const dateToSave = newDate?.isValid() ? newDate.format('YYYY-MM-DD') : null
-                  setEffectiveStartDate(dateToSave)
-                }}
-                disablePast={true}
-                errorText={'Start date must be today or a future date'}
-              />
-            </>
-          )}
+
       </DialogContent>
       <DialogActions>
         <Button data-modal={'cancel'} text="Cancel" onClick={() => handleCancelModal()} style={{ backgroundColor: 'var(--neutral-300)' }} />
@@ -236,19 +164,6 @@ const LoadingModal = ({
           loading={loading || false}
           onClick={() => {
             let currProgram = currentProgram
-            if (actionType === 'release' && currProgram) {
-              if (versionError) {
-                return
-              }
-              let modifiedProgram = releaseDescriptionSet(currProgram, releaseDescription.trim())
-              modifiedProgram = releaseLabelSet(modifiedProgram, releaseLabel.trim())
-              // if effectiveStartDate is set, add it
-              if (typeof effectiveStartDate === 'string') {
-                modifiedProgram = setEffectivePeriodStart(modifiedProgram, effectiveStartDate)
-              }
-              setProgram(modifiedProgram)
-              currProgram = modifiedProgram
-            }
             handleModalAction(actionType, currProgram)
           }}
         />

@@ -3,11 +3,6 @@ import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { MutableRefObject } from 'react'
 
-interface InputProps {
-  minWidth?: number
-  onChange: React.ChangeEventHandler<HTMLInputElement> | undefined
-}
-
 const Input = styled(TextField)`
   & .MuiFilledInput-input {
     background: white !important;

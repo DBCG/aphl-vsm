@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Checkbox, FormControlLabel, Grid, Button } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
-import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import DateInput from '@/components/DateInput'
 import {
@@ -107,10 +106,11 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
     <Form error={Boolean(errorFields.length)} key={key}>
       <Grid container spacing={2} style={{ maxWidth: '700px' }}>
         <Grid item xs={12} md={4}>
-          <SearchInput
+          <TextArea
             id="prog-title"
             label="Title"
             disabled={isSaving}
+            enableEditing={enableEditing}
             readonly={!editable || !enableEditing}
             defaultValue={title}
             onChange={(event) => handleFieldChange(event, 'title')}
@@ -120,7 +120,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           />
         </Grid>
         <Grid item xs={12} md={4}>
-          <SearchInput
+          <TextArea
             id="prog-version"
             label={`Version ${enableEditing ? `(read-only)` : ''}`}
             readonly={true}
@@ -131,7 +131,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
         </Grid>
         <Grid item xs={12}>
           {status === 'active' && (
-            <SearchInput
+            <TextArea
               id="prog-release-label"
               label={`Release Label ${enableEditing ? `(read-only)` : ''}`}
               readonly={true}
@@ -175,6 +175,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
           <TextArea
             id="prog-desc"
             label="Description"
+            multiline={true}
             readonly={!editable || !enableEditing}
             disabled={isSaving}
             defaultValue={description}
