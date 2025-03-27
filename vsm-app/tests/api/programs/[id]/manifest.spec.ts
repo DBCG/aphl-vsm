@@ -15,7 +15,6 @@ jest.mock('next-auth/next', () => ({
   }))
 }))
 jest.mock('fhir-kit-client')
-jest.mock('fhirClients')
 
 describe('/api/programs/[id]/manifest', () => {
   test('GET /api/programs/[id]/manifest?url=, retrieves versions for manifest', async () => {
