@@ -3,8 +3,8 @@
  * the cqf-ruler server with its latest values if they differ from version.
  **/
 import Queue from 'bull'
-import FhirClient from '@/backend/clients/FhirClient'
-import { terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirCdrClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { Bundle, BundleEntry, ValueSet } from 'fhir/r4'
 import { addExtensionToVs, EXTENSIONS, isVsmAuthored } from '@/helpers/valueSetHelpers'
 import { isEqualComparator, sleep } from 'utils'
@@ -180,13 +180,13 @@ const executeJobBatch = async (urls: string[], refreshErrors: string[], totalUpd
         const authCredentials = await tsCredentialService.getCredentials(userId, matchingEndpoint?.id as string)
         let baseTermServerUrl = matchingEndpoint?.address?.toString()
       
-        terminologyClient.setCustomClient({
+        TerminologyFhirClient.setCustomClient({
           baseUrl: baseTermServerUrl,
           clientName: matchingEndpoint?.name?.toString(),
           basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
         })
 
-        const targetFhirClient = terminologyClient.getClient()!
+        const targetFhirClient = await TerminologyFhirClient.getClient()!
 
         const vsComparatorResponses = (await targetFhirClient?.search({
           resourceType: 'ValueSet',

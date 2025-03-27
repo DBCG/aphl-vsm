@@ -1,6 +1,6 @@
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
 import { formatErrors } from '@/helpers/server/operationOutcomeHelpers'
 

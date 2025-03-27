@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { HapiError } from '@/types/hapiError'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { getOwnedCanonicals } from '@/helpers/ownedHelpers'

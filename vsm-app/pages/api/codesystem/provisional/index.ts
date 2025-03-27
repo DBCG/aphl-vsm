@@ -1,5 +1,5 @@
-import { vsacFhirClient } from '@/fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { ErrorItem, is } from '@/helpers/is'
 import { createProvisionalCodeSystem, updateCsCodes } from '@/helpers/provisionalVsHelpers'
 import handler from '@/helpers/server/handler'
@@ -8,6 +8,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { BuilderItem, getProvisionals } from '../../valueset/provisional'
 import { updateCsCodeItem } from '@/helpers/codeSystemHelpers'
 import { updateVsCodeItem } from '@/helpers/valueSetHelpers'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 interface CodeItem {
   code: string
@@ -90,7 +91,8 @@ const getProvisionalCodeSystems = async (req: NextApiRequest, res: NextApiRespon
 }
 
 // this can update multiple code systems at once
-const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse) => {
+const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse, session: VSMSession) => {
+  const userId = session.user.id
   try {
     const body = req.body
     const {
@@ -123,6 +125,7 @@ const updateProvisionalCodeSystems = async (req: ProvisionalReqGet, res: NextApi
           resource: updated
         })
       } else {
+        const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
         const codeSystemFromTermServer = await vsacFhirClient.search({
           resourceType: 'CodeSystem',
           searchParams: {

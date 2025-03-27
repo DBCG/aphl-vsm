@@ -1,5 +1,5 @@
 import { getProgram, getGrouperLibrary, getGrouperValuesets } from './serverLibraryHelper'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 
 jest.mock('fhir-kit-client')
 

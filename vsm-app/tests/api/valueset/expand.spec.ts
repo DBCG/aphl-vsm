@@ -1,7 +1,7 @@
 import handler, { ExpandRequest } from 'pages/api/valueset/[id]/expand'
 import { createMocks } from 'node-mocks-http'
 import fetchMock from 'jest-fetch-mock'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { NextApiResponse } from 'next'
 
 // Mock Auth for Setup

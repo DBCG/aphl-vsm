@@ -1,6 +1,6 @@
 import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, transformFromVSACToCqf, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
-import { terminologyClient } from 'fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
@@ -119,13 +119,13 @@ const getLeafFromTermServer = async ({
       return
     }
 
-    terminologyClient.setCustomClient({
+    TerminologyFhirClient.setCustomClient({
       clientName: terminologyInfo.value,
       baseUrl: terminologyInfo.url,
       basicAuthHeader: `${Buffer.from(`${matchingCreds.username}:${matchingCreds.password}`).toString('base64')}`
     })
 
-    const terminologyClientInstance = terminologyClient.getClient()!
+    const terminologyClientInstance = await TerminologyFhirClient.getClient()!
 
     const searchParams = {
       url: vsCanonical,

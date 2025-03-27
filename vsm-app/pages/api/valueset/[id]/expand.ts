@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from 'fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { getExpandFetchOptions, setParameterVsVersion } from '@/helpers/server/expandUtils'
 import { extractOidFromUrl } from '@/utils'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 export interface ExpandRequest extends NextApiRequest {
   body: {
@@ -15,8 +16,9 @@ export interface ExpandRequest extends NextApiRequest {
 }
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
-const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
+const expandValueSets = async (req: ExpandRequest, res: NextApiResponse, session: VSMSession) => {
   const { valueSetId, expansionParameters, pinnedVersion } = req.body
+  const userId = session?.user.id
   if (valueSetId == null) {
     Logger.getLogger().error('Invalid request, missing ValueSet ID.')
     return res.status(400).json({ error: 'Invalid request, missing ValueSet ID.' })
@@ -49,9 +51,12 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse) => {
       setParameterVsVersion(parameters, valueSet)
     }
     const oid = extractOidFromUrl(valueSet.url!)
-    const url = vsacFhirClient.baseUrl + `/ValueSet/${oid}/$expand`
-    const fetchOptions = getExpandFetchOptions(parameters)
-    const response = await fetch(url, getExpandFetchOptions(parameters)).then((i) => i.json())
+    const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
+    const url = vsacFhirClient?.baseUrl + `/ValueSet/${oid}/$expand`
+    const fetchOptions = getExpandFetchOptions(parameters) as RequestInit
+    // @ts-ignore
+    fetchOptions.headers['Authorization'] = vsacFhirClient
+    const response = await fetch(url, fetchOptions).then((i) => i.json())
     Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
 
     res.status(200).send(response)

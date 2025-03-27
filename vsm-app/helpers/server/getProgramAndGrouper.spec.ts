@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import getProgramAndGrouper from './getProgramAndGrouper'
 
 jest.mock('fhir-kit-client')

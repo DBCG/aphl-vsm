@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { set } from 'lodash'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { addExtensionToVs, addProfileToValueSet, EXTENSIONS, idWithoutVersion, urlWithoutVersion } from '@/helpers/valueSetHelpers'
-import { terminologyClient } from 'fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
@@ -109,7 +109,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
         const creds = await tsCredentialService.getAllCredentials(session.user.id)
 
         if (body?.selectedTerminologyServer === 'vsm') {
-          terminologyClient.setCustomClient({
+          TerminologyFhirClient.setCustomClient({
             clientName: 'VSM' as string,
             baseUrl: `${process.env.FHIR_CDR_URL}`,
             basicAuthHeader: `${Buffer.from(
@@ -125,7 +125,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
             return res.status(400).json({ error: 'No credentials found for selected terminology server' })
           }
 
-          terminologyClient.setCustomClient({
+          TerminologyFhirClient.setCustomClient({
             clientName: body?.selectedTerminologyServer?.label as string,
             baseUrl: body?.selectedTerminologyServer?.value?.url.toString() as string,
             basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString(
@@ -134,7 +134,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
           })
         }
 
-        const terminologyClientInstance = terminologyClient.getClient()
+        const terminologyClientInstance = await TerminologyFhirClient.getClient()
         if (terminologyClientInstance) {
           const serverIsVsac = isVsac(terminologyClientInstance)
           let url = selectedVS?.url as string

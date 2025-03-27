@@ -181,7 +181,6 @@ export default function ValueSetContents({
   const programUrl = programAndGrouperInfo?.program?.url
   const programVersion = programAndGrouperInfo?.program?.version
   return (
-    <Box>
       <Box sx={{ width: '100%', backgroundColor: 'var(--theme-100)', padding: '24px', maxWidth: maxFormWidth }}>
         <FormControl>
           <Grid item xs={12} sm={2}>
@@ -386,6 +385,5 @@ export default function ValueSetContents({
           isDraftProgram={isDraftProgram}
         />
       </Box>
-    </Box>
   )
 }

@@ -1,5 +1,5 @@
 import handler from '@/pages/api/conditions'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 jest.mock('fhir-kit-client')

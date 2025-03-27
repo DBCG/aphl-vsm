@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { KeyCloakClient, keyCloakClient } from '@/backend/clients/KeyCloakClient'
 import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerCredential'
 

@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { terminologyClient } from 'fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
 
 const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
@@ -19,13 +19,13 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
 
     const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => e?.id === endpointId)
   
-    terminologyClient.setCustomClient({
+    TerminologyFhirClient.setCustomClient({
       clientName: matchingEndpoint.name as string,
       baseUrl: matchingEndpoint.address as string,
       basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
     })
 
-    const activeTerminologyClient = await terminologyClient.getClient()
+    const activeTerminologyClient = await TerminologyFhirClient.getClient()
     if (activeTerminologyClient) {
       const serverResponse = await activeTerminologyClient.request('/metadata')
       // @ts-ignore

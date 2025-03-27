@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { GetServerSidePropsContext } from 'next'
 export type LibraryServerSideProps = {
   program: fhir4.Library

@@ -2,10 +2,9 @@
 // to download VS dependencies into the cache if they do not already exist
 // https://alphora.atlassian.net/browse/APHL-1187
 
-import FhirClient from '@/backend/clients/FhirClient'
-import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { QUEUE_REDIS_URL } from '@/config'
-import { terminologyClient } from '@/fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 
@@ -52,12 +51,7 @@ VSDownloadQueue.process(async function (job: any, done) {
     }
     Logger.getLogger().info(`${urlsToDownload.length} ValueSets to download to cache `)
 
-    const vsacClient = terminologyClient.getClient()
-    Logger.getLogger().debug(`Getting vsac creds for ${userId}`)
-    const creds = await tsCredentialService.getVsacCredentials(userId)
-
-    // @ts-ignore
-    vsacClient.customHeaders['Authorization'] = `Basic ${Buffer.from(creds.username + ':' + creds.password).toString('base64')}`
+    const vsacClient = await TerminologyFhirClient.getClient(userId)
     //Retrieve Valuesets from VSAC not cached in CQF
     Logger.getLogger().debug('Searching VSAC for ValueSets')
     const vsacResults = (await Promise.all(

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { AuthOptions } from "@/pages/api/auth/[...nextauth]"
 import { getServerSession } from 'next-auth/next'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'

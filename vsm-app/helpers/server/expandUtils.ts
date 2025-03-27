@@ -2,7 +2,7 @@ import FhirKitClient from 'fhir-kit-client'
 import { cloneDeep } from 'lodash'
 import { is } from '../is'
 import Logger from '@/helpers/server/logger'
-import { vsacFhirClient } from 'fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { extractOidFromUrl } from '@/utils'
 
 interface GrouperIdsByUrlItem {
@@ -342,17 +342,14 @@ const getExpandFetchOptions = (parameters: fhir4.Parameters) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...vsacFhirClient.customHeaders
       },
       body: JSON.stringify(parameters)
-    }
+    } as RequestInit
   } else {
     return {
       method: 'GET',
-      headers: {
-        ...vsacFhirClient.customHeaders
-      }
-    }
+      headers: {}
+    } as RequestInit
   }
 }
 

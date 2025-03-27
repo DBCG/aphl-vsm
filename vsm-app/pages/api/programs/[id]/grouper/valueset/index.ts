@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
-import { terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirCdrClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { deleteLeafsFromLibrary } from '@/helpers/libraryHelpers'
 import {
   addExtensionToVs,
@@ -468,12 +468,12 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
       }
   
       try {
-        terminologyClient.setCustomClient({
+        TerminologyFhirClient.setCustomClient({
           baseUrl: flatGrouperItem?.selectedTerminologyServer?.value?.url,
           clientName: flatGrouperItem?.selectedTerminologyServer?.label,
           basicAuthHeader: `${Buffer.from(`${matchingCredentialsForServer.username}:${matchingCredentialsForServer.password}`).toString('base64')}`
       })
-        const terminologyClientInstance = terminologyClient.getClient()
+        const terminologyClientInstance = await TerminologyFhirClient.getClient()
         // vsac appends version to the id, search by unversioned
         // must do a read operation to get whole valueset instead of subsetted
         const idNoVersion = idWithoutVersion(flatGrouperItem.selectedValueSet.id!)
@@ -513,7 +513,7 @@ const generateTransactionBundleEntriesToAddMissingValueSetsToServer = async ({
         logSimpleError(e, 'submitLeafUpdatesFromTermServers')
         return {
           resStatus: 400,
-          errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${flatGrouperItem.selectedTerminologyServer}`
+          errorMessage: `Error saving ValueSet '${flatGrouperItem.selectedValueSet.name}' from terminology server ${JSON.stringify(flatGrouperItem.selectedTerminologyServer)}`
         }
       }
     }

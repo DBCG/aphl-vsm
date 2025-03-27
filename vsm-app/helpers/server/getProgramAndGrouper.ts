@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 
 const WHITELIST_VALUESET_FIELDS = [
   'extension',

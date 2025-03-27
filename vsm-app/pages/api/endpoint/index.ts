@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import { FhirResource } from 'fhir-kit-client'

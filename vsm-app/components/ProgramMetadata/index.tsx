@@ -110,7 +110,6 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
             id="prog-title"
             label="Title"
             disabled={isSaving}
-            enableEditing={enableEditing}
             readonly={!editable || !enableEditing}
             defaultValue={title}
             onChange={(event) => handleFieldChange(event, 'title')}

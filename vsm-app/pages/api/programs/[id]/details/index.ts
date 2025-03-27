@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { splitCanonical } from '@/helpers/stringHelpers'
 import { SearchParams } from 'fhir-kit-client'
 import { fetchGrouperValueSets } from '@/helpers/server/serverValueSetHelper'

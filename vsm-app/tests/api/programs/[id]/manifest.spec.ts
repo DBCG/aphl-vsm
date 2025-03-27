@@ -1,6 +1,6 @@
 import { createMocks } from 'node-mocks-http'
-import { terminologyClient } from 'fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/pages/api/programs/[id]/manifest'
 
 // Mock Auth for Setup
@@ -15,7 +15,6 @@ jest.mock('next-auth/next', () => ({
   }))
 }))
 jest.mock('fhir-kit-client')
-jest.mock('fhirClients')
 
 describe('/api/programs/[id]/manifest', () => {
   test('GET /api/programs/[id]/manifest?url=, retrieves versions for manifest', async () => {
@@ -42,7 +41,7 @@ describe('/api/programs/[id]/manifest', () => {
       })
     }
 
-    terminologyClient.getClient = jest.fn().mockImplementation(() => vsacTerminologyClient)
+    TerminologyFhirClient.getClient = jest.fn().mockImplementation(() => vsacTerminologyClient)
     await handler(req, res)
     expect(vsacTerminologyClient.search).toHaveBeenCalledTimes(1)
     expect(vsacTerminologyClient.search).toHaveBeenCalledWith({
@@ -83,7 +82,7 @@ describe('/api/programs/[id]/manifest', () => {
       })
     }
 
-    terminologyClient.getClient = jest.fn().mockImplementation(() => fhirCdrClient)
+    TerminologyFhirClient.getClient = jest.fn().mockImplementation(() => fhirCdrClient)
 
     await handler(req, res)
     expect(fhirCdrClient.search).toHaveBeenCalledTimes(0)
@@ -118,7 +117,7 @@ describe('/api/programs/[id]/manifest', () => {
       date: '2021-10-01'
     })
 
-    terminologyClient.getClient = jest.fn().mockImplementation(() => FhirClient)
+    TerminologyFhirClient.getClient = jest.fn().mockImplementation(() => FhirClient)
 
     await handler(req, res)
     expect(FhirClient.getInstance().read).toHaveBeenCalledTimes(1)
