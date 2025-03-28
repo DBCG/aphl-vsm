@@ -54,8 +54,8 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse, session
     const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
     const url = vsacFhirClient?.baseUrl + `/ValueSet/${oid}/$expand`
     const fetchOptions = getExpandFetchOptions(parameters) as RequestInit
-    // @ts-ignore
-    fetchOptions.headers['Authorization'] = vsacFhirClient
+    fetchOptions.headers['Authorization'] = vsacFhirClient.customHeaders['Authorization']
+
     const response = await fetch(url, fetchOptions).then((i) => i.json())
     Logger.getLogger().debug(`Running $expand to vsac url: ${url} with these options: ${JSON.stringify(fetchOptions)}`)
 
