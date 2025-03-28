@@ -103,7 +103,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   }
 
   return (
-    <Form error={Boolean(errorFields.length)} key={key}>
+    <Form error={Boolean(errorFields.length)} style={{ padding: '1.8rem'}} key={key}>
       <Grid container spacing={2} style={{ maxWidth: '700px' }}>
         <Grid item xs={12} md={4}>
           <TextArea
