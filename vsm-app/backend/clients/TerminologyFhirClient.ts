@@ -48,7 +48,7 @@ class TerminologyClient {
     if (userId) {
       const creds = await tsCredentialService.getVsacCredentials(userId)
       this.setClientAuth(creds)
-    } else if (this.isAuthSet()) {
+    } else if (!this.isAuthSet()) {
       throw new Error('Terminology credentials are required to access the terminology server')
     }
 
