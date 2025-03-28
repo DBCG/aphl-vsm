@@ -20,6 +20,7 @@ const Input = styled(TextField)`
 
   & .Mui-readOnly {
     background: transparent !important;
+    padding: 0px;
   }
 
   & .Mui-readOnly::before {
