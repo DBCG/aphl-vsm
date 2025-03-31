@@ -1,4 +1,4 @@
-import FhirClient from "@/backend/clients/FhirClient"
+import FhirClient from "@/backend/clients/FhirCdrClient"
 import { is } from "../is"
 import { getGrouperLibraryCanonical } from "../libraryHelpers"
 import { fetchGrouperLibrary, fetchGrouperValueSets } from "./serverValueSetHelper"

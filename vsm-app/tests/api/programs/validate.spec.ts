@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler, { ValidateBody, ValidateErrorResponse } from '@/pages/api/programs/validate'
 import { NextApiResponse } from 'next'
 

@@ -69,6 +69,8 @@ const StatusActionNotification = ({ jobDetails, closeNotification }: StatusActio
           </ListItemIcon>
           <Stack sx={{ maxWidth: '300px' }}>
             <Typography variant="body1">Change Log has failed</Typography>
+            <Typography variant="caption">Base ID: {baseProgramId}</Typography>
+            <Typography variant="caption">Target ID: {targetProgramId}</Typography>
             <PopOverErrorMessage errorMessage={errorMessage} />
           </Stack>
           <ContentCopyIcon style={{ color: 'gray' }} />

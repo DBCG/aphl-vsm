@@ -1,6 +1,6 @@
 import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
-import FhirClient from '@/backend/clients/FhirClient'
-import { vsacFhirClient } from '@/fhirClients'
+import FhirClient from '@/backend/clients/FhirCdrClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { deleteValueSetReferencesFromLibrary, setVSConditions, setVSPriority, updateGrouperLeafs } from '@/helpers/libraryHelpers'
@@ -15,6 +15,7 @@ import { removeValueSetFromGrouper, updateAuthSource } from '@/helpers/valueSetH
 import { SearchParams } from 'fhir-kit-client'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getGrouperLibrary, getGrouperValuesets } from '@/helpers/server/serverLibraryHelper'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 interface Body extends CreateProvisionalVs {
   grouperIds: string[]
@@ -80,7 +81,7 @@ const transactionBuilder = (items: BuilderItem[]): fhir4.Bundle & {
 }
 
 // when the valueset is edited, must edit the underlying codeSystems if codes updated
-const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse) => {
+const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiResponse, session: VSMSession) => {
   try {
     const {
       author,
@@ -93,7 +94,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
       updatedPriority,
       provisionalVsIdForUpdate
     } = req.body
-
+    const userId = session?.user.id
     let codeSystemToEdit
     const systemUrls = Object.keys(codesBySystemToAdd)
 
@@ -116,6 +117,7 @@ const createOrEditProvisionalValueSet = async (req: ReqInfo, res: NextApiRespons
         const updatedCS = updateCsCodes({ codeSystem: codeSystemToEdit, codeItems: codesBySystemToAdd[systemUrl], action: 'add' })
         resourcesToSaveFirst.push({ resource: updatedCS, method: 'PUT' })
       } else {
+        const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
         const codeSystemFromTermServer = await vsacFhirClient.search({
           resourceType: 'CodeSystem',
           searchParams: {

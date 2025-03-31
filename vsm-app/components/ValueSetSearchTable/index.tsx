@@ -477,7 +477,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                 </DropdownContainer>
                 <TextAreaSubmitContainer>
                   <TextArea
-                    style={{ width: '100%' }}
+                    style={{ width: '50%' }}
                     onKeyPress={(e) => {
                       e.preventDefault()
                       submitVSetSearch({ searchContext: 'search' })
@@ -485,12 +485,13 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
                     onChange={(e) => setSearchTerm(e.target.value)}
                     id="vs-search"
                     label="Search Text"
+                    readonly={false}
                     info={searchInfoText[searchType.value]}
                     helperMessage={searchType.value === 'url' ? '* must search by full URL' : null}
                     errorMessage={errorMessageComponent}
                   />
                   <IconButton
-                    style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
+                    style={{ alignSelf: 'center', marginTop: '20px', height: '40px', borderRadius: '0 8px 8px 0' }}
                     id={'submit-search-valueset-button'}
                     disabled={searchTerm.length < 3 || searchTerm.length === 0}
                     buttoncontext="search"

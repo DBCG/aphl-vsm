@@ -14,7 +14,7 @@ import { priorityLevelOptions } from '@/components/ProgramValueSetDetails'
 import { SelectInputContainer } from '@/components/ProgramValueSetDetails/styles'
 import { reactSelectOptionStyle } from './styleOverrides/reactSelect'
 import { customTableStyles } from './tables/themes'
-import { TextArea } from './TextArea'
+import { TextArea } from '@/components/TextArea'
 import { ConditionItem } from '@/components/ValueSetSearchTable/types'
 import { StyledForm, Row, DropdownContainer, TextAreaSubmitContainer, NoData } from '@/components/ValueSetSearchTable/styles'
 import { searchTypes } from '@/components/ValueSetSearchTable'
@@ -288,11 +288,12 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
                 style={{ width: '100%' }}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 id="vs-search"
+                readonly={false}
                 label="Search Text"
                 hasIcon={true}
               />
               <IconButton
-                style={{ alignSelf: 'center', height: '56px', borderRadius: '0 8px 8px 0' }}
+                style={{ alignSelf: 'center', marginTop: '20px', height: '40px', borderRadius: '0 8px 8px 0' }}
                 id={'submit-search-valueset-button'}
                 disabled={!searchTerm || searchTerm.trim().length < 0}
                 buttoncontext="search"

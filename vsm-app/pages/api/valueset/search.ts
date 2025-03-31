@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { terminologyClient } from 'fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import retry from 'helpers/retryRequest'
 import { SearchParams } from 'fhir-kit-client'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { VSMSession } from '@/helpers/rolesHelper'
 export interface FetchError {
   errorType: 'oid-error' | 'failed-oids' | 'server-error' | 'fetch-error' | ''
@@ -61,31 +61,30 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
   }
   try {
     // set the terminology client to be VSAC or other
-    if (terminologyServer === 'vsac') {
-      terminologyClient.setClient('vsac')
-    } else {
-      const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
-      const endpointResource = await new FhirClient().getTerminologyServer(terminologyServer)
-      Logger.getLogger().info(`User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`)
-      const baseUrl = new URL(endpointResource?.address)
-      if (endpointResource?.address == null) {
-        throw new Error('Terminology server address is not set')
-      }
-
-      try {
-        terminologyClient.setCustomClient({
-          clientName: endpointResource.name as string,
-          baseUrl: baseUrl.toString(),
-          basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
-        })
-      } catch (e) {
-        // IMPORTANT: If something goes wrong with setting the auth header we should protect the user's data
-        // from being logged, hence this catch block        
-        Logger.getLogger().error(`Something went wrong with setting the custom client for ${terminologyServer} and user ${session.user.id}`) 
-        return res.status(500).json({ 'server-error': 'ValueSet search failed.' })
-      }
+    const authCredentials = await tsCredentialService.getCredentials(session.user.id, terminologyServer)
+    const endpointResource = await new FhirClient().getTerminologyServer(terminologyServer)
+    Logger.getLogger().info(
+      `User ${session.user.id} is searching for ValueSets on ${terminologyServer} and url: ${endpointResource?.address}`
+    )
+    const baseUrl = new URL(endpointResource?.address)
+    if (endpointResource?.address == null) {
+      throw new Error('Terminology server address is not set')
     }
-    const activeTerminologyClient = terminologyClient.getClient()
+
+    try {
+      TerminologyFhirClient.setCustomClient({
+        clientName: endpointResource.name as string,
+        baseUrl: baseUrl.toString(),
+        basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
+      })
+    } catch (e) {
+      // IMPORTANT: If something goes wrong with setting the auth header we should protect the user's data
+      // from being logged, hence this catch block
+      Logger.getLogger().error(`Something went wrong with setting the custom client for ${terminologyServer} and user ${session.user.id}`)
+      return res.status(500).json({ 'server-error': 'ValueSet search failed.' })
+    }
+
+    const activeTerminologyClient = await TerminologyFhirClient.getClient()
     let searchParams: SearchParams
     switch (searchType) {
       case 'title':
@@ -212,13 +211,13 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
               // since VSAC doesn't support _sort parameter
               // and when searching by URL we only want one latest response
               // sort here by version, return only single latest result
-              const sortedEntries = serverResponse.entry.length > 1
-                ? serverResponse.entry
-                  .sort((a: any, b: any) => {
-                    return b.resource.version.localeCompare(a.resource.version)
-                  })
-                // don't need to sort if only 1 item
-                : serverResponse.entry
+              const sortedEntries =
+                serverResponse.entry.length > 1
+                  ? serverResponse.entry.sort((a: any, b: any) => {
+                      return b.resource.version.localeCompare(a.resource.version)
+                    })
+                  : // don't need to sort if only 1 item
+                    serverResponse.entry
 
               // only return first, latest item
               const latest = [sortedEntries[0]]

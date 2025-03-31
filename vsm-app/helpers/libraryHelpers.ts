@@ -2,7 +2,7 @@ import { cloneDeep } from 'lodash'
 import { capitalizeFirstLetter, generateNameFromTitle } from './stringHelpers'
 import { Condition } from './conditionHelpers'
 import { urlWithoutPinnedVersion } from './valueSetHelpers'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 
 interface RelatedArtifactItem {
   url: string

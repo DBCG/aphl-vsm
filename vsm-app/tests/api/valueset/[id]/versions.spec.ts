@@ -1,6 +1,6 @@
 import { createMocks } from 'node-mocks-http'
-import FhirClient from '@/backend/clients/FhirClient'
-import { terminologyClient } from 'fhirClients'
+import FhirClient from '@/backend/clients/FhirCdrClient'
+import { terminologyClient } from '@/backend/clients/TerminologyFhirClient'
 import handler from '@/pages/api/valueset/[id]/versions'
 
 // Mock Auth for Setup

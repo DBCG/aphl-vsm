@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { vsacFhirClient } from 'fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import { findMatchingVsetUrls } from '@/helpers/server/expandUtils'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 export interface ExpandRequest extends NextApiRequest {
   body: {
@@ -16,7 +17,8 @@ export interface ExpandRequest extends NextApiRequest {
 }
 
 // perhaps simplify the requests by using the data that's in the FE for the table?
-const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiResponse) => {
+const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiResponse, session: VSMSession) => {
+  const userId = session?.user.id
   try {
     const parameters: fhir4.Parameters = {
       resourceType: 'Parameters',
@@ -43,6 +45,7 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
       const codeToFind = req?.body?.codeToFind
 
       if (codeToFind) {
+        const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
         const matchingVsUrlsCodes = await findMatchingVsetUrls({
           fhirCdrClient: FhirClient.getInstance(),
           vsacFhirClient,
@@ -61,6 +64,7 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
       return res.status(400).json({ error: 'Invalid request.' })
     }
   } catch (e: any) {
+    console.log('error', e)
     Logger.getLogger().error('error in expandValueSets:  \n' + JSON.stringify(e, null, 2))
     res.status(404).json({ error: 'No results for expansion parameters.' })
   }

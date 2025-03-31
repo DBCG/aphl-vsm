@@ -1,5 +1,5 @@
 import ExcelJS from 'exceljs'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVsSteward, getVsAuthor, getOid } from '@/helpers/valueSetHelpers'
 import { startCase, times, uniq } from 'lodash'
 import { Agent, fetch as f } from 'undici'

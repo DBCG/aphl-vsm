@@ -391,7 +391,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         selector: (row: TableRow) => row.valueSet.title,
         style: { fontSize: '14px' },
         sortable: false,
-        maxWidth: '350px',
+        minWidth: '200px',
         wrap: true,
         cell: (row: TableRow) => {
           let href = `/programs/${currentProgram?.id}/valuesets/${row?.valueSet?.id}`
@@ -417,7 +417,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         selector: (row: TableRow) => row?.valueSet?.url?.split?.('/ValueSet/')?.[1] || '',
         sortable: false,
         style: { fontSize: '12px' },
-        maxWidth: '225px',
+        minWidth: '225px',
         wrap: true
       },
       {
@@ -428,6 +428,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
               menuPlacement="bottom"
               placeholder="Filter Priority"
               classNamePrefix="priority-filter"
+              isClearable={false}
               inputId="priority-filter"
               instanceId="priority-filter"
               isMulti
@@ -445,7 +446,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         id: 'value-set-priority',
         sortable: false,
         allowOverflow: true,
-        maxWidth: '150px',
         wrap: true,
         cell: (row: TableRow, index: number) => {
           const priorityKey = row?.valueSet?.url ?? ''
@@ -491,7 +491,6 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         ),
         id: 'vs-version-search',
         sortable: false,
-        maxWidth: '160px',
         wrap: true,
         cell: (row: TableRow) => {
           if (!isEditable) {
@@ -547,8 +546,8 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         ),
         selector: (row: TableRow) => row.publisher,
         style: { fontSize: '12px' },
+        maxWidth: '60px',
         sortable: true,
-        maxWidth: '120px',
         wrap: true
       },
       {
@@ -560,7 +559,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
         selector: (row: TableRow) => getVsSteward(row.valueSet),
         style: { fontSize: '12px' },
         sortable: false,
-        maxWidth: '120px',
+        maxWidth: '60px',
         wrap: true
       },
       {
@@ -571,7 +570,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           </div>
         ),
         sortable: true,
-        maxWidth: '100px',
+        maxWidth: '60px',
         wrap: true,
         cell: (row: TableRow) => {
           var errors: string[] = []

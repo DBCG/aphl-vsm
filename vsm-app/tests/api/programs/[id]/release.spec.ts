@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler, { ReleaseRequest } from '@/pages/api/programs/[id]/release'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import { NextApiRequest, NextApiResponse } from 'next'

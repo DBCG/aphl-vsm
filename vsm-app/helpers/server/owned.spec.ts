@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import updateOwnedResources from './owned'
 
 jest.mock('fhir-kit-client')

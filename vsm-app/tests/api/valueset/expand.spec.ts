@@ -1,9 +1,9 @@
 import handler, { ExpandRequest } from 'pages/api/valueset/[id]/expand'
 import { createMocks } from 'node-mocks-http'
 import fetchMock from 'jest-fetch-mock'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { NextApiResponse } from 'next'
-
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
@@ -54,8 +54,16 @@ describe('pages/api/valueset/[id]/expand', () => {
         ]
       }
     })
+    TerminologyFhirClient.getClient = jest.fn().mockResolvedValue({
+      baseUrl: 'http://cts.nlm.nih.gov/fhir',
+      customHeaders: {
+        'Authorization': 'Basic testUser:testPass'
+      }
+    })
     await handler(req, res)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+    console.log(fetchMock.mock.calls[0][1])
+    expect(fetchMock.mock.calls[0][1]?.headers['Authorization']).toBe('Basic testUser:testPass')
     expect(fetchMock.mock.calls[0][0]).toContain('ValueSet/2.32.33.44.22.55/$expand')
     expect(fetchMock.mock.calls[0][1]?.method).toBe('POST')
 

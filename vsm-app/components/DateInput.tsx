@@ -1,10 +1,12 @@
-import { TextArea } from './TextArea'
+import { TextArea } from '@/components/TextArea'
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { IconButton, Box } from '@mui/material'
 import CancelIcon from '@mui/icons-material/Cancel'
 import dayjs from 'dayjs'
+import Input from 'react-select/dist/declarations/src/components/Input'
+import { StyledLabel } from './InputLabel'
 
 interface DateInputProps {
   readonly: boolean
@@ -41,7 +43,8 @@ const DateInput = ({
           style={{ flexBasis: '100%', maxWidth: '624px' }}
         />
       ) : (
-        <Box id="datePicker" sx={{ width: '100%' }}>
+        <Box id="datePicker" sx={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+          <StyledLabel htmlFor={props.id} required={true} enableEditing={true}>{label}</StyledLabel>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DesktopDatePicker
               {...props}
@@ -49,10 +52,8 @@ const DateInput = ({
               format={'YYYY-MM-DD'}
               sx={{
                 backgroundColor: 'white',
-                label: { color: 'var(--theme-400)' },
                 fieldset: { borderColor: 'transparent', borderBottom: '2px  solid var(--theme-300)' }
               }}
-              label={label}
               value={defaultValue ? dayjs(defaultValue) : null}
               onChange={onChange}
               disablePast={disablePast}

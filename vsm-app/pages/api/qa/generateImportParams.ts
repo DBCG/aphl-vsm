@@ -1,7 +1,7 @@
 import handler from '@/helpers/server/handler'
 import ersd from '@/helpers/server/templates/ersd-1.2.2.0.json'
 import { generateImportBundle } from '@/helpers/server/generateImportBundle'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { incrementSemver } from '@/utils'
 import { NextApiRequest, NextApiResponse } from 'next/types'
 import { is } from '@/helpers/is'

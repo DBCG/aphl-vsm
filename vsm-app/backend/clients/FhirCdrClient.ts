@@ -6,12 +6,12 @@ import Logger from '@/helpers/server/logger'
 const { FHIR_CDR_URL, FHIR_CDR_BASIC_AUTH_USERNAME, FHIR_CDR_BASIC_AUTH_PASSWORD } = process.env as Record<string, string>
 const fhirCdrAuthString = `${FHIR_CDR_BASIC_AUTH_USERNAME}:${FHIR_CDR_BASIC_AUTH_PASSWORD}`
 
-class FhirClient {
-  private static instance: FhirClient
+class FhirCdrClient {
+  private static instance: FhirCdrClient
   static client: any
 
   constructor() {
-    FhirClient.client = new FhirKitClient({
+    FhirCdrClient.client = new FhirKitClient({
       baseUrl: FHIR_CDR_URL,
       customHeaders: {
         'Accept': 'Application/fhir+json',
@@ -31,14 +31,14 @@ class FhirClient {
 
   public static getInstance(): Client {
     if (!this.instance) {
-      this.instance = new FhirClient()
+      this.instance = new FhirCdrClient()
     }
 
     return this.getClient()
   }
 
   async getTerminologyServers(): Promise<Endpoint[]> {
-    const endpointBundle = (await FhirClient.getInstance().search({
+    const endpointBundle = (await FhirCdrClient.getInstance().search({
       resourceType: 'Endpoint',
       searchParams: {
         _total: 'accurate',
@@ -50,18 +50,18 @@ class FhirClient {
   }
 
   async getTerminologyServer(id: string): Promise<Endpoint> {
-    return (await FhirClient.getInstance().read({
+    return (await FhirCdrClient.getInstance().read({
       resourceType: 'Endpoint',
       id: id
     })) as fhir4.Endpoint
   }
 
   async getVSACTerminologyServer(): Promise<Endpoint> {
-    return (await FhirClient.getInstance().read({
+    return (await FhirCdrClient.getInstance().read({
       resourceType: 'Endpoint',
       id: 'vsac' // TODO: hard-coded, we should double check seed data always adds this as ID
     })) as fhir4.Endpoint
   }
 }
 
-export default FhirClient
+export default FhirCdrClient

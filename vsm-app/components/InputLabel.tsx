@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled, { css } from 'styled-components';
 import { InputLabel as MuiInputLabel } from '@mui/material'
 import Image from 'next/image'
 
@@ -8,7 +8,6 @@ interface LabelProps {
   required?: boolean
   readonly?: boolean
   info?: string
-  children: JSX.Element | string
 }
 
 const TooltipContainer = styled.div`
@@ -42,12 +41,25 @@ export const ErrorMessage = styled.p`
   font-size: 80%;
 `
 
-export const StyledLabel = styled.label`
+interface StyledLabelProps {
+  required?: boolean;
+  enableEditing?: boolean;
+}
+
+export const StyledLabel = styled.label<StyledLabelProps>`
   margin-bottom: 6px;
   font-size: 14px;
   color: var(--theme-500);
   display: inline-block;
-`
+
+  ${props => (props.required && props.enableEditing) &&
+    css`
+      &::after {
+        content: ' *';
+        color: red;
+      }
+    `}
+`;
 
 interface ReadOnlyContainerProps {
   minWidth?: number

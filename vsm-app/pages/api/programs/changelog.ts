@@ -5,7 +5,7 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import Logger from '@/helpers/server/logger'
 import cache from '@/cache'
 import { JOB_TYPE } from '@/constants'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { CompareJobMetadata } from '@/types/jobTypes'
 
 const shouldReprocess = async (

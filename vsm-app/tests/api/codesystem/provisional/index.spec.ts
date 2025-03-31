@@ -1,5 +1,5 @@
 import { createMocks } from 'node-mocks-http'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/pages/api/codesystem/provisional'
 
 jest.mock('fhir-kit-client')

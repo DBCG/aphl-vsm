@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { addValueSetToGrouper, removeValueSetFromGrouper, updateLeafVsVersion } from '@/helpers/valueSetHelpers'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'

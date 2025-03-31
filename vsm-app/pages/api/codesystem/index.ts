@@ -1,4 +1,5 @@
-import { vsacFhirClient } from '@/fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -11,9 +12,10 @@ interface ProvisionalReqGet extends NextApiRequest {
   body: GetBody
 }
 export type CodeSystemCapabilityReturn = { uri?: string; name?: string }[] | { error: string }
-const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse<CodeSystemCapabilityReturn>) => {
+const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse<CodeSystemCapabilityReturn>, session: VSMSession) => {
   try {
-
+    const userId = session.user.id
+    const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
     const response = await vsacFhirClient.capabilityStatement() as fhir4.CapabilityStatement
     const flattened = response.extension?.map((r) => r.extension)
     const availableCs = flattened?.map((i) => {

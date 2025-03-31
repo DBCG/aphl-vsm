@@ -9,10 +9,9 @@ import { useGetProvisionalVS } from '@/hooks/useGetProvisionalVS'
 import { useGetProvisionalContext } from '@/hooks/useGetProvisionalContext'
 import { reactSelectOptionStyle } from '@/components/styleOverrides/reactSelect'
 import { useGetCS } from '@/hooks/useGetCodeSystems'
-import { set, uniqBy } from 'lodash'
+import { uniqBy } from 'lodash'
 import { cloneDeep } from 'lodash'
 import { useRouter } from 'next/router'
-import { SearchInput } from '@/components/SearchInput'
 import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
 import { VSMSession, can } from '@/helpers/rolesHelper'
@@ -785,7 +784,7 @@ const ProvisionalVSEdit = () => {
                 <div>
                   <p>{`Add New Codes to ${selectedCodeSystemBase.label} to include in your Value Set`}</p>
                   <QuestionnaireRowContainer>
-                    <SearchInput
+                    <TextArea
                       label='Code'
                       disabled={loading}
                       required={true}
@@ -799,7 +798,7 @@ const ProvisionalVSEdit = () => {
                       style={{ minWidth: '20rem' }}
                       errorMessage={codeError?.message}
                     />
-                    <SearchInput
+                    <TextArea
                       label='Display'
                       required={true}
                       disabled={loading}

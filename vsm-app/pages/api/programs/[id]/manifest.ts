@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { terminologyClient } from 'fhirClients'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import handler from '@/helpers/server/handler'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getProgramManifestVersions, isGrouperValueSet, setExpansionParameters } from '@/helpers/valueSetHelpers'
 import Logger from '@/helpers/server/logger'
 import { uniqBy } from 'lodash'
@@ -10,13 +10,14 @@ import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper
 import { Agent, fetch as f } from 'undici'
 import { is } from '@/helpers/is'
 import { VSMSession } from '@/helpers/rolesHelper'
+import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
-const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) => {
-  terminologyClient.setClient('vsac')
-  const activeTerminologyClient = terminologyClient.getClient()
+const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
+  const userId = session.user.id
+  const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
   try {
     if (req.query.url) {
-      const results = await activeTerminologyClient?.search({
+      const results = await vsacFhirClient?.search({
         resourceType: 'CodeSystem',
         searchParams: {
           system: req.query.url
@@ -34,7 +35,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse) =>
       return res.status(200).json(versions)
     }
 
-    const terminologyCapabilityStatement = await activeTerminologyClient?.capabilityStatement()
+    const terminologyCapabilityStatement = await vsacFhirClient?.capabilityStatement()
     const availableCodeSystems = terminologyCapabilityStatement?.extension
       ?.map((ext: fhir4.Extension) => {
         let uri, name, latestVersion
@@ -113,10 +114,9 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string, userId: st
   })
 
   codeSystemsList = uniqBy(codeSystemsList, 'system').filter((i) => i)
-  terminologyClient.setClient('vsac')
-  const activeTerminologyClient = terminologyClient.getClient()
+  const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
   Logger.getLogger().info('Looking up latest versions for: ' + codeSystemsList.map((i: any) => i?.system))
-  const latestVersions = await activeTerminologyClient?.batch({
+  const latestVersions = await vsacFhirClient?.batch({
     body: {
       resourceType: 'Bundle',
       type: 'batch',
@@ -149,16 +149,16 @@ const collectCodeSystemsFromLeafValuesets = async (programId: string, userId: st
 }
 
 const getAvailableLatestVersionsFromLeafValueSets = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession ) => {
+  const userId = session.user.id
   try {
     if (req.query.leafValueSets) {
       const programId = req.query.id as string
 
       // Check all leaf ValueSets and collect their CodeSystem's
-      const list = await collectCodeSystemsFromLeafValuesets(programId, session.user.id)
+      const list = await collectCodeSystemsFromLeafValuesets(programId, userId)
       return res.status(200).json(list)
     } else {
-      terminologyClient.setClient('vsac')
-      const activeTerminologyClient = terminologyClient.getClient()
+      const activeTerminologyClient = await TerminologyFhirClient.getClient(userId)
       const latestVersions = await activeTerminologyClient?.batch({
         body: {
           resourceType: 'Bundle',

@@ -1,4 +1,4 @@
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { Condition } from '@/helpers/conditionHelpers'
 import { setVSPriority, setVSConditions, updateGrouperLeafs } from '@/helpers/libraryHelpers'
 import handler from '@/helpers/server/handler'

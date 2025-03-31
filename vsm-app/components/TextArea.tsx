@@ -2,14 +2,25 @@ import styled from 'styled-components'
 import { TextField, Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { MutableRefObject } from 'react'
+import { StyledLabel } from './InputLabel'
 
 const Input = styled(TextField)`
+  & .MuiFilledInput-input {
+    padding: 7px 7px;
+  }
+
+  & .MuiInputBase-root {
+    background: white !important;
+  }
+
   & .MuiInputBase-multiline {
+    padding: 0px;
     background: white !important;
   }
 
   & .Mui-readOnly {
     background: transparent !important;
+    padding: 0px;
   }
 
   & .Mui-readOnly::before {
@@ -26,11 +37,6 @@ const Container = styled.div`
   flex-direction: column;
 `
 
-const FlexRow = styled.div`
-  display: flex;
-  flex-direction: row;
-`
-
 interface Props {
   placeholder?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement> & React.ChangeEventHandler<HTMLTextAreaElement>
@@ -42,6 +48,7 @@ interface Props {
   maxInputHeight?: number
   hasIcon?: boolean
   disabled?: boolean
+  multiline?: boolean
   info?: string
   readonly?: boolean
   style?: React.CSSProperties
@@ -58,6 +65,7 @@ const TextArea = ({
   label,
   required = false,
   id,
+  multiline = false,
   defaultValue,
   disabled = false,
   readonly = false,
@@ -69,38 +77,38 @@ const TextArea = ({
 }: Props) => {
   return (
     <Container style={style}>
-      <>
-        <Input
-          id={id}
-          label={label}
-          name={id}
-          disabled={disabled}
-          variant="filled"
-          InputLabelProps={{ shrink: true }}
-          helperText={errorMessage || helperMessage}
-          error={!!errorMessage}
-          required={required}
-          InputProps={{
-            readOnly: readonly,
-            endAdornment: helperMessage ? (
-              <Tooltip title={helperMessage} placement="top" arrow>
-                <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
-              </Tooltip>
-            ) : null
-          }}
-          placeholder={placeholder}
-          value={value}
-          multiline
-          onChange={onChange}
-          defaultValue={defaultValue}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
-              return onKeyPress(e)
-            }
-          }}
-          inputRef={inputRef}
-        />
-      </>
+      <StyledLabel htmlFor={id} enableEditing={!readonly} required={required}>
+        {label}
+      </StyledLabel>
+      <Input
+        id={id}
+        name={id}
+        disabled={disabled}
+        variant="filled"
+        InputLabelProps={{ shrink: true }}
+        helperText={errorMessage}
+        error={!!errorMessage}
+        required={required}
+        InputProps={{
+          readOnly: readonly,
+          endAdornment: helperMessage ? (
+            <Tooltip title={helperMessage} placement="top" arrow>
+              <InfoIcon sx={{ color: 'var(--theme-400)', width: '20px', height: '20px' }} />
+            </Tooltip>
+          ) : null
+        }}
+        placeholder={placeholder}
+        value={value}
+        multiline={multiline}
+        onChange={onChange}
+        defaultValue={defaultValue}
+        onKeyPress={(e) => {
+          if (e.key === 'Enter' && e.shiftKey == false && onKeyPress) {
+            return onKeyPress(e)
+          }
+        }}
+        inputRef={inputRef}
+      />
     </Container>
   )
 }

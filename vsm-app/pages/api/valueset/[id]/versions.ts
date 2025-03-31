@@ -1,6 +1,6 @@
 import { is } from '@/helpers/is'
-import { terminologyClient } from 'fhirClients'
-import FhirClient from '@/backend/clients/FhirClient'
+import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { VSMSession } from '@/helpers/rolesHelper'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
@@ -58,14 +58,14 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
   const authCredentials = await tsCredentialService.getCredentials(session.user.id, matchingEndpoint?.id as string)
   let baseTermServerUrl = matchingEndpoint?.address?.toString()
 
-  terminologyClient.setCustomClient({
+  TerminologyFhirClient.setCustomClient({
     baseUrl: baseTermServerUrl,
     clientName: matchingEndpoint?.name?.toString(),
     basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
   })
 
   // if the terminology server exists, set the terminology server to use that data source
-  const terminologyClientInstance = terminologyClient.getClient()
+  const terminologyClientInstance = await TerminologyFhirClient.getClient()
 
   let matchingVSetsFromTermServer
 

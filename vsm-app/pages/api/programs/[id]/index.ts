@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirClient'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import { is } from '@/helpers/is'
 import handler from '@/helpers/server/handler'
 import { HapiError } from '@/types/hapiError'
