@@ -48,7 +48,7 @@ for namespace in "${namespaces[@]}"; do
   if ! kubectl get namespaces | grep $namespace ; then
     kubectl create namespace $namespace
   fi
-  values_file=$([[ "$namespace" == "vsm" ]] && echo "$k8s_dir/values.yaml" || echo "$k8s_dir/values.qa.yaml")
+  values_file=$([[ "$namespace" == "vsm" ]] && echo "$k8s_dir/values.dev.yaml" || echo "$k8s_dir/values.qa.yaml")
 
   if helm list -n $namespace | grep -q "$helm_chart_name"; then
     echo "Upgrading old stack ${helm_chart_name}"
