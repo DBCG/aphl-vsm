@@ -56,7 +56,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.waitForTimeout(1000); // Wait for the date picker to open fully
     await page.getByRole("button", { name: "Today", exact: true }).click();
 
-    const descriptionField = await page.getByRole("textbox", { name: "Description", exact: true });
+    const descriptionField = await page.getByRole("textbox", { name: "Description *", exact: true });
     await descriptionField.click();
     await descriptionField.clear();
     await descriptionField.fill("new description");
@@ -115,15 +115,15 @@ test.describe.serial("Smoke Tests", () => {
 
     // Create New Grouper
     await page.getByRole("button", { name: "Create New Grouper" }).click();
-    await page.getByRole("textbox", { name: "Title Title" }).click();
-    await page.getByRole("textbox", { name: "Title Title" }).fill("excellent title for grouper");
-    await page.getByRole("textbox", { name: "Purpose Purpose" }).click();
-    await page.getByRole("textbox", { name: "Purpose Purpose" }).fill("To group valuesets together");
-    await page.getByRole("textbox", { name: "Author Author" }).fill("test author");
-    await page.getByRole("textbox", { name: "Publisher/Steward Publisher/" }).click();
-    await page.getByRole("textbox", { name: "Publisher/Steward Publisher/" }).fill("test publisher");
-    await page.getByRole("textbox", { name: "Description Description" }).click();
-    await page.getByRole("textbox", { name: "Description Description" }).fill("a description of the grouper");
+    await page.getByRole("textbox", { name: "Title * Title" }).click();
+    await page.getByRole("textbox", { name: "Title * Title" }).fill("excellent title for grouper");
+    await page.getByRole("textbox", { name: "Purpose * Purpose" }).click();
+    await page.getByRole("textbox", { name: "Purpose * Purpose" }).fill("To group valuesets together");
+    await page.getByRole("textbox", { name: "Author * Author" }).fill("test author");
+    await page.getByRole("textbox", { name: "Publisher/Steward * Publisher/" }).click();
+    await page.getByRole("textbox", { name: "Publisher/Steward * Publisher/" }).fill("test publisher");
+    await page.getByRole("textbox", { name: "Description * Description" }).click();
+    await page.getByRole("textbox", { name: "Description * Description" }).fill("a description of the grouper");
     await page
       .locator("div")
       .filter({ hasText: /^Terminology SourceSelect\.\.\.$/ })
@@ -427,10 +427,10 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("button", { name: "+ Create New" }).first().click();
     await page.locator("#code-system-url-selector").click();
     await page.getByText("CPT").click();
-    await page.getByRole("textbox", { name: "Code", exact: true }).click();
-    await page.getByRole("textbox", { name: "Code", exact: true }).fill("CPTCode");
-    await page.getByRole("textbox", { name: "Display" }).click();
-    await page.getByRole("textbox", { name: "Display" }).fill("CPTDisplay");
+    await page.getByRole("textbox", { name: "Code *", exact: true }).click();
+    await page.getByRole("textbox", { name: "Code *", exact: true }).fill("CPTCode");
+    await page.getByRole("textbox", { name: "Display *" }).click();
+    await page.getByRole("textbox", { name: "Display *" }).fill("CPTDisplay");
     await page.getByRole("textbox", { name: "Definition (more detail about" }).click();
     await page.getByRole("textbox", { name: "Definition (more detail about" }).fill("CptDefinition");
     await page.getByRole("button", { name: "Add to List" }).click();
@@ -449,7 +449,7 @@ test.describe.serial("Smoke Tests", () => {
     await page.getByRole("textbox", { name: "Steward" }).click();
     await page.getByRole("textbox", { name: "Steward" }).fill("provsSteward");
     await page.locator("#code-system-url-selector").click();
-    await page.getByText("CPT").click();
+    await page.getByText("CPT", { exact: true }).click();
     await page.getByRole("checkbox", { name: "select-row-CPTCode" }).check();
     await page.getByRole("button", { name: "Add to Staging" }).click();
     await page.getByRole("button", { name: "Create Provisional Value Set" }).click();

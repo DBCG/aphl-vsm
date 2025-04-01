@@ -702,6 +702,7 @@ const ProvisionalVSEdit = () => {
           <QuestionnaireRowContainer style={{ marginTop: '0.5rem' }}>
             <TextArea
               label='Title'
+              id="title"
               required={true}
               disabled={loading}
               readonly={!can(session, 'edit')}
@@ -716,6 +717,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Author'
+              id="author"
               disabled={loading}
               readonly={!can(session, 'edit')}
               required={true}
@@ -730,6 +732,7 @@ const ProvisionalVSEdit = () => {
             />
             <TextArea
               label='Steward'
+              id="steward"
               disabled={loading}
               readonly={!can(session, 'edit')}
               required={true}
@@ -786,6 +789,7 @@ const ProvisionalVSEdit = () => {
                   <QuestionnaireRowContainer>
                     <TextArea
                       label='Code'
+                      id="code"
                       disabled={loading}
                       required={true}
                       onChange={(e) => {
@@ -800,6 +804,7 @@ const ProvisionalVSEdit = () => {
                     />
                     <TextArea
                       label='Display'
+                      id="display"
                       required={true}
                       disabled={loading}
                       onChange={(e) => {
@@ -813,6 +818,7 @@ const ProvisionalVSEdit = () => {
                     />
                     <TextArea
                       label='Definition (more detail about this code)'
+                      id="definition"
                       required={true}
                       disabled={loading}
                       onChange={(e) => {

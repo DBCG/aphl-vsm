@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { FormControl, Grid } from '@mui/material'
 import { ValueSetSearchTable } from '@/components/ValueSetSearchTable'
-import { SearchInput } from '@/components/SearchInput'
 import { TextArea } from '@/components/TextArea'
 import { useRouter } from 'next/router'
 import { Button } from '@/components/buttons/Button'

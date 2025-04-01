@@ -157,6 +157,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: ExistingCodesTab
             return (
               <TextArea
                 label='Code'
+                id="code"
                 required={true}
                 onChange={(e) => {
                   setUpdatedCodeItem((item) => {
@@ -184,6 +185,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: ExistingCodesTab
             return (
               <TextArea
                 label='Update Display'
+                id="update-display"
                 required={true}
                 onChange={(e) => {
                   setUpdatedCodeItem((item) => {
@@ -212,6 +214,7 @@ const ExistingCodesTable = ({ codeSystem, isEditable, mutate }: ExistingCodesTab
             return (
               <TextArea
                 label='Update Definition'
+                id="update-definition"
                 required={true}
                 onChange={(e) => {
                   setUpdatedCodeItem((item) => {
