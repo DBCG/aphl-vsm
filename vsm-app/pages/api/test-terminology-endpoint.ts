@@ -19,6 +19,11 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
 
     const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => e?.id === endpointId)
   
+    // early return if no matching endpoint exists
+    if (!matchingEndpoint) {
+      return res.status(500).json({ error: 'No active terminology server endpoint' })
+    }
+
     TerminologyFhirClient.setCustomClient({
       clientName: matchingEndpoint.name as string,
       baseUrl: matchingEndpoint.address as string,
