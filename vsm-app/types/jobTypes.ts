@@ -1,7 +1,7 @@
 export interface JobData {
   jobId: string
   status: "FAILED" | "COMPLETED" | "IN_PROGRESS";
-  metadata?: string | ExportJobMetadata | CompareJobMetadata
+  metadata?: string | ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
   type: string
   error?: string
 }
@@ -13,6 +13,11 @@ export interface ExportJobMetadata {
   filename: string
   isJson: boolean
   programTitle: string
+}
+
+export interface ReleaseJobMetadata {
+  programId: string
+  latestFromTxServer: boolean
 }
 
 export interface CompareJobMetadata {

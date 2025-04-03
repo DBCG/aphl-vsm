@@ -14,5 +14,6 @@ export const JOB_STATUS = {
 
 export const JOB_TYPE = {
   EXPORT: 'EXPORT',
-  CHANGE_LOG: 'CHANGE_LOG'
+  CHANGE_LOG: 'CHANGE_LOG',
+  RELEASE: 'RELEASE'
 }

@@ -1,8 +1,16 @@
 import Redis, { RedisOptions } from 'ioredis'
 import Logger from '@/helpers/server/logger'
-
+import { JOB_EXPIRATION } from '@/config'
+import { JOB_STATUS } from '@/constants'
 // Parse Redis DB configuration
 const redisDb = 1
+
+type SetNewJobArgs = {
+  userId: string
+   jobId: string
+   type: string
+   metadata: string
+}
 
 const Cache = (function () {
   let instance: Redis | null = null // Holds the singleton instance
@@ -70,6 +78,20 @@ const Cache = (function () {
     return Promise.all(jobIds.map((jobId) => instance?.hgetall(`user:${userId}:job:${jobId}`)))
   }
 
+  async function setNewJob({ userId, jobId, type, metadata} : SetNewJobArgs): Promise<void> {
+    const cacheKey = `user:${userId}:job:${jobId}`
+    instance = await getInstance()
+
+    await instance.hset(cacheKey, {
+      jobId,
+      type,
+      metadata,
+      status: JOB_STATUS.IN_PROGRESS,
+    })
+    await instance.sadd(`user:${userId}:jobs`, jobId) // Adds job to user's job list
+    await instance.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
+  }
+
   async function getJobType(userId: string, jobType: string = ''): Promise<any> {
     const allJobs = await getJobs(userId)
     return allJobs.filter((job: any) => jobType?.length > 0 && job.type === jobType)
@@ -78,7 +100,8 @@ const Cache = (function () {
   return {
     getJobs,
     getJobType,
-    getInstance
+    getInstance,
+    setNewJob
   }
 })()
 
