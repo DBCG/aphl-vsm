@@ -3,11 +3,14 @@ import { useState, useEffect } from 'react'
 import NotificationsIcon from '@mui/icons-material/Notifications'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
-import ExportNotification from './ExportNotification'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { toast } from 'react-toastify'
-import CompareNotification from './CompareNotification'
 import { Jobs, JobData } from '@/types/jobTypes'
+
+// Notifications
+import CompareNotification from './CompareNotification'
+import ExportNotification from './ExportNotification'
+import ReleaseNotification from './ReleaseNotification'
 
 const convertMetadataToObj = (job: JobData) => {
   if (typeof job?.metadata === 'string') {
@@ -73,6 +76,13 @@ const Notifications = () => {
               return (
                 <Box key={jobId}>
                   <ExportNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+                  <hr />
+                </Box>
+              )
+            case JOB_TYPE.RELEASE:
+              return (
+                <Box key={jobId}>
+                  <ReleaseNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
                   <hr />
                 </Box>
               )

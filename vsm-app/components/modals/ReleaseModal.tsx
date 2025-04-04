@@ -16,6 +16,7 @@ import ManifestDescription from '../EditManifestDetails/ManifestDescription'
 
 export interface ReleasePayload {
   programId: string
+  programTitle: string
   releaseDescription?: string
   releaseLabel?: string
   effectiveStartDate: string | Date
@@ -317,6 +318,7 @@ const ReleaseModal = ({ isOpen, loading, handleCancelModal, handleModalAction, p
                   }
                   handleModalAction({
                     programId: program.id || '',
+                    programTitle: program.title || '',
                     releaseDescription: releaseDescription.trim(),
                     releaseLabel: releaseLabel.trim(),
                     effectiveStartDate: effectiveStartDate || '',

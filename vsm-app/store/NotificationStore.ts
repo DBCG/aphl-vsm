@@ -3,12 +3,12 @@ import JobHandler from '@/services/frontend/JobsService'
 import subscribe from '@/utils/subscribe'
 import { JOB_STATUS } from '@/constants'
 import { Dispatch, SetStateAction } from 'react'
-import { Jobs } from '@/types/jobTypes'
+import { CompareJobMetadata, ExportJobMetadata, Jobs, ReleaseJobMetadata } from '@/types/jobTypes'
 
 type AddJobParams = {
   jobId: string
   jobType: string
-  metadata?: any
+  metadata: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
   onSuccess?: (arg?: any) => void
   onFailure?: (error: string) => void
   updateStatus?: (status: string) => void
@@ -48,7 +48,7 @@ const NotificationStore = {
       }
     })
   },
-  addJob: async ({ jobId, jobType, metadata = {}, onSuccess, onFailure, updateStatus }: AddJobParams) => {
+  addJob: async ({ jobId, jobType, metadata, onSuccess, onFailure, updateStatus }: AddJobParams) => {
     subscribe({
       jobIds: [jobId],
       onSuccess,

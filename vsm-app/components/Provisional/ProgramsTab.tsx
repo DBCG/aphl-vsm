@@ -21,6 +21,8 @@ import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
 import { ProgramApiResponse } from '@/pages/api/programs'
 import { toast } from 'react-toastify'
+import NotificationStore from '@/store/NotificationStore'
+import { JOB_TYPE } from '@/constants'
 
 export const checkboxStyles = {
   root: {
@@ -391,7 +393,11 @@ const ProgramsTab: NextPage = () => {
     setSelectedRows(() => state.selectedRows)
   }, [])
 
-  const { data = { programs: [], assessments: [], total: 0 }, isLoading, mutate } = useSWR(
+  const {
+    data = { programs: [], assessments: [], total: 0 },
+    isLoading,
+    mutate
+  } = useSWR(
     {
       url: '/api/programs',
       args: {
@@ -608,9 +614,9 @@ const ProgramsTab: NextPage = () => {
       method: 'POST',
       body: JSON.stringify(payload)
     })
+    const res = await result.json()
 
     if (!result.ok) {
-      const res = await result.json()
       let errorText
       if (res?.error?.includes('HAPI-0389')) {
         errorText = 'Draft program must be approved to release.'
@@ -623,7 +629,16 @@ const ProgramsTab: NextPage = () => {
         error: [`Error occurred while releasing program: ${payload.programId}.`, `${errorText}`]
       })
     } else {
-      mutate()
+      NotificationStore.addJob({
+        jobId: res.id,
+        jobType: JOB_TYPE.RELEASE,
+        metadata: {
+          programId: payload.programId,
+          programTitle: payload.programTitle,
+          latestFromTxServer: payload.latestFromTxServer
+        }
+      })
+      toast.success(`Program ${payload.programTitle} release in progress.`)
     }
 
     setLoading(false)

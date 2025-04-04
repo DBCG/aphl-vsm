@@ -242,8 +242,6 @@ const ProgramCompare = () => {
   const [targetProgram, setTargetProgram] = useState<{ value: string; label: string } | null>(null)
   const [rawDiffData, setRawDiffData] = useState<ChangelogItemMap>({})
   const [diffViewerFormattedData, setDiffViewerFormattedData] = useState<ChangelogData | null>(null)
-  const [baseTouched, setBaseTouched] = useState(false)
-  const [targetTouched, setTargetTouched] = useState(false)
 
   // is it just diff viewer, or also download
   const [downloadLoading, setDownloadLoading] = useState(false)
@@ -263,9 +261,6 @@ const ProgramCompare = () => {
   )
 
   const getRawDiffData = async ({ base: initialBase = undefined, target: initialTarget = undefined }: HandleGenerateDifferenceProps) => {
-    setBaseTouched(true)
-    setTargetTouched(true)
-
     const base = initialBase || baseProgram
     const target = initialTarget || targetProgram
 
@@ -501,7 +496,6 @@ const ProgramCompare = () => {
                   isDisabled={optionsDisabled}
                   options={formattedProgramOptions}
                   onChange={(i) => {
-                    setBaseTouched(true)
                     setBaseProgram(i)
                     setDiffViewerFormattedData(null)
                   }}
@@ -513,7 +507,6 @@ const ProgramCompare = () => {
                 <Select
                   isDisabled={optionsDisabled}
                   onChange={(i) => {
-                    setTargetTouched(true)
                     setTargetProgram(i)
                     setDiffViewerFormattedData(null)
                   }}
