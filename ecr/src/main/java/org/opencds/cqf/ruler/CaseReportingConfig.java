@@ -4,6 +4,8 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.cr.common.IRepositoryFactory;
 import ca.uhn.fhir.rest.server.provider.ResourceProviderFactory;
 import org.opencds.cqf.external.annotations.OnR4Condition;
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClientSettings;
 import org.opencds.cqf.ruler.r4.CaseReportingOperationProvider;
 import org.opencds.cqf.ruler.r4.KnowledgeArtifactProcessor;
 import org.opencds.cqf.ruler.r4.MeasureDataProcessProvider;
@@ -57,5 +59,19 @@ public class CaseReportingConfig {
 	@Bean
 	CaseReportingProviderLoader caseReportingProviderLoader(FhirContext theFhirContext, ResourceProviderFactory theResourceProviderFactory) {
 		return new CaseReportingProviderLoader(theFhirContext, theResourceProviderFactory);
+	}
+
+	@Bean
+	TerminologyServerClientSettings terminologyServerClientSettings() {
+		return new TerminologyServerClientSettings()
+				.setRetryIntervalMillis(2000)
+				.setMaxRetryCount(5)
+				.setTimeoutSeconds(30);
+	}
+
+	@Bean
+	@Conditional(OnR4Condition.class)
+	TerminologyServerClient terminologyServerClient(TerminologyServerClientSettings terminologyServerClientSettings) {
+		return new TerminologyServerClient(FhirContext.forR4(), terminologyServerClientSettings);
 	}
 }
