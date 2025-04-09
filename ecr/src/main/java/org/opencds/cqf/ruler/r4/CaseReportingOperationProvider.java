@@ -42,6 +42,7 @@ import org.opencds.cqf.fhir.utility.Canonicals;
 import org.opencds.cqf.fhir.utility.SearchHelper;
 import org.opencds.cqf.fhir.utility.adapter.IKnowledgeArtifactAdapter;
 import org.opencds.cqf.fhir.utility.adapter.IAdapterFactory;
+import org.opencds.cqf.fhir.utility.client.TerminologyServerClient;
 import org.opencds.cqf.ruler.IBaseSerializer;
 import org.opencds.cqf.ruler.ValueSetCache.FhirRedisService;
 import org.opencds.cqf.ruler.ValueSetCache.ValueSetExpansionCache;
@@ -71,6 +72,8 @@ public class CaseReportingOperationProvider {
 	@Autowired
 	private DaoRegistry daoRegistry;
 
+	@Autowired
+	private TerminologyServerClient terminologyServerClient;
 
 	@Autowired
 	private FhirRedisService fhirRedisService;
@@ -421,9 +424,9 @@ public class CaseReportingOperationProvider {
 		PackageVisitor visitor;
 		if (fhirRedisService.isConnected()) {
 			var expansionCache = new ValueSetExpansionCache(fhirRedisService, FhirVersionEnum.R4);
-			visitor = new PackageVisitor(repository, null, expansionCache);
+			visitor = new PackageVisitor(repository, terminologyServerClient, expansionCache);
 		} else {
-			visitor = new PackageVisitor(repository);
+			visitor = new PackageVisitor(repository, terminologyServerClient);
 			log.warn("Redis service not found, running package without expansion cache");
 		}
 		var retval = (Bundle) adapter.accept(visitor, params);
