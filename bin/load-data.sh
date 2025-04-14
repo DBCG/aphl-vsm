@@ -18,6 +18,20 @@ if [[ -n "$AUTH_TOKEN" ]]; then
     HEADERS+=("-H" "Authorization: Basic $AUTH_TOKEN")
 fi
 
+# Make sure user is aware of the FHIR_SERVER being used
+# and offer exit if wrong
+yesOptions=("y" "Y")
+noOptions=("n" "N")
+echo "This will expunge and reset all data on this FHIR server: $FHIR_SERVER"
+echo "Continue? (y/n)"
+echo ""
+read selection
+if [[ ! " ${yesOptions[@]} " =~ " ${selection} " ]]; then
+  echo ""
+  echo "Ok, exiting script without making any changes."
+  exit 0
+fi
+
 echo "Expunging all data from $FHIR_SERVER"
 curl --location "$FHIR_SERVER/\$expunge" \
   "${HEADERS[@]}" \
