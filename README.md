@@ -2,44 +2,52 @@
 ValueSet Manager Application
 
 ## Running the app in development
+- *Make sure that Docker desktop is running.*
 
-### Run the server + sample data
-- Make sure that Docker desktop is running.
-
-- Run the HAPI FHIR Server as detached process
-```bin/run-fhir-server.sh```
-The `baseURL` for the server in development is: `http://localhost:8082/fhir`
-
-- Load data to FHIR server (wait 30 sec/1min before doing this for the server to be ready)
-```bin/load-data.sh```
-
-### Run Keycloak to sign in to the app
+### Start up services in Docker (CQF-Ruler, Redis, Keycloak, Postgres)
 - In root directory, run:
 ```docker-compose up```
-- wait a few minutes before running next steps
+
+### Seed sample data
+
+- Load data to FHIR server (wait 30 sec/1min after you've run your `docker-compose up` before doing this for the server to be ready)
+```bin/load-data.sh```
+
+> IMPORTANT- notes about data:
+> 
+> The load-data program includes several conveniences that you will need to do manually if using Postman or cURL.
+> It:
+> - Loads many different static resources aside from demodata (SearchParameters, RCKMS Conditions, Endpoint resources, etc.)
+> - Loads a special, manually-curated Parameters resource to the server, and inserts your ```FHIR_SERVER``` constant into the ```appAuthoritativeUrl``` before loading. This is necessary because:
+> 1. The current eRSD has a known bug where it structures the ```compose.include``` items in the groupers incorrectly (fixed in that parameters resource).
+> 2. The data *cannot currently be loaded via a plain POST to the server*. It needs to be ```POST``` to ```<FHIR server endpoint>/$eRSD-v2-import```, which adds necessary VSM-related metadata, such as profiles, usage contexts, etc. The ```load-data``` program does this
+> 3. The ```appAuthoritativeUrl``` is your public fhir server URL on that environment. This is used in order to be able to generate the proper authoritativeSource extensions on resources that should be managed by VSM. Not having this will break the data.
+>
+> Remember that for Dev and QA deployments, you will need to load data with an authorization header. To do this via the ```load-data``` program, you can just set your AUTH_TOKEN const near the top of the file
+
+### Run Keycloak to sign in to the app
+- After you start up the dockerized services and load the data, wait a few minutes before running next steps
 ```./keycloak/configure```
-- The compose file will build + run the keycloak and postgres containers
+
 - The configure file initializes some of the settings in Keycloak, adding a realm, admin role, etc.
+
 
 ### Edit some configuration in Keycloak UI
 In order to connect your local Keycloak to the app, you must:
 - navigate to http://localhost:8080 (Keycloak admin UI)
 - enter admin username/pw (default: admin/admin)
-- in dropdown top left, choose APHL, then click on clients at left. Select aphl_app from list
-![APHL Realm main page](./md-images/keycloak_aphl_realm.png "Contains info related to the APHL realm")
+- in dropdown top left, choose APHL, then click on clients at left. Select server_auth from Clients list
+![APHL Realm main page](./md-images/clients_list.png "Contains info related to the APHL realm")
 
-- On the settings page about halfway down, edit this block as seen here and PRESS SAVE:
+- Click on the credentials tab and copy the Client secret. You will need to add this to your .env.local in nextjs as the KEYCLOAK_SECRET:
 ![Keycloak Auth Settings](./md-images/keycloak_auth_settings.png "Edit settings to enable Keycloak auth")
-
-- click on credentials. Copy the client secret. You will need to add this to your .env.local in nextjs
-![Keycloak Auth Settings](./md-images/keycloak_secret.png "Edit settings to enable Keycloak auth")
 
 - Add the following values to your .env.local:
 ```
 # keycloak
 # certain values must match the keycloak configure file
 KEYCLOAK_ID=aphl_app
-KEYCLOAK_SECRET=<YOUR LOCAL KEYCLOAK SECRET>
+KEYCLOAK_SECRET=<KEYCLOAK CLIENT SECRET FROM SERVER_AUTH CLIENT>
 KEYCLOAK_ISSUER=http://localhost:8080/realms/aphl
 KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
 ```
@@ -49,16 +57,16 @@ KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
 ### Run the frontend application
 
 ##### Setup
+> Keep in mind, to run the app, you will need a VSAC api username and key. You must sign up with them to receive this.
+
 - If you don't have it already, copy .env.local.example to .env.local within `/vsm-app`
 ```cp vsm-app/.env.local.example vsm-app/.env.local```
 
-- Keep in mind, the VSAC api requires a username and key. You must sign up with them to receive this.
+- You must also run the following script to generate keys for the app BEFORE starting the application
+```node generateKeyPair.js```
 
 - Next run the following command to install the necessary dependencies for the Next.js app
 ```cd vsm-app && npm install```
-
-- You must also run the following script to generate keys for the app
-```node generateKeyPair.js```
 
 - Finally to launch the the Next.js app run the following command:
 ```npm run dev```
@@ -80,15 +88,6 @@ You will need to use the ```non_admin_username``` and ```non_admin_password``` t
 
 By default this will point to the local instance of the CQF server running at `http://localhost:8082/fhir`, but you can override this by passing in a different URL as the first argument.
 
-### Alternative, running application with docker-compose
-
-`docker-compose up` Should bring up all the services required to run the application
-
-`./bin/load-data` will populate your fhir server
-
-`./keycloak/configure` prompt for populating keycloak idp
-
-To stop everything and wipe docker env `./bin/docker-cleanup.sh` 
 
 ## Using a Development Build of clinical-reasoning
 
