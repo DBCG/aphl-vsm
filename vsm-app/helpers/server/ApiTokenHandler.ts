@@ -39,8 +39,9 @@ class APITokenHandler {
   public async getBasicAuthCreds(userId: string, serverId: string) {
     await this.renewKeyCloakToken()
     const user = await this.retrieveStoredAttributes(userId)
-    if (serverId in user.attributes) {
-      const encryptedCreds = user.attributes[serverId][0]
+    const userAttributes = user?.attributes || {}
+    if (serverId in userAttributes) {
+      const encryptedCreds = userAttributes?.[serverId]?.[0]
       const userIV = await this.getUserIV(user)
       const decryptedCreds = this.decryptData(encryptedCreds, userIV)
       const base64Data = JSON.parse(decryptedCreds).value
