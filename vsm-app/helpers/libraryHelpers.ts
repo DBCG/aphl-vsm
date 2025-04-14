@@ -22,6 +22,10 @@ interface EditComposeInclude {
   action: 'add' | 'remove'
 }
 
+const isReleaseInProgress = (program: fhir4.Library) => {
+  return program?.status === 'draft' && getReleaseLabel(program)?.length > 0
+}
+
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program?.relatedArtifact?.find((related) => related.type === 'composed-of' && related?.resource?.includes('/Library/'))
     ?.resource as string
@@ -446,6 +450,7 @@ export {
   setVSConditions,
   missingFields,
   editComposeInclude,
+  isReleaseInProgress,
   getReleaseLabel,
   setReleaseLabel,
   setTitleAndDerivedName,

@@ -23,6 +23,8 @@ import { ProgramApiResponse } from '@/pages/api/programs'
 import { toast } from 'react-toastify'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
+import { isReleaseInProgress } from '@/helpers/libraryHelpers'
+import CircularProgress from '@mui/material/CircularProgress'
 
 export const checkboxStyles = {
   root: {
@@ -105,23 +107,23 @@ const ExpandableRowComponent = ({
   handleClickDelete,
   setError
 }: ExpandableRowProps) => {
-  const canClone = allowClone({ session, programStatus: row.status! })
+  const canClone = allowClone({ session, program: row })
   const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
   const defaultCloneDescription = 'Cloning an active program will create a draft copy that you can edit'
 
-  const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+  const canRelease = allowRelease({ session, program: row, hasApproval: Boolean(row?.approvalDate) })
   const releaseBlockedReason = !canRelease && generateBlockedReason(row, 'release')
   const defaultReleaseDescription = 'Releasing a program will mark it as active, and it will no longer be editable in VSM'
 
-  const canWithdraw = allowWithdraw({ session, programStatus: row.status! })
+  const canWithdraw = allowWithdraw({ session, program: row })
   const withdrawBlockedReason = !canWithdraw && generateBlockedReason(row, 'withdraw')
   const defaultWithdrawDescription = 'Withdrawing a draft program will delete it from VSM permanently'
 
-  const canRetire = allowRetire({ session, programStatus: row.status! })
+  const canRetire = allowRetire({ session, program: row })
   const retireBlockedReason = !canRetire && generateBlockedReason(row, 'retire')
   const defaultRetireDescription = 'Retiring an active program will retire it from VSM'
 
-  const canDelete = allowDelete({ session, programStatus: row.status! })
+  const canDelete = allowDelete({ session, program: row })
   const deleteBlockedReason = !canDelete && generateBlockedReason(row, 'delete')
   const defaultDeleteDescription = 'Deleting a retired program will delete it from VSM permanently'
 
@@ -522,6 +524,13 @@ const ProgramsTab: NextPage = () => {
         center: true,
         cell: (row: fhir4.Library) => {
           const experimental = Boolean(row.experimental)
+          if (isReleaseInProgress(row)) {
+            return (
+              <Container>
+                <CircularProgress />
+              </Container>
+            )
+          }
           return (
             <Container>
               <StatusChip experimental={experimental} style={{ justifySelf: 'center' }} label={row.status} />
@@ -816,7 +825,6 @@ const ProgramsTab: NextPage = () => {
         paginationPerPage={pagination.countPerPage}
         onChangePage={handlePageChange}
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
-        fixedHeader
         progressPending={isLoading}
         progressComponent={<LoadingIndicator />}
         onSelectedRowsChange={handleRowSelected}

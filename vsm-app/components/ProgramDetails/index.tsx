@@ -81,11 +81,11 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={currentProgram} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
+      <ProgramMetadata program={currentProgram} handleSubmit={updateProgram} editable={allowEditing({ session, program })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          {allowEditing({ session, programStatus: status }) && (
+          {allowEditing({ session, program }) && (
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
@@ -93,7 +93,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        {allowEditing({ session, programStatus: status }) && (
+        {allowEditing({ session, program }) && (
           <Button
             id="create-new-grouper"
             text="Create New Grouper"
