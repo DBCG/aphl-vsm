@@ -58,7 +58,11 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={isReleasing ? 'Releasing...' : status} experimental={Boolean(experimental)} />
+          <StatusChip
+            style={{ transform: 'translateY(-10px) translateX(8px)' }}
+            label={isReleasing ? 'Releasing...' : status}
+            experimental={Boolean(experimental)}
+          />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button
@@ -113,9 +117,11 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
         </Col>
-        <Col style={{ width: 'auto' }}>
-          <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
-        </Col>
+        {!isReleasing && (
+          <Col style={{ width: 'auto' }}>
+            <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+          </Col>
+        )}
       </Row>
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>

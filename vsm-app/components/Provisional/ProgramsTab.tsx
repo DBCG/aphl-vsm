@@ -127,6 +127,7 @@ const ExpandableRowComponent = ({
   const deleteBlockedReason = !canDelete && generateBlockedReason(row, 'delete')
   const defaultDeleteDescription = 'Deleting a retired program will delete it from VSM permanently'
 
+  const isReleasing = isReleaseInProgress(row)
   return (
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
       <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
@@ -158,7 +159,7 @@ const ExpandableRowComponent = ({
                 data-button-context={`release-${row.status}`}
                 variant="contained"
                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
-                disabled={row.status !== 'draft' || !row.approvalDate}
+                disabled={row.status !== 'draft' || !row.approvalDate || isReleasing}
                 onClick={() => {
                   setError({})
                   setProgramToRelease(row)
@@ -177,7 +178,7 @@ const ExpandableRowComponent = ({
                 data-button-context={`release-${row.status}`}
                 variant="contained"
                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
-                disabled={row.status !== 'draft'}
+                disabled={row.status !== 'draft' || isReleasing}
                 onClick={() => {
                   setError({})
                   handleClickWithdraw(row?.id)
