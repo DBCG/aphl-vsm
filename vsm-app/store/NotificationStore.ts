@@ -8,7 +8,7 @@ import { CompareJobMetadata, ExportJobMetadata, Jobs, ReleaseJobMetadata } from 
 type AddJobParams = {
   jobId: string
   jobType: string
-  metadata: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
+  metadata?: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
   onSuccess?: (arg?: any) => void
   onFailure?: (error: string) => void
   updateStatus?: (status: string) => void
