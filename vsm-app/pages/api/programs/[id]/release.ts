@@ -1,24 +1,39 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import Cache from '@/cache'
 import handler from '@/helpers/server/handler'
+import { ReleasePayload } from '@/components/modals/ReleaseModal'
+import { VSMSession } from '@/helpers/rolesHelper'
+import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import FhirClient from '@/backend/clients/FhirCdrClient'
-import { removeDraftFromVersionString } from '@/utils'
-import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { DEFAULT_JOB_CONFIG } from '@/config'
 import {
   getReleaseDescription,
   getReleaseLabel,
-  setReleaseDescription,
   setEffectivePeriodStart,
+  setReleaseDescription,
   setReleaseLabel
 } from '@/helpers/libraryHelpers'
-import { ReleasePayload } from '@/components/modals/ReleaseModal'
-import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
-import { VSMSession } from '@/helpers/rolesHelper'
+import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { cache } from 'react'
+
 export interface ReleaseRequest extends NextApiRequest {
   body: ReleasePayload
 }
+
 // this only gets the program library
 const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSession): Promise<any> => {
-  const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate, latestFromTxServer } = req.body
+  const {
+    releaseAsVersion,
+    programId,
+    releaseDescription = '',
+    programTitle,
+    releaseLabel = '',
+    effectiveStartDate,
+    latestFromTxServer
+  } = req.body
+  const userId = session.user.id
+
   let program: fhir4.Library | undefined
   try {
     program = (await FhirClient.getInstance().read({
@@ -28,9 +43,13 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
   } catch (e) {
     logSimpleError(e)
   }
+
   if (program == null) {
-    return res.status(500).send({ error: 'Error encountered fetching Library for release' })
+    res.status(404).send({ error: 'Program not found' })
   }
+
+  program = setReleaseDescription(program!, releaseDescription.trim())
+  program = setReleaseLabel(program, releaseLabel.trim())
 
   program = setReleaseDescription(program, releaseDescription.trim())
   program = setReleaseLabel(program, releaseLabel.trim())
@@ -40,7 +59,9 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
   }
 
   if (!getReleaseLabel(program) || !getReleaseDescription(program)) {
-    return res.status(400).send({ error: 'Release must have label and description set' })
+    res.status(400).send({
+      error: 'Release label and description are required'
+    })
   }
 
   try {
@@ -51,48 +72,39 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
     })
   } catch (e) {
     logSimpleError(e)
-    return res.status(500).send({ error: 'Error encountered updating Library for release' })
+    const error = 'Error encountered updating Library for release'
+    res.status(500).send({ error })
   }
 
   if (!!releaseAsVersion) {
     program.version = releaseAsVersion
   }
 
-  const releasePayload = await addTerminologyEndpointToParameters({
-    parameters: {
-      resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'version',
-          valueString: removeDraftFromVersionString(program?.version!)
-        },
-        {
-          name: 'versionBehavior',
-          valueCode: 'force'
-        },
-        {
-          name: 'latestFromTxServer',
-          valueBoolean: latestFromTxServer
-        },
-        {
-          name: 'releaseLabel',
-          valueString: releaseLabel
-        }
-      ]
+  const job = await ProgramReleaseQueue.add(
+    {
+      releaseAsVersion,
+      programId,
+      releaseDescription,
+      releaseLabel,
+      effectiveStartDate,
+      latestFromTxServer,
+      userId
     },
-    userId: session.user.id
+    DEFAULT_JOB_CONFIG
+  )
+
+  await Cache.setNewJob({
+    userId,
+    jobId: job.id.toString(),
+    type: JOB_TYPE.RELEASE,
+    metadata: JSON.stringify({
+      programId,
+      programTitle,
+      latestFromTxServer
+    })
   })
 
-  await FhirClient.getInstance().operation({
-    name: '$release',
-    resourceType: 'Library',
-    id: req.query.id as string,
-    method: 'POST',
-    input: releasePayload
-  })
-
-  // errors are caught by the handler, processed in handler.ts
-  return res.status(200).send({})
+  return res.status(200).send(job)
 }
 
 export default handler({

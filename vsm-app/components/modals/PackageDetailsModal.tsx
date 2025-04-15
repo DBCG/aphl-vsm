@@ -27,6 +27,7 @@ import { ModalContent } from '@/styles/modal'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
 import dayjs from 'dayjs';
+import { ExportJobMetadata } from '@/types/jobTypes'
 
 interface ModalInfo {
   isOpen: boolean
@@ -162,13 +163,13 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     const fileExtension = fileType === 'json' ? 'json' : 'xml'
     const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
     const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
-    const metadata = {
-      programId: program.id,
+    const metadata: ExportJobMetadata = {
+      programId: program.id!,
       version: versionRadioValue,
       hasCustomPlanDefinition: fileUploadContent != null,
       isJson: fileType === 'json',
       filename,
-      programTitle: program?.title
+      programTitle: program?.title!
     }
     toast.info('Exporting package. You will be notified when it is ready for download.')
 

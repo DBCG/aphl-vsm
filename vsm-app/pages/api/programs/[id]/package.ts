@@ -47,7 +47,9 @@ const validateConditionLeafVs = async (programId: string) => {
   })
 
   if (missingConditionsVs.length > 0) {
-    throw new Error(`Pre-check failed. To export, please add at least 1 condition to the following ValueSets: ${missingConditionsVs.join('\n')}`)
+    throw new Error(
+      `Pre-check failed. To export, please add at least 1 condition to the following ValueSets: ${missingConditionsVs.join('\n')}`
+    )
   }
 }
 
@@ -67,17 +69,13 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   }
   const job = await PackageQueue.add({ data, planDefinition, targetVersion, programId: req.query.id as string, userId }, DEFAULT_JOB_CONFIG)
 
-  const cache = await Cache.getInstance()
-  const cacheKey = `user:${userId}:job:${job.id}`
-
-  await cache.hset(cacheKey, {
-    jobId: job.id,
-    status: JOB_STATUS.IN_PROGRESS,
+  await Cache.setNewJob({
+    userId,
+    jobId: job.id.toString(),
     type: JOB_TYPE.EXPORT,
-    metadata: JSON.stringify(metadata)
+    metadata
   })
-  await cache.sadd(`user:${userId}:jobs`, job.id) // Adds job to user's job list
-  await cache.expire(cacheKey, JOB_EXPIRATION) // Defaults to expires job in 24 hours
+  
   res.status(200).json(job)
 }
 

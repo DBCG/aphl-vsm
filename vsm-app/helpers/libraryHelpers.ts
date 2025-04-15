@@ -22,6 +22,10 @@ interface EditComposeInclude {
   action: 'add' | 'remove'
 }
 
+const isReleaseInProgress = (program: fhir4.Library) => {
+  return program?.status === 'draft' && getReleaseLabel(program)?.length > 0
+}
+
 const getGrouperLibraryCanonical = (program: fhir4.Library) => {
   return program?.relatedArtifact?.find((related) => related.type === 'composed-of' && related?.resource?.includes('/Library/'))
     ?.resource as string
@@ -115,6 +119,18 @@ const setExtension = (program: fhir4.Library, url: string, value: string, valueT
 const setReleaseLabel = (program: fhir4.Library, label: string = '') => {
   const releaseLabelExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel'
   return setExtension(program, releaseLabelExtensionUrl, label)
+}
+
+const removeReleaseLabel = (program: fhir4.Library) => {
+  const clonedProgram = cloneDeep(program)
+  const releaseLabelExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel'
+  const libraryExtensionIndex = clonedProgram?.extension?.findIndex((ext) => ext?.url === releaseLabelExtensionUrl) || -1
+
+  if (clonedProgram?.extension && libraryExtensionIndex > -1) {
+    clonedProgram.extension.splice(libraryExtensionIndex, 1)
+  }
+
+  return clonedProgram
 }
 
 // effectiveStartDate must be valid date and today or later
@@ -446,8 +462,10 @@ export {
   setVSConditions,
   missingFields,
   editComposeInclude,
+  isReleaseInProgress,
   getReleaseLabel,
   setReleaseLabel,
+  removeReleaseLabel,
   setTitleAndDerivedName,
   setEffectivePeriodStart,
   validStartDate,

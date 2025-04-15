@@ -2,7 +2,6 @@ import FhirKitClient from 'fhir-kit-client'
 import { cloneDeep } from 'lodash'
 import { is } from '../is'
 import Logger from '@/helpers/server/logger'
-import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import { extractOidFromUrl } from '@/utils'
 
 interface GrouperIdsByUrlItem {

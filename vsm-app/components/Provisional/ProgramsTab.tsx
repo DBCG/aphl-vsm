@@ -21,6 +21,10 @@ import { getLatestFromList } from '@/helpers/server/semverHelpers'
 import TextLink from '@/components/TextLink'
 import { ProgramApiResponse } from '@/pages/api/programs'
 import { toast } from 'react-toastify'
+import NotificationStore from '@/store/NotificationStore'
+import { JOB_TYPE } from '@/constants'
+import { isReleaseInProgress } from '@/helpers/libraryHelpers'
+import CircularProgress from '@mui/material/CircularProgress'
 
 export const checkboxStyles = {
   root: {
@@ -103,26 +107,27 @@ const ExpandableRowComponent = ({
   handleClickDelete,
   setError
 }: ExpandableRowProps) => {
-  const canClone = allowClone({ session, programStatus: row.status! })
+  const canClone = allowClone({ session, program: row })
   const cloneBlockedReason = !canClone && generateBlockedReason(row, 'clone')
   const defaultCloneDescription = 'Cloning an active program will create a draft copy that you can edit'
 
-  const canRelease = allowRelease({ session, programStatus: row.status!, hasApproval: Boolean(row?.approvalDate) })
+  const canRelease = allowRelease({ session, program: row, hasApproval: Boolean(row?.approvalDate) })
   const releaseBlockedReason = !canRelease && generateBlockedReason(row, 'release')
   const defaultReleaseDescription = 'Releasing a program will mark it as active, and it will no longer be editable in VSM'
 
-  const canWithdraw = allowWithdraw({ session, programStatus: row.status! })
+  const canWithdraw = allowWithdraw({ session, program: row })
   const withdrawBlockedReason = !canWithdraw && generateBlockedReason(row, 'withdraw')
   const defaultWithdrawDescription = 'Withdrawing a draft program will delete it from VSM permanently'
 
-  const canRetire = allowRetire({ session, programStatus: row.status! })
+  const canRetire = allowRetire({ session, program: row })
   const retireBlockedReason = !canRetire && generateBlockedReason(row, 'retire')
   const defaultRetireDescription = 'Retiring an active program will retire it from VSM'
 
-  const canDelete = allowDelete({ session, programStatus: row.status! })
+  const canDelete = allowDelete({ session, program: row })
   const deleteBlockedReason = !canDelete && generateBlockedReason(row, 'delete')
   const defaultDeleteDescription = 'Deleting a retired program will delete it from VSM permanently'
 
+  const isReleasing = isReleaseInProgress(row)
   return (
     <div style={{ padding: '1rem', marginLeft: '48px' }}>
       <div style={{ display: 'flex', gap: '.8rem', alignItems: 'center', paddingBottom: '2rem' }}>
@@ -154,7 +159,7 @@ const ExpandableRowComponent = ({
                 data-button-context={`release-${row.status}`}
                 variant="contained"
                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
-                disabled={row.status !== 'draft' || !row.approvalDate}
+                disabled={row.status !== 'draft' || !row.approvalDate || isReleasing}
                 onClick={() => {
                   setError({})
                   setProgramToRelease(row)
@@ -173,7 +178,7 @@ const ExpandableRowComponent = ({
                 data-button-context={`release-${row.status}`}
                 variant="contained"
                 style={{ height: 'fit-content', whiteSpace: 'nowrap' }}
-                disabled={row.status !== 'draft'}
+                disabled={row.status !== 'draft' || isReleasing}
                 onClick={() => {
                   setError({})
                   handleClickWithdraw(row?.id)
@@ -391,7 +396,11 @@ const ProgramsTab: NextPage = () => {
     setSelectedRows(() => state.selectedRows)
   }, [])
 
-  const { data = { programs: [], assessments: [], total: 0 }, isLoading, mutate } = useSWR(
+  const {
+    data = { programs: [], assessments: [], total: 0 },
+    isLoading,
+    mutate
+  } = useSWR(
     {
       url: '/api/programs',
       args: {
@@ -516,6 +525,13 @@ const ProgramsTab: NextPage = () => {
         center: true,
         cell: (row: fhir4.Library) => {
           const experimental = Boolean(row.experimental)
+          if (isReleaseInProgress(row)) {
+            return (
+              <Container>
+                <CircularProgress />
+              </Container>
+            )
+          }
           return (
             <Container>
               <StatusChip experimental={experimental} style={{ justifySelf: 'center' }} label={row.status} />
@@ -608,9 +624,9 @@ const ProgramsTab: NextPage = () => {
       method: 'POST',
       body: JSON.stringify(payload)
     })
+    const res = await result.json()
 
     if (!result.ok) {
-      const res = await result.json()
       let errorText
       if (res?.error?.includes('HAPI-0389')) {
         errorText = 'Draft program must be approved to release.'
@@ -623,7 +639,17 @@ const ProgramsTab: NextPage = () => {
         error: [`Error occurred while releasing program: ${payload.programId}.`, `${errorText}`]
       })
     } else {
-      mutate()
+      NotificationStore.addJob({
+        jobId: res.id,
+        jobType: JOB_TYPE.RELEASE,
+        metadata: {
+          programId: payload.programId,
+          programTitle: payload.programTitle,
+          latestFromTxServer: payload.latestFromTxServer
+        }
+      })
+      await mutate()
+      toast.success(`Program ${payload.programTitle} release in progress.`)
     }
 
     setLoading(false)
@@ -801,7 +827,6 @@ const ProgramsTab: NextPage = () => {
         paginationPerPage={pagination.countPerPage}
         onChangePage={handlePageChange}
         onChangeRowsPerPage={(newRowsPerPage, newPage) => setPagination({ ...pagination, page: newPage, countPerPage: newRowsPerPage })}
-        fixedHeader
         progressPending={isLoading}
         progressComponent={<LoadingIndicator />}
         onSelectedRowsChange={handleRowSelected}

@@ -16,6 +16,7 @@ import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
 import { StatusChip } from '../data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { isReleaseInProgress } from '@/helpers/libraryHelpers'
 
 const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
@@ -50,13 +51,18 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
 
   const { id = '', status, experimental } = currentProgram
   const manifestData = getProgramManifestVersions(currentProgram)
+  const isReleasing = isReleaseInProgress(currentProgram)
   return (
     <Col>
       {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={status} experimental={Boolean(experimental)} />
+          <StatusChip
+            style={{ transform: 'translateY(-10px) translateX(8px)' }}
+            label={isReleasing ? 'Releasing...' : status}
+            experimental={Boolean(experimental)}
+          />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button
@@ -81,11 +87,11 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
         </Col>
       </Row>
       <StyledSpan style={{ marginBottom: '12px' }}>Program Metadata</StyledSpan>
-      <ProgramMetadata program={currentProgram} handleSubmit={updateProgram} editable={allowEditing({ session, programStatus: status })} />
+      <ProgramMetadata program={currentProgram} handleSubmit={updateProgram} editable={allowEditing({ session, program })} />
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>Program Manifest</StyledSpan>
-          {allowEditing({ session, programStatus: status }) && (
+          {allowEditing({ session, program }) && (
             <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/programs/${id}/manifest`)} />
           )}
         </Row>
@@ -93,7 +99,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
       </ManifestContainer>
       <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
         <StyledSpan>Included Groups</StyledSpan>
-        {allowEditing({ session, programStatus: status }) && (
+        {allowEditing({ session, program }) && (
           <Button
             id="create-new-grouper"
             text="Create New Grouper"
@@ -111,9 +117,11 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
         </Col>
-        <Col style={{ width: 'auto' }}>
-          <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
-        </Col>
+        {!isReleasing && (
+          <Col style={{ width: 'auto' }}>
+            <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
+          </Col>
+        )}
       </Row>
       <ApprovalDetailList loading={programAndGrouperDataLoading} assessments={programAndGrouperData?.artifactAssessments} />
     </Col>

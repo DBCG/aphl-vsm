@@ -11,6 +11,7 @@ import { DeleteGrouper } from '@/types/grouperTypes'
 import { useGetGroups } from '@/hooks/useGetGroups'
 import TextLink from './TextLink'
 import { DeleteGrouperRequest } from '@/pages/api/programs/[id]/grouper/library'
+import { isReleaseInProgress } from '@/helpers/libraryHelpers'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -155,7 +156,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
         name: 'Remove Group',
         maxWidth: '150px',
         center: true,
-        omit: !(can(session, 'edit') && program?.status === 'draft'),
+        omit: !(can(session, 'edit') && program?.status === 'draft') || isReleaseInProgress(program),
         cell: (row: fhir4.ValueSet) => {
           return (
             <ButtonContainer>

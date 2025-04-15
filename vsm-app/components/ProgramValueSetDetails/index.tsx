@@ -337,7 +337,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
   }
 
   // Can only edit if program is loaded and in draft status
-  const isEditable = allowEditing({ session, programStatus: currentProgram.status })
+  const isEditable = allowEditing({ session, program: currentProgram })
 
   const handleUpdateValueSets = useCallback(
     debounce(async (groupsInProgram: fhir4.ValueSet[] = []) => {

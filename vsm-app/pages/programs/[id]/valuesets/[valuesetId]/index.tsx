@@ -18,7 +18,7 @@ const ValueSetPageView = ({ program }: LibraryServerSideProps) => {
   const { programAndGrouperData, programAndGrouperDataLoading } = useGetProgramDetails(program.id!)
   const { isGrouperView, changeGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const enableEditing = allowEditing({ session, programStatus: programAndGrouperData?.program?.status })
+  const enableEditing = allowEditing({ session, program: programAndGrouperData?.program! })
   const { data: currentValueSet, mutate } = useSWR(!programAndGrouperDataLoading && valueSetId ? `/api/valueset?id=${valueSetId}` : null, fetcher)
   const handleToggleUpdateData = () => {
     mutate()
