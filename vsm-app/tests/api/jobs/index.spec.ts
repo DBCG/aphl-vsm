@@ -2,6 +2,9 @@ import { createMocks } from 'node-mocks-http'
 import handler from '@/pages/api/jobs'
 import { NextApiRequest, NextApiResponse } from 'next'
 import PackageQueue from '@/worker/PackageQueue'
+import ChangeLogQueue from '@/worker/ChangeLogQueue'
+import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
 jest.mock('next-auth/next', () => ({
@@ -44,8 +47,7 @@ jest.mock('../../../worker/ProgramReleaseQueue', () => ({
 }))
 
 import Cache from '@/cache'
-import ChangeLogQueue from '@/worker/ChangeLogQueue'
-import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+
 
 describe('/api/jobs', () => {
   it('GET /api/jobs', async () => {

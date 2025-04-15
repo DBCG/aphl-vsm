@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createMocks } from 'node-mocks-http'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler, { ReleaseRequest } from '@/pages/api/programs/[id]/release'
@@ -22,7 +23,7 @@ jest.mock('../../../../helpers/fhirResourceHelper', () => ({
 
 describe('/api/programs/[id]/release', () => {
   test('POST /api/programs/[id]/release, releases a program', async () => {
-    const body: ReleasePayload = {
+    const body = {
       releaseAsVersion: '2.2.2',
       releaseDescription: 'Release Description',
       releaseLabel: 'ReleaseV2.2.2',
