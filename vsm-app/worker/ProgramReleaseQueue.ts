@@ -10,7 +10,8 @@ import {
   getReleaseLabel,
   setReleaseDescription,
   setEffectivePeriodStart,
-  setReleaseLabel
+  setReleaseLabel,
+  removeReleaseLabel
 } from '@/helpers/libraryHelpers'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import Logger from '@/helpers/server/logger'
@@ -44,34 +45,6 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', error)
     done(null, { error })
     return
-  }
-
-  program = setReleaseDescription(program, releaseDescription.trim())
-  program = setReleaseLabel(program, releaseLabel.trim())
-  // if effectiveStartDate is set, add it
-  if (typeof effectiveStartDate === 'string') {
-    program = setEffectivePeriodStart(program, effectiveStartDate)
-  }
-
-  if (!getReleaseLabel(program) || !getReleaseDescription(program)) {
-    const error = 'Release must have label and description set'
-    await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', error)
-    done(null, { error })
-    return
-  }
-
-  try {
-    await FhirClient.getInstance().update({
-      resourceType: 'Library',
-      id: program.id,
-      body: program
-    })
-  } catch (e) {
-    logSimpleError(e)
-    const error = 'Error encountered updating Library for release'
-    await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', error)
-    done(null, { error })
-    return 
   }
 
   if (!!releaseAsVersion) {
@@ -126,6 +99,15 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     const error = 'Something went wrong with the release: ' + errorText
     Logger.getLogger().error(error)
     await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', error)
+
+    // TODO: Do we need to clean anything up in case of failures?
+    // removeReleaseLabel(program)
+    // await FhirClient.getInstance().update({
+    //   resourceType: 'Library',
+    //   id: programId as string,
+    //   body: program
+    // })
+    Logger.getLogger().info('Removed release label due to program failure to release')
     done(null, { error })
   } else {
     Logger.getLogger().info('Finished')

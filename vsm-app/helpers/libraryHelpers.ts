@@ -121,6 +121,18 @@ const setReleaseLabel = (program: fhir4.Library, label: string = '') => {
   return setExtension(program, releaseLabelExtensionUrl, label)
 }
 
+const removeReleaseLabel = (program: fhir4.Library) => {
+  const clonedProgram = cloneDeep(program)
+  const releaseLabelExtensionUrl = 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel'
+  const libraryExtensionIndex = clonedProgram?.extension?.findIndex((ext) => ext?.url === releaseLabelExtensionUrl) || -1
+
+  if (clonedProgram?.extension && libraryExtensionIndex > -1) {
+    clonedProgram.extension.splice(libraryExtensionIndex, 1)
+  }
+
+  return clonedProgram
+}
+
 // effectiveStartDate must be valid date and today or later
 const validStartDate = (date: any): boolean => {
   const parsedDate = Date?.parse(date)
@@ -453,6 +465,7 @@ export {
   isReleaseInProgress,
   getReleaseLabel,
   setReleaseLabel,
+  removeReleaseLabel,
   setTitleAndDerivedName,
   setEffectivePeriodStart,
   validStartDate,

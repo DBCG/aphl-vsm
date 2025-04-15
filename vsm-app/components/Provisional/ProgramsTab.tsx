@@ -647,6 +647,7 @@ const ProgramsTab: NextPage = () => {
           latestFromTxServer: payload.latestFromTxServer
         }
       })
+      await mutate()
       toast.success(`Program ${payload.programTitle} release in progress.`)
     }
 

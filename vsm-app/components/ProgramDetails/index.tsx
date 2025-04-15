@@ -16,6 +16,7 @@ import { ExportPackageDetailsModal } from '../modals/PackageDetailsModal'
 import { StatusChip } from '../data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { isReleaseInProgress } from '@/helpers/libraryHelpers'
 
 const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
@@ -50,13 +51,14 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
 
   const { id = '', status, experimental } = currentProgram
   const manifestData = getProgramManifestVersions(currentProgram)
+  const isReleasing = isReleaseInProgress(currentProgram)
   return (
     <Col>
       {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={handleCloseErrors} />}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={status} experimental={Boolean(experimental)} />
+          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={isReleasing ? 'Releasing...' : status} experimental={Boolean(experimental)} />
         </MetadataTitle>
         <Col style={{ width: 'auto' }}>
           <Button
