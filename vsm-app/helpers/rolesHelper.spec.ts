@@ -50,14 +50,22 @@ describe('rolesHelper', () => {
   })
 
   describe('allowEditing', () => {
-    it('should allow editing if the user has the appropriate permissions and the program status is draft', () => {
+    it('should allow editing if the user has the appropriate permissions and the program status is draft and no releaseLabel', () => {
       const session = {
         user: {
           roles: ['editor']
         }
       }
-      const programStatus = 'draft'
-      expect(allowEditing({ session, programStatus })).toBe(true)
+      const program = {
+        resourceType: 'Library',
+        id: '123',
+        name: 'Test Program',
+        status: 'draft',
+        extension: [
+
+        ]
+      }
+      expect(allowEditing({ session, program })).toBe(true)
     })
 
     it('should not allow editing if the user does not have the appropriate permissions', () => {
@@ -66,8 +74,20 @@ describe('rolesHelper', () => {
           roles: ['reviewer']
         }
       }
-      const programStatus = 'draft'
-      expect(allowEditing({ session, programStatus })).toBe(false)
+      const program = {
+        resourceType: 'Library',
+        id: '123',
+        name: 'Test Program',
+        status: 'draft',
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
+            valueString: 'ReleaseV2.2.2'
+          }
+
+        ]
+      }
+      expect(allowEditing({ session, program })).toBe(false)
     })
 
     it('should not allow editing if the program status is not draft', () => {
@@ -76,8 +96,20 @@ describe('rolesHelper', () => {
           roles: ['editor']
         }
       }
-      const programStatus = 'active'
-      expect(allowEditing({ session, programStatus })).toBe(false)
+      const program = {
+        resourceType: 'Library',
+        id: '123',
+        name: 'Test Program',
+        status: 'active',
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
+            valueString: 'ReleaseV2.2.2'
+          }
+
+        ]
+      }
+      expect(allowEditing({ session, program })).toBe(false)
     })
 
     it('should not allow deleting if the program is not retired', () => {
@@ -86,8 +118,20 @@ describe('rolesHelper', () => {
           roles: ['editor']
         }
       }
-      const programStatus = 'active'
-      expect(allowDelete({ session, programStatus})).toBe(false)
+      const program = {
+        resourceType: 'Library',
+        id: '123',
+        name: 'Test Program',
+        status: 'active',
+        extension: [
+          {
+            url: 'http://hl7.org/fhir/StructureDefinition/artifact-releaseLabel',
+            valueString: 'ReleaseV2.2.2'
+          }
+
+        ]
+      }
+      expect(allowDelete({ session, program })).toBe(false)
     })
   })
 })
