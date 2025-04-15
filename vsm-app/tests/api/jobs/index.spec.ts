@@ -29,7 +29,23 @@ jest.mock('../../../worker/PackageQueue', () => ({
   }
 }))
 
+jest.mock('../../../worker/ChangeLogQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
+
+jest.mock('../../../worker/ProgramReleaseQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
+
 import Cache from '@/cache'
+import ChangeLogQueue from '@/worker/ChangeLogQueue'
+import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
 
 describe('/api/jobs', () => {
   it('GET /api/jobs', async () => {
@@ -69,7 +85,9 @@ describe('/api/jobs', () => {
     Cache.getInstance().del = jest.fn()
 
     PackageQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
-
+    ChangeLogQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
+    ProgramReleaseQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
+  
     await handler(req, res)
 
     expect(res._getStatusCode()).toBe(200)
