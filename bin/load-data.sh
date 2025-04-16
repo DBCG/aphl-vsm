@@ -26,10 +26,16 @@ echo "This will expunge and reset all data on this FHIR server: $FHIR_SERVER"
 echo "Continue? (y/n)"
 echo ""
 read selection
-if [[ ! " ${yesOptions[@]} " =~ " ${selection} " ]]; then
+if [ "$CI" != "true" ]; then
+  echo "This will expunge and reset all data on this FHIR server: $FHIR_SERVER"
+  echo "Continue? (y/n)"
   echo ""
-  echo "Ok, exiting script without making any changes."
-  exit 0
+  read selection
+  if [[ ! " ${yesOptions[@]} " =~ " ${selection} " ]]; then
+    echo ""
+    echo "Ok, exiting script without making any changes."
+    exit 0
+  fi
 fi
 
 echo "Expunging all data from $FHIR_SERVER"
