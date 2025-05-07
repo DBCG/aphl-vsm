@@ -77,7 +77,7 @@ spec:
             - name: hapi.fhir.reuse_cached_search_results_millis
               value: "-1"
             - name: hapi.fhir.security.basic_auth.enabled
-              value: "true"
+              value: "false"
             - name: hapi.fhir.security.basic_auth.username
               value: admin
             - name: hapi.fhir.casereporting.enabled
