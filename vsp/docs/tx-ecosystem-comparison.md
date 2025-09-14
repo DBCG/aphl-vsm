@@ -1,6 +1,6 @@
 This document compares the requirements of the [FHIR Terminology Ecosystem IG](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html) version 1.8.0 to the [CRMI Artifact Terminology Service](https://hl7.org/fhir/uv/crmi/2025Sep/artifact-terminology-service.html) requirements
 
-> TX: I tried to deep-link here, but I get access denied when I try to access the permanent links from the directory of published versions
+> TX Comment: I tried to deep-link here, but I get access denied when I try to access the permanent links from the directory of published versions
 
 ## Metadata
 
@@ -18,7 +18,7 @@ Then indicate that the TerminologyService CapabilityStatement SHALL conform to C
 
 [FHIR-52752](https://jira.hl7.org/browse/FHIR-52752)
 
-> TX: Consider defining a TxArtifactTerminologyServiceCapabilityStatement profile?
+> TX Comment: Consider defining a TxArtifactTerminologyServiceCapabilityStatement profile?
 
 ## Code Systems
 
@@ -30,7 +30,7 @@ CRMI should adopt and consistently make use of the term _supported_ for code sys
 
 * A _supported_ code system is any code system that the server supports correctly for calls to `$expand`, `$validate-code`, and `$lookup`
 
-> TX: I assume that for $validate-code, this means both the ValueSet and CodeSystem operations?
+> TX Comment: I assume that for $validate-code, this means both the ValueSet and CodeSystem operations?
 
 > CRMI: Add and consistently make use of the term _supported_ for CodeSystem resources ([FHIR-52755](https://jira.hl7.org/browse/FHIR-52755))
 
@@ -40,11 +40,11 @@ CRMI should adopt and consistently make use of the term _pre-defined_ for code s
 
 > CRMI: Add and consistently make use of the term _pre-defined_ for CodeSystem resources ([FHIR-52755](https://jira.hl7.org/browse/FHIR-52755))
 
-> TX: In [Supporting Code Systems](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html#supporting-codesystems) there is this bullet: "The TerminologyCapabilities SHALL list all the predefined code systems that the server supports in TerminologyCapabilities.codeSystem.uri, and all the versions in TerminologyCapabilities.codeSystem.version.code. Code systems SHALL be listed here whether or not they are available through code system search" but shouldn't this say "supported" code systems, not "predefined" code systems?
+> TX Comment: In [Supporting Code Systems](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html#supporting-codesystems) there is this bullet: "The TerminologyCapabilities SHALL list all the predefined code systems that the server supports in TerminologyCapabilities.codeSystem.uri, and all the versions in TerminologyCapabilities.codeSystem.version.code. Code systems SHALL be listed here whether or not they are available through code system search" but shouldn't this say "supported" code systems, not "predefined" code systems?
 
-> TX: Is it the case that a pre-defined code system is also a supported code system? Regardless of the answer, should this be documented for clarity?
+> TX Comment: Is it the case that a pre-defined code system is also a supported code system? Regardless of the answer, should this be documented for clarity?
 
-> TX: Consider defining Capability statements for TxEcosystemServer, TxGeneralPurposeEcosystemServer, and TxCodeSystemEcosystemServer?
+> TX Comment: Consider defining Capability statements for TxEcosystemServer, TxGeneralPurposeEcosystemServer, and TxCodeSystemEcosystemServer?
 
 ### Passing Code System Resources
 
@@ -56,7 +56,7 @@ TX: [Support tx-resource](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html
 
 TX: [Code System Functionality](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html#code-system-functionality)
 
-> TX: This bullet: "CodeSystem.content. Servers SHALL not process $expand or $validate-code requests on CodeSystems that have content = not-present or example. Servers SHALL reflect content = fragment in an error message if the code is not valid against a fragment." seems inconsistent with the definition of supported code systems? Can't I make a CodeSystem resource available with content=not-present for a supported code system?
+> TX Comment: This bullet: "CodeSystem.content. Servers SHALL not process $expand or $validate-code requests on CodeSystems that have content = not-present or example. Servers SHALL reflect content = fragment in an error message if the code is not valid against a fragment." seems inconsistent with the definition of supported code systems? Can't I make a CodeSystem resource available with content=not-present for a supported code system?
 
 ## Value Sets
 
@@ -88,7 +88,7 @@ TX: [Value Set Functionality](https://hl7.org/fhir/uv/tx-ecosystem/requirements.
 
 TX: [Human Representation](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html#human-representation)
 
-> TX: Where is the web-source extension documented?
+> TX Comment: Where is the web-source extension documented?
 
 ## Parameter Support
 
@@ -108,7 +108,7 @@ TX: [$expand parameters](https://hl7.org/fhir/uv/tx-ecosystem/requirements.html#
 
 > CRMI: SHALL report all versions of code systems used (in used-*)
 
-> TX: Where is the used-* parameter documented?
+> TX Comment: Where is the used-* parameter documented?
 
 > CRMI: SHALL support Accept-Language header
 
