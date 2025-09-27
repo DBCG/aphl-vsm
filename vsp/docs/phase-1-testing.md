@@ -247,23 +247,66 @@ Login using:
 
 ---
 
-## 📦 Step 4: Manifest `$release` and `$package` Operations
+Perfect — here’s a more detailed and tester-friendly version of your **Step 4** section for the `README.md`. I’ve added:
 
-After uploading a FHIR manifest `Library` resource to the server, use the following two FHIR operations to release and retrieve package contents.
+* ✅ Realistic `curl` examples for both `$release` and `$package`.
+* 🧪 Testing guidance (what to look for in the results).
+* 📝 Instructions on how to prepare and run the operations.
+* 📌 Additional context around what each operation is expected to do.
+
+---
+
+```markdown
+## 📦 Step 4: Manifest `$release` and `$package` Operations (MVP Functionality)
+
+This step demonstrates how to use the `$release` and `$package` operations to process value set packages based on a FHIR manifest `Library`. This functionality is part of the MVP and supports value sets for **US Core** and **CCDA** Implementation Guides.
+
+---
+
+### ⚠️ Prerequisites
+
+Before invoking these operations:
+
+1. ✅ Upload the **entire NPM package contents** of the relevant IG (US Core or CCDA) into the FHIR server as a **FHIR `Bundle`**.
+    - This includes `ValueSet`, `CodeSystem`, `Library`, and other dependent resources.
+    - **Only uploading the `ImplementationGuide` resource is NOT sufficient.**
+
+2. ✅ Upload the **manifest `Library` resource**, which defines the structure and configuration for the value set package.
+
+> 🛠️ Operations are intended to be run manually via the command line using `curl`.
 
 ---
 
 ### 4.1 `$release` Operation
 
-Releases the manifest and pins its dependencies.
+**Purpose:**  
+Releases a manifest by resolving and pinning all its dependencies (e.g., code systems, value sets). This is the first step in generating a distributable value set package.
 
 **Endpoint:**
 
 ```
-POST http://localhost:8082/fhir/Library/<manifest-library-id>/$release
-```
 
-**Request Body:**
+POST [http://localhost:8082/fhir/Library/](http://localhost:8082/fhir/Library/)<manifest-library-id>/$release
+
+````
+
+Replace `<manifest-library-id>` with the actual ID of your manifest `Library`.
+
+#### 🧪 What This Does:
+
+- Resolves value sets and code systems defined in the manifest.
+- Pulls the latest versions (or pinned versions) of external content (e.g., from VSAC).
+- Stores a new released version of the value set content in the repository.
+
+#### ✅ Sample `curl` Command
+
+```bash
+curl -X POST http://localhost:8082/fhir/Library/my-manifest/$release \
+  -H "Content-Type: application/fhir+json" \
+  -d @release-params.json
+````
+
+#### 📝 Sample `release-params.json` File
 
 ```json
 {
@@ -321,7 +364,8 @@ POST http://localhost:8082/fhir/Library/<manifest-library-id>/$release
 
 ### 4.2 `$package` Operation
 
-Retrieves the entire package content defined in the manifest.
+**Purpose:**
+Packages the released content into a distributable unit (e.g., for publishing, validation, or deployment). This is typically done after a successful `$release`.
 
 **Endpoint:**
 
@@ -329,7 +373,21 @@ Retrieves the entire package content defined in the manifest.
 POST http://localhost:8082/fhir/Library/<manifest-library-id>/$package
 ```
 
-**Request Body:**
+#### 🧪 What This Does:
+
+* Collects all artifacts from the `$release` output.
+* Produces a FHIR `Bundle` (or NPM-like structure) that represents the value set package.
+* Can be downloaded or validated for completeness.
+
+#### ✅ Sample `curl` Command
+
+```bash
+curl -X POST http://localhost:8082/fhir/Library/my-manifest/$package \
+  -H "Content-Type: application/fhir+json" \
+  -d @package-params.json
+```
+
+#### 📝 Sample `package-params.json` File
 
 ```json
 {
@@ -371,6 +429,24 @@ POST http://localhost:8082/fhir/Library/<manifest-library-id>/$package
   ]
 }
 ```
+
+---
+
+### 📋 What to Check (Validation Guidance)
+
+After running both operations, confirm the following:
+
+* ✅ **Correct Value Sets** are included in the output.
+* ✅ **Correct Code System versions** are used (as defined in manifest).
+* ❌ **No irrelevant Value Sets** (i.e., from unrelated base specs).
+* 📦 The packaged output includes everything needed to use or publish the value sets (e.g., for terminology validation).
+
+---
+
+### 🧠 Additional Notes
+
+* `terminologyEndpoint` is used here for simplicity, but the **preferred long-term approach** is to use the [`endpointConfiguration`](https://hl7.org/fhir/uv/crmi/2025Sep/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html) extension (per CRMI spec).
+* Hardcoded endpoints and single-server assumptions are acceptable for the MVP.
 
 ---
 
