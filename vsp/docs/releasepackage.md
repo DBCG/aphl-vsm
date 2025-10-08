@@ -172,6 +172,9 @@ curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$release \
   -d @release-params.json
 ```
 
+<details>
+<summary>📄 Sample Release Payload (click to expand)</summary>
+
 📄 `release-params.json`:
 
 ```json
@@ -226,6 +229,8 @@ curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$release \
 }
 ```
 
+</details>
+
 ---
 
 ### 📦 Step 4: Run the `$package` Operation
@@ -237,6 +242,9 @@ curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$package \
   -H "Content-Type: application/fhir+json" \
   -d @package-params.json
 ```
+
+<details>
+<summary>📄 Sample Package Payload (click to expand)</summary>
 
 📄 `package-params.json`:
 
@@ -280,21 +288,7 @@ curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$package \
   ]
 }
 ```
-
----
-
-## ✅ Validation Checklist
-
-After running both operations:
-
-* [x] Only expected
-
-
-**ValueSets** are included
-
-* [x] Correct **CodeSystem versions** are applied
-* [x] No extra or unrelated value sets included
-* [x] Final `Bundle` or package is suitable for deployment or publication
+</details>
 
 ---
 
