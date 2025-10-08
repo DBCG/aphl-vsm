@@ -237,7 +237,7 @@ Login using:
 
 ---
 
-📘 For a step-by-step guide on release and package operations, refer to the [documentation below](#documentation).
+📘 For a step-by-step guide on release and package operations, refer to the [documentation below](https://github.com/DBCG/aphl-vsm/blob/initial-docu/vsp/docs/releasepackage.md).
 
 ---
 
