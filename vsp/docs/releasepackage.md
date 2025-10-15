@@ -167,9 +167,16 @@ curl -X POST http://localhost:8080/fhir/Library \
 **Purpose:** Resolve and pin dependencies, create a versioned release.
 
 ```bash
-curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$release \
+curl -X POST http://localhost:8080/fhir/Library/<id>/$release \
   -H "Content-Type: application/fhir+json" \
   -d @release-params.json
+```
+**Alternate Solution:**
+
+```bash
+curl --location 'http://localhost:8080/fhir/Library/<id>/$release' \
+--header 'Content-Type: application/json' \
+--data  '<Paste JSON Body Here>'
 ```
 
 <details>
@@ -238,9 +245,16 @@ curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$release \
 **Purpose:** Build a distributable package (FHIR Bundle or NPM-like structure).
 
 ```bash
-curl -X POST http://localhost:8080/fhir/Library/uscore-vsp-6-1-0/$package \
+curl -X POST http://localhost:8080/fhir/Library/<id>/$package \
   -H "Content-Type: application/fhir+json" \
   -d @package-params.json
+```
+**Alternate Solution:**
+
+```bash
+curl --location 'http://localhost:8080/fhir/Library/<id>/$package' \
+--header 'Content-Type: application/json' \
+--data  '<Paste JSON Body Here>'
 ```
 
 <details>
