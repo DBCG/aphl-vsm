@@ -38,7 +38,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: FHIR_CDR_URL
-          value: http://cqf-ruler-vsm/fhir
+          value: http://hapi-fhir-jpa-server-starter/fhir
         - name: EXTERNAL_FHIR_CDR_URL
           value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}/fhir
         - name: NEXT_PUBLIC_VSAC_BASE_URL
