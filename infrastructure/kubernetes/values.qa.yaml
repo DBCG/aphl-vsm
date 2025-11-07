@@ -1,6 +1,6 @@
 tag: ""
 namespace: "vsm-qa"
-hapi-fhir-jpa-server-starter:
+hapi_fhir_jpa_server_starter:
   app_url: "a88ebe212beb245098a829c6616a4850-1704460045.us-east-1.elb.amazonaws.com"
   db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler"
 vsm_app:

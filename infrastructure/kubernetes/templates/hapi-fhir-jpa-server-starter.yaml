@@ -42,7 +42,7 @@ spec:
               cpu: "1200m"
           env:
             - name: hapi.fhir.server_address
-              value: {{.Values.protocol}}://{{ .Values.hapi-fhir-jpa-server-starter.app_url}}/fhir
+              value: {{.Values.protocol}}://{{ .Values.hapi_fhir_jpa_server_starter.app_url}}/fhir
             - name: hapi.fhir.allow_multiple_delete
               value: "true"
             - name: hapi.fhir.fhir_version
@@ -60,7 +60,7 @@ spec:
             - name: _JAVA_OPTIONS
               value: '-Xmx6500m'
             - name: spring.datasource.url
-              value: {{ .Values.hapi-fhir-jpa-server-starter.db_url }}
+              value: {{ .Values.hapi_fhir_jpa_server_starter.db_url }}
             - name: spring.datasource.driverClassName
               value: org.postgresql.Driver
             - name: spring.datasource.username
