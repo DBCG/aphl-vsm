@@ -152,12 +152,12 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
 
         if (is.operationOutcome(updateGroupers)) {
           // send failure response
-          Logger.getLogger().error('error: ', updateGroupers)
+          Logger.getLogger().error(`error: ${updateGroupers}`)
           return res.status(400).send({ error: 'Error removing Valuesets from groupers' })
         }
         return res.status(200).send({})
       } catch (e) {
-        Logger.getLogger().error('error: ', JSON.stringify(e))
+        Logger.getLogger().error(`error: ${JSON.stringify(e)}`)
         return res.status(400).send({ error: 'Error deleting Valuesets from groupers' })
       }
 
@@ -200,7 +200,7 @@ const deleteVSetsFromGroupers = async (req: NextApiRequest, res: NextApiResponse
     }
   } catch (e) {
     console.error(e)
-    Logger.getLogger().error('error: ', e)
+    Logger.getLogger().error(`error: ${e}`)
     res.status(400).send({ error: 'error' })
   }
 }
@@ -226,7 +226,7 @@ const createGrouperValueSet = async (req: NextApiRequest, res: NextApiResponse, 
     // fn to return out of API with error
     const sendError = (error: ErrorResponse) => {
       const { errorMessage } = error
-      Logger.getLogger().error(`Error`, errorMessage)
+      Logger.getLogger().error(`Error: ${errorMessage}`)
       throw new Error(errorMessage)
     }
 

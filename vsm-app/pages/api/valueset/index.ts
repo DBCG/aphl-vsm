@@ -207,7 +207,7 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
           return
         }
       } catch (e) {
-        Logger.getLogger().error('error while attempting to add valueset: ', e)
+        Logger.getLogger().error(`error while attempting to add valueset: ${e}`)
         res.status(400).json({ error: `Error adding ValueSet with url ${selectedVS.url}` })
         return
       }
