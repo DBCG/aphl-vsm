@@ -68,7 +68,7 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, se
 const collectCodeSystemsFromLeafValuesets = async (programId: string, userId: string) => {
   const parameters = await addTerminologyEndpointToParameters({parameters: { resourceType: 'Parameters' } as fhir4.Parameters, userId})
 
-  const response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$ecr.package`, {
+  const response = await f(`${FhirClient.getInstance().baseUrl}/Library/${programId}/$package`, {
     body: JSON.stringify(parameters),
     method: 'POST',
     dispatcher: new Agent({

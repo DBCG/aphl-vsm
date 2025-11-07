@@ -254,7 +254,7 @@ const searchValueSet = async (req: NextApiRequest, res: NextApiResponse, session
 
     res.status(200).send(responseInfo)
   } catch (e) {
-    Logger.getLogger().error('error:  ', e)
+    Logger.getLogger().error(`error:  ${e}`)
     res.status(400).json({ 'server-error': 'ValueSet search failed.' })
     return
   }

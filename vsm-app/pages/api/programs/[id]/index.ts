@@ -33,7 +33,7 @@ const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse)
       return res.status(200).send({program, assessments})
     } catch (e: any) {
       const error = e as HapiError
-      Logger.getLogger().error('ERROR: ', error.response?.data?.issue?.[0]?.code, error.response?.data?.issue?.[0]?.diagnostics)
+      Logger.getLogger().error(`ERROR: ${error.response?.data?.issue?.[0]?.code}, ${error.response?.data?.issue?.[0]?.diagnostics}`)
       return res.status(error.response?.status || 400).json({ error: 'Search for program by id failed.' })
     }
   } else {

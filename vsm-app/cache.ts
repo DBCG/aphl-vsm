@@ -38,7 +38,7 @@ const Cache = (function () {
 
     return new Promise((resolve, reject) => {
       redisInstance.on('error', (error: unknown) => {
-        Logger.getLogger().error('[Redis] Error connecting', error)
+        Logger.getLogger().error(`[Redis] Error connecting: ${error}`)
         reject(error)
       })
 

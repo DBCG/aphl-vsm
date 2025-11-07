@@ -33,18 +33,6 @@ jobs:
         - npm run build ## Test for typescript issues
         - npm ci && npm run test-ci
       install: skip
-    - stage: mvn-test
-      jdk: openjdk17
-      language: java
-      script:
-        - ./bin/test_plugin.sh
-      install: skip
-    - stage: build-and-deploy-plugin
-      if: branch IN (main) or tag IS present
-      jdk: openjdk17
-      language: java
-      script:
-        - ./bin/build_plugin.sh
     - stage: e2e-test
       if: branch IN (main) or tag IS present
       script:

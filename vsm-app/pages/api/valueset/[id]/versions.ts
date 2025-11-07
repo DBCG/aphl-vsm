@@ -25,7 +25,7 @@ const getVersions = async (req: NextApiRequest, res: NextApiResponse, session: V
       id
     }) as fhir4.ValueSet
   } catch (e) {
-    Logger.getLogger().error('error here is: ', e)
+    Logger.getLogger().error(`error here is: ${e}`)
     // if error thrown, return
     return res.status(404).json({ error: `Error finding ValueSet with id ${id}.` })
   }

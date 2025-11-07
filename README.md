@@ -4,7 +4,7 @@ ValueSet Manager Application
 ## Running the app in development
 - *Make sure that Docker desktop is running.*
 
-### Start up services in Docker (CQF-Ruler, Redis, Keycloak, Postgres)
+### Start up services in Docker (HAPI FHIR JPA Server, Redis, Keycloak, Postgres)
 - In root directory, run:
 ```docker-compose up```
 
@@ -30,27 +30,6 @@ ValueSet Manager Application
 ```./keycloak/configure```
 
 - The configure file initializes some of the settings in Keycloak, adding a realm, admin role, etc.
-
-
-### Edit some configuration in Keycloak UI
-In order to connect your local Keycloak to the app, you must:
-- navigate to http://localhost:8080 (Keycloak admin UI)
-- enter admin username/pw (default: admin/admin)
-- in dropdown top left, choose APHL, then click on clients at left. Select server_auth from Clients list
-![APHL Realm main page](./md-images/clients_list.png "Contains info related to the APHL realm")
-
-- Click on the credentials tab and copy the Client secret. You will need to add this to your .env.local in nextjs as the KEYCLOAK_SECRET:
-![Keycloak Auth Settings](./md-images/keycloak_auth_settings.png "Edit settings to enable Keycloak auth")
-
-- Add the following values to your .env.local:
-```
-# keycloak
-# certain values must match the keycloak configure file
-KEYCLOAK_ID=aphl_app
-KEYCLOAK_SECRET=<KEYCLOAK CLIENT SECRET FROM SERVER_AUTH CLIENT>
-KEYCLOAK_ISSUER=http://localhost:8080/realms/aphl
-KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
-```
 
 - At this point, you should be able to run the app using the username johndoe and password password (if you didn't change the default values)
 
@@ -81,12 +60,12 @@ You will need to use the ```non_admin_username``` and ```non_admin_password``` t
 ```bin/docker-cleanup```
 - Note that this command will also delete anything related to your local CQF (HAPI) server for this project (and anything you have for other projects)
 
-### Clear out CQF data only
+### Clear out HAPI FHIR JPA Server data only
 
-- If you want to clear out the CQF data only, run:
+- If you want to clear out the HAPI data only, run:
 ```./bin/clear-data.sh```
 
-By default this will point to the local instance of the CQF server running at `http://localhost:8082/fhir`, but you can override this by passing in a different URL as the first argument.
+By default this will point to the local instance of the HAPI FHIR JPA server running at `http://localhost:8082/fhir`, but you can override this by passing in a different URL as the first argument.
 
 
 ## Using a Development Build of clinical-reasoning
@@ -95,43 +74,21 @@ By default this will point to the local instance of the CQF server running at `h
 
 Use `./mvnw clean install` to generate and cache a local version of your `clinical-reasoning` build
 
-### `cqf-ruler` Steps
+### `hapi-fhir-jpa-server-starter` Steps
 
 - Ensure that the pom.xml file has the right `clinical-reasoning` version variable:
 ```
 		<clinical-reasoning.version>3.12.0-SNAPSHOT</clinical-reasoning.version>
 ```
 or similar matching the version in your `clinical-reasoning` pom.xml file.
--  Use `./mvnw clean install` to generate and cache a local version of your `cqf-ruler` build containing the `clinical-reasoning` dependency
--  Use `docker build -t cqf-ruler-docker-image-tag-whatever .` to generate a docker image of `cqf-ruler` which you can use in the next part
+-  Use `./mvnw clean install` to generate and cache a local version of your `hapi-fhir-jpa-server-starter` build containing the `clinical-reasoning` dependency
+-  Use `docker build -t hapi-fhir-docker-image-tag-whatever .` to generate a docker image of `hapi-fhir-jpa-server-starter` which you can use in the next part
 
 ### `aphl-vsm` Steps
 
-- Make sure your `ecr/pom.xml` file has the correct versions of `clinical-reasoning`
-```
-<dependency>
-			<groupId>org.opencds.cqf.fhir</groupId>
-			<artifactId>cqf-fhir-cr</artifactId>
-			<version>3.12.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.opencds.cqf.fhir</groupId>
-			<artifactId>cqf-fhir-utility</artifactId>
-			<version>3.12.0-SNAPSHOT</version>
-		</dependency>
-```
 - Update your `docker-compose` file as follows:
 ```
-cqf-ruler-vsm:
-  image: something-different-to-what-it-was-before
-  build:
-   context: ./ecr
+hapi-fhir-jpa-server-starter:
+    image: hapi-fhir-docker-image-tag-whatever
 ```
-- Uodate the first line of `ecr/Dockerfile` as follows:
-```
-FROM cqf-ruler-docker-image-tag-whatever
-```
-where the base image is the cqf-ruler image you generated in the previous section.
-- Then go to `ecr` and run `mvn clean install`
-- In the base directory run `docker compose build` to copy your plugin files into the cqf-ruler image
-- run `docker compose up` to start up your dev instance which will use the development build of `clinical-reasoning`
+- Run `docker compose up` to start up your dev instance which will use the development build of `clinical-reasoning`

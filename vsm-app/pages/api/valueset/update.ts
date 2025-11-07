@@ -21,7 +21,7 @@ const updateBulkValueSets = async (req: NextApiRequest, res: NextApiResponse<Upd
     }
     const { user: {id: userId} } = session
     const job = await worker.add({ urls, programId, userId })
-    Logger.getLogger().info('UpdateValueSets job added', { job })
+    Logger.getLogger().info(`UpdateValueSets job added: ${job}`)
 
     res.json(job)
   } catch (error) {

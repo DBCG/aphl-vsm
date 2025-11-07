@@ -280,8 +280,8 @@ valueSetUpdateQueue.process(async function (job, done) {
 
       // Some Ids should intersect since from the UI side they are sent to be updated to latest here in the worker
       const anyIntersection = currentVsIds.filter((value) => allBatchJobIds.includes(value))
-      Logger.getLogger().info('New VS ids', allBatchJobIds)
-      Logger.getLogger().info('current VS ids', currentVsIds)
+      Logger.getLogger().info(`New VS ids: ${allBatchJobIds}`)
+      Logger.getLogger().info(`current VS ids: ${currentVsIds}`)
       if (anyIntersection?.length) {
         Logger.getLogger().info('Update finished')
         didFinishUpdate = true

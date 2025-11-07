@@ -25,7 +25,7 @@ const getAllConditions = async (req: NextApiRequest, res: NextApiResponse<Condit
       return res.status(200).send(formatted)
     } else {
       Logger.getLogger().error('Could not retrieve conditions data')
-      Logger.getLogger().debug('data from FhirClient.getInstance().search: ', JSON.stringify(data))
+      Logger.getLogger().debug(`data from FhirClient.getInstance().search: ${JSON.stringify(data)}`)
       return res.status(400).send({ error: 'Could not retrieve conditions data'}) 
     }
   } catch (e: any) {

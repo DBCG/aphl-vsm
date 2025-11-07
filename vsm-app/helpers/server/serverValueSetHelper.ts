@@ -224,7 +224,7 @@ export const fetchLeafValueSets = async ({
 
     return valueSets
   } catch (e) {
-    Logger.getLogger().error('error while fetching leaf valuesets', e)
+    Logger.getLogger().error(`error while fetching leaf valuesets: ${e}`)
     throw e
   }
 }

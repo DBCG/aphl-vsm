@@ -155,7 +155,7 @@ PackageQueue.process(async function (job: any, done) {
   try {
     let currentFormat = useV1 ? 'json' : userDesiredFormat // force json for v1 so we can pass it back to the server to convert to v2
     Logger.getLogger().info('Exporting program: ' + programId)
-    const url = `${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$ecr.package?_format=${currentFormat}`
+    const url = `${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$package?_format=${currentFormat}`
     Logger.getLogger().debug(`Exporting program ${programId} with parameters: ${JSON.stringify(parameters)}`)
     let response = await f(url, {
       body: JSON.stringify(parameters),
