@@ -11,7 +11,7 @@ cqf_ruler_rds_endpoint=$(jq -r '.rds_vsm_cqf_ruler_endpoint.value' <<< $terrafor
 
 cqf_ruler_rds_uri="jdbc:postgresql://${cqf_ruler_rds_endpoint}/vsmcqfruler" \
 yq -i '.cqf_ruler.db_url = env(cqf_ruler_rds_uri)' ../kubernetes/values.yaml
-# yq -i 'select(document_index == 1).spec.template.spec.containers[0].env[] |= select(.name == "spring.datasource.url").value = env(cqf_ruler_rds_uri)' ./cqf-ruler.yaml
+# yq -i 'select(document_index == 1).spec.template.spec.containers[0].env[] |= select(.name == "spring.datasource.url").value = env(cqf_ruler_rds_uri)' ./hapi-fhir-jpa-server-starter.yaml
 
 keycloak_rds_endpoint=$(jq -r '.rds_vsm_keycloak_endpoint.value' <<< $terraform_output)
 
