@@ -31,27 +31,6 @@ ValueSet Manager Application
 
 - The configure file initializes some of the settings in Keycloak, adding a realm, admin role, etc.
 
-
-### Edit some configuration in Keycloak UI
-In order to connect your local Keycloak to the app, you must:
-- navigate to http://localhost:8080 (Keycloak admin UI)
-- enter admin username/pw (default: admin/admin)
-- in dropdown top left, choose APHL, then click on clients at left. Select server_auth from Clients list
-![APHL Realm main page](./md-images/clients_list.png "Contains info related to the APHL realm")
-
-- Click on the credentials tab and copy the Client secret. You will need to add this to your .env.local in nextjs as the KEYCLOAK_SECRET:
-![Keycloak Auth Settings](./md-images/keycloak_auth_settings.png "Edit settings to enable Keycloak auth")
-
-- Add the following values to your .env.local:
-```
-# keycloak
-# certain values must match the keycloak configure file
-KEYCLOAK_ID=aphl_app
-KEYCLOAK_SECRET=<KEYCLOAK CLIENT SECRET FROM SERVER_AUTH CLIENT>
-KEYCLOAK_ISSUER=http://localhost:8080/realms/aphl
-KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback/keycloak
-```
-
 - At this point, you should be able to run the app using the username johndoe and password password (if you didn't change the default values)
 
 ### Run the frontend application
@@ -83,7 +62,7 @@ You will need to use the ```non_admin_username``` and ```non_admin_password``` t
 
 ### Clear out HAPI FHIR JPA Server data only
 
-- If you want to clear out the CQF data only, run:
+- If you want to clear out the HAPI data only, run:
 ```./bin/clear-data.sh```
 
 By default this will point to the local instance of the HAPI FHIR JPA server running at `http://localhost:8082/fhir`, but you can override this by passing in a different URL as the first argument.
@@ -107,19 +86,6 @@ or similar matching the version in your `clinical-reasoning` pom.xml file.
 
 ### `aphl-vsm` Steps
 
-- Make sure your `ecr/pom.xml` file has the correct versions of `clinical-reasoning`
-```
-<dependency>
-			<groupId>org.opencds.cqf.fhir</groupId>
-			<artifactId>cqf-fhir-cr</artifactId>
-			<version>3.12.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.opencds.cqf.fhir</groupId>
-			<artifactId>cqf-fhir-utility</artifactId>
-			<version>3.12.0-SNAPSHOT</version>
-		</dependency>
-```
 - Update your `docker-compose` file as follows:
 ```
 hapi-fhir-jpa-server-starter:
