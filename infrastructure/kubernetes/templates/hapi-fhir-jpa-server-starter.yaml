@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cqf-ruler-vsm
+  name: hapi-fhir-jpa-server-starter
   namespace: {{ .Values.namespace }}
 spec:
   type: LoadBalancer
   selector:
-    app: cqf-ruler-vsm
+    app: hapi-fhir-jpa-server-starter
   ports:
     - name: http
       port: 80
@@ -15,24 +15,24 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cqf-ruler-vsm
+  name: hapi-fhir-jpa-server-starter
   labels:
-    app: cqf-ruler-vsm
+    app: hapi-fhir-jpa-server-starter
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cqf-ruler-vsm
+      app: hapi-fhir-jpa-server-starter
   template:
     metadata:
       labels:
-        app: cqf-ruler-vsm
+        app: hapi-fhir-jpa-server-starter
     spec:
       containers:
-        - image: {{ .Values.aws.account_id }}.dkr.ecr.us-east-1.amazonaws.com/cqf-ruler:{{ .Values.tag }}
+        - image: hapiproject/hapi:v8.4.0-3
           imagePullPolicy: Always
-          name: cqf-ruler-vsm
+          name: hapi-fhir-jpa-server-starter
           resources:
             requests:
               memory: "6.5Gi"
@@ -42,7 +42,7 @@ spec:
               cpu: "1200m"
           env:
             - name: hapi.fhir.server_address
-              value: {{.Values.protocol}}://{{ .Values.cqf_ruler.app_url}}/fhir
+              value: {{.Values.protocol}}://{{ .Values.hapi-fhir-jpa-server-starter.app_url}}/fhir
             - name: hapi.fhir.allow_multiple_delete
               value: "true"
             - name: hapi.fhir.fhir_version
@@ -60,7 +60,7 @@ spec:
             - name: _JAVA_OPTIONS
               value: '-Xmx6500m'
             - name: spring.datasource.url
-              value: {{ .Values.cqf_ruler.db_url }}
+              value: {{ .Values.hapi-fhir-jpa-server-starter.db_url }}
             - name: spring.datasource.driverClassName
               value: org.postgresql.Driver
             - name: spring.datasource.username
@@ -103,6 +103,16 @@ spec:
                   key: vsm-db-password
             - name: spring.jpa.properties.hibernate.dialect
               value: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+            - name: hapi.fhir.cr.enabled
+              value: "true"
+            - name: hapi.fhir.cds.hooks.enabled
+              value: "true"
+            - name: hapi.fhir.cdshooks.clientIdHeaderName
+              value: "client_id"
+            - name: spring.main.allow-circular-references
+              value: "true"
+            - name: spring.main.allow-bean-definition-overriding
+              value: "true"
           ports:
             - containerPort: 8080
               protocol: TCP
