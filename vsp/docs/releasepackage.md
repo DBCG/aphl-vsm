@@ -29,11 +29,11 @@ You can run the FHIR server using the official [HAPI FHIR JPA Server Docker imag
 
 ```bash
 docker pull hapiproject/hapi:latest
-docker run -p 8080:8080 hapiproject/hapi:latest
+docker run -p 8080:8080 -e "hapi.fhir.cr.enabled=true" hapiproject/hapi:latest
 ```
 
 ```bash
-docker run -p 8080:8080 -e "hapi.fhir.implementationguides.uscore_6.name=hl7.fhir.us.core" -e "hapi.fhir.implementationguides.uscore_6.version=6.1.0" -e "hapi.fhir.implementationguides.uscore_6.installMode=STORE_AND_INSTALL" -e "hapi.fhir.implementationguides.core_r4.name=hl7.fhir.r4.core" -e "hapi.fhir.implementationguides.core_r4.version=4.0.1" -e "hapi.fhir.implementationguides.core_r4.installMode=STORE_AND_INSTALL" hapiproject/hapi:latest
+docker run -p 8080:8080 -e "hapi.fhir.implementationguides.uscore_6.name=hl7.fhir.us.core" -e "hapi.fhir.implementationguides.uscore_6.version=6.1.0" -e "hapi.fhir.implementationguides.uscore_6.installMode=STORE_AND_INSTALL" -e "hapi.fhir.implementationguides.core_r4.name=hl7.fhir.r4.core" -e "hapi.fhir.implementationguides.core_r4.version=4.0.1" -e "hapi.fhir.implementationguides.core_r4.installMode=STORE_AND_INSTALL" -e "hapi.fhir.cr.enabled=true" hapiproject/hapi:latest
 ```
 
 This exposes the FHIR server at:
