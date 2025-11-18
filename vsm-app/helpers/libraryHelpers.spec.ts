@@ -321,9 +321,10 @@ describe('libraryHelpers', () => {
           (i) =>
             i?.resource === targetedVsUrl && (
              i?.extension?.find(xt => (
-               xt?.url?.endsWith('vsm-valueset-condition') &&
-               xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-               xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+               xt?.url?.endsWith('crmi-intendedUsageContext') &&
+               xt?.valueUsageContext?.code?.code === 'focus' &&
+               xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+               xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
              )) 
             )
         )
@@ -353,9 +354,10 @@ describe('libraryHelpers', () => {
             i?.resource === targetedVsUrl && (
               i?.extension?.find(
                 xt => (
-                  xt?.url?.endsWith('vsm-valueset-condition') &&
-                  xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-                  xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+                  xt?.url?.endsWith('crmi-intendedUsageContext') &&
+                  xt?.valueUsageContext?.code?.code === 'focus' &&
+                  xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+                  xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
                 )
               )
             )
@@ -373,9 +375,10 @@ describe('libraryHelpers', () => {
             i?.resource === targetedVsUrl && (
               i?.extension?.find(
                 xt => (
-                  xt?.url?.endsWith('vsm-valueset-condition') &&
-                  xt?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-                  xt?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+                  xt?.url?.endsWith('crmi-intendedUsageContext') &&
+                  xt?.valueUsageContext?.code?.code === 'focus' &&
+                  xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+                  xt?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
                 )
               )
             )
@@ -438,9 +441,10 @@ describe('libraryHelpers', () => {
           (i) =>
             i?.resource === targetedVsUrl &&
             i?.extension?.find(ext => (
-              ext?.url?.endsWith('vsm-valueset-condition') &&
-              ext.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
-              ext.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
+              ext?.url?.endsWith('crmi-intendedUsageContext') &&
+              ext?.valueUsageContext?.code?.code === 'focus' &&
+              ext.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code === '731000124108' &&
+              ext.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.system === 'http://snomed.info/sct'
           )))
         expect(addedCondition).toBeDefined()
       })
@@ -473,29 +477,49 @@ describe('libraryHelpers', () => {
         }
       }
 
-      const testResult1 = [
+      const testResult1 = [        
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-          valueCodeableConcept: {
-            coding: [
-              {
-                code: "emergent",
-                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context"
-              }
-            ],
-            text: "Emergent"
-          }
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext:
+            {
+                code:
+                {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'focus'
+                },
+                valueCodeableConcept:
+                {
+                    coding:
+                    [
+                        {
+                        system: 'http://test-system',
+                        code: 'test-code'
+                        }
+                    ],
+                    text: 'test text'
+                }
+            }
         },
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
+          url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+          valueUsageContext:
+          {
+              code:
               {
-                code: "test-code",
-                system: "http://test-system"
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                  code: 'priority'
+              },
+              valueCodeableConcept:
+              {
+                  coding:
+                  [
+                      {
+                      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                      code: 'emergent'
+                      }
+                  ],
+                  text: 'Emergent'
               }
-            ],
-            text: "test text"
           }
         }
       ]
@@ -535,18 +559,24 @@ describe('libraryHelpers', () => {
         
         expect(updatedVsConditionExtensions).toHaveLength(4)
 
-        const addedExtension = updatedVsConditionExtensions?.find((ext: fhir4.Extension) => ext?.valueCodeableConcept?.text == 'test text 2')
+        const addedExtension = updatedVsConditionExtensions?.find((ext: fhir4.Extension) => ext?.valueUsageContext?.valueCodeableConcept?.text == 'test text 2')
 
-        expect(addedExtension).toStrictEqual(        {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
-              {
-                code: "test-code-2",
-                system: "http://test-system2"
-              }
-            ],
-            text: "test text 2"
+        expect(addedExtension).toStrictEqual({
+          url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'focus'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  code: 'test-code-2',
+                  system: 'http://test-system2'
+                }
+              ],
+              text: 'test text 2'
+            }
           }
         })
       })
@@ -768,77 +798,61 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
     {
       extension: [
         {
-          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-                code: 'emergent'
-              }
-            ],
-            text: 'Emergent'
-          }
-        }
-      ],
-      type: 'depends-on',
-      resource: 'http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.481'
-    },
-    {
-      type: 'composed-of',
-      resource: 'http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification',
-      extension: [
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext:
+            {
+                code:
+                {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                },
+                valueCodeableConcept:
+                {
+                    coding:
+                    [
+                        {
+                        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                        code: 'emergent'
+                        }
+                    ],
+                    text: 'Emergent'
+                }
+            }
+        },
         {
-          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
-          valueBoolean: true
-        }
-      ]
-    },
-    {
-      type: 'composed-of',
-      resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc',
-      extension: [
-        {
-          url: 'http://hl7.org/fhir/StructureDefinition/artifact-isOwned',
-          valueBoolean: true
-        }
-      ]
-    },
-    {
-      extension: [
-        {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                code: "emergent"
-              }
-            ],
-            text: "Emergent"
+          url: "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext",
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'focus'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://snomed.info/sct',
+                  code: '49649001'
+                }
+              ],
+              text: 'Infection caused by Acanthamoeba (disorder)'
+            }
           }
         },
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://snomed.info/sct",
-                code: "49649001"
-              }
-            ],
-            text: "Infection caused by Acanthamoeba (disorder)"
-          }
-        },
-        {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://snomed.info/sct",
-                code: "767146004"
-              }
-            ],
-            text: "Toxic effect of arsenic and/or arsenic compound"
+          url: "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext",
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'focus'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://snomed.info/sct',
+                  code: '767146004'
+                }
+              ],
+              text: 'Toxic effect of arsenic and/or arsenic compound'
+            }
           }
         }
       ],
@@ -848,39 +862,61 @@ const FIXTURE_PROGRAM_CONDITIONS_1 = {
     {
       extension: [
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                code: "routine"
-              }
-            ],
-            text: "Routine"
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext:
+            {
+                code:
+                {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                },
+                valueCodeableConcept:
+                {
+                    coding:
+                    [
+                        {
+                        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                        code: 'routine'
+                        }
+                    ],
+                    text: 'Routine'
+                }
+            }
+        },
+        {
+          url: "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext",
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'focus'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://snomed.info/sct',
+                  code: '678910'
+                }
+              ],
+              text: 'Really unpleasant infection'
+            }
           }
         },
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://snomed.info/sct",
-                code: "678910"
-              }
-            ],
-            text: "Really unpleasant infection"
-          }
-        },
-        {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://snomed.info/sct",
-                code: "123456"
-              }
-            ],
-            text: "Toxic stuff over here"
+          url: "http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext",
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'focus'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://snomed.info/sct',
+                  code: '123456'
+                }
+              ],
+              text: 'Toxic stuff over here'
+            }
           }
         }
       ],

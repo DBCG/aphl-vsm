@@ -47,16 +47,26 @@ const TEST_LIB = {
     {
       extension: [
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                code: "emergent"
-              }
-            ],
-            text: "Emergent"
-          }
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext:
+            {
+                code:
+                {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                },
+                valueCodeableConcept:
+                {
+                    coding:
+                    [
+                        {
+                        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                        code: 'emergent'
+                        }
+                    ],
+                    text: 'Emergent'
+                }
+            }
         }
       ],
       type: "depends-on",
@@ -118,16 +128,26 @@ const TEST_LIB_WITHOUT_OWNED = {
     {
       extension: [
         {
-          url: "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
-                code: "emergent"
-              }
-            ],
-            text: "Emergent"
-          }
+            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+            valueUsageContext:
+            {
+                code:
+                {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                },
+                valueCodeableConcept:
+                {
+                    coding:
+                    [
+                        {
+                        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                        code: 'emergent'
+                        }
+                    ],
+                    text: 'Emergent'
+                }
+            }
         }
       ],
       type: "depends-on",
