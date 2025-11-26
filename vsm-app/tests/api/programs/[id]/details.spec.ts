@@ -105,13 +105,53 @@ describe('/api/programs/[id]/details', () => {
         {
           resource: 'http://valueset.com/valueset/1',
           type: 'depends-on',
-          extension: [{ url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority', valueString: 'emergent' }]
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+              valueUsageContext: {
+                code: {
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                  code: 'priority'
+                },
+                valueCodeableConcept: {
+                  coding:
+                      [
+                        {
+                          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                          code: 'emergent'
+                        }
+                      ],
+                  text: 'Emergent'
+                }
+              }
+            }
+          ]
         },
         // should be modified to 'emergent'
         {
           resource: 'http://valueset.com/valueset/2|2024-01-22',
           type: 'depends-on',
-          extension: [{ url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority', valueString: 'routine' }]
+          extension: [
+            {
+              url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+              valueUsageContext: {
+                code: {
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                  code: 'priority'
+                },
+                valueCodeableConcept: {
+                  coding:
+                      [
+                        {
+                          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                          code: 'routine'
+                        }
+                      ],
+                  text: 'Routine'
+                }
+              }
+            }
+          ]
         }
       ]
     }
@@ -143,22 +183,48 @@ describe('/api/programs/[id]/details', () => {
           {
             resource: 'http://valueset.com/valueset/1',
             type: 'depends-on',
-            extension: [{ url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority', valueString: 'emergent' }]
+            extension: [
+              {
+                url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+                valueUsageContext: {
+                  code: {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                  },
+                  valueCodeableConcept: {
+                    coding:
+                        [
+                          {
+                            system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                            code: 'emergent'
+                          }
+                        ],
+                    text: 'Emergent'
+                  }
+                }
+              }
+            ]
           },
           {
             resource: 'http://valueset.com/valueset/2|2024-01-22',
             type: 'depends-on',
             extension: [
               {
-                url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-                valueCodeableConcept: {
-                  coding: [
-                    {
-                      code: 'emergent',
-                      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context'
-                    }
-                  ],
-                  text: 'Emergent'
+                url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+                valueUsageContext: {
+                  code: {
+                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                    code: 'priority'
+                  },
+                  valueCodeableConcept: {
+                    coding: [
+                      {
+                        code: 'emergent',
+                        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context'
+                      }
+                    ],
+                    text: 'Emergent'
+                  }
                 }
               }
             ]

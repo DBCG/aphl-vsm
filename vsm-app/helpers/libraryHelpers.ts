@@ -353,7 +353,7 @@ const buildConditionExtensionItem = (
   text: string = 'no condition description provided'
 ) => {
   return {
-    url: 'http://hl7.org/fhir/us/cqfmeasures/StructureDefinition/crmi-intendedUsageContext',
+    url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
     valueUsageContext: {
       code: {
         system: 'http://terminology.hl7.org/CodeSystem/usage-context-type',

@@ -175,15 +175,22 @@ describe('libraryHelpers', () => {
         const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
-              url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-              valueCodeableConcept: {
-                coding: [
-                  {
-                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-                    code: 'emergent'
-                  }
-                ],
-                text: 'Emergent'
+              url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+              valueUsageContext:
+              {
+                code: {
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                  code: 'priority'
+                },
+                valueCodeableConcept: {
+                  coding: [
+                    {
+                      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                      code: 'emergent'
+                    }
+                  ],
+                  text: 'Emergent'
+                }
               }
             }
           ],
@@ -199,16 +206,23 @@ describe('libraryHelpers', () => {
         const newValueSetPriority: fhir4.RelatedArtifact = {
           extension: [
             {
-              url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-              valueCodeableConcept: {
-                coding: [
+              url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+              valueUsageContext:
                   {
-                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-                    code: 'emergent'
+                    code: {
+                      system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+                      code: 'priority'
+                    },
+                    valueCodeableConcept: {
+                      coding: [
+                        {
+                          system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                          code: 'emergent'
+                        }
+                      ],
+                      text: 'Emergent'
+                    }
                   }
-                ],
-                text: 'Emergent'
-              }
             }
           ],
           type: 'depends-on',
@@ -477,29 +491,7 @@ describe('libraryHelpers', () => {
         }
       }
 
-      const testResult1 = [        
-        {
-            url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
-            valueUsageContext:
-            {
-                code:
-                {
-                    system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
-                    code: 'focus'
-                },
-                valueCodeableConcept:
-                {
-                    coding:
-                    [
-                        {
-                        system: 'http://test-system',
-                        code: 'test-code'
-                        }
-                    ],
-                    text: 'test text'
-                }
-            }
-        },
+      const testResult1 = [
         {
           url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
           valueUsageContext:
@@ -521,6 +513,28 @@ describe('libraryHelpers', () => {
                   text: 'Emergent'
               }
           }
+        },
+        {
+          url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+          valueUsageContext:
+              {
+                code:
+                    {
+                      system: 'http://terminology.hl7.org/CodeSystem/usage-context-type',
+                      code: 'focus'
+                    },
+                valueCodeableConcept:
+                    {
+                      coding:
+                          [
+                            {
+                              system: 'http://test-system',
+                              code: 'test-code'
+                            }
+                          ],
+                      text: 'test text'
+                    }
+              }
         }
       ]
 
@@ -565,7 +579,7 @@ describe('libraryHelpers', () => {
           url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
           valueUsageContext: {
             code: {
-              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              system: 'http://terminology.hl7.org/CodeSystem/usage-context-type',
               code: 'focus'
             },
             valueCodeableConcept: {
@@ -695,15 +709,21 @@ const FIXTURE_PROGRAM_1 = {
     {
       extension: [
         {
-          url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-          valueCodeableConcept: {
-            coding: [
-              {
-                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-                code: 'emergent'
-              }
-            ],
-            text: 'Emergent'
+          url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+          valueUsageContext: {
+            code: {
+              system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+              code: 'priority'
+            },
+            valueCodeableConcept: {
+              coding: [
+                {
+                  system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                  code: 'emergent'
+                }
+              ],
+              text: 'Emergent'
+            }
           }
         }
       ],
