@@ -34,11 +34,8 @@ const validateConditionLeafVs = async (programId: string) => {
   const grouperValueSets = await getGrouperValuesets(grouperLibrary)
 
   // Get all leaf VS URLs from grouper and remove version info
-  const leafValueSetCanonicals = uniq(
-    grouperValueSets
-      .reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[])
-      .map((url) => url.split('|')[0])
-  )
+  // @ts-ignore
+  const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[])).map((url) => url?.split("|")[0])
 
   const missingConditionsVs: string[] = []
 
