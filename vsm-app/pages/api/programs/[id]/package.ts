@@ -27,28 +27,36 @@ export type PackageResponse = fhir4.Bundle | string | { error: string }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
 
-// Pre-emptive check for leaf vs to ensure conditions are present
+// Pre-emptive check for leaf VS to ensure conditions are present
 const validateConditionLeafVs = async (programId: string) => {
   const program = await getProgram(programId)
   const grouperLibrary = await getGrouperLibrary(program)
   const grouperValueSets = await getGrouperValuesets(grouperLibrary)
 
+  // Get all leaf VS URLs from grouper and remove version info
   // @ts-ignore
-  const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[]))
-  const missingConditionsVs = [] as string[]
+  const leafValueSetCanonicals = uniq(grouperValueSets.reduce((acc, i) => [...acc, ...getLeafUrlsFromGrouper(i)], [] as string[])).map((url) => url?.split("|")[0])
+
+  const missingConditionsVs: string[] = []
+
   program.relatedArtifact?.forEach((relatedArtifact) => {
-    const vsCanonical = relatedArtifact?.resource
+    const vsCanonical = relatedArtifact?.resource?.split('|')[0] // ignore version
     if (vsCanonical && leafValueSetCanonicals.includes(vsCanonical)) {
-      const conditionPresent = relatedArtifact?.extension?.find((i) => i?.url?.endsWith('vsm-valueset-condition'))
-      if (!conditionPresent) {
-        missingConditionsVs.push(vsCanonical.split('|')?.[0])
+      // Check for crmi-intendedUsageContext extension with code 'focus'
+      const usageContextPresent = relatedArtifact?.extension?.find((ext) =>
+        ext?.url?.endsWith('crmi-intendedUsageContext') &&
+        ext?.valueUsageContext &&
+        ext.valueUsageContext.code?.code === 'focus'
+      )
+      if (!usageContextPresent) {
+        missingConditionsVs.push(vsCanonical)
       }
     }
   })
 
   if (missingConditionsVs.length > 0) {
     throw new Error(
-      `Pre-check failed. To export, please add at least 1 condition to the following ValueSets: ${missingConditionsVs.join('\n')}`
+      `Pre-check failed. To export, please add at least 1 'focus' usage context to the following ValueSets: ${missingConditionsVs.join('\n')}`
     )
   }
 }

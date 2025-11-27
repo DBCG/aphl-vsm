@@ -118,23 +118,31 @@ const changeLogDiffOperation = async (sourceId: string, targetId: string, input:
 
 const extractConditions = (rootLibraryChangeDiff: any) => {
   const conditions: string[] = []
+
   // Get all new conditions
   rootLibraryChangeDiff.newData.relatedArtifacts.forEach((artifact: any) => {
     // Handles case of new conditions being added
     if ('operation' in artifact) {
-      if (artifact.operation.type === OPERATION_TYPES.INSERT && 'extension' in artifact.operation.newValue) {
+      const op = artifact.operation
+      if (op?.type === OPERATION_TYPES.INSERT && op?.newValue?.extension?.length) {
         const conditionNames =
-          artifact?.operation?.newValue?.extension
+          op.newValue.extension
             ?.map((extension: any) => {
-              if (extension.url === 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition') {
-                return extension.valueCodeableConcept.text
+              // only consider CRMI intendedUsageContext extensions that represent conditions (focus)
+              const isCrmi = extension?.url && extension.url.endsWith('crmi-intendedUsageContext')
+              const vuc = extension?.valueUsageContext
+              const isFocus = !!vuc && vuc?.code?.code === 'focus'
+              if (isCrmi && isFocus) {
+                return vuc?.valueCodeableConcept?.text
               }
+              return undefined
             })
             ?.filter((i: any) => i) || []
         conditions.push(...conditionNames)
       }
     }
   })
+
   return conditions
 }
 

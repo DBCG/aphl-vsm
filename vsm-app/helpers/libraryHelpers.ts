@@ -155,37 +155,63 @@ const validStartDate = (date: any): boolean => {
 }
 
 const createPriorityItem = (code: string) => ({
-  url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority',
-  valueCodeableConcept: {
-    coding: [
-      {
-        system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
-        code
-      }
-    ],
-    text: capitalizeFirstLetter(code)
-  }
+    url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+    valueUsageContext:
+    {
+        code:
+        {
+            system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type',
+            code: 'priority'
+        },
+        valueCodeableConcept:
+        {
+            coding:
+            [
+                {
+                system: 'http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context',
+                code
+                }
+            ],
+            text: capitalizeFirstLetter(code)
+        }
+    }
 })
 
 const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonicals: string[]) => {
   const clonedTarget = cloneDeep(target)
-  // add RA block if doesn't exist
-  if (!clonedTarget.relatedArtifact) clonedTarget.relatedArtifact = []
-  // update on iterate
-  let newCanonicals = canonicals
-  // update relatedArtifacts that exist
-  let newRA = clonedTarget.relatedArtifact?.map((item) => {
-    // find the matching relatedArtifact by canonical
-    if (item?.resource && canonicals.includes(item.resource) && item.type === 'depends-on') {
-      newCanonicals = newCanonicals.filter((c) => c !== item.resource)
-      // set if doesn't exist
-      if (!item.extension) item.extension = []
-      const matchIndex = item.extension?.findIndex((i) => i.url.endsWith('vsm-valueset-priority'))
 
-      const itemToAdd = createPriorityItem(code)
+  // ensure relatedArtifact array exists
+  if (!clonedTarget.relatedArtifact) clonedTarget.relatedArtifact = []
+
+  // keep track of canonicals we still need to add
+  let remainingCanonicals = [...canonicals]
+
+  // update relatedArtifacts that already exist
+  const updatedRelatedArtifacts = clonedTarget.relatedArtifact.map((item) => {
+    // find the matching relatedArtifact by canonical (exact match including pinned version)
+    if (item?.resource && remainingCanonicals.includes(item.resource) && item.type === 'depends-on') {
+      // we've handled this canonical, remove it from remaining list
+      remainingCanonicals = remainingCanonicals.filter((c) => c !== item.resource)
+
+      // ensure extension array exists
+      if (!item.extension) item.extension = []
+
+      // find an existing CRMI intendedUsageContext extension that has usageContext.code.code === 'priority'
+      const matchIndex = item.extension.findIndex((ext) => {
+        if (!ext?.url) return false
+        if (!ext.url.endsWith('crmi-intendedUsageContext')) return false
+        // defensive access for the valueUsageContext shape used in your fixtures
+        const vuc = (ext as any).valueUsageContext
+        return !!vuc && !!vuc.code && vuc.code.code === 'priority'
+      })
+
+      const itemToAdd = createPriorityItem(code) // your existing factory that returns the CRMI extension
+
       if (matchIndex > -1) {
+        // replace the existing priority usageContext extension
         item.extension[matchIndex] = itemToAdd
       } else {
+        // append the new priority usageContext extension
         item.extension.push(itemToAdd)
       }
     }
@@ -193,35 +219,52 @@ const setVSPriority = (target: fhir4.Library, code: USHealthVSPriority, canonica
     return item
   })
 
-  newCanonicals.forEach((url) => {
-    newRA.push({
+  // add any new relatedArtifact entries for canonicals that were not present
+  remainingCanonicals.forEach((url) => {
+    updatedRelatedArtifacts.push({
       type: 'depends-on',
       resource: url,
       extension: [createPriorityItem(code)]
-    })
+    } as fhir4.RelatedArtifact)
   })
 
-  clonedTarget.relatedArtifact = newRA
+  clonedTarget.relatedArtifact = updatedRelatedArtifacts
 
   return clonedTarget
 }
 
 const getVSPriority = (library: fhir4.Library) => {
   const vsPriorityMap: Record<string, USHealthVSPriority> = {}
+
   library?.relatedArtifact?.forEach((ra) => {
-    const priorityExtensionIndex = ra.extension?.findIndex((ext) => ext?.url?.endsWith('vsm-valueset-priority'))
-    // if priority already exists
-    if (ra.type === 'depends-on' && typeof priorityExtensionIndex === 'number' && priorityExtensionIndex > -1) {
-      const vsUrl = ra.resource?.split('|')?.[0] as string
-      const priority = ra.extension?.[priorityExtensionIndex]?.valueCodeableConcept?.coding?.[0]?.code
-      if (!(priority === 'emergent' || priority === 'routine')) {
-        throw 'Unknown priority code!'
-      }
-      if (vsUrl && priority) {
-        vsPriorityMap[vsUrl] = priority
-      }
+    if (ra?.type !== 'depends-on' || !ra?.extension?.length) return
+
+    // find a CRMI intendedUsageContext extension whose usageContext.code.code === 'priority'
+    const priorityExt = ra.extension.find((ext) => {
+      if (!ext?.url) return false
+      if (!ext.url.endsWith('crmi-intendedUsageContext')) return false
+      const vuc = (ext as any).valueUsageContext
+      return !!vuc && !!vuc.code && vuc.code.code === 'priority'
+    })
+
+    if (!priorityExt) return
+
+    // extract values safely
+    const vsUrl = ra.resource?.split('|')?.[0] as string | undefined
+    const priorityCode = (priorityExt as any)?.valueUsageContext?.valueCodeableConcept?.coding?.[0]?.code as
+      | string
+      | undefined
+
+    if (!vsUrl || !priorityCode) return
+
+    // validate allowed priorities
+    if (priorityCode !== 'emergent' && priorityCode !== 'routine') {
+      throw new Error('Unknown priority code!')
     }
+
+    vsPriorityMap[vsUrl] = priorityCode as USHealthVSPriority
   })
+
   return vsPriorityMap
 }
 
@@ -241,23 +284,42 @@ const getConditionText = (conditionItem: ConditionsData | undefined, currentCond
 // get all conditions by url
 const getVSConditions = (program: fhir4.Library) => {
   const vsConditions = {} as ValueSetConditionsMap
+
   program.relatedArtifact?.forEach((artifact) => {
-    const conditionExtensions = artifact?.extension?.filter((ext) => ext?.url?.endsWith('vsm-valueset-condition'))
+    // find CRMI usageContext extensions (these replace the old vsm-valueset-condition)
+    const conditionExtensions = artifact?.extension?.filter(
+      (ext) => ext?.url?.endsWith('crmi-intendedUsageContext')
+    )
+
     if (artifact?.type === 'depends-on' && conditionExtensions?.length) {
       const vsUrl = artifact.resource?.split('|')?.[0] as string
 
-      const arrangedConditions = conditionExtensions.map((ext) => {
-        const itemCode = ext?.valueCodeableConcept?.coding?.[0]?.code
+      const arrangedConditions = conditionExtensions
+        .map((ext) => {
+          // defensive unpack of valueUsageContext and its valueCodeableConcept
+          const vuc = (ext as any).valueUsageContext
+          if (!vuc || !vuc.code || vuc.code.code !== 'focus') return null
 
-        return {
-          id: `${ext?.valueCodeableConcept?.coding?.[0]?.system}|${itemCode}`!,
-          valueCodeableConcept: ext?.valueCodeableConcept || {}
+          const vcc = vuc.valueCodeableConcept
+          const coding = vcc?.coding?.[0]
+          const itemCode = coding?.code
+          const itemSystem = coding?.system
+
+          if (!itemCode || !itemSystem) return null
+
+          return {
+            id: `${itemSystem}|${itemCode}`,
+            valueCodeableConcept: vcc || {}
+          }
+        })
+        .filter((x) => x) as { id: string; valueCodeableConcept: fhir4.CodeableConcept }[]
+
+      if (arrangedConditions.length) {
+        if (!vsConditions[vsUrl]) {
+          vsConditions[vsUrl] = arrangedConditions
+        } else {
+          vsConditions[vsUrl] = vsConditions[vsUrl].concat(arrangedConditions)
         }
-      })
-      if (!vsConditions[vsUrl]) {
-        vsConditions[vsUrl] = arrangedConditions
-      } else {
-        vsConditions[vsUrl] = vsConditions[vsUrl].concat(arrangedConditions)
       }
     }
   })
@@ -285,17 +347,27 @@ const setVSConditions = (
   }
 }
 
-const buildConditionExtensionItem = (code: string, system: string, text: string = 'no condition description provided') => {
+const buildConditionExtensionItem = (
+  code: string,
+  system: string,
+  text: string = 'no condition description provided'
+) => {
   return {
-    url: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition',
-    valueCodeableConcept: {
-      coding: [
-        {
-          system,
-          code
-        }
-      ],
-      text
+    url: 'http://hl7.org/fhir/uv/crmi/StructureDefinition/crmi-intendedUsageContext',
+    valueUsageContext: {
+      code: {
+        system: 'http://terminology.hl7.org/CodeSystem/usage-context-type',
+        code: 'focus' // replaces vsm-valueset-condition semantics
+      },
+      valueCodeableConcept: {
+        coding: [
+          {
+            system,
+            code
+          }
+        ],
+        text
+      }
     }
   }
 }
@@ -355,10 +427,20 @@ const overrideVSConditions = (program: fhir4.Library, conditions: Condition[], v
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
     if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
-      ra.extension = ra.extension.filter((xt) => !xt.url.endsWith('vsm-valueset-condition'))
+        ra.extension = ra.extension.filter((xt) => {
+        // keep extension unless it's a CRMI intendedUsageContext whose usageContext.code.code === 'focus'
+        const isCrmi = !!xt.url && xt.url.endsWith('crmi-intendedUsageContext');
+        const isFocus =
+            !!(xt as any).valueUsageContext &&
+            typeof (xt as any).valueUsageContext === 'object' &&
+            !!(xt as any).valueUsageContext.code &&
+            (xt as any).valueUsageContext.code.code === 'focus';
+
+        return !(isCrmi && isFocus); // remove only CRMI usageContext extensions that are 'focus'
+        });
     }
-    return ra
-  })
+        return ra;
+    });
 
   clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
   const progWithCondAdded = addVSConditions(clonedProgram, conditions, vsUrls)
@@ -371,17 +453,28 @@ const removeVSConditions = (program: fhir4.Library, conditions: Condition[], vsU
 
   const relatedArtWithConditionsRemoved = clonedProgram.relatedArtifact?.map((ra: fhir4.RelatedArtifact) => {
     if (ra.type === 'depends-on' && ra.extension && ra.resource && vsUrls.includes(ra.resource)) {
-      ra.extension = ra.extension.filter(
-        (xt) =>
-          xt?.url?.endsWith('vsm-valueset-condition') &&
-          !conditions.find(
-            (cond) =>
-              xt?.valueCodeableConcept?.coding?.[0]?.system == cond.value.system &&
-              xt?.valueCodeableConcept?.coding?.[0]?.code == cond.value.code
-          )
-      )
-    }
-    return ra
+        ra.extension = ra.extension.filter((xt) => {
+            // keep non-CRMI extensions
+            if (!xt?.url || !xt.url.endsWith('crmi-intendedUsageContext')) return true;
+
+            // must be a usageContext representing a condition (code.code === 'focus')
+            const vuc = (xt as any).valueUsageContext;
+            const isFocus = !!vuc && vuc.code && vuc.code.code === 'focus';
+            if (!isFocus) return true; // keep CRMI usageContexts that are not 'focus'
+
+            // get the first coding on the valueCodeableConcept (defensive)
+            const coding = vuc?.valueCodeableConcept?.coding?.[0];
+            if (!coding) return true; // if no coding info, don't remove it (safer)
+
+            // if this coding matches one of the conditions, filter it out (i.e. remove it)
+            const matches = !!conditions.find(
+            (cond) => coding.system == cond.value.system && coding.code == cond.value.code
+            );
+
+            return !matches; // keep only those that do NOT match the condition list
+        });
+        }
+        return ra;
   })
 
   clonedProgram.relatedArtifact = relatedArtWithConditionsRemoved
