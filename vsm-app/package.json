@@ -1,6 +1,6 @@
 {
   "name": "vsm-app",
-  "version": "0.1.77",
+  "version": "0.1.78",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
@@ -66,7 +66,7 @@
     "babel-plugin-styled-components": "^2.0.6",
     "dotenv": "^16.3.1",
     "eslint": "8.10.0",
-    "eslint-config-next": "^14.2.3",
+    "eslint-config-next": "^15.0.0-rc.1",
     "isomorphic-fetch": "^3.0.0",
     "jest": "28.1.0",
     "jest-environment-jsdom": "28.1.0",
