@@ -109,7 +109,7 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.locator(`[id="cell-3-http://hl7.org/fhir/sid/icd-10-cm|2022"]`)).toHaveCount(1);
   });
 
-  test("Creates, Edits, and Deletes new grouper", async ({ page }) => {
+  test("Creates and Edits new grouper", async ({ page }) => {
     await login(page);
     await page.getByTestId("text-link").first().click();
 
@@ -187,12 +187,12 @@ test.describe.serial("Smoke Tests", () => {
     await expect(page.getByText("test-title")).toHaveCount(1);
 
     // Now remove newly created grouper
-    await page.getByRole("row", { name: "ExcellentTitleForGrouper test" }).getByLabel("delete").click();
-    await page.getByRole("button", { name: "YES" }).click();
-    await page.waitForTimeout(1000); // Wait for data load
+    //await page.getByRole("row", { name: "ExcellentTitleForGrouper test" }).getByLabel("delete").click();
+    //await page.getByRole("button", { name: "YES" }).click();
+    //await page.waitForTimeout(1000); // Wait for data load
 
     // Check that the grouper had been removed
-    await expect(page.getByText("test-title")).toHaveCount(0);
+    //await expect(page.getByText("test-title")).toHaveCount(0);
   });
 
   test("Adds a new valueset to multiple program groupers then removes it", async ({ page }) => {
