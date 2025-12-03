@@ -231,76 +231,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
               }
               <Typography>JSON</Typography>
             </Stack>
-            <RadioGroup
-              row
-              value={versionRadioValue}
-              name="radio-buttons-export-group"
-              onChange={(e) => setVersionRadioValue(e?.target?.value)}
-            >
-              <FormControlLabel value="v1" control={<Radio />} label="V1" />
-              <FormControlLabel value="v2" control={<Radio />} label="V2" />
-            </RadioGroup>
           </FormGroup>
-          {fileUploadContent && versionRadioValue === 'v1' && (
-            <Box style={{ display: 'flex' }}>
-              <Typography sx={{ textAlign: 'left' }} variant={'h6'}>
-                {fileUploadContent.fileName}
-              </Typography>
-              <ClearIcon onClick={(e) => setFileUploadContent(undefined)} />
-            </Box>
-          )}
-          {versionRadioValue === 'v1' && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', mt: 3 }}>
-              <Button component="label" variant="contained">
-                Upload Plan Definition
-                {/* We need this key to track rerendering of file type input */}
-                <VisuallyHiddenInput key={fileUploadContent?.fileName} accept=".json" type="file" onChange={onUpload} />
-              </Button>
-              {fileUploadContent == null && (
-                <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
-                  (optional)
-                </Typography>
-              )}
-              <InputLabel sx={{ textAlign: 'left', mt: 2 }} htmlFor="target-version">
-                Release Label
-                <Tooltip
-                  placement="right-start"
-                  title={`The label to be applied for components in the download output (i.e., 'RCTC' Library and grouping value sets)`}
-                  sx={{ mt: 1 }}
-                >
-                  <InfoIcon sx={{ color: 'var(--theme-400)', ml: 'auto', width: '15px', height: '15px' }} />
-                </Tooltip>
-              </InputLabel>
-              <Input
-                sx={{ textAlign: 'left' }}
-                id="target-version"
-                placeholder="e.g. 2023-06-04"
-                onChange={(e) => {
-                  const regex = new RegExp('\\d{4}-\\d{2}-\\d{2}')
-                  if (!regex.test(e?.target?.value)) {
-                    setInputError(true)
-                  } else {
-                    setInputError(false)
-                  }
-                  setTargetVersion(e?.target?.value)
-                }}
-                type="text"
-                inputProps={{
-                  maxLength: 10,
-                  pattern: '\\d{4}-\\d{2}-\\d{2}'
-                }}
-              />
-              {inputError ? (
-                <Typography sx={{ textAlign: 'left', color: 'red' }} variant={'caption'}>
-                  Must be in the format of YYYY-MM-DD
-                </Typography>
-              ) : (
-                <Typography sx={{ textAlign: 'left', color: 'gray' }} variant={'caption'}>
-                  (Optional)
-                </Typography>
-              )}
-            </Box>
-          )}
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'flex-end' }}>
           <Button style={{ color: 'gray !important' }} onClick={handleCancel}>
