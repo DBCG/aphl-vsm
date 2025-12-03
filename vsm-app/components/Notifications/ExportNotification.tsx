@@ -46,7 +46,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
-              Preparing {type} {version} {programTitle} for download
+              Preparing {type} {programTitle} for download
             </Typography>
           </Stack>
         </Box>

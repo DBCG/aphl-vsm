@@ -81,7 +81,7 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
     userId,
     jobId: job.id.toString(),
     type: JOB_TYPE.EXPORT,
-    metadata
+    metadata: JSON.stringify(metadata)
   })
   
   res.status(200).json(job)
