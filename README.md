@@ -44,6 +44,9 @@ ValueSet Manager Application
 - You must also run the following script to generate keys for the app BEFORE starting the application
 ```node generateKeyPair.js```
 
+- You must also copy the Keycloak client secret into your .env.local 'KEYCLOAK_SECRET' variable.
+  > Log in to keycloak -> Select aphl realm -> Select Clients -> Select server_auth -> Select Credentials -> Copy the client secret
+
 - Next run the following command to install the necessary dependencies for the Next.js app
 ```cd vsm-app && npm install```
 
