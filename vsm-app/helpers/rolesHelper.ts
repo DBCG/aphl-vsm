@@ -48,6 +48,14 @@ export const can = (session: VSMSession, requestedPermission: string) => {
   }
 }
 
+export const isAdmin = (session: VSMSession) => {
+  if (!session || session?.user?.roles == null) {
+    return false
+  }
+
+  return session?.user?.roles?.includes('admin')
+}
+
 interface AllowToEdit {
   session: VSMSession
   program: fhir4.Library

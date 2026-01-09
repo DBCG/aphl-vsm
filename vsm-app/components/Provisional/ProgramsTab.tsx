@@ -2,7 +2,7 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { useSession } from 'next-auth/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, FormControlLabel, FormGroup, Switch, Tooltip } from '@mui/material'
+import { Button, FormControlLabel, FormGroup, Modal, Switch, Tooltip } from '@mui/material'
 import CallMadeIcon from '@mui/icons-material/CallMade'
 import ArrowCircleDownIcon from '@mui/icons-material/ArrowCircleDown'
 import useSWR from 'swr'
@@ -13,7 +13,7 @@ import { fetchWithProgram } from '@/utils'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ReleaseModal, ReleasePayload } from '@/components/modals/ReleaseModal'
-import { allowClone, allowRelease, allowWithdraw, allowRetire, allowDelete, can, VSMSession } from '@/helpers/rolesHelper'
+import { allowClone, allowRelease, allowWithdraw, allowRetire, allowDelete, can, isAdmin, VSMSession } from '@/helpers/rolesHelper'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { StatusChip } from '@/components/data-display/Chips'
 import { formatDateForTable } from '@/helpers/formatDates'
@@ -380,6 +380,29 @@ const ProgramsTab: NextPage = () => {
     closeRows()
   }
 
+  const handleImportProgram = async (inputProgram: File|null) => {
+    handleCloseFileInput()
+    setInputFile(null)
+    if (inputProgram == null) {
+      setError({
+        error: ['Program to import is null']
+      })
+    } else {
+      let body = await inputProgram.text()
+      const result = await fetch(`/api/programs/import`, { method: 'POST', body: body })
+
+      if (!result.ok) {
+        const res = await result.json()
+        setError({
+          error: [`Error occurred while importing program: ${res.error}`]
+        })
+      } else {
+        await mutate()
+        toast.success(`Program imported.`)
+      }
+    }
+  }
+
   // clone template
   const [cloneLoading, setCloneLoading] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -663,6 +686,18 @@ const ProgramsTab: NextPage = () => {
     setRefreshKey((prev) => prev + 1)
   }
 
+  const [openFileInput, setOpenFileInput] = useState(false);
+
+  const handleOpenFileInput = async () => {
+    setOpenFileInput(true)
+  }
+  const handleCloseFileInput = () => {
+    setInputFile(null)
+    setOpenFileInput(false);
+  };
+
+  const [inputFile, setInputFile] = useState<File|null>(null)
+
   return (
     <Col>
       {modalOpen && (
@@ -753,6 +788,43 @@ const ProgramsTab: NextPage = () => {
         ) : (
           <></>
         )}
+        {isAdmin(session) ? (
+          <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                marginBottom: '1rem',
+                backgroundColor: enableCompare ? 'white' : 'transparent',
+                padding: '.8rem .6rem',
+                width: 'fit-content',
+                alignSelf: 'flex-end'
+              }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', flexGrow: '1', columnGap: '.4rem' }}>
+              <Button style={{
+                width: 'fit-content',
+                height: 'fit-content',
+                color: enableCompare && selectedRows?.length !== 2 ? 'var(--theme-400)' : 'white',
+                backgroundColor: enableCompare && selectedRows?.length !== 2 ? 'transparent' : 'var(--theme-400)',
+                transition: 'background-color 200ms linear'
+              }} onClick={handleOpenFileInput}>
+                Import Program
+              </Button>
+            </div>
+          </div>
+        ): null }
+        <Modal id="fileInput" open={openFileInput} onClose={handleCloseFileInput}  aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description"
+               style={{backgroundColor: 'rgb(193,243,255)', padding:'15px', justifySelf:"center", alignSelf:'center'}}>
+          <div>
+            <input style={{color: 'rgb(58,58,58)'}} type="file" accept={".json,application/json"} onChange={(e) => setInputFile(e.target.files?.[0] ?? null)}/>
+            <Button
+            style={{color: 'white'}}
+            disabled={!inputFile}
+            onClick={() => handleImportProgram(inputFile)}>Submit</Button>
+          </div>
+
+        </Modal>
+
         {programs?.length > 1 && (
           <div
             style={{
