@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { NextPage } from 'next'
-import ProgramsTab from '@/components/Provisional/ProgramsTab'
+import ProgramsTab from '@/components/Program/ProgramsTab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
