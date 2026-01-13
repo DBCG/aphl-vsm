@@ -43,7 +43,7 @@ services:
     depends_on:
       - cqf-db
   cqf-db:
-    image: postgres:9.4.26-alpine
+    image: postgres:18.1-alpine
     volumes:
       - cqf_db_data:/var/lib/postgresql/data
     ports:
@@ -53,7 +53,7 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: secret
   postgres:
-    image: postgres:9.4.26-alpine
+    image: postgres:18.1-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
