@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { StatusProps } from '../Provisional/ProgramsTab'
+import { StatusProps } from '../Program/ProgramsTab'
 import { IconChip } from '../data-display/Chips'
 
 export const Row = styled.div`
