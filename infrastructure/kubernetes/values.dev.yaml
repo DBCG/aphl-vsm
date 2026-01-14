@@ -2,13 +2,13 @@ tag: ""
 namespace: "vsm"
 hapi_fhir_jpa_server_starter:
   app_url: "a679ce859f9224c5ba05066fa825eaff-472871509.us-east-1.elb.amazonaws.com"
-  db_url: "jdbc:postgresql://sdh-dev-db-02.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler2"
+  db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsmcqfruler2"
 vsm_app:
   app_url: "a7cda59b6554642618d1100dc6e3d8ce-1463857425.us-east-1.elb.amazonaws.com"
   redis_host_url: "vsm-cache-dev.5hhpo0.ng.0001.use1.cache.amazonaws.com"
 keycloak:
   app_url: "a277b15a1bef34b5da8a6af142026e21-1645222855.us-east-1.elb.amazonaws.com"
-  db_url: "jdbc:postgresql://sdh-dev-db-02.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsm_keycloak"
+  db_url: "jdbc:postgresql://sdh-dev-db-01.cdarvwauzkgh.us-east-1.rds.amazonaws.com:5432/vsm_keycloak"
   image: "quay.io/keycloak/keycloak:21.1.2"
 protocol: "http"
 aws:
