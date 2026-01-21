@@ -12,3 +12,6 @@ terraform.tfstate
 ecr/.idea
 ecr/target
 *.iml
+
+# ptx lock files
+vsp/docs/~$*.pptx
