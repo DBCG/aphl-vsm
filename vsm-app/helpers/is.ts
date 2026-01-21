@@ -85,6 +85,24 @@ const is = {
 
     return type && usageContextProgram && usageContext
   },
+  isVSP: (resource: fhir4.Library | any): resource is fhir4.Library => {
+    // Check 1: Must be asset-collection type
+    // Why: VSPs use the same Library.type as Programs (asset-collection)
+    const type = resource?.type?.coding?.[0]?.code === 'asset-collection'
+
+    // Check 2: Find the specification-type useContext
+    // Why: Both Programs and VSPs use this useContext code, but with different values
+    const usageContext = resource?.useContext?.find((i: fhir4.UsageContext) =>
+      i?.code?.code === 'specification-type')
+
+    // Check 3: Must have 'value-set-package' as the useContext value
+    // Why: This is what distinguishes VSPs from Programs (which use 'program')
+    // This is the key discriminator that allows FHIR search with context=value-set-package
+    const isVSPContext = usageContext?.valueCodeableConcept?.coding?.[0]?.code === 'value-set-package'
+
+    // All three conditions must be true
+    return type && isVSPContext && !!usageContext
+  },
   observation: (resource: fhir4.Observation | any): resource is fhir4.Observation => {
     return resource?.resourceType === 'Observation'
   },
