@@ -9,7 +9,7 @@ import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
+  actionType: 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete' | 'release'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function

@@ -34,13 +34,18 @@ export const fetcher = (...args) => fetch(...args).then(async (res) => {
 })
 
 const removeNullProperties = (obj: any) => {
-  return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null))
+  return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null && value !== undefined))
 }
 
 export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
   const finalArgs = removeNullProperties(args) as any
   const finalUrl = url + (finalArgs ? '?' + new URLSearchParams(finalArgs) : '')
-  return fetch(finalUrl).then((res) => res.json())
+  return fetch(finalUrl, {
+    cache: 'no-store',  // Bypass cache
+    headers: {
+      'Cache-Control': 'no-cache'
+    }
+  }).then((res) => res.json())
 }
 
 interface IncrementParams {

@@ -88,7 +88,9 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
 
     // Apply IG filter if provided (client-side post-processing)
     const igUrl = req.query['ig-url'] as string | undefined
-    if (igUrl) {
+    // Filter out the string "undefined" which can come from URL params
+    if (igUrl && igUrl !== 'undefined') {
+      Logger.getLogger().info('Applying IG filter: ' + igUrl)
       vsps = vsps.filter((vsp: fhir4.Library) => {
         const composedOfArtifacts = vsp.relatedArtifact?.filter((ra) => ra.type === 'composed-of') || []
         return composedOfArtifacts.some((ra) => {
@@ -97,7 +99,13 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
           return resource === igUrl || resource.startsWith(`${igUrl.split('|')[0]}|`)
         })
       })
+      Logger.getLogger().info('After IG filter: ' + vsps.length + ' VSPs')
     }
+
+    // Set cache headers to prevent browser caching
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
 
     return res.status(200).json({
       vsps: vsps,
@@ -106,6 +114,7 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
   } catch (error: any) {
     Logger.getLogger().error('Error fetching VSPs:', error)
     logSimpleError(error)
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
     return res.status(500).json({ error: error.message || 'Failed to fetch Value Set Packages' })
   }
 }

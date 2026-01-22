@@ -270,7 +270,12 @@ const ValueSetPackagesTab: NextPage = () => {
           return { vsps: [], total: 0 }
         }
         return resp
-      })
+      }),
+    {
+      revalidateOnFocus: true,
+      revalidateOnMount: true,
+      dedupingInterval: 0  // Disable deduplication
+    }
   )
 
   const { vsps, total } = data
@@ -574,7 +579,7 @@ const ValueSetPackagesTab: NextPage = () => {
     setIgFilter(filterValue)
 
     // Update URL parameter
-    const query = { ...router.query, resourceType: 'vsp' }
+    const query: Record<string, string> = { ...router.query, resourceType: 'vsp' }
     if (filterValue) {
       query['ig-url'] = filterValue
     } else {

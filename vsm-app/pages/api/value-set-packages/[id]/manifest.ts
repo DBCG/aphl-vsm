@@ -67,12 +67,11 @@ const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, se
       return res.status(200).json(availableCodeSystems)
     } else if (resourceType === 'ValueSet') {
       // For ValueSets, search all available ValueSets
-      // Note: This may need pagination for large terminology servers
+      // Note: VSAC doesn't support _summary parameter, so we fetch full resources
       const results = await vsacFhirClient?.search({
         resourceType: 'ValueSet',
         searchParams: {
-          _summary: 'true',
-          _count: 1000  // Adjust as needed
+          _count: 500  // Reduce count since we're fetching full resources
         }
       })
 
