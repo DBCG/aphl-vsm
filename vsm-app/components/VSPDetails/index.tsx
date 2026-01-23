@@ -1,170 +1,401 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/router'
-import { Button } from '@/components/buttons/Button'
+import { Button, Tooltip } from '@mui/material'
 import { PageTitle } from '@/components/Typography'
 import { useSession } from 'next-auth/react'
-import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
-import { StyledSpan } from '@/styles'
-import { ErrorMessage } from '../ErrorMessage'
-import { StatusChip } from '../data-display/Chips'
+import { allowEditing, allowRelease, allowWithdraw, allowRetire, allowDelete, can, VSMSession } from '@/helpers/rolesHelper'
+import { StatusChip } from '@/components/data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getVSPManifestVersions } from '@/helpers/valueSetHelpers'
-import ManifestDetailTable from '@/components/ManifestDetailTable'
+import { LoadingModal } from '@/components/modals/LoadingModal'
+import { ErrorMessage } from '@/components/ErrorMessage'
+import { toast } from 'react-toastify'
+import { debounce } from 'lodash'
 import styled from 'styled-components'
+import { StyledSpan } from '@/styles'
+import ManifestDetailTable from '@/components/ManifestDetailTable'
+import VSPMetadata from '@/components/VSPMetadata'
+import { Row, Col, MetadataTitle, ManifestContainer } from './styles'
 
-const Col = styled.div`
+const ActionButtonContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 `
 
-const Row = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
-`
-
-const MetadataTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`
-
-const ManifestContainer = styled.div`
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: white;
+const IGReferenceContainer = styled.div`
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
   border-radius: 8px;
 `
 
-const MetadataContainer = styled.div`
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-`
-
-const MetadataGrid = styled.div`
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-`
-
-const MetadataLabel = styled.div`
-  font-weight: 600;
-  color: var(--theme-500);
-`
-
-const MetadataValue = styled.div`
-  color: #333;
-`
-
-interface VSPDetailsProps {
-  vsp: fhir4.Library
+interface Error {
+  error?: string | string[]
 }
 
-const VSPDetails = ({ vsp }: VSPDetailsProps) => {
+const generateBlockedReason = (vsp: fhir4.Library, actionType: 'release' | 'withdraw' | 'retire' | 'delete') => {
+  if (actionType === 'release') {
+    if (vsp.status !== 'draft') {
+      return 'Only Draft VSPs may be released'
+    }
+  } else if (actionType === 'withdraw' && vsp.status !== 'draft') {
+    return 'Only Draft VSPs may be withdrawn'
+  } else if (actionType === 'retire' && vsp.status !== 'active') {
+    return 'Only Active VSPs may be retired'
+  } else if (actionType === 'delete' && vsp.status !== 'retired') {
+    return 'Only Retired VSPs may be deleted'
+  }
+  return 'Action blocked'
+}
+
+const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
-  const [currentVSP, setVSP] = useState<fhir4.Library>(vsp)
-  const [error, setError] = useState<null | string>(null)
+  const [currentVSP, setVSP] = useState<fhir4.Library>(initialVSP)
+  const [error, setError] = useState<Error>({})
+
+  // Release state
+  const [releaseLoading, setReleaseLoading] = useState(false)
+  const [releaseModalOpen, setReleaseModalOpen] = useState(false)
+
+  // Withdraw state
+  const [withdrawLoading, setWithdrawLoading] = useState(false)
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
+
+  // Retire state
+  const [retireLoading, setRetireLoading] = useState(false)
+  const [retireModalOpen, setRetireModalOpen] = useState(false)
+
+  // Delete state
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   const handleCloseErrors = () => {
-    setError(null)
+    setError({})
   }
 
-  const updateVSP = async (updatedVSP: fhir4.Library) => {
-    // Extract IG experimental flag from relatedArtifact if needed
-    const igExperimental = currentVSP.experimental || false
-    const endPoint = `/api/value-set-packages/${currentVSP?.id}?igExperimental=${igExperimental}`
+  const updateVSP = async ({ program, isExperimental }: { program: fhir4.Library; isExperimental: boolean }) => {
+    const endPoint = `/api/value-set-packages/${currentVSP?.id}?experimental=${isExperimental}`
     const response = await fetch(endPoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(updatedVSP)
+      body: JSON.stringify(program)
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      setError(errorData.error || 'Failed to update VSP')
-      setVSP(currentVSP) // Reset on error
+      setVSP(program)
     } else {
       const json = await response.json()
       setVSP(json)
     }
   }
 
-  const { id = '', status, experimental, title, version, description } = currentVSP
-
-  // Extract IG canonical from relatedArtifact
-  const igArtifact = currentVSP.relatedArtifact?.find((ra) => ra.type === 'composed-of')
-  const igCanonical = igArtifact?.resource || 'N/A'
-
-  // Get manifest data (both CodeSystems and ValueSets)
+  const { id = '', status, experimental } = currentVSP
   const manifestData = getVSPManifestVersions(currentVSP)
+
+  // Get IG reference from relatedArtifact
+  const igReference = currentVSP.relatedArtifact?.find((ra) => ra.type === 'composed-of')?.resource || 'N/A'
+
+  // Permission checks
+  const canRelease = allowRelease({ session, program: currentVSP, hasApproval: true })
+  const releaseBlockedReason = !canRelease && generateBlockedReason(currentVSP, 'release')
+  const defaultReleaseDescription = 'Releasing a VSP will mark it as active, and it will no longer be editable'
+
+  const canWithdraw = allowWithdraw({ session, program: currentVSP })
+  const withdrawBlockedReason = !canWithdraw && generateBlockedReason(currentVSP, 'withdraw')
+  const defaultWithdrawDescription = 'Withdrawing a draft VSP will delete it permanently'
+
+  const canRetire = allowRetire({ session, program: currentVSP })
+  const retireBlockedReason = !canRetire && generateBlockedReason(currentVSP, 'retire')
+  const defaultRetireDescription = 'Retiring an active VSP will retire it from VSM'
+
+  const canDelete = allowDelete({ session, program: currentVSP })
+  const deleteBlockedReason = !canDelete && generateBlockedReason(currentVSP, 'delete')
+  const defaultDeleteDescription = 'Deleting a retired VSP will delete it permanently'
+
+  // Action handlers
+  const handleReleaseDraft = async () => {
+    setReleaseLoading(true)
+
+    const releaseParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(releaseParameters)
+    const result = await fetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: [`Error occurred while releasing VSP: ${id}.`, `${res.error}`]
+      })
+      setReleaseLoading(false)
+      setReleaseModalOpen(false)
+    } else {
+      toast.success(`VSP ${id} released successfully.`)
+      // Refresh the page to get updated VSP
+      router.replace(router.asPath)
+    }
+  }
+
+  const handleWithdrawDraft = async () => {
+    setWithdrawLoading(true)
+
+    const withdrawParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(withdrawParameters)
+    const result = await fetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: [`Error occurred while withdrawing VSP: ${id}.`, `${res.error}`]
+      })
+      setWithdrawLoading(false)
+      setWithdrawModalOpen(false)
+    } else {
+      toast.success(`VSP ${id} withdrawn and deleted.`)
+      // Navigate back to list
+      router.push('/programs?resourceType=vsp')
+    }
+  }
+
+  const handleRetireDraft = async () => {
+    setRetireLoading(true)
+
+    const retireParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(retireParameters)
+    const result = await fetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: [`Error occurred while retiring VSP: ${id}.`, `${res.error}`]
+      })
+      setRetireLoading(false)
+      setRetireModalOpen(false)
+    } else {
+      toast.success(`VSP ${id} retired.`)
+      // Refresh the page to get updated VSP
+      router.replace(router.asPath)
+    }
+  }
+
+  const handleDeleteRetired = async () => {
+    setDeleteLoading(true)
+
+    const deleteParameters: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: []
+    }
+
+    const parameters = JSON.stringify(deleteParameters)
+    const result = await fetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
+
+    if (!result.ok) {
+      const res = await result.json()
+      setError({
+        error: [`Error occurred while deleting VSP: ${id}.`, `${res.error}`]
+      })
+      setDeleteLoading(false)
+      setDeleteModalOpen(false)
+    } else {
+      toast.success(`VSP ${id} deleted.`)
+      // Navigate back to list
+      router.push('/programs?resourceType=vsp')
+    }
+  }
+
+  const debouncedReleaseVSP = debounce(handleReleaseDraft, 2000, { leading: true, trailing: false })
+  const debouncedWithdrawVSP = debounce(handleWithdrawDraft, 2000, { leading: true, trailing: false })
+  const debouncedRetireVSP = debounce(handleRetireDraft, 2000, { leading: true, trailing: false })
+  const debouncedDeleteVSP = debounce(handleDeleteRetired, 2000, { leading: true, trailing: false })
 
   return (
     <Col>
-      {error && <ErrorMessage style={{ marginBottom: '2em' }} error={error} handleClose={handleCloseErrors} />}
+      {/* Modals */}
+      {releaseModalOpen && (
+        <LoadingModal
+          actionType="release"
+          isOpen={releaseModalOpen}
+          handleModalAction={async () => {
+            if (releaseLoading) return
+            debouncedReleaseVSP()
+          }}
+          program={null}
+          loading={releaseLoading}
+          handleCancelModal={() => setReleaseModalOpen(false)}
+        />
+      )}
+      {withdrawModalOpen && (
+        <LoadingModal
+          actionType="withdraw"
+          isOpen={withdrawModalOpen}
+          handleModalAction={async () => {
+            if (withdrawLoading) return
+            debouncedWithdrawVSP()
+          }}
+          program={null}
+          loading={withdrawLoading}
+          handleCancelModal={() => setWithdrawModalOpen(false)}
+        />
+      )}
+      {retireModalOpen && (
+        <LoadingModal
+          actionType="retire"
+          isOpen={retireModalOpen}
+          handleModalAction={async () => {
+            if (retireLoading) return
+            debouncedRetireVSP()
+          }}
+          program={null}
+          loading={retireLoading}
+          handleCancelModal={() => setRetireModalOpen(false)}
+        />
+      )}
+      {deleteModalOpen && (
+        <LoadingModal
+          actionType="delete"
+          isOpen={deleteModalOpen}
+          handleModalAction={async () => {
+            if (deleteLoading) return
+            debouncedDeleteVSP()
+          }}
+          program={null}
+          loading={deleteLoading}
+          handleCancelModal={() => setDeleteModalOpen(false)}
+        />
+      )}
+
+      {error?.error && <ErrorMessage style={{ marginBottom: '2em' }} error={error.error} handleClose={handleCloseErrors} />}
+
+      {/* Header with Title and Status */}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
         <MetadataTitle>
           <PageTitle>{id}</PageTitle>
-          <StatusChip style={{ transform: 'translateY(-10px) translateX(8px)' }} label={status} experimental={Boolean(experimental)} />
+          <StatusChip
+            style={{ transform: 'translateY(-10px) translateX(8px)' }}
+            label={status}
+            experimental={Boolean(experimental)}
+          />
         </MetadataTitle>
       </Row>
 
-      <StyledSpan style={{ marginBottom: '12px' }}>Value Set Package Metadata</StyledSpan>
-      <MetadataContainer>
-        <MetadataGrid>
-          <MetadataLabel>Title:</MetadataLabel>
-          <MetadataValue>{title || 'N/A'}</MetadataValue>
+      {/* Action Buttons */}
+      {(can(session, 'release') || can(session, 'withdraw') || can(session, 'retire') || can(session, 'delete')) && (
+        <ActionButtonContainer>
+          {can(session, 'release') && (
+            <Tooltip title={releaseBlockedReason || defaultReleaseDescription} arrow>
+              <span>
+                <Button
+                  variant="contained"
+                  disabled={currentVSP.status !== 'draft'}
+                  onClick={() => {
+                    setError({})
+                    setReleaseModalOpen(true)
+                  }}
+                  style={{
+                    backgroundColor: currentVSP.status === 'draft' ? 'var(--theme-400)' : undefined
+                  }}
+                >
+                  Release VSP
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+          {can(session, 'withdraw') && (
+            <Tooltip title={withdrawBlockedReason || defaultWithdrawDescription} arrow>
+              <span>
+                <Button
+                  variant="contained"
+                  disabled={currentVSP.status !== 'draft'}
+                  onClick={() => {
+                    setError({})
+                    setWithdrawModalOpen(true)
+                  }}
+                  color="warning"
+                >
+                  Withdraw VSP
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+          {can(session, 'retire') && (
+            <Tooltip title={retireBlockedReason || defaultRetireDescription} arrow>
+              <span>
+                <Button
+                  variant="contained"
+                  disabled={currentVSP.status !== 'active'}
+                  onClick={() => {
+                    setError({})
+                    setRetireModalOpen(true)
+                  }}
+                  color="warning"
+                >
+                  Retire VSP
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+          {can(session, 'delete') && (
+            <Tooltip title={deleteBlockedReason || defaultDeleteDescription} arrow>
+              <span>
+                <Button
+                  variant="contained"
+                  disabled={currentVSP.status !== 'retired'}
+                  onClick={() => {
+                    setError({})
+                    setDeleteModalOpen(true)
+                  }}
+                  color="error"
+                >
+                  Delete VSP
+                </Button>
+              </span>
+            </Tooltip>
+          )}
+        </ActionButtonContainer>
+      )}
 
-          <MetadataLabel>Version:</MetadataLabel>
-          <MetadataValue>{version || 'N/A'}</MetadataValue>
+      {/* IG Reference */}
+      <IGReferenceContainer>
+        <StyledSpan style={{ marginBottom: '8px', display: 'block' }}>Implementation Guide Reference</StyledSpan>
+        <div style={{ fontSize: '14px', wordBreak: 'break-all' }}>{igReference}</div>
+      </IGReferenceContainer>
 
-          <MetadataLabel>Status:</MetadataLabel>
-          <MetadataValue>{status}</MetadataValue>
+      {/* VSP Metadata */}
+      <StyledSpan style={{ marginBottom: '12px', marginTop: '24px' }}>VSP Metadata</StyledSpan>
+      <VSPMetadata vsp={currentVSP} handleSubmit={updateVSP} editable={allowEditing({ session, program: currentVSP })} />
 
-          <MetadataLabel>Experimental:</MetadataLabel>
-          <MetadataValue>{experimental ? 'Yes' : 'No'}</MetadataValue>
-
-          <MetadataLabel>Description:</MetadataLabel>
-          <MetadataValue>{description || 'N/A'}</MetadataValue>
-
-          <MetadataLabel>IG Reference:</MetadataLabel>
-          <MetadataValue>{igCanonical}</MetadataValue>
-        </MetadataGrid>
-      </MetadataContainer>
-
+      {/* Manifest Section */}
       <ManifestContainer>
         <Row style={{ alignItems: 'center', marginBottom: '12px' }}>
           <StyledSpan>VSP Manifest</StyledSpan>
           {allowEditing({ session, program: currentVSP }) && (
-            <Button id="edit-manifest" text="Edit Manifest" onClick={() => router.push(`/value-set-packages/${id}/manifest`)} />
+            <Button variant="contained" onClick={() => router.push(`/value-set-packages/${id}/manifest`)}>
+              Edit Manifest
+            </Button>
           )}
         </Row>
-
-        {/* CodeSystem Manifest */}
-        {Object.keys(manifestData.codeSystems).length > 0 && (
-          <>
-            <StyledSpan style={{ fontSize: '0.9rem', marginTop: '1rem', marginBottom: '0.5rem' }}>CodeSystem Versions</StyledSpan>
-            <ManifestDetailTable programId={currentVSP?.id!} manifestData={manifestData.codeSystems} />
-          </>
-        )}
-
-        {/* ValueSet Manifest */}
-        {Object.keys(manifestData.valueSets).length > 0 && (
-          <>
-            <StyledSpan style={{ fontSize: '0.9rem', marginTop: '1.5rem', marginBottom: '0.5rem' }}>ValueSet Versions</StyledSpan>
-            <ManifestDetailTable programId={currentVSP?.id!} manifestData={manifestData.valueSets} />
-          </>
-        )}
-
-        {Object.keys(manifestData.codeSystems).length === 0 && Object.keys(manifestData.valueSets).length === 0 && (
-          <div style={{ padding: '1rem', color: '#666' }}>No manifest data available. Click "Edit Manifest" to add version pins.</div>
-        )}
+        <ManifestDetailTable
+          programId={currentVSP?.id!}
+          manifestData={{
+            ...manifestData.codeSystems,
+            ...manifestData.valueSets
+          }}
+        />
       </ManifestContainer>
     </Col>
   )

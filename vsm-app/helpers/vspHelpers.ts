@@ -4,7 +4,7 @@ import { VSPMetadata } from '@/types/vspTypes'
  * constructVSPUrl: Builds the canonical URL for a VSP Library resource
  *
  * Why needed: The URL must follow a specific pattern defined in requirements:
- *   [ig-canonicalBase]-vsp/[ig-version]/Library/[ig-packageid]-vsp-[major]-[minor]-[version]
+ *   [ig-canonicalBase]-vsp/[ig-version]/Library/[ig-packageid]-vsp-[version]
  *
  * Example input:
  *   igUrl: "http://hl7.org/fhir/us/core/ImplementationGuide/hl7.fhir.us.core"
@@ -13,7 +13,7 @@ import { VSPMetadata } from '@/types/vspTypes'
  *   vspVersion: "2026-01"
  *
  * Example output:
- *   "http://hl7.org/fhir/us/core-vsp/6.1.0/Library/hl7.fhir.us.core-vsp-2026-01-2026-01"
+ *   "http://hl7.org/fhir/us/core-vsp/6.1.0/Library/hl7.fhir.us.core-vsp-2026-01"
  *
  * Why this pattern:
  *   - Namespaces VSPs under the IG's canonical base
@@ -25,13 +25,8 @@ export const constructVSPUrl = (igMetadata: VSPMetadata): string => {
   // Example: "http://hl7.org/fhir/us/core/ImplementationGuide/..." → "http://hl7.org/fhir/us/core"
   const igUrlBase = igMetadata.igUrl.replace(/\/ImplementationGuide\/.*$/, '')
 
-  // Extract major and minor from YYYY-MM format
-  // Example: "2026-01" → major="2026", minor="01"
-  const [major, minor] = igMetadata.vspVersion.split('-')
-
   // Construct URL following the pattern
-  // Note: major-minor-version is repeated because vspVersion already contains both parts
-  return `${igUrlBase}-vsp/${igMetadata.igVersion}/Library/${igMetadata.igPackageId}-vsp-${major}-${minor}-${igMetadata.vspVersion}`
+  return `${igUrlBase}-vsp/${igMetadata.igVersion}/Library/${igMetadata.igPackageId}-vsp-${igMetadata.vspVersion}`
 }
 
 /**
@@ -40,13 +35,12 @@ export const constructVSPUrl = (igMetadata: VSPMetadata): string => {
  * Why needed: FHIR resource IDs must be unique and follow a convention.
  * The ID is used to reference the resource in URLs and searches.
  *
- * Example: "hl7.fhir.us.core" + "2026-01" → "hl7.fhir.us.core-vsp-2026-01-2026-01"
+ * Example: "hl7.fhir.us.core" + "2026-01" → "hl7.fhir.us.core-vsp-2026-01"
  *
  * Why this pattern: Ensures uniqueness by combining package ID and version
  */
 export const constructVSPId = (igPackageId: string, vspVersion: string): string => {
-  const [major, minor] = vspVersion.split('-')
-  return `${igPackageId}-vsp-${major}-${minor}-${vspVersion}`
+  return `${igPackageId}-vsp-${vspVersion}`
 }
 
 /**

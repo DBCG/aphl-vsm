@@ -114,10 +114,12 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
 
     Logger.getLogger().info('VSP Library resource to create: ' + JSON.stringify(vspLibrary, null, 2))
 
-    // Create in FHIR CDR
-    Logger.getLogger().info('Calling FHIR client to create VSP...')
-    const result = await FhirClient.getInstance().create({
+    // Create in FHIR CDR using update (PUT) to preserve custom ID
+    // Note: Using update instead of create allows us to specify the resource ID
+    Logger.getLogger().info('Calling FHIR client to create VSP with ID: ' + vspId)
+    const result = await FhirClient.getInstance().update({
       resourceType: 'Library',
+      id: vspId,
       body: vspLibrary
     })
     Logger.getLogger().info('FHIR client returned: ' + JSON.stringify(result, null, 2))

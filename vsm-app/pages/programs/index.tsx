@@ -54,7 +54,7 @@ const Programs: NextPage = () => {
         <TabList onChange={handleChange} aria-label="dashboard tabs">
           <Tab onClick={() => router.push('/programs')} label="Programs" value="1" />
           <Tab onClick={() => router.push('/programs?resourceType=provisional')} label="Provisional Resources" value="2" />
-          <Tab onClick={() => router.push('/programs?resourceType=vsp')} label="Value Set Packages" value="3" />
+          <Tab onClick={() => router.push('/programs?resourceType=vsp')} label="ValueSet Packages" value="3" />
         </TabList>
       </Box>
       <TabPanel value="1">

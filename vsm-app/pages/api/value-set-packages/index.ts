@@ -91,12 +91,30 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
     // Filter out the string "undefined" which can come from URL params
     if (igUrl && igUrl !== 'undefined') {
       Logger.getLogger().info('Applying IG filter: ' + igUrl)
+
+      // Split filter input into base and version
+      const [igUrlBase, igUrlVersion] = igUrl.split('|')
+
       vsps = vsps.filter((vsp: fhir4.Library) => {
         const composedOfArtifacts = vsp.relatedArtifact?.filter((ra) => ra.type === 'composed-of') || []
         return composedOfArtifacts.some((ra) => {
           const resource = ra.resource || ''
-          // Match exact canonical or canonical without version
-          return resource === igUrl || resource.startsWith(`${igUrl.split('|')[0]}|`)
+
+          // Split VSP's IG reference into base and version
+          const [resourceBase, resourceVersion] = resource.split('|')
+
+          // Base canonical must match
+          if (resourceBase !== igUrlBase) {
+            return false
+          }
+
+          // If user specified a version, it must match
+          // If user didn't specify version (base canonical only), match any version
+          if (igUrlVersion && resourceVersion !== igUrlVersion) {
+            return false
+          }
+
+          return true
         })
       })
       Logger.getLogger().info('After IG filter: ' + vsps.length + ' VSPs')
