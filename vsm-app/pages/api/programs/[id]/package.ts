@@ -23,6 +23,7 @@ export interface ExpectedPackageBody extends NextApiRequest {
     metadata?: any
   }
 }
+
 export type PackageResponse = fhir4.Bundle | string | { error: string }
 // this generates a collection Bundle containing all the resources needed to load the artifact and dependencies
 // optionally returns in XML
@@ -70,12 +71,12 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
   try {
     Logger.getLogger().info('Validating conditions for export on program: ' + req.query.id)
     await validateConditionLeafVs(req.query.id as string)
-    Logger.getLogger().info('Validatted for program: ' + req.query.id)
+    Logger.getLogger().info('Validated for program: ' + req.query.id)
   } catch (error) {
     // @ts-ignore
     return res.status(400).json({ error: error?.message })
   }
-  const job = await PackageQueue.add({ data, planDefinition, targetVersion, programId: req.query.id as string, userId }, DEFAULT_JOB_CONFIG)
+  const job = await PackageQueue.add({ data, planDefinition, targetVersion, programId: req.query.id as string, userId, convertToCSV: metadata?.fileType === 'csv'}, DEFAULT_JOB_CONFIG)
 
   await Cache.setNewJob({
     userId,

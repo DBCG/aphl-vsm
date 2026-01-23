@@ -11,7 +11,7 @@ export interface ExportJobMetadata {
   version: string
   hasCustomPlanDefinition: boolean
   filename: string
-  isJson: boolean
+  fileType: 'csv' | 'json' | 'xml'
   programTitle: string
 }
 
