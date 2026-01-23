@@ -163,11 +163,12 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
     const fileExtension = fileType === 'json' ? 'json' : 'xml'
     const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
     const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
+
     const metadata: ExportJobMetadata = {
       programId: program.id!,
       version: versionRadioValue,
       hasCustomPlanDefinition: fileUploadContent != null,
-      isJson: fileType === 'json',
+      fileType,
       filename,
       programTitle: program?.title!
     }

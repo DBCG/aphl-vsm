@@ -31,7 +31,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
     console.error(e)
   }
   const programTitle = additionalData?.programTitle || 'program'
-  const type = additionalData?.isJson ? 'JSON' : 'XML'
+  const fileType = additionalData?.fileType ? additionalData.fileType.toUpperCase() : ''
   const errorMessage = jobDetails?.error
   const version = additionalData?.version
   const hasCustomPlanDefinition = additionalData?.hasCustomPlanDefinition
@@ -46,7 +46,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           </ListItemIcon>
           <Stack>
             <Typography variant="body1">
-              Preparing {type} {programTitle} for download
+              Preparing {fileType} {programTitle} for download
             </Typography>
           </Stack>
         </Box>
@@ -67,7 +67,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           </ListItemIcon>
           <Stack sx={{ maxWidth: '300px' }}>
             <Typography variant="body1" sx={{ fontSize: '14px' }}>
-              Export for {type} {version} {programTitle} failed
+              Export for {fileType} {version} {programTitle} failed
             </Typography>
             <PopOverErrorMessage errorMessage={errorMessage || ''} />
           </Stack>
@@ -84,7 +84,7 @@ const StatusActionNotification = ({ jobDetails, downloadExport }: StatusActionNo
           <Link onClick={downloadExport}>
             <Stack>
               <Typography variant="body1">
-                {type} {version} {programTitle} is ready for download
+                {fileType} {version} {programTitle} is ready for download
               </Typography>
               {hasCustomPlanDefinition && <Typography variant="caption">Custom Plan Definition was used</Typography>}
             </Stack>
@@ -99,33 +99,41 @@ const downloadTextData = (data: string, type: `${string}${'json' | 'xml' | 'txt'
   // https://stackoverflow.com/a/55613750/8144343
   const blob = new Blob([data], { type: type })
   const href = URL.createObjectURL(blob)
-  // create "a" HTLM element with href to file
+  // create anchor HTML element with href to file
   const link = document.createElement('a')
   link.href = href
   link.download = `${filename}`
   document.body.appendChild(link)
   link.click()
 
-  // clean up "a" element & remove ObjectURL
+  // clean up anchor element & remove ObjectURL
   document.body.removeChild(link)
   URL.revokeObjectURL(href)
 }
 
 const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => {
   const downloadExport = async () => {
-    const job = await JobsService.getExportJob(jobId)
-    const packageResponse = job?.returnvalue?.response
-    const validationResults = job?.returnvalue?.validationResults
+    const job = await JobsService.getExportJob(jobId);
+    const packageData = job?.returnvalue?.response?.data;
+    const validationResults = job?.returnvalue?.validationResults;
     try {
-      const filename = (jobDetails?.metadata as ExportJobMetadata || {}).filename
-      if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        downloadTextData(packageResponse, 'application/fhir+xml', filename || 'export.xml')
-      } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
-        downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', filename || 'export.json')
-      }
-      if (validationResults.length > 0) {
-        const programTitle = (jobDetails.metadata as ExportJobMetadata)?.programTitle || 'program';
-        downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
+      const fileMetaData = jobDetails?.metadata as ExportJobMetadata;
+      const filename = fileMetaData?.filename
+      switch(fileMetaData?.fileType){
+        case 'csv':
+          downloadTextData(packageData, 'txt', filename || 'export.csv');
+          break;
+        case 'json':
+          downloadTextData(JSON.stringify(packageData, null, 2), 'application/fhir+json', filename || 'export.json');
+          break;
+        case 'xml':
+          downloadTextData(packageData, 'application/fhir+xml', filename || 'export.xml');
+          break;
+        default:
+          if (validationResults.length > 0) {
+            const programTitle = fileMetaData?.programTitle || 'program';
+            downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
+          }
       }
     } catch (error) {
       toast.error('Error downloading file: ' + error)

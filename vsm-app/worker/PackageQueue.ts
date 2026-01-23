@@ -9,6 +9,7 @@ import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import Queue from 'bull'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
+import { convertBundleToCSVHelper } from '@/helpers/convertBundleToCSVHelper'
 
 const PackageQueue = new Queue('exportProgram', QUEUE_REDIS_URL)
 
@@ -31,8 +32,9 @@ const convertV2toV1 = async (v2: fhir4.Bundle, format: 'json' | 'xml', planDefin
   } else if (planDefFromV2Exist && planDefinition != null) {
     v2.entry[planDefResourceIndex].resource = planDefinition
   } else if (!planDefFromV2Exist && planDefinition == null) {
-    Logger.getLogger().error('No PlanDefinition resource found in package response nor was uploaded as part of the request')
-    throw 'No PlanDefinition resource found in v2 package response nor was uploaded as part of the request'
+    const errorMessage = 'No PlanDefinition resource found in package response nor was uploaded as part of the request'
+    Logger.getLogger().error(errorMessage)
+    throw errorMessage
   }
   const v1BundleBody: fhir4.Parameters = {
     resourceType: 'Parameters',
@@ -145,10 +147,13 @@ const validatePackage = async (pkgBundle: fhir4.Bundle | string) => {
 
 PackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info('Begin Export Operation Job')
-  const { data, programId, planDefinition, targetVersion, userId } = job.data
+  const { data, programId, planDefinition, targetVersion, userId, convertToCSV } = job.data
   job.progress(1)
   const parameters = await addTerminologyEndpointToParameters({parameters: data?.parameters, userId})
-  const userDesiredFormat = data?.json ? 'json' : 'xml'
+
+  // conversion to CSV happens at the end of processing, 
+  // use JSON for the actual work until the end, then convert the JSON to CSV
+  const userDesiredFormat = data?.json || convertToCSV? 'json' : 'xml'
   const useV1 = !data?.useV2
   const cache = await Cache.getInstance()
   const cacheKey = `user:${userId}:job:${job.id}`
@@ -242,7 +247,14 @@ PackageQueue.process(async function (job: any, done) {
     Logger.getLogger().info('Finished Validation, returning results')
     job.progress(100)
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
-    return done(null, { response: sanitizeExport(sanitizedExport), validationResults })
+
+    if (convertToCSV) {
+      Logger.getLogger().info('Converting package to CSV format')
+      const csvExport = convertBundleToCSVHelper(sanitizedExport)
+      return done(null, { response: {formatType: 'csv', data: csvExport}, validationResults })
+    } else {
+      return done(null, { response: {formatType: userDesiredFormat, data: sanitizeExport(sanitizedExport) }, validationResults })
+    } 
   } catch (error: any) {
     const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
     const errorMsg = diagnostics || error?.error || error.toString() || 'Unspecified error'
