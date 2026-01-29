@@ -28,12 +28,6 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       return res.status(400).json({ error: 'IG canonical must include version (e.g., "http://hl7.org/fhir/us/core/ImplementationGuide/hl7.fhir.us.core|6.1.0")' })
     }
 
-    // Validate experimental flag against IG
-    // VSP can be experimental=true regardless, but cannot be false if IG is true
-    if (body.igExperimental && !body.experimental) {
-      return res.status(400).json({ error: 'VSP cannot be experimental=false when IG is experimental=true' })
-    }
-
     // Construct VSP metadata
     const vspMetadata: VSPMetadata = {
       igCanonical: body.igCanonical,
@@ -42,9 +36,7 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       igPackageId: body.igPackageId,
       igName: body.igName,
       igTitle: body.igTitle,
-      igExperimental: body.igExperimental,
       vspVersion: body.vspVersion,
-      experimental: body.experimental,
       status: 'draft'
     }
 
@@ -82,7 +74,6 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       name: generateVSPName(body.igName, igVersion),
       title: generateVSPTitle(body.igTitle, igVersion),
       status: 'draft',
-      experimental: body.experimental,
       type: {
         coding: [{
           system: 'http://terminology.hl7.org/CodeSystem/library-type',

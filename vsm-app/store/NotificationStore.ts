@@ -77,6 +77,31 @@ const NotificationStore = {
     subject.next(state)
     uiListener = null
   },
+  removeJob: (jobId: string) => {
+    const { [jobId]: removed, ...rest } = state
+    state = rest
+    subject.next(state)
+  },
+  cancelJob: async (jobId: string) => {
+    try {
+      const response = await fetch(`/api/jobs/${jobId}/cancel`, {
+        method: 'POST'
+      })
+      const result = await response.json()
+
+      if (result.success) {
+        // Update job status to failed with cancellation message
+        state[jobId] = { ...state[jobId], status: JOB_STATUS.FAILED, error: 'Cancelled by user' }
+        state = { ...state }
+        notifyUiListener(state)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error cancelling job:', error)
+      return false
+    }
+  },
   failedJob: (jobId: string, error: string) => {
     state[jobId] = { ...state[jobId], status: JOB_STATUS.FAILED, error }
     state = { ...state }

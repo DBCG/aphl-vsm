@@ -15,12 +15,8 @@ export interface VSPMetadata {
                                // Why: Used to generate VSP name (e.g., "USCore610ValueSetPackageDefinition")
   igTitle: string              // IG title (e.g., "US Core")
                                // Why: Used to generate VSP title (e.g., "US Core 6.1.0 Value Set Package Definition")
-  igExperimental: boolean      // Whether IG is experimental
-                               // Why: Constrains VSP experimental flag (VSP cannot be false if IG is true)
   vspVersion: string           // YYYY-MM format (e.g., "2026-01")
                                // Why: Unique version identifier for this VSP, used in URL and ID
-  experimental: boolean        // Whether VSP is experimental
-                               // Why: FHIR resource property, must be validated against IG experimental
   status: 'draft' | 'active' | 'retired'  // VSP lifecycle state
                                // Why: Controls which operations are allowed (e.g., only draft can be edited)
 }
@@ -62,8 +58,6 @@ export interface CreateVSPRequest {
   igPackageId: string
   igName: string
   igTitle: string
-  igExperimental: boolean
   vspVersion: string
-  experimental: boolean
   manifestData?: ExtendedManifestData  // Optional: pre-populated manifest from IG
 }

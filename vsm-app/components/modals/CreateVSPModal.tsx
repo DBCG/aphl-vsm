@@ -9,30 +9,49 @@ import {
   Checkbox,
   Typography,
   Box,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material'
 import { Button } from '@/components/buttons/Button'
 import { validateVSPVersion } from '@/helpers/vspHelpers'
-import { CreateVSPRequest } from '@/types/vspTypes'
+import { CreateVSPRequest, ExtendedManifestData } from '@/types/vspTypes'
+import NotificationStore from '@/store/NotificationStore'
+import { JOB_TYPE } from '@/constants'
 
 interface CreateVSPModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: CreateVSPRequest) => Promise<void>
   loading: boolean
+  initialData?: {
+    jobId?: string // Job ID to remove from notifications when VSP is created
+    igCanonical?: string
+    igPackageId?: string
+    igName?: string
+    igTitle?: string
+    manifestData?: ExtendedManifestData
+    source?: string
+    warnings?: string[]
+  }
 }
 
-export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSPModalProps) => {
+export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData }: CreateVSPModalProps) => {
   // IG fields
   const [igCanonical, setIgCanonical] = useState('')
   const [igPackageId, setIgPackageId] = useState('')
   const [igName, setIgName] = useState('')
   const [igTitle, setIgTitle] = useState('')
-  const [igExperimental, setIgExperimental] = useState(false)
 
   // VSP fields
   const [vspVersion, setVspVersion] = useState('')
-  const [experimental, setExperimental] = useState(false)
+
+  // Manifest/Dependencies
+  const [manifestData, setManifestData] = useState<ExtendedManifestData | undefined>(undefined)
+  const [fetchingDependencies, setFetchingDependencies] = useState(false)
+  const [dependencyWarnings, setDependencyWarnings] = useState<string[]>([])
+  const [dependencySource, setDependencySource] = useState<string | null>(null)
+  const [dependencyJobId, setDependencyJobId] = useState<string | null>(null)
+  const [sourceJobId, setSourceJobId] = useState<string | null>(null) // Track the original job that created this data
 
   // Validation errors
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -45,19 +64,191 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
     setVspVersion(`${year}-${month}`)
   }, [])
 
-  // Reset form when modal opens/closes
+  // Update fields when initialData changes (e.g., from notification click)
+  useEffect(() => {
+    if (initialData && isOpen) {
+      console.log('CreateVSPModal: Populating from initialData:', initialData)
+
+      // Always set these fields from initialData, even if empty
+      setIgCanonical(initialData.igCanonical || '')
+      setIgPackageId(initialData.igPackageId || '')
+      setIgName(initialData.igName || '')
+      setIgTitle(initialData.igTitle || '')
+
+      // Set dependency data if available
+      if (initialData.manifestData) {
+        console.log('Setting manifestData:', initialData.manifestData)
+        setManifestData(initialData.manifestData)
+      }
+      if (initialData.warnings) {
+        setDependencyWarnings(initialData.warnings)
+      }
+      if (initialData.source) {
+        setDependencySource(initialData.source)
+      }
+
+      // Track the job ID if this came from a notification
+      if (initialData.jobId) {
+        setSourceJobId(initialData.jobId)
+      }
+
+      // If we have initial data from a completed job, don't show fetching state
+      setFetchingDependencies(false)
+      setDependencyJobId(null)
+
+      console.log('CreateVSPModal: Fields populated')
+    }
+  }, [initialData, isOpen])
+
+  // Listen for dependency job updates
+  useEffect(() => {
+    if (dependencyJobId) {
+      NotificationStore.listenForJob(dependencyJobId, async (job: any) => {
+        console.log('Dependency job update:', job)
+
+        if (job.status === 'COMPLETED') {
+          // Fetch the full job result from API to get returnvalue
+          const JobsService = (await import('@/services/frontend/JobsService')).default
+          const fullJob = await JobsService.getExportJob(dependencyJobId)
+          const result = fullJob?.returnvalue || {}
+
+          // Update state with results
+          if (result.manifestData) {
+            setManifestData(result.manifestData)
+          }
+          if (result.igName) {
+            setIgName(result.igName)
+          }
+          if (result.igTitle) {
+            setIgTitle(result.igTitle)
+          }
+          if (result.warnings) {
+            setDependencyWarnings(result.warnings)
+          }
+          if (result.source) {
+            setDependencySource(result.source)
+          }
+
+          setFetchingDependencies(false)
+          setDependencyJobId(null)
+        } else if (job.status === 'FAILED') {
+          const errorMsg = job.error || 'Job failed'
+          setDependencyWarnings([`Error: ${errorMsg}. Please add dependencies manually after creation.`])
+          setFetchingDependencies(false)
+          setDependencyJobId(null)
+        }
+      })
+    }
+  }, [dependencyJobId])
+
+  // Reset form when modal closes (but keep job running if in progress)
   useEffect(() => {
     if (!isOpen) {
       setIgCanonical('')
       setIgPackageId('')
       setIgName('')
       setIgTitle('')
-      setIgExperimental(false)
       setVspVersion('')
-      setExperimental(false)
       setErrors({})
+      setSourceJobId(null) // Clear the source job ID
+      // Don't reset dependency state if job is still running
+      if (!fetchingDependencies) {
+        setManifestData(undefined)
+        setDependencyWarnings([])
+        setDependencySource(null)
+        setDependencyJobId(null)
+      }
     }
-  }, [isOpen])
+  }, [isOpen, fetchingDependencies])
+
+  // Cancel dependency fetch
+  const handleCancelDependencyFetch = async () => {
+    if (dependencyJobId) {
+      const success = await NotificationStore.cancelJob(dependencyJobId)
+      if (success) {
+        setFetchingDependencies(false)
+        setDependencyJobId(null)
+        setDependencyWarnings(['Dependency fetch cancelled. You can add dependencies manually after creation.'])
+      }
+    }
+  }
+
+  // Fetch dependencies using FHIR operations workflow (starts background job)
+  const handleFetchDependencies = async () => {
+    // Validate required fields
+    if (!igCanonical.trim()) {
+      setErrors({ ...errors, igCanonical: 'IG Canonical is required to fetch dependencies' })
+      return
+    }
+
+    if (!igCanonical.includes('|')) {
+      setErrors({ ...errors, igCanonical: 'IG Canonical must include version (e.g., |6.1.0)' })
+      return
+    }
+
+    if (!igPackageId.trim()) {
+      setErrors({ ...errors, igPackageId: 'IG Package ID is required to fetch dependencies' })
+      return
+    }
+
+    setFetchingDependencies(true)
+    setDependencyWarnings([])
+    setDependencySource(null)
+
+    try {
+      const params = new URLSearchParams({
+        igCanonical,
+        igPackageId
+      })
+
+      // POST to start the background job
+      const response = await fetch(`/api/implementation-guides/dependencies?${params}`, {
+        method: 'POST'
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to start dependency fetch')
+      }
+
+      if (result.success && result.jobId) {
+        setDependencyJobId(result.jobId)
+
+        // Add job to NotificationStore
+        await NotificationStore.addJob({
+          jobId: result.jobId,
+          jobType: JOB_TYPE.FETCH_DEPENDENCIES,
+          metadata: {
+            igCanonical,
+            igPackageId
+          },
+          onSuccess: (jobResult: any) => {
+            console.log('Dependency fetch completed:', jobResult)
+            // Update metadata with results
+            NotificationStore.setMetadata({
+              [result.jobId]: {
+                metadata: {
+                  igCanonical,
+                  igPackageId,
+                  ...jobResult
+                }
+              }
+            })
+          },
+          onFailure: (error: string) => {
+            console.error('Dependency fetch failed:', error)
+          }
+        })
+      } else {
+        setDependencyWarnings(['Could not start dependency fetch. Please add them manually after creation.'])
+        setFetchingDependencies(false)
+      }
+    } catch (error: any) {
+      console.error('Error starting dependency fetch:', error)
+      setDependencyWarnings([`Error: ${error.message}. Please add dependencies manually after creation.`])
+      setFetchingDependencies(false)
+    }
+  }
 
   // Validate form
   const validate = (): boolean => {
@@ -88,11 +279,6 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
       newErrors.vspVersion = 'Invalid version format. Must be YYYY-MM (e.g., "2026-01")'
     }
 
-    // Experimental validation
-    if (igExperimental && !experimental) {
-      newErrors.experimental = 'VSP cannot be experimental=false when IG is experimental=true'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -107,12 +293,18 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
       igPackageId,
       igName,
       igTitle,
-      igExperimental,
       vspVersion,
-      experimental
+      manifestData // Include fetched dependencies if available
     }
 
     await onSubmit(data)
+
+    // If this VSP was created from a completed dependency fetch job,
+    // remove the notification from the queue
+    if (sourceJobId) {
+      console.log('Removing completed dependency job from notifications:', sourceJobId)
+      NotificationStore.removeJob(sourceJobId)
+    }
   }
 
   return (
@@ -148,6 +340,88 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
             disabled={loading}
           />
 
+          {/* Fetch Dependencies Button */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <Button
+                text={fetchingDependencies ? 'Fetching...' : 'Fetch Dependencies from IG'}
+                onClick={handleFetchDependencies}
+                disabled={loading || fetchingDependencies || !igCanonical.trim() || !igPackageId.trim()}
+                style={{
+                  backgroundColor: manifestData ? '#4caf50' : 'var(--theme-400)',
+                  width: 'fit-content'
+                }}
+                loading={fetchingDependencies}
+              />
+              {fetchingDependencies && (
+                <Button
+                  text="Cancel"
+                  onClick={handleCancelDependencyFetch}
+                  style={{
+                    backgroundColor: '#9e9e9e',
+                    color: 'white',
+                    width: 'fit-content'
+                  }}
+                />
+              )}
+            </Box>
+            <Typography variant="caption" color="text.secondary">
+              Optional: Uses $data-requirements and $infer-manifest-parameters operations to compute dependencies
+            </Typography>
+
+            {/* Progress Indicator */}
+            {fetchingDependencies && dependencyJobId && (
+              <Alert severity="info" sx={{ mt: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  Dependency fetch in progress...
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Check the notification bell (🔔) for live progress updates.
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  This may take up to 5 minutes. You can close this modal and continue working - you'll be notified when complete.
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Dependency Status */}
+            {manifestData && (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mt: 1 }}>
+                <Chip
+                  label={`${Object.keys(manifestData.codeSystems).length} CodeSystems`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+                <Chip
+                  label={`${Object.keys(manifestData.valueSets).length} ValueSets`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+                {dependencySource && (
+                  <Chip
+                    label={`Source: ${dependencySource}`}
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                  />
+                )}
+              </Box>
+            )}
+
+            {/* Warnings */}
+            {dependencyWarnings.length > 0 && (
+              <Alert severity={manifestData ? 'info' : 'warning'} sx={{ mt: 1 }}>
+                {dependencyWarnings.map((warning, idx) => (
+                  <Typography key={idx} variant="body2">
+                    {warning}
+                  </Typography>
+                ))}
+              </Alert>
+            )}
+          </Box>
+
           {/* IG Name */}
           <TextField
             label="IG Name *"
@@ -172,14 +446,6 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
             disabled={loading}
           />
 
-          {/* IG Experimental */}
-          <FormControlLabel
-            control={
-              <Checkbox checked={igExperimental} onChange={(e) => setIgExperimental(e.target.checked)} disabled={loading} />
-            }
-            label="IG is Experimental"
-          />
-
           <Box sx={{ borderTop: 1, borderColor: 'divider', pt: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
               Value Set Package Details
@@ -197,27 +463,6 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading }: CreateVSP
             fullWidth
             disabled={loading}
           />
-
-          {/* VSP Experimental */}
-          <Box>
-            <FormControlLabel
-              control={
-                <Checkbox checked={experimental} onChange={(e) => setExperimental(e.target.checked)} disabled={loading} />
-              }
-              label="VSP is Experimental"
-            />
-            {errors.experimental && (
-              <Alert severity="error" sx={{ mt: 1 }}>
-                {errors.experimental}
-              </Alert>
-            )}
-          </Box>
-
-          {igExperimental && (
-            <Alert severity="info">
-              The Implementation Guide is marked as experimental. The VSP must also be experimental.
-            </Alert>
-          )}
         </Box>
       </DialogContent>
       <DialogActions>

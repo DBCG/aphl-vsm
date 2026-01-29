@@ -1,56 +1,61 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
-import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 
 /**
- * Release a draft VSP by changing its status to 'active'
- * VSPs don't have the complex release process that Programs have
+ * Release a VSP (draft → active)
+ * VSPs use direct status updates, not $release operation
  */
-const release = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const releaseVSP = async (
+  req: NextApiRequest,
+  res: NextApiResponse<{ message: string } | { error: string }>
+): Promise<void> => {
   try {
     const vspId = req.query.id as string
 
-    // Fetch the VSP
+    // Read the current VSP
     const vsp = (await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: vspId
     })) as fhir4.Library
 
-    // Verify this is actually a VSP
+    // Validate it's actually a VSP
     if (!is.isVSP(vsp)) {
       return res.status(400).json({ error: 'Resource is not a Value Set Package' })
     }
 
-    // Only draft VSPs can be released
+    // Check status
     if (vsp.status !== 'draft') {
-      return res.status(400).json({ error: 'Only draft VSPs can be released' })
+      return res.status(400).json({ error: `Cannot release VSP with status '${vsp.status}'. Only draft VSPs can be released.` })
     }
 
     // Update status to active
     vsp.status = 'active'
 
-    // Update in FHIR CDR
-    const result = await FhirClient.getInstance().update({
+    // Set date to now (release date)
+    vsp.date = new Date().toISOString()
+
+    // Update the VSP
+    await FhirClient.getInstance().update({
       resourceType: 'Library',
       id: vspId,
       body: vsp
     })
 
-    Logger.getLogger().info(`Released VSP: ${vspId}`)
-    return res.status(200).json({
-      message: 'Value Set Package released successfully',
-      vsp: result
-    })
+    Logger.getLogger().info(`VSP ${vspId} released (draft → active)`)
+    res.status(200).send({ message: `VSP ${vspId} released successfully` })
   } catch (error: any) {
     Logger.getLogger().error('Error releasing VSP:', error)
-    logSimpleError(error)
-    return res.status(500).json({ error: error.message || 'Failed to release Value Set Package' })
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.message || 'Failed to release VSP' })
   }
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor'], action: release }
+  POST: {
+    action: releaseVSP,
+    access: ['admin', 'editor']
+  }
 })

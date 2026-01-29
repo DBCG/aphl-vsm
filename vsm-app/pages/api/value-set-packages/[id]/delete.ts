@@ -1,51 +1,54 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
-import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 
 /**
- * Delete a retired VSP
- * Only retired VSPs can be deleted
+ * Delete a VSP (retired → deleted)
+ * Only retired VSPs can be permanently deleted
  */
-const deleteVSP = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const deleteVSP = async (
+  req: NextApiRequest,
+  res: NextApiResponse<{ message: string } | { error: string }>
+): Promise<void> => {
   try {
     const vspId = req.query.id as string
 
-    // Fetch the VSP
+    // Read the current VSP
     const vsp = (await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: vspId
     })) as fhir4.Library
 
-    // Verify this is actually a VSP
+    // Validate it's actually a VSP
     if (!is.isVSP(vsp)) {
       return res.status(400).json({ error: 'Resource is not a Value Set Package' })
     }
 
-    // Only retired VSPs can be deleted
+    // Check status - can only delete retired VSPs
     if (vsp.status !== 'retired') {
-      return res.status(400).json({ error: 'Only retired VSPs can be deleted' })
+      return res.status(400).json({ error: `Cannot delete VSP with status '${vsp.status}'. Only retired VSPs can be deleted.` })
     }
 
-    // Delete from FHIR CDR
+    // Delete the VSP
     await FhirClient.getInstance().delete({
       resourceType: 'Library',
       id: vspId
     })
 
-    Logger.getLogger().info(`Deleted retired VSP: ${vspId}`)
-    return res.status(200).json({
-      message: 'Value Set Package deleted successfully'
-    })
+    Logger.getLogger().info(`VSP ${vspId} deleted`)
+    res.status(200).send({ message: `VSP ${vspId} deleted successfully` })
   } catch (error: any) {
     Logger.getLogger().error('Error deleting VSP:', error)
-    logSimpleError(error)
-    return res.status(500).json({ error: error.message || 'Failed to delete Value Set Package' })
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.message || 'Failed to delete VSP' })
   }
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor'], action: deleteVSP }
+  POST: {
+    action: deleteVSP,
+    access: ['admin']
+  }
 })

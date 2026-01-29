@@ -1,7 +1,7 @@
 export interface JobData {
   jobId: string
   status: "FAILED" | "COMPLETED" | "IN_PROGRESS";
-  metadata?: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
+  metadata?: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata | DependencyJobMetadata
   type: string
   error?: string
 }
@@ -26,6 +26,16 @@ export interface CompareJobMetadata {
   targetProgramId: string
   baseProgramLastUpdated: string
   targetProgramLastUpdated: string
+}
+
+export interface DependencyJobMetadata {
+  igCanonical: string
+  igPackageId: string
+  igName?: string
+  igTitle?: string
+  manifestData?: any
+  source?: string
+  warnings?: string[]
 }
 
 export interface Jobs {

@@ -33,11 +33,20 @@ type ManifestDetailTableProps = {
   manifestData: SelectedManifestDataVersion
   programId: string
   availableUpdates?: ManifestSystemVersionPair[]
+  resourceType?: 'program' | 'vsp' // NEW: specify resource type
 }
 
-const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates }: ManifestDetailTableProps) => {
+const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates, resourceType = 'program' }: ManifestDetailTableProps) => {
   const [targetedCsToUpdate, setTargetedCsToUpdate] = useState<ManifestSystemVersionPair | null>(null)
-  const { data: systemAndVersionData = [] } = useSWR(programId ? `/api/programs/${programId}/manifest` : null, fetcher)
+
+  // Use the correct API endpoint based on resource type
+  const manifestEndpoint = programId
+    ? (resourceType === 'vsp'
+        ? `/api/value-set-packages/${programId}/manifest`
+        : `/api/programs/${programId}/manifest`)
+    : null
+
+  const { data: systemAndVersionData = [] } = useSWR(manifestEndpoint, fetcher)
   const preppedData = prepData(manifestData)
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)

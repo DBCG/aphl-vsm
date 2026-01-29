@@ -240,11 +240,42 @@ const ValueSetPackagesTab: NextPage = () => {
   // create VSP modal
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
+  const [createModalInitialData, setCreateModalInitialData] = useState<any>(undefined)
 
   // Read IG filter from URL on mount
   useEffect(() => {
     if (router.query['ig-url']) {
       setIgFilter(router.query['ig-url'] as string)
+    }
+  }, [router.query])
+
+  // Check for action=create in URL (from notification click)
+  useEffect(() => {
+    if (router.query['action'] === 'create') {
+      const storedData = sessionStorage.getItem('vsp-create-data')
+      console.log('ValueSetPackagesTab: action=create detected, storedData:', storedData)
+
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData)
+          console.log('ValueSetPackagesTab: Parsed data:', parsedData)
+          setCreateModalInitialData(parsedData)
+          setCreateModalOpen(true)
+          sessionStorage.removeItem('vsp-create-data')
+
+          // Clean up URL but keep other query params
+          const { action, ...rest } = router.query
+          router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+        } catch (e) {
+          console.error('Failed to parse VSP create data:', e)
+        }
+      } else {
+        // No stored data, just open modal
+        console.log('ValueSetPackagesTab: No stored data, opening empty modal')
+        setCreateModalOpen(true)
+        const { action, ...rest } = router.query
+        router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+      }
     }
   }, [router.query])
 
@@ -616,6 +647,7 @@ const ValueSetPackagesTab: NextPage = () => {
           program={null}
           loading={releaseLoading}
           handleCancelModal={() => handleCancelReleaseModal()}
+          resourceType="vsp"
         />
       )}
       {withdrawModalOpen && (
@@ -629,6 +661,7 @@ const ValueSetPackagesTab: NextPage = () => {
           program={null}
           loading={withdrawLoading}
           handleCancelModal={() => handleCancelWithdrawModal()}
+          resourceType="vsp"
         />
       )}
       {retireModalOpen && (
@@ -642,6 +675,7 @@ const ValueSetPackagesTab: NextPage = () => {
           program={null}
           loading={retireLoading}
           handleCancelModal={() => handleCancelRetireModal()}
+          resourceType="vsp"
         />
       )}
       {deleteModalOpen && (
@@ -655,6 +689,7 @@ const ValueSetPackagesTab: NextPage = () => {
           program={null}
           loading={deleteLoading}
           handleCancelModal={() => handleCancelDeleteModal()}
+          resourceType="vsp"
         />
       )}
 
@@ -718,9 +753,13 @@ const ValueSetPackagesTab: NextPage = () => {
 
       <CreateVSPModal
         isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={() => {
+          setCreateModalOpen(false)
+          setCreateModalInitialData(undefined)
+        }}
         onSubmit={handleCreateVSP}
         loading={createLoading}
+        initialData={createModalInitialData}
       />
 
       <ErrorMessage error={error?.error || null} handleClose={() => setError({})} />

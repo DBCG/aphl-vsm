@@ -9,6 +9,7 @@ import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getVSPManifestVersions } from '@/helpers/valueSetHelpers'
 import { LoadingModal } from '@/components/modals/LoadingModal'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { ExportPackageDetailsModal } from '@/components/modals/PackageDetailsModal'
 import { toast } from 'react-toastify'
 import { debounce } from 'lodash'
 import styled from 'styled-components'
@@ -71,6 +72,10 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
   // Delete state
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
+  // Export state
+  const [exportError, setExportError] = useState<null | string>(null)
+  const [showExportOptionsModal, setShowExportOptionsModal] = useState(false)
 
   const handleCloseErrors = () => {
     setError({})
@@ -137,6 +142,8 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
       setReleaseLoading(false)
       setReleaseModalOpen(false)
     } else {
+      setReleaseLoading(false)
+      setReleaseModalOpen(false)
       toast.success(`VSP ${id} released successfully.`)
       // Refresh the page to get updated VSP
       router.replace(router.asPath)
@@ -187,6 +194,8 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
       setRetireLoading(false)
       setRetireModalOpen(false)
     } else {
+      setRetireLoading(false)
+      setRetireModalOpen(false)
       toast.success(`VSP ${id} retired.`)
       // Refresh the page to get updated VSP
       router.replace(router.asPath)
@@ -212,6 +221,8 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
       setDeleteLoading(false)
       setDeleteModalOpen(false)
     } else {
+      setDeleteLoading(false)
+      setDeleteModalOpen(false)
       toast.success(`VSP ${id} deleted.`)
       // Navigate back to list
       router.push('/programs?resourceType=vsp')
@@ -237,6 +248,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
           program={null}
           loading={releaseLoading}
           handleCancelModal={() => setReleaseModalOpen(false)}
+          resourceType="vsp"
         />
       )}
       {withdrawModalOpen && (
@@ -250,6 +262,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
           program={null}
           loading={withdrawLoading}
           handleCancelModal={() => setWithdrawModalOpen(false)}
+          resourceType="vsp"
         />
       )}
       {retireModalOpen && (
@@ -263,6 +276,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
           program={null}
           loading={retireLoading}
           handleCancelModal={() => setRetireModalOpen(false)}
+          resourceType="vsp"
         />
       )}
       {deleteModalOpen && (
@@ -276,10 +290,12 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
           program={null}
           loading={deleteLoading}
           handleCancelModal={() => setDeleteModalOpen(false)}
+          resourceType="vsp"
         />
       )}
 
       {error?.error && <ErrorMessage style={{ marginBottom: '2em' }} error={error.error} handleClose={handleCloseErrors} />}
+      {exportError && <ErrorMessage style={{ marginBottom: '2em' }} error={exportError} handleClose={() => setExportError(null)} />}
 
       {/* Header with Title and Status */}
       <Row style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -291,6 +307,23 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
             experimental={Boolean(experimental)}
           />
         </MetadataTitle>
+        <Col style={{ width: 'auto' }}>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setExportError(null)
+              setShowExportOptionsModal(true)
+            }}
+          >
+            Export
+          </Button>
+          <ExportPackageDetailsModal
+            isOpen={showExportOptionsModal}
+            program={currentVSP}
+            setExportError={setExportError}
+            toggleModalOpen={() => setShowExportOptionsModal(false)}
+          />
+        </Col>
       </Row>
 
       {/* Action Buttons */}
@@ -395,6 +428,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
             ...manifestData.codeSystems,
             ...manifestData.valueSets
           }}
+          resourceType="vsp"
         />
       </ManifestContainer>
     </Col>

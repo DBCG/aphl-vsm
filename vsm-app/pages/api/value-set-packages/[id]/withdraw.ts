@@ -1,51 +1,54 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import FhirClient from '@/backend/clients/FhirCdrClient'
 import handler from '@/helpers/server/handler'
+import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
-import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { is } from '@/helpers/is'
 
 /**
- * Withdraw (delete) a draft VSP
- * Only draft VSPs can be withdrawn
+ * Withdraw a VSP (draft → deleted)
+ * VSPs use direct deletion, not $withdraw operation
  */
-const withdraw = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
+const withdrawVSP = async (
+  req: NextApiRequest,
+  res: NextApiResponse<{ message: string } | { error: string }>
+): Promise<void> => {
   try {
     const vspId = req.query.id as string
 
-    // Fetch the VSP
+    // Read the current VSP
     const vsp = (await FhirClient.getInstance().read({
       resourceType: 'Library',
       id: vspId
     })) as fhir4.Library
 
-    // Verify this is actually a VSP
+    // Validate it's actually a VSP
     if (!is.isVSP(vsp)) {
       return res.status(400).json({ error: 'Resource is not a Value Set Package' })
     }
 
-    // Only draft VSPs can be withdrawn
+    // Check status - can only withdraw drafts
     if (vsp.status !== 'draft') {
-      return res.status(400).json({ error: 'Only draft VSPs can be withdrawn' })
+      return res.status(400).json({ error: `Cannot withdraw VSP with status '${vsp.status}'. Only draft VSPs can be withdrawn.` })
     }
 
-    // Delete from FHIR CDR
+    // Delete the VSP
     await FhirClient.getInstance().delete({
       resourceType: 'Library',
       id: vspId
     })
 
-    Logger.getLogger().info(`Withdrawn (deleted) VSP: ${vspId}`)
-    return res.status(200).json({
-      message: 'Value Set Package withdrawn and deleted successfully'
-    })
+    Logger.getLogger().info(`VSP ${vspId} withdrawn (deleted)`)
+    res.status(200).send({ message: `VSP ${vspId} withdrawn successfully` })
   } catch (error: any) {
     Logger.getLogger().error('Error withdrawing VSP:', error)
-    logSimpleError(error)
-    return res.status(500).json({ error: error.message || 'Failed to withdraw Value Set Package' })
+    const diagnostics = error?.response?.data?.issue?.[0]?.diagnostics
+    return res.status(500).json({ error: diagnostics || error?.message || 'Failed to withdraw VSP' })
   }
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor'], action: withdraw }
+  POST: {
+    action: withdrawVSP,
+    access: ['admin', 'editor']
+  }
 })
