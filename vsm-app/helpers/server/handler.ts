@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from "next-auth/next"
+import APITokenHandler from "@/helpers/server/ApiTokenHandler";
 import Logger from '@/helpers/server/logger'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
@@ -17,7 +18,7 @@ type mapActionsToRequestTypes<U extends NextApiRequest, T extends { [k in keyof 
   : never
 }
 type handlerObjs<T extends NextApiRequest> = mapActionsToRequestTypes<T, { [k in requestTypes]: action<T> }>
-const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandlers: T) => async <T extends NextApiRequest>(req: T, res: NextApiResponse): Promise<void> => {
+const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
   Logger.initLogger() // Setup for request id
   const session = <VSMSession>await getServerSession(req, res, AuthOptions)
   const methodFn = methodHandlers[req.method as requestTypes]
@@ -31,6 +32,21 @@ const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandl
 
   try {
     const { action, access } = methodFn
+    const apiKey = req.headers["x-api-key"] as string
+    if (session === null) {
+      const apiAuthValid = await APITokenHandler.getInstance().verifyApiKey(apiKey);
+      if (!apiAuthValid) {
+        return res.status(401).json({ error: "Please provide a valid API key with your request" });
+      } else {
+        const userRole = await APITokenHandler.getInstance().getUserRolesFromApiKey(apiKey)
+        const highestUserRole = getHighestPermissionOfUser(userRole)
+        if (userRole.length === 0 || !roleIsAuthorizedPassthroughApi(highestUserRole, req.method as 'GET' | 'PUT' | 'POST' | 'DELETE')) {
+          return res.status(401).json({ error: `API key does not have sufficient access to perform ${req.method}` });
+        }
+        // passthrough api active
+        return await action(req, res, highestUserRole);
+    }
+    }
     const role = session?.user?.roles?.[0] // TODO: when users have more than one role we should look into modifying this
     const isAuthorized = (session != null && role != null && access?.includes(role)) || access == null // if access is unset, the route allows all roles
     if (!isAuthorized) {
@@ -43,6 +59,35 @@ const handler = <U extends NextApiRequest, T extends handlerObjs<U>>(methodHandl
     const diagnostics = is.operationOutcome(error) ? error?.issue?.[0]?.diagnostics : error?.response?.data?.issue?.[0]?.diagnostics
     return res.status(500).json({ error: diagnostics || error?.error || JSON.stringify(error) || 'Unspecified error' })
   }
+}
+
+export const getHighestPermissionOfUser = (role: string[] | string | null): string | null => {
+  if (typeof role === 'string') {
+    return role
+  } else if (Array.isArray(role)) {
+    if (role.includes('admin')) {
+      return 'admin'
+    } else if (role.includes('editor')) {
+      return 'editor'
+    } else if (role.includes('reviewer')) {
+      return 'reviewer'
+    }
+  }
+  return null
+}
+
+const roleIsAuthorizedPassthroughApi = (role: string | null, method: 'GET' | 'PUT' | 'POST' | 'DELETE') => {
+  if (!role) {
+    return false
+  }
+  return allowedRolesPassthroughApi[method].includes(role)
+}
+
+const allowedRolesPassthroughApi = {
+  GET: ['admin'],
+  PUT: ['admin'],
+  POST: ['admin'],
+  DELETE: ['admin']
 }
 
 export default handler
