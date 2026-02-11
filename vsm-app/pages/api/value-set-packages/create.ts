@@ -10,7 +10,6 @@ import { setExpansionParametersForVSP } from '@/helpers/valueSetHelpers'
 const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const body: CreateVSPRequest = req.body
-    Logger.getLogger().info('Creating VSP with body: ' + JSON.stringify(body, null, 2))
 
     // Validate required fields
     if (!body.igCanonical || !body.vspVersion || !body.igPackageId) {
@@ -92,18 +91,29 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
           }]
         }
       }],
-      relatedArtifact: [{
-        type: 'composed-of',
-        resource: body.igCanonical
-      }]
+      relatedArtifact: [
+        // Always include the IG reference
+        {
+          type: 'composed-of',
+          resource: body.igCanonical
+        }
+      ]
     }
 
-    // Set manifest if provided
+    // Set manifest and merge relatedArtifact if provided
     if (body.manifestData) {
       setExpansionParametersForVSP(vspLibrary, body.manifestData)
-    }
 
-    Logger.getLogger().info('VSP Library resource to create: ' + JSON.stringify(vspLibrary, null, 2))
+      // Merge relatedArtifact from inferred manifest with the IG reference
+      // The relatedArtifact from $infer-manifest-parameters contains references to ValueSets/CodeSystems
+      if (body.manifestData.relatedArtifact && body.manifestData.relatedArtifact.length > 0) {
+        Logger.getLogger().info(`Merging ${body.manifestData.relatedArtifact.length} relatedArtifacts from manifest`)
+        vspLibrary.relatedArtifact = [
+          ...vspLibrary.relatedArtifact,
+          ...body.manifestData.relatedArtifact
+        ]
+      }
+    }
 
     // Create in FHIR CDR using update (PUT) to preserve custom ID
     // Note: Using update instead of create allows us to specify the resource ID
@@ -113,7 +123,6 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       id: vspId,
       body: vspLibrary
     })
-    Logger.getLogger().info('FHIR client returned: ' + JSON.stringify(result, null, 2))
 
     Logger.getLogger().info(`Created VSP: ${vspId}`)
     return res.status(201).json({

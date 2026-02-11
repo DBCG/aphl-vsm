@@ -3,8 +3,7 @@ import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import DependencyQueue from '@/worker/DependencyQueue'
 import { DEFAULT_JOB_CONFIG } from '@/config'
-import Cache from '@/cache'
-import { JOB_STATUS } from '@/constants'
+import { VSMSession } from '@/helpers/rolesHelper'
 
 interface DependenciesResponse {
   success: boolean
@@ -16,8 +15,9 @@ interface DependenciesResponse {
  * Start a background job to fetch dependencies
  * Returns job ID immediately for status polling
  */
-const startDependencyFetch = async (req: NextApiRequest, res: NextApiResponse<DependenciesResponse>, userId: string) => {
+const startDependencyFetch = async (req: NextApiRequest, res: NextApiResponse<DependenciesResponse>, session: VSMSession) => {
   try {
+    const userId = session.user.id
     const { igCanonical, igPackageId } = req.query
 
     if (!igCanonical || typeof igCanonical !== 'string') {
@@ -46,7 +46,7 @@ const startDependencyFetch = async (req: NextApiRequest, res: NextApiResponse<De
 
     Logger.getLogger().info(`Starting dependency fetch job for ${igPackageId}@${igVersion}`)
 
-    // Queue the job
+    // Queue the job (cache is set by DependencyQueue.add override)
     const job = await DependencyQueue.add(
       {
         igCanonical,
@@ -55,11 +55,6 @@ const startDependencyFetch = async (req: NextApiRequest, res: NextApiResponse<De
       },
       DEFAULT_JOB_CONFIG
     )
-
-    // Initialize job status in cache
-    const cache = await Cache.getInstance()
-    const cacheKey = `user:${userId}:job:${job.id}`
-    await cache.hset(cacheKey, 'status', JOB_STATUS.IN_PROGRESS)
 
     Logger.getLogger().info(`Dependency fetch job queued with ID: ${job.id}`)
 

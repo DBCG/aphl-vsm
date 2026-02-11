@@ -102,42 +102,145 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
 
   // Listen for dependency job updates
   useEffect(() => {
-    if (dependencyJobId) {
-      NotificationStore.listenForJob(dependencyJobId, async (job: any) => {
-        console.log('Dependency job update:', job)
+    if (!dependencyJobId) return
 
-        if (job.status === 'COMPLETED') {
-          // Fetch the full job result from API to get returnvalue
-          const JobsService = (await import('@/services/frontend/JobsService')).default
-          const fullJob = await JobsService.getExportJob(dependencyJobId)
-          const result = fullJob?.returnvalue || {}
+    console.log('[CreateVSPModal] Setting up listener for dependency job:', dependencyJobId)
 
-          // Update state with results
-          if (result.manifestData) {
-            setManifestData(result.manifestData)
+    let pollingInterval: NodeJS.Timeout | null = null
+    let hasProcessedResult = false
+
+    const processJobResult = async (result: any) => {
+      if (hasProcessedResult) {
+        console.log('[CreateVSPModal] Result already processed, skipping')
+        return
+      }
+
+      console.log('[CreateVSPModal] Processing job result - source:', result.source, 'warnings:', result.warnings?.length || 0)
+      hasProcessedResult = true
+
+      // Update state with results
+      if (result.manifestData) {
+        console.log('[CreateVSPModal] Setting manifestData - CodeSystems:', Object.keys(result.manifestData.codeSystems || {}).length, 'ValueSets:', Object.keys(result.manifestData.valueSets || {}).length)
+        setManifestData(result.manifestData)
+      }
+      if (result.igName) {
+        setIgName(result.igName)
+      }
+      if (result.igTitle) {
+        setIgTitle(result.igTitle)
+      }
+      if (result.warnings) {
+        setDependencyWarnings(result.warnings)
+      }
+      if (result.source) {
+        setDependencySource(result.source)
+      }
+
+      console.log('[CreateVSPModal] Stopping fetch loading state')
+      setFetchingDependencies(false)
+      setDependencyJobId(null)
+
+      // Clear polling if it exists
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+        pollingInterval = null
+      }
+    }
+
+    // Immediately check if job is already completed
+    const checkJobStatus = async () => {
+      try {
+        const response = await fetch(`/api/jobs/${dependencyJobId}/result`)
+        if (response.ok) {
+          const jobResult = await response.json()
+          console.log('[CreateVSPModal] Job status check:', jobResult.state)
+
+          // If job is already completed, process the result immediately
+          if (jobResult.state === 'completed') {
+            console.log('[CreateVSPModal] Job already completed, processing result...')
+            await processJobResult(jobResult.returnvalue || {})
+            return true // Signal that job is done
+          } else if (jobResult.state === 'failed') {
+            const errorMsg = jobResult.error || 'Job failed'
+            setDependencyWarnings([`Error: ${errorMsg}. Please add dependencies manually after creation.`])
+            setFetchingDependencies(false)
+            setDependencyJobId(null)
+            return true // Signal that job is done
           }
-          if (result.igName) {
-            setIgName(result.igName)
-          }
-          if (result.igTitle) {
-            setIgTitle(result.igTitle)
-          }
-          if (result.warnings) {
-            setDependencyWarnings(result.warnings)
-          }
-          if (result.source) {
-            setDependencySource(result.source)
+        }
+      } catch (error) {
+        console.error('[CreateVSPModal] Error checking job status:', error)
+      }
+      return false // Job not done yet
+    }
+
+    // Set up direct polling as fallback (every 3 seconds)
+    const startPolling = () => {
+      console.log('[CreateVSPModal] Starting direct polling fallback')
+      pollingInterval = setInterval(async () => {
+        console.log('[CreateVSPModal] Polling job status...')
+        const isDone = await checkJobStatus()
+        if (isDone && pollingInterval) {
+          clearInterval(pollingInterval)
+          pollingInterval = null
+        }
+      }, 3000)
+    }
+
+    // Check immediately and start polling
+    checkJobStatus().then((isDone) => {
+      if (!isDone) {
+        startPolling()
+      }
+    })
+
+    const cleanup = NotificationStore.listenForJob(dependencyJobId, async (job: any) => {
+      console.log('[CreateVSPModal] Dependency job update received:', job)
+
+      if (job.status === 'COMPLETED') {
+        console.log('[CreateVSPModal] Dependency job completed via listener, fetching result...')
+
+        // Fetch the full job result from the new /api/jobs/[id]/result endpoint
+        try {
+          const response = await fetch(`/api/jobs/${dependencyJobId}/result`)
+          if (!response.ok) {
+            throw new Error(`Failed to fetch job result: ${response.status}`)
           }
 
-          setFetchingDependencies(false)
-          setDependencyJobId(null)
-        } else if (job.status === 'FAILED') {
+          const jobResult = await response.json()
+          console.log('[CreateVSPModal] Job result fetched via listener - state:', jobResult.state)
+
+          await processJobResult(jobResult.returnvalue || {})
+        } catch (error: any) {
+          console.error('[CreateVSPModal] Error fetching job result via listener:', error)
+          if (!hasProcessedResult) {
+            setDependencyWarnings([`Error fetching results: ${error.message}. Please add dependencies manually.`])
+            setFetchingDependencies(false)
+            setDependencyJobId(null)
+          }
+        }
+      } else if (job.status === 'FAILED') {
+        console.log('[CreateVSPModal] Dependency job failed via listener:', job.error)
+        if (!hasProcessedResult) {
           const errorMsg = job.error || 'Job failed'
           setDependencyWarnings([`Error: ${errorMsg}. Please add dependencies manually after creation.`])
           setFetchingDependencies(false)
           setDependencyJobId(null)
         }
-      })
+      } else {
+        console.log('[CreateVSPModal] Job status via listener:', job.status)
+      }
+    })
+
+    // Return cleanup function
+    return () => {
+      console.log('[CreateVSPModal] Cleaning up dependency job listener and polling')
+      if (pollingInterval) {
+        clearInterval(pollingInterval)
+      }
+      if (cleanup && typeof cleanup === 'function') {
+        cleanup()
+      }
     }
   }, [dependencyJobId])
 
@@ -212,6 +315,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
       }
 
       if (result.success && result.jobId) {
+        console.log('[CreateVSPModal] Job started successfully, ID:', result.jobId)
         setDependencyJobId(result.jobId)
 
         // Add job to NotificationStore
@@ -223,7 +327,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
             igPackageId
           },
           onSuccess: (jobResult: any) => {
-            console.log('Dependency fetch completed:', jobResult)
+            console.log('[CreateVSPModal] addJob onSuccess callback fired')
             // Update metadata with results
             NotificationStore.setMetadata({
               [result.jobId]: {
@@ -236,7 +340,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
             })
           },
           onFailure: (error: string) => {
-            console.error('Dependency fetch failed:', error)
+            console.error('[CreateVSPModal] addJob onFailure callback fired:', error)
           }
         })
       } else {
@@ -401,9 +505,11 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
                 />
                 {dependencySource && (
                   <Chip
-                    label={`Source: ${dependencySource}`}
+                    label={dependencySource === 'fhir-operations'
+                      ? 'Auto-computed from IG'
+                      : `Source: ${dependencySource}`}
                     size="small"
-                    color="info"
+                    color="success"
                     variant="outlined"
                   />
                 )}

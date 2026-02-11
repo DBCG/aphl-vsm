@@ -41,6 +41,9 @@ export interface ExtendedManifestData {
   valueSets: SelectedManifestDataVersion    // Map of ValueSet canonical → version(s)
                                              // Why: NEW for VSPs - allows pinning ValueSet versions
                                              // Example: { "http://hl7.org/fhir/ValueSet/administrative-gender": ["4.0.1"] }
+  relatedArtifact?: fhir4.RelatedArtifact[] // RelatedArtifacts from $infer-manifest-parameters
+                                             // Why: Required for $package operation to know which resources to include
+                                             // These are the ValueSet/CodeSystem references that get merged with the IG reference
 }
 
 // VSPApiResponse: API response shape for list endpoint

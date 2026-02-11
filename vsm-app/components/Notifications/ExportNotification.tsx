@@ -118,12 +118,24 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
     const validationResults = job?.returnvalue?.validationResults
     try {
       const filename = (jobDetails?.metadata as ExportJobMetadata || {}).filename
-      if (typeof packageResponse === 'string' && packageResponse.startsWith('<Bundle')) {
-        downloadTextData(packageResponse, 'application/fhir+xml', filename || 'export.xml')
+
+      // Handle different response formats
+      if (typeof packageResponse === 'string') {
+        // String response - check if it's XML or JSON
+        if (packageResponse.trim().startsWith('<')) {
+          // XML format
+          downloadTextData(packageResponse, 'application/fhir+xml', filename || 'export.xml')
+        } else {
+          // JSON format (as string)
+          downloadTextData(packageResponse, 'application/fhir+json', filename || 'export.json')
+        }
       } else if (typeof packageResponse === 'object' && packageResponse.resourceType === 'Bundle') {
+        // Object response (legacy Program format)
         downloadTextData(JSON.stringify(packageResponse, null, 2), 'application/fhir+json', filename || 'export.json')
       }
-      if (validationResults.length > 0) {
+
+      // Only download validation results if they exist (Programs only, not VSPs)
+      if (validationResults && validationResults.length > 0) {
         const programTitle = (jobDetails.metadata as ExportJobMetadata)?.programTitle || 'program';
         downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
       }

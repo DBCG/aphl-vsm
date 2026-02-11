@@ -23,7 +23,10 @@ let uiListener: Subject<any> | null = null
 const notifyUiListener = (nextState: Jobs) => {
   subject.next(nextState)
   if (uiListener !== null) {
+    console.log('[NotificationStore] notifyUiListener: Broadcasting to uiListener', Object.keys(nextState))
     uiListener.next(nextState)
+  } else {
+    console.log('[NotificationStore] notifyUiListener: No uiListener registered')
   }
 }
 
@@ -39,14 +42,30 @@ const NotificationStore = {
     subject.next(state)
   },
   listenForJob: (targetedJobId: string, callback: Function) => {
-    uiListener = new Subject()
-    uiListener.subscribe((jobs) => {
+    console.log(`[NotificationStore] listenForJob called for jobId: ${targetedJobId}`)
+
+    // Create a new listener if it doesn't exist
+    if (!uiListener) {
+      console.log('[NotificationStore] Creating new uiListener Subject')
+      uiListener = new Subject()
+    }
+
+    // Subscribe and return cleanup function
+    const subscription = uiListener.subscribe((jobs) => {
+      console.log(`[NotificationStore] uiListener received update, checking for job: ${targetedJobId}`, Object.keys(jobs))
       for (const jobId in jobs) {
         if (jobId === targetedJobId) {
+          console.log(`[NotificationStore] Found matching job ${targetedJobId}, status: ${jobs[jobId]?.status}`)
           callback(jobs[jobId])
         }
       }
     })
+
+    // Return cleanup function
+    return () => {
+      console.log(`[NotificationStore] Cleaning up listener for job: ${targetedJobId}`)
+      subscription.unsubscribe()
+    }
   },
   addJob: async ({ jobId, jobType, metadata, onSuccess, onFailure, updateStatus }: AddJobParams) => {
     subscribe({
@@ -108,10 +127,13 @@ const NotificationStore = {
     notifyUiListener(state)
   },
   completedJobs: (jobIds: string[]) => {
+    console.log('[NotificationStore] Marking jobs as completed:', jobIds)
     jobIds.forEach((jobId) => {
       state[jobId] = { ...state[jobId], status: JOB_STATUS.COMPLETED }
+      console.log(`[NotificationStore] Job ${jobId} marked as COMPLETED`)
     })
     state = { ...state }
+    console.log('[NotificationStore] Notifying UI listeners with updated state')
     notifyUiListener(state)
   },
   resubscribeJobs: async () => {

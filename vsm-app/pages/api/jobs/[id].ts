@@ -2,6 +2,7 @@ import handler from '@/helpers/server/handler'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import PackageQueue from '@/worker/PackageQueue'
 import DependencyQueue from '@/worker/DependencyQueue'
+import VSPPackageQueue from '@/worker/VSPPackageQueue'
 
 const getJobStatus = async (req: NextApiRequest, res: NextApiResponse) => {
   const jobId = req.query.id as string
@@ -15,6 +16,11 @@ const getJobStatus = async (req: NextApiRequest, res: NextApiResponse) => {
   // If not found, try DependencyQueue
   if (!job) {
     job = await DependencyQueue.getJob(jobId)
+  }
+
+  // If still not found, try VSPPackageQueue
+  if (!job) {
+    job = await VSPPackageQueue.getJob(jobId)
   }
 
   if (!job) {

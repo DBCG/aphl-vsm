@@ -2,9 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
 import DependencyQueue from '@/worker/DependencyQueue'
-import ExportQueue from '@/worker/ExportQueue'
-import ReleaseQueue from '@/worker/ReleaseQueue'
-import ComparisonQueue from '@/worker/ComparisonQueue'
+import PackageQueue from '@/worker/PackageQueue'
+import VSPPackageQueue from '@/worker/VSPPackageQueue'
+import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import ChangeLogQueue from '@/worker/ChangeLogQueue'
+import VSPDiffQueue from '@/worker/VSPDiffQueue'
 import Cache from '@/cache'
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 
@@ -43,28 +45,45 @@ const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResp
 
     // Determine which queue to use based on job type
     let queue
+    let job
+
     switch (jobType) {
       case JOB_TYPE.FETCH_DEPENDENCIES:
         queue = DependencyQueue
+        job = await queue.getJob(jobId)
         break
       case JOB_TYPE.EXPORT:
-        queue = ExportQueue
+        // For exports, try both queues since both Program and VSP exports use EXPORT type
+        // Try VSP queue first
+        job = await VSPPackageQueue.getJob(jobId)
+        if (job) {
+          queue = VSPPackageQueue
+        } else {
+          // Fallback to Program package queue
+          job = await PackageQueue.getJob(jobId)
+          queue = PackageQueue
+        }
         break
       case JOB_TYPE.RELEASE:
-        queue = ReleaseQueue
+        queue = ProgramReleaseQueue
+        job = await queue.getJob(jobId)
         break
       case JOB_TYPE.CHANGE_LOG:
-        queue = ComparisonQueue
+        // For changelog jobs, try both queues (Programs use ChangeLogQueue, VSPs use VSPDiffQueue)
+        job = await ChangeLogQueue.getJob(jobId)
+        if (job) {
+          queue = ChangeLogQueue
+        } else {
+          job = await VSPDiffQueue.getJob(jobId)
+          queue = VSPDiffQueue
+        }
         break
       default:
         return res.status(400).json({ success: false, error: `Unknown job type: ${jobType}` })
     }
 
-    // Get the job from the queue
-    const job = await queue.getJob(jobId)
-
     if (!job) {
-      Logger.getLogger().warn(`Job ${jobId} not found in queue`)
+      Logger.getLogger().warn(`Job ${jobId} not found in any queue`)
       // Still update cache to mark as cancelled
       await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', 'Job cancelled by user')
       return res.status(200).json({ success: true, message: 'Job not found in queue but marked as cancelled' })

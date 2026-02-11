@@ -96,22 +96,18 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
       }
     }) as fhir4.Bundle
 
-    if (libSearchResult.entry) {
-      const libResources = libSearchResult?.entry?.map((e) => e?.resource)
-      const asstResources = asstSearchResult?.entry?.map((e) => e?.resource)
-      const programs = libResources?.filter(is.library)
-      let assessments = asstResources?.filter(is.basic)
-    
-      return res.status(200).send({ programs, total: libSearchResult?.total, assessments })
-    } else {
-      // do not error out if version doesn't exist, it's just not found
-      if (req.query.version) {
-        return void res.status(204).end() // 'void' helps fix a warning message
-      } else {
-        Logger.getLogger().error(libSearchResult)
-        return res.status(404).send({ programs: [], assessments: [] })
-      }
-    }
+    // Handle empty results (when entry is undefined or empty array)
+    const libResources = libSearchResult?.entry?.map((e) => e?.resource) || []
+    const asstResources = asstSearchResult?.entry?.map((e) => e?.resource) || []
+    const programs = libResources?.filter(is.library) || []
+    let assessments = asstResources?.filter(is.basic) || []
+
+    // Return 200 with empty arrays if no results found (this is not an error)
+    return res.status(200).send({
+      programs,
+      total: libSearchResult?.total || 0,
+      assessments
+    })
   } catch (e: any) {
     logSimpleError(e)
     res.status(400).json({ error: 'Search for program failed.' })

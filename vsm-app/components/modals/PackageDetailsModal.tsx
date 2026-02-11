@@ -34,6 +34,7 @@ interface ModalInfo {
   program: fhir4.Library
   toggleModalOpen: () => void
   setExportError: (error: any) => void
+  resourceType?: 'program' | 'vsp' // NEW: specify if it's a Program or VSP
 }
 
 interface BodyFormatter {
@@ -46,9 +47,10 @@ interface BodyFormatter {
 interface PackageParams extends BodyFormatter {
   programId: string
   metadata: any
+  resourceType?: 'program' | 'vsp'
 }
 
-const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId, metadata }: PackageParams) => {
+const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId, metadata, resourceType = 'program' }: PackageParams) => {
   const bodyForPackage = formatBody({
     isJson,
     isV2,
@@ -57,7 +59,12 @@ const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, 
   })
   bodyForPackage.metadata = metadata
 
-  return await fetch(`/api/programs/${programId}/package`, {
+  // Use different endpoint based on resource type
+  const endpoint = resourceType === 'vsp'
+    ? `/api/value-set-packages/${programId}/package`
+    : `/api/programs/${programId}/package`
+
+  return await fetch(endpoint, {
     method: 'POST',
     body: JSON.stringify(bodyForPackage)
   })
@@ -81,7 +88,7 @@ const formatBody = ({ isJson, isV2, targetVersion, fileUploadContent }: BodyForm
   return body
 }
 
-const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError }: ModalInfo) => {
+const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, resourceType = 'program' }: ModalInfo) => {
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
@@ -180,7 +187,8 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       targetVersion,
       fileUploadContent,
       programId: program.id!,
-      metadata
+      metadata,
+      resourceType
     }).then((res) => res.json())
 
     if (jobResponse?.error) {

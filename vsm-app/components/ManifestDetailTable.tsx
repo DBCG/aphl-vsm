@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import DataTable, { TableColumn } from 'react-data-table-component'
 import InfoIcon from '@mui/icons-material/Info'
 import { IconButton } from './buttons/IconButton'
@@ -6,9 +6,11 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
-import { Typography, Modal, Tooltip, Box, Button as MuiButton } from '@mui/material'
+import { Typography, Modal, Tooltip, Box, Button as MuiButton, TextField, InputAdornment } from '@mui/material'
 import { modalStyle } from '@/styles'
 import { namesByUri, getNameByUri } from './EditManifestDetails/manifestHelpers'
+import SearchIcon from '@mui/icons-material/Search'
+import ClearIcon from '@mui/icons-material/Clear'
 
 const prepData = (data: SelectedManifestDataVersion) => {
   if (!data) return []
@@ -19,10 +21,12 @@ const prepData = (data: SelectedManifestDataVersion) => {
   return preparedData
 }
 
-const NoDataComponent = () => {
+const NoDataComponent = ({ isFiltered }: { isFiltered?: boolean }) => {
   return (
     <div style={{ display: 'flex', width: '100%', padding: '1.2rem', backgroundColor: 'white', justifyContent: 'center' }}>
-      <Typography style={{ textAlign: 'center' }}>No manifest data found</Typography>
+      <Typography style={{ textAlign: 'center' }}>
+        {isFiltered ? 'No entries match your filter' : 'No manifest data found'}
+      </Typography>
     </div>
   )
 }
@@ -38,6 +42,7 @@ type ManifestDetailTableProps = {
 
 const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, availableUpdates, resourceType = 'program' }: ManifestDetailTableProps) => {
   const [targetedCsToUpdate, setTargetedCsToUpdate] = useState<ManifestSystemVersionPair | null>(null)
+  const [filterText, setFilterText] = useState('')
 
   // Use the correct API endpoint based on resource type
   const manifestEndpoint = programId
@@ -51,6 +56,22 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
 
   const allSystemNamesByUri = namesByUri(systemAndVersionData)
   const noUpdatesAvailable = !Boolean(availableUpdates?.length)
+
+  // Filter data based on search text
+  const filteredData = useMemo(() => {
+    if (!filterText) return preppedData
+
+    const searchLower = filterText.toLowerCase()
+    return preppedData.filter((item) => {
+      const name = getNameByUri(item.system!, allSystemNamesByUri)?.toLowerCase() || ''
+      const system = item.system?.toLowerCase() || ''
+      const version = item.version?.toLowerCase() || ''
+
+      return name.includes(searchLower) ||
+             system.includes(searchLower) ||
+             version.includes(searchLower)
+    })
+  }, [preppedData, filterText, allSystemNamesByUri])
 
   const columns: TableColumn<ManifestSystemVersionPair>[] = [
     {
@@ -179,11 +200,46 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
           </Box>
         </Modal>
       )}
+
+      {/* Filter Input */}
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TextField
+          size="small"
+          placeholder="Filter by Name, System, or Version..."
+          value={filterText}
+          onChange={(e) => setFilterText(e.target.value)}
+          variant="outlined"
+          sx={{ minWidth: '400px', maxWidth: '600px' }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: filterText && (
+              <InputAdornment position="end">
+                <Tooltip title="Clear filter">
+                  <ClearIcon
+                    sx={{ cursor: 'pointer', color: 'action.active' }}
+                    onClick={() => setFilterText('')}
+                  />
+                </Tooltip>
+              </InputAdornment>
+            )
+          }}
+        />
+        {filterText && (
+          <Typography variant="body2" color="text.secondary">
+            Showing {filteredData.length} of {preppedData.length} entries
+          </Typography>
+        )}
+      </Box>
+
       <DataTable
-        noDataComponent={<NoDataComponent />}
+        noDataComponent={<NoDataComponent isFiltered={!!filterText} />}
         columns={columns}
         customStyles={customTableStyles('readonly')}
-        data={preppedData}
+        data={filteredData}
         pagination
         paginationPerPage={10}
         theme="aphl"

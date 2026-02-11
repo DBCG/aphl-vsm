@@ -1,12 +1,35 @@
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_REDIS_URL, DEFAULT_JOB_CONFIG, JOB_EXPIRATION } from '@/config'
 import Cache from '@/cache'
-import { JOB_STATUS } from '@/constants'
+import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 import { ExtendedManifestData } from '@/types/vspTypes'
 
 const DependencyQueue = new Queue('fetchDependencies', QUEUE_REDIS_URL)
+
+const originalAdd = DependencyQueue.add
+
+// Override add method to set cache entries
+DependencyQueue.add = async function (...args) {
+  const data = args[0]
+  const userId = data.userId
+
+  const job = await originalAdd.apply(this, [data, args[1] || DEFAULT_JOB_CONFIG])
+  const cache = await Cache.getInstance()
+  const cacheKey = `user:${userId}:job:${job.id}`
+
+  await cache.hset(cacheKey, {
+    jobId: job.id,
+    status: JOB_STATUS.IN_PROGRESS,
+    type: JOB_TYPE.FETCH_DEPENDENCIES,
+    metadata: JSON.stringify(data?.metadata || { igCanonical: data.igCanonical, igPackageId: data.igPackageId })
+  })
+  await cache.sadd(`user:${userId}:jobs`, job.id)
+  await cache.expire(cacheKey, JOB_EXPIRATION)
+
+  return job
+}
 
 /**
  * Download and extract ImplementationGuide from FHIR package
@@ -104,12 +127,23 @@ async function callDataRequirements(ig: fhir4.ImplementationGuide): Promise<fhir
     const baseUrl = FhirClient.getInstance().baseUrl
     const url = `${baseUrl}/ImplementationGuide/$data-requirements`
 
+    // Wrap IG in Parameters resource
+    const parametersInput: fhir4.Parameters = {
+      resourceType: 'Parameters',
+      parameter: [
+        {
+          name: 'implementationGuide',
+          resource: ig
+        }
+      ]
+    }
+
     Logger.getLogger().info(`Making POST request to: ${url}`)
-    Logger.getLogger().info(`Request body size: ${JSON.stringify(ig).length} bytes`)
+    Logger.getLogger().info(`Request body size: ${JSON.stringify(parametersInput).length} bytes`)
 
     response = await f(url, {
       method: 'POST',
-      body: JSON.stringify(ig),
+      body: JSON.stringify(parametersInput),
       dispatcher: new Agent({
         connectTimeout: 10 * 60 * 1000,  // 10 minutes
         headersTimeout: 10 * 60 * 1000,
@@ -145,7 +179,7 @@ async function callDataRequirements(ig: fhir4.ImplementationGuide): Promise<fhir
 
     if (!result || result.resourceType !== 'Library') {
       Logger.getLogger().warn('$data-requirements did not return a Library resource')
-      Logger.getLogger().warn(`Response was: ${JSON.stringify(result, null, 2)}`)
+      Logger.getLogger().warn(`Response resourceType: ${result?.resourceType}`)
       return null
     }
 
@@ -249,7 +283,7 @@ async function callInferManifestParameters(moduleDefinition: fhir4.Library): Pro
 
     if (!result || result.resourceType !== 'Library') {
       Logger.getLogger().warn('$infer-manifest-parameters did not return a Library resource')
-      Logger.getLogger().warn(`Response was: ${JSON.stringify(result, null, 2)}`)
+      Logger.getLogger().warn(`Response resourceType: ${result?.resourceType}`)
       return null
     }
 
@@ -301,9 +335,15 @@ async function callInferManifestParameters(moduleDefinition: fhir4.Library): Pro
 
     Logger.getLogger().info(`Parsed ${Object.keys(codeSystems).length} CodeSystems, ${Object.keys(valueSets).length} ValueSets`)
 
+    // Extract relatedArtifact from the manifest Library
+    // These are the references to ValueSets/CodeSystems needed for $package
+    const relatedArtifact = manifestLibrary.relatedArtifact || []
+    Logger.getLogger().info(`Found ${relatedArtifact.length} relatedArtifacts in manifest Library`)
+
     return {
       codeSystems,
-      valueSets
+      valueSets,
+      relatedArtifact
     }
   } catch (error: any) {
     Logger.getLogger().error('='.repeat(80))

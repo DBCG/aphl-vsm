@@ -307,7 +307,13 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
             experimental={Boolean(experimental)}
           />
         </MetadataTitle>
-        <Col style={{ width: 'auto' }}>
+        <Col style={{ width: 'auto', display: 'flex', gap: '0.8rem' }}>
+          <Button
+            variant="contained"
+            onClick={() => router.push(`/value-set-packages/compare?source=${id}`)}
+          >
+            Compare Versions
+          </Button>
           <Button
             variant="contained"
             onClick={() => {
@@ -322,6 +328,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
             program={currentVSP}
             setExportError={setExportError}
             toggleModalOpen={() => setShowExportOptionsModal(false)}
+            resourceType="vsp"
           />
         </Col>
       </Row>
