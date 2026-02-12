@@ -33,7 +33,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
   try {
     const { action, access } = methodFn
     const apiKey = req.headers["x-api-key"] as string
-    if (session === null) {
+    if (session === null && apiKey != null) {
       const apiAuthValid = await APITokenHandler.getInstance().verifyApiKey(apiKey);
       if (!apiAuthValid) {
         return res.status(401).json({ error: "Please provide a valid API key with your request" });
