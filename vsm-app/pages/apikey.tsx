@@ -22,6 +22,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import {PageTitle} from "@/components/Typography";
 import {Row} from "@/pages/settings";
+import {VSMSession} from "@/helpers/rolesHelper";
 
 interface GenerateKeyModalProps {
   open: boolean
@@ -110,7 +111,7 @@ const ApiKeyManagement = () => {
   const [openModal, setOpenModal] = useState(false)
   const [fhirBaseUrl, setFhirBaseUrl] = useState('')
   const [openSnackBar, setOpenSnackBar] = useState(false)
-  const { data: session } = useSession()
+  const { data: session } = useSession() as unknown as { data: VSMSession }
   const router = useRouter()
   const { data, isLoading, mutate } = useSWR('/api/apikey', fetcher, {
     revalidateOnFocus: false,
@@ -140,7 +141,7 @@ const ApiKeyManagement = () => {
   }
 
   const role = useMemo(() => {
-    return session?.user?.roles?.[0] || '' 
+    return session?.user?.roles?.[0] || ''
   }, [session])
 
   const maskedString = data?.maskedSecret ? 'x'.repeat(130) + data?.maskedSecret : 'Click Regenerate to get a new key'
@@ -185,8 +186,7 @@ const ApiKeyManagement = () => {
       </Row>
       <Box style={{ backgroundColor: 'white', padding: '1rem', marginBottom: '1rem' }}>
         <Button
-          variant='link'
-          sx={{ backgroundColor: 'transparent', textTransform: 'lowercase', margin: '0', padding: '0' }}
+          sx={{ backgroundColor: 'transparent', color: 'black', textTransform: 'lowercase', margin: '0', padding: '0' }}
           endIcon={<ContentCopyIcon />}
           onClick={handleCopyEndpoint}
         >
