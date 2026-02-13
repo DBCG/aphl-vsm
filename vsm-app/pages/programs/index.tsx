@@ -8,6 +8,7 @@ import ValueSetPackagesTab from '@/components/ValueSetPackage/ValueSetPackagesTa
 import { useRouter } from 'next/router'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { useGetEndpoints } from '@/hooks/useGetEndpoints'
+import { findVSACEndpoint } from '@/utils/endpointHelpers'
 
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
@@ -30,8 +31,7 @@ const Programs: NextPage = () => {
   } = useGetEndpoints()
 
   const vsacEndpoint = useMemo(() => {
-    const result = allEndpoints?.endpoints?.find((endpoint: any) => endpoint.id === 'vsac')
-    return result
+    return findVSACEndpoint(allEndpoints?.endpoints)
   }, [allEndpoints])
 
   const {
@@ -39,7 +39,7 @@ const Programs: NextPage = () => {
     pingLoading,
     pingError,
   } = useTestTermEndpoint({
-    endpointId: 'vsac'
+    endpointId: vsacEndpoint?.id
   })
   
   useEffect(() => {

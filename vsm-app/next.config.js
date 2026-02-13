@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true'
-})
+const withBundleAnalyzer = process.env.ANALYZE === 'true'
+  ? require('@next/bundle-analyzer')({ enabled: true })
+  : (config) => config
 
 const cspHeader = `
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
@@ -15,6 +15,10 @@ const cspHeader = `
 `
 
 const nextConfig = {
+  basePath: process.env.BASE_PATH || '',
+  env: {
+    NEXT_PUBLIC_BASE_PATH: process.env.BASE_PATH || '',
+  },
   compiler: {
     styledComponents: true
   },

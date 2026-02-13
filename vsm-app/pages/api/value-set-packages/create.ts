@@ -109,7 +109,7 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       if (body.manifestData.relatedArtifact && body.manifestData.relatedArtifact.length > 0) {
         Logger.getLogger().info(`Merging ${body.manifestData.relatedArtifact.length} relatedArtifacts from manifest`)
         vspLibrary.relatedArtifact = [
-          ...vspLibrary.relatedArtifact,
+          ...(vspLibrary.relatedArtifact || []),
           ...body.manifestData.relatedArtifact
         ]
       }

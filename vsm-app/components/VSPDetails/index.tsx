@@ -17,6 +17,7 @@ import { StyledSpan } from '@/styles'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import VSPMetadata from '@/components/VSPMetadata'
 import { Row, Col, MetadataTitle, ManifestContainer } from './styles'
+import { apiFetch } from '@/utils'
 
 const ActionButtonContainer = styled.div`
   display: flex;
@@ -51,7 +52,7 @@ const generateBlockedReason = (vsp: fhir4.Library, actionType: 'release' | 'with
   return 'Action blocked'
 }
 
-const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
+const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
   const [currentVSP, setVSP] = useState<fhir4.Library>(initialVSP)
@@ -83,7 +84,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
 
   const updateVSP = async ({ program, isExperimental }: { program: fhir4.Library; isExperimental: boolean }) => {
     const endPoint = `/api/value-set-packages/${currentVSP?.id}?experimental=${isExperimental}`
-    const response = await fetch(endPoint, {
+    const response = await apiFetch(endPoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -132,7 +133,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(releaseParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -159,7 +160,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(withdrawParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -184,7 +185,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(retireParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -211,7 +212,7 @@ const VSPDetails = ({ vsp: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(deleteParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()

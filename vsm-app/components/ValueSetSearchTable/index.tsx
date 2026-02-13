@@ -40,6 +40,7 @@ import {
 } from './styles'
 import { LeafsToAdd, Offset, QueryStringItems, SearchReponseParams, TableContextOptions, ValueSetSearchTableProps } from './types'
 import { DescriptionText } from '@/pages/programs/[id]/valuesets/search'
+import { apiFetch } from '@/utils'
 
 export const searchTypes = [
   { label: 'Title', value: 'title' },
@@ -208,7 +209,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
 
         const endpoint = `/api/valueset/search?search=${searchStr}${queryString}`
 
-        response = await fetch(endpoint)
+        response = await apiFetch(endpoint)
         await handleSearchResponse({ searchContext, response })
         setToggledClearRows(false)
         setSelectedValueSets([])
@@ -361,7 +362,7 @@ const ValueSetSearchTable = ({ tableContext, handleAddValueSets, currentSelected
       const leafPutBody = JSON.stringify(leafsToAdd)
 
       // needs some error handling down here
-      const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
+      const leafsUpdated = await apiFetch('/api/valueset?programId=' + router.query.id, {
         method: 'PUT',
         body: leafPutBody
       })

@@ -30,8 +30,8 @@ class TsCredentialServiceImpl implements TsCredentialService {
   }
 
   public async getVsacCredentials(userId: string) {
-    // TODO: Will this always be 'vsac'?
-    const cred = await this.keyCloakClient.getUserCredentials(userId, 'vsac')
+    const vsacEndpoint = await this.fhirClient.getVSACTerminologyServer()
+    const cred = await this.keyCloakClient.getUserCredentials(userId, vsacEndpoint.id!)
     return cred;
   }
 

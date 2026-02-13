@@ -8,6 +8,7 @@ import {
 } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
+import { apiFetch } from '@/utils'
 
 interface SearchAvailUpdates {
   programId: string
@@ -52,7 +53,7 @@ const searchLeafValueSets = async ({
 }: SearchAvailLeafUpdates) => {
   const manifestEndpoint = `/api/programs/${programId}/manifest?leafValueSets=true`
   try {
-    const response = await fetch(manifestEndpoint, {
+    const response = await apiFetch(manifestEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
@@ -110,7 +111,7 @@ const searchAvailableUpdates = async ({
     }
   })
   try {
-    const mData = await fetch(manifestEndpoint, {
+    const mData = await apiFetch(manifestEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(availableLatestVersionsMap)
@@ -152,7 +153,7 @@ const updateManifest = async ({
   const manifestEndpoint = `/api/${baseEndpoint}/${programId}/manifest`
 
   try {
-    const response = await fetch(manifestEndpoint, {
+    const response = await apiFetch(manifestEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentSelectedData)

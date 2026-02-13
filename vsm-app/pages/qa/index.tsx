@@ -3,12 +3,13 @@ import type { NextPage } from 'next'
 import { Box, TextField } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { toast } from 'react-toastify'
+import { apiFetch } from '@/utils'
 
 const QAPage: NextPage = () => {
   const [leafsPerGrouper, setLeafsPerGrouper] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const fetchParameters = async () => fetch('/api/qa/generateImportParams', {
+  const fetchParameters = async () => apiFetch('/api/qa/generateImportParams', {
     method: 'POST',
     body: JSON.stringify({
       maxLeafsPerGrouper: leafsPerGrouper

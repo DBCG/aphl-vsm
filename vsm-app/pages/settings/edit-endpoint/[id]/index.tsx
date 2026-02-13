@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import LoadingIndicator from '@/components/LoadingIndicator'
 import { ErrorMessage } from '@/components/ErrorMessage'
+import { apiFetch } from '@/utils'
 
 const EditEndpointPage: NextPage = () => {
   const router = useRouter()
@@ -14,7 +15,7 @@ const EditEndpointPage: NextPage = () => {
   useEffect(() => {
     if (router.query.id) {
       const url = `/api/endpoint/${router.query.id}`
-      fetch(url)
+      apiFetch(url)
         .then((res) => res.json())
         .then((res: fhir4.Endpoint | { error: string }) => {
           if ('error' in res) {

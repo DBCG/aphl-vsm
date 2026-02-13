@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import handler from '@/helpers/server/handler'
 import Logger from '@/helpers/server/logger'
+import { VSMSession } from '@/helpers/rolesHelper'
 import DependencyQueue from '@/worker/DependencyQueue'
 import PackageQueue from '@/worker/PackageQueue'
 import VSPPackageQueue from '@/worker/VSPPackageQueue'
@@ -23,8 +24,9 @@ interface CancelJobResponse {
  * 2. Update the cache status to FAILED
  * 3. Return success/error response
  */
-const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResponse>, userId: string) => {
+const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResponse>, session: VSMSession) => {
   try {
+    const userId = session.user.id
     const jobId = req.query.id as string
 
     if (!jobId) {
@@ -111,5 +113,5 @@ const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResp
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor', 'reviewer'], handler: cancelJob }
+  POST: { access: ['admin', 'editor', 'reviewer'], action: cancelJob }
 })

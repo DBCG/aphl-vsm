@@ -20,32 +20,42 @@ export const shallowEqual = (object1: any, object2: any) => {
 }
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then(async (res) => {
-  if (!res.ok) {
-    const error = new Error('An error occurred while fetching the data.')
-    // Attach extra info to the error object.
-    // @ts-ignore
-    error.info = await res.json()
-    // @ts-ignore
-    error.status = res.status
-    throw error
-  }
-  return res.json()
-})
+export const fetcher = (...args) => {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  const [input, ...rest] = args
+  const url = typeof input === 'string' && input.startsWith('/') ? basePath + input : input
+  return fetch(url, ...rest).then(async (res) => {
+    if (!res.ok) {
+      const error = new Error('An error occurred while fetching the data.')
+      // @ts-ignore
+      error.info = await res.json()
+      // @ts-ignore
+      error.status = res.status
+      throw error
+    }
+    return res.json()
+  })
+}
 
 const removeNullProperties = (obj: any) => {
   return Object.fromEntries(Object.entries(obj).filter(([key, value]) => value !== null && value !== undefined))
 }
 
 export const fetchWithProgram = ({ url, args }: { url: string; args: any }) => {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
   const finalArgs = removeNullProperties(args) as any
-  const finalUrl = url + (finalArgs ? '?' + new URLSearchParams(finalArgs) : '')
+  const finalUrl = basePath + url + (finalArgs ? '?' + new URLSearchParams(finalArgs) : '')
   return fetch(finalUrl, {
     cache: 'no-store',  // Bypass cache
     headers: {
       'Cache-Control': 'no-cache'
     }
   }).then((res) => res.json())
+}
+
+export const apiFetch = (path: string, init?: RequestInit) => {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+  return fetch(basePath + path, init)
 }
 
 interface IncrementParams {

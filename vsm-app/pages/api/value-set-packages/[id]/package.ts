@@ -31,7 +31,7 @@ const packageVSP = async (req: VSPPackageBody, res: NextApiResponse<Queue.Job | 
   Logger.getLogger().info(`=== Package VSP API Called ===`)
   Logger.getLogger().info(`VSP ID from query: ${vspId}`)
   Logger.getLogger().info(`User ID: ${userId}`)
-  Logger.getLogger().info(`Request data:`, JSON.stringify(data))
+  Logger.getLogger().info(`Request data: ${JSON.stringify(data)}`)
 
   if (!vspId) {
     return res.status(400).json({ error: 'VSP ID is required' })

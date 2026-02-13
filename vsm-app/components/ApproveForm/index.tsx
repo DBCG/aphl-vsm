@@ -9,6 +9,7 @@ import { Tooltip } from '@mui/material'
 import InfoIcon from '@mui/icons-material/Info'
 import { Row, SubtitleRow, LabelStyled, Col, GridContainer } from './styles'
 import { approvalFormParams, artifactAssessmentInfoTypeOptions, artifactAssessmentInfoTypes } from './types'
+import { apiFetch } from '@/utils'
 
 type ApproveFormProps = {
   program: fhir4.Library
@@ -85,7 +86,7 @@ export const ApproveForm = ({ program }: ApproveFormProps) => {
     setLoading(true)
     const parameterObj = createParametersObj()
     const approveEndpoint = `/api/programs/${program.id}/approve`
-    return fetch(approveEndpoint, {
+    return apiFetch(approveEndpoint, {
       method: 'POST',
       body: JSON.stringify(parameterObj)
     }).then((res) => {

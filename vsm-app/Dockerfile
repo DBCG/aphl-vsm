@@ -9,6 +9,8 @@ ENV NEXT_PUBLIC_DEFAULT_PUBLISHER="CSTE Steward"
 ENV NEXT_PUBLIC_DEFAULT_AUTHOR="CSTE Author"
 ENV NEXT_PUBLIC_DEFAULT_PUBLISHING_URL=http://ersd.aimsplatform.org/fhir
 ENV NEXT_PUBLIC_VSAC_BASE_URL=https://cts.nlm.nih.gov/fhir
+ARG BASE_PATH=""
+ENV BASE_PATH=${BASE_PATH}
 
 RUN apk update
 RUN apk add --no-cache curl
@@ -20,23 +22,13 @@ WORKDIR /opt/app
 COPY ./package.json /opt/app
 COPY ./package-lock.json /opt/app
 
-RUN npm ci
+RUN npm install
 
 COPY ./ /opt/app
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM ubuntu:jammy-20240911.1
-
-RUN apt-get update && \
-	apt-get install curl -y && \
-	apt-get upgrade -y
-
-RUN curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh
-RUN chmod 500 nsolid_setup_deb.sh
-RUN ./nsolid_setup_deb.sh 20
-RUN apt-get install nodejs -y
-RUN apt-get clean
+FROM node:20.18.1-slim
 
 WORKDIR /opt/app
 
@@ -45,5 +37,6 @@ COPY --from=builder /opt/app/.next /opt/app/.next
 COPY --from=builder /opt/app/public /opt/app/public
 COPY --from=builder /opt/app/package.json /opt/app/package.json
 COPY --from=builder /opt/app/package-lock.json /opt/app/package-lock.json
+COPY --from=builder /opt/app/next.config.js /opt/app/next.config.js
 
 CMD ["npm", "start"]

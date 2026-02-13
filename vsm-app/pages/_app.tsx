@@ -1,6 +1,8 @@
 import type { AppProps } from 'next/app'
 import { SessionProvider } from 'next-auth/react'
 import { Scaffold } from '@/components/Scaffold'
+import localFont from 'next/font/local'
+import { useEffect } from 'react'
 
 import '../styles/globals.css'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
@@ -17,7 +19,31 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import { SWRConfig } from 'swr'
 
+const openSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/OpenSans/OpenSans-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/OpenSans/OpenSans-Italic.ttf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: '../public/fonts/OpenSans/OpenSans-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-open-sans',
+})
+
 const theme = createTheme({
+  typography: {
+    fontFamily: `${openSans.style.fontFamily}, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif`,
+  },
   components: {
     // Name of the component
     MuiButton: {
@@ -89,9 +115,20 @@ const clientSideEmotionCache = createEmotionCache()
 
 // @ts-ignore-next-line
 function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache = clientSideEmotionCache }: AppProps) {
+  useEffect(() => {
+    // Set background image with basePath support
+    const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+    document.body.style.backgroundImage = `url('${basePath}/images/background.svg')`
+
+    // Apply font globally
+    document.documentElement.style.setProperty('--font-open-sans', openSans.style.fontFamily)
+  }, [])
+
   return (
+    <div className={openSans.className}>
     <SessionProvider
       session={session}
+      basePath={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/auth`}
       // Re-fetch session every 5 minutes
       refetchInterval={5 * 60}
       // Re-fetches session when window is focused
@@ -120,6 +157,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps }, emotionCache =
       </NavContextProvider>
       </CacheProvider>
     </SessionProvider>
+    </div>
   )
 }
 

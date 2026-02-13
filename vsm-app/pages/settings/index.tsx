@@ -23,6 +23,8 @@ import { TerminologyServerCredentials } from '@/backend/model/TerminologyServerC
 import { useSession } from 'next-auth/react'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
+import { apiFetch } from '@/utils'
+import { isVSACEndpoint } from '@/utils/endpointHelpers'
 
 const Col = styled.div`
   display: flex;
@@ -108,7 +110,7 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
 
   const submitNewCredentials = async (serverId: string, username: string, password: string) => {
     try {
-      const result = await fetch(`/api/settings/terminology-source`, {
+      const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'POST',
         body: JSON.stringify({
           terminologyServerId: serverId,
@@ -239,16 +241,18 @@ const CredentialsItem = (currentServerData: any) => {
   }, [credentials?.[0]])
 
   useEffect(() => {
-    if (credentials?.[0]?.id === 'vsac' && !isEndpointValid && !pingLoading && pingError) {
+    // Find the endpoint for this credential to check if it's VSAC
+    const endpoint = allCurrentEndpoints?.endpoints?.find((ep: fhir4.Endpoint) => ep.id === credentials?.[0]?.id)
+    if (endpoint && isVSACEndpoint(endpoint) && !isEndpointValid && !pingLoading && pingError) {
       setVsacInvalid(true)
     } else {
       setVsacInvalid(false)
     }
-  }, [isEndpointValid, pingLoading])
+  }, [isEndpointValid, pingLoading, allCurrentEndpoints, credentials])
 
   const updateCredential = async (id: string, username: string, password: string) => {
     try {
-      const result = await fetch(`/api/settings/terminology-source`, {
+      const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'PUT',
         body: JSON.stringify({
           terminologyServerId: id,
@@ -275,7 +279,7 @@ const CredentialsItem = (currentServerData: any) => {
 
   const deleteCredential = async (id: string) => {
     try {
-      const result = await fetch(`/api/settings/terminology-source`, {
+      const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'DELETE',
         body: JSON.stringify({
           serverId: id
@@ -439,7 +443,7 @@ const TerminologyEndpoints: NextPage = () => {
 
   const fetchEndpoints = async (offset: number, count: number) => {
     const url = `/api/endpoint?_offset=${offset}&_count=${count}`
-    return fetch(url)
+    return apiFetch(url)
       .then((res) => res.json())
       .then((res: EndpointResponse) => {
         setData(res.endpoints)
@@ -514,7 +518,8 @@ const TerminologyEndpoints: NextPage = () => {
         maxWidth: '3rem',
         minWidth: '10rem',
         cell: (row: fhir4.Endpoint) => {
-          if (row.id === 'VSAC') {
+          const isVSAC = isVSACEndpoint(row)
+          if (isVSAC) {
             return 'VSAC endpoint details readonly'
           }
           return (
@@ -527,16 +532,16 @@ const TerminologyEndpoints: NextPage = () => {
               />
               <Tooltip
                 placement="top" arrow
-                title={row?.id === 'vsac' ? 'Cannot delete VSAC endpoint' : 'Delete endpoint'}
+                title={isVSAC ? 'Cannot delete VSAC endpoint' : 'Delete endpoint'}
               >
                 <span>
                   <IconButton
-                    disabled={row?.id === 'vsac'}
+                    disabled={isVSAC}
                     title='test'
                     onClick={() => {
                       const url = `/api/endpoint/${row.id}`
                       setLoading(true)
-                      return fetch(url, { method: 'DELETE' })
+                      return apiFetch(url, { method: 'DELETE' })
                         .catch((error) => setError({ error: error.error || error.toString() }))
                         .finally(() => {
                           setLoading(false)

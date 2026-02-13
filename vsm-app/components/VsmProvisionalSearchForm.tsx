@@ -19,6 +19,7 @@ import { ConditionItem } from '@/components/ValueSetSearchTable/types'
 import { StyledForm, Row, DropdownContainer, TextAreaSubmitContainer, NoData } from '@/components/ValueSetSearchTable/styles'
 import { searchTypes } from '@/components/ValueSetSearchTable'
 import LoadingButton from '@mui/lab/LoadingButton'
+import { apiFetch } from '@/utils'
 
 interface RowSelectionItem {
   allSelected: boolean
@@ -78,7 +79,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
         clearItems()
 
         const urlToSearch = `/api/valueset/provisional${searchTerm ? `?${currentSearchField.value}=${searchTerm}` : ''}`
-        const results = await fetch(urlToSearch)
+        const results = await apiFetch(urlToSearch)
 
         if (results.ok) {
           const json = await results.json()
@@ -169,7 +170,7 @@ const VsmProvisionalSearchForm = ({ allConditions, document, formattedGroups }: 
         selectedPriority: selectedPriority?.value || 'routine'
       }
 
-      const leafsUpdated = await fetch('/api/valueset?programId=' + router.query.id, {
+      const leafsUpdated = await apiFetch('/api/valueset?programId=' + router.query.id, {
         method: 'PUT',
         body: JSON.stringify(leafPutBody)
       })

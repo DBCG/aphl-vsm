@@ -13,6 +13,7 @@ import { ChangelogData } from '@/components/DiffViewer/DiffViewerTypes'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import useSWR from 'swr'
+import { apiFetch } from '@/utils'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -63,7 +64,7 @@ const ComparePage = () => {
   const [loading, setLoading] = useState(false)
   const [sourceVSP, setSourceVSP] = useState<fhir4.Library | null>(null)
   const [targetVSP, setTargetVSP] = useState<fhir4.Library | null>(null)
-  const [changelogData, setChangelogData] = useState<ChangelogData | null>(null)
+  const [changelogData, setChangelogData] = useState<any>(null)
   const [changelogJobId, setChangelogJobId] = useState<string | null>(null)
 
   // Fetch available VSP versions for comparison
@@ -75,7 +76,7 @@ const ComparePage = () => {
   // Fetch source VSP details
   useEffect(() => {
     if (source && typeof source === 'string') {
-      fetch(`/api/value-set-packages/${source}`)
+      apiFetch(`/api/value-set-packages/${source}`)
         .then((res) => res.json())
         .then((data) => {
           // API returns { vsp: ... } so extract the vsp object
@@ -113,7 +114,7 @@ const ComparePage = () => {
       console.log('Sending changelog request:', requestBody)
 
       // Start changelog job
-      const response = await fetch('/api/value-set-packages/changelog', {
+      const response = await apiFetch('/api/value-set-packages/changelog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
@@ -138,14 +139,16 @@ const ComparePage = () => {
           jobId: job.id.toString(),
           jobType: JOB_TYPE.CHANGE_LOG,
           metadata: {
-            baseProgramId: sourceVSP.id,
-            targetProgramId: targetVSP.id
+            baseProgramId: sourceVSP.id!,
+            targetProgramId: targetVSP.id!,
+            baseProgramLastUpdated: sourceVSP.meta?.lastUpdated || '',
+            targetProgramLastUpdated: targetVSP.meta?.lastUpdated || ''
           },
           onSuccess: async (result: any) => {
             console.log('Job completed, fetching result...')
             try {
               // Fetch the actual job result from the queue
-              const resultResponse = await fetch(`/api/jobs/${job.id}/result`)
+              const resultResponse = await apiFetch(`/api/jobs/${job.id}/result`)
 
               if (!resultResponse.ok) {
                 throw new Error(`Failed to fetch job result: ${resultResponse.status}`)
@@ -166,7 +169,7 @@ const ComparePage = () => {
                 console.warn('No return value in job result')
                 toast.warning('Comparison completed but no differences found')
               }
-            } catch (error) {
+            } catch (error: any) {
               console.error('Error fetching job result:', error)
               toast.error(`Error fetching comparison results: ${error.message}`)
             } finally {
@@ -189,7 +192,7 @@ const ComparePage = () => {
         if (job.finishedOn) {
           console.log('Job already completed, fetching result...')
           try {
-            const resultResponse = await fetch(`/api/jobs/${job.id}/result`)
+            const resultResponse = await apiFetch(`/api/jobs/${job.id}/result`)
 
             if (!resultResponse.ok) {
               throw new Error(`Failed to fetch job result: ${resultResponse.status}`)
@@ -208,7 +211,7 @@ const ComparePage = () => {
             } else {
               toast.warning('Comparison completed but no differences found')
             }
-          } catch (error) {
+          } catch (error: any) {
             console.error('Error fetching job result:', error)
             toast.error(`Error fetching comparison results: ${error.message}`)
           }

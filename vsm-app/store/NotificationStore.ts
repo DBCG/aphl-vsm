@@ -3,12 +3,13 @@ import JobHandler from '@/services/frontend/JobsService'
 import subscribe from '@/utils/subscribe'
 import { JOB_STATUS } from '@/constants'
 import { Dispatch, SetStateAction } from 'react'
-import { CompareJobMetadata, ExportJobMetadata, Jobs, ReleaseJobMetadata } from '@/types/jobTypes'
+import { CompareJobMetadata, DependencyJobMetadata, ExportJobMetadata, Jobs, ReleaseJobMetadata } from '@/types/jobTypes'
+import { apiFetch } from '@/utils'
 
 type AddJobParams = {
   jobId: string
   jobType: string
-  metadata?: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata
+  metadata?: ExportJobMetadata | CompareJobMetadata | ReleaseJobMetadata | DependencyJobMetadata
   onSuccess?: (arg?: any) => void
   onFailure?: (error: string) => void
   updateStatus?: (status: string) => void
@@ -80,7 +81,7 @@ const NotificationStore = {
     }
     subject.next(state)
   },
-  setMetadata: (input: Jobs = {}) => {
+  setMetadata: (input: { [key: string]: { metadata: any } } = {}) => {
     const jobDetails = Object.values(input)?.[0]
     const jobId = Object.keys(input)?.[0]
     state = {
@@ -103,7 +104,7 @@ const NotificationStore = {
   },
   cancelJob: async (jobId: string) => {
     try {
-      const response = await fetch(`/api/jobs/${jobId}/cancel`, {
+      const response = await apiFetch(`/api/jobs/${jobId}/cancel`, {
         method: 'POST'
       })
       const result = await response.json()

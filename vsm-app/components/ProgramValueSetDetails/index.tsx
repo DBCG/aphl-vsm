@@ -31,6 +31,7 @@ import { retrieveGrouperSetsReturn } from '@/pages/api/programs/[id]/details/val
 import { reactSelectOptionStyle } from '../styleOverrides/reactSelect'
 import { IconChip } from '../data-display/Chips'
 import TextLink from '../TextLink'
+import { apiFetch } from '@/utils'
 
 const subscribe = async (
   setJobStatus: React.Dispatch<SetStateAction<number | null>>,
@@ -38,7 +39,7 @@ const subscribe = async (
   setRefreshErrors: any,
   refreshProgramValueSets: any
 ) => {
-  const jobStatus = (await fetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
+  const jobStatus = (await apiFetch(`/api/valueset/update?jobId=${jobId}`).then((response) => response.json())) as UpdateValueSetsResponse & {
     progress: number
   }
   // progress gets converted from a function to a number after being serialized
@@ -165,7 +166,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const payload = formatDeletePayload(itemsToDelete)
     setIsDeleting(true)
     const body = JSON.stringify({ batchDelete: payload })
-    const result = await fetch(`/api/programs/${currentProgram?.id}/grouper/valueset`, {
+    const result = await apiFetch(`/api/programs/${currentProgram?.id}/grouper/valueset`, {
       method: 'DELETE',
       body: body
     })
@@ -194,7 +195,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, conditions, programId: currentProgram?.id, vsUrl })
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
+      const updatedLibrary = await apiFetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -220,7 +221,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const leafVersion = row?.valueSetPinnedVersion
     const endpoint = `/api/programs/${currentProgram?.id}/details/valuesets/groups`
     try {
-      const updatedVs = (await fetch(endpoint, {
+      const updatedVs = (await apiFetch(endpoint, {
         method: 'PUT',
         body: JSON.stringify({
           groupInfo,
@@ -244,7 +245,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const grouperIds = row?.groups?.map((g) => g.id)
     const body = JSON.stringify({ grouperIds, priority, programId: currentProgram?.id, vsUrl: vs.url })
     try {
-      const updatedLibrary = await fetch(`/api/programs/${currentProgram?.id}/details`, {
+      const updatedLibrary = await apiFetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
         body
       }).then((res) => res.json())
@@ -295,7 +296,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     // otherwise, loading states and fetch
     setLoadingVersionsForVs(vsId)
     const defaultVersion = 'latest'
-    const asyncOptions = await fetch(`/api/valueset/${vsId}/versions`)
+    const asyncOptions = await apiFetch(`/api/valueset/${vsId}/versions`)
       .then((res) => res.json())
       .then((versions) => {
         const versionToAdd = versions.error ? [] : versions
@@ -325,7 +326,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       terminologyInfo
     })
 
-    await fetch(`/api/valueset/versions`, {
+    await apiFetch(`/api/valueset/versions`, {
       method: 'PUT',
       body
     })
@@ -363,7 +364,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
           canonicalUrls.push(...urls)
         }
       }
-      const job = await fetch(`/api/valueset/update`, {
+      const job = await apiFetch(`/api/valueset/update`, {
         method: 'PUT',
         body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
       }).then((res) => res.json())

@@ -16,7 +16,7 @@ type KeyCloakUser = {
 
 const KEY = Buffer.from(process.env.KEY, 'hex')
 
-const KEYCLOAK_BASE_URL = new URL(process.env.KEYCLOAK_ISSUER || '')?.origin
+const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_ISSUER?.replace(/\/realms\/.*$/, '') || ''
 
 class APITokenHandler {
   private static instance: APITokenHandler

@@ -17,6 +17,7 @@ import { validateVSPVersion } from '@/helpers/vspHelpers'
 import { CreateVSPRequest, ExtendedManifestData } from '@/types/vspTypes'
 import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
+import { apiFetch } from '@/utils'
 
 interface CreateVSPModalProps {
   isOpen: boolean
@@ -150,7 +151,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
     // Immediately check if job is already completed
     const checkJobStatus = async () => {
       try {
-        const response = await fetch(`/api/jobs/${dependencyJobId}/result`)
+        const response = await apiFetch(`/api/jobs/${dependencyJobId}/result`)
         if (response.ok) {
           const jobResult = await response.json()
           console.log('[CreateVSPModal] Job status check:', jobResult.state)
@@ -202,7 +203,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
 
         // Fetch the full job result from the new /api/jobs/[id]/result endpoint
         try {
-          const response = await fetch(`/api/jobs/${dependencyJobId}/result`)
+          const response = await apiFetch(`/api/jobs/${dependencyJobId}/result`)
           if (!response.ok) {
             throw new Error(`Failed to fetch job result: ${response.status}`)
           }
@@ -305,7 +306,7 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
       })
 
       // POST to start the background job
-      const response = await fetch(`/api/implementation-guides/dependencies?${params}`, {
+      const response = await apiFetch(`/api/implementation-guides/dependencies?${params}`, {
         method: 'POST'
       })
       const result = await response.json()

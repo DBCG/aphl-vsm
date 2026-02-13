@@ -28,6 +28,7 @@ import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
 import dayjs from 'dayjs';
 import { ExportJobMetadata } from '@/types/jobTypes'
+import { apiFetch } from '@/utils'
 
 interface ModalInfo {
   isOpen: boolean
@@ -64,7 +65,7 @@ const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, 
     ? `/api/value-set-packages/${programId}/package`
     : `/api/programs/${programId}/package`
 
-  return await fetch(endpoint, {
+  return await apiFetch(endpoint, {
     method: 'POST',
     body: JSON.stringify(bodyForPackage)
   })
@@ -162,49 +163,56 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleClickExport = async () => {
     setDownloadLoading(true)
 
-    // first, remove special characters that are not - or _
-    // next, replace all _ with -
-    const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
-    const spaceAndUnderscoreRx = /[\s_]/gi
-    const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
-    const fileExtension = fileType === 'json' ? 'json' : 'xml'
-    const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
-    const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
-    const metadata: ExportJobMetadata = {
-      programId: program.id!,
-      version: versionRadioValue,
-      hasCustomPlanDefinition: fileUploadContent != null,
-      isJson: fileType === 'json',
-      filename,
-      programTitle: program?.title!
+    try {
+      // first, remove special characters that are not - or _
+      // next, replace all _ with -
+      const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
+      const spaceAndUnderscoreRx = /[\s_]/gi
+      const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
+      const fileExtension = fileType === 'json' ? 'json' : 'xml'
+      const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+      const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
+      const metadata: ExportJobMetadata = {
+        programId: program.id!,
+        version: versionRadioValue,
+        hasCustomPlanDefinition: fileUploadContent != null,
+        isJson: fileType === 'json',
+        filename,
+        programTitle: program?.title!
+      }
+      toast.info('Exporting package. You will be notified when it is ready for download.')
+
+      // TODO: rename this var
+      const jobResponse = await packageProgram({
+        isJson: fileType === 'json',
+        isV2: versionRadioValue === 'v2',
+        targetVersion,
+        fileUploadContent,
+        programId: program.id!,
+        metadata,
+        resourceType
+      }).then((res) => res.json())
+
+      if (jobResponse?.error) {
+        setDownloadLoading(false)
+        onFailureExport(jobResponse?.error)
+        return
+      }
+
+      NotificationStore.addJob({
+        jobId: jobResponse.id,
+        jobType: JOB_TYPE.EXPORT,
+        metadata,
+        onSuccess: onSuccessExport,
+        onFailure: onFailureExport
+      })
+
+      handleExitExportModal()
+    } catch (error: any) {
+      setDownloadLoading(false)
+      toast.error(`Export failed: ${error.message || 'Unknown error'}`)
+      handleExitExportModal()
     }
-    toast.info('Exporting package. You will be notified when it is ready for download.')
-
-    // TODO: rename this var
-    const jobResponse = await packageProgram({
-      isJson: fileType === 'json',
-      isV2: versionRadioValue === 'v2',
-      targetVersion,
-      fileUploadContent,
-      programId: program.id!,
-      metadata,
-      resourceType
-    }).then((res) => res.json())
-
-    if (jobResponse?.error) {
-      onFailureExport(jobResponse?.error)
-      return
-    }
-
-    NotificationStore.addJob({
-      jobId: jobResponse.id,
-      jobType: JOB_TYPE.EXPORT,
-      metadata,
-      onSuccess: onSuccessExport,
-      onFailure: onFailureExport
-    })
-
-    handleExitExportModal()
   }
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {

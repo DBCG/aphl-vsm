@@ -22,7 +22,7 @@ VSPPackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info('='.repeat(80))
   Logger.getLogger().info('Begin VSP Package Job')
   Logger.getLogger().info(`Job ID: ${job.id}`)
-  Logger.getLogger().info(`Raw job.data:`, JSON.stringify(job.data))
+  Logger.getLogger().info(`Raw job.data: ${JSON.stringify(job.data)}`)
 
   const { vspId, isJson, userId } = job.data as VSPPackageJobData
   Logger.getLogger().info(`VSP ID extracted: ${vspId}`)
@@ -104,7 +104,8 @@ VSPPackageQueue.process(async function (job: any, done) {
                 },
                 name: 'VSAC FHIR Terminology Server',
                 address: 'https://cts.nlm.nih.gov/fhir',
-                header: [vsacAuthHeader]
+                header: [vsacAuthHeader],
+                payloadType: [{ coding: [{ code: 'none' }] }]
               }
             }
           ]
@@ -120,8 +121,12 @@ VSPPackageQueue.process(async function (job: any, done) {
             },
             payloadType: [
               {
-                system: 'http://hl7.org/fhir/ValueSet/endpoint-payload-type',
-                code: 'any'
+                coding: [
+                  {
+                    system: 'http://hl7.org/fhir/ValueSet/endpoint-payload-type',
+                    code: 'any'
+                  }
+                ]
               }
             ],
             address: 'http://tx.fhir.org/r4'
@@ -163,8 +168,8 @@ VSPPackageQueue.process(async function (job: any, done) {
       let errorText = 'Unknown error'
       try {
         errorText = await response.text()
-      } catch (e) {
-        Logger.getLogger().error('Failed to read error response:', e)
+      } catch (e: any) {
+        Logger.getLogger().error(`Failed to read error response: ${e.message || e}`)
       }
       Logger.getLogger().error(`$package failed: ${errorText}`)
       await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', `Package operation failed: ${errorText}`)

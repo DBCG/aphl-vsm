@@ -4,6 +4,7 @@ import NotificationStore from '@/store/NotificationStore'
 import { JOB_STATUS } from '@/constants'
 import { toast } from 'react-toastify'
 import { Jobs } from '@/types/jobTypes'
+import { apiFetch } from '@/utils'
 // Function to subscribe to polling
 
 const defaultOnSuccess = () => toast.success('Job completed successfully')
@@ -20,7 +21,7 @@ const subscribe = ({ jobIds, onSuccess = defaultOnSuccess, setMetaData = () => {
   // Create an observable for polling
   const polling$ = timer(0, 5000).pipe(
     switchMap(() =>
-      fetch(`/api/jobs`, {
+      apiFetch(`/api/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

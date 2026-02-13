@@ -109,8 +109,8 @@ VSPDiffQueue.process(async function (job: any, done) {
       try {
         errorText = await response.text()
         Logger.getLogger().error(`$artifact-diff failed: ${errorText}`)
-      } catch (e) {
-        Logger.getLogger().error('Failed to read error response:', e)
+      } catch (e: any) {
+        Logger.getLogger().error(`Failed to read error response: ${e.message || e}`)
       }
       await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', `Artifact diff operation failed: ${errorText}`)
       return done(null, { error: errorText })

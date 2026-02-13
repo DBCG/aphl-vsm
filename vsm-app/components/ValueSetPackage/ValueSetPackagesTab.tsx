@@ -20,6 +20,7 @@ import { VSPApiResponse } from '@/types/vspTypes'
 import { toast } from 'react-toastify'
 import { CreateVSPModal } from '@/components/modals/CreateVSPModal'
 import { CreateVSPRequest } from '@/types/vspTypes'
+import { apiFetch } from '@/utils'
 
 const Col = styled.div`
   display: flex;
@@ -358,7 +359,7 @@ const ValueSetPackagesTab: NextPage = () => {
     }
 
     const parameters = JSON.stringify(withdrawParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -388,7 +389,7 @@ const ValueSetPackagesTab: NextPage = () => {
     }
 
     const parameters = JSON.stringify(releaseParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -418,7 +419,7 @@ const ValueSetPackagesTab: NextPage = () => {
     }
 
     const parameters = JSON.stringify(retireParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -448,7 +449,7 @@ const ValueSetPackagesTab: NextPage = () => {
     }
 
     const parameters = JSON.stringify(deleteParameters)
-    const result = await fetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -474,7 +475,7 @@ const ValueSetPackagesTab: NextPage = () => {
 
     try {
       console.log('Sending VSP create request:', data)
-      const response = await fetch('/api/value-set-packages/create', {
+      const response = await apiFetch('/api/value-set-packages/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -73,8 +73,8 @@ async function downloadAndExtractIG(igPackageId: string, igVersion: string): Pro
                 implementationGuide = resource
                 Logger.getLogger().info(`Extracted ImplementationGuide: ${resource.id}`)
               }
-            } catch (e) {
-              Logger.getLogger().error('Failed to parse ImplementationGuide:', e)
+            } catch (e: any) {
+              Logger.getLogger().error(`Failed to parse ImplementationGuide: ${e.message || e}`)
             }
             next()
           })
@@ -92,14 +92,14 @@ async function downloadAndExtractIG(igPackageId: string, igVersion: string): Pro
       })
 
       extract.on('error', (err: Error) => {
-        Logger.getLogger().error('Error extracting tarball:', err)
+        Logger.getLogger().error(`Error extracting tarball: ${err.message}`)
         resolve(null)
       })
 
       // Pipe gunzipped tarball to extractor
       const gunzip = zlib.createGunzip()
       gunzip.on('error', (err: Error) => {
-        Logger.getLogger().error('Error decompressing tarball:', err)
+        Logger.getLogger().error(`Error decompressing tarball: ${err.message}`)
         resolve(null)
       })
 
@@ -165,8 +165,8 @@ async function callDataRequirements(ig: fhir4.ImplementationGuide): Promise<fhir
       let errorText = 'Unknown error'
       try {
         errorText = await response.text()
-      } catch (e) {
-        Logger.getLogger().error('Failed to read error response body:', e)
+      } catch (e: any) {
+        Logger.getLogger().error(`Failed to read error response body: ${e.message || e}`)
       }
       Logger.getLogger().error(`$data-requirements failed with status ${response.status}`)
       Logger.getLogger().error(`Error response: ${errorText}`)
@@ -269,8 +269,8 @@ async function callInferManifestParameters(moduleDefinition: fhir4.Library): Pro
       let errorText = 'Unknown error'
       try {
         errorText = await response.text()
-      } catch (e) {
-        Logger.getLogger().error('Failed to read error response body:', e)
+      } catch (e: any) {
+        Logger.getLogger().error(`Failed to read error response body: ${e.message || e}`)
       }
       Logger.getLogger().error(`$infer-manifest-parameters failed with status ${response.status}`)
       Logger.getLogger().error(`Error response: ${errorText}`)
