@@ -143,7 +143,7 @@ const ApiKeyManagement = () => {
     return session?.user?.roles?.[0] || '' 
   }, [session])
 
-  const maskedString = data?.maskedSecret ? 'x'.repeat(130) + data?.maskedSecret : 'Click Rengerate to get a new key'
+  const maskedString = data?.maskedSecret ? 'x'.repeat(130) + data?.maskedSecret : 'Click Regenerate to get a new key'
   if (isLoading) return <div>Loading...</div>
   return (
     <Box>
