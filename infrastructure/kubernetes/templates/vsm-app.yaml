@@ -56,11 +56,6 @@ spec:
             secretKeyRef:
               name: encryption-key
               key: encryption-key
-        - name: IV
-          valueFrom:
-            secretKeyRef:
-              name: encryption-key
-              key: iv
         - name: NEXTAUTH_URL
           value: {{.Values.protocol}}://{{ .Values.vsm_app.app_url }}
         - name: KEYCLOAK_ID

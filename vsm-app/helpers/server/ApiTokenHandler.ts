@@ -2,7 +2,7 @@ import Logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
 
-if (process.env.KEY == null || process.env.IV == null) {
+if (process.env.KEY == null) {
   Logger.getLogger().error('Symmetric key not found in env variables')
   throw new Error('Symmetric key not found in env variables')
 }
@@ -15,7 +15,6 @@ type KeyCloakUser = {
 }
 
 const KEY = Buffer.from(process.env.KEY, 'hex')
-const IV = Buffer.from(process.env.IV, 'hex')
 
 const KEYCLOAK_BASE_URL = new URL(process.env.KEYCLOAK_ISSUER || '')?.origin
 
@@ -59,7 +58,7 @@ class APITokenHandler {
     await this.renewKeyCloakToken()
     const userAttributes: KeyCloakUser = await this.retrieveStoredAttributes(userId)
     delete userAttributes?.attributes?.iv
-    const serverIds = Object.keys(userAttributes?.attributes || {})
+    const serverIds = Object.keys(userAttributes?.attributes || {}).filter((key) => key !== 'dateCreated' && key !== 'secretMask')
     const creds =
       serverIds.map((terminologyServerId) => {
         const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
@@ -94,42 +93,19 @@ class APITokenHandler {
   }
 
   private encryptData(data: string) {
-    const cipher = crypto.createCipheriv('aes-256-cbc', KEY, IV)
+    const iv = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv)
     let encrypted = cipher.update(data, 'utf8', 'hex')
     encrypted += cipher.final('hex')
-    return encrypted
+    return iv.toString('hex') + ':' + encrypted
   }
 
   private decryptData(encryptedData: string) {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, IV)
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8')
+    let values = encryptedData.split(':')
+    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(values[0], 'hex'))
+    let decrypted = decipher.update(values[1], 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     return decrypted
-  }
-
-  /**
-   *
-   * @param user accepts either a user attribute keycloak object for a userId string
-   * @returns IV string used for decrypting user data
-   */
-  private async getUserIV(user: string | KeyCloakUser) {
-    if (typeof user !== 'string') {
-      // Keycloak user object, allow re-use of the attributes without having to fetch them again
-      if (user?.attributes?.iv?.[0] == null) {
-        const userId = user.id
-        // If the user does not have an IV, generate one and store it in Keycloak
-        Logger.getLogger().info('IV Not found, Generating IV for user: ' + userId)
-        const userIV = crypto.randomBytes(16).toString('hex')
-        await this.storeCredsKeyCloak(user, 'iv', userIV)
-        return userIV
-      } else {
-        return user.attributes.iv[0]
-      }
-    } else {
-      const userId = user
-      const userAttributes = await this.retrieveStoredAttributes(userId)
-      return userAttributes.attributes.iv[0]
-    }
   }
 
   private async retrieveStoredAttributes(userId: string | KeyCloakUser) {
