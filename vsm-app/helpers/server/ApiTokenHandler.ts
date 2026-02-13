@@ -319,9 +319,18 @@ class APITokenHandler {
     headers.set("Content-Type", "application/json");
     headers.set("Authorization", `Bearer ${this._cacheJWT}`);
 
-    const userAttributes = await this.retrieveStoredAttributes(data.userId)
-    userAttributes.attributes.dateCreated = data.dateCreated
-    userAttributes.attributes.secretMask = encryptedData.substring(encryptedData.length - 5)
+    const userAttributes = await this.retrieveStoredAttributes(data.userId);
+
+    // Ensure attributes object exists
+    if (!userAttributes.attributes) {
+        userAttributes.attributes = {};
+    }
+
+    // Keycloak requires attribute values to be string arrays
+    userAttributes.attributes.dateCreated = [String(data.dateCreated)];
+    userAttributes.attributes.secretMask = [
+        encryptedData.substring(encryptedData.length - 5),
+    ];
 
     // last 5 characters for the secret mask
     const payload = JSON.stringify(userAttributes);
