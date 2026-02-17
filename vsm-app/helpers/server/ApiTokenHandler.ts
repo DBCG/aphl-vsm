@@ -256,12 +256,12 @@ class APITokenHandler {
   public async getMaskSecret(userId: string) {
     Logger.getLogger().info("Getting Masked Secret for: " + userId);
     await this.renewKeyCloakToken();
-    const user = await this.retrieveApiKeyFromKeycloak(userId);
+    const user = await this.retrieveKeycloakUser(userId);
 
     return user?.attributes?.secretMask?.[0];
   }
 
-  private async retrieveApiKeyFromKeycloak(userId: string) {
+  private async retrieveKeycloakUser(userId: string) {
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID}/users/${userId}`;
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
@@ -339,7 +339,7 @@ class APITokenHandler {
       if (parsedResults?.userId == null || parsedResults?.dateCreated == null) {
         return false;
       }
-      const user = await this.retrieveApiKeyFromKeycloak(parsedResults.userId);
+      const user = await this.retrieveKeycloakUser(parsedResults.userId);
       if (user?.attributes?.dateCreated?.[0] == null) {
         return false;
       } else {
