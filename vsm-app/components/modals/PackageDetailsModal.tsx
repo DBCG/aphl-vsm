@@ -139,7 +139,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const handleExitExportModal = () => {
     toggleModalOpen()
-    setTimeout(() => handleResetState(), 500) // Workaround to force state change 
+    setTimeout(() => handleResetState(), 500) // Workaround to force state change
   }
 
   const onSuccessExport = () => {
@@ -172,17 +172,17 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
       const fileExtension = fileType === 'json' ? 'json' : 'xml'
       const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
       const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
+
       const metadata: ExportJobMetadata = {
         programId: program.id!,
         version: versionRadioValue,
         hasCustomPlanDefinition: fileUploadContent != null,
-        isJson: fileType === 'json',
+        fileType,
         filename,
         programTitle: program?.title!
       }
       toast.info('Exporting package. You will be notified when it is ready for download.')
 
-      // TODO: rename this var
       const jobResponse = await packageProgram({
         isJson: fileType === 'json',
         isV2: versionRadioValue === 'v2',
