@@ -1,6 +1,7 @@
 import Logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
+import { Buffer } from 'buffer'
 
 if (process.env.KEY == null) {
   Logger.getLogger().error('Symmetric key not found in env variables')
@@ -94,7 +95,7 @@ class APITokenHandler {
 
   private encryptData(data: string) {
     const iv = crypto.randomBytes(16)
-    const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv)
+    const cipher = crypto.createCipheriv('aes-256-cbc', KEY as any, iv as any)
     let encrypted = cipher.update(data, 'utf8', 'hex')
     encrypted += cipher.final('hex')
     return iv.toString('hex') + ':' + encrypted
@@ -102,7 +103,7 @@ class APITokenHandler {
 
   private decryptData(encryptedData: string) {
     let values = encryptedData.split(':')
-    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(values[0], 'hex'))
+    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY as any, Buffer.from(values[0], 'hex') as any)
     let decrypted = decipher.update(values[1], 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     return decrypted
