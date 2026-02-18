@@ -32,7 +32,7 @@ const Col = styled.div`
   height: fit-content;
 `
 
-const Row = styled.div`
+export const Row = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;

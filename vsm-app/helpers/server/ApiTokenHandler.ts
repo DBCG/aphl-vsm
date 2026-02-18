@@ -42,8 +42,7 @@ class APITokenHandler {
     const userAttributes = user?.attributes || {}
     if (serverId in userAttributes) {
       const encryptedCreds = userAttributes?.[serverId]?.[0]
-      const userIV = await this.getUserIV(user)
-      const decryptedCreds = this.decryptData(encryptedCreds, userIV)
+      const decryptedCreds = this.decryptData(encryptedCreds)
       const base64Data = JSON.parse(decryptedCreds).value
       if (base64Data == null) {
         throw new Error('No basic auth creds found for this url')
@@ -58,13 +57,12 @@ class APITokenHandler {
   public async getBasicAuthCredsForAllUrls(userId: string) {
     await this.renewKeyCloakToken()
     const userAttributes: KeyCloakUser = await this.retrieveStoredAttributes(userId)
-    const userIV: string = await this.getUserIV(userAttributes)
     delete userAttributes?.attributes?.iv
-    const serverIds = Object.keys(userAttributes?.attributes || {})
+    const serverIds = Object.keys(userAttributes?.attributes || {}).filter((key) => key !== 'dateCreated' && key !== 'secretMask')
     const creds =
       serverIds.map((terminologyServerId) => {
         const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
-        const decryptedCreds = this.decryptData(encryptedCreds, userIV)
+        const decryptedCreds = this.decryptData(encryptedCreds)
         const base64Data = JSON.parse(decryptedCreds).value
         const [username, password] = atob(base64Data).split(':')
         return { terminologyServerId, username, password }
@@ -79,8 +77,7 @@ class APITokenHandler {
   public async storeBasicAuthCreds(userId: string, serverId: string, username: string, password: string) {
     await this.renewKeyCloakToken()
     const basicAuthCred = btoa(`${username}:${password}`)
-    const userIV = await this.getUserIV(userId)
-    const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }), userIV)
+    const encryptedCreds = this.encryptData(JSON.stringify({ value: basicAuthCred, type: 'basic' }))
     await this.storeCredsKeyCloak(userId, serverId, encryptedCreds)
   }
 
@@ -95,43 +92,20 @@ class APITokenHandler {
     return
   }
 
-  private encryptData(data: string, userIV: string) {
-    const cipher = crypto.createCipheriv('aes-256-cbc', KEY, Buffer.from(userIV, 'hex'))
+  private encryptData(data: string) {
+    const iv = crypto.randomBytes(16)
+    const cipher = crypto.createCipheriv('aes-256-cbc', KEY, iv)
     let encrypted = cipher.update(data, 'utf8', 'hex')
     encrypted += cipher.final('hex')
-    return encrypted
+    return iv.toString('hex') + ':' + encrypted
   }
 
-  private decryptData(encryptedData: string, userIV: string) {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(userIV, 'hex'))
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8')
+  private decryptData(encryptedData: string) {
+    let values = encryptedData.split(':')
+    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY, Buffer.from(values[0], 'hex'))
+    let decrypted = decipher.update(values[1], 'hex', 'utf8')
     decrypted += decipher.final('utf8')
     return decrypted
-  }
-
-  /**
-   *
-   * @param user accepts either a user attribute keycloak object for a userId string
-   * @returns IV string used for decrypting user data
-   */
-  private async getUserIV(user: string | KeyCloakUser) {
-    if (typeof user !== 'string') {
-      // Keycloak user object, allow re-use of the attributes without having to fetch them again
-      if (user?.attributes?.iv?.[0] == null) {
-        const userId = user.id
-        // If the user does not have an IV, generate one and store it in Keycloak
-        Logger.getLogger().info('IV Not found, Generating IV for user: ' + userId)
-        const userIV = crypto.randomBytes(16).toString('hex')
-        await this.storeCredsKeyCloak(user, 'iv', userIV)
-        return userIV
-      } else {
-        return user.attributes.iv[0]
-      }
-    } else {
-      const userId = user
-      const userAttributes = await this.retrieveStoredAttributes(userId)
-      return userAttributes.attributes.iv[0]
-    }
   }
 
   private async retrieveStoredAttributes(userId: string | KeyCloakUser) {
@@ -276,6 +250,120 @@ class APITokenHandler {
         Logger.getLogger().error(`Error generating token: ${error}`)
         throw error
       }
+    }
+  }
+
+  public async getMaskSecret(userId: string) {
+    Logger.getLogger().info("Getting Masked Secret for: " + userId);
+    await this.renewKeyCloakToken();
+    const user = await this.retrieveKeycloakUser(userId);
+
+    return user?.attributes?.secretMask?.[0];
+  }
+
+  private async retrieveKeycloakUser(userId: string) {
+    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID}/users/${userId}`;
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+    headers.set("Authorization", `Bearer ${this._cacheJWT}`);
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers,
+      });
+      return response.json();
+    } catch (error) {
+      Logger.getLogger().error(`Error retrieving API key from Keycloak: ${error}`);
+      this.resetState();
+      throw error;
+    }
+  }
+
+  public async generateApiKey(userId: string, userRoles: string[] = []) {
+    await this.renewKeyCloakToken();
+    const dataPayload = { userId, userRoles, dateCreated: Date.now() };
+    const apiKey = this.encryptData(JSON.stringify(dataPayload))
+    await this.setApiKeyInKeycloak(dataPayload, apiKey);
+    return apiKey;
+  }
+
+  private async setApiKeyInKeycloak(data: { userId: string; dateCreated: number }, encryptedData: string) {
+    Logger.getLogger().info("Setting API key in Keycloak for user: " + data.userId);
+    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID}/users/${data.userId}`;
+
+    const headers = new Headers();
+    headers.set("Content-Type", "application/json");
+    headers.set("Authorization", `Bearer ${this._cacheJWT}`);
+
+    const userAttributes = await this.retrieveStoredAttributes(data.userId);
+
+    // Ensure attributes object exists
+    if (!userAttributes.attributes) {
+        userAttributes.attributes = {};
+    }
+
+    // Keycloak requires attribute values to be string arrays
+    userAttributes.attributes.dateCreated = [String(data.dateCreated)];
+    userAttributes.attributes.secretMask = [
+        encryptedData.substring(encryptedData.length - 5),
+    ];
+
+    // last 5 characters for the secret mask
+    const payload = JSON.stringify(userAttributes);
+
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        body: payload,
+        headers,
+      });
+      if (response.status === 204) {
+        Logger.getLogger().info("Successfully Set API KEY in keycloak");
+        return;
+      } else {
+        Logger.getLogger().error(`Failed to set API key in Keycloak: ${response.statusText}`);
+        throw new Error(`Failed to set API key in Keycloak: ${response.statusText}`);
+      }
+    } catch (error) {
+      Logger.getLogger().error(`Error setting API key in Keycloak: ${error}`);
+      this.resetState();
+      throw error;
+    }
+  }
+
+  public async verifyApiKey(apiKey: string = "") {
+    try {
+      await this.renewKeyCloakToken();
+      const decryptedData = this.decryptData(apiKey);
+      const parsedResults = JSON.parse(decryptedData);
+      if (parsedResults?.userId == null || parsedResults?.dateCreated == null) {
+        return false;
+      }
+      const user = await this.retrieveKeycloakUser(parsedResults.userId);
+      if (user?.attributes?.dateCreated?.[0] == null) {
+        return false;
+      } else {
+        return user?.attributes?.dateCreated?.[0] === parsedResults?.dateCreated.toString();
+      }
+    } catch (error) {
+      Logger.getLogger().error(`Error parsing decrypted data: ${error}`);
+      return false;
+    }
+  }
+
+  public async getUserRolesFromApiKey(apiKey: string = "") {
+    try {
+      await this.renewKeyCloakToken();
+      const decryptedData = this.decryptData(apiKey);
+      const parsedResults = JSON.parse(decryptedData);
+      if (parsedResults?.userId == null || parsedResults?.dateCreated == null || parsedResults?.userRoles == null) {
+        return []
+      } else {
+        return parsedResults.userRoles
+      }
+    } catch (error) {
+      Logger.getLogger().error(`Error identifying roles: ${error}`);
+      return []
     }
   }
 }
