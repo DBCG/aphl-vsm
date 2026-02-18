@@ -1,6 +1,6 @@
 {
   "name": "vsm-app",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
@@ -24,20 +24,20 @@
     "@mui/material": "^5.11.11",
     "@mui/system": "^5.8.0",
     "@mui/x-date-pickers": "^6.7.0",
+    "ajv": "^8.18.0",
     "bull": "^4.10.3",
     "date-fns": "^2.25.0",
     "dayjs": "^1.11.10",
     "exceljs": "^4.4.0",
-    "fast-xml-parser": "^4.3.4",
+    "fast-xml-parser": "^5.3.6",
     "fhir-kit-client": "^1.9.0",
     "ioredis": "^5.4.1",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
-    "next": "^14.2.15",
+    "next": "^15.5.12",
     "next-auth": "^4.24.13",
     "pino": "^10.1.0",
     "pino-pretty": "^10.0.0",
-    "prism-react-renderer": "^2.4.1",
     "react": "^18.3.1",
     "react-code-block": "^1.1.1",
     "react-data-table-component": "^7.6.2",
@@ -75,6 +75,6 @@
     "jest-fetch-mock": "^3.0.3",
     "node-mocks-http": "^1.14.1",
     "prettier": "2.7.1",
-    "typescript": "5.3.3"
+    "typescript": "^5.3.3"
   }
 }
