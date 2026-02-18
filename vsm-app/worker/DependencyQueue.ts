@@ -310,24 +310,26 @@ async function callInferManifestParameters(moduleDefinition: fhir4.Library): Pro
       // CodeSystem versions use system-version parameter with valueString (system|version)
       if (param.name === 'system-version' && param.valueString) {
         const [system, version] = param.valueString.split('|')
-        if (system && version) {
+        if (system) {
           if (!codeSystems[system]) {
             codeSystems[system] = []
           }
-          if (!codeSystems[system].includes(version)) {
-            codeSystems[system].push(version)
+          const versionValue = version || ''
+          if (!codeSystems[system].includes(versionValue)) {
+            codeSystems[system].push(versionValue)
           }
         }
       }
       // ValueSet versions use canonicalVersion parameter with valueCanonical (canonical|version)
       else if (param.name === 'canonicalVersion' && param.valueCanonical) {
         const [canonical, version] = param.valueCanonical.split('|')
-        if (canonical && version) {
+        if (canonical) {
           if (!valueSets[canonical]) {
             valueSets[canonical] = []
           }
-          if (!valueSets[canonical].includes(version)) {
-            valueSets[canonical].push(version)
+          const versionValue = version || ''
+          if (!valueSets[canonical].includes(versionValue)) {
+            valueSets[canonical].push(versionValue)
           }
         }
       }

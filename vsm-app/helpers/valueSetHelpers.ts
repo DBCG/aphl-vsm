@@ -269,7 +269,7 @@ const buildParametersParameterExtended = (manifestData: { codeSystems: SelectedM
     value.forEach((v) => {
       parameters.push({
         name: 'system-version',
-        valueString: `${key}|${v}`
+        valueString: v ? `${key}|${v}` : key
       })
     })
   }
@@ -279,7 +279,7 @@ const buildParametersParameterExtended = (manifestData: { codeSystems: SelectedM
     value.forEach((v) => {
       parameters.push({
         name: 'valueset-version',
-        valueString: `${key}|${v}`
+        valueString: v ? `${key}|${v}` : key
       })
     })
   }

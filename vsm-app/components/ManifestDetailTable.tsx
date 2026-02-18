@@ -6,7 +6,8 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { ManifestSystemVersionPair, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { customTableStyles } from './tables/themes'
-import { Typography, Modal, Tooltip, Box, Button as MuiButton, TextField, InputAdornment } from '@mui/material'
+import { Typography, Modal, Tooltip, Box, Button as MuiButton, TextField, InputAdornment, Chip } from '@mui/material'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { modalStyle } from '@/styles'
 import { namesByUri, getNameByUri } from './EditManifestDetails/manifestHelpers'
 import SearchIcon from '@mui/icons-material/Search'
@@ -67,9 +68,12 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
       const system = item.system?.toLowerCase() || ''
       const version = item.version?.toLowerCase() || ''
 
+      const isUnresolved = !item.version && 'unresolved'.includes(searchLower)
+
       return name.includes(searchLower) ||
              system.includes(searchLower) ||
-             version.includes(searchLower)
+             version.includes(searchLower) ||
+             isUnresolved
     })
   }, [preppedData, filterText, allSystemNamesByUri])
 
@@ -89,20 +93,24 @@ const ManifestDetailTable = ({ deleteFn, updateFn, manifestData, programId, avai
     },
     {
       name: 'Version',
-      selector: (row: ManifestSystemVersionPair) => row.version!,
       sortable: true,
-      wrap: true
-      // cell: (row: ManifestSystemVersionPair) => {
-      //   const isLatest = !Boolean(availableUpdates?.find(
-      //     (vs: fhir4.ValueSet) => vs.url === row.system && vs.version !== row.version && !vs?.version?.toLowerCase().includes('provisional')
-      //   ))
-      //   return (
-      //     <div>
-      //       <p style={{ marginBottom: '0', marginTop: '0' }}>{row.version}</p>
-      //       { isLatest && <i>(latest)</i> }
-      //     </div>
-      //   )
-      // },
+      wrap: true,
+      cell: (row: ManifestSystemVersionPair) => {
+        if (!row.version) {
+          return (
+            <Tooltip title="Version not specified. Please resolve this entry by pinning a version." arrow>
+              <Chip
+                icon={<WarningAmberIcon />}
+                label="Unresolved"
+                size="small"
+                color="warning"
+                variant="outlined"
+              />
+            </Tooltip>
+          )
+        }
+        return row.version
+      }
     },
     {
       name: 'Remove',
