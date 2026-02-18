@@ -6,9 +6,9 @@ import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
-import { VSMSession } from '@/helpers/rolesHelper'
+import {isAdmin, VSMSession} from '@/helpers/rolesHelper'
 import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
-import { Logout, MoreVert, Settings } from '@mui/icons-material'
+import {Api, Logout, MoreVert, Settings} from '@mui/icons-material'
 import Notifications from '@/components/Notifications'
 
 const BarWrapper = styled.div`
@@ -110,6 +110,17 @@ const NavBar = () => {
             {session?.user?.name}
           </Typography>
         </Box>
+        { isAdmin(session) ? (
+          <Box>
+              <MenuItem onClick={() => router.push('/apikey')}>
+              <ListItemIcon>
+                <Api/>
+              </ListItemIcon>
+              API Key
+            </MenuItem>
+            <Divider/>
+          </Box>
+        ): null }
         <Box>
           <MenuItem onClick={() => router.push('/settings')}>
             <ListItemIcon>

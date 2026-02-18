@@ -20,7 +20,8 @@ interface Request extends NextApiRequest {
 describe('GET /api/conditions', () => {
   it('should get a list of conditions', async () => {
     const req = {
-      method: 'GET'
+      method: 'GET',
+      headers: {}
     } as Request
 
     const res = {
