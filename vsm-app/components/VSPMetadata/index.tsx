@@ -57,7 +57,7 @@ const VSPMetadata = ({ handleSubmit, vsp, editable = true }: VSPMetadataProps) =
   }
 
   useEffect(() => {
-    if (isExperimental !== vsp.experimental) {
+    if (isExperimental !== Boolean(vsp.experimental)) {
       setFormTouched(true)
     }
   }, [isExperimental, vsp.experimental])
