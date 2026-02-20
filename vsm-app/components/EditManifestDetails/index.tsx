@@ -10,12 +10,15 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 import { modalStyle } from '@/styles'
 import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, ManifestData, SelectedManifestDataVersion } from '@/types/manifestTypes'
-import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
+import { getProgramManifestVersions, getVSPManifestVersions } from '@/helpers/valueSetHelpers'
 import { customTableStyles } from '@/components/tables/themes'
 import InfoIcon from '@mui/icons-material/Info'
 import Tooltip from '@mui/material/Tooltip'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import LoadingIndicator from '../LoadingIndicator'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { Tab } from '@mui/material'
+import { is } from '@/helpers/is'
 import {
   getIdFromSystem,
   getNameByUri,
@@ -64,20 +67,47 @@ const filterSelectedVersions = (availableVersions: ManifestDataMap, currentSelec
 }
 
 const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
+  // Detect if this is a VSP
+  const isVSP = is.isVSP(program)
+
+  // Tab state (only for VSPs)
+  const [manifestTab, setManifestTab] = useState('codesystems')
+  const resourceType = manifestTab === 'codesystems' ? 'CodeSystem' : 'ValueSet'
+
   const [systemSelections, setSystemSelections] = useState<SystemSelection[]>([])
   const [selectedSystem, setSelectedSystem] = useState('')
   const [isUpdating, setIsUpdating] = useState(false)
   const [availableUpdates, setAvailableUpdates] = useState<ManifestSystemVersionPair[]>([])
   const [availableLeafValueSetCodeSystems, setAvailableLeafValueSetCodeSystems] = useState<ManifestSystemVersionPair[]>([])
   const [availableVersions, setAvailableVersions] = useState<ManifestDataMap>({})
-  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>(getProgramManifestVersions(program) || {})
+
+  // For VSPs, split manifest into CodeSystems and ValueSets
+  // For Programs, use single manifest
+  const initialManifest = isVSP ? getVSPManifestVersions(program) : { codeSystems: getProgramManifestVersions(program), valueSets: {} }
+  const [currentSelectedData, setCurrentSelectedData] = useState<SelectedManifestDataVersion>(
+    isVSP ? initialManifest.codeSystems : getProgramManifestVersions(program) || {}
+  )
+  const [currentSelectedValueSets, setCurrentSelectedValueSets] = useState<SelectedManifestDataVersion>(
+    isVSP ? initialManifest.valueSets : {}
+  )
+
   const [systemNamesByUri, setSystemNamesByUri] = useState<ManifestUrlNameMap>({})
   const [pageLoading, setPageLoading] = useState(true)
+
+  // Determine API endpoint based on whether it's a VSP or Program
+  const programId = program?.id
+  let apiEndpoint: string | null = null
+  if (programId) {
+    apiEndpoint = isVSP
+      ? `/api/value-set-packages/${programId}/manifest?resourceType=${resourceType}`
+      : `/api/programs/${programId}/manifest`
+  }
+
   const {
     data: systemAndVersionData = [],
     isLoading,
     error
-  } = useSWR(program?.id ? `/api/programs/${program?.id}/manifest` : null, fetcher)
+  } = useSWR(apiEndpoint, fetcher)
 
   // loading states
 
@@ -108,14 +138,21 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   }, [isLoading, systemAndVersionData, error])
 
   useEffect(() => {
-    // Pull the available versions for the selected CodeSystem
+    // Pull the available versions for the selected CodeSystem or ValueSet
     const retrieveSelectedSystemVersions = async () => {
       setPageLoading(true)
-      const manifestUrlEndpoint = `/api/programs/${program?.id}/manifest?url=${selectedSystem}`
+      const programId = program?.id
+      const baseEndpoint = isVSP
+        ? `/api/value-set-packages/${programId}/manifest`
+        : `/api/programs/${programId}/manifest`
+      const manifestUrlEndpoint = isVSP
+        ? `${baseEndpoint}?url=${selectedSystem}&resourceType=${resourceType}`
+        : `${baseEndpoint}?url=${selectedSystem}`
       try {
         const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => {
           if (res.ok) return res.json()
-          throw new Error('Error retrieving available versions for Code System, please try again later')
+          const resourceLabel = isVSP && resourceType === 'ValueSet' ? 'ValueSet' : 'CodeSystem'
+          throw new Error(`Error retrieving available versions for ${resourceLabel}, please try again later`)
         })
         availableVersions[selectedSystem] = systemVersionData
         setAvailableVersions(structuredClone(availableVersions))
@@ -128,7 +165,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     if (program?.id && selectedSystem && !availableVersions[selectedSystem]) {
       retrieveSelectedSystemVersions()
     }
-  }, [selectedSystem, availableVersions, program?.id])
+  }, [selectedSystem, availableVersions, program?.id, isVSP, resourceType])
 
   const selectOptions = useMemo(() => {
     return systemSelections?.map(({ uri, name }) => ({ value: uri, label: `${name}` }))
@@ -136,17 +173,30 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
 
   const deleteFn = ({ system, version }: ManifestSystemVersionPair) => {
     setIsUpdating(true)
-    const clonedcurrentSelectedData = structuredClone(currentSelectedData) // Need to use ref because unable to reference state
-    clonedcurrentSelectedData[system] = clonedcurrentSelectedData[system]?.filter((i: any) => i !== version) || []
+    // Clone the correct state based on which tab we're on
+    const sourceData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
+    const clonedData = structuredClone(sourceData)
+    clonedData[system] = clonedData[system]?.filter((i: any) => i !== version) || []
     const deletedId = getIdFromSystem(system)
+
+    // For VSPs, we need to send ExtendedManifestData with both codeSystems and valueSets
+    const dataToSend = isVSP
+      ? {
+          codeSystems: manifestTab === 'codesystems' ? clonedData : currentSelectedData,
+          valueSets: manifestTab === 'valuesets' ? clonedData : currentSelectedValueSets
+        }
+      : clonedData
+
     updateManifest({
       programId: program?.id as string,
-      currentSelectedData: clonedcurrentSelectedData,
-      setCurrentSelectedData,
+      currentSelectedData: dataToSend,
+      setCurrentSelectedData: manifestTab === 'codesystems' ? setCurrentSelectedData : setCurrentSelectedValueSets,
       setIsUpdating,
       action: 'delete',
       id: deletedId,
-      version
+      version,
+      isVSP,
+      activeTab: manifestTab
     })
     setIsUpdating(false)
   }
@@ -158,29 +208,49 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   const onClickAddHandler = (newVersion: string, system?: string) => {
     const targetedSystem = system || selectedSystem
     setIsUpdating(true)
-    const clonedcurrentSelectedData = structuredClone(currentSelectedData)
-    // collect all provisional versions, we want to keep these in the manifest but swap out the pinned version
-    const toUpdateManifestVersions = clonedcurrentSelectedData[targetedSystem]?.filter((i: string) => i.includes('provisional')) || []
+    // Clone the correct state based on which tab we're on
+    const sourceData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
+    const clonedData = structuredClone(sourceData)
+    // Keep only provisional versions — strip any resolved pinned version AND unresolved (empty) entries
+    const toUpdateManifestVersions = clonedData[targetedSystem]?.filter((i: string) => i && i.includes('provisional')) || []
     toUpdateManifestVersions.push(newVersion)
-    clonedcurrentSelectedData[targetedSystem] = toUpdateManifestVersions
+    clonedData[targetedSystem] = toUpdateManifestVersions
+
+    // For VSPs, we need to send ExtendedManifestData with both codeSystems and valueSets
+    const dataToSend = isVSP
+      ? {
+          codeSystems: manifestTab === 'codesystems' ? clonedData : currentSelectedData,
+          valueSets: manifestTab === 'valuesets' ? clonedData : currentSelectedValueSets
+        }
+      : clonedData
 
     updateManifest({
       programId: program?.id as string,
-      currentSelectedData: clonedcurrentSelectedData,
-      setCurrentSelectedData,
+      currentSelectedData: dataToSend,
+      setCurrentSelectedData: manifestTab === 'codesystems' ? setCurrentSelectedData : setCurrentSelectedValueSets,
       setIsUpdating,
       action: 'add',
       id: getIdFromSystem(targetedSystem),
-      version: newVersion
+      version: newVersion,
+      isVSP,
+      activeTab: manifestTab
     })
   }
 
-  const containsNonProvisionalVersion = currentSelectedData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
+  // Get the current manifest data based on active tab (for VSPs)
+  const activeManifestData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
 
-  const errorMessage = `Version ${currentSelectedData[selectedSystem]} selected for ${selectedSystem}.`
+  // Filter out empty (unresolved) and provisional versions — only resolved, non-provisional versions should block adding
+  const containsNonProvisionalVersion = activeManifestData[selectedSystem]?.filter((i) => i && !i.toLowerCase().includes('provisional')) || []
+  const hasUnresolvedVersion = activeManifestData[selectedSystem]?.some((i) => !i) || false
 
-  const shouldDisableAddButton = (currentSelectedData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
-  return (
+  const errorMessage = hasUnresolvedVersion
+    ? `An unresolved version exists for ${getNameByUri(selectedSystem, systemNamesByUri) || selectedSystem}. Select a version below to resolve it.`
+    : `Version ${containsNonProvisionalVersion[0] || activeManifestData[selectedSystem]} selected for ${getNameByUri(selectedSystem, systemNamesByUri) || selectedSystem}.`
+
+  const shouldDisableAddButton = (activeManifestData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
+
+  const manifestContent = (
     <>
       <Modal open={availableLeafValueSetCodeSystems?.length > 0} onClose={() => setAvailableLeafValueSetCodeSystems([])}>
         <Box sx={{ ...modalStyle, width: 800, flexDirection: 'column', display: 'flex' }}>
@@ -224,13 +294,13 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
               },
               {
                 cell: (row) => {
-                  const disabled = currentSelectedData[row.system] != null && currentSelectedData[row.system].includes(row.version)
+                  const disabled = activeManifestData[row.system] != null && activeManifestData[row.system].includes(row.version)
                   return (
                     <Button
                       data-tag="allowRowEvents"
                       disabled={disabled}
                       data-add-manifest={`${row.system}|${row.version}`}
-                      text={currentSelectedData[row.system] && !disabled ? 'Update To Latest' : 'Add'}
+                      text={activeManifestData[row.system] && !disabled ? 'Update To Latest' : 'Add'}
                       onClick={() => {
                         onClickAddHandler(row.version, row.system)
                       }}
@@ -254,7 +324,9 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
       </Modal>
       <ManifestDescription context="manifest-page" />
       <CodesystemSelectContainer style={{ marginTop: '3rem' }}>
-        <StyledLabel style={{ fontSize: '1rem' }}>Available Version for CodeSystem: </StyledLabel>
+        <StyledLabel style={{ fontSize: '1rem' }}>
+          Available Version for {isVSP && manifestTab === 'valuesets' ? 'ValueSet' : 'CodeSystem'}:
+        </StyledLabel>
         <Select
           isLoading={pageLoading}
           id="code-system-selector"
@@ -322,7 +394,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         <MaxWidthContainer>
           <StyledLabel>Available Versions</StyledLabel>
           <DT
-            data={filterSelectedVersions(availableVersions, currentSelectedData, selectedSystem) || []}
+            data={filterSelectedVersions(availableVersions, activeManifestData, selectedSystem) || []}
             progressComponent={<LoadingIndicator />}
             progressPending={pageLoading}
             defaultSortAsc={false}
@@ -376,9 +448,10 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           {!isUpdating && shouldDisableAddButton && <ErrorMessage error={errorMessage} severity="warning" />}
+          {!isUpdating && !shouldDisableAddButton && hasUnresolvedVersion && <ErrorMessage error={errorMessage} severity="info" />}
           <ManifestDetailTable
             programId={program?.id!}
-            manifestData={currentSelectedData}
+            manifestData={activeManifestData}
             availableUpdates={availableUpdates}
             updateFn={(version: string, system: string) => {
               const targetedCodeSystemIndex = availableUpdates.findIndex((i) => i.system === system)
@@ -396,6 +469,29 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
       </DataTableContainer>
     </>
   )
+
+  // For VSPs, wrap content in tabs
+  if (isVSP) {
+    return (
+      <TabContext value={manifestTab}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <TabList onChange={(e, v) => setManifestTab(v)} aria-label="manifest tabs">
+            <Tab label="CodeSystem Versions" value="codesystems" />
+            <Tab label="ValueSet Versions" value="valuesets" />
+          </TabList>
+        </Box>
+        <TabPanel value="codesystems" sx={{ p: 0 }}>
+          {manifestContent}
+        </TabPanel>
+        <TabPanel value="valuesets" sx={{ p: 0 }}>
+          {manifestContent}
+        </TabPanel>
+      </TabContext>
+    )
+  }
+
+  // For Programs, return content as-is
+  return manifestContent
 }
 
 export default EditManifestDetails

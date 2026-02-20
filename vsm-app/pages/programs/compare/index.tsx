@@ -20,6 +20,7 @@ import NotificationStore from '@/store/NotificationStore'
 import { JOB_STATUS, JOB_TYPE } from '@/constants'
 import { JobData } from '@/types/jobTypes'
 import { Job } from 'bull'
+import { apiFetch } from '@/utils'
 
 const RelativeContainer = styled.div`
   position: relative;
@@ -269,7 +270,7 @@ const ProgramCompare = () => {
     }
 
     try {
-      const response = await fetch('/api/programs/changelog', {
+      const response = await apiFetch('/api/programs/changelog', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -339,7 +340,7 @@ const ProgramCompare = () => {
     setDownloadLoading(true)
 
     try {
-      const res = await fetch(`/api/programs/${base}/compare?targetId=${target}`, {
+      const res = await apiFetch(`/api/programs/${base}/compare?targetId=${target}`, {
         method: 'POST',
         body: JSON.stringify(rawData)
       })

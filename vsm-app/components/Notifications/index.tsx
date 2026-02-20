@@ -11,6 +11,7 @@ import { Jobs, JobData } from '@/types/jobTypes'
 import CompareNotification from './CompareNotification'
 import ExportNotification from './ExportNotification'
 import ReleaseNotification from './ReleaseNotification'
+import DependencyNotification from './DependencyNotification'
 
 const convertMetadataToObj = (job: JobData) => {
   if (typeof job?.metadata === 'string') {
@@ -83,6 +84,13 @@ const Notifications = () => {
               return (
                 <Box key={jobId}>
                   <ReleaseNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
+                  <hr />
+                </Box>
+              )
+            case JOB_TYPE.FETCH_DEPENDENCIES:
+              return (
+                <Box key={jobId}>
+                  <DependencyNotification jobId={jobId} jobDetails={jobDetails} closeNotification={handleClose} />
                   <hr />
                 </Box>
               )

@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from 'react'
+import type { ExtendedManifestData } from './vspTypes'
 
 interface SystemSelection {
   name: string
@@ -32,14 +33,15 @@ interface ManifestUrlNameMap {
 }
 
 interface UpdateManifest {
-  currentSelectedData: SelectedManifestDataVersion
+  currentSelectedData: SelectedManifestDataVersion | ExtendedManifestData  // Can be either for Programs or VSPs
   action: 'add' | 'delete'
   id?: string
   version?: string
   programId: string
   setCurrentSelectedData: Dispatch<SetStateAction<SelectedManifestDataVersion>>
   setIsUpdating: Dispatch<SetStateAction<boolean>>
-
+  isVSP?: boolean  // NEW: Indicates if updating VSP manifest
+  activeTab?: string  // NEW: For VSPs, indicates which tab (codesystems/valuesets) is active
 }
 
 interface ManifestSystemVersionPair {

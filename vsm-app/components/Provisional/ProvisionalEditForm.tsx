@@ -18,6 +18,7 @@ import { toast } from 'react-toastify'
 import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
 import { DeleteForever } from '@mui/icons-material'
 import ExistingCodesTable from './ExistingCodesTable'
+import { apiFetch } from '@/utils'
 
 const QuestionnaireRowContainer = styled.div`
   display: flex;
@@ -206,7 +207,7 @@ const ProvisionalCSForm = ({ canEdit }: ProvisionalEditProps) => {
     const codesBySystemToUpdate = { [selectedCodeSystemBase.value]: codeItemsToAdd }
 
     const submitBody = { codesBySystemToUpdate }
-    const result = await fetch('/api/codesystem/provisional', {
+    const result = await apiFetch('/api/codesystem/provisional', {
       method: 'POST',
       body: JSON.stringify(submitBody)
     })

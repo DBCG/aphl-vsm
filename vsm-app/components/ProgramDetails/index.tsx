@@ -17,6 +17,7 @@ import { StatusChip } from '../data-display/Chips'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
 import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { isReleaseInProgress } from '@/helpers/libraryHelpers'
+import { apiFetch } from '@/utils'
 
 const ProgramDetails = ({ program }: LibraryServerSideProps) => {
   const router = useRouter()
@@ -32,7 +33,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
 
   const updateProgram = async ({ program, isExperimental }: { program: fhir4.Library; isExperimental: boolean }) => {
     const endPoint = `/api/programs/${currentProgram?.id}?experimental=${isExperimental}`
-    const response = await fetch(endPoint, {
+    const response = await apiFetch(endPoint, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'

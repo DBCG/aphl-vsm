@@ -12,14 +12,14 @@ type ErrorObj = Record<string, string[]>
 
 type Error = {
   error: string | string[] | ErrorObj | null
-  severity?: 'warning'
+  severity?: 'warning' | 'info'
   handleClose?: () => void
   style?: React.CSSProperties
 }
 
 export const ErrorContainer = styled.div<Error>`
   max-height: ${(props) => (props.error ? '500px' : '0')};
-  background-color: ${(props) => (props.severity === 'warning' ? 'var(--warning-light)' : 'white')};
+  background-color: ${(props) => props.severity === 'warning' ? 'var(--warning-light)' : props.severity === 'info' ? '#e3f2fd' : 'white'};
   transition: max-height 1s ease;
   padding: .25em 1em;
   border: ${(props) => {
@@ -35,7 +35,7 @@ export const ErrorContainer = styled.div<Error>`
 
 export const ErrorText = styled.p<Error>`
   display: ${(props) => (props.error ? 'inherit' : 'none')};
-  color: ${(props) => (props.severity === 'warning' ? 'black' : 'var(--accent)')};
+  color: ${(props) => props.severity === 'warning' || props.severity === 'info' ? 'black' : 'var(--accent)'};
   word-break: break-all;
   line-height: 1.5em;
   max-width: 100ch;
@@ -109,7 +109,7 @@ const ErrorContent = ({ error, severity }: Error) => {
 const ErrorMessage = ({ error, severity, handleClose, style }: Error) => {
   if (!hasActiveErrors(error)) return null
   return (
-      <Alert variant='outlined' severity='error' sx={{ bgcolor: 'background.paper' }} onClose={handleClose} style={style}>
+      <Alert variant='outlined' severity={severity || 'error'} sx={{ bgcolor: 'background.paper' }} onClose={handleClose} style={style}>
         <ErrorContent severity={severity} error={error} />
       </Alert>
   )

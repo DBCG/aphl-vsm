@@ -25,6 +25,7 @@ import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
 import { isReleaseInProgress } from '@/helpers/libraryHelpers'
 import CircularProgress from '@mui/material/CircularProgress'
+import { apiFetch } from '@/utils'
 
 export const checkboxStyles = {
   root: {
@@ -300,7 +301,7 @@ const ProgramsTab: NextPage = () => {
     const parameters = JSON.stringify(withdrawParameters)
 
     // mock withdraw until the operation exists
-    const result = await fetch(`/api/programs/${id}/withdraw`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/programs/${id}/withdraw`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -333,7 +334,7 @@ const ProgramsTab: NextPage = () => {
     const parameters = JSON.stringify(retireParameters)
 
     // mock retire until the operation exists
-    const result = await fetch(`/api/programs/${id}/retire`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/programs/${id}/retire`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -365,7 +366,7 @@ const ProgramsTab: NextPage = () => {
 
     const parameters = JSON.stringify(deleteParameters)
 
-    const result = await fetch(`/api/programs/${id}/delete`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/programs/${id}/delete`, { method: 'POST', body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -389,7 +390,7 @@ const ProgramsTab: NextPage = () => {
       })
     } else {
       let body = await inputProgram.text()
-      const result = await fetch(`/api/programs/import`, { method: 'POST', body: body })
+      const result = await apiFetch(`/api/programs/import`, { method: 'POST', body: body })
 
       if (!result.ok) {
         const res = await result.json()
@@ -493,7 +494,7 @@ const ProgramsTab: NextPage = () => {
     const json = JSON.stringify({ programId, latestProgramVersion })
 
     try {
-      const res = await fetch('/api/programs/clone', {
+      const res = await apiFetch('/api/programs/clone', {
         method: 'POST',
         body: json
       })
@@ -643,7 +644,7 @@ const ProgramsTab: NextPage = () => {
     setLoading(true)
     const endpoint = `/api/programs/${payload.programId}/release`
 
-    const result = await fetch(endpoint, {
+    const result = await apiFetch(endpoint, {
       method: 'POST',
       body: JSON.stringify(payload)
     })

@@ -22,6 +22,7 @@ import { Condition } from '@/helpers/conditionHelpers'
 import { is } from '@/helpers/is'
 import { PriorityLevelOption } from '@/components/ProgramValueSetDetails'
 import type { LibraryServerSideProps } from '@/utils/getLibraryServerSideProp'
+import { apiFetch } from '@/utils'
 export { default as getServerSideProps } from "@/utils/getLibraryServerSideProp";
 
 const defaultFormData = {
@@ -142,7 +143,7 @@ const AddGrouper = ({ program }: LibraryServerSideProps) => {
       grouperMetadata
     })
 
-    const res = await fetch(`/api/programs/${program?.id}/grouper/valueset`, {
+    const res = await apiFetch(`/api/programs/${program?.id}/grouper/valueset`, {
       method: 'POST',
       body: json
     })

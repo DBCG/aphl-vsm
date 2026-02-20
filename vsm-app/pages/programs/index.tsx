@@ -4,9 +4,11 @@ import ProgramsTab from '@/components/Program/ProgramsTab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
+import ValueSetPackagesTab from '@/components/ValueSetPackage/ValueSetPackagesTab'
 import { useRouter } from 'next/router'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { useGetEndpoints } from '@/hooks/useGetEndpoints'
+import { findVSACEndpoint } from '@/utils/endpointHelpers'
 
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
@@ -15,6 +17,8 @@ const Programs: NextPage = () => {
   useEffect(() => {
     if (router?.query?.resourceType === 'provisional') {
       setValue('2')
+    } else if (router?.query?.resourceType === 'vsp') {
+      setValue('3')
     }
   }, [router.query])
 
@@ -27,8 +31,7 @@ const Programs: NextPage = () => {
   } = useGetEndpoints()
 
   const vsacEndpoint = useMemo(() => {
-    const result = allEndpoints?.endpoints?.find((endpoint: any) => endpoint.id === 'vsac')
-    return result
+    return findVSACEndpoint(allEndpoints?.endpoints)
   }, [allEndpoints])
 
   const {
@@ -36,7 +39,7 @@ const Programs: NextPage = () => {
     pingLoading,
     pingError,
   } = useTestTermEndpoint({
-    endpointId: 'vsac'
+    endpointId: vsacEndpoint?.id
   })
   
   useEffect(() => {
@@ -51,6 +54,7 @@ const Programs: NextPage = () => {
         <TabList onChange={handleChange} aria-label="dashboard tabs">
           <Tab onClick={() => router.push('/programs')} label="Programs" value="1" />
           <Tab onClick={() => router.push('/programs?resourceType=provisional')} label="Provisional Resources" value="2" />
+          <Tab onClick={() => router.push('/programs?resourceType=vsp')} label="ValueSet Packages" value="3" />
         </TabList>
       </Box>
       <TabPanel value="1">
@@ -58,6 +62,9 @@ const Programs: NextPage = () => {
       </TabPanel>
       <TabPanel value="2">
         <ProvisionalResourcesTab />
+      </TabPanel>
+      <TabPanel value="3">
+        <ValueSetPackagesTab />
       </TabPanel>
     </TabContext>
   )

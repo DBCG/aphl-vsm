@@ -2,7 +2,7 @@ import useSWR from 'swr'
 import { fetcher } from '@/utils'
 
 interface ServerData {
-  endpointId: string
+  endpointId?: string
 }
 // test whether pinging /metadata returns a 200
 const useTestTermEndpoint = (serverData: ServerData) => {

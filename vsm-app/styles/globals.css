@@ -359,27 +359,6 @@ template {
 
 /** NORMALIZE ENDS HERE **/
 
-@font-face {
-  font-family: 'OpenSans';
-  src: url('/fonts/OpenSans/OpenSans-Regular.ttf');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'OpenSans';
-  src: url('/fonts/OpenSans/OpenSans-Italic.ttf');
-  font-weight: 400;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: 'OpenSans';
-  src: url('/fonts/OpenSans/OpenSans-SemiBold.ttf');
-  font-weight: 600;
-  font-style: normal;
-}
-
 html,
 body {
   --theme-500: rgba(0, 91, 99, 1);
@@ -408,15 +387,25 @@ body {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
-  background-image: url('/images/background.svg');
   background-size: cover;
-  font-family: OpenSans, sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
+  font-family: var(--font-open-sans), sans-serif, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans,
     Helvetica Neue, sans-serif !important;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Ensure data tables use OpenSans font */
+div[role="table"],
+.rdt_Table,
+.rdt_TableHead,
+.rdt_TableHeadRow,
+.rdt_TableRow,
+.rdt_TableCell,
+.rdt_TableCol {
+  font-family: var(--font-open-sans), sans-serif !important;
 }
 
 * {

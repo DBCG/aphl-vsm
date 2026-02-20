@@ -12,6 +12,7 @@ import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
 import { toast } from 'react-toastify'
 import { AUTHENTICATION_TYPE_URL } from '@/constants'
+import { apiFetch } from '@/utils'
 
 export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
   extensions.find((ext) => ext.url === AUTHENTICATION_TYPE_URL)?.valueString
@@ -52,7 +53,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     const url = `/api/endpoint`
     const body: EndpointRequest['body'] = { endpoint: updatedEndpoint }
     try {
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

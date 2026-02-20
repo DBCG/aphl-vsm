@@ -28,12 +28,14 @@ import NotificationStore from '@/store/NotificationStore'
 import { JOB_TYPE } from '@/constants'
 import dayjs from 'dayjs';
 import { ExportJobMetadata } from '@/types/jobTypes'
+import { apiFetch } from '@/utils'
 
 interface ModalInfo {
   isOpen: boolean
   program: fhir4.Library
   toggleModalOpen: () => void
   setExportError: (error: any) => void
+  resourceType?: 'program' | 'vsp' // NEW: specify if it's a Program or VSP
 }
 
 interface BodyFormatter {
@@ -46,9 +48,10 @@ interface BodyFormatter {
 interface PackageParams extends BodyFormatter {
   programId: string
   metadata: any
+  resourceType?: 'program' | 'vsp'
 }
 
-const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId, metadata }: PackageParams) => {
+const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, programId, metadata, resourceType = 'program' }: PackageParams) => {
   const bodyForPackage = formatBody({
     isJson,
     isV2,
@@ -57,7 +60,12 @@ const packageProgram = async ({ isJson, isV2, targetVersion, fileUploadContent, 
   })
   bodyForPackage.metadata = metadata
 
-  return await fetch(`/api/programs/${programId}/package`, {
+  // Use different endpoint based on resource type
+  const endpoint = resourceType === 'vsp'
+    ? `/api/value-set-packages/${programId}/package`
+    : `/api/programs/${programId}/package`
+
+  return await apiFetch(endpoint, {
     method: 'POST',
     body: JSON.stringify(bodyForPackage)
   })
@@ -81,7 +89,7 @@ const formatBody = ({ isJson, isV2, targetVersion, fileUploadContent }: BodyForm
   return body
 }
 
-const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError }: ModalInfo) => {
+const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExportError, resourceType = 'program' }: ModalInfo) => {
   const [fileType, setFileType] = useState<'json' | 'xml'>('json')
   const [downloadLoading, setDownloadLoading] = useState(false)
   const [versionRadioValue, setVersionRadioValue] = useState('v2')
@@ -131,7 +139,7 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
 
   const handleExitExportModal = () => {
     toggleModalOpen()
-    setTimeout(() => handleResetState(), 500) // Workaround to force state change 
+    setTimeout(() => handleResetState(), 500) // Workaround to force state change
   }
 
   const onSuccessExport = () => {
@@ -155,49 +163,56 @@ const ExportPackageDetailsModal = ({ isOpen, toggleModalOpen, program, setExport
   const handleClickExport = async () => {
     setDownloadLoading(true)
 
-    // first, remove special characters that are not - or _
-    // next, replace all _ with -
-    const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
-    const spaceAndUnderscoreRx = /[\s_]/gi
-    const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
-    const fileExtension = fileType === 'json' ? 'json' : 'xml'
-    const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
-    const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
+    try {
+      // first, remove special characters that are not - or _
+      // next, replace all _ with -
+      const specialCharRx = /[^a-zA-Z\d\s:\-_]/gi
+      const spaceAndUnderscoreRx = /[\s_]/gi
+      const fileTitle = (program?.title || program?.id || 'program').replaceAll(specialCharRx, '').replaceAll(spaceAndUnderscoreRx, '-')
+      const fileExtension = fileType === 'json' ? 'json' : 'xml'
+      const formattedTimestamp = dayjs().format('YYYY-MM-DD_HH-mm-ss');
+      const filename = `${fileTitle}-bundle_${formattedTimestamp}.${fileExtension}`
 
-    const metadata: ExportJobMetadata = {
-      programId: program.id!,
-      version: versionRadioValue,
-      hasCustomPlanDefinition: fileUploadContent != null,
-      fileType,
-      filename,
-      programTitle: program?.title!
+      const metadata: ExportJobMetadata = {
+        programId: program.id!,
+        version: versionRadioValue,
+        hasCustomPlanDefinition: fileUploadContent != null,
+        fileType,
+        filename,
+        programTitle: program?.title!
+      }
+      toast.info('Exporting package. You will be notified when it is ready for download.')
+
+      const jobResponse = await packageProgram({
+        isJson: fileType === 'json',
+        isV2: versionRadioValue === 'v2',
+        targetVersion,
+        fileUploadContent,
+        programId: program.id!,
+        metadata,
+        resourceType
+      }).then((res) => res.json())
+
+      if (jobResponse?.error) {
+        setDownloadLoading(false)
+        onFailureExport(jobResponse?.error)
+        return
+      }
+
+      NotificationStore.addJob({
+        jobId: jobResponse.id,
+        jobType: JOB_TYPE.EXPORT,
+        metadata,
+        onSuccess: onSuccessExport,
+        onFailure: onFailureExport
+      })
+
+      handleExitExportModal()
+    } catch (error: any) {
+      setDownloadLoading(false)
+      toast.error(`Export failed: ${error.message || 'Unknown error'}`)
+      handleExitExportModal()
     }
-    toast.info('Exporting package. You will be notified when it is ready for download.')
-
-    // TODO: rename this var
-    const jobResponse = await packageProgram({
-      isJson: fileType === 'json',
-      isV2: versionRadioValue === 'v2',
-      targetVersion,
-      fileUploadContent,
-      programId: program.id!,
-      metadata
-    }).then((res) => res.json())
-
-    if (jobResponse?.error) {
-      onFailureExport(jobResponse?.error)
-      return
-    }
-
-    NotificationStore.addJob({
-      jobId: jobResponse.id,
-      jobType: JOB_TYPE.EXPORT,
-      metadata,
-      onSuccess: onSuccessExport,
-      onFailure: onFailureExport
-    })
-
-    handleExitExportModal()
   }
 
   const onUpload = async (e: ChangeEvent<HTMLInputElement>) => {

@@ -11,6 +11,7 @@ import { getOid, isVSMOwnedVSet } from '@/helpers/valueSetHelpers'
 import ValueSetDetailsTables from './ValueSetDetailsTables'
 import { getKeywords } from '@/helpers/valueSetHelpers'
 import { StatusChip } from './data-display/Chips'
+import { apiFetch } from '@/utils'
 
 const maxFormWidth = '1000px'
 
@@ -164,7 +165,7 @@ export default function ValueSetContents({
       grouperId: valueSet.id
     }
 
-    const submitResponse = await fetch(`/api/programs/${programId}/grouper/valueset`, {
+    const submitResponse = await apiFetch(`/api/programs/${programId}/grouper/valueset`, {
       method: 'PUT',
       body: JSON.stringify(body)
     })

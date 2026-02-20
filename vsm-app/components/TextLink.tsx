@@ -39,7 +39,9 @@ const TextLink = ({ href, linkText, className, hasIcon = true, forceReload = fal
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (forceReload) {
       e.preventDefault()
-      window.location.href = href
+      const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
+      const fullHref = href.startsWith('/') ? basePath + href : href
+      window.location.href = fullHref
     }
   }
 

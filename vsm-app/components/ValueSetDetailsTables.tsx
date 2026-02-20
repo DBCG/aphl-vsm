@@ -12,7 +12,7 @@ import { getProgramManifestVersions, isVSMOwnedVSet, organizeValueSetDefinitionD
 import LoadingIndicator from './LoadingIndicator'
 import TextLink from './TextLink'
 import { ExpandRequest } from '@/pages/api/valueset/[id]/expand'
-import { extractOidFromUrl } from '@/utils'
+import { extractOidFromUrl, apiFetch } from '@/utils'
 import styled from 'styled-components'
 import { CodeBlock } from 'react-code-block'
 
@@ -163,7 +163,7 @@ const ValueSetDetailsTables = ({
       if (router.query.pinnedVersion) {
         body.pinnedVersion = true
       }
-      const updatedValueSet = await fetch(endpoint, {
+      const updatedValueSet = await apiFetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

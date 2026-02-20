@@ -15,6 +15,7 @@ import { IconButton } from '../buttons/IconButton'
 import { Condition, ConditionItem, buildConditionOptions } from '@/helpers/conditionHelpers'
 import { buildGroupOptions } from '@/helpers/selectHelpers'
 import { PriorityLevelOption, priorityLevelOptions } from '.'
+import { apiFetch } from '@/utils'
 
 const ActionContainerRow = styled.div`
   display: flex;
@@ -166,7 +167,7 @@ export const TableActions = ({
 
       }
       const body = JSON.stringify(batch)
-      await fetch(`/api/programs/${programId}/details/valuesets/batch`, {
+      await apiFetch(`/api/programs/${programId}/details/valuesets/batch`, {
         method: 'PUT',
         body
       }).then((res) => {

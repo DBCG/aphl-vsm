@@ -22,6 +22,7 @@ import { ErrorMessage } from '@/components/ErrorMessage'
 import { modalStyle } from '@/styles'
 import { toast } from 'react-toastify'
 import { isValidCode, IsValidFormatResponse, isValidString } from '@/helpers/fhirDataTypeHelpers'
+import { apiFetch } from '@/utils'
 
 type BooleanSetState = Dispatch<SetStateAction<boolean>>
 
@@ -510,7 +511,7 @@ const ProvisionalVSEdit = () => {
       setDeleteModalOpen(true)
       return
     }
-    const result = await fetch('/api/valueset/provisional', {
+    const result = await apiFetch('/api/valueset/provisional', {
       method: 'DELETE',
       body: JSON.stringify({ id: provisionalVsIdForUpdate, url: provVsUrl, programIdsToUpdate: programIdsToRemoveProvisionalVs })
     })
@@ -612,7 +613,7 @@ const ProvisionalVSEdit = () => {
       provisionalVsIdForUpdate
     }
 
-    const result = await fetch('/api/valueset/provisional', {
+    const result = await apiFetch('/api/valueset/provisional', {
       method: 'POST',
       body: JSON.stringify(submitBody)
     })

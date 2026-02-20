@@ -15,6 +15,7 @@ import { getProgramManifestVersions } from '@/helpers/valueSetHelpers'
 import { getVSConditions } from '@/helpers/libraryHelpers'
 import { toast } from 'react-toastify'
 import { debounce } from 'lodash'
+import { apiFetch } from '@/utils'
 
 interface Props {
   program: fhir4.Library
@@ -116,7 +117,7 @@ const CodeSearch = ({ program, router }: Props) => {
             expansionParameters: getProgramManifestVersions(program)
           }
 
-          const matches = await fetch('/api/valueset/codesearch', {
+          const matches = await apiFetch('/api/valueset/codesearch', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

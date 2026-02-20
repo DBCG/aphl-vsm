@@ -8,6 +8,7 @@ import {
 } from '@/types/manifestTypes'
 import { Dispatch, SetStateAction } from 'react'
 import { toast } from 'react-toastify'
+import { apiFetch } from '@/utils'
 
 interface SearchAvailUpdates {
   programId: string
@@ -52,7 +53,7 @@ const searchLeafValueSets = async ({
 }: SearchAvailLeafUpdates) => {
   const manifestEndpoint = `/api/programs/${programId}/manifest?leafValueSets=true`
   try {
-    const response = await fetch(manifestEndpoint, {
+    const response = await apiFetch(manifestEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     })
@@ -110,7 +111,7 @@ const searchAvailableUpdates = async ({
     }
   })
   try {
-    const mData = await fetch(manifestEndpoint, {
+    const mData = await apiFetch(manifestEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(availableLatestVersionsMap)
@@ -143,23 +144,48 @@ const updateManifest = async ({
   currentSelectedData,
   action,
   id,
-  version
+  version,
+  isVSP = false,
+  activeTab
 }: UpdateManifest) => {
-  const manifestEndpoint = `/api/programs/${programId}/manifest`
+  // Use correct endpoint based on resource type
+  const baseEndpoint = isVSP ? 'value-set-packages' : 'programs'
+  const manifestEndpoint = `/api/${baseEndpoint}/${programId}/manifest`
+
   try {
-    const mData = await fetch(manifestEndpoint, {
+    const response = await apiFetch(manifestEndpoint, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(currentSelectedData)
-    }).then((res) => res.json())
-    setCurrentSelectedData(mData)
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Manifest update failed:', errorText)
+      throw new Error(`Failed to update manifest: ${response.status}`)
+    }
+
+    const mData = await response.json()
+
+    // For VSPs, the response is ExtendedManifestData { codeSystems, valueSets }
+    // Extract the appropriate part based on active tab
+    if (isVSP && activeTab) {
+      const extractedData = activeTab === 'codesystems' ? mData.codeSystems : mData.valueSets
+      setCurrentSelectedData(extractedData)
+    } else {
+      // For Programs, response is just SelectedManifestDataVersion
+      setCurrentSelectedData(mData)
+    }
+
+    const resourceType = isVSP ? 'VSP' : 'program'
     const notificationTxt = `${action === 'add' ? 'Added ' : 'Deleted '} ${id || ''} ${version ? ` v. ${version}` : ''}`
     toast.success(notificationTxt, {
       style: { wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap', textAlign: 'center' }
     })
   } catch (err) {
     console.error(err)
-    toast.error('Error adding manifest program version')
+    const resourceType = isVSP ? 'VSP' : 'program'
+    toast.error(`Error updating ${resourceType} manifest version`)
   } finally {
     setIsUpdating(false)
   }

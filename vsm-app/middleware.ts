@@ -20,11 +20,14 @@ export default withAuth(function middleware(req: NextRequest) {
     requestHeaders.set('Content-Type', 'application/json')
     return NextResponse.next({
       request: {
-        // New request headers
         headers: requestHeaders,
       },
     })
   }
 
   return NextResponse.next()
+}, {
+  pages: {
+    signIn: '/auth/signin'
+  }
 })

@@ -9,7 +9,7 @@ import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { useGetPrograms } from '@/hooks/useGetPrograms'
 
 interface ModalInfo {
-  actionType: 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete'
+  actionType: 'publish' | 'clone' | 'withdraw' | 'retire'| 'delete' | 'release'
   isOpen: boolean
   handleCancelModal: () => void
   handleModalAction: Function
@@ -17,6 +17,7 @@ interface ModalInfo {
   program: fhir4.Library | null
   cancellable?: boolean
   updateVersion?: Dispatch<SetStateAction<string | null | undefined>>
+  resourceType?: 'program' | 'vsp' // NEW: specify if it's a Program or VSP
 }
 
 const LoadingText = styled.p`
@@ -24,7 +25,7 @@ const LoadingText = styled.p`
   line-height: 150%;
 `
 
-const modalText = {
+const modalTextProgram = {
   publish: {
     title: 'Publish Program',
     text: 'Publishing ',
@@ -99,6 +100,81 @@ const modalText = {
   }
 }
 
+const modalTextVSP = {
+  publish: {
+    title: 'Publish VSP',
+    text: 'Publishing this Value Set Package.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Publishing...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  release: {
+    title: 'Release Value Set Package',
+    text: 'Releasing this Value Set Package will mark it as active.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Releasing...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  clone: {
+    title: 'Clone VSP',
+    text: 'Cloning this Value Set Package will create a draft copy.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Cloning...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  withdraw: {
+    title: 'Withdraw Value Set Package',
+    text: 'Withdrawing this draft Value Set Package will delete it from VSM permanently.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Withdrawing...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  retire: {
+    title: 'Retire Value Set Package',
+    text: 'Retiring this active Value Set Package will retire it from VSM.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Retiring...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  },
+  delete: {
+    title: 'Delete Value Set Package',
+    text: 'Deleting this retired Value Set Package will delete it from VSM permanently.',
+    actionText: 'Would you like to continue?',
+    modalLoadingText: (
+      <LoadingText>
+        Deleting...
+        <br />
+        Please keep this window open until it completes.
+      </LoadingText>
+    )
+  }
+}
+
 const LoadingModal = ({
   isOpen,
   actionType,
@@ -107,8 +183,10 @@ const LoadingModal = ({
   cancellable = true,
   handleModalAction,
   program,
-  updateVersion
+  updateVersion,
+  resourceType = 'program' // Default to program for backward compatibility
 }: ModalInfo) => {
+  const modalText = resourceType === 'vsp' ? modalTextVSP : modalTextProgram
   const { title, text, actionText, modalLoadingText } = modalText[actionType]
 
   const [currentProgram, setProgram] = useState(program)

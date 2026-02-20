@@ -9,7 +9,10 @@ import {
   idWithoutVersion,
   addProfileToValueSet,
   updateVsCodeItem,
-  organizeValueSetDefinitionData
+  organizeValueSetDefinitionData,
+  setExpansionParametersForVSP,
+  getVSPManifestVersions,
+  getProgramManifestVersions
 } from './valueSetHelpers'
 import { uniq } from 'lodash'
 import { DeleteData, UpdateData } from '@/pages/api/codesystem/provisional';
@@ -759,3 +762,363 @@ const testValueSetUpdatedLatest = {
     ]
   }
 } as fhir4.ValueSet
+
+
+// ===== VSP Manifest Tests =====
+
+describe('VSP Manifest Functions', () => {
+  describe('setExpansionParametersForVSP', () => {
+    it('should add expansion parameters to a library with both CodeSystems and ValueSets', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      const manifestData = {
+        codeSystems: {
+          'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20230301']
+        },
+        valueSets: {
+          'http://hl7.org/fhir/ValueSet/administrative-gender': ['4.0.1']
+        }
+      }
+
+      setExpansionParametersForVSP(library, manifestData)
+
+      // Should have extension
+      expect(library.extension).toBeDefined()
+      expect(library.extension?.length).toBe(1)
+      expect(library.extension?.[0].valueReference?.reference).toBe('#expansion-parameters-vsp')
+
+      // Should have contained Parameters resource
+      expect(library.contained).toBeDefined()
+      const params = library.contained?.find((r) => r.id === 'expansion-parameters-vsp') as fhir4.Parameters
+      expect(params).toBeDefined()
+      expect(params.parameter?.length).toBe(2)
+
+      // Check CodeSystem parameter
+      const sysParam = params.parameter?.find((p) => p.name === 'system-version')
+      expect(sysParam?.valueString).toBe('http://snomed.info/sct|http://snomed.info/sct/731000124108/version/20230301')
+
+      // Check ValueSet parameter
+      const vsParam = params.parameter?.find((p) => p.name === 'valueset-version')
+      expect(vsParam?.valueString).toBe('http://hl7.org/fhir/ValueSet/administrative-gender|4.0.1')
+    })
+
+    it('should not duplicate the extension when called twice', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      const manifestData = {
+        codeSystems: { 'http://loinc.org': ['2.74'] },
+        valueSets: {}
+      }
+
+      setExpansionParametersForVSP(library, manifestData)
+      setExpansionParametersForVSP(library, manifestData)
+
+      const expansionExtensions = library.extension?.filter(
+        (ext) => ext.url === 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters'
+      )
+      expect(expansionExtensions?.length).toBe(1)
+    })
+
+    it('should replace existing contained Parameters on update', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      // First call with one CodeSystem
+      setExpansionParametersForVSP(library, {
+        codeSystems: { 'http://loinc.org': ['2.74'] },
+        valueSets: {}
+      })
+
+      // Second call with different data
+      setExpansionParametersForVSP(library, {
+        codeSystems: { 'http://snomed.info/sct': ['version1'] },
+        valueSets: { 'http://example.com/vs': ['1.0.0'] }
+      })
+
+      const params = library.contained?.find((r) => r.id === 'expansion-parameters-vsp') as fhir4.Parameters
+      expect(params.parameter?.length).toBe(2)
+
+      const sysParam = params.parameter?.find((p) => p.name === 'system-version')
+      expect(sysParam?.valueString).toBe('http://snomed.info/sct|version1')
+    })
+
+    it('should handle empty manifest data', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      setExpansionParametersForVSP(library, { codeSystems: {}, valueSets: {} })
+
+      const params = library.contained?.find((r) => r.id === 'expansion-parameters-vsp') as fhir4.Parameters
+      expect(params.parameter?.length).toBe(0)
+    })
+
+    it('should handle unresolved (empty string) versions by omitting the pipe', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      setExpansionParametersForVSP(library, {
+        codeSystems: { 'http://loinc.org': [''] },
+        valueSets: { 'http://example.com/vs': [''] }
+      })
+
+      const params = library.contained?.find((r) => r.id === 'expansion-parameters-vsp') as fhir4.Parameters
+      const sysParam = params.parameter?.find((p) => p.name === 'system-version')
+      expect(sysParam?.valueString).toBe('http://loinc.org')
+
+      const vsParam = params.parameter?.find((p) => p.name === 'valueset-version')
+      expect(vsParam?.valueString).toBe('http://example.com/vs')
+    })
+
+    it('should preserve existing non-expansion extensions', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        extension: [{
+          url: 'http://example.com/other-extension',
+          valueString: 'preserved'
+        }]
+      }
+
+      setExpansionParametersForVSP(library, {
+        codeSystems: { 'http://loinc.org': ['2.74'] },
+        valueSets: {}
+      })
+
+      expect(library.extension?.length).toBe(2)
+      expect(library.extension?.find((e) => e.url === 'http://example.com/other-extension')).toBeDefined()
+    })
+  })
+
+  describe('getVSPManifestVersions', () => {
+    it('should extract CodeSystem and ValueSet versions from a VSP Library', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://snomed.info/sct|version1' },
+            { name: 'system-version', valueString: 'http://loinc.org|2.74' },
+            { name: 'valueset-version', valueString: 'http://hl7.org/fhir/ValueSet/gender|4.0.1' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getVSPManifestVersions(library)
+
+      expect(result.codeSystems['http://snomed.info/sct']).toEqual(['version1'])
+      expect(result.codeSystems['http://loinc.org']).toEqual(['2.74'])
+      expect(result.valueSets['http://hl7.org/fhir/ValueSet/gender']).toEqual(['4.0.1'])
+    })
+
+    it('should return empty maps when library has no contained resources', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      const result = getVSPManifestVersions(library)
+      expect(result.codeSystems).toEqual({})
+      expect(result.valueSets).toEqual({})
+    })
+
+    it('should handle multiple versions for the same system', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://snomed.info/sct|version1' },
+            { name: 'system-version', valueString: 'http://snomed.info/sct|version2-provisional' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getVSPManifestVersions(library)
+      expect(result.codeSystems['http://snomed.info/sct']).toEqual(['version1', 'version2-provisional'])
+    })
+
+    it('should handle unresolved (versionless) entries with empty string', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getVSPManifestVersions(library)
+      expect(result.codeSystems['http://loinc.org']).toEqual([''])
+    })
+
+    it('should also read from expansion-parameters-ecr (backward compat)', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-program',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-ecr',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org|2.74' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getVSPManifestVersions(library)
+      expect(result.codeSystems['http://loinc.org']).toEqual(['2.74'])
+    })
+
+    it('should handle valueUri in addition to valueString', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-vsp',
+          parameter: [
+            { name: 'system-version', valueUri: 'http://loinc.org|2.74' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getVSPManifestVersions(library)
+      expect(result.codeSystems['http://loinc.org']).toEqual(['2.74'])
+    })
+  })
+
+  describe('setExpansionParametersForVSP + getVSPManifestVersions round-trip', () => {
+    it('should produce identical data after write then read', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      const originalManifest = {
+        codeSystems: {
+          'http://snomed.info/sct': ['http://snomed.info/sct/731000124108/version/20230301'],
+          'http://loinc.org': ['2.74']
+        },
+        valueSets: {
+          'http://hl7.org/fhir/ValueSet/administrative-gender': ['4.0.1'],
+          'http://example.com/ValueSet/test': ['1.0.0']
+        }
+      }
+
+      setExpansionParametersForVSP(library, originalManifest)
+      const readBack = getVSPManifestVersions(library)
+
+      expect(readBack.codeSystems).toEqual(originalManifest.codeSystems)
+      expect(readBack.valueSets).toEqual(originalManifest.valueSets)
+    })
+
+    it('should round-trip unresolved versions correctly', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-vsp',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] }
+      }
+
+      const manifestWithUnresolved = {
+        codeSystems: {
+          'http://loinc.org': [''],
+          'http://snomed.info/sct': ['version1']
+        },
+        valueSets: {}
+      }
+
+      setExpansionParametersForVSP(library, manifestWithUnresolved)
+      const readBack = getVSPManifestVersions(library)
+
+      expect(readBack.codeSystems['http://loinc.org']).toEqual([''])
+      expect(readBack.codeSystems['http://snomed.info/sct']).toEqual(['version1'])
+    })
+  })
+
+  describe('getProgramManifestVersions - unresolved version handling', () => {
+    it('should default to empty string for entries without pipe separator', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-program',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-ecr',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getProgramManifestVersions(library)
+      expect(result['http://loinc.org']).toEqual([''])
+    })
+
+    it('should handle mix of versioned and unversioned entries', () => {
+      const library: fhir4.Library = {
+        resourceType: 'Library',
+        id: 'test-program',
+        status: 'draft',
+        type: { coding: [{ code: 'asset-collection' }] },
+        contained: [{
+          resourceType: 'Parameters',
+          id: 'expansion-parameters-ecr',
+          parameter: [
+            { name: 'system-version', valueString: 'http://loinc.org|2.74' },
+            { name: 'system-version', valueString: 'http://snomed.info/sct' }
+          ]
+        } as fhir4.Parameters]
+      }
+
+      const result = getProgramManifestVersions(library)
+      expect(result['http://loinc.org']).toEqual(['2.74'])
+      expect(result['http://snomed.info/sct']).toEqual([''])
+    })
+  })
+})

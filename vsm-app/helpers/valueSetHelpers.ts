@@ -242,7 +242,7 @@ const getProgramManifestVersions = (library: fhir4.Library) => {
   const systemVersion = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersion?.forEach((i) => {
     const parameterSysVer = i.valueString || i.valueUri || ''
-    const [system, version] = decodeURI(parameterSysVer).split('|') || []
+    const [system, version = ''] = decodeURI(parameterSysVer).split('|') || []
     if (parameterMap[system]) {
       parameterMap[system].push(version)
     } else {
@@ -250,6 +250,110 @@ const getProgramManifestVersions = (library: fhir4.Library) => {
     }
   })
   return parameterMap
+}
+
+/**
+ * VSP Manifest Helper Functions
+ * These extend the existing manifest functionality to support both CodeSystem and ValueSet versions
+ */
+
+/**
+ * buildParametersParameterExtended: Converts manifest data to FHIR Parameters.parameter array
+ * Supports both CodeSystem (system-version) and ValueSet (valueset-version) parameters
+ */
+const buildParametersParameterExtended = (manifestData: { codeSystems: SelectedManifestDataVersion, valueSets: SelectedManifestDataVersion }) => {
+  const parameters = [] as fhir4.ParametersParameter[]
+
+  // Process CodeSystem versions (existing pattern)
+  for (const [key, value] of Object.entries(manifestData.codeSystems)) {
+    value.forEach((v) => {
+      parameters.push({
+        name: 'system-version',
+        valueString: v ? `${key}|${v}` : key
+      })
+    })
+  }
+
+  // Process ValueSet versions (NEW for VSPs)
+  for (const [key, value] of Object.entries(manifestData.valueSets)) {
+    value.forEach((v) => {
+      parameters.push({
+        name: 'valueset-version',
+        valueString: v ? `${key}|${v}` : key
+      })
+    })
+  }
+
+  return parameters
+}
+
+/**
+ * setExpansionParametersForVSP: Writes manifest data into a VSP Library resource
+ * Supports both CodeSystem and ValueSet version pinning
+ */
+const setExpansionParametersForVSP = (library: fhir4.Library, manifestData: { codeSystems: SelectedManifestDataVersion, valueSets: SelectedManifestDataVersion }) => {
+  const extension = library?.extension?.find((ext) => ext.url === EXTENSIONS.EXPANSION_PARAM_URL)
+
+  if (!extension) {
+    library.extension = [
+      ...(library?.extension || []),
+      {
+        url: 'http://hl7.org/fhir/StructureDefinition/cqf-expansionParameters',
+        valueReference: { reference: '#expansion-parameters-vsp' }
+      }
+    ]
+  }
+
+  const parameter = buildParametersParameterExtended(manifestData)
+
+  const parametersResource = {
+    resourceType: 'Parameters',
+    id: 'expansion-parameters-vsp',
+    parameter: parameter
+  } as fhir4.Parameters
+
+  const filteredContained = library?.contained?.filter((r) => r.id !== 'expansion-parameters-vsp') || []
+  filteredContained.push(parametersResource)
+  library.contained = filteredContained
+}
+
+/**
+ * getVSPManifestVersions: Reads manifest data from a VSP Library resource
+ * Returns both CodeSystem and ValueSet version mappings
+ */
+const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: SelectedManifestDataVersion, valueSets: SelectedManifestDataVersion } => {
+  const codeSystems: SelectedManifestDataVersion = {}
+  const valueSets: SelectedManifestDataVersion = {}
+
+  const parameterResource = library?.contained?.find((r) =>
+    r.id === 'expansion-parameters-vsp' || r.id === 'expansion-parameters-ecr'
+  ) as fhir4.Parameters
+
+  // Parse CodeSystem versions
+  const systemVersions = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
+  systemVersions?.forEach((i) => {
+    const paramValue = i.valueString || i.valueUri || ''
+    const [system, version = ''] = decodeURI(paramValue).split('|') || []
+    if (codeSystems[system]) {
+      codeSystems[system].push(version)
+    } else {
+      codeSystems[system] = [version]
+    }
+  })
+
+  // Parse ValueSet versions (NEW for VSPs)
+  const valuesetVersions = parameterResource?.parameter?.filter((i) => i.name === 'valueset-version')
+  valuesetVersions?.forEach((i) => {
+    const paramValue = i.valueString || i.valueUri || ''
+    const [canonical, version = ''] = decodeURI(paramValue).split('|') || []
+    if (valueSets[canonical]) {
+      valueSets[canonical].push(version)
+    } else {
+      valueSets[canonical] = [version]
+    }
+  })
+
+  return { codeSystems, valueSets }
 }
 
 // update grouper valueset with proper version
@@ -630,5 +734,8 @@ export {
   addProfileToValueSet,
   updateVsCodeItem,
   updateAuthSource,
-  urlWithoutPinnedVersion
+  urlWithoutPinnedVersion,
+  // VSP-specific manifest functions
+  setExpansionParametersForVSP,
+  getVSPManifestVersions
 }

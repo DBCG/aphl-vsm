@@ -57,10 +57,31 @@ class FhirCdrClient {
   }
 
   async getVSACTerminologyServer(): Promise<Endpoint> {
-    return (await FhirCdrClient.getInstance().read({
+    // Get all terminology endpoints and filter by well-known VSAC URL
+    const endpointBundle = (await FhirCdrClient.getInstance().search({
       resourceType: 'Endpoint',
-      id: 'vsac' // TODO: hard-coded, we should double check seed data always adds this as ID
-    })) as fhir4.Endpoint
+      searchParams: {
+        identifier: 'terminologyEndpoint',
+        status: 'active'
+      }
+    })) as fhir4.Bundle
+
+    const endpoints = endpointBundle?.entry?.map((e) => e.resource as fhir4.Endpoint) || []
+
+    // Find VSAC endpoint by matching well-known VSAC FHIR URLs
+    const vsacEndpoint = endpoints.find((ep) => {
+      const address = ep.address?.toLowerCase()
+      return address === 'http://cts.nlm.nih.gov/fhir' ||
+             address === 'https://cts.nlm.nih.gov/fhir' ||
+             address === 'http://cts.nlm.nih.gov/fhir/' ||
+             address === 'https://cts.nlm.nih.gov/fhir/'
+    })
+
+    if (!vsacEndpoint) {
+      throw new Error('VSAC endpoint not found. Expected endpoint with address http(s)://cts.nlm.nih.gov/fhir')
+    }
+
+    return vsacEndpoint
   }
 }
 

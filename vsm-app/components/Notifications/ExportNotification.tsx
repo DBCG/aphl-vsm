@@ -130,7 +130,7 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
           downloadTextData(packageData, 'application/fhir+xml', filename || 'export.xml');
           break;
         default:
-          if (validationResults.length > 0) {
+          if (validationResults && validationResults.length > 0) {
             const programTitle = fileMetaData?.programTitle || 'program';
             downloadTextData(validationResults.sort().join('\n\n'), 'txt', `${programTitle}_validationResults.txt`)
           }

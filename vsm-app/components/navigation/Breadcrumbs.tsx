@@ -6,6 +6,7 @@ import Breadcrumbs from '@mui/material/Breadcrumbs'
 
 interface Props {
   alpha: number
+  shouldCapitalize?: boolean
 }
 
 const NavList = styled.ul`
@@ -20,7 +21,7 @@ const NavItem = styled.li<Props>`
   display: inline-block;
   list-style-type: none;
   background-color: white;
-  text-transform: capitalize;
+  text-transform: ${(props) => props.shouldCapitalize !== false ? 'capitalize' : 'none'};
   font-weight: 400;
   padding: 8px 20px;
   background-color: rgba(192, 231, 235, 1);
@@ -46,6 +47,9 @@ const composePath = (pathItems: string, lastOfPath: string) => {
   let result = pathItems.slice(0, idx + lastOfPath.length)
   if (result === '/provisional') {
     result = `/programs?resourceType=provisional`
+  }
+  if (result === '/value-set-packages') {
+    result = `/programs?resourceType=vsp`
   }
   return result
 }
@@ -80,11 +84,31 @@ const BreadCrumbs = ({ isGrouperView }: BreadCrumbProps) => {
 
   if (!breadCrumbs.length) return null
 
+  // Map URL segments to display names
+  const getDisplayName = (segment: string): string => {
+    const displayNameMap: Record<string, string> = {
+      'value-set-packages': 'ValueSet Packages'
+    }
+    return displayNameMap[segment] || segment.replace('?id=', ' ')
+  }
+
+  // Check if segment looks like a resource ID that shouldn't be capitalized
+  // Examples: hl7.fhir.us.core-vsp-2026-01, program-id-123, etc.
+  const shouldCapitalize = (segment: string): boolean => {
+    // Don't capitalize if it contains multiple dots and hyphens (looks like a package ID)
+    // or if it contains -vsp- pattern (VSP ID)
+    const looksLikeResourceId = segment.includes('.') && segment.includes('-')
+    const isVSPId = segment.includes('-vsp-')
+    return !looksLikeResourceId && !isVSPId
+  }
+
   const items = breadCrumbs.map((c) => {
     if (c !== '') {
       return (
         <Link key={c} href={composePath(router.asPath, c)} passHref>
-          <NavItem id={`breadcrumb-${c}`} alpha={1}>{`${c.replace('?id=', ' ')}`}</NavItem>
+          <NavItem id={`breadcrumb-${c}`} alpha={1} shouldCapitalize={shouldCapitalize(c)}>
+            {getDisplayName(c)}
+          </NavItem>
         </Link>
       )
     }
