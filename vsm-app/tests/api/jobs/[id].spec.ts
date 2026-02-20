@@ -18,7 +18,21 @@ jest.mock('../../../worker/PackageQueue', () => ({
   default: {
     process: jest.fn()
   }
-}));
+}))
+
+jest.mock('../../../worker/DependencyQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
+
+jest.mock('../../../worker/VSPPackageQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
 
 describe('/api/jobs/[id]', () => {
   it('GET /api/jobs/[id]', async () => {

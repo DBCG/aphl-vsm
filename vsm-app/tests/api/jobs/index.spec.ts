@@ -4,6 +4,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import PackageQueue from '@/worker/PackageQueue'
 import ChangeLogQueue from '@/worker/ChangeLogQueue'
 import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import VSPDiffQueue from '@/worker/VSPDiffQueue'
+import VSPPackageQueue from '@/worker/VSPPackageQueue'
 
 // Mock Auth for Setup
 jest.mock('next-auth', () => jest.fn())
@@ -40,6 +42,20 @@ jest.mock('../../../worker/ChangeLogQueue', () => ({
 }))
 
 jest.mock('../../../worker/ProgramReleaseQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
+
+jest.mock('../../../worker/VSPDiffQueue', () => ({
+  __esModule: true,
+  default: {
+    process: jest.fn()
+  }
+}))
+
+jest.mock('../../../worker/VSPPackageQueue', () => ({
   __esModule: true,
   default: {
     process: jest.fn()
@@ -89,6 +105,8 @@ describe('/api/jobs', () => {
     PackageQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
     ChangeLogQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
     ProgramReleaseQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
+    VSPDiffQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
+    VSPPackageQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
   
     await handler(req, res)
 
