@@ -242,7 +242,7 @@ const getProgramManifestVersions = (library: fhir4.Library) => {
   const systemVersion = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersion?.forEach((i) => {
     const parameterSysVer = i.valueString || i.valueUri || ''
-    const [system, version] = decodeURI(parameterSysVer).split('|') || []
+    const [system, version = ''] = decodeURI(parameterSysVer).split('|') || []
     if (parameterMap[system]) {
       parameterMap[system].push(version)
     } else {
@@ -333,7 +333,7 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   const systemVersions = parameterResource?.parameter?.filter((i) => i.name === 'system-version')
   systemVersions?.forEach((i) => {
     const paramValue = i.valueString || i.valueUri || ''
-    const [system, version] = decodeURI(paramValue).split('|') || []
+    const [system, version = ''] = decodeURI(paramValue).split('|') || []
     if (codeSystems[system]) {
       codeSystems[system].push(version)
     } else {
@@ -345,7 +345,7 @@ const getVSPManifestVersions = (library: fhir4.Library): { codeSystems: Selected
   const valuesetVersions = parameterResource?.parameter?.filter((i) => i.name === 'valueset-version')
   valuesetVersions?.forEach((i) => {
     const paramValue = i.valueString || i.valueUri || ''
-    const [canonical, version] = decodeURI(paramValue).split('|') || []
+    const [canonical, version = ''] = decodeURI(paramValue).split('|') || []
     if (valueSets[canonical]) {
       valueSets[canonical].push(version)
     } else {
