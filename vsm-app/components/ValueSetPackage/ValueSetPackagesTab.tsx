@@ -739,7 +739,12 @@ const ValueSetPackagesTab: NextPage = () => {
         {isAdmin(session) && (
           <Button
             variant="contained"
-            onClick={() => setCreateModalOpen(true)}
+            onClick={() => {
+              if (igFilter) {
+                setCreateModalInitialData({ igCanonical: igFilter })
+              }
+              setCreateModalOpen(true)
+            }}
             style={{
               alignSelf: 'flex-end',
               marginBottom: '1rem',
