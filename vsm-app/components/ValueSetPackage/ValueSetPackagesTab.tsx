@@ -705,6 +705,35 @@ const ValueSetPackagesTab: NextPage = () => {
               handleIGFilterChange(newInputValue)
             }
           }}
+          getOptionLabel={(option) => option}
+          renderOption={(props, option) => {
+            // Extract package ID and version from canonical for readable display
+            const igMatch = option.match(/\/ImplementationGuide\/([^|]+?)(?:\|(.*))?$/)
+            const packageId = igMatch?.[1] || option
+            const version = igMatch?.[2] || ''
+            return (
+              <li {...props} key={option}>
+                <Tooltip title={option} placement="right" arrow enterDelay={500}>
+                  <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', width: '100%' }}>
+                    <span style={{ fontWeight: 600 }}>
+                      {packageId}{version ? ` (${version})` : ''}
+                    </span>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      color: '#666',
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      wordBreak: 'break-all'
+                    }}>
+                      {option}
+                    </span>
+                  </div>
+                </Tooltip>
+              </li>
+            )
+          }}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -713,6 +742,9 @@ const ValueSetPackagesTab: NextPage = () => {
               size="small"
             />
           )}
+          componentsProps={{
+            popper: { style: { minWidth: '500px', width: 'fit-content', maxWidth: '800px' } }
+          }}
           style={{ minWidth: '400px', maxWidth: '600px' }}
         />
       </Row>

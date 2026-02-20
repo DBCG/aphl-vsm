@@ -426,7 +426,17 @@ export const CreateVSPModal = ({ isOpen, onClose, onSubmit, loading, initialData
             label="IG Canonical *"
             placeholder="http://hl7.org/fhir/us/core/ImplementationGuide/hl7.fhir.us.core|6.1.0"
             value={igCanonical}
-            onChange={(e) => setIgCanonical(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value
+              setIgCanonical(value)
+
+              // Try to infer Package ID from the canonical URL
+              // Pattern: .../ImplementationGuide/{packageId}|{version}
+              const igMatch = value.match(/\/ImplementationGuide\/([^|]+?)(?:\|.*)?$/)
+              if (igMatch?.[1]) {
+                setIgPackageId(igMatch[1])
+              }
+            }}
             error={Boolean(errors.igCanonical)}
             helperText={errors.igCanonical || 'Full canonical URL with version (pipe-separated)'}
             fullWidth
