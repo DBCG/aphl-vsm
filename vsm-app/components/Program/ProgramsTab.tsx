@@ -814,17 +814,78 @@ const ProgramsTab: NextPage = () => {
             </div>
           </div>
         ): null }
-        <Modal id="fileInput" open={openFileInput} onClose={handleCloseFileInput}  aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description"
-               style={{backgroundColor: 'rgb(193,243,255)', padding:'15px', justifySelf:"center", alignSelf:'center'}}>
-          <div>
-            <input style={{color: 'rgb(58,58,58)'}} type="file" accept={".json,application/json"} onChange={(e) => setInputFile(e.target.files?.[0] ?? null)}/>
-            <Button
-            style={{color: 'white'}}
-            disabled={!inputFile}
-            onClick={() => handleImportProgram(inputFile)}>Submit</Button>
-          </div>
+        <Modal
+            open={openFileInput}
+            onClose={handleCloseFileInput}
+            aria-labelledby="import-program-title"
+            >
+            <div
+                style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                padding: '2rem',
+                minWidth: '450px',
+                maxWidth: '550px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+                }}
+            >
+                <h3 id="import-program-title" style={{ margin: 0 }}>
+                Import Program
+                </h3>
 
-        </Modal>
+                <p style={{ margin: 0, fontSize: '.9rem', color: '#555' }}>
+                The selected file must contain a <strong>FHIR Parameters</strong> resource.
+                </p>
+
+                <div
+                style={{
+                    backgroundColor: '#f5f7fa',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '.85rem',
+                    lineHeight: 1.4,
+                    color: '#444'
+                }}
+                >
+                Required parameters:
+                <ul style={{ margin: '.5rem 0 0 1rem', padding: 0 }}>
+                    <li><strong>appAuthoritativeUrl</strong></li>
+                    <li><strong>bundle</strong></li>
+                </ul>
+                The file contents will be used as the body of the import operation request.
+                </div>
+
+                <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(e) => setInputFile(e.target.files?.[0] ?? null)}
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '.5rem' }}>
+                <Button
+                    variant="outlined"
+                    onClick={handleCloseFileInput}
+                >
+                    Cancel
+                </Button>
+
+                <Button
+                    variant="contained"
+                    disabled={!inputFile}
+                    onClick={() => handleImportProgram(inputFile)}
+                >
+                    Submit
+                </Button>
+                </div>
+            </div>
+            </Modal>
 
         {programs?.length > 1 && (
           <div
