@@ -1,14 +1,16 @@
+import { apiFetch } from '@/utils'
+
 const findProvVsUsingCode = async (provCsUrl: string, code: string) => {
 
   const endpoint = `/api/valueset/provisional?codeSystemUrl=${provCsUrl}&containsCode=${code}`
-    
+
     let error
     let matchingValueSets: fhir4.ValueSet[] = []
 
     async function getProvisionalVsContainingCs(): Promise<void> {
 
         try {
-          const response: Response = await fetch(endpoint)
+          const response: Response = await apiFetch(endpoint)
           if (!response.ok) {
             error = `Failed to get provisional Value Sets containing url ${provCsUrl}`
           } else {

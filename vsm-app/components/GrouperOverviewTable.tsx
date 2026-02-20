@@ -12,6 +12,7 @@ import { useGetGroups } from '@/hooks/useGetGroups'
 import TextLink from './TextLink'
 import { DeleteGrouperRequest } from '@/pages/api/programs/[id]/grouper/library'
 import { isReleaseInProgress } from '@/helpers/libraryHelpers'
+import { apiFetch } from '@/utils'
 
 interface Error {
   type: 'delete_failed' | 'missing_grouper_id' | 'server_failure'
@@ -71,7 +72,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
         }
         const body = JSON.stringify(deleteBody)
 
-        updated = await fetch(endpoint, {
+        updated = await apiFetch(endpoint, {
           method: 'PUT',
           body
         })

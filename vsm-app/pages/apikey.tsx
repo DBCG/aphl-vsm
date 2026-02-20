@@ -16,7 +16,7 @@ import { toast } from 'react-toastify'
 import { getServerSession } from 'next-auth/next'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
 import useSWR from 'swr'
-import { fetcher } from '@/utils'
+import { fetcher, apiFetch } from '@/utils'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
@@ -35,7 +35,7 @@ const GenerateKeyModal = ({ open, handleClose }: GenerateKeyModalProps) => {
 
   useEffect(() => {
     if (open) {
-      fetch('/api/apikey', {
+      apiFetch('/api/apikey', {
         method: 'POST',
       })
         .then((res) => res.json())
@@ -120,7 +120,7 @@ const ApiKeyManagement = () => {
 
   useEffect(() => {
     (async () => {
-      const base = await fetch('/api/fhirbasepath')
+      const base = await apiFetch('/api/fhirbasepath')
       if (base.ok) {
         const basePath = await base.json()
         setFhirBaseUrl(basePath.path)

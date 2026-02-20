@@ -7,7 +7,7 @@ import { Button } from '@/components/buttons/Button'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { StyledLabel } from '@/components/InputLabel'
 import useSWR from 'swr'
-import { fetcher } from '@/utils'
+import { fetcher, apiFetch } from '@/utils'
 import { modalStyle } from '@/styles'
 import { SystemSelection, ManifestDataMap, ManifestSystemVersionPair, ManifestUrlNameMap, ManifestData, SelectedManifestDataVersion } from '@/types/manifestTypes'
 import { getProgramManifestVersions, getVSPManifestVersions } from '@/helpers/valueSetHelpers'
@@ -149,7 +149,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         ? `${baseEndpoint}?url=${selectedSystem}&resourceType=${resourceType}`
         : `${baseEndpoint}?url=${selectedSystem}`
       try {
-        const systemVersionData = await fetch(manifestUrlEndpoint).then((res) => {
+        const systemVersionData = await apiFetch(manifestUrlEndpoint).then((res) => {
           if (res.ok) return res.json()
           const resourceLabel = isVSP && resourceType === 'ValueSet' ? 'ValueSet' : 'CodeSystem'
           throw new Error(`Error retrieving available versions for ${resourceLabel}, please try again later`)
