@@ -112,6 +112,7 @@ const AddEndpointForm = ({ availableEndpoints = [], closeForm }: any) => {
     try {
       const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           terminologyServerId: serverId,
           username,
@@ -254,6 +255,7 @@ const CredentialsItem = (currentServerData: any) => {
     try {
       const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           terminologyServerId: id,
           username,
@@ -281,6 +283,7 @@ const CredentialsItem = (currentServerData: any) => {
     try {
       const result = await apiFetch(`/api/settings/terminology-source`, {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           serverId: id
         })

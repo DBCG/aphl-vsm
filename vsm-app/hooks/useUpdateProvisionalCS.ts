@@ -35,6 +35,7 @@ const updateProvisionalCs = async (fields: Fields) => {
         try {
           const response: Response = await apiFetch(endpoint, {
             method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(fields)
           })
           if (!response.ok) {

@@ -74,6 +74,7 @@ const GrouperOverviewTable = ({ grouperLibId, program }: GrouperTable) => {
 
         updated = await apiFetch(endpoint, {
           method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
           body
         })
       } catch (e) {

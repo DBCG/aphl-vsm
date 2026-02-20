@@ -11,6 +11,7 @@ const QAPage: NextPage = () => {
 
   const fetchParameters = async () => apiFetch('/api/qa/generateImportParams', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       maxLeafsPerGrouper: leafsPerGrouper
     })
