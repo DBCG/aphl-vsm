@@ -211,8 +211,8 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
     // Clone the correct state based on which tab we're on
     const sourceData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
     const clonedData = structuredClone(sourceData)
-    // collect all provisional versions, we want to keep these in the manifest but swap out the pinned version
-    const toUpdateManifestVersions = clonedData[targetedSystem]?.filter((i: string) => i.includes('provisional')) || []
+    // Keep only provisional versions — strip any resolved pinned version AND unresolved (empty) entries
+    const toUpdateManifestVersions = clonedData[targetedSystem]?.filter((i: string) => i && i.includes('provisional')) || []
     toUpdateManifestVersions.push(newVersion)
     clonedData[targetedSystem] = toUpdateManifestVersions
 
@@ -240,9 +240,13 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
   // Get the current manifest data based on active tab (for VSPs)
   const activeManifestData = isVSP && manifestTab === 'valuesets' ? currentSelectedValueSets : currentSelectedData
 
-  const containsNonProvisionalVersion = activeManifestData[selectedSystem]?.filter((i) => !i.toLowerCase().includes('provisional')) || []
+  // Filter out empty (unresolved) and provisional versions — only resolved, non-provisional versions should block adding
+  const containsNonProvisionalVersion = activeManifestData[selectedSystem]?.filter((i) => i && !i.toLowerCase().includes('provisional')) || []
+  const hasUnresolvedVersion = activeManifestData[selectedSystem]?.some((i) => !i) || false
 
-  const errorMessage = `Version ${activeManifestData[selectedSystem]} selected for ${selectedSystem}.`
+  const errorMessage = hasUnresolvedVersion
+    ? `An unresolved version exists for ${getNameByUri(selectedSystem, systemNamesByUri) || selectedSystem}. Select a version below to resolve it.`
+    : `Version ${containsNonProvisionalVersion[0] || activeManifestData[selectedSystem]} selected for ${getNameByUri(selectedSystem, systemNamesByUri) || selectedSystem}.`
 
   const shouldDisableAddButton = (activeManifestData[selectedSystem] != null && containsNonProvisionalVersion?.length > 0) || isUpdating
 
@@ -444,6 +448,7 @@ const EditManifestDetails = ({ program }: { program: fhir4.Library }) => {
         <MaxWidthContainer>
           <StyledLabel>Current Manifest</StyledLabel>
           {!isUpdating && shouldDisableAddButton && <ErrorMessage error={errorMessage} severity="warning" />}
+          {!isUpdating && !shouldDisableAddButton && hasUnresolvedVersion && <ErrorMessage error={errorMessage} severity="info" />}
           <ManifestDetailTable
             programId={program?.id!}
             manifestData={activeManifestData}
