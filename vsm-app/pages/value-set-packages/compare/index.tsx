@@ -55,7 +55,7 @@ const VSPCol = styled(VSPContainer)`
   flex-direction: column;
 `
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = (url: string) => apiFetch(url).then((res) => res.json())
 
 const ComparePage = () => {
   const router = useRouter()
@@ -234,7 +234,7 @@ const ComparePage = () => {
     }
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `/api/value-set-packages/${sourceVSP.id}/compare?targetId=${targetVSP.id}`,
         {
           method: 'POST',

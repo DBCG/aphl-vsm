@@ -17,7 +17,9 @@ type KeyCloakUser = {
 
 const KEY = Buffer.from(process.env.KEY, 'hex')
 
-const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_ISSUER?.replace(/\/realms\/.*$/, '') || ''
+// KEYCLOAK_ADMIN_BASE_URL: direct URL to Keycloak for admin API calls (e.g., http://keycloak:8080)
+// Falls back to deriving from KEYCLOAK_ISSUER by stripping /realms/... suffix
+const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_ADMIN_BASE_URL || process.env.KEYCLOAK_ISSUER?.replace(/\/realms\/.*$/, '') || ''
 
 class APITokenHandler {
   private static instance: APITokenHandler
@@ -110,8 +112,8 @@ class APITokenHandler {
   }
 
   private async retrieveStoredAttributes(userId: string | KeyCloakUser) {
-    Logger.getLogger().info('Retrieving stored attributes for userId: ' + userId)
     const url = `${KEYCLOAK_BASE_URL}/admin/realms/aphl/users/${userId}`
+    Logger.getLogger().info(`Retrieving stored attributes for userId: ${userId} from ${url}`)
     const headers = new Headers()
     headers.set('Content-Type', 'application/json')
     headers.set('Authorization', `Bearer ${this._cacheJWT}`)
@@ -121,11 +123,12 @@ class APITokenHandler {
         headers
       })
       if (response.status !== 200) {
+        const body = await response.text().catch(() => 'Unable to read response body')
+        Logger.getLogger().error(`Keycloak admin API returned ${response.status} ${response.statusText} for ${url}. Response: ${body}`)
         throw new Error(`Failed to retrieve user attributes: ${response.statusText}`)
       }
       return response.json()
     } catch (error) {
-      console.log(error)
       Logger.getLogger().error(`Error retrieving attributes for userId: ${userId} from Keycloak: ${error}`)
       this.resetState()
       throw error
@@ -263,7 +266,7 @@ class APITokenHandler {
   }
 
   private async retrieveKeycloakUser(userId: string) {
-    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID}/users/${userId}`;
+    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID || 'aphl'}/users/${userId}`;
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
     headers.set("Authorization", `Bearer ${this._cacheJWT}`);
@@ -290,7 +293,7 @@ class APITokenHandler {
 
   private async setApiKeyInKeycloak(data: { userId: string; dateCreated: number }, encryptedData: string) {
     Logger.getLogger().info("Setting API key in Keycloak for user: " + data.userId);
-    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID}/users/${data.userId}`;
+    const url = `${KEYCLOAK_BASE_URL}/admin/realms/${process.env.KEYCLOAK_REALM_ID || 'aphl'}/users/${data.userId}`;
 
     const headers = new Headers();
     headers.set("Content-Type", "application/json");

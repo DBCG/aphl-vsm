@@ -1,6 +1,7 @@
 import { isValidThreeOrFourPartSemver } from '@/helpers/server/semverHelpers'
 import { ProgramApiResponse } from 'pages/api/programs'
 import { useState, useEffect } from 'react'
+import { apiFetch } from '@/utils'
 
 export interface SearchFilters {
   id?: string
@@ -39,7 +40,7 @@ const useGetPrograms = (fields: SearchFilters): [] | fhir4.Library[] => {
           endpoint = endpoint.concat('?', query)
         }
         try {
-          const response: Response = await fetch(endpoint)
+          const response: Response = await apiFetch(endpoint)
           if (!response.ok) {
             setLibraries([])
           } else {

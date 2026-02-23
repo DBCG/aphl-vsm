@@ -23,16 +23,19 @@ interface DeleteData {
 
 type Fields = Record<string, UpdateData | DeleteData>
 
+import { apiFetch } from '@/utils'
+
 const updateProvisionalCs = async (fields: Fields) => {
   let error: null | string = null
   let message = null
 
   const endpoint = `/api/codesystem/provisional`
-    
+
     async function updateProvisionalCodesystemsAndVSParents(): Promise<void> {
         try {
-          const response: Response = await fetch(endpoint, {
+          const response: Response = await apiFetch(endpoint, {
             method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(fields)
           })
           if (!response.ok) {

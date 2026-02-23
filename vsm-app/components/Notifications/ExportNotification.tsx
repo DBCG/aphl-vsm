@@ -114,8 +114,11 @@ const downloadTextData = (data: string, type: `${string}${'json' | 'xml' | 'txt'
 const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => {
   const downloadExport = async () => {
     const job = await JobsService.getExportJob(jobId);
-    const packageData = job?.returnvalue?.response?.data;
+    const response = job?.returnvalue?.response
     const validationResults = job?.returnvalue?.validationResults;
+    // Programs return { response: { data: ..., formatType: ... } }
+    // VSPs return { response: packageContentString }
+    const packageData = typeof response === 'string' ? response : response?.data
     try {
       const fileMetaData = jobDetails?.metadata as ExportJobMetadata;
       const filename = fileMetaData?.filename
@@ -124,7 +127,11 @@ const ExportNotification = ({ jobId, jobDetails, closeNotification }: Props) => 
           downloadTextData(packageData, 'txt', filename || 'export.csv');
           break;
         case 'json':
-          downloadTextData(JSON.stringify(packageData, null, 2), 'application/fhir+json', filename || 'export.json');
+          if (typeof packageData === 'string') {
+            downloadTextData(packageData, 'application/fhir+json', filename || 'export.json');
+          } else {
+            downloadTextData(JSON.stringify(packageData, null, 2), 'application/fhir+json', filename || 'export.json');
+          }
           break;
         case 'xml':
           downloadTextData(packageData, 'application/fhir+xml', filename || 'export.xml');

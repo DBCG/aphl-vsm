@@ -169,6 +169,7 @@ export const TableActions = ({
       const body = JSON.stringify(batch)
       await apiFetch(`/api/programs/${programId}/details/valuesets/batch`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body
       }).then((res) => {
         window.location.reload()

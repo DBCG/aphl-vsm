@@ -342,6 +342,7 @@ const ProgramCompare = () => {
     try {
       const res = await apiFetch(`/api/programs/${base}/compare?targetId=${target}`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rawData)
       })
 

@@ -168,6 +168,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     const body = JSON.stringify({ batchDelete: payload })
     const result = await apiFetch(`/api/programs/${currentProgram?.id}/grouper/valueset`, {
       method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
       body: body
     })
 
@@ -223,6 +224,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     try {
       const updatedVs = (await apiFetch(endpoint, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           groupInfo,
           leafCanonical,
@@ -247,6 +249,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
     try {
       const updatedLibrary = await apiFetch(`/api/programs/${currentProgram?.id}/details`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body
       }).then((res) => res.json())
       toast.success('Priority updated for ' + vs?.title)
@@ -328,6 +331,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
 
     await apiFetch(`/api/valueset/versions`, {
       method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body
     })
       .catch((e) => console.error('error: ', e))
@@ -366,6 +370,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
       }
       const job = await apiFetch(`/api/valueset/update`, {
         method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ urls: uniq(canonicalUrls), programId: currentProgram?.id })
       }).then((res) => res.json())
 

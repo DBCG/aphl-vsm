@@ -133,7 +133,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(releaseParameters)
-    const result = await apiFetch(`/api/value-set-packages/${id}/release`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/release`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -160,7 +160,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(withdrawParameters)
-    const result = await apiFetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/withdraw`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -185,7 +185,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(retireParameters)
-    const result = await apiFetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/retire`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
@@ -212,7 +212,7 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
     }
 
     const parameters = JSON.stringify(deleteParameters)
-    const result = await apiFetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', body: parameters })
+    const result = await apiFetch(`/api/value-set-packages/${id}/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: parameters })
 
     if (!result.ok) {
       const res = await result.json()
