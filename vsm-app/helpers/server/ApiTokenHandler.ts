@@ -2,6 +2,7 @@ import Logger from '@/helpers/server/logger'
 import crypto from 'crypto'
 import { cloneDeep } from 'lodash'
 import { Buffer } from 'buffer'
+import FhirCdrClient from "@/backend/clients/FhirCdrClient";
 
 if (process.env.KEY == null) {
   Logger.getLogger().error('Symmetric key not found in env variables')
@@ -61,9 +62,11 @@ class APITokenHandler {
     await this.renewKeyCloakToken()
     const userAttributes: KeyCloakUser = await this.retrieveStoredAttributes(userId)
     delete userAttributes?.attributes?.iv
-    const serverIds = Object.keys(userAttributes?.attributes || {}).filter((key) => key !== 'dateCreated' && key !== 'secretMask')
+    let terminologyServers = await new FhirCdrClient().getTerminologyServers()
+    let terminologyServerIds = new Set(terminologyServers.map((server) => server.id))
+    const usersTerminologyServerIds = Object.keys(userAttributes?.attributes || {}).filter((key) => terminologyServerIds.has(key))
     const creds =
-      serverIds.map((terminologyServerId) => {
+      usersTerminologyServerIds.map((terminologyServerId) => {
         const encryptedCreds = userAttributes?.attributes?.[terminologyServerId]?.[0]
         const decryptedCreds = this.decryptData(encryptedCreds)
         const base64Data = JSON.parse(decryptedCreds).value
