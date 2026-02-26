@@ -18,7 +18,8 @@ const Cache = (function () {
 
   async function createInstance(): Promise<Redis> {
     const options: RedisOptions = {
-      host: process.env.REDIS_HOST || 'localhost',
+      host: (process.env.REDIS_HOST || 'localhost').split(':')[0],
+      port: parseInt((process.env.REDIS_HOST || '').split(':')[1] || '6379', 10),
       lazyConnect: true,
       enableReadyCheck: true,
       db: redisDb,
