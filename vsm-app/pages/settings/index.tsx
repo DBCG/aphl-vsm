@@ -573,7 +573,7 @@ const TerminologyEndpoints: NextPage = () => {
   const onboardingText = {
     title: 'Welcome to the Valueset Manager!',
     body: 'To view content, add valid credentials for a Terminology Server.',
-    requirements: 'A Terminology Server connection is required to use the app.',
+    requirements: 'At least one Terminology Server endpoint must be defined to use the app.',
     checks: 'Credentials are validated by querying the FHIR /metadata endpoint.',
     otherRequirements: 'All configured endpoints must be FHIR-conformant servers.',
     catchAll: 'At least one endpoint must be configured without an Artifact Route to act as a catch-all for artifact resolution.',

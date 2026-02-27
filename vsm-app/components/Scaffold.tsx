@@ -3,6 +3,10 @@ import Head from 'next/head'
 import { FileContainer } from '@/components/FileContainer'
 import { NavBar } from '@/components/NavBar'
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useGetEndpoints } from '@/hooks/useGetEndpoints'
+import { ARTIFACT_ROUTE_URL } from '@/constants'
 
 const ScaffoldWrapper = styled.div`
   height: 100%;
@@ -32,6 +36,21 @@ interface Props {
 
 const Scaffold = ({ children }: Props) => {
   const router = useRouter()
+  const { data: session } = useSession()
+  const { allEndpoints, endpointsLoading } = useGetEndpoints()
+
+  useEffect(() => {
+    if (!session || endpointsLoading || router.pathname.startsWith('/settings')) return
+    const endpoints = allEndpoints?.endpoints ?? []
+    const noEndpoints = endpoints.length === 0
+    const missingArtifactRoute = endpoints.length > 0 && endpoints.every(
+      (ep) => !!ep.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri
+    )
+    if (noEndpoints || missingArtifactRoute) {
+      router.push('/settings')
+    }
+  }, [session, endpointsLoading, allEndpoints, router])
+
   return (
     <ScaffoldWrapper>
       <Head>
