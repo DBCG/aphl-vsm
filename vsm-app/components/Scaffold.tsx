@@ -41,7 +41,7 @@ const Scaffold = ({ children }: Props) => {
 
   useEffect(() => {
     if (!session || endpointsLoading || router.pathname.startsWith('/settings')) return
-    const endpoints = allEndpoints?.endpoints ?? []
+    const endpoints: fhir4.Endpoint[] = allEndpoints?.endpoints ?? []
     const noEndpoints = endpoints.length === 0
     const missingArtifactRoute = endpoints.length > 0 && endpoints.every(
       (ep) => !!ep.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri
