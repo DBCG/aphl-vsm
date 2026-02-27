@@ -32,6 +32,7 @@ FROM node:24.14.0-slim
 
 RUN apt-get update && \
 	apt-get dist-upgrade -y && \
+	apt-get install -y --no-install-recommends curl && \
 	apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
