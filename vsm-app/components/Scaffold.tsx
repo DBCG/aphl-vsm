@@ -43,10 +43,10 @@ const Scaffold = ({ children }: Props) => {
     if (!session || endpointsLoading || !allEndpoints || router.pathname.startsWith('/settings')) return
     const endpoints: fhir4.Endpoint[] = allEndpoints?.endpoints ?? []
     const noEndpoints = endpoints.length === 0
-    const missingArtifactRoute = endpoints.length > 0 && endpoints.every(
+    const allEndpointsHaveArtifactRoute = endpoints.length > 0 && endpoints.every(
       (ep) => !!ep.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri
     )
-    if (noEndpoints || missingArtifactRoute) {
+    if (noEndpoints || allEndpointsHaveArtifactRoute) {
       router.push('/settings')
     }
   }, [session, endpointsLoading, allEndpoints, router])
