@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { NextPage } from 'next'
 import ProgramsTab from '@/components/Program/ProgramsTab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
@@ -6,9 +6,6 @@ import { Box, Tab } from '@mui/material'
 import { ProvisionalResourcesTab } from '@/components/Provisional/ProvisionalResourcesTab'
 import ValueSetPackagesTab from '@/components/ValueSetPackage/ValueSetPackagesTab'
 import { useRouter } from 'next/router'
-import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
-import { useGetEndpoints } from '@/hooks/useGetEndpoints'
-import { findVSACEndpoint } from '@/utils/endpointHelpers'
 
 const Programs: NextPage = () => {
   const [value, setValue] = useState('1')
@@ -25,28 +22,6 @@ const Programs: NextPage = () => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue)
   }
-
-  const {
-    allEndpoints,
-  } = useGetEndpoints()
-
-  const vsacEndpoint = useMemo(() => {
-    return findVSACEndpoint(allEndpoints?.endpoints)
-  }, [allEndpoints])
-
-  const {
-    isEndpointValid,
-    pingLoading,
-    pingError,
-  } = useTestTermEndpoint({
-    endpointId: vsacEndpoint?.id
-  })
-  
-  useEffect(() => {
-    if (vsacEndpoint && !isEndpointValid && !pingLoading && pingError) {
-      router.push('/settings')
-    }
-  }, [vsacEndpoint, isEndpointValid, pingLoading, pingError])
 
   return (
     <TabContext value={value}>

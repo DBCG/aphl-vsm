@@ -8,6 +8,8 @@ import LoadingIndicator from '@/components/LoadingIndicator'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import WarningIcon from '@mui/icons-material/Warning'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { formatDateForTable } from '@/helpers/formatDates'
 import { ErrorMessage } from '@/components/ErrorMessage'
 import { EndpointResponse } from '../api/endpoint'
@@ -15,7 +17,7 @@ import { PaginationState } from '@/components/Program/ProgramsTab'
 import { useRouter } from 'next/router'
 import { getAuthenticationTypeString } from '@/components/TerminologyServerForm'
 import { fetcher } from '@/utils'
-import { Box, Button, FormControl, Stack, TextField, Typography, Tooltip } from '@mui/material'
+import { Box, Button, FormControl, Stack, TextField, Typography } from '@mui/material'
 import useSWR from 'swr'
 import { Row as RowStyle } from '@/styles'
 import { toast } from 'react-toastify'
@@ -24,7 +26,7 @@ import { useSession } from 'next-auth/react'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { apiFetch } from '@/utils'
-import { isVSACEndpoint } from '@/utils/endpointHelpers'
+import { ARTIFACT_ROUTE_URL } from '@/constants'
 
 const Col = styled.div`
   display: flex;
@@ -173,12 +175,12 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
   )
   const inner = isValid ? (
     <>
-      <Typography style={{ color: 'inherit' }}>Creds Valid</Typography>
+      <Typography style={{ color: 'inherit' }}>Valid</Typography>
       <CheckCircleOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
     </>
   ) : (
     <>
-      <Typography style={{ color: 'inherit' }}>Creds Invalid</Typography>
+      <Typography style={{ color: 'inherit' }}>Invalid</Typography>
       <ErrorOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
     </>
   )
@@ -190,10 +192,19 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
   )
 }
 
+const EndpointStatusCell = ({ id, onValidityChange }: { id: string, onValidityChange: (id: string, isValid: boolean) => void }) => {
+  const { isEndpointValid, pingLoading } = useTestTermEndpoint({ endpointId: id })
+  useEffect(() => {
+    if (!pingLoading) onValidityChange(id, isEndpointValid)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isEndpointValid, pingLoading])
+  return <ValidStatus isValid={isEndpointValid} isLoading={pingLoading} />
+}
+
 const CredentialsItem = (currentServerData: any) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
-  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
+  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
   
   const { data: allCurrentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
@@ -241,15 +252,6 @@ const CredentialsItem = (currentServerData: any) => {
     pingMutate('/api/test-terminology-endpoint')
   }, [credentials?.[0]])
 
-  useEffect(() => {
-    // Find the endpoint for this credential to check if it's VSAC
-    const endpoint = allCurrentEndpoints?.endpoints?.find((ep: fhir4.Endpoint) => ep.id === credentials?.[0]?.id)
-    if (endpoint && isVSACEndpoint(endpoint) && !isEndpointValid && !pingLoading && pingError) {
-      setVsacInvalid(true)
-    } else {
-      setVsacInvalid(false)
-    }
-  }, [isEndpointValid, pingLoading, allCurrentEndpoints, credentials])
 
   const updateCredential = async (id: string, username: string, password: string) => {
     try {
@@ -308,9 +310,19 @@ const CredentialsItem = (currentServerData: any) => {
     return <LoadingIndicator />
   }
 
+  const isOpenEndpoint = getAuthenticationTypeString(data?.extension || []) === 'none'
+
   const reload = async () => {
     reloadCurrentCredentials()
     reloadCurrentEndpoints()
+  }
+
+  if (isOpenEndpoint) {
+    return (
+      <Box style={{ backgroundColor: isOdd ? 'var(--neutral-350)' : 'var(--neutral-300)'}}>
+        <Typography sx={{ p: '1rem', color: 'gray' }}>No credentials required for this endpoint.</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -421,7 +433,7 @@ const TerminologyEndpoints: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const [vsacInvalid, setVsacInvalid] = useState(false)
+  const [onboardingExpanded, setOnboardingExpanded] = useState(false)
 
   const isAdmin = useMemo(() => {
     return session?.user?.roles?.includes('admin')
@@ -478,6 +490,23 @@ const TerminologyEndpoints: NextPage = () => {
       }
     })
   
+  const noEndpoints = useMemo(
+    () => !loading && data.length === 0,
+    [loading, data]
+  )
+
+  const allEndpointsHaveArtifactRoute = useMemo(
+    () => data.length > 0 && data.every((ep) => !!ep.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri),
+    [data]
+  )
+
+  const [endpointValidity, setEndpointValidity] = useState<Record<string, boolean>>({})
+
+  const anyEndpointInvalid = useMemo(
+    () => Object.values(endpointValidity).some((isValid) => !isValid),
+    [endpointValidity]
+  )
+
   const columns: TableColumn<fhir4.Endpoint>[] = useMemo(
     () => [
       {
@@ -492,6 +521,12 @@ const TerminologyEndpoints: NextPage = () => {
         selector: (row: fhir4.Endpoint) => row.address,
         sortable: false,
         minWidth: '10rem',
+        wrap: true
+      },
+      {
+        name: 'Artifact Route',
+        selector: (row: fhir4.Endpoint) => row.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri || '',
+        sortable: false,
         wrap: true
       },
       {
@@ -512,6 +547,17 @@ const TerminologyEndpoints: NextPage = () => {
         maxWidth: '8rem'
       },
       {
+        name: 'Status',
+        sortable: false,
+        maxWidth: '8rem',
+        cell: (row: fhir4.Endpoint) => (
+          <EndpointStatusCell
+            id={row.id!}
+            onValidityChange={(id, isValid) => setEndpointValidity((prev) => ({ ...prev, [id]: isValid }))}
+          />
+        )
+      },
+      {
         name: 'Actions',
         omit: !isAdmin,
         selector: (row: fhir4.Endpoint) => row.name || '',
@@ -521,10 +567,6 @@ const TerminologyEndpoints: NextPage = () => {
         maxWidth: '3rem',
         minWidth: '10rem',
         cell: (row: fhir4.Endpoint) => {
-          const isVSAC = isVSACEndpoint(row)
-          if (isVSAC) {
-            return 'VSAC endpoint details readonly'
-          }
           return (
             <ButtonWrapper style={{ minWidth: '9rem', justifyContent: 'space-around' }}>
               <IconButton
@@ -533,28 +575,19 @@ const TerminologyEndpoints: NextPage = () => {
                 }}
                 buttoncontext={'edit'}
               />
-              <Tooltip
-                placement="top" arrow
-                title={isVSAC ? 'Cannot delete VSAC endpoint' : 'Delete endpoint'}
-              >
-                <span>
-                  <IconButton
-                    disabled={isVSAC}
-                    title='test'
-                    onClick={() => {
-                      const url = `/api/endpoint/${row.id}`
-                      setLoading(true)
-                      return apiFetch(url, { method: 'DELETE' })
-                        .catch((error) => setError({ error: error.error || error.toString() }))
-                        .finally(() => {
-                          setLoading(false)
-                          fetchEndpoints((pagination.page - 1) * pagination.countPerPage, pagination.page * pagination.countPerPage)
-                        })
-                    }}
-                    buttoncontext="delete"
-                  />
-                </span>
-              </Tooltip>
+              <IconButton
+                onClick={() => {
+                  const url = `/api/endpoint/${row.id}`
+                  setLoading(true)
+                  return apiFetch(url, { method: 'DELETE' })
+                    .catch((error) => setError({ error: error.error || error.toString() }))
+                    .finally(() => {
+                      setLoading(false)
+                      fetchEndpoints((pagination.page - 1) * pagination.countPerPage, pagination.page * pagination.countPerPage)
+                    })
+                }}
+                buttoncontext="delete"
+              />
             </ButtonWrapper>
           )
         }
@@ -565,10 +598,17 @@ const TerminologyEndpoints: NextPage = () => {
 
   const onboardingText = {
     title: 'Welcome to the Valueset Manager!',
-    body: 'In order to view content, you must first add valid credentials for the VSAC server below.',
-    requirements: 'This is required for the app to be able to run.',
-    checks: `Valid and invalid credentials are determined by attempting to GET the FHIR /metadata endpoint.`,
-    otherRequirements: 'All other endpoints must also be conformant FHIR servers to use in the VSM App.'
+    body: 'To view content, add valid credentials for a Terminology Server.',
+    requirements: 'At least one Terminology Server endpoint must be defined to use the app.',
+    checks: 'Credentials are validated by querying the FHIR /metadata endpoint.',
+    otherRequirements: 'All configured endpoints must be FHIR-conformant servers.',
+    catchAll: 'At least one endpoint must be configured without an Artifact Route to act as a catch-all for artifact resolution.',
+    resolutionTitle: 'How resolution works',
+    resolutionSteps: [
+      'Configurations with a matching Artifact Route are tried first, ranked by how many characters of the canonical URL they match — longer, more-specific routes take priority.',
+      'Configurations with no Artifact Route act as a catch-all — they are always candidates, but ranked lower than any specific route match.',
+      'Resolution is attempted in rank order until one succeeds.'
+    ]
   }
 
   return (
@@ -577,14 +617,33 @@ const TerminologyEndpoints: NextPage = () => {
         <PageTitle>Settings</PageTitle>
       </Row>
       <Box style={{ backgroundColor: 'white', padding: '1rem', marginBottom: '1rem' }}>
-        <p style={{ fontWeight: 'bold' }}>{onboardingText.title}</p>
-        <p>{onboardingText.body}</p>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <WarningIcon style={{ color: 'var(--warning-medium)', marginRight: '.2rem', marginBottom: '.1rem' }}/>
-          <span>{onboardingText.requirements}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ fontWeight: 'bold', margin: 0 }}>{onboardingText.title}</p>
+          <Button onClick={() => setOnboardingExpanded((prev) => !prev)} sx={{ minWidth: 0 }}>
+            {onboardingExpanded ? <><ExpandLessIcon /> Hide onboarding details</> : <><ExpandMoreIcon /> Show onboarding details</>}
+          </Button>
         </div>
-        <p>{onboardingText.checks}</p>
-        <p>{onboardingText.otherRequirements}</p>
+        {onboardingExpanded && (
+          <>
+            <p>{onboardingText.body}</p>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <WarningIcon style={{ color: 'var(--warning-medium)', marginRight: '.2rem', marginBottom: '.1rem' }}/>
+              <span>{onboardingText.requirements}</span>
+            </div>
+            <p>{onboardingText.checks}</p>
+            <p>{onboardingText.otherRequirements}</p>
+            <p>{onboardingText.catchAll}</p>
+            <p style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>{onboardingText.resolutionTitle}</p>
+            <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+              {onboardingText.resolutionSteps.map((step, i) => <li key={i}>{step}</li>)}
+            </ul>
+            <p style={{ marginTop: '0.5rem' }}>
+              <a href="https://build.fhir.org/ig/HL7/crmi-ig/StructureDefinition-crmi-artifact-endpoint-configurable-operation.html" target="_blank" rel="noreferrer" style={{ color: 'var(--theme-400)' }}>
+                CRMI IG — Artifact Endpoint Configurable Operation
+              </a>
+            </p>
+          </>
+        )}
       </Box>
       {isAdmin && (
         <Row style={{ alignItems: 'center' }}>
@@ -593,6 +652,9 @@ const TerminologyEndpoints: NextPage = () => {
         </Row>
       )}
       <ErrorMessage error={error?.error || null} />
+      <ErrorMessage error={noEndpoints ? 'No endpoints are configured. At least one Terminology Endpoint is required.' : null} />
+      <ErrorMessage error={allEndpointsHaveArtifactRoute ? 'All endpoints have an Artifact Route \u2014 a catch-all endpoint with no route is required.' : null} />
+      <ErrorMessage error={!noEndpoints && anyEndpointInvalid ? 'One or more endpoints are invalid or unreachable.' : null} />
       <DT
         data={
           data?.map((d, index) => ({ ...d, index }))
@@ -600,7 +662,7 @@ const TerminologyEndpoints: NextPage = () => {
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}
-        expandableRowsComponentProps={{ currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid }}
+        expandableRowsComponentProps={{ currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials }}
         conditionalRowStyles={[
           {
             when: (row) => data.findIndex((r) => r.id === row.id) % 2 !== 0,
