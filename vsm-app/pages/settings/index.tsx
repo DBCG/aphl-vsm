@@ -175,12 +175,12 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
   )
   const inner = isValid ? (
     <>
-      <Typography style={{ color: 'inherit' }}>Creds Valid</Typography>
+      <Typography style={{ color: 'inherit' }}>Valid</Typography>
       <CheckCircleOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
     </>
   ) : (
     <>
-      <Typography style={{ color: 'inherit' }}>Creds Invalid</Typography>
+      <Typography style={{ color: 'inherit' }}>Invalid</Typography>
       <ErrorOutlineIcon style={{ color: 'inherit', marginLeft: '.2rem', marginBottom: '.1rem' }} />
     </>
   )
