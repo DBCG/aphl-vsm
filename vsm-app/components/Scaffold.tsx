@@ -40,7 +40,7 @@ const Scaffold = ({ children }: Props) => {
   const { allEndpoints, endpointsLoading } = useGetEndpoints()
 
   useEffect(() => {
-    if (!session || endpointsLoading || router.pathname.startsWith('/settings')) return
+    if (!session || endpointsLoading || !allEndpoints || router.pathname.startsWith('/settings')) return
     const endpoints: fhir4.Endpoint[] = allEndpoints?.endpoints ?? []
     const noEndpoints = endpoints.length === 0
     const missingArtifactRoute = endpoints.length > 0 && endpoints.every(

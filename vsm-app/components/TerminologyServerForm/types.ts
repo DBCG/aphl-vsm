@@ -1,6 +1,7 @@
 import { Options } from 'react-select'
 
 export const authenticationTypes = {
+  none: 'No Authentication',
   basic: 'Basic Authentication',
 }
 

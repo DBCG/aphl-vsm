@@ -39,6 +39,7 @@ const decorateForVSACClient = (client: Client) => {
 class TerminologyClient {
   client: Client | undefined
   clientName: string
+  private customClientSet = false
   constructor() {
     this.clientName = 'vsac'
     this.client = new FhirKitClient({ baseUrl: NEXT_PUBLIC_VSAC_BASE_URL })
@@ -48,7 +49,7 @@ class TerminologyClient {
     if (userId) {
       const creds = await tsCredentialService.getVsacCredentials(userId)
       this.setClientAuth(creds)
-    } else if (!this.isAuthSet()) {
+    } else if (!this.isAuthSet() && !this.customClientSet) {
       throw new Error('Terminology credentials are required to access the terminology server')
     }
 
@@ -66,13 +67,14 @@ class TerminologyClient {
   }: {
     baseUrl?: string
     clientName?: string
-    basicAuthHeader: string
+    basicAuthHeader?: string
   }) {
     this.client = new FhirKitClient({
       baseUrl,
-      customHeaders: { Authorization: `Basic ${basicAuthHeader}` }
+      customHeaders: basicAuthHeader ? { Authorization: `Basic ${basicAuthHeader}` } : {}
     })
     this.clientName = clientName
+    this.customClientSet = true
   }
 
   private isAuthSet() {

@@ -26,7 +26,6 @@ import { useSession } from 'next-auth/react'
 import { VSMSession } from '@/helpers/rolesHelper'
 import { useTestTermEndpoint } from '@/hooks/useTestTermEndpoint'
 import { apiFetch } from '@/utils'
-import { isVSACEndpoint } from '@/utils/endpointHelpers'
 import { ARTIFACT_ROUTE_URL } from '@/constants'
 
 const Col = styled.div`
@@ -193,10 +192,19 @@ const ValidStatus = ({ isValid, isLoading }: { isValid: boolean, isLoading: bool
   )
 }
 
+const EndpointStatusCell = ({ id, onValidityChange }: { id: string, onValidityChange: (id: string, isValid: boolean) => void }) => {
+  const { isEndpointValid, pingLoading } = useTestTermEndpoint({ endpointId: id })
+  useEffect(() => {
+    if (!pingLoading) onValidityChange(id, isEndpointValid)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isEndpointValid, pingLoading])
+  return <ValidStatus isValid={isEndpointValid} isLoading={pingLoading} />
+}
+
 const CredentialsItem = (currentServerData: any) => {
   const [showCredentialSet, setShowCredentialSet] = useState(new Set())
   const [showEditSet, setShowEditSet] = useState(new Set())
-  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid} = currentServerData
+  const {data, currentCredentialsByServerId, currentCredentialsByServerIdLoading, reloadCurrentCredentials} = currentServerData
   const [isAdding, setIsAdding] = useState(false)
   
   const { data: allCurrentEndpoints = null, isLoading: endpointsLoading, mutate: reloadCurrentEndpoints } = useSWR('/api/endpoint', fetcher)
@@ -244,15 +252,6 @@ const CredentialsItem = (currentServerData: any) => {
     pingMutate('/api/test-terminology-endpoint')
   }, [credentials?.[0]])
 
-  useEffect(() => {
-    // Find the endpoint for this credential to check if it's VSAC
-    const endpoint = allCurrentEndpoints?.endpoints?.find((ep: fhir4.Endpoint) => ep.id === credentials?.[0]?.id)
-    if (endpoint && isVSACEndpoint(endpoint) && !isEndpointValid && !pingLoading && pingError) {
-      setVsacInvalid(true)
-    } else {
-      setVsacInvalid(false)
-    }
-  }, [isEndpointValid, pingLoading, allCurrentEndpoints, credentials])
 
   const updateCredential = async (id: string, username: string, password: string) => {
     try {
@@ -311,9 +310,19 @@ const CredentialsItem = (currentServerData: any) => {
     return <LoadingIndicator />
   }
 
+  const isOpenEndpoint = getAuthenticationTypeString(data?.extension || []) === 'none'
+
   const reload = async () => {
     reloadCurrentCredentials()
     reloadCurrentEndpoints()
+  }
+
+  if (isOpenEndpoint) {
+    return (
+      <Box style={{ backgroundColor: isOdd ? 'var(--neutral-350)' : 'var(--neutral-300)'}}>
+        <Typography sx={{ p: '1rem', color: 'gray' }}>No credentials required for this endpoint.</Typography>
+      </Box>
+    )
   }
 
   return (
@@ -424,7 +433,6 @@ const TerminologyEndpoints: NextPage = () => {
   const router = useRouter()
   const { data: session } = useSession() as unknown as { data: VSMSession }
 
-  const [vsacInvalid, setVsacInvalid] = useState(false)
   const [onboardingExpanded, setOnboardingExpanded] = useState(false)
 
   const isAdmin = useMemo(() => {
@@ -487,9 +495,16 @@ const TerminologyEndpoints: NextPage = () => {
     [loading, data]
   )
 
-  const missingArtifactRoute = useMemo(
+  const allEndpointsHaveArtifactRoute = useMemo(
     () => data.length > 0 && data.every((ep) => !!ep.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri),
     [data]
+  )
+
+  const [endpointValidity, setEndpointValidity] = useState<Record<string, boolean>>({})
+
+  const anyEndpointInvalid = useMemo(
+    () => Object.values(endpointValidity).some((isValid) => !isValid),
+    [endpointValidity]
   )
 
   const columns: TableColumn<fhir4.Endpoint>[] = useMemo(
@@ -530,6 +545,17 @@ const TerminologyEndpoints: NextPage = () => {
         sortable: false,
         wrap: true,
         maxWidth: '8rem'
+      },
+      {
+        name: 'Status',
+        sortable: false,
+        maxWidth: '8rem',
+        cell: (row: fhir4.Endpoint) => (
+          <EndpointStatusCell
+            id={row.id!}
+            onValidityChange={(id, isValid) => setEndpointValidity((prev) => ({ ...prev, [id]: isValid }))}
+          />
+        )
       },
       {
         name: 'Actions',
@@ -627,7 +653,8 @@ const TerminologyEndpoints: NextPage = () => {
       )}
       <ErrorMessage error={error?.error || null} />
       <ErrorMessage error={noEndpoints ? 'No endpoints are configured. At least one Terminology Endpoint is required.' : null} />
-      <ErrorMessage error={missingArtifactRoute ? 'All endpoints have an Artifact Route \u2014 a catch-all endpoint with no route is required.' : null} />
+      <ErrorMessage error={allEndpointsHaveArtifactRoute ? 'All endpoints have an Artifact Route \u2014 a catch-all endpoint with no route is required.' : null} />
+      <ErrorMessage error={!noEndpoints && anyEndpointInvalid ? 'One or more endpoints are invalid or unreachable.' : null} />
       <DT
         data={
           data?.map((d, index) => ({ ...d, index }))
@@ -635,7 +662,7 @@ const TerminologyEndpoints: NextPage = () => {
         expandableRows
         expandableRowExpanded={() => true}
         expandableRowsComponent={CredentialsItem}
-        expandableRowsComponentProps={{ currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials, setVsacInvalid }}
+        expandableRowsComponentProps={{ currentCredentialsByServerId, credentialsByServerIdLoading, reloadCurrentCredentials }}
         conditionalRowStyles={[
           {
             when: (row) => data.findIndex((r) => r.id === row.id) % 2 !== 0,
