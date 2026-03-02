@@ -1,6 +1,6 @@
 {
   "name": "vsm-app",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.8",
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
@@ -34,6 +34,7 @@
     "ioredis": "^5.4.1",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
+    "minimatch": "^10.2.4",
     "next": "^15.5.12",
     "next-auth": "^4.24.13",
     "pino": "^10.1.0",

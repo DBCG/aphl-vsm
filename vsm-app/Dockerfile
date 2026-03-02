@@ -1,4 +1,4 @@
-FROM node:24.14.0-alpine AS builder
+FROM node:25.7.0-alpine AS builder
 
 # Placeholder for build, will be replaced by actual runtime env vars
 ENV FHIR_CDR_URL="http://localhost:8082"
@@ -28,10 +28,11 @@ COPY ./ /opt/app
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM node:24.14.0-slim
+FROM node:25.7.0-slim
 
 RUN apt-get update && \
 	apt-get dist-upgrade -y && \
+	apt-get install -y --no-install-recommends curl && \
 	apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
