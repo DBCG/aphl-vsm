@@ -78,6 +78,28 @@ services:
       KC_HOSTNAME_STRICT: false
     depends_on:
       - postgres
+  # Widens user_attribute.value from VARCHAR(255) to TEXT so that encrypted
+  # basic-auth credentials are not truncated (Keycloak 21 hard limit).
+  # Polls until Keycloak has created the table, then runs the ALTER. Safe to
+  # re-run: postgres treats TYPE TEXT → TYPE TEXT as a no-op.
+  keycloak-db-patch:
+    image: postgres:18.1-alpine
+    depends_on:
+      - keycloak
+    environment:
+      PGPASSWORD: password
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until psql -h postgres -U keycloak -d keycloak -tc \
+          "SELECT 1 FROM information_schema.tables WHERE table_name='user_attribute'" \
+          2>/dev/null | grep -q 1; do
+          sleep 2
+        done
+        psql -h postgres -U keycloak -d keycloak \
+          -c "ALTER TABLE user_attribute ALTER COLUMN value TYPE TEXT;"
+    restart: "no"
   # vsm-app:
   #   build:
   #     context: ./vsm-app
