@@ -101,15 +101,17 @@ class APITokenHandler {
   private encryptData(data: string) {
     const iv = crypto.randomBytes(16)
     const cipher = crypto.createCipheriv('aes-256-cbc', KEY as any, iv as any)
-    let encrypted = cipher.update(data, 'utf8', 'hex')
-    encrypted += cipher.final('hex')
-    return iv.toString('hex') + ':' + encrypted
+    let encrypted = cipher.update(data, 'utf8', 'base64')
+    encrypted += cipher.final('base64')
+    return iv.toString('base64') + ':' + encrypted
   }
 
   private decryptData(encryptedData: string) {
     let values = encryptedData.split(':')
-    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY as any, Buffer.from(values[0], 'hex') as any)
-    let decrypted = decipher.update(values[1], 'hex', 'utf8')
+    const isLegacyHex = values[0].length === 32
+    const iv = Buffer.from(values[0], isLegacyHex ? 'hex' : 'base64')
+    const decipher = crypto.createDecipheriv('aes-256-cbc', KEY as any, iv as any)
+    let decrypted = decipher.update(values[1], isLegacyHex ? 'hex' : 'base64', 'utf8')
     decrypted += decipher.final('utf8')
     return decrypted
   }
