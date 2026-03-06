@@ -181,7 +181,6 @@ export const fetchLeafValueSets = async ({
     }
 
     return {
-      resourceType: 'ValueSet',
       request: {
         method: 'GET',
         url: `ValueSet${objectToQueryParams(searchParameters)}`

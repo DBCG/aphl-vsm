@@ -17,7 +17,6 @@ VSDownloadQueue.process(async function (job: any, done) {
     return {
       request: {
         method: 'GET',
-        resourceType: 'ValueSet',
         url: `ValueSet?url=${url}&_elements=id`
       }
     }
