@@ -528,7 +528,7 @@ const ProgramValueSetDetails = ({ router, program }: ProgramValueSetDetailsProps
                   onChange={async (evt) => {
                     if (evt?.value === 'latest' && row?.version === '[Undefined]') {
                       return
-                    } else if (row?.version !== evt?.value) {
+                    } else if (row?.version !== evt?.value || !row?.valueSetPinnedVersion) {
                       await handleVersionUpdate(evt, row)
                     }
                   }}
