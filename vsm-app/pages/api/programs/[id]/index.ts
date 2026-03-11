@@ -84,6 +84,14 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
   }
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '5mb',
+    },
+  }
+}
+
 export default handler({
   GET: { action: retrieveProgramLibrary },
   PUT: { action: updateProgramLibrary, access: ['admin', 'editor'] },
