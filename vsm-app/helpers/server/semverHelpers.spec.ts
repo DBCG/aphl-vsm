@@ -74,5 +74,15 @@ describe('semverHelpers', () => {
     it('ignores versions with incorrect syntax and does not throw', () => {
       expect(getLatestFromList(UNSORTED_4)).toBe(EXPECTED_4)
     })
+
+    it('ignores date-style versions with multiple hyphens (e.g. 2022-11-19) without throwing', () => {
+      expect(() => getLatestFromList(['2022-11-19', '2.0.1', '2.0.5'])).not.toThrow()
+      expect(getLatestFromList(['2022-11-19', '2.0.1', '2.0.5'])).toBe('2.0.5')
+    })
+
+    it('returns empty string when all versions are date-style multi-hyphen', () => {
+      expect(() => getLatestFromList(['2022-11-19', '2023-01-01'])).not.toThrow()
+      expect(getLatestFromList(['2022-11-19', '2023-01-01'])).toBe('')
+    })
   })
 })

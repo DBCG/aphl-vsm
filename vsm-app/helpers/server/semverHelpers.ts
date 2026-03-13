@@ -4,7 +4,7 @@ import sort from 'semver/functions/sort'
 const removeFlags = (item: string) => {
   const split = item?.split('-')
   if (split?.length > 2) {
-    throw new Error("Version contains multiple hyphens and the flag cannot be parsed: " + item)
+    return null
   }
   return item?.split('-')?.[0]
 }
@@ -57,7 +57,7 @@ const normalizeToThreePartSemver = (maybeMoreThanThree: string) => {
 }
 const getLatestFromList = (versions: string[]) => {
   const filteredNormalizedVersions = versions
-    .filter(v => isValidThreeOrFourPartSemver(removeFlags(v)))
+    .filter(v => isValidThreeOrFourPartSemver(removeFlags(v) as string))
     .map(normalizeToThreePartSemver)
   const sorted = sort(filteredNormalizedVersions)
   return convertBackToCqfSemver(sorted[sorted.length - 1] || "")
