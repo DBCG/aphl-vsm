@@ -70,6 +70,7 @@ const generateChangelog = async (req: NextApiRequest, res: NextApiResponse, sess
 
 export default handler({
   POST: {
-    action: generateChangelog
+    action: generateChangelog,
+    access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer']
   }
 })

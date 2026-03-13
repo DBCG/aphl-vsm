@@ -87,5 +87,5 @@ export const config = {
 }
 
 export default handler({
-  POST: { action: createParamsBundleForQA, access: ['admin'] },
+  POST: { action: createParamsBundleForQA, access: ['admin', 'publisher'] },
 })

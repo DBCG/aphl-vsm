@@ -34,5 +34,5 @@ const getCodeSystems = async (req: ProvisionalReqGet, res: NextApiResponse<CodeS
 }
 
 export default handler({
-  GET: { action: getCodeSystems, access: ['admin', 'editor', 'reviewer'] },
+  GET: { action: getCodeSystems, access: ['admin', 'publisher', 'editor', 'reviewer'] },
 })

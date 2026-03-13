@@ -138,6 +138,6 @@ const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRe
 export default handler({
   POST: {
     action: cloneProgram,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

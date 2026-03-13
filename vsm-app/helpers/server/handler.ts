@@ -67,6 +67,8 @@ export const getHighestPermissionOfUser = (role: string[] | string | null): stri
   } else if (Array.isArray(role)) {
     if (role.includes('admin')) {
       return 'admin'
+    } else if (role.includes('publisher')) {
+      return 'publisher'
     } else if (role.includes('editor')) {
       return 'editor'
     } else if (role.includes('reviewer')) {
@@ -84,10 +86,10 @@ const roleIsAuthorizedPassthroughApi = (role: string | null, method: 'GET' | 'PU
 }
 
 const allowedRolesPassthroughApi = {
-  GET: ['admin'],
-  PUT: ['admin'],
-  POST: ['admin'],
-  DELETE: ['admin']
+  GET: ['admin', 'publisher'],
+  PUT: ['admin', 'publisher'],
+  POST: ['admin', 'publisher'],
+  DELETE: ['admin', 'publisher']
 }
 
 export default handler

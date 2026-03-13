@@ -190,7 +190,7 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  GET: { access: ['admin', 'editor', 'reviewer'], action: getManifestVersions },
-  PUT: { access: ['admin', 'editor'], action: updateManifest },
-  POST: { access: ['admin', 'editor'], action: validateManifestVersions }
+  GET: { access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer'], action: getManifestVersions },
+  PUT: { access: ['admin', 'publisher', 'editor'], action: updateManifest },
+  POST: { access: ['admin', 'publisher', 'editor'], action: validateManifestVersions }
 })

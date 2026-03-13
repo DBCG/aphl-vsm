@@ -82,6 +82,6 @@ const packageVSP = async (req: VSPPackageBody, res: NextApiResponse<Queue.Job | 
 export default handler({
   POST: {
     action: packageVSP,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor', 'implementer']
   }
 })

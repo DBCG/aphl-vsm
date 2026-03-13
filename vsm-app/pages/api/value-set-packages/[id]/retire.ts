@@ -53,6 +53,6 @@ const retireVSP = async (
 export default handler({
   POST: {
     action: retireVSP,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })
