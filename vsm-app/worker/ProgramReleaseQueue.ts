@@ -27,10 +27,12 @@ type ProgramReleaseQueueJobData = {
 ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJobData>, done) {
   const { releaseAsVersion, programId, releaseDescription = '', releaseLabel = '', effectiveStartDate, latestFromTxServer, userId } = job.data
   Logger.getLogger().info('Begin Release Job for Program Id: ' + job.data.programId)
-  
+
   const cache = await Cache.getInstance()
-  const cacheKey = `user:${userId}:job:${job.id}`  
-  
+  const cacheKey = `user:${userId}:job:${job.id}`
+
+  try {
+
   let program: fhir4.Library | undefined
   try {
     program = (await FhirClient.getInstance().read({
@@ -113,6 +115,13 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     Logger.getLogger().info('Finished')
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
     return done(null, { response: "Finished" })
+  }
+
+  } catch (e: any) {
+    const error = e?.message || 'Unknown error during release'
+    Logger.getLogger().error('Release job failed with unhandled error: ' + error)
+    await cache.hset(cacheKey, 'status', JOB_STATUS.FAILED, 'error', error)
+    done(null, { error })
   }
 })
 
