@@ -14,8 +14,8 @@ import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   const userId = session.user.id
-  const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
   try {
+    const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
     if (req.query.url) {
       const results = await vsacFhirClient?.search({
         resourceType: 'CodeSystem',
