@@ -33,7 +33,7 @@ const cloneProgram = async (req: NextApiRequest, res: NextApiResponse<DraftAPIRe
 
   const { programId, latestProgramVersion } = req.body
 
-  if (!latestProgramVersion || !programId) {
+  if (!programId) {
     return res.status(400).json({ error: 'Missing required parameters' })
   }
 
