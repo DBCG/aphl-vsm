@@ -647,7 +647,12 @@ const ProgramsTab: NextPage = () => {
           programId: payload.programId,
           programTitle: payload.programTitle,
           latestFromTxServer: payload.latestFromTxServer
-        }
+        },
+        onSuccess: async () => {
+          toast.success(`Program ${payload.programTitle} released successfully.`)
+          await mutate()
+        },
+        onFailure: (error: string) => toast.error(`Release failed for ${payload.programTitle}: ${error}`)
       })
       await mutate()
       toast.success(`Program ${payload.programTitle} release in progress.`)
