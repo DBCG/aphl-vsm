@@ -12,23 +12,13 @@ const removeFlags = (item: string) => {
 const threeOrFourCompartmentSemver = new RegExp('^(\\d+).(\\d+).(\\d+).?\\d*$', 'gm')
 const threeCompartmentSemver = new RegExp('^(\\d+).(\\d+).(\\d+)$', 'gm')
 
-const isValidThreeOrFourPartSemver = (item: string) => Boolean(item?.match(threeOrFourCompartmentSemver))
+const isValidThreeOrFourPartSemver = (item: string | null) => Boolean(item?.match(threeOrFourCompartmentSemver))
 const isValidSimpleSemver = (item: string) => Boolean(item?.match(threeCompartmentSemver))
 
 // returns the latest version between two options (not considering flags)
 const latestVersion = (cdrVersion: string, templateVersion: string): string | null => {
-  let noFlagsCdrSemver = null
-  try {
-    noFlagsCdrSemver = removeFlags(cdrVersion)
-  } catch (error) {
-    // leave it null
-  }
-  let noFlagsTemplateSemver = null
-  try {
-    noFlagsTemplateSemver = removeFlags(templateVersion)
-  } catch (error) {
-    // leave it null
-  }
+  const noFlagsCdrSemver = removeFlags(cdrVersion)
+  const noFlagsTemplateSemver = removeFlags(templateVersion)
 
   const validCdrSemver = semver.valid(cdrVersion)
   const validTemplateSemver = semver.valid(templateVersion)
@@ -57,7 +47,7 @@ const normalizeToThreePartSemver = (maybeMoreThanThree: string) => {
 }
 const getLatestFromList = (versions: string[]) => {
   const filteredNormalizedVersions = versions
-    .filter(v => isValidThreeOrFourPartSemver(removeFlags(v) as string))
+    .filter(v => isValidThreeOrFourPartSemver(removeFlags(v)))
     .map(normalizeToThreePartSemver)
   const sorted = sort(filteredNormalizedVersions)
   return convertBackToCqfSemver(sorted[sorted.length - 1] || "")
