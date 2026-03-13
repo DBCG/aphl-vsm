@@ -6,7 +6,7 @@ import { createContext, useState, useContext, ReactNode } from 'react'
 import packageInfo from '@/package.json'
 import Box from '@mui/material/Box'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
-import {isAdmin, VSMSession} from '@/helpers/rolesHelper'
+import {isAdmin, getUserRole, VSMSession} from '@/helpers/rolesHelper'
 import { Divider, IconButton, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material'
 import {Api, Logout, MoreVert, Settings} from '@mui/icons-material'
 import Notifications from '@/components/Notifications'
@@ -106,9 +106,16 @@ const NavBar = () => {
       >
         <Box style={{ padding: '6px 16px', textAlign: 'left', display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
           <AccountCircleIcon style={{ marginRight: '18px', color: 'var(--theme-400)' }} fontSize="medium" />
-          <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
-            {session?.user?.name}
-          </Typography>
+          <Box>
+            <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
+              {session?.user?.name}
+            </Typography>
+            {getUserRole(session) && (
+              <Typography variant="body2" sx={{ color: 'gray', fontSize: '80%' }}>
+                {getUserRole(session)}
+              </Typography>
+            )}
+          </Box>
         </Box>
         { isAdmin(session) ? (
           <Box>

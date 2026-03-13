@@ -1,6 +1,9 @@
 /* istanbul ignore file */
 import FhirClient from '@/backend/clients/FhirCdrClient'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
+import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
 import { GetServerSidePropsContext } from 'next'
+import { getServerSession } from 'next-auth/next'
 export type LibraryServerSideProps = {
   program: fhir4.Library
 }
@@ -50,12 +53,22 @@ export const getLibraryServerSideProp = async (ctx: GetServerSidePropsContext) =
 }
 
 async function getServerSideProps(ctx: GetServerSidePropsContext) {
+  const session = await getServerSession(ctx.req, ctx.res, AuthOptions) as VSMSession
   const program = await getLibraryServerSideProp(ctx)
   if (!program) {
     return {
       redirect: {
         permanent: false,
         destination: '/'
+      }
+    }
+  }
+
+  if (isImplementer(session) && (program as fhir4.Library)?.status === 'draft') {
+    return {
+      redirect: {
+        permanent: false,
+        destination: '/programs'
       }
     }
   }

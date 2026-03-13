@@ -25,6 +25,6 @@ const withdraw = async (req: NextApiRequest, res: NextApiResponse<{ message: str
 export default handler({
   POST: {
     action: withdraw,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

@@ -7,7 +7,7 @@ import { GrouperOverviewTable } from '@/components/GrouperOverviewTable'
 import ManifestDetailTable from '@/components/ManifestDetailTable'
 import { useSession } from 'next-auth/react'
 import ProgramMetadata from '@/components/ProgramMetadata'
-import { allowEditing, VSMSession } from '@/helpers/rolesHelper'
+import { allowEditing, can, VSMSession } from '@/helpers/rolesHelper'
 import { Row, Col, MetadataTitle, ManifestContainer, IndicatorContainer } from './styles'
 import { StyledSpan } from '@/styles'
 import { ApprovalDetailList } from '../ApprovalDetailList'
@@ -118,7 +118,7 @@ const ProgramDetails = ({ program }: LibraryServerSideProps) => {
         <Col style={{ width: 'auto' }}>
           <StyledSpan>Approvals</StyledSpan>
         </Col>
-        {!isReleasing && (
+        {!isReleasing && can(session, 'approve') && (
           <Col style={{ width: 'auto' }}>
             <Button id="approve" text="Approve Now!" onClick={() => router.push(`/programs/${id}/approve`)} />
           </Col>

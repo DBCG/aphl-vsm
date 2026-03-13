@@ -111,5 +111,5 @@ const getJobResult = async (req: NextApiRequest, res: NextApiResponse, session: 
 }
 
 export default handler({
-  GET: { access: ['admin', 'editor', 'reviewer'], action: getJobResult }
+  GET: { access: ['admin', 'publisher', 'editor', 'reviewer'], action: getJobResult }
 })

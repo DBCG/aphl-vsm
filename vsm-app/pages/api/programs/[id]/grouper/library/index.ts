@@ -147,6 +147,6 @@ async function groupersFromGrouperLib(grouperLib: fhir4.Library) {
 export default handler({
   PUT: {
     action: updateGrouperLibrary,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

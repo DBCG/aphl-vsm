@@ -4,6 +4,7 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 interface Query {
   '_id:contains'?: string
@@ -13,6 +14,7 @@ interface Query {
   '_offset'?: string
   '_count'?: string
   'status:not'?: string
+  'status'?: string
 }
 
 export type VSPApiResponse = {
@@ -20,7 +22,7 @@ export type VSPApiResponse = {
   total: number
 } | { error: string }
 
-const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse | {}>) => {
+const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse | {}>, session: VSMSession) => {
   try {
     let queries: Query = {}
 
@@ -43,7 +45,9 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
     if (req.query['count']) {
       queries['_count'] = req.query['count'] as string
     }
-    if (req.query['showRetired'] === 'false') {
+    if (isImplementer(session)) {
+      queries['status'] = req.query['showRetired'] === 'false' ? 'active' : 'active,retired'
+    } else if (req.query['showRetired'] === 'false') {
       queries['status:not'] = 'retired'
     }
 
@@ -138,5 +142,5 @@ const getVSPs = async (req: NextApiRequest, res: NextApiResponse<VSPApiResponse 
 }
 
 export default handler({
-  GET: { access: ['admin', 'editor', 'reviewer'], action: getVSPs }
+  GET: { access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer'], action: getVSPs }
 })

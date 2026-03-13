@@ -25,6 +25,6 @@ const deleteProgram = async (req: NextApiRequest, res: NextApiResponse<{ message
 export default handler({
   POST: {
     action: deleteProgram,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

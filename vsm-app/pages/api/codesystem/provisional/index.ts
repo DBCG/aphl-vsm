@@ -413,7 +413,7 @@ const updateProvisionalCodeSystemAndParentVsets = async (req: ProvisionalUpdateR
 }
 
 export default handler({
-  GET: { action: getProvisionalCodeSystems, access: ['admin', 'editor', 'reviewer'] },
-  POST: { action: updateProvisionalCodeSystems, access: ['admin', 'editor'] },
-  PUT: { action: updateProvisionalCodeSystemAndParentVsets, access: ['admin', 'editor'] },
+  GET: { action: getProvisionalCodeSystems, access: ['admin', 'publisher', 'editor', 'reviewer'] },
+  POST: { action: updateProvisionalCodeSystems, access: ['admin', 'publisher', 'editor'] },
+  PUT: { action: updateProvisionalCodeSystemAndParentVsets, access: ['admin', 'publisher', 'editor'] },
 })

@@ -4,6 +4,7 @@ import handler from '@/helpers/server/handler'
 import { is } from '@/helpers/is'
 import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 interface Query {
   '_id:contains'?: string
@@ -14,6 +15,7 @@ interface Query {
   '_offset'?: string
   '_count'?: string
   'status:not'?: string
+  'status'?: string
 }
 
 export type ProgramApiResponse = {
@@ -22,7 +24,7 @@ export type ProgramApiResponse = {
   total: number
 } | { error: string }
 
-const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>) => {
+const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiResponse | {}>, session: VSMSession) => {
   try {
     let queries: Query = {}
     // partial match doesn't work on ID, maybe because isn't a string
@@ -46,7 +48,10 @@ const getPrograms = async (req: NextApiRequest, res: NextApiResponse<ProgramApiR
     }
     if (req.query['count']) {
       queries['_count'] = req.query['count'] as string
-    } if (req.query['showRetired'] === 'false') {
+    }
+    if (isImplementer(session)) {
+      queries['status'] = req.query['showRetired'] === 'false' ? 'active' : 'active,retired'
+    } else if (req.query['showRetired'] === 'false') {
       queries['status:not'] = 'retired'
     }
 

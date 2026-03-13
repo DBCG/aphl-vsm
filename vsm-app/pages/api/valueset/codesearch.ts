@@ -73,6 +73,6 @@ const expandValueSetsCodeSearch = async (req: ExpandRequest, res: NextApiRespons
 export default handler({
   POST: {
     action: expandValueSetsCodeSearch,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

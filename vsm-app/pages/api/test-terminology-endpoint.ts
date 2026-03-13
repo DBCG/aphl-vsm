@@ -57,5 +57,5 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
 }
 
 export default handler({
-  GET: { action: testTermEndpoint, access: ['admin', 'editor', 'reviewer'] },
+  GET: { action: testTermEndpoint, access: ['admin', 'publisher', 'editor', 'reviewer'] },
 })

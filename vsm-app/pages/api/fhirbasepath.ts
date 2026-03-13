@@ -14,5 +14,5 @@ const getBasePath = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  GET: { action: getBasePath, access: ['admin'] },
+  GET: { action: getBasePath, access: ['admin', 'publisher'] },
 })

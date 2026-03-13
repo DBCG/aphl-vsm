@@ -49,6 +49,6 @@ const deleteVSP = async (
 export default handler({
   POST: {
     action: deleteVSP,
-    access: ['admin']
+    access: ['admin', 'publisher']
   }
 })
