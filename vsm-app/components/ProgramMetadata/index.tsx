@@ -58,7 +58,7 @@ const ProgramMetadata = ({ handleSubmit, program, editable = true }: ProgramEdit
   }
 
   useEffect(() => {
-    if(isExperimental !== program.experimental) {
+    if(isExperimental !== Boolean(program.experimental)) {
       setFormTouched(true)
     }
   }, [isExperimental])
