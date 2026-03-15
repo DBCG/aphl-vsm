@@ -17,9 +17,7 @@ describe('vspHelpers', () => {
       igPackageId: 'hl7.fhir.us.core',
       igName: 'USCore',
       igTitle: 'US Core',
-      igExperimental: false,
       vspVersion: '2026-01',
-      experimental: false,
       status: 'draft'
     }
 

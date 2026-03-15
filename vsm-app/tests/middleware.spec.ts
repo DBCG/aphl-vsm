@@ -16,7 +16,7 @@ describe('middleware', () => {
     const testCases = await Promise.allSettled(
       methods.map(async (method) => {
         const { req, res } = createMocks({
-          method,
+          method: method as any,
           header: new Headers()
         })
         req.nextUrl = new URL('http://localhost:3000/programs')
@@ -37,7 +37,7 @@ describe('middleware', () => {
     const testCases = await Promise.allSettled(
       methods.map(async (method) => {
         const { req, res } = createMocks({
-          method,
+          method: method as any,
           header: new Headers()
         })
         req.nextUrl = new URL('http://localhost:3000/programs')
