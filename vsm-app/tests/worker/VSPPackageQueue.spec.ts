@@ -1,0 +1,211 @@
+jest.mock('fhir-kit-client')
+jest.mock('bull', () => {
+  return jest.fn().mockImplementation(() => ({
+    process: jest.fn()
+  }))
+})
+
+import { stripCacheMetadata } from '@/worker/VSPPackageQueue'
+
+describe('stripCacheMetadata', () => {
+  describe('JSON', () => {
+    it('removes id, identifier, and meta from a cached Bundle', () => {
+      const cached = JSON.stringify({
+        resourceType: 'Bundle',
+        id: 'server-assigned-id',
+        identifier: {
+          system: 'http://aphl.org/fhir/vsm/cache/vsp-package',
+          value: 'vsp-123|1.0.0'
+        },
+        meta: {
+          tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'vsp-package-cache' }]
+        },
+        type: 'collection',
+        entry: [
+          { resource: { resourceType: 'ValueSet', id: 'vs-1' } }
+        ]
+      })
+
+      const result = JSON.parse(stripCacheMetadata(cached, true))
+
+      expect(result).not.toHaveProperty('id')
+      expect(result).not.toHaveProperty('identifier')
+      expect(result).not.toHaveProperty('meta')
+      expect(result.resourceType).toBe('Bundle')
+      expect(result.type).toBe('collection')
+      expect(result.entry).toHaveLength(1)
+      expect(result.entry[0].resource.id).toBe('vs-1')
+    })
+
+    it('preserves all other Bundle properties', () => {
+      const cached = JSON.stringify({
+        resourceType: 'Bundle',
+        id: 'abc-123',
+        identifier: { system: 'http://aphl.org/fhir/vsm/cache/vsp-package', value: 'vsp-1|2.0' },
+        meta: { tag: [] },
+        type: 'collection',
+        timestamp: '2026-01-15T00:00:00Z',
+        total: 42,
+        entry: [
+          { resource: { resourceType: 'Library', id: 'lib-1', name: 'My VSP' } },
+          { resource: { resourceType: 'ValueSet', id: 'vs-2', title: 'Test VS' } }
+        ]
+      })
+
+      const result = JSON.parse(stripCacheMetadata(cached, true))
+
+      expect(result.type).toBe('collection')
+      expect(result.timestamp).toBe('2026-01-15T00:00:00Z')
+      expect(result.total).toBe(42)
+      expect(result.entry).toHaveLength(2)
+      expect(result.entry[0].resource.name).toBe('My VSP')
+      expect(result.entry[1].resource.title).toBe('Test VS')
+    })
+
+    it('handles Bundle with no meta or identifier gracefully', () => {
+      const cached = JSON.stringify({
+        resourceType: 'Bundle',
+        id: 'abc',
+        type: 'collection',
+        entry: []
+      })
+
+      const result = JSON.parse(stripCacheMetadata(cached, true))
+
+      expect(result).not.toHaveProperty('id')
+      expect(result).not.toHaveProperty('identifier')
+      expect(result).not.toHaveProperty('meta')
+      expect(result.resourceType).toBe('Bundle')
+      expect(result.entry).toEqual([])
+    })
+
+    it('produces output matching original $package structure', () => {
+      const original = {
+        resourceType: 'Bundle',
+        type: 'collection',
+        entry: [
+          { resource: { resourceType: 'ValueSet', id: 'vs-1', url: 'http://example.com/vs-1' } }
+        ]
+      }
+
+      // Simulate what storeCachedPackage adds
+      const stored = {
+        ...original,
+        id: 'server-id',
+        identifier: { system: 'http://aphl.org/fhir/vsm/cache/vsp-package', value: 'vsp-1|1.0' },
+        meta: { tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'vsp-package-cache' }] }
+      }
+
+      const result = JSON.parse(stripCacheMetadata(JSON.stringify(stored), true))
+
+      expect(result).toEqual(original)
+    })
+  })
+
+  describe('XML', () => {
+    it('removes id, identifier, and meta elements', () => {
+      const cached = [
+        '<Bundle xmlns="http://hl7.org/fhir">',
+        '<id value="server-assigned-id"/>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-123|1.0.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<type value="collection"/>',
+        '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
+        '</Bundle>'
+      ].join('\n')
+
+      const result = stripCacheMetadata(cached, false)
+
+      expect(result).not.toContain('<id value="server-assigned-id"/>')
+      expect(result).not.toContain('<identifier>')
+      expect(result).not.toContain('vsp-package-cache')
+      expect(result).not.toContain('<meta>')
+      expect(result).toContain('<type value="collection"/>')
+      expect(result).toContain('<entry>')
+      expect(result).toContain('<ValueSet>')
+    })
+
+    it('preserves entry content and structure', () => {
+      const cached = [
+        '<Bundle xmlns="http://hl7.org/fhir">',
+        '<id value="abc-123"/>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-1|2.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<type value="collection"/>',
+        '<entry>',
+        '  <resource>',
+        '    <Library>',
+        '      <id value="lib-1"/>',
+        '      <meta><profile value="http://example.com/profile"/></meta>',
+        '      <name value="My VSP"/>',
+        '    </Library>',
+        '  </resource>',
+        '</entry>',
+        '<entry>',
+        '  <resource>',
+        '    <ValueSet>',
+        '      <id value="vs-2"/>',
+        '      <title value="Test VS"/>',
+        '    </ValueSet>',
+        '  </resource>',
+        '</entry>',
+        '</Bundle>'
+      ].join('\n')
+
+      const result = stripCacheMetadata(cached, false)
+
+      expect(result).toContain('<name value="My VSP"/>')
+      expect(result).toContain('<title value="Test VS"/>')
+      expect(result).toContain('<Library>')
+      expect(result).toContain('<ValueSet>')
+    })
+
+    it('only removes top-level meta, not nested resource meta', () => {
+      const cached = [
+        '<Bundle xmlns="http://hl7.org/fhir">',
+        '<id value="abc"/>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<entry>',
+        '  <resource>',
+        '    <ValueSet>',
+        '      <id value="vs-1"/>',
+        '      <meta><profile value="http://hl7.org/fhir/StructureDefinition/ValueSet"/></meta>',
+        '    </ValueSet>',
+        '  </resource>',
+        '</entry>',
+        '</Bundle>'
+      ].join('\n')
+
+      const result = stripCacheMetadata(cached, false)
+
+      // Top-level meta should be removed
+      expect(result).not.toContain('vsp-package-cache')
+      // Nested resource meta should be preserved
+      expect(result).toContain('<meta><profile value="http://hl7.org/fhir/StructureDefinition/ValueSet"/></meta>')
+    })
+
+    it('produces output matching original $package structure', () => {
+      const original = [
+        '<Bundle xmlns="http://hl7.org/fhir">',
+        '<type value="collection"/>',
+        '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
+        '</Bundle>'
+      ].join('\n')
+
+      // Simulate what storeCachedPackage injects (after <Bundle ...>)
+      const stored = [
+        '<Bundle xmlns="http://hl7.org/fhir">',
+        '<id value="server-id"/>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-1|1.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<type value="collection"/>',
+        '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
+        '</Bundle>'
+      ].join('\n')
+
+      const result = stripCacheMetadata(stored, false)
+
+      expect(result).toBe(original)
+    })
+  })
+})

@@ -410,4 +410,5 @@ VSPPackageQueue.process(async function (job: any, done) {
   }
 })
 
+export { stripCacheMetadata }
 export default VSPPackageQueue
