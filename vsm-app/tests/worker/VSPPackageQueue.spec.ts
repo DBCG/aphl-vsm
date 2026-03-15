@@ -5,7 +5,38 @@ jest.mock('bull', () => {
   }))
 })
 
-import { stripCacheMetadata } from '@/worker/VSPPackageQueue'
+import { hashPackageParams, stripCacheMetadata } from '@/worker/VSPPackageQueue'
+
+describe('hashPackageParams', () => {
+  it('returns a 12-character hex string', () => {
+    const hash = hashPackageParams('http://route', 'http://artifact', 'http://terminology')
+    expect(hash).toMatch(/^[0-9a-f]{12}$/)
+  })
+
+  it('returns the same hash for the same inputs', () => {
+    const hash1 = hashPackageParams('http://a', 'http://b', 'http://c')
+    const hash2 = hashPackageParams('http://a', 'http://b', 'http://c')
+    expect(hash1).toBe(hash2)
+  })
+
+  it('returns a different hash when artifactRoute changes', () => {
+    const hash1 = hashPackageParams('http://route-a', 'http://endpoint', 'http://terminology')
+    const hash2 = hashPackageParams('http://route-b', 'http://endpoint', 'http://terminology')
+    expect(hash1).not.toBe(hash2)
+  })
+
+  it('returns a different hash when artifactEndpointAddress changes', () => {
+    const hash1 = hashPackageParams('http://route', 'http://endpoint-a', 'http://terminology')
+    const hash2 = hashPackageParams('http://route', 'http://endpoint-b', 'http://terminology')
+    expect(hash1).not.toBe(hash2)
+  })
+
+  it('returns a different hash when terminologyEndpointAddress changes', () => {
+    const hash1 = hashPackageParams('http://route', 'http://endpoint', 'http://terminology-a')
+    const hash2 = hashPackageParams('http://route', 'http://endpoint', 'http://terminology-b')
+    expect(hash1).not.toBe(hash2)
+  })
+})
 
 describe('stripCacheMetadata', () => {
   describe('JSON', () => {

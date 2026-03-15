@@ -4,19 +4,30 @@ import { JOB_STATUS, VSP_PACKAGE_CACHE_IDENTIFIER_SYSTEM, VSP_PACKAGE_CACHE_TAG 
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
+import { createHash } from 'crypto'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
 const VSPPackageQueue = new Queue('vspPackage', QUEUE_REDIS_URL)
 
 /**
+ * Produce a short hash of the $package parameters that affect output content.
+ * If the terminology routes or endpoints change, the hash changes and the
+ * previous cache entry becomes a miss.
+ */
+function hashPackageParams(artifactRoute: string, artifactEndpointAddress: string, terminologyEndpointAddress: string): string {
+  const input = [artifactRoute, artifactEndpointAddress, terminologyEndpointAddress].join('|')
+  return createHash('sha256').update(input).digest('hex').slice(0, 12)
+}
+
+/**
  * Search for a cached $package Bundle by VSP identifier.
  * Returns the cached Bundle's ID or null if not found.
  */
-async function searchCachedPackage(vspId: string, vspVersion: string): Promise<string | null> {
+async function searchCachedPackage(vspId: string, vspVersion: string, paramsHash: string): Promise<string | null> {
   try {
     const { fetch: f } = require('undici')
     const baseUrl = FhirClient.getInstance().baseUrl
-    const identifierParam = `${VSP_PACKAGE_CACHE_IDENTIFIER_SYSTEM}|${vspId}|${vspVersion}`
+    const identifierParam = `${VSP_PACKAGE_CACHE_IDENTIFIER_SYSTEM}|${vspId}|${vspVersion}|${paramsHash}`
     const url = `${baseUrl}/Bundle?identifier=${encodeURIComponent(identifierParam)}&_summary=true&_count=1`
 
     const response = await f(url, {
@@ -99,7 +110,7 @@ function stripCacheMetadata(content: string, isJson: boolean): string {
  * Store a $package result in the CDR as a cached Bundle.
  * Non-fatal — logs a warning if storage fails (e.g., Bundle too large).
  */
-async function storeCachedPackage(packageContent: string, vspId: string, vspVersion: string, isJson: boolean): Promise<void> {
+async function storeCachedPackage(packageContent: string, vspId: string, vspVersion: string, paramsHash: string, isJson: boolean): Promise<void> {
   try {
     const { fetch: f } = require('undici')
     const baseUrl = FhirClient.getInstance().baseUrl
@@ -107,7 +118,7 @@ async function storeCachedPackage(packageContent: string, vspId: string, vspVers
 
     const cacheIdentifier = {
       system: VSP_PACKAGE_CACHE_IDENTIFIER_SYSTEM,
-      value: `${vspId}|${vspVersion}`
+      value: `${vspId}|${vspVersion}|${paramsHash}`
     }
 
     let body: string
@@ -218,11 +229,17 @@ VSPPackageQueue.process(async function (job: any, done) {
     const vspVersion = vsp.version || ''
     const totalSteps = isActive ? 5 : 4
 
+    // Terminology routes/endpoints that affect $package output
+    const artifactRoute = 'http://cts.nlm.nih.gov/fhir'
+    const artifactEndpointAddress = 'https://cts.nlm.nih.gov/fhir'
+    const terminologyEndpointAddress = 'http://tx.fhir.org/r4'
+    const paramsHash = hashPackageParams(artifactRoute, artifactEndpointAddress, terminologyEndpointAddress)
+
     // Step 2 (active only): Check CDR cache
     if (isActive) {
       job.progress({ step: 'Checking cache', current: 2, total: totalSteps })
 
-      const cachedBundleId = await searchCachedPackage(vspId, vspVersion)
+      const cachedBundleId = await searchCachedPackage(vspId, vspVersion, paramsHash)
       if (cachedBundleId) {
         Logger.getLogger().info(`Cache HIT for VSP ${vspId}|${vspVersion} (Bundle/${cachedBundleId})`)
 
@@ -283,7 +300,7 @@ VSPPackageQueue.process(async function (job: any, done) {
           part: [
             {
               name: 'artifactRoute',
-              valueUri: 'http://cts.nlm.nih.gov/fhir'
+              valueUri: artifactRoute
             },
             {
               name: 'endpoint',
@@ -295,7 +312,7 @@ VSPPackageQueue.process(async function (job: any, done) {
                   code: 'hl7-fhir-rest'
                 },
                 name: 'VSAC FHIR Terminology Server',
-                address: 'https://cts.nlm.nih.gov/fhir',
+                address: artifactEndpointAddress,
                 header: [vsacAuthHeader],
                 payloadType: [{ coding: [{ code: 'none' }] }]
               }
@@ -321,7 +338,7 @@ VSPPackageQueue.process(async function (job: any, done) {
                 ]
               }
             ],
-            address: 'http://tx.fhir.org/r4'
+            address: terminologyEndpointAddress
           }
         }
       ]
@@ -334,7 +351,7 @@ VSPPackageQueue.process(async function (job: any, done) {
     const acceptHeader = isJson ? 'application/fhir+json' : 'application/fhir+xml'
     Logger.getLogger().info(`Calling $package at: ${url} (format: ${isJson ? 'JSON' : 'XML'})`)
     Logger.getLogger().info(`VSP ID: ${vspId}`)
-    Logger.getLogger().info(`VSAC Endpoint: https://cts.nlm.nih.gov/fhir`)
+    Logger.getLogger().info(`VSAC Endpoint: ${artifactEndpointAddress}`)
 
     const response = await f(url, {
       method: 'POST',
@@ -383,7 +400,7 @@ VSPPackageQueue.process(async function (job: any, done) {
 
     // Cache the result for active VSPs (non-fatal)
     if (isActive) {
-      await storeCachedPackage(packageContent, vspId, vspVersion, isJson)
+      await storeCachedPackage(packageContent, vspId, vspVersion, paramsHash, isJson)
     }
 
     await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED)
@@ -410,5 +427,5 @@ VSPPackageQueue.process(async function (job: any, done) {
   }
 })
 
-export { stripCacheMetadata }
+export { hashPackageParams, stripCacheMetadata }
 export default VSPPackageQueue
