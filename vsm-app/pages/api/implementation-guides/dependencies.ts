@@ -73,5 +73,5 @@ const startDependencyFetch = async (req: NextApiRequest, res: NextApiResponse<De
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor'], action: startDependencyFetch }
+  POST: { access: ['admin', 'publisher', 'editor'], action: startDependencyFetch }
 })

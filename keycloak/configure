@@ -29,41 +29,145 @@ echo 'Unable to fetch token.'
 echo $res
 exit 1
 fi
+
+# Returns the UUID of an existing client by clientId, or creates it and returns the new UUID.
+get_or_create_client() {
+  local client_name=$1
+  local client_data=$2
+  local existing_id
+  existing_id=$(curl -s -H "Authorization: Bearer $token" \
+    "$base_url/admin/realms/$realm/clients?clientId=$client_name" | jq -r '.[0].id // empty')
+  if [ -n "$existing_id" ]; then
+    echo "Client $client_name already exists, using id: $existing_id" >&2
+    echo "$existing_id"
+  else
+    local new_id
+    new_id=$(curl -s -X POST -H 'content-type: application/json' -H "Authorization: Bearer $token" \
+      -d "$client_data" "$base_url/admin/realms/$realm/clients" -i \
+      | grep 'Location' | awk -F': ' '{print $2}' | awk -F/ '{print $NF}' | tr -d '\r')
+    echo "Created client $client_name with id: $new_id" >&2
+    echo "$new_id"
+  fi
+}
+
+# Returns the UUID of an existing client role by name, or creates it and returns the new UUID.
+get_or_create_role() {
+  local role_name=$1
+  local http_status
+  http_status=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $token" \
+    "$base_url/admin/realms/$realm/clients/$client_id/roles/$role_name")
+  if [ "$http_status" == "200" ]; then
+    local role_id
+    role_id=$(curl -s -H "Authorization: Bearer $token" \
+      "$base_url/admin/realms/$realm/clients/$client_id/roles/$role_name" | jq -r '.id')
+    echo "Role $role_name already exists, using id: $role_id" >&2
+    echo "$role_id"
+  else
+    local role_url role_id
+    role_url=$(curl -s -X POST -H 'content-type: application/json' -H "Authorization: Bearer $token" \
+      -d '{"name": "'"$role_name"'"}' "$base_url/admin/realms/$realm/clients/$client_id/roles" -i \
+      | grep 'Location' | awk -F': ' '{print $2}' | tr -d '\r')
+    role_id=$(curl -s -H 'content-type: application/json' -H "Authorization: Bearer $token" \
+      "$role_url" | jq -r '.id')
+    echo "Created role $role_name with id: $role_id" >&2
+    echo "$role_id"
+  fi
+}
+
+# Assigns a client role to a user, skipping if already assigned.
+assign_role_to_user() {
+  local user_id=$1
+  local role_id=$2
+  local role_name=$3
+  local already_assigned
+  already_assigned=$(curl -s -H "Authorization: Bearer $token" \
+    "$base_url/admin/realms/$realm/users/$user_id/role-mappings/clients/$client_id" \
+    | jq -r --arg name "$role_name" '.[] | select(.name == $name) | .id // empty')
+  if [ -n "$already_assigned" ]; then
+    echo "Role $role_name already assigned to user, skipping"
+  else
+    curl -s -X POST "$base_url/admin/realms/$realm/users/$user_id/role-mappings/clients/$client_id" \
+      --header 'Content-Type: application/json' \
+      --header "Authorization: Bearer $token" \
+      --data-raw '[{"id": "'"$role_id"'", "name": "'"$role_name"'"}]'
+    echo "Assigned role $role_name to user"
+  fi
+}
+
+# Returns the UUID of an existing user by username, or creates it and returns the new UUID.
+get_or_create_user() {
+  local username=$1
+  local user_data=$2
+  local existing_id
+  existing_id=$(curl -s -H "Authorization: Bearer $token" \
+    "$base_url/admin/realms/$realm/users?username=$username&exact=true" | jq -r '.[0].id // empty')
+  if [ -n "$existing_id" ]; then
+    echo "User $username already exists, using id: $existing_id" >&2
+    echo "$existing_id"
+  else
+    local new_id
+    new_id=$(curl -s -X POST "$base_url/admin/realms/$realm/users" -i \
+      --header 'Content-Type: application/json' \
+      --header "Authorization: Bearer $token" \
+      --data-raw "$user_data" \
+      | grep 'Location' | awk -F': ' '{print $2}' | awk -F/ '{print $NF}' | tr -d '\r')
+    echo "Created user $username with id: $new_id" >&2
+    echo "$new_id"
+  fi
+}
+
 echo -e '\n________________________________\n'
 echo -e 'Creating realm '$realm'...'
-curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/admin/realms
+realm_status=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $token" \
+  "$base_url/admin/realms/$realm")
+if [ "$realm_status" == "200" ]; then
+  echo "Realm $realm already exists, skipping creation"
+else
+  curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token \
+    -d '{"enabled": true, "id":"'$realm'", "realm":"'$realm'"}' $base_url/admin/realms
+fi
 echo -e '\n________________________________\n'
 
 echo -e 'Creating client '$client' on realm '$realm'...'
-client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"enabled":true,"attributes":{"post.logout.redirect.uris":"'$vsm_app_base_url'"},"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}' $base_url/admin/realms/$realm/clients -si | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "Created $client with id: $client_id"
+client_id=$(get_or_create_client "$client" '{"enabled":true,"attributes":{"post.logout.redirect.uris":"'$vsm_app_base_url'"},"webOrigins":'$web_origins',"redirectUris":'$redirect_uris',"clientId":"'$client'","protocol":"openid-connect"}')
+echo "Using $client with id: $client_id"
 echo -e '\n________________________________\n'
 
-echo -e 'Creating Service client 'server_auth' on realm '$realm'...'
-server_auth_client_id=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"protocol":"openid-connect","clientId":"server_auth","name":"","description":"","publicClient":false,"authorizationServicesEnabled":false,"serviceAccountsEnabled":true,"implicitFlowEnabled":false,"directAccessGrantsEnabled":true,"standardFlowEnabled":true,"frontchannelLogout":true,"attributes":{"saml_idp_initiated_sso_url_name":"","oauth2.device.authorization.grant.enabled":false,"oidc.ciba.grant.enabled":false},"alwaysDisplayInConsole":false,"rootUrl":"","baseUrl":""}' $base_url/admin/realms/$realm/clients -si | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "Created server_auth with id: $server_auth_client_id"
+echo -e 'Creating Service client server_auth on realm '$realm'...'
+server_auth_client_id=$(get_or_create_client "server_auth" '{"protocol":"openid-connect","clientId":"server_auth","name":"","description":"","publicClient":false,"authorizationServicesEnabled":false,"serviceAccountsEnabled":true,"implicitFlowEnabled":false,"directAccessGrantsEnabled":true,"standardFlowEnabled":true,"frontchannelLogout":true,"attributes":{"saml_idp_initiated_sso_url_name":"","oauth2.device.authorization.grant.enabled":false,"oidc.ciba.grant.enabled":false},"alwaysDisplayInConsole":false,"rootUrl":"","baseUrl":""}')
+echo "Using server_auth with id: $server_auth_client_id"
 echo -e '\n________________________________\n'
 
 echo -e '\n________________________________\n'
 echo -e 'Retrieving and Setting Server Auth Secret...'
-server_auth_client_secret=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/client-secret | jq -r '.value')
+server_auth_client_secret=$(curl -s -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/client-secret | jq -r '.value')
 sed -i '' "s/^KEYCLOAK_SECRET=.*/KEYCLOAK_SECRET=$server_auth_client_secret/" $DIR/../vsm-app/.env.local
 echo "Updated .env.local with server_auth secret"
 echo -e '\n________________________________\n'
 
 echo -e '\n________________________________\n'
 echo -e 'Updating Server Auth Settings...'
-curl -X PUT -H 'Content-Type: application/json' -H 'Authorization: Bearer '$token -d '{"attributes":{"access.token.lifespan": -1}}' $base_url/admin/realms/$realm/clients/$server_auth_client_id
+# Keycloak requires the full client representation on PUT — fetch it first, then patch the attribute
+server_auth_client_rep=$(curl -s -H "Authorization: Bearer $token" \
+  "$base_url/admin/realms/$realm/clients/$server_auth_client_id")
+server_auth_client_updated=$(echo "$server_auth_client_rep" | jq '.attributes["access.token.lifespan"] = "-1"')
+curl -s -X PUT -H 'Content-Type: application/json' -H "Authorization: Bearer $token" \
+  -d "$server_auth_client_updated" \
+  "$base_url/admin/realms/$realm/clients/$server_auth_client_id"
 
 echo -e 'Updating Service User Role Settings...'
-realm_management_client_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients?first=0\&max=101 | jq -r '.[] | select(.clientId == "realm-management").id')
-service_account_user_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/service-account-user | jq -r '.id')
+realm_management_client_id=$(curl -s -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients?first=0\&max=101 | jq -r '.[] | select(.clientId == "realm-management").id')
+service_account_user_id=$(curl -s -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/clients/$server_auth_client_id/service-account-user | jq -r '.id')
 echo "service_account_user_id: $service_account_user_id"
-manage_users_role_id=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/ui-ext/available-roles/users/$service_account_user_id?first=0\&max=101\&search="" | jq '.[] | select(.role == "manage-users").id')
-echo "manage_users_role: $manage_users_role_id" 
+# Use the direct role endpoint so this works whether or not the role is already assigned
+manage_users_role=$(curl -s -H 'Authorization: Bearer '$token \
+  "$base_url/admin/realms/$realm/clients/$realm_management_client_id/roles/manage-users")
+manage_users_role_id=$(echo "$manage_users_role" | jq '.id')
+echo "manage_users_role_id: $manage_users_role_id"
 echo "realm_management_client_id $realm_management_client_id"
-echo "{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }"
-curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d "[{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }]" $base_url/admin/realms/$realm/users/$service_account_user_id/role-mappings/clients/$realm_management_client_id
+curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token \
+  -d "[{ \"id\": $manage_users_role_id, \"name\": \"manage-users\",\"description\": \"\${role_manage-users}\" }]" \
+  $base_url/admin/realms/$realm/users/$service_account_user_id/role-mappings/clients/$realm_management_client_id
 
 echo -e 'Finished updating Server Auth Settings'
 echo -e '\n________________________________\n'
@@ -72,115 +176,106 @@ echo -e '\n________________________________\n'
 ##################
 ## Create Roles ##
 ##################
-### Create Admin role
 echo -e '\n________________________________\n'
 echo -e 'Creating admin role'
-admin_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "admin"}' $base_url/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
-echo "url $admin_role_url"
-admin_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$admin_role_url" | jq '.id'| tr -d '\r')
-echo -e "Created admin role with id: $admin_role_id"
+admin_role_id=$(get_or_create_role "admin")
+echo -e "Using admin role with id: $admin_role_id"
 echo -e '\n________________________________\n'
 
-# Create Editor Role
 echo -e '\n________________________________\n'
 echo -e 'Creating editor role'
-editor_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "editor"}' $base_url/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
-echo "url $editor_role_url"
-editor_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$editor_role_url" | jq '.id'| tr -d '\r')
-echo -e "Created editor role with id: $editor_role_id"
+editor_role_id=$(get_or_create_role "editor")
+echo -e "Using editor role with id: $editor_role_id"
 echo -e '\n________________________________\n'
 
-# Create Reviewer Role
 echo -e '\n________________________________\n'
 echo -e 'Creating reviewer role'
-reviewer_role_url=$(curl -X POST -H 'content-type: application/json' -H 'Authorization: Bearer '$token -d '{"name": "reviewer"}' $base_url/admin/realms/$realm/clients/$client_id/roles -si | grep 'Location' | awk -F': ' '{print $2}'| tr -d '\r')
-echo "url $reviewer_role_url"
-reviewer_role_id=$(curl -H 'content-type: application/json' -H 'Authorization: Bearer '$token "$reviewer_role_url" | jq '.id'| tr -d '\r')
-echo -e "Created reviewer role with id: $reviewer_role_id"
+reviewer_role_id=$(get_or_create_role "reviewer")
+echo -e "Using reviewer role with id: $reviewer_role_id"
+echo -e '\n________________________________\n'
+
+echo -e '\n________________________________\n'
+echo -e 'Creating implementer role'
+implementer_role_id=$(get_or_create_role "implementer")
+echo -e "Using implementer role with id: $implementer_role_id"
+echo -e '\n________________________________\n'
+
+echo -e '\n________________________________\n'
+echo -e 'Creating publisher role'
+publisher_role_id=$(get_or_create_role "publisher")
+echo -e "Using publisher role with id: $publisher_role_id"
 echo -e '\n________________________________\n'
 
 echo -e 'Fetching authentication certificate for realm '$realm'...'
-raw_cert=$(curl -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
+raw_cert=$(curl -s -H 'Authorization: Bearer '$token $base_url/admin/realms/$realm/keys | jq -r '.keys[] | select(.algorithm == "RS256").certificate')
 echo -e '\n________________________________\n'
 echo '-----BEGIN CERTIFICATE-----\n'$raw_cert'\n-----END CERTIFICATE-----'
 
 
-# Add mapper for scopes
+# Add mapper for scopes (skip if already exists)
 echo -e '\n________________________________\n'
-echo -e 'Creating mapper for scopes with this url:' $base_url/admin/realms/$realm/clients/$client_id/protocol-mappers/models
-curl --location --request POST $base_url/admin/realms/$realm/clients/$client_id/protocol-mappers/models \
-  --header 'Content-Type: application/json' \
-  --header "Authorization: Bearer ${token}" \
-  --data-raw '{
-    "protocol": "openid-connect",
-    "protocolMapper": "oidc-usermodel-client-role-mapper",
-    "name": "ClientRole",
-    "config": {
-      "usermodel.clientRoleMapping.rolePrefix": "",
-      "claim.name": "resource_access.${client_id}.roles",
-      "usermodel.clientRoleMapping.clientId": "aphl_app",
-      "multivalued": "true",
-      "jsonType.label": "",
-      "id.token.claim": "true",
-      "access.token.claim": "true",
-      "userinfo.token.claim": "true"
-    }
-  }'
-echo -e 'successfully created client role mappings to token'
+echo -e 'Creating mapper for scopes...'
+existing_mapper=$(curl -s -H "Authorization: Bearer $token" \
+  "$base_url/admin/realms/$realm/clients/$client_id/protocol-mappers/models" \
+  | jq -r '.[] | select(.name == "ClientRole") | .id // empty')
+if [ -n "$existing_mapper" ]; then
+  echo "Protocol mapper ClientRole already exists, skipping"
+else
+  curl --location --request POST $base_url/admin/realms/$realm/clients/$client_id/protocol-mappers/models \
+    --header 'Content-Type: application/json' \
+    --header "Authorization: Bearer ${token}" \
+    --data-raw '{
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-usermodel-client-role-mapper",
+      "name": "ClientRole",
+      "config": {
+        "usermodel.clientRoleMapping.rolePrefix": "",
+        "claim.name": "resource_access.${client_id}.roles",
+        "usermodel.clientRoleMapping.clientId": "aphl_app",
+        "multivalued": "true",
+        "jsonType.label": "",
+        "id.token.claim": "true",
+        "access.token.claim": "true",
+        "userinfo.token.claim": "true"
+      }
+    }'
+  echo -e 'successfully created client role mappings to token'
+fi
 echo -e '\n________________________________\n'
-
 
 
 ################################################################
-# Create Admin User in app
+# Create Users
 # https://www.appsdeveloperblog.com/keycloak-rest-api-create-a-new-user/
 echo -e 'Creating user for admin role '${non_admin_username}' on realm '$realm'...'
-admin_user_id=$(curl -X POST $base_url/admin/realms/$realm/users -si \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '{
+admin_user_id=$(get_or_create_user "$non_admin_username" '{
   "firstName": "John",
   "lastName": "Doe",
   "email": "johndoe@test.com",
   "enabled": true,
-  "username": "'${non_admin_username}'",
+  "username": "'"${non_admin_username}"'",
   "credentials": [
     {
       "type": "password",
-      "value": "'${non_admin_pswd}'",
+      "value": "'"${non_admin_pswd}"'",
       "temporary": false
     }
   ]
-}'| grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "sucessfully created admin user with id: $admin_user_id"
+}')
+echo "Using admin user with id: $admin_user_id"
 echo -e '\n________________________________\n'
-
 
 # Map user to admin role
 echo -e '\n________________________________\n'
 echo -e 'Mapping '${non_admin_username}' to role admin'
-curl -X POST $base_url/admin/realms/$realm/users/$admin_user_id/role-mappings/realm \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[]'
-curl -X POST $base_url/admin/realms/$realm/users/$admin_user_id/role-mappings/clients/$client_id \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[{
-    "id": '${admin_role_id}',
-    "name": "admin"
-}]'
-echo "sucessfully mapped user to admin role"
+assign_role_to_user "$admin_user_id" "$admin_role_id" "admin"
 echo -e '\n________________________________\n'
 
 
 # Create Editor role User
 echo -e '\n________________________________\n'
-echo -e 'Creating user for editor role '${non_admin_username}'-editor on realm '$realm'...'
-editor_user_id=$(curl -X POST $base_url/admin/realms/$realm/users -si \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '{
+echo -e 'Creating user for editor role...'
+editor_user_id=$(get_or_create_user "gary" '{
   "firstName": "gary",
   "lastName": "hale",
   "email": "garyhale@test.com",
@@ -189,42 +284,25 @@ editor_user_id=$(curl -X POST $base_url/admin/realms/$realm/users -si \
   "credentials": [
     {
       "type": "password",
-      "value": "'${non_admin_pswd}'",
+      "value": "'"${non_admin_pswd}"'",
       "temporary": false
     }
   ]
-}' | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "Created user '${non_admin_username}-editor with user_id: $editor_user_id"
+}')
+echo "Using editor user with id: $editor_user_id"
 echo -e '\n________________________________\n'
-
 
 # Map new user to editor role
 echo -e '\n________________________________\n'
-echo -e 'Mapping '${non_admin_username}'-editor to role editor'
-
-curl -X POST $base_url/admin/realms/$realm/users/$editor_user_id/role-mappings/realm \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[]'
-curl -X POST $base_url/admin/realms/$realm/users/$editor_user_id/role-mappings/clients/$client_id \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[{
-    "id": '${editor_role_id}',
-    "name": "editor"
-}]'
-
-echo 'successfully mapped user to role editor'
+echo -e 'Mapping gary to role editor'
+assign_role_to_user "$editor_user_id" "$editor_role_id" "editor"
 echo -e '\n________________________________\n'
 
 
 # Create Reviewer role User
 echo -e '\n________________________________\n'
-echo -e 'Creating user for reviewer role '${non_admin_username}'-reviewer on realm '$realm'...'
-reviewer_user_id=$(curl -X POST $base_url/admin/realms/$realm/users -si \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '{
+echo -e 'Creating user for reviewer role...'
+reviewer_user_id=$(get_or_create_user "joybennet" '{
   "firstName": "Joy",
   "lastName": "bennet",
   "email": "Joybennet@test.com",
@@ -233,32 +311,72 @@ reviewer_user_id=$(curl -X POST $base_url/admin/realms/$realm/users -si \
   "credentials": [
     {
       "type": "password",
-      "value": "'${non_admin_pswd}'",
+      "value": "'"${non_admin_pswd}"'",
       "temporary": false
     }
   ]
-}' | grep 'Location' | awk -F': ' '{print $2}'| awk -F / '{print $NF}' | tr -d '\r')
-echo "Created user '${non_admin_username}-reviewer with user_id: $reviewer_user_id"
+}')
+echo "Using reviewer user with id: $reviewer_user_id"
 echo -e '\n________________________________\n'
-
 
 # Map new user to reviewer role
 echo -e '\n________________________________\n'
-echo -e 'Mapping '${non_admin_username}'-reviewer to role reviewer'
+echo -e 'Mapping joybennet to role reviewer'
+assign_role_to_user "$reviewer_user_id" "$reviewer_role_id" "reviewer"
+echo -e '\n________________________________\n'
 
-curl -X POST $base_url/admin/realms/$realm/users/$reviewer_user_id/role-mappings/realm \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[]'
-curl -X POST $base_url/admin/realms/$realm/users/$reviewer_user_id/role-mappings/clients/$client_id \
---header 'Content-Type: application/json' \
---header "Authorization: Bearer ${token}" \
---data-raw '[{
-    "id": '${reviewer_role_id}',
-    "name": "reviewer"
-}]'
 
-echo 'successfully mapped user to role reviewer'
+# Create Implementer role User
+echo -e '\n________________________________\n'
+echo -e 'Creating user for implementer role on realm '$realm'...'
+implementer_user_id=$(get_or_create_user "ann" '{
+  "firstName": "Ann",
+  "lastName": "Implementer",
+  "email": "annimplementer@test.com",
+  "enabled": true,
+  "username": "ann",
+  "credentials": [
+    {
+      "type": "password",
+      "value": "'"${non_admin_pswd}"'",
+      "temporary": false
+    }
+  ]
+}')
+echo "Using implementer user with id: $implementer_user_id"
+echo -e '\n________________________________\n'
+
+# Map new user to implementer role
+echo -e '\n________________________________\n'
+echo -e 'Mapping ann to role implementer'
+assign_role_to_user "$implementer_user_id" "$implementer_role_id" "implementer"
+echo -e '\n________________________________\n'
+
+
+# Create Publisher role User
+echo -e '\n________________________________\n'
+echo -e 'Creating user for publisher role...'
+publisher_user_id=$(get_or_create_user "rachel" '{
+  "firstName": "Rachel",
+  "lastName": "Publisher",
+  "email": "rachelpublisher@test.com",
+  "enabled": true,
+  "username": "rachel",
+  "credentials": [
+    {
+      "type": "password",
+      "value": "'"${non_admin_pswd}"'",
+      "temporary": false
+    }
+  ]
+}')
+echo "Using publisher user with id: $publisher_user_id"
+echo -e '\n________________________________\n'
+
+# Map new user to publisher role
+echo -e '\n________________________________\n'
+echo -e 'Mapping rachel to role publisher'
+assign_role_to_user "$publisher_user_id" "$publisher_role_id" "publisher"
 echo -e '\n________________________________\n'
 
 echo -e "Finished running setup script\n----------------------------------------------------------------"

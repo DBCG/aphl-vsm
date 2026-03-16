@@ -83,6 +83,6 @@ export const config = {
 export default handler({
   POST: {
     action: validatePackage,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

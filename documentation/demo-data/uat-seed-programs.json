@@ -1,0 +1,421 @@
+{
+	"resourceType": "Bundle",
+	"id": "uat-seed-programs",
+	"type": "transaction",
+	"entry": [
+		{
+			"fullUrl": "http://aphl.org/fhir/vsm/Library/CardiovascularDiseaseProgram-d1",
+			"resource": {
+				"resourceType": "Library",
+				"id": "CardiovascularDiseaseProgram-d1",
+				"url": "http://aphl.org/fhir/vsm/Library/CardiovascularDiseaseProgram",
+				"version": "1.0.0",
+				"title": "Cardiovascular Disease Program",
+				"description": "UAT seed program — draft",
+				"publisher": "Association of Public Health Laboratories (APHL)",
+				"status": "draft",
+				"useContext": [
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "specification-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "program"
+								}
+							]
+						}
+					}
+				],
+				"relatedArtifact": [
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "emergent"
+										}
+									],
+									"text": "Emergent"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
+					},
+					{
+						"type": "depends-on",
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-11-19"
+					}
+				]
+			},
+			"request": {
+				"method": "PUT",
+				"url": "Library/CardiovascularDiseaseProgram-d1"
+			}
+		},
+		{
+			"fullUrl": "http://aphl.org/fhir/vsm/Library/FoodborneIllnessProgram-d1",
+			"resource": {
+				"resourceType": "Library",
+				"id": "FoodborneIllnessProgram-d1",
+				"url": "http://aphl.org/fhir/vsm/Library/FoodborneIllnessProgram",
+				"version": "1.0.0",
+				"title": "Foodborne Illness Program",
+				"description": "UAT seed program — draft",
+				"publisher": "Association of Public Health Laboratories (APHL)",
+				"status": "draft",
+				"useContext": [
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "specification-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "program"
+								}
+							]
+						}
+					}
+				],
+				"relatedArtifact": [
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "emergent"
+										}
+									],
+									"text": "Emergent"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "767146004"
+										}
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
+					},
+					{
+						"type": "depends-on",
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-11-19"
+					}
+				]
+			},
+			"request": {
+				"method": "PUT",
+				"url": "Library/FoodborneIllnessProgram-d1"
+			}
+		},
+		{
+			"fullUrl": "http://aphl.org/fhir/vsm/Library/ImmunizationRegistryProgram-a1",
+			"resource": {
+				"resourceType": "Library",
+				"id": "ImmunizationRegistryProgram-a1",
+				"url": "http://aphl.org/fhir/vsm/Library/ImmunizationRegistryProgram",
+				"version": "2.0.0",
+				"title": "Immunization Registry Program",
+				"description": "UAT seed program — active",
+				"publisher": "Association of Public Health Laboratories (APHL)",
+				"status": "active",
+				"approvalDate": "2025-06-01",
+				"useContext": [
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "specification-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "program"
+								}
+							]
+						}
+					}
+				],
+				"relatedArtifact": [
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "emergent"
+										}
+									],
+									"text": "Emergent"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "49649001"
+										}
+									],
+									"text": "Infection caused by Acanthamoeba (disorder)"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
+					},
+					{
+						"type": "depends-on",
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-11-19"
+					}
+				]
+			},
+			"request": {
+				"method": "PUT",
+				"url": "Library/ImmunizationRegistryProgram-a1"
+			}
+		},
+		{
+			"fullUrl": "http://aphl.org/fhir/vsm/Library/RespiratorySurveillanceProgram-r1",
+			"resource": {
+				"resourceType": "Library",
+				"id": "RespiratorySurveillanceProgram-r1",
+				"url": "http://aphl.org/fhir/vsm/Library/RespiratorySurveillanceProgram",
+				"version": "1.0.0",
+				"title": "Respiratory Surveillance Program",
+				"description": "UAT seed program — retired",
+				"publisher": "Association of Public Health Laboratories (APHL)",
+				"status": "retired",
+				"approvalDate": "2024-01-01",
+				"useContext": [
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "reporting"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "triggering"
+								}
+							]
+						}
+					},
+					{
+						"code": {
+							"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context-type",
+							"code": "specification-type"
+						},
+						"valueCodeableConcept": {
+							"coding": [
+								{
+									"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+									"code": "program"
+								}
+							]
+						}
+					}
+				],
+				"relatedArtifact": [
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/PlanDefinition/us-ecr-specification|2.0.0",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"type": "composed-of",
+						"resource": "http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19",
+						"extension": [
+							{
+								"url": "http://hl7.org/fhir/StructureDefinition/artifact-isOwned",
+								"valueBoolean": true
+							}
+						]
+					},
+					{
+						"extension": [
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-priority",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://hl7.org/fhir/us/ecr/CodeSystem/us-ph-usage-context",
+											"code": "emergent"
+										}
+									],
+									"text": "Emergent"
+								}
+							},
+							{
+								"url": "http://aphl.org/fhir/vsm/StructureDefinition/vsm-valueset-condition",
+								"valueCodeableConcept": {
+									"coding": [
+										{
+											"system": "http://snomed.info/sct",
+											"code": "767146004"
+										}
+									],
+									"text": "Toxic effect of arsenic and/or arsenic compound"
+								}
+							}
+						],
+						"type": "depends-on",
+						"resource": "http://cts.nlm.nih.gov/fhir/ValueSet/2.16.840.1.113762.1.4.1146.6|20210526"
+					},
+					{
+						"type": "depends-on",
+						"resource": "http://ersd.aimsplatform.org/fhir/ValueSet/dxtc|2022-11-19"
+					}
+				]
+			},
+			"request": {
+				"method": "PUT",
+				"url": "Library/RespiratorySurveillanceProgram-r1"
+			}
+		}
+	]
+}

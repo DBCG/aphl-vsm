@@ -70,6 +70,6 @@ const expandValueSets = async (req: ExpandRequest, res: NextApiResponse, session
 export default handler({
   POST: {
     action: expandValueSets,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

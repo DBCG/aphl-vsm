@@ -32,5 +32,5 @@ const bulkUpdate = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  PUT: { action: bulkUpdate, access: ['admin', 'editor'] }
+  PUT: { action: bulkUpdate, access: ['admin', 'publisher', 'editor'] }
 })

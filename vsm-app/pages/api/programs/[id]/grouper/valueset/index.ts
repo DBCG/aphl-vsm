@@ -666,14 +666,14 @@ const updateExistingGrouperMetadata = async (req: NextApiRequest, res: NextApiRe
 export default handler({
   DELETE: {
     action: deleteVSetsFromGroupers,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   },
   POST: {
     action: createGrouperValueSet,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   },
   PUT: {
     action: updateExistingGrouperMetadata,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

@@ -12,6 +12,7 @@ const EditEndpointPage: NextPage = () => {
   // error states
   const [error, setError] = useState<null | string>(null)
   const [endpoint, setEndpoint] = useState<fhir4.Endpoint>()
+
   useEffect(() => {
     if (router.query.id) {
       const url = `/api/endpoint/${router.query.id}`

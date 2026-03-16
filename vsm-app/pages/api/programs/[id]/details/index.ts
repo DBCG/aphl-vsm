@@ -115,5 +115,5 @@ const updateProgramDetails = async (req: NextApiRequest, res: NextApiResponse): 
 
 export default handler({
   GET: { action: getProgramDetails },
-  PUT: { action: updateProgramDetails, access: ['admin', 'editor'] }
+  PUT: { action: updateProgramDetails, access: ['admin', 'publisher', 'editor'] }
 })

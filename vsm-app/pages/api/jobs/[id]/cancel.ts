@@ -113,5 +113,5 @@ const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResp
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor', 'reviewer'], action: cancelJob }
+  POST: { access: ['admin', 'publisher', 'editor', 'reviewer'], action: cancelJob }
 })
