@@ -22,7 +22,7 @@ WORKDIR /opt/app
 COPY ./package.json /opt/app
 COPY ./package-lock.json /opt/app
 
-RUN npm install
+RUN npm install -g npm@latest && npm install
 
 COPY ./ /opt/app
 RUN npm run build
@@ -35,6 +35,8 @@ RUN apt-get update && \
 	apt-get install -y --no-install-recommends curl && \
 	apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g npm@latest
 
 WORKDIR /opt/app
 
