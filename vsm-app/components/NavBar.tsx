@@ -75,6 +75,7 @@ const NavBar = () => {
   const router = useRouter()
   const { isGrouperView } = useContext(NavContext)
   const { data: session } = useSession() as unknown as { data: VSMSession }
+  const userRole = getUserRole(session)
 
   return (
     <BarWrapper>
@@ -110,9 +111,9 @@ const NavBar = () => {
             <Typography variant="body1" sx={{ color: 'var(--theme-400)' }}>
               {session?.user?.name}
             </Typography>
-            {getUserRole(session) && (
+            {userRole && (
               <Typography variant="body2" sx={{ color: 'gray', fontSize: '80%' }}>
-                {getUserRole(session)}
+                {userRole}
               </Typography>
             )}
           </Box>

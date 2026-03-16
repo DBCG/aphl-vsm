@@ -9,11 +9,22 @@ import { uniqBy } from 'lodash'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import { Agent, fetch as f } from 'undici'
 import { is } from '@/helpers/is'
-import { VSMSession } from '@/helpers/rolesHelper'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
 
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   const userId = session.user.id
+
+  if (isImplementer(session)) {
+    const program = (await FhirClient.getInstance().read({
+      resourceType: 'Library',
+      id: req.query.id as string
+    })) as fhir4.Library
+    if (program?.status === 'draft') {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+  }
+
   try {
     const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
     if (req.query.url) {

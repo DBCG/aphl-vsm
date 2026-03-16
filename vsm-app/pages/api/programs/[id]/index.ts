@@ -98,6 +98,6 @@ export const config = {
 }
 
 export default handler({
-  GET: { action: retrieveProgramLibrary },
+  GET: { action: retrieveProgramLibrary, access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer'] },
   PUT: { action: updateProgramLibrary, access: ['admin', 'publisher', 'editor'] },
 })

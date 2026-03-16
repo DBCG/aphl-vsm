@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from "next-auth/next"
 import APITokenHandler from "@/helpers/server/ApiTokenHandler";
 import Logger from '@/helpers/server/logger'
-import { VSMSession } from '@/helpers/rolesHelper'
+import { VSMSession, getHighestPermissionOfUser } from '@/helpers/rolesHelper'
 import { logSimpleError } from './simpleHapiError'
 import { is } from '../is'
 import { AuthOptions } from '@/pages/api/auth/[...nextauth]'
@@ -47,7 +47,7 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
         return await action(req, res, highestUserRole);
     }
     }
-    const role = session?.user?.roles?.[0] // TODO: when users have more than one role we should look into modifying this
+    const role = getHighestPermissionOfUser(session?.user?.roles ?? null)
     const isAuthorized = (session != null && role != null && access?.includes(role)) || access == null // if access is unset, the route allows all roles
     if (!isAuthorized) {
       Logger.getLogger().error(`Role: ${role} is not authorized for ${req?.url}`)
@@ -61,22 +61,6 @@ const handler = (methodHandlers: any) => async (req: NextApiRequest, res: NextAp
   }
 }
 
-export const getHighestPermissionOfUser = (role: string[] | string | null): string | null => {
-  if (typeof role === 'string') {
-    return role
-  } else if (Array.isArray(role)) {
-    if (role.includes('admin')) {
-      return 'admin'
-    } else if (role.includes('publisher')) {
-      return 'publisher'
-    } else if (role.includes('editor')) {
-      return 'editor'
-    } else if (role.includes('reviewer')) {
-      return 'reviewer'
-    }
-  }
-  return null
-}
 
 const roleIsAuthorizedPassthroughApi = (role: string | null, method: 'GET' | 'PUT' | 'POST' | 'DELETE') => {
   if (!role) {
