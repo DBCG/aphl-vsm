@@ -6,8 +6,8 @@ export const VSM_META_PROFILE_URLS = {
   VSM_GROUPERVALUESET_URL: 'http://aphl.org/fhir/vsm/StructureDefinition/vsm-groupervalueset'
 }
 
-export const VSP_PACKAGE_CACHE_IDENTIFIER_SYSTEM = 'http://aphl.org/fhir/vsm/cache/vsp-package'
-export const VSP_PACKAGE_CACHE_TAG = { system: 'http://aphl.org/fhir/vsm/cache', code: 'vsp-package-cache' }
+export const PACKAGE_CACHE_IDENTIFIER_SYSTEM = 'http://aphl.org/fhir/vsm/cache/package'
+export const PACKAGE_CACHE_TAG = { system: 'http://aphl.org/fhir/vsm/cache', code: 'package-cache' }
 
 // Stores Jobs in local storage and checks for job status
 export const JOB_STATUS = {

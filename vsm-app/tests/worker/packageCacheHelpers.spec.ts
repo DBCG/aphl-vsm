@@ -1,11 +1,6 @@
 jest.mock('fhir-kit-client')
-jest.mock('bull', () => {
-  return jest.fn().mockImplementation(() => ({
-    process: jest.fn()
-  }))
-})
 
-import { hashPackageParams, stripCacheMetadata } from '@/worker/VSPPackageQueue'
+import { hashPackageParams, stripCacheMetadata } from '@/worker/packageCacheHelpers'
 
 describe('hashPackageParams', () => {
   it('returns a 12-character hex string', () => {
@@ -45,11 +40,11 @@ describe('stripCacheMetadata', () => {
         resourceType: 'Bundle',
         id: 'server-assigned-id',
         identifier: {
-          system: 'http://aphl.org/fhir/vsm/cache/vsp-package',
+          system: 'http://aphl.org/fhir/vsm/cache/package',
           value: 'vsp-123|1.0.0'
         },
         meta: {
-          tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'vsp-package-cache' }]
+          tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'package-cache' }]
         },
         type: 'collection',
         entry: [
@@ -72,7 +67,7 @@ describe('stripCacheMetadata', () => {
       const cached = JSON.stringify({
         resourceType: 'Bundle',
         id: 'abc-123',
-        identifier: { system: 'http://aphl.org/fhir/vsm/cache/vsp-package', value: 'vsp-1|2.0' },
+        identifier: { system: 'http://aphl.org/fhir/vsm/cache/package', value: 'vsp-1|2.0' },
         meta: { tag: [] },
         type: 'collection',
         timestamp: '2026-01-15T00:00:00Z',
@@ -123,8 +118,8 @@ describe('stripCacheMetadata', () => {
       const stored = {
         ...original,
         id: 'server-id',
-        identifier: { system: 'http://aphl.org/fhir/vsm/cache/vsp-package', value: 'vsp-1|1.0' },
-        meta: { tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'vsp-package-cache' }] }
+        identifier: { system: 'http://aphl.org/fhir/vsm/cache/package', value: 'vsp-1|1.0' },
+        meta: { tag: [{ system: 'http://aphl.org/fhir/vsm/cache', code: 'package-cache' }] }
       }
 
       const result = JSON.parse(stripCacheMetadata(JSON.stringify(stored), true))
@@ -138,8 +133,8 @@ describe('stripCacheMetadata', () => {
       const cached = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="server-assigned-id"/>',
-        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-123|1.0.0"/></identifier>',
-        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/package"/><value value="vsp-123|1.0.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="package-cache"/></tag></meta>',
         '<type value="collection"/>',
         '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
         '</Bundle>'
@@ -149,7 +144,7 @@ describe('stripCacheMetadata', () => {
 
       expect(result).not.toContain('<id value="server-assigned-id"/>')
       expect(result).not.toContain('<identifier>')
-      expect(result).not.toContain('vsp-package-cache')
+      expect(result).not.toContain('package-cache')
       expect(result).not.toContain('<meta>')
       expect(result).toContain('<type value="collection"/>')
       expect(result).toContain('<entry>')
@@ -160,8 +155,8 @@ describe('stripCacheMetadata', () => {
       const cached = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="abc-123"/>',
-        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-1|2.0"/></identifier>',
-        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/package"/><value value="vsp-1|2.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="package-cache"/></tag></meta>',
         '<type value="collection"/>',
         '<entry>',
         '  <resource>',
@@ -195,7 +190,7 @@ describe('stripCacheMetadata', () => {
       const cached = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="abc"/>',
-        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="package-cache"/></tag></meta>',
         '<entry>',
         '  <resource>',
         '    <ValueSet>',
@@ -210,7 +205,7 @@ describe('stripCacheMetadata', () => {
       const result = stripCacheMetadata(cached, false)
 
       // Top-level meta should be removed
-      expect(result).not.toContain('vsp-package-cache')
+      expect(result).not.toContain('package-cache')
       // Nested resource meta should be preserved
       expect(result).toContain('<meta><profile value="http://hl7.org/fhir/StructureDefinition/ValueSet"/></meta>')
     })
@@ -227,8 +222,8 @@ describe('stripCacheMetadata', () => {
       const stored = [
         '<Bundle xmlns="http://hl7.org/fhir">',
         '<id value="server-id"/>',
-        '<identifier><system value="http://aphl.org/fhir/vsm/cache/vsp-package"/><value value="vsp-1|1.0"/></identifier>',
-        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="vsp-package-cache"/></tag></meta>',
+        '<identifier><system value="http://aphl.org/fhir/vsm/cache/package"/><value value="vsp-1|1.0"/></identifier>',
+        '<meta><tag><system value="http://aphl.org/fhir/vsm/cache"/><code value="package-cache"/></tag></meta>',
         '<type value="collection"/>',
         '<entry><resource><ValueSet><id value="vs-1"/></ValueSet></resource></entry>',
         '</Bundle>'
