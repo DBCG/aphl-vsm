@@ -8,7 +8,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['admin']
         }
-      }
+      } as any
       allowedPermissions.forEach((permission) => {
         expect(can(session, permission)).toBe(true)
       })
@@ -20,7 +20,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['editor']
         }
-      }
+      } as any
       allowedPermissions.forEach((permission) => {
         expect(can(session, permission)).toBe(true)
       })
@@ -32,7 +32,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['reviewer']
         }
-      }
+      } as any
       allowedPermissions.forEach((permission) => {
         expect(can(session, permission)).toBe(true)
       })
@@ -43,7 +43,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['reviewer']
         }
-      }
+      } as any
       expect(can(session, 'edit')).toBe(false)
       expect(can(session, 'thisPermissionDoesNotExist')).toBe(false)
     })
@@ -55,7 +55,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['editor']
         }
-      }
+      } as any
       const program = {
         resourceType: 'Library',
         id: '123',
@@ -64,7 +64,7 @@ describe('rolesHelper', () => {
         extension: [
 
         ]
-      }
+      } as any
       expect(allowEditing({ session, program })).toBe(true)
     })
 
@@ -73,7 +73,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['reviewer']
         }
-      }
+      } as any
       const program = {
         resourceType: 'Library',
         id: '123',
@@ -86,7 +86,7 @@ describe('rolesHelper', () => {
           }
 
         ]
-      }
+      } as any
       expect(allowEditing({ session, program })).toBe(false)
     })
 
@@ -95,7 +95,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['editor']
         }
-      }
+      } as any
       const program = {
         resourceType: 'Library',
         id: '123',
@@ -108,7 +108,7 @@ describe('rolesHelper', () => {
           }
 
         ]
-      }
+      } as any
       expect(allowEditing({ session, program })).toBe(false)
     })
 
@@ -117,7 +117,7 @@ describe('rolesHelper', () => {
         user: {
           roles: ['editor']
         }
-      }
+      } as any
       const program = {
         resourceType: 'Library',
         id: '123',
@@ -130,7 +130,7 @@ describe('rolesHelper', () => {
           }
 
         ]
-      }
+      } as any
       expect(allowDelete({ session, program })).toBe(false)
     })
   })

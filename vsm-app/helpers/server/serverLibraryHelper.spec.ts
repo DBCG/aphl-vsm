@@ -36,7 +36,7 @@ describe('serverLibraryHelper', () => {
         id: 'programId',
         relatedArtifact: [{ type: 'composed-of', resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19' }],
         status: 'active'
-      }
+      } as any
       FhirClient.getInstance().search = jest.fn().mockResolvedValue({ entry: [] })
       await expect(getGrouperLibrary(program)).rejects.toThrow(`Could not get Grouper Library for Program ${program.id}`)
     })
@@ -46,7 +46,7 @@ describe('serverLibraryHelper', () => {
         id: 'programId',
         relatedArtifact: [{ type: 'composed-of', resource: 'http://ersd.aimsplatform.org/fhir/Library/rctc|2022-11-19' }],
         status: 'active'
-      }
+      } as any
       const grouperLibrary = { resourceType: 'Library', id: 'grouperLibraryId' }
       FhirClient.getInstance().search = jest.fn().mockResolvedValue({ entry: [{ resource: grouperLibrary }] })
       await expect(getGrouperLibrary(program)).resolves.toEqual(grouperLibrary)
@@ -63,7 +63,7 @@ describe('serverLibraryHelper', () => {
       const grouperLib = {
         id: 'grouperLibraryId',
         relatedArtifact: [{ type: 'composed-of', resource: 'http://ersd.aimsplatform.org/fhir/ValueSet/rctc|2022-11-19' }]
-      }
+      } as any
       FhirClient.getInstance().search = jest.fn().mockResolvedValue([])
       await expect(getGrouperValuesets(grouperLib)).rejects.toThrow(`No Grouper Valuesets found for Library ${grouperLib.id}`)
     })
@@ -72,7 +72,7 @@ describe('serverLibraryHelper', () => {
       const grouperLib = {
         id: 'grouperLibraryId',
         relatedArtifact: [{ type: 'composed-of', resource: 'http://ersd.aimsplatform.org/fhir/ValueSet/rctc|2022-11-19' }]
-      }
+      } as any
       const grouperValueset = { resourceType: 'ValueSet', id: 'grouperValuesetId' }
       FhirClient.getInstance().search = jest.fn().mockResolvedValue({resourceType: 'Bundle', entry: [{ resource: grouperValueset }]})
       await expect(getGrouperValuesets(grouperLib)).resolves.toEqual([grouperValueset])

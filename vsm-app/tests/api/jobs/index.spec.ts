@@ -69,10 +69,10 @@ describe('/api/jobs', () => {
   it('GET /api/jobs', async () => {
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: 'GET'
-    })
-    Cache.getInstance.mockReturnValue({});
-    Cache.getInstance().smembers = jest.fn().mockImplementation(() => ['1', '2'])
-    Cache.getInstance().multi = jest.fn().mockImplementation(() => ({
+    });
+    (Cache.getInstance as jest.Mock).mockReturnValue({});
+    (Cache as any).getInstance().smembers = jest.fn().mockImplementation(() => ['1', '2']);
+    (Cache as any).getInstance().multi = jest.fn().mockImplementation(() => ({
       hgetall: jest.fn(),
       exec: jest.fn().mockImplementation(() => [
         [null, { jobId: '1' }],
@@ -89,18 +89,18 @@ describe('/api/jobs', () => {
   it('DELETE /api/jobs', async () => {
     const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: 'DELETE'
-    })
-    Cache.getInstance.mockReturnValue({});
-    Cache.getInstance().smembers = jest.fn().mockImplementation(() => ['1', '2'])
-    Cache.getInstance().multi = jest.fn().mockImplementation(() => ({
+    });
+    (Cache.getInstance as jest.Mock).mockReturnValue({});
+    (Cache as any).getInstance().smembers = jest.fn().mockImplementation(() => ['1', '2']);
+    (Cache as any).getInstance().multi = jest.fn().mockImplementation(() => ({
       hgetall: jest.fn(),
       del: jest.fn(),
       exec: jest.fn().mockImplementation(() => [
         [null, { jobId: '1' }],
         [null, { jobId: '2' }]
       ])
-    }))
-    Cache.getInstance().del = jest.fn()
+    }));
+    (Cache as any).getInstance().del = jest.fn()
 
     PackageQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
     ChangeLogQueue.getJob = jest.fn().mockReturnValue(Promise.resolve({ remove: jest.fn() }))
@@ -111,6 +111,6 @@ describe('/api/jobs', () => {
     await handler(req, res)
 
     expect(res._getStatusCode()).toBe(200)
-    expect(Cache.getInstance().del).toHaveBeenCalledWith('user:1:jobs')
+    expect((Cache as any).getInstance().del).toHaveBeenCalledWith('user:1:jobs')
   })
 })

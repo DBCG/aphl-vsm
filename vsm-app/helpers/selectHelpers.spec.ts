@@ -3,8 +3,8 @@ describe('selectHelpers', () => {
   describe('buildGroupOptions', () => {
     it('returns empty array if no groupVsets', () => {
       const testInput1 = undefined
-      const testInput2 = []
-      const expected = []
+      const testInput2: fhir4.ValueSet[] = []
+      const expected: any[] = []
       expect(buildGroupOptions(testInput1)).toEqual(expected)
       expect(buildGroupOptions(testInput2)).toEqual(expected)
     })
@@ -19,7 +19,7 @@ describe('selectHelpers', () => {
           id: '2',
           title: 'testTitle2'
         }
-      ]
+      ] as any
       const expected = [
         {
           value: '1',
