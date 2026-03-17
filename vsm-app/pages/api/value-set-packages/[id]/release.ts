@@ -56,6 +56,6 @@ const releaseVSP = async (
 export default handler({
   POST: {
     action: releaseVSP,
-    access: ['admin', 'publisher', 'editor']
+    access: ['admin', 'publisher']
   }
 })
