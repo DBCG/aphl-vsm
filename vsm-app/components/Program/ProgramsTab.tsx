@@ -627,35 +627,45 @@ const ProgramsTab: NextPage = () => {
         body: JSON.stringify(payload)
         })
 
-    if (!result.ok) {
-      let errorText
-      if (res?.error?.includes('HAPI-0389')) {
-        errorText = 'Draft program must be approved to release.'
-      } else if (!!res?.error) {
-        errorText = res.error
-      } else {
-        errorText = 'Please try again.'
-      }
-      setError({
-        error: [`Error occurred while releasing program: ${payload.programId}.`, `${errorText}`]
-      })
-    } else {
-      NotificationStore.addJob({
-        jobId: res.id,
-        jobType: JOB_TYPE.RELEASE,
-        metadata: {
-          programId: payload.programId,
-          programTitle: payload.programTitle,
-          latestFromTxServer: payload.latestFromTxServer
-        },
-        onSuccess: async () => {
-          toast.success(`Program ${payload.programTitle} released successfully.`)
-          await mutate()
-        },
-        onFailure: (error: string) => toast.error(`Release failed for ${payload.programTitle}: ${error}`)
-      })
-      await mutate()
-      toast.success(`Program ${payload.programTitle} release in progress.`)
+        if (!result.ok) {
+        const res = await result.json()
+        let errorText
+        if (res?.error?.includes('HAPI-0389')) {
+            errorText = 'Draft program must be approved to release.'
+        } else if (!!res?.error) {
+            errorText = res.error
+        } else {
+            errorText = 'Please try again.'
+        }
+        setError({
+            error: [`Error occurred while releasing program: ${payload.programId}.`, `${errorText}`]
+        })
+        } else {
+        const res = await result.json()
+        NotificationStore.addJob({
+            jobId: res.id,
+            jobType: JOB_TYPE.RELEASE,
+            metadata: {
+            programId: payload.programId,
+            programTitle: payload.programTitle,
+            latestFromTxServer: payload.latestFromTxServer
+            },
+            onSuccess: async () => {
+            toast.success(`Program ${payload.programTitle} released successfully.`)
+            await mutate()
+            },
+            onFailure: (error: string) => toast.error(`Release failed for ${payload.programTitle}: ${error}`)
+        })
+        await mutate()
+        toast.success(`Program ${payload.programTitle} release in progress.`)
+        }
+    } catch (e) {
+        setError({ error: ['An unexpected error occurred. Please try again.'] })
+    } finally {
+        setLoading(false)
+        setProgramToRelease(null)
+        closeRows()
+    }
     }
 
   if (!data) return <LoadingIndicator />
