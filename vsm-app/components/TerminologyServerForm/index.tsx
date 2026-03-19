@@ -11,7 +11,7 @@ import { useRouter } from 'next/router'
 import { EndpointRequest } from '@/pages/api/endpoint'
 import { debounce } from 'lodash'
 import { toast } from 'react-toastify'
-import { AUTHENTICATION_TYPE_URL } from '@/constants'
+import { AUTHENTICATION_TYPE_URL, ARTIFACT_ROUTE_URL } from '@/constants'
 import { apiFetch } from '@/utils'
 
 export const getAuthenticationTypeString = (extensions: fhir4.Extension[]) =>
@@ -25,6 +25,7 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
   const [endpointToUpdate, setEndpointToUpdate] = useState<fhir4.Endpoint>()
   const name = useRef<HTMLInputElement>(null)
   const address = useRef<HTMLInputElement>(null)
+  const artifactRoute = useRef<HTMLInputElement>(null)
   const authenticationType = useRef<SelectInstance<{ value: string; label: string } | null>>(null)
   
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -49,6 +50,13 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
       authenticationExtension.valueString = authenticationTypeValue
     } else {
       updatedEndpoint.extension.push({ url: AUTHENTICATION_TYPE_URL, valueString: authenticationTypeValue })
+    }
+    const artifactRouteValue = artifactRoute?.current?.value?.trim()
+    const artifactRouteExtension = updatedEndpoint.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)
+    if (artifactRouteExtension) {
+      artifactRouteExtension.valueUri = artifactRouteValue || undefined
+    } else if (artifactRouteValue) {
+      updatedEndpoint.extension.push({ url: ARTIFACT_ROUTE_URL, valueUri: artifactRouteValue })
     }
     const url = `/api/endpoint`
     const body: EndpointRequest['body'] = { endpoint: updatedEndpoint }
@@ -115,6 +123,9 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
     if (name.current) {
       name.current.value = endpointToUpdate?.name || ''
     }
+    if (artifactRoute.current) {
+      artifactRoute.current.value = endpointToUpdate?.extension?.find((ext) => ext.url === ARTIFACT_ROUTE_URL)?.valueUri || ''
+    }
   }, [endpointToUpdate])
 
   return (
@@ -172,6 +183,13 @@ export const TerminologyServerForm = ({ endpoint }: { endpoint?: fhir4.Endpoint 
                 validateWithHttpCall(address)
               }
             }}
+            disabled={loading}
+          />
+          <SearchInput
+            id="artifactRoute"
+            label="Artifact Route"
+            helperMessage="Optional URI route prefix used to determine which artifacts this endpoint can resolve"
+            inputRef={artifactRoute}
             disabled={loading}
           />
           <LabelStyled>

@@ -428,7 +428,7 @@ const deleteProvisionalVs = async (req: NextApiRequest, res: NextApiResponse) =>
 }
 
 export default handler({
-  POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'editor'] },
-  DELETE: { action: deleteProvisionalVs, access: ['admin', 'editor'] },
-  GET: { action: getProvisionalVs, access: ['admin', 'editor', 'reviewer'] },
+  POST: { action: createOrEditProvisionalValueSet, access: ['admin', 'publisher', 'editor'] },
+  DELETE: { action: deleteProvisionalVs, access: ['admin', 'publisher', 'editor'] },
+  GET: { action: getProvisionalVs, access: ['admin', 'publisher', 'editor', 'reviewer'] },
 })

@@ -15,3 +15,5 @@ ecr/target
 
 # ptx lock files
 vsp/docs/~$*.pptx
+
+.claude

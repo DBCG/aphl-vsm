@@ -5,29 +5,36 @@ import { VSMSession } from '@/helpers/rolesHelper'
 import handler from '@/helpers/server/handler'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
+import { AUTHENTICATION_TYPE_URL } from '@/constants'
 
 const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   try {
     const { endpointId } = req.query
-    const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
 
     const endpointBundle = await FhirClient.getInstance().search({
       resourceType: 'Endpoint',
     })
-  
+
     const endpoints = endpointBundle?.entry?.map((e: fhir4.BundleEntry) => e?.resource as fhir4.Endpoint)
 
     const matchingEndpoint = endpoints?.find((e: fhir4.Endpoint) => e?.id === endpointId)
-  
+
     // early return if no matching endpoint exists
     if (!matchingEndpoint) {
       return res.status(500).json({ error: 'No active terminology server endpoint' })
     }
 
+    const authType = matchingEndpoint.extension?.find((ext: fhir4.Extension) => ext.url === AUTHENTICATION_TYPE_URL)?.valueString
+    let basicAuthHeader: string | undefined
+    if (authType === 'basic') {
+      const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
+      basicAuthHeader = Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')
+    }
+
     TerminologyFhirClient.setCustomClient({
       clientName: matchingEndpoint.name as string,
       baseUrl: matchingEndpoint.address as string,
-      basicAuthHeader: `${Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')}`
+      basicAuthHeader
     })
 
     const activeTerminologyClient = await TerminologyFhirClient.getClient()
@@ -50,5 +57,5 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
 }
 
 export default handler({
-  GET: { action: testTermEndpoint, access: ['admin', 'editor', 'reviewer'] },
+  GET: { action: testTermEndpoint, access: ['admin', 'publisher', 'editor', 'reviewer'] },
 })

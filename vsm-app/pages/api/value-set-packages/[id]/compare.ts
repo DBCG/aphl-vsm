@@ -3,6 +3,7 @@ import handler from '@/helpers/server/handler'
 import ExcelJS from 'exceljs'
 import Logger from '@/helpers/server/logger'
 import FhirClient from '@/backend/clients/FhirCdrClient'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
   const diffResult = req.body as fhir4.Parameters
@@ -70,21 +71,26 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   res.status(200).end()
 }
 
-const getVSPVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
+const getVSPVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession): Promise<void> => {
   try {
     const payload = (await FhirClient.getInstance().search({
       resourceType: 'Library',
       searchParams: {
         context: 'value-set-package',
-        _elements: 'version,id,title',
+        _elements: 'version,id,title,status',
         _count: 1000
       }
     })) as fhir4.Bundle
 
-    const libs =
+    let libs =
       payload?.entry
         ?.map((entry) => entry.resource)
         ?.filter((i) => i?.id !== req.query.id) || []
+
+    if (isImplementer(session)) {
+      libs = libs.filter((i) => (i as fhir4.Library)?.status !== 'draft')
+    }
+
     return res.status(200).json(libs)
   } catch (error: any) {
     Logger.getLogger().error(error)
@@ -93,6 +99,6 @@ const getVSPVersions = async (req: NextApiRequest, res: NextApiResponse): Promis
 }
 
 export default handler({
-  POST: { action: downloadChangeLog },
+  POST: { action: downloadChangeLog, access: ['admin', 'publisher', 'editor', 'reviewer'] },
   GET: { action: getVSPVersions }
 })

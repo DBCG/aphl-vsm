@@ -91,6 +91,6 @@ const crmiPackage = async (req: ExpectedPackageBody, res: NextApiResponse<Queue.
 export default handler({
   POST: {
     action: crmiPackage,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor', 'implementer']
   }
 })

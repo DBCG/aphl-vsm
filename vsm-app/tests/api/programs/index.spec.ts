@@ -34,8 +34,8 @@ describe('/api/programs', () => {
       ]
     }))
 
-    const response = await handler(req, res)
-    expect(response.statusCode).toBe(200)
-    expect(response._getData().programs.length).toBe(1)
+    await handler(req, res)
+    expect(res._getStatusCode()).toBe(200)
+    expect(res._getData().programs.length).toBe(1)
   })
 })

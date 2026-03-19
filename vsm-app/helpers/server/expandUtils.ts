@@ -74,7 +74,6 @@ const getSpecifiedGroupers = async (groupersToSearch: string[], fhirCdrClient: F
     return {
       request: {
         method: 'GET',
-        resourceType: 'ValueSet',
         // why doesn't _elements work here?
         url: `ValueSet?_id=${grouperId}&_elements=id`
       }
@@ -202,7 +201,6 @@ const findMatchingVsetUrls = async ({
       return {
         request: {
           method: 'GET',
-          resourceType: 'ValueSet',
           url: searchUrl
         }
       }

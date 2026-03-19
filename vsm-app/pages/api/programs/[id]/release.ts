@@ -113,6 +113,6 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
 export default handler({
   POST: {
     action: release,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher']
   }
 })

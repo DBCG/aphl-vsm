@@ -6,9 +6,10 @@ import { HapiError } from '@/types/hapiError'
 import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import { validateVSPVersion } from '@/helpers/vspHelpers'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 // Retrieve a single VSP by ID
-const retrieveVSP = async (req: NextApiRequest, res: NextApiResponse) => {
+const retrieveVSP = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   if (is.string(req?.query?.id)) {
     try {
       const vsp = (await FhirClient.getInstance().read({
@@ -20,6 +21,10 @@ const retrieveVSP = async (req: NextApiRequest, res: NextApiResponse) => {
       if (!is.isVSP(vsp)) {
         Logger.getLogger().error(`Resource ${req.query.id} is not a VSP`)
         return res.status(400).json({ error: 'Resource is not a Value Set Package' })
+      }
+
+      if (isImplementer(session) && vsp?.status === 'draft') {
+        return res.status(403).json({ error: 'Access denied' })
       }
 
       return res.status(200).send({ vsp })
@@ -86,5 +91,5 @@ const updateVSP = async (req: NextApiRequest, res: NextApiResponse<fhir4.Library
 
 export default handler({
   GET: { action: retrieveVSP },
-  PUT: { action: updateVSP, access: ['admin', 'editor'] },
+  PUT: { action: updateVSP, access: ['admin', 'publisher', 'editor'] },
 })

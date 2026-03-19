@@ -6,15 +6,20 @@ import { HapiError } from '@/types/hapiError'
 import Logger from '@/helpers/server/logger'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
 import updateOwnedResources from '@/helpers/server/owned'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 // this only gets the program library
-const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse) => {
+const retrieveProgramLibrary = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   if (is.string(req?.query?.id)) {
     try {
       const program = (await FhirClient.getInstance().read({
         resourceType: 'Library',
         id: req.query.id as string
       })) as fhir4.Library
+
+      if (isImplementer(session) && program?.status === 'draft') {
+        return res.status(403).json({ error: 'Access denied' })
+      }
 
       const asstSearchResult = await FhirClient.getInstance().search({
         resourceType: 'Basic',
@@ -84,7 +89,15 @@ const updateProgramLibrary = async (req: NextApiRequest, res: NextApiResponse<fh
   }
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '5mb',
+    },
+  }
+}
+
 export default handler({
-  GET: { action: retrieveProgramLibrary },
-  PUT: { action: updateProgramLibrary, access: ['admin', 'editor'] },
+  GET: { action: retrieveProgramLibrary, access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer'] },
+  PUT: { action: updateProgramLibrary, access: ['admin', 'publisher', 'editor'] },
 })

@@ -309,8 +309,8 @@ export const config = {
 
 // overall role-based protections to route methods are not specific enough for some (e.g., posting a bundle of deletes)
 export default handler({
-  GET: { action: getPassthroughRequest, access: ['admin'] },
-  PUT: { action: putPassthroughRequest, access: ['admin'] },
-  POST: { action: postPassthroughRequest, access: ['admin'] },
-  DELETE: { action: deletePassthroughRequest, access: ['admin'] },
+  GET: { action: getPassthroughRequest, access: ['admin', 'publisher'] },
+  PUT: { action: putPassthroughRequest, access: ['admin', 'publisher'] },
+  POST: { action: postPassthroughRequest, access: ['admin', 'publisher'] },
+  DELETE: { action: deletePassthroughRequest, access: ['admin', 'publisher'] },
 })

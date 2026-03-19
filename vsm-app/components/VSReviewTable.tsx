@@ -70,7 +70,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions, handl
           isMulti={true}
           defaultValue={row.selectedConditions}
           menuPortalTarget={document.body}
-          styles={reactSelectOptionStyle()}
+          styles={reactSelectOptionStyle({ minWidth: '250px' })}
           onChange={(e) => {
             handleUpdateConditions({ conditionInfo: e, vsId: row.selectedValueSet.id })
           }}
@@ -94,7 +94,7 @@ const VSReviewTable = ({ vsToAdd, setGrouperVSets, handleUpdateConditions, handl
           isClearable={false}
           defaultValue={priorityLevelOptions?.find(opt => opt.value === row.selectedPriority)}
           menuPortalTarget={document.body}
-          styles={reactSelectOptionStyle()}
+          styles={reactSelectOptionStyle({ minWidth: '250px' })}
           onChange={(e) => {
             handleUpdatePriority({ priorityInfo: e!, vsId: row.selectedValueSet.id })
           }}

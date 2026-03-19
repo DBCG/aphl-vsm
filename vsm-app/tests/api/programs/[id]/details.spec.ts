@@ -45,7 +45,7 @@ describe('/api/programs/[id]/details', () => {
       ]
     })
 
-    fetchGrouperValueSets.mockResolvedValue([
+    ;(fetchGrouperValueSets as jest.Mock).mockResolvedValue([
       {
         resource: 'Bundle',
         type: 'searchset',

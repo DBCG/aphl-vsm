@@ -5,7 +5,7 @@ import handler from '@/helpers/server/handler'
 import FhirClient from '@/backend/clients/FhirCdrClient'
 import { getVSPManifestVersions, setExpansionParametersForVSP } from '@/helpers/valueSetHelpers'
 import Logger from '@/helpers/server/logger'
-import { VSMSession } from '@/helpers/rolesHelper'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 import { ExtendedManifestData } from '@/types/vspTypes'
 
 /**
@@ -14,6 +14,17 @@ import { ExtendedManifestData } from '@/types/vspTypes'
  */
 const getManifestVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession) => {
   const userId = session.user.id
+
+  if (isImplementer(session)) {
+    const vsp = (await FhirClient.getInstance().read({
+      resourceType: 'Library',
+      id: req.query.id as string
+    })) as fhir4.Library
+    if (vsp?.status === 'draft') {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+  }
+
   const vsacFhirClient = await TerminologyFhirClient.getClient(userId)
   const resourceType = (req.query.resourceType as string) || 'CodeSystem'
 
@@ -190,7 +201,7 @@ const updateManifest = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  GET: { access: ['admin', 'editor', 'reviewer'], action: getManifestVersions },
-  PUT: { access: ['admin', 'editor'], action: updateManifest },
-  POST: { access: ['admin', 'editor'], action: validateManifestVersions }
+  GET: { access: ['admin', 'publisher', 'editor', 'reviewer', 'implementer'], action: getManifestVersions },
+  PUT: { access: ['admin', 'publisher', 'editor'], action: updateManifest },
+  POST: { access: ['admin', 'publisher', 'editor'], action: validateManifestVersions }
 })

@@ -321,5 +321,5 @@ const updateValueSet = async (req: UpdateValueSetBody, res: NextApiResponse<numb
 
 export default handler({
   GET: { action: getValueSet },
-  PUT: { action: updateValueSet, access: ['admin', 'editor'] }
+  PUT: { action: updateValueSet, access: ['admin', 'publisher', 'editor'] }
 })

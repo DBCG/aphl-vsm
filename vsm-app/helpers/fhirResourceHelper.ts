@@ -33,8 +33,14 @@ type AddTerminologyEndpointToParameters = {
 }
 
 const addTerminologyEndpointToParameters = async ({parameters, address, userId }: AddTerminologyEndpointToParameters): Promise<fhir4.Parameters> => {
-  const vsCreds = await tsCredentialService.getVsacCredentials(userId)
-  
+  let vsCreds
+  try {
+    vsCreds = await tsCredentialService.getVsacCredentials(userId)
+  } catch {
+    // No credentials stored — proceed without a terminology endpoint
+    return parameters
+  }
+
   const updatedParameters = structuredClone(parameters)
   const endpointWithVsacCredentials: fhir4.Endpoint = {
     resourceType: 'Endpoint',

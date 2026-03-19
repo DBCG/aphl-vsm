@@ -20,11 +20,11 @@ describe('TerminologyFhirClient', () => {
     (tsCredentialService.getVsacCredentials as jest.Mock).mockResolvedValue(creds)
 
     // Set up dummy search and read methods on the client
-    TerminologyFhirClient.client.search = jest.fn().mockResolvedValue({
+    TerminologyFhirClient.client!.search = jest.fn().mockResolvedValue({
       resourceType: 'Bundle',
       entry: [],
     })
-    TerminologyFhirClient.client.read = jest.fn().mockResolvedValue({
+    TerminologyFhirClient.client!.read = jest.fn().mockResolvedValue({
       resourceType: 'ValueSet',
     })
 
@@ -35,21 +35,21 @@ describe('TerminologyFhirClient', () => {
 
     // Check that the auth header is set correctly
     const expectedAuth = `Basic ${Buffer.from(`${creds.username}:${creds.password}`).toString('base64')}`
-    expect(TerminologyFhirClient.client.customHeaders['Authorization']).toBe(expectedAuth)
+    expect((TerminologyFhirClient.client!.customHeaders as Record<string, string>)['Authorization']).toBe(expectedAuth)
 
     // Verify that the returned client is decorated (i.e. its search method is replaced)
-    expect(client.search).not.toBe(TerminologyFhirClient.client.search)
+    expect(client.search).not.toBe(TerminologyFhirClient.client!.search)
   })
 
   it('getClient returns client if auth is already set and no userId provided', async () => {
     // Manually set the auth header on the client.
-    TerminologyFhirClient.client.customHeaders = { Authorization: 'Basic dummyAuth' }
+    TerminologyFhirClient.client!.customHeaders = { Authorization: 'Basic dummyAuth' }
     // Also, provide dummy implementations for search and read.
-    TerminologyFhirClient.client.search = jest.fn().mockResolvedValue({
+    TerminologyFhirClient.client!.search = jest.fn().mockResolvedValue({
       resourceType: 'Bundle',
       entry: [],
     })
-    TerminologyFhirClient.client.read = jest.fn().mockResolvedValue({
+    TerminologyFhirClient.client!.read = jest.fn().mockResolvedValue({
       resourceType: 'ValueSet',
     })
 
@@ -57,12 +57,12 @@ describe('TerminologyFhirClient', () => {
     const client = await TerminologyFhirClient.getClient()
 
     // Should not throw and should return a decorated client.
-    expect(client.search).not.toBe(TerminologyFhirClient.client.search)
+    expect(client.search).not.toBe(TerminologyFhirClient.client!.search)
   })
 
   it('getClient throws an error if auth is not set and no userId provided', async () => {
     // Ensure the client does not have auth set.
-    TerminologyFhirClient.client.customHeaders = {}
+    TerminologyFhirClient.client!.customHeaders = {}
 
     await expect(TerminologyFhirClient.getClient()).rejects.toThrow(
       'Terminology credentials are required to access the terminology server'
@@ -78,8 +78,8 @@ describe('TerminologyFhirClient', () => {
       basicAuthHeader: newAuthHeader,
     })
 
-    expect(TerminologyFhirClient.client.baseUrl).toBe(newBaseUrl)
-    expect(TerminologyFhirClient.client.customHeaders['Authorization']).toBe(`Basic ${newAuthHeader}`)
+    expect(TerminologyFhirClient.client!.baseUrl).toBe(newBaseUrl)
+    expect((TerminologyFhirClient.client!.customHeaders as Record<string, string>)['Authorization']).toBe(`Basic ${newAuthHeader}`)
     expect(TerminologyFhirClient.getClientName()).toBe('custom')
   })
 })

@@ -3,8 +3,11 @@ import { getProviders, signIn } from 'next-auth/react'
 import { getServerSession } from 'next-auth/next'
 import { AuthOptions } from '../api/auth/[...nextauth]'
 import { Box, Button, Typography } from '@mui/material'
+import { useRouter } from 'next/router'
 
 export default function SignIn({ providers }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const router = useRouter()
+  const callbackUrl = (router.query.callbackUrl as string) || '/'
   return (
     <Box
       sx={{
@@ -27,7 +30,7 @@ export default function SignIn({ providers }: InferGetServerSidePropsType<typeof
       </Typography>
       {Object.values(providers).map((provider: any) => (
         <div key={provider?.name || 'provider-name'}>
-          <Button variant='contained' size='large' id="signin" sx={{ mt: 8, width: '150px' }} onClick={() => signIn(provider.id)}>
+          <Button variant='contained' size='large' id="signin" sx={{ mt: 8, width: '150px' }} onClick={() => signIn(provider.id, { callbackUrl })}>
             Sign in
           </Button>
         </div>
