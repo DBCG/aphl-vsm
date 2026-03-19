@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
 
-    "sourceMap": true,
-    "inlineSources": true,
-
     "target": "es5",
     "downlevelIteration": true,
     "lib": ["dom", "dom.iterable", "esnext"],
