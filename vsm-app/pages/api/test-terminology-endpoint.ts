@@ -26,7 +26,7 @@ const testTermEndpoint = async (req: NextApiRequest, res: NextApiResponse, sessi
 
     const authType = matchingEndpoint.extension?.find((ext: fhir4.Extension) => ext.url === AUTHENTICATION_TYPE_URL)?.valueString
     let basicAuthHeader: string | undefined
-    if (authType === 'basic') {
+    if (authType === 'Basic Authentication') {
       const authCredentials = await tsCredentialService.getCredentials(session?.user?.id, endpointId as string)
       basicAuthHeader = Buffer.from(`${authCredentials.username}:${authCredentials.password}`).toString('base64')
     }
