@@ -113,37 +113,80 @@ async function downloadAndExtractIG(igPackageId: string, igVersion: string): Pro
 }
 
 /**
- * Call $data-requirements operation on ImplementationGuide
+ * Ensure the ImplementationGuide resource exists on the FHIR server.
+ * Uses a cache-first approach: tries to read the IG from the server,
+ * and only downloads from Simplifier + PUTs if not found.
+ *
+ * Cache assumption: Published IG package versions on Simplifier are immutable.
+ * Once cached on the FHIR server, the IG is always considered valid.
+ * If pre-release/CI build versions need support in the future, a cache
+ * invalidation strategy would be needed.
+ */
+async function ensureIGOnFhirServer(
+  igPackageId: string,
+  igVersion: string
+): Promise<{ ig: fhir4.ImplementationGuide; igResourceId: string } | null> {
+  const igResourceId = `${igPackageId}-${igVersion}`
+
+  // Try to read from FHIR server (cache hit)
+  try {
+    Logger.getLogger().info(`Checking FHIR server for ImplementationGuide/${igResourceId}`)
+    const existing = await FhirClient.getInstance().read({
+      resourceType: 'ImplementationGuide',
+      id: igResourceId
+    }) as fhir4.ImplementationGuide
+
+    if (existing?.resourceType === 'ImplementationGuide') {
+      Logger.getLogger().info(`Cache hit: ImplementationGuide/${igResourceId} already on FHIR server`)
+      return { ig: existing, igResourceId }
+    }
+  } catch (err: any) {
+    // 404 or other error means we need to download
+    Logger.getLogger().info(`ImplementationGuide/${igResourceId} not found on FHIR server (${err.response?.status || err.message}), downloading from Simplifier`)
+  }
+
+  // Download from Simplifier
+  const ig = await downloadAndExtractIG(igPackageId, igVersion)
+  if (!ig) {
+    return null
+  }
+
+  // Set the ID and PUT to FHIR server
+  ig.id = igResourceId
+  try {
+    Logger.getLogger().info(`Caching ImplementationGuide/${igResourceId} on FHIR server`)
+    await FhirClient.getInstance().update({
+      resourceType: 'ImplementationGuide',
+      id: igResourceId,
+      body: ig
+    })
+    Logger.getLogger().info(`Cached ImplementationGuide/${igResourceId} on FHIR server`)
+  } catch (err: any) {
+    Logger.getLogger().error(`Failed to PUT ImplementationGuide/${igResourceId}: ${err.message || err}`)
+    return null
+  }
+
+  return { ig, igResourceId }
+}
+
+/**
+ * Call $data-requirements operation on ImplementationGuide (instance-level GET)
  * Uses undici fetch with extended timeouts for long-running operations
  */
-async function callDataRequirements(ig: fhir4.ImplementationGuide): Promise<fhir4.Library | null> {
+async function callDataRequirements(igResourceId: string): Promise<fhir4.Library | null> {
   let response: any = null
   try {
-    Logger.getLogger().info(`Calling $data-requirements on IG: ${ig.id}`)
-    Logger.getLogger().info(`IG URL: ${ig.url}, Version: ${ig.version}`)
+    Logger.getLogger().info(`Calling $data-requirements on ImplementationGuide/${igResourceId}`)
 
     // Use undici fetch with long timeouts for this operation
     const { fetch: f, Agent } = require('undici')
     const baseUrl = FhirClient.getInstance().baseUrl
-    const url = `${baseUrl}/ImplementationGuide/$data-requirements`
+    const url = `${baseUrl}/ImplementationGuide/${igResourceId}/$data-requirements`
 
-    // Wrap IG in Parameters resource
-    const parametersInput: fhir4.Parameters = {
-      resourceType: 'Parameters',
-      parameter: [
-        {
-          name: 'implementationGuide',
-          resource: ig
-        }
-      ]
-    }
-
-    Logger.getLogger().info(`Making POST request to: ${url}`)
-    Logger.getLogger().info(`Request body size: ${JSON.stringify(parametersInput).length} bytes`)
+    Logger.getLogger().info(`Making GET request to: ${url}`)
 
     response = await f(url, {
-      method: 'POST',
-      body: JSON.stringify(parametersInput),
+      method: 'GET',
       dispatcher: new Agent({
         connectTimeout: 10 * 60 * 1000,  // 10 minutes
         headersTimeout: 10 * 60 * 1000,
@@ -151,7 +194,6 @@ async function callDataRequirements(ig: fhir4.ImplementationGuide): Promise<fhir
         keepAliveMaxTimeout: 10 * 60 * 1000
       }),
       headers: {
-        'Content-Type': 'application/fhir+json',
         'Accept': 'application/fhir+json',
         ...FhirClient.getInstance().customHeaders
       }
@@ -320,9 +362,10 @@ async function callInferManifestParameters(moduleDefinition: fhir4.Library): Pro
           }
         }
       }
-      // ValueSet versions use canonicalVersion parameter with valueCanonical (canonical|version)
-      else if (param.name === 'canonicalVersion' && param.valueCanonical) {
-        const [canonical, version] = param.valueCanonical.split('|')
+      // ValueSet versions use canonicalVersion parameter (canonical|version)
+      // Accept both valueCanonical (spec-correct) and valueString (current server behavior)
+      else if (param.name === 'canonicalVersion' && (param.valueCanonical || param.valueString)) {
+        const [canonical, version] = (param.valueCanonical || param.valueString)!.split('|')
         if (canonical) {
           if (!valueSets[canonical]) {
             valueSets[canonical] = []
@@ -417,18 +460,18 @@ DependencyQueue.process(async function (job: any, done) {
 
     const warnings: string[] = []
 
-    // Step 1: Download and extract ImplementationGuide from package
-    Logger.getLogger().info('Step 1: Downloading and extracting ImplementationGuide')
+    // Step 1: Ensure ImplementationGuide exists on FHIR server
+    Logger.getLogger().info('Step 1: Ensuring ImplementationGuide is available on FHIR server')
     const progress1 = {
-      step: 'Downloading and extracting ImplementationGuide',
+      step: 'Ensuring ImplementationGuide is available on FHIR server',
       current: 1,
       total: 3
     }
     job.progress(progress1)
     Logger.getLogger().info(`Progress updated: ${JSON.stringify(progress1)}`)
-    const ig = await downloadAndExtractIG(igPackageId, igVersion)
+    const ensureResult = await ensureIGOnFhirServer(igPackageId, igVersion)
 
-    if (!ig) {
+    if (!ensureResult) {
       const result: DependencyJobResult = {
         manifestData: { codeSystems: {}, valueSets: {} },
         igName: '',
@@ -439,6 +482,8 @@ DependencyQueue.process(async function (job: any, done) {
       await cache.hset(cacheKey, 'status', JOB_STATUS.COMPLETED, 'result', JSON.stringify(result))
       return done(null, result)
     }
+
+    const { ig, igResourceId } = ensureResult
 
     // Extract IG name and title for auto-population
     const igName = ig.name || ''
@@ -453,7 +498,7 @@ DependencyQueue.process(async function (job: any, done) {
     }
     job.progress(progress2)
     Logger.getLogger().info(`Progress updated: ${JSON.stringify(progress2)}`)
-    const moduleDefinition = await callDataRequirements(ig)
+    const moduleDefinition = await callDataRequirements(igResourceId)
 
     if (!moduleDefinition) {
       const result: DependencyJobResult = {
