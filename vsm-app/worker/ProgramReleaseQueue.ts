@@ -5,14 +5,6 @@ import FhirClient from '@/backend/clients/FhirCdrClient'
 import Cache from '@/cache'
 import { removeDraftFromVersionString } from '@/utils'
 import { logSimpleError } from '@/helpers/server/simpleHapiError'
-import {
-  getReleaseDescription,
-  getReleaseLabel,
-  setReleaseDescription,
-  setEffectivePeriodStart,
-  setReleaseLabel,
-  removeReleaseLabel
-} from '@/helpers/libraryHelpers'
 import { addTerminologyEndpointToParameters } from '@/helpers/fhirResourceHelper'
 import Logger from '@/helpers/server/logger'
 import { ReleasePayload } from '@/components/modals/ReleaseModal'
@@ -47,7 +39,7 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     return
   }
 
-  if (!!releaseAsVersion) {
+  if (releaseAsVersion) {
     program.version = releaseAsVersion
   }
 
@@ -57,7 +49,7 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
       parameter: [
         {
           name: 'version',
-          valueString: removeDraftFromVersionString(program?.version!)
+          valueString: removeDraftFromVersionString(program.version!)
         },
         {
           name: 'versionBehavior',
@@ -78,6 +70,7 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
 
   const url = `${FhirClient.getInstance().baseUrl}/Library/${programId as string}/$release`
   Logger.getLogger().info('Preparing for release of program id: '+ programId)
+
   let response = await f(url, {
     body: JSON.stringify(releasePayload),
     method: 'POST',
@@ -89,11 +82,13 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     }),
     // @ts-ignore
     headers: {
-      'Content-Type': 'application/fhir+json',
-      ...FhirClient.getInstance().customHeaders
+      ...FhirClient.getInstance().customHeaders,
+      'Content-Type': 'application/fhir+json'
     }
   })
 
+  Logger.getLogger().info(`$release responded with status: ${response.status}`)
+  
   if (!response.ok) {
     const errorText = await response.text();
     const error = 'Something went wrong with the release: ' + errorText
@@ -107,7 +102,7 @@ ProgramReleaseQueue.process(async function (job: Queue.Job<ProgramReleaseQueueJo
     //   id: programId as string,
     //   body: program
     // })
-    Logger.getLogger().info('Removed release label due to program failure to release')
+    // Logger.getLogger().info('Removed release label due to program failure to release')
     done(null, { error })
   } else {
     Logger.getLogger().info('Finished')
