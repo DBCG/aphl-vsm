@@ -48,10 +48,6 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
     return res.status(404).send({ error: 'Program not found' })
   }
 
-  if (program == null) {
-    return res.status(404).send({ error: 'Program not found' })
-  }
-
   // TypeScript now knows program is Library, no ! needed
   program = setReleaseDescription(program, releaseDescription.trim())
   program = setReleaseLabel(program, releaseLabel.trim())
