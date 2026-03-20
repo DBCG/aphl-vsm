@@ -30,6 +30,10 @@ export const AuthOptions = {
         token.user = user
         token.account = account
       }
+      if (token.account?.access_token) {
+        const decodedToken = jwt_decode(token.account.access_token)
+        token.roles = decodedToken?.resource_access?.[process.env.KEYCLOAK_ID]?.roles || []
+      }
       return token
     }
   },

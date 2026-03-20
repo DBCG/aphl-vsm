@@ -45,21 +45,20 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
   }
 
   if (program == null) {
-    res.status(404).send({ error: 'Program not found' })
+    return res.status(404).send({ error: 'Program not found' })
   }
 
-  program = setReleaseDescription(program!, releaseDescription.trim())
-  program = setReleaseLabel(program, releaseLabel.trim())
-
+  // TypeScript now knows program is Library, no ! needed
   program = setReleaseDescription(program, releaseDescription.trim())
   program = setReleaseLabel(program, releaseLabel.trim())
+
   // if effectiveStartDate is set, add it
   if (typeof effectiveStartDate === 'string') {
     program = setEffectivePeriodStart(program, effectiveStartDate)
   }
 
   if (!getReleaseLabel(program) || !getReleaseDescription(program)) {
-    res.status(400).send({
+    return res.status(400).send({
       error: 'Release label and description are required'
     })
   }
@@ -73,7 +72,7 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
   } catch (e) {
     logSimpleError(e)
     const error = 'Error encountered updating Library for release'
-    res.status(500).send({ error })
+    return res.status(500).send({ error })
   }
 
   if (!!releaseAsVersion) {
@@ -110,6 +109,6 @@ const release = async (req: ReleaseRequest, res: NextApiResponse, session: VSMSe
 export default handler({
   POST: {
     action: release,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher']
   }
 })

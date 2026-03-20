@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { withAuth } from 'next-auth/middleware'
+import { NextResponse } from 'next/server'
+import { withAuth, NextRequestWithAuth } from 'next-auth/middleware'
 
 export const config = {
   matcher: [
@@ -13,7 +13,15 @@ export const config = {
   ]
 }
 
-export default withAuth(function middleware(req: NextRequest) {
+export default withAuth(function middleware(req: NextRequestWithAuth) {
+  const roles = (req.nextauth.token?.roles as string[]) || []
+  const isAdmin = roles.includes('admin')
+
+  const adminOnlyPaths = ['/settings/create-endpoint', '/settings/edit-endpoint']
+  if (adminOnlyPaths.some(p => req.nextUrl.pathname.startsWith(p)) && !isAdmin) {
+    return NextResponse.redirect(new URL('/programs', req.url))
+  }
+
   const addHeader = ['POST', 'PUT', 'DELETE'].includes(req.method)
   if (addHeader) {
     const requestHeaders = new Headers(req.headers)

@@ -20,6 +20,6 @@ const generateSecret = async (req: NextApiRequest, res: NextApiResponse, session
 }
 
 export default handler({
-  GET: { action: getMaskedSecret, access: ['admin']},
-  POST: {action: generateSecret, access: ['admin']}
+  GET: { action: getMaskedSecret, access: ['admin', 'publisher']},
+  POST: {action: generateSecret, access: ['admin', 'publisher']}
 });

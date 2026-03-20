@@ -16,7 +16,7 @@ const sampleHapiError = {
   path: 'around/here/somewhere'
 }
 
-const objOpOutcome = {
+const objOpOutcome: fhir4.OperationOutcome = {
   resourceType: 'OperationOutcome',
   issue: [
     {
@@ -82,11 +82,11 @@ describe('formatErrors()', () => {
       code: "-",
       diagnostics: ""
     }]
-    const err1 = formatErrors(undefined)
-    const err2 = formatErrors({})
-    const err3 = formatErrors({ error: 'yikes' })
+    const err1 = formatErrors(undefined as any)
+    const err2 = formatErrors({} as any)
+    const err3 = formatErrors({ error: 'yikes' } as any)
     const err4 = formatErrors('<Bundle></Bundle>')
-    const err5 = formatErrors([])
+    const err5 = formatErrors([] as any)
 
     expect(err1).toStrictEqual(defaultErrorObj)
     expect(err2).toStrictEqual(defaultErrorObj)

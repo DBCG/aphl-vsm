@@ -25,6 +25,6 @@ const retire = async (req: NextApiRequest, res: NextApiResponse<{ message: strin
 export default handler({
   POST: {
     action: retire,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })

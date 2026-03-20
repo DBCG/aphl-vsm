@@ -5,16 +5,21 @@ import { isReleaseInProgress } from './libraryHelpers'
 // ContentEditor - Review, Approve, Create drafts, edit any draft version
 // ContentAdministrator - Review, Approve, Create drafts, Edit any draft version, Release
 
+// implementerPermissions is intentionally empty: implementers are read-only and have no write actions
+const implementerPermissions: string[] = []
 const reviewerPermissions = ['approve']
 const editorPermissions = ['clone', 'approve', 'edit', 'withdraw', 'retire', 'delete']
 const adminPermissions = Array.from(new Set(['release', ...reviewerPermissions, ...editorPermissions])) // unique permissions
+const publisherPermissions = [...adminPermissions]
 
-type RolesType = 'admin' | 'editor' | 'reviewer'
+type RolesType = 'admin' | 'editor' | 'reviewer' | 'implementer' | 'publisher'
 
 const permissions: { [key in RolesType]: string[] } = {
   admin: adminPermissions,
+  publisher: publisherPermissions,
   editor: editorPermissions,
-  reviewer: reviewerPermissions
+  reviewer: reviewerPermissions,
+  implementer: implementerPermissions
 }
 
 export type VSMSession = Session & {
@@ -25,35 +30,55 @@ export type VSMSession = Session & {
   }
 }
 
+// Role hierarchy: highest privilege first. Used to resolve the effective role when a user has multiple.
+const roleHierarchy = ['admin', 'publisher', 'editor', 'reviewer', 'implementer'] as const
+
+export const getHighestPermissionOfUser = (roles: string[] | string | null): string | null => {
+  if (!roles) return null
+  if (typeof roles === 'string') return roles
+  for (const role of roleHierarchy) {
+    if (roles.includes(role)) return role
+  }
+  return null
+}
+
 export const can = (session: VSMSession, requestedPermission: string) => {
   if (!session || session?.user?.roles == null) {
     return false
   }
-  // TODO: when users have more than one role we should look into modifying this
-  const allRoles = session.user?.roles[0]
-  let highestRole
-  const roles = ['reviewer', 'editor', 'admin']
-
-  for (const role of roles) {
-    if (allRoles?.includes(role)) {
-      highestRole = role
-    }
-  }
-
-  if (highestRole === 'admin' || highestRole === 'editor' || highestRole === 'reviewer') {
-    return permissions?.[highestRole]?.includes(requestedPermission.toLowerCase())
-  } else {
+  const highestRole = getHighestPermissionOfUser(session.user.roles) as RolesType | null
+  if (!highestRole || !permissions[highestRole]) {
     console.error('invalid role:', highestRole)
     return false
   }
+  return permissions[highestRole].includes(requestedPermission.toLowerCase())
+}
+
+export const getUserRole = (session: VSMSession): string | null => {
+  if (!session?.user?.roles) return null
+  const highest = getHighestPermissionOfUser(session.user.roles)
+  return highest ? highest.charAt(0).toUpperCase() + highest.slice(1) : null
 }
 
 export const isAdmin = (session: VSMSession) => {
   if (!session || session?.user?.roles == null) {
     return false
   }
+  return getHighestPermissionOfUser(session.user.roles) === 'admin'
+}
 
-  return session?.user?.roles?.includes('admin')
+export const isImplementer = (session: VSMSession) => {
+  if (!session || session?.user?.roles == null) {
+    return false
+  }
+  return getHighestPermissionOfUser(session.user.roles) === 'implementer'
+}
+
+export const isPublisher = (session: VSMSession) => {
+  if (!session || session?.user?.roles == null) {
+    return false
+  }
+  return getHighestPermissionOfUser(session.user.roles) === 'publisher'
 }
 
 interface AllowToEdit {

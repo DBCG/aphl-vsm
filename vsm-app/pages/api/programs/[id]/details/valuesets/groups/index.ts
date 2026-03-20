@@ -90,5 +90,5 @@ const updateGroupSets = async (req: NextApiRequest, res: NextApiResponse): Promi
 
 export default handler({
   GET: { action: retrieveGroupSets },
-  PUT: { action: updateGroupSets, access: ['admin', 'editor'] }
+  PUT: { action: updateGroupSets, access: ['admin', 'publisher', 'editor'] }
 })

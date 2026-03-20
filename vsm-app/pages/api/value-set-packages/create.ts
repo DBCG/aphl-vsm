@@ -149,5 +149,5 @@ const createVSP = async (req: NextApiRequest, res: NextApiResponse) => {
 }
 
 export default handler({
-  POST: { access: ['admin', 'editor'], action: createVSP }
+  POST: { access: ['admin', 'publisher', 'editor'], action: createVSP }
 })

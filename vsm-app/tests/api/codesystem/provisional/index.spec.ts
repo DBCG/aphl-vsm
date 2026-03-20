@@ -51,10 +51,9 @@ describe('/api/codesystem/provisional', () => {
       ]
     }))
 
-    // @ts-expect-error
-    const response = await handler(req, res)
-    const parsed = JSON.parse(response._getData())
-    expect(response.statusCode).toBe(200)
+    await handler(req, res)
+    const parsed = JSON.parse(res._getData())
+    expect(res._getStatusCode()).toBe(200)
     expect(parsed).toHaveLength(1)
   })
 })

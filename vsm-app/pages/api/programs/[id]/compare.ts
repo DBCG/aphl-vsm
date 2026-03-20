@@ -10,6 +10,7 @@ import {
   generateGrouperValuesetSheet
 } from '@/helpers/exportExcelHelper'
 import { getGrouperLibrary } from '@/helpers/server/serverLibraryHelper'
+import { isImplementer, VSMSession } from '@/helpers/rolesHelper'
 
 const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Promise<any> => {
 
@@ -57,20 +58,25 @@ const downloadChangeLog = async (req: NextApiRequest, res: NextApiResponse): Pro
   res.status(200).end()
 }
 
-const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Promise<void> => {
+const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse, session: VSMSession): Promise<void> => {
   try {
     const payload = (await FhirClient.getInstance().search({
       resourceType: 'Library',
       searchParams: {
-        _elements: 'version',
+        _elements: 'version,status',
         _count: 1000
       }
     })) as fhir4.Bundle
 
-    const libs =
+    let libs =
       payload?.entry
         ?.map((entry) => entry.resource)
         ?.filter((i) => i?.id !== req.query.id && i?.meta?.profile?.find((i) => i.endsWith('us-ph-specification-library'))) || []
+
+    if (isImplementer(session)) {
+      libs = libs.filter((i) => (i as fhir4.Library)?.status !== 'draft')
+    }
+
     return res.status(200).json(libs)
   } catch (error: any) {
     Logger.getLogger().error(error)
@@ -79,6 +85,6 @@ const getProgramVersions = async (req: NextApiRequest, res: NextApiResponse): Pr
 }
 
 export default handler({
-  POST: { action: downloadChangeLog },
+  POST: { action: downloadChangeLog, access: ['admin', 'publisher', 'editor', 'reviewer'] },
   GET: { action: getProgramVersions }
 })

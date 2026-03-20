@@ -77,6 +77,6 @@ const withdrawVSP = async (
 export default handler({
   POST: {
     action: withdrawVSP,
-    access: ['admin', 'editor']
+    access: ['admin', 'publisher', 'editor']
   }
 })
