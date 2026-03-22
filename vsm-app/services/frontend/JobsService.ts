@@ -18,9 +18,9 @@ class JobsService {
     return jobs
   }
 
-  // Checks for job status
+  // Retrieves completed job result (uses type-aware endpoint to find the correct queue)
   static async getExportJob(jobId: string) {
-    return apiFetch('/api/jobs/' + jobId).then((r) => r.json())
+    return apiFetch('/api/jobs/' + jobId + '/result').then((r) => r.json())
   }
 }
 
