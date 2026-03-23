@@ -56,11 +56,12 @@ const packageVSP = async (req: VSPPackageBody, res: NextApiResponse<Queue.Job | 
 
     // Queue the package job (this may take time)
     const job = await VSPPackageQueue.add(
-      { 
+      {
         vspId,
         isJson: data.json,
-        userId 
-      }, 
+        convertToCSV: metadata?.fileType === 'csv',
+        userId
+      },
       DEFAULT_JOB_CONFIG
     )
 

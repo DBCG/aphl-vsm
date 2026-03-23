@@ -5,12 +5,14 @@ import FhirClient from '@/backend/clients/FhirCdrClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 import { tsCredentialService } from '@/backend/services/TsCredentialService'
+import { convertBundleToCSVHelper } from '@/helpers/convertBundleToCSVHelper'
 
 const VSPPackageQueue = new Queue('vspPackage', QUEUE_REDIS_URL)
 
 interface VSPPackageJobData {
   vspId: string
   isJson: boolean
+  convertToCSV?: boolean
   userId: string
 }
 
@@ -24,10 +26,12 @@ VSPPackageQueue.process(async function (job: any, done) {
   Logger.getLogger().info(`Job ID: ${job.id}`)
   Logger.getLogger().info(`Raw job.data: ${JSON.stringify(job.data)}`)
 
-  const { vspId, isJson, userId } = job.data as VSPPackageJobData
+  const { vspId, isJson, convertToCSV, userId } = job.data as VSPPackageJobData
+  // CSV conversion requires JSON format from the server
+  const requestJson = isJson || convertToCSV
   Logger.getLogger().info(`VSP ID extracted: ${vspId}`)
   Logger.getLogger().info(`VSP ID type: ${typeof vspId}`)
-  Logger.getLogger().info(`Format: ${isJson ? 'JSON' : 'XML'}`)
+  Logger.getLogger().info(`Format: ${convertToCSV ? 'CSV (via JSON)' : requestJson ? 'JSON' : 'XML'}`)
 
   const cache = await Cache.getInstance()
   const cacheKey = `user:${userId}:job:${job.id}`
@@ -141,8 +145,8 @@ VSPPackageQueue.process(async function (job: any, done) {
     const url = `${baseUrl}/Library/${vspId}/$package`
 
     // Use the appropriate Accept header based on desired format
-    const acceptHeader = isJson ? 'application/fhir+json' : 'application/fhir+xml'
-    Logger.getLogger().info(`Calling $package at: ${url} (format: ${isJson ? 'JSON' : 'XML'})`)
+    const acceptHeader = requestJson ? 'application/fhir+json' : 'application/fhir+xml'
+    Logger.getLogger().info(`Calling $package at: ${url} (format: ${requestJson ? 'JSON' : 'XML'})`)
     Logger.getLogger().info(`VSP ID: ${vspId}`)
     Logger.getLogger().info(`VSAC Endpoint: https://cts.nlm.nih.gov/fhir`)
 
@@ -197,6 +201,17 @@ VSPPackageQueue.process(async function (job: any, done) {
 
     Logger.getLogger().info('VSP Package job completed successfully')
     Logger.getLogger().info('='.repeat(80))
+
+    // If CSV was requested, convert the JSON bundle to CSV
+    if (convertToCSV) {
+      Logger.getLogger().info('Converting package to CSV format')
+      const bundle = JSON.parse(packageContent) as fhir4.Bundle
+      const csvExport = convertBundleToCSVHelper(bundle)
+      return done(null, {
+        response: { formatType: 'csv', data: csvExport },
+        bundleSize: packageContent.length
+      })
+    }
 
     // Return in the same structure as Programs for compatibility with ExportNotification
     // ExportNotification expects job.returnvalue.response to contain the package content
