@@ -18,6 +18,8 @@ import ManifestDetailTable from '@/components/ManifestDetailTable'
 import VSPMetadata from '@/components/VSPMetadata'
 import { Row, Col, MetadataTitle, ManifestContainer } from './styles'
 import { apiFetch } from '@/utils'
+import NotificationStore from '@/store/NotificationStore'
+import { JOB_TYPE } from '@/constants'
 
 const ActionButtonContainer = styled.div`
   display: flex;
@@ -126,28 +128,41 @@ const VSPDetails = ({ program: initialVSP }: LibraryServerSideProps) => {
   // Action handlers
   const handleReleaseDraft = async () => {
     setReleaseLoading(true)
-
-    const releaseParameters: fhir4.Parameters = {
-      resourceType: 'Parameters',
-      parameter: []
-    }
-
-    const parameters = JSON.stringify(releaseParameters)
-    const result = await apiFetch(`/api/value-set-packages/${id}/release`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: parameters })
-
-    if (!result.ok) {
-      const res = await result.json()
-      setError({
-        error: [`Error occurred while releasing VSP: ${id}.`, `${res.error}`]
+    try {
+      const result = await apiFetch(`/api/value-set-packages/${id}/release`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latestFromTxServer: false })
       })
+
+      if (!result.ok) {
+        const res = await result.json()
+        setError({
+          error: [`Error occurred while releasing VSP: ${id}.`, `${res.error}`]
+        })
+      } else {
+        const res = await result.json()
+        NotificationStore.addJob({
+          jobId: res.id,
+          jobType: JOB_TYPE.RELEASE,
+          metadata: {
+            programId: id,
+            programTitle: currentVSP?.title || id,
+            latestFromTxServer: false
+          },
+          onSuccess: async () => {
+            toast.success(`VSP ${id} released successfully.`)
+            router.replace(router.asPath)
+          },
+          onFailure: (error: string) => toast.error(`Release failed for VSP ${id}: ${error}`)
+        })
+        toast.info('VSP release in progress.')
+      }
+    } catch (e) {
+      setError({ error: ['An unexpected error occurred.'] })
+    } finally {
       setReleaseLoading(false)
       setReleaseModalOpen(false)
-    } else {
-      setReleaseLoading(false)
-      setReleaseModalOpen(false)
-      toast.success(`VSP ${id} released successfully.`)
-      // Refresh the page to get updated VSP
-      router.replace(router.asPath)
     }
   }
 

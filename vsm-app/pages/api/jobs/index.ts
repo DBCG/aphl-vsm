@@ -7,6 +7,7 @@ import PackageQueue from '@/worker/PackageQueue'
 import { Jobs, JobData } from '@/types/jobTypes'
 import ChangeLogQueue from '@/worker/ChangeLogQueue'
 import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import VSPReleaseQueue from '@/worker/VSPReleaseQueue'
 import VSPDiffQueue from '@/worker/VSPDiffQueue'
 import VSPPackageQueue from '@/worker/VSPPackageQueue'
 
@@ -53,6 +54,7 @@ const deleteAllJobs = async (req: NextApiRequest, res: NextApiResponse, session:
   await Promise.all(jobIds.map((jobId) => ChangeLogQueue.getJob(jobId).then((job) => job?.remove())))
   await Promise.all(jobIds.map((jobId) => VSPDiffQueue.getJob(jobId).then((job) => job?.remove())))
   await Promise.all(jobIds.map((jobId) => ProgramReleaseQueue.getJob(jobId).then((job) => job?.remove())))
+  await Promise.all(jobIds.map((jobId) => VSPReleaseQueue.getJob(jobId).then((job) => job?.remove())))
 
   await multiRun.exec()
   await cache.del(`user:${userId}:jobs`)

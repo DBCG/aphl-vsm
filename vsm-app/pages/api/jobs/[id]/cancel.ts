@@ -6,6 +6,7 @@ import DependencyQueue from '@/worker/DependencyQueue'
 import PackageQueue from '@/worker/PackageQueue'
 import VSPPackageQueue from '@/worker/VSPPackageQueue'
 import ProgramReleaseQueue from '@/worker/ProgramReleaseQueue'
+import VSPReleaseQueue from '@/worker/VSPReleaseQueue'
 import ChangeLogQueue from '@/worker/ChangeLogQueue'
 import VSPDiffQueue from '@/worker/VSPDiffQueue'
 import Cache from '@/cache'
@@ -67,8 +68,12 @@ const cancelJob = async (req: NextApiRequest, res: NextApiResponse<CancelJobResp
         }
         break
       case JOB_TYPE.RELEASE:
-        queue = ProgramReleaseQueue
+        queue = VSPReleaseQueue
         job = await queue.getJob(jobId)
+        if (!job) {
+          queue = ProgramReleaseQueue
+          job = await queue.getJob(jobId)
+        }
         break
       case JOB_TYPE.CHANGE_LOG:
         // For changelog jobs, try both queues (Programs use ChangeLogQueue, VSPs use VSPDiffQueue)
