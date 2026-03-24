@@ -3,12 +3,12 @@
 // https://alphora.atlassian.net/browse/APHL-1187
 
 import FhirClient from '@/backend/clients/FhirCdrClient'
-import { QUEUE_REDIS_URL } from '@/config'
+import { QUEUE_OPTIONS } from '@/config'
 import TerminologyFhirClient from '@/backend/clients/TerminologyFhirClient'
 import Logger from '@/helpers/server/logger'
 import Queue from 'bull'
 
-const VSDownloadQueue = new Queue('vsDownload', QUEUE_REDIS_URL)
+const VSDownloadQueue = new Queue('vsDownload', QUEUE_OPTIONS)
 
 VSDownloadQueue.process(async function (job: any, done) {
   const { urls, userId } = job.data
