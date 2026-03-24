@@ -9,7 +9,15 @@ const JOB_EXPIRATION = process.env.JOB_EXPIRATION || 86400
 const REDIS_OPTIONS = {
   host: REDIS_HOST || 'localhost',
   port: parseInt(redisPort, 10),
-  tls: process.env.REDIS_TLS === 'true' ? { rejectUnauthorized: process.env.REDIS_TLS_REJECT_UNAUTHORIZED } : undefined,
+  tls: process.env.REDIS_TLS
+    ? {
+      rejectUnauthorized: !!JSON.parse(
+        process.env.REDIS_REJECT_UNAUTHORIZED || 'false'
+      ),
+    }
+    : undefined
+
+  
   password: process.env.REDIS_PASSWORD || '',
 }
 
